@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Entornos virtuales
+aria-env/
+venv/
+.env/
+
+# ARIA — archivos privados y datos
+.aria/
+*.db
+data/
+aria-data/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Sistema
+.DS_Store
+*.swp
+*~
+
+# Logs
+*.log
