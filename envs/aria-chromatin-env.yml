@@ -1,39 +1,44 @@
 name: aria-chromatin-env
+
 channels:
   - conda-forge
   - bioconda
   - defaults
+channel_priority: strict
 
 dependencies:
   - python=3.11
-  - pip
-
-  # Core
-  - numpy>=1.24
-  - pandas>=2.0
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
   - scipy>=1.11
   - h5py>=3.9
 
-  # BAM/BED/genome tools
-  - pysam>=0.21
+  # ── BAM/BED/genome tools ─────────────────────────────────────────────
+  # pysam and htslib must come from the same channel (bioconda)
+  # to ensure libcurl and openssl are ABI-compatible.
+  # DO NOT mix with conda-forge builds of htslib.
+  - pysam>=0.21         # from bioconda
+  - htslib>=1.17        # from bioconda — explicit pin prevents channel mix
+  - samtools>=1.17      # from bioconda
   - pybedtools>=0.9
-  - bedtools
-  - samtools
+  - bedtools>=2.31
 
-  # Signal tracks
+  # ── Signal tracks ────────────────────────────────────────────────────
   - pyBigWig>=0.3.18
 
-  # Peak calling (ATAC, ChIP, CUT&RUN, CUT&TAG)
-  - macs3>=3.0
-
-  # Motif analysis
-  - homer  # via bioconda
-
-  # Visualization
+  # ── Peak calling ─────────────────────────────────────────────────────
+  # MACS3 is sensitive to its Cython compilation version.
+  # Install via pip to get the wheel built against compatible Cython,
+  # NOT via bioconda which may use an outdated Cython.
+  # ── Visualization ────────────────────────────────────────────────────
   - matplotlib>=3.7
   - seaborn>=0.12
 
   - pip:
+    # Peak calling (ATAC, ChIP, CUT&RUN, CUT&TAG)
+    # pip wheel avoids the Cython version conflict in bioconda
+    - MACS3>=3.0.0
+
     # Single-cell ATAC
     - episcanpy>=0.4
     - muon>=0.1
@@ -41,5 +46,5 @@ dependencies:
     # TF footprinting
     - pyatac>=0.1
 
-    # IDR for ChIP replicates
+    # IDR for ChIP/CUT&RUN replicates
     - idr>=2.0.4

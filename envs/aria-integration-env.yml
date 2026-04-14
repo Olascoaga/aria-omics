@@ -1,41 +1,52 @@
 name: aria-integration-env
+
 channels:
   - conda-forge
   - bioconda
   - defaults
+channel_priority: strict
 
 dependencies:
   - python=3.11
-  - pip
-
-  # Core
-  - numpy>=1.24
-  - pandas>=2.0
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
   - scipy>=1.11
   - scikit-learn>=1.3
   - h5py>=3.9
+  - hdf5=1.14.*
 
-  # Multimodal single-cell
-  - scanpy>=1.9.6
-  - anndata>=0.10
-  - muon>=0.1           # multimodal AnnData (MuData)
+  # ── R runtime (required for MOFA+ full integration) ──────────────────
+  # mofapy2 uses R under the hood for some routines.
+  # rpy2 and r-base MUST be installed from conda-forge together
+  # to ensure ABI compatibility. Never install rpy2 via pip alone.
+  - r-base>=4.3
+  - rpy2>=3.5
+
+  # ── Multimodal single-cell ───────────────────────────────────────────
+  - scanpy>=1.9.6,<2.0
+  - anndata>=0.10,<0.11
+  - numba>=0.58,<0.62
+  - llvmlite>=0.41,<0.45
+  - umap-learn>=0.5.4,<0.6
   - leidenalg>=0.10
   - python-igraph>=0.11
 
-  # Visualization
+  # ── Visualization ────────────────────────────────────────────────────
   - matplotlib>=3.7
   - seaborn>=0.12
 
   - pip:
-    # Multi-omics factor analysis
-    - mofapy2>=0.7      # MOFA+
+    # Multi-omics factor analysis (MOFA+)
+    - mofapy2>=0.7
 
-    # RNA+ATAC joint embedding
-    - scglue>=0.3       # graph-linked unified embedding
-
-    # WNN integration (RNA + ATAC weights)
+    # Multimodal AnnData container
     - muon>=0.1
 
-    # GRN inference
-    - pyscenic>=0.12    # SCENIC+ for regulatory networks
+    # RNA+ATAC graph-linked embedding
+    - scglue>=0.3
+
+    # Gene regulatory network inference (SCENIC+)
+    - pyscenic>=0.12
+
+    # TF activity inference
     - decoupler-py>=1.4

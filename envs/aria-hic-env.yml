@@ -1,34 +1,42 @@
 name: aria-hic-env
+
 channels:
   - conda-forge
   - bioconda
   - defaults
+channel_priority: strict
 
 dependencies:
   - python=3.11
-  - pip
-
-  # Core
-  - numpy>=1.24
-  - pandas>=2.0
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
   - scipy>=1.11
-  - h5py>=3.9
 
-  # HiC file formats
-  - cooler>=0.9.3       # .cool / .mcool
-  - hic-straw>=1.3      # .hic (Juicer format)
+  # ── HDF5 stack (CRITICAL: cooler and h5py MUST share the same HDF5) ──
+  # If they build against different libhdf5 versions, reading .cool/.mcool
+  # files causes file locking errors and silent data corruption.
+  # Pin hdf5 explicitly so conda resolves both against the same version.
+  - hdf5=1.14.*        # explicit pin — both cooler and h5py resolve to this
+  - h5py>=3.9          # will use the hdf5 pinned above
+  - cooler>=0.9.3      # will use the hdf5 pinned above
 
-  # 3D genome analysis
-  - cooltools>=0.5      # compartments, TADs, P(s) curves
-  - lavaburst           # TAD calling
+  # ── 3D genome analysis ───────────────────────────────────────────────
+  - cooltools>=0.5     # TADs, compartments, P(s) curves
+  - pairtools>=1.0     # .pairs format manipulation
 
-  # Pairs format
-  - pairtools>=1.0
-
-  # Visualization
+  # ── Visualization ────────────────────────────────────────────────────
   - matplotlib>=3.7
-  - coolbox>=0.3        # genome browser-style tracks
+  - coolbox>=0.3       # genome browser-style track visualization
 
   - pip:
+    # .hic format (Juicer/4D Nucleome)
+    - hic-straw>=1.3.1
+
+    # TAD calling
+    - lavaburst>=0.0.3
+
+    # HiC matrix manipulation
     - hicmatrix>=17
-    - pygenomeviz>=0.4  # synteny / genome visualization
+
+    # Genome visualization
+    - pygenomeviz>=0.4

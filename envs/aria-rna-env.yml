@@ -1,31 +1,44 @@
 name: aria-rna-env
+
+# CRITICAL: strict channel priority prevents dynamic library corruption
+# conda-forge must be first — bioconda packages depend on it
 channels:
   - conda-forge
   - bioconda
   - defaults
+channel_priority: strict
 
 dependencies:
   - python=3.11
-  - pip
 
-  # Core scientific stack
-  - numpy>=1.24
-  - pandas>=2.0
+  # ── Core scientific stack ────────────────────────────────────────────
+  # numpy <2.0.0 is REQUIRED — numpy 2.x breaks scanpy, pydeseq2,
+  # and most single-cell tools silently or with cryptic C-level errors.
+  # Pin until the full single-cell ecosystem migrates.
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
   - scipy>=1.11
   - scikit-learn>=1.3
   - h5py>=3.9
   - hdf5
 
-  # Single-cell analysis
-  - scanpy>=1.9.6
-  - anndata>=0.10
+  # ── UMAP dependency chain (must be pinned together) ──────────────────
+  # numba/llvmlite version mismatch causes segfaults during UMAP.
+  # These versions are tested stable as of 2025.
+  - numba>=0.58,<0.62
+  - llvmlite>=0.41,<0.45
+  - umap-learn>=0.5.4,<0.6
+
+  # ── Single-cell analysis ─────────────────────────────────────────────
+  - scanpy>=1.9.6,<2.0
+  - anndata>=0.10,<0.11
   - leidenalg>=0.10
   - python-igraph>=0.11
 
-  # Spatial transcriptomics
+  # ── Spatial transcriptomics ──────────────────────────────────────────
   - squidpy>=1.3
 
-  # Visualization
+  # ── Visualization ────────────────────────────────────────────────────
   - matplotlib>=3.7
   - seaborn>=0.12
 
@@ -33,12 +46,12 @@ dependencies:
     # Differential expression
     - pydeseq2>=0.4
 
-    # Cell type deconvolution (spatial)
-    - cell2location>=0.1.3
-
     # Doublet detection
     - scrublet>=0.2.3
 
-    # Gene set analysis
+    # Cell type deconvolution (spatial)
+    - cell2location>=0.1.3
+
+    # Gene set / pathway analysis
     - gseapy>=1.0
     - decoupler-py>=1.4
