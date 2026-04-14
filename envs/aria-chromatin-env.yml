@@ -1,0 +1,45 @@
+name: aria-chromatin-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Core
+  - numpy>=1.24
+  - pandas>=2.0
+  - scipy>=1.11
+  - h5py>=3.9
+
+  # BAM/BED/genome tools
+  - pysam>=0.21
+  - pybedtools>=0.9
+  - bedtools
+  - samtools
+
+  # Signal tracks
+  - pyBigWig>=0.3.18
+
+  # Peak calling (ATAC, ChIP, CUT&RUN, CUT&TAG)
+  - macs3>=3.0
+
+  # Motif analysis
+  - homer  # via bioconda
+
+  # Visualization
+  - matplotlib>=3.7
+  - seaborn>=0.12
+
+  - pip:
+    # Single-cell ATAC
+    - episcanpy>=0.4
+    - muon>=0.1
+
+    # TF footprinting
+    - pyatac>=0.1
+
+    # IDR for ChIP replicates
+    - idr>=2.0.4

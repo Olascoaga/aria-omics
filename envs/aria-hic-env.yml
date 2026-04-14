@@ -1,0 +1,34 @@
+name: aria-hic-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Core
+  - numpy>=1.24
+  - pandas>=2.0
+  - scipy>=1.11
+  - h5py>=3.9
+
+  # HiC file formats
+  - cooler>=0.9.3       # .cool / .mcool
+  - hic-straw>=1.3      # .hic (Juicer format)
+
+  # 3D genome analysis
+  - cooltools>=0.5      # compartments, TADs, P(s) curves
+  - lavaburst           # TAD calling
+
+  # Pairs format
+  - pairtools>=1.0
+
+  # Visualization
+  - matplotlib>=3.7
+  - coolbox>=0.3        # genome browser-style tracks
+
+  - pip:
+    - hicmatrix>=17
+    - pygenomeviz>=0.4  # synteny / genome visualization
