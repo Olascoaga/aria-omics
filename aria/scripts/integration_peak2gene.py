@@ -151,12 +151,20 @@ def integration_peak2gene(params: dict) -> dict:
         rna_matrix  = rna_aligned.X
         atac_matrix = atac_aligned.X
 
-        if hasattr(rna_matrix, "toarray"):
-            rna_matrix = rna_matrix.toarray()
-        if hasattr(atac_matrix, "toarray"):
-            atac_matrix = atac_matrix.toarray()
+        # DeepSeek P0 fix: never densify large sparse matrices
+        import scipy.sparse as sp
+        if sp.issparse(rna_matrix) and not sp.isspmatrix_csc(rna_matrix):
+            rna_matrix  = rna_matrix.tocsc()
+        if sp.issparse(atac_matrix) and not sp.isspmatrix_csc(atac_matrix):
+            atac_matrix = atac_matrix.tocsc()
 
-        for gene_idx, gene in enumerate(rna.var_names[:5000]):  # limit for speed
+        def _get_col_sparse(mat, idx: int) -> "np.ndarray":
+            """Extract one column without densifying the whole matrix."""
+            if sp.issparse(mat):
+                return np.asarray(mat.getcol(idx).todense()).ravel()
+            return mat[:, idx]
+
+        for gene_idx, gene in enumerate(rna_aligned.var_names[:5000]):  # limit for speed
             if gene not in gene_coords:
                 continue
 
@@ -292,28 +300,81 @@ def _load_atac_matrix(atac_files: list, peaks_path: str,
 
 def _get_gene_coordinates(gene_names, genome: str, organism: str) -> dict:
     """
-    Get TSS coordinates for genes.
-    In production: use pybedtools + GTF file.
+    Get TSS coordinates for genes from GTF annotation file.
+
+    DeepSeek P0: This function MUST NOT return random coordinates.
+    If a GTF is unavailable, it raises MissingGTFError so the caller
+    can return a structured error rather than produce fake biology.
+
+    GTF lookup order:
+      1. ~/.aria/genomes/{genome}/{genome}.gtf.gz  (auto-downloaded)
+      2. ARIA_GTF_PATH environment variable
+      3. Explicit gtf_path parameter (future)
+
     Returns dict: gene -> (chrom, tss_start, tss_end)
+    Raises MissingGTFError if no GTF is found.
     """
+    import os
+    from pathlib import Path
+
+    # Search for GTF in standard locations
+    candidates = [
+        Path.home() / ".aria" / "genomes" / genome / f"{genome}.gtf.gz",
+        Path.home() / ".aria" / "genomes" / genome / f"{genome}.gtf",
+        Path(os.environ.get("ARIA_GTF_PATH", "/nonexistent")),
+    ]
+
+    gtf_path = next((p for p in candidates if p.exists()), None)
+
+    if gtf_path is None:
+        raise MissingGTFError(
+            f"GTF annotation not found for genome '{genome}'. "
+            f"ARIA cannot compute real gene coordinates without it. "
+            f"To fix: run 'aria download-genome {genome}' or set "
+            f"ARIA_GTF_PATH=/path/to/{genome}.gtf"
+        )
+
+    # Parse GTF for TSS coordinates
+    coords = {}
+    opener = __import__("gzip").open if str(gtf_path).endswith(".gz") else open
     try:
-        # Try biomart or local GTF
-        import pybedtools
-        # Full implementation uses gtf annotation
-        return {}
-    except Exception:
-        # Return synthetic coords for testing
-        import random
-        random.seed(42)
-        chroms = [f"chr{i}" for i in range(1, 23)] + ["chrX"]
-        return {
-            gene: (
-                random.choice(chroms),
-                random.randint(1_000_000, 200_000_000),
-                random.randint(1_000_000, 200_000_000),
-            )
-            for gene in list(gene_names)[:1000]
-        }
+        with opener(str(gtf_path), "rt") as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                parts = line.strip().split("\t")
+                if len(parts) < 9 or parts[2] != "gene":
+                    continue
+                chrom  = parts[0]
+                start  = int(parts[3])
+                end    = int(parts[4])
+                strand = parts[6]
+                attrs  = parts[8]
+
+                # Extract gene name
+                gene_name = None
+                for attr in attrs.split(";"):
+                    attr = attr.strip()
+                    if attr.startswith("gene_name"):
+                        gene_name = attr.split('"')[1] if '"' in attr else                                     attr.split(" ")[-1]
+                        break
+
+                if gene_name and gene_name in gene_names:
+                    # TSS = start for +, end for -
+                    tss = start if strand == "+" else end
+                    coords[gene_name] = (chrom, tss, tss + 1)
+
+                if len(coords) >= len(gene_names):
+                    break
+    except Exception as e:
+        raise MissingGTFError(f"Failed to parse GTF at {gtf_path}: {e}")
+
+    return coords
+
+
+class MissingGTFError(Exception):
+    """Raised when GTF annotation is required but not found."""
+    pass
 
 
 def _get_peak_coordinates(peaks_path: str, peak_names) -> dict:
