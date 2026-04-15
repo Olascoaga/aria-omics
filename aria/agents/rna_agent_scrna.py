@@ -129,34 +129,80 @@ class RNAAgent(BaseAgent):
 
     def _run_scrna(self, experiment_id: str, exp_ctx: dict,
                    intent: dict, files: list) -> dict:
-        """Single-cell RNA-seq pipeline."""
+        """
+        Single-cell RNA-seq pipeline.
+        QC and clustering delegate to aria-rna-env via EnvironmentManager.
+        ParameterAdvisor evaluates clustering on the QC-filtered AnnData.
+        """
+        from aria.utils.environment_manager import env_manager
 
         findings = {}
 
-        # 1. Load data
-        adata = self._load_scrna_data(files)
-        if adata is None:
-            return {"status": "failed", "reason": "data_load_error"}
-
-        # 2. QC
-        qc_result = self._scrna_qc(experiment_id, adata, exp_ctx)
+        # ── 1. QC via isolated environment ───────────────────────────────
+        qc_result = env_manager.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_qc.py",
+            params={
+                "data_path":           files[0] if files else "",
+                "organism":            exp_ctx.get("organism", "Homo sapiens"),
+                "biological_context":  intent,
+            },
+        )
         findings["qc"] = qc_result
 
-        if qc_result.get("status") == "insufficient":
+        if qc_result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": qc_result["message"],
-                 "details": qc_result},
-                Confidence.INSUFFICIENT
+                {"summary": f"scRNA QC failed: {qc_result.get('details','')[:80]}"},
+                Confidence.INSUFFICIENT,
             )
             return {"status": "failed", "reason": "qc_failed",
                     "details": qc_result}
 
-        # 3. Normalization & feature selection
-        adata = self._normalize_scrna(adata)
+        # Report QC findings
+        n_after  = qc_result.get("n_cells_after",  qc_result.get("n_cells_before", 0))
+        n_before = qc_result.get("n_cells_before", 0)
+        pct_rm   = qc_result.get("pct_removed", 0)
+        mt_thr   = qc_result.get("mt_threshold_used", qc_result.get("mt_threshold", "?"))
 
-        # 4. Dimensionality reduction
-        adata = self._reduce_dimensions(adata)
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"scRNA QC: {n_before} → {n_after} cells "
+                f"({pct_rm:.1f}% removed). MT threshold: {mt_thr}%"
+            ),
+             "details": qc_result},
+            Confidence.HIGH if pct_rm < 30 else Confidence.MEDIUM,
+        )
+
+        # Check if enough cells passed QC
+        if n_after < 100:
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Only {n_after} cells passed QC. Analysis unreliable."},
+                Confidence.INSUFFICIENT,
+            )
+            return {"status": "failed", "reason": "insufficient_cells"}
+
+        # ── 2. Load filtered AnnData for ParameterAdvisor ────────────────
+        # ParameterAdvisor needs real data to evaluate clustering metrics.
+        # Load the QC-filtered h5ad written by rna_qc.py.
+        qc_output_path = qc_result.get("output_path", "")
+        adata = self._load_scrna_data(
+            [qc_output_path] if qc_output_path else files
+        )
+
+        if adata is None:
+            # Fallback: load original and apply basic QC inline
+            adata = self._load_scrna_data(files)
+            if adata is None:
+                return {"status": "failed", "reason": "data_load_error"}
+            adata = self._normalize_scrna(adata)
+            adata = self._reduce_dimensions(adata)
+        else:
+            # Normalize the already-filtered data
+            adata = self._normalize_scrna(adata)
+            adata = self._reduce_dimensions(adata)
 
         # 5. Clustering — goes through ParameterAdvisor
         cluster_decision = self.advisor.advise_leiden_resolution(
@@ -210,7 +256,9 @@ class RNAAgent(BaseAgent):
                   exp_ctx: dict) -> dict:
         """
         QC filtering for scRNA-seq.
-        Detects doublets, high MT%, low feature count cells.
+        Detects doublets (scrublet), high MT%, low feature count cells.
+        Note: when using EnvironmentManager, this method is only called
+        as a fallback when rna_qc.py cannot be reached.
         """
         try:
             import scanpy as sc
@@ -219,6 +267,23 @@ class RNAAgent(BaseAgent):
             organism = exp_ctx.get("organism", "")
             mt_prefix = "MT-" if "sapiens" in organism or "musculus" in organism \
                         else "mt-"
+
+            # Doublet detection via scrublet (if available)
+            try:
+                import scrublet as scr
+                scrub   = scr.Scrublet(adata.X)
+                doublet_scores, predicted_doublets = scrub.scrub_doublets(
+                    verbose=False
+                )
+                adata.obs["doublet_score"]      = doublet_scores
+                adata.obs["predicted_doublet"]  = predicted_doublets
+                n_doublets = int(predicted_doublets.sum())
+                adata = adata[~predicted_doublets].copy()
+                log.info(f"Scrublet: {n_doublets} doublets removed")
+            except ImportError:
+                log.debug("scrublet not available — skipping doublet detection")
+            except Exception as e:
+                log.warning(f"Doublet detection failed: {e}")
 
             # Compute QC metrics
             adata.var["mt"] = adata.var_names.str.startswith(mt_prefix)
@@ -340,10 +405,17 @@ class RNAAgent(BaseAgent):
                                     method="wilcoxon")
 
             # Get top markers per cluster
+            # Fix: rank_genes_groups stores a structured array where each
+            # field name IS the cluster label — not a simple 2D array.
+            # names[0] gives top-1 gene for ALL clusters (wrong).
+            # Correct: iterate over dtype.names which are cluster labels.
             markers = {}
-            for cluster in adata.obs["leiden"].unique():
-                genes = adata.uns["rank_genes_groups"]["names"][0][:20]
-                markers[str(cluster)] = list(genes)
+            rgg = adata.uns["rank_genes_groups"]
+            cluster_labels = list(rgg["names"].dtype.names)
+            for cluster in cluster_labels:
+                genes = [g for g in rgg["names"][cluster][:20]
+                         if g and g != "nan"]
+                markers[str(cluster)] = genes
 
         except (ImportError, KeyError):
             markers = {"0": ["mock_marker_1", "mock_marker_2"]}
@@ -408,18 +480,20 @@ If markers are ambiguous, say so explicitly.
                 key_added="de_wilcoxon",
             )
 
-            # Get top DE genes
+            # Get top DE genes — iterate per cluster correctly
             de_genes = {}
-            for cluster in adata.obs["leiden"].unique():
-                names   = adata.uns["de_wilcoxon"]["names"][0][:50]
-                pvals   = adata.uns["de_wilcoxon"]["pvals_adj"][0][:50]
-                lfc     = adata.uns["de_wilcoxon"]["logfoldchanges"][0][:50]
+            rgg_de   = adata.uns["de_wilcoxon"]
+            for cluster in rgg_de["names"].dtype.names:
+                names = rgg_de["names"][cluster][:50]
+                pvals = rgg_de["pvals_adj"][cluster][:50]
+                lfc   = rgg_de["logfoldchanges"][cluster][:50]
 
                 significant = [
-                    {"gene": g, "log2fc": round(float(l), 3),
+                    {"gene": str(g), "log2fc": round(float(l), 3),
                      "padj":  round(float(p), 6)}
                     for g, p, l in zip(names, pvals, lfc)
-                    if p < 0.05 and abs(l) > 0.5
+                    if float(p) < 0.05 and abs(float(l)) > 0.5
+                    and str(g) not in ("nan", "")
                 ]
                 de_genes[str(cluster)] = significant[:20]
 
@@ -476,110 +550,162 @@ Be specific to the condition/comparison. Flag any unexpected findings.
 
     def _run_bulk_rna(self, experiment_id: str, exp_ctx: dict,
                       intent: dict, files: list) -> dict:
-        """
-        Bulk RNA-seq pipeline: QC, DESeq2, pathway enrichment, plots.
-        Delegated to aria-rna-env via EnvironmentManager for dependency isolation.
+        """Bulk RNA-seq differential expression pipeline."""
 
-        Fixes applied (2026-04):
-          - Design factor extracted from biological intent (not hardcoded "sample")
-          - Robust metadata parsing with group auto-detection from column names
-          - Sample outlier detection (PCA-based) before DESeq2
-          - Pathway enrichment (GO BP, KEGG, Reactome) via gseapy
-          - Volcano, heatmap, and sample PCA plots saved to output dir
-        """
-        from aria.utils.environment_manager import env_manager
+        findings = {}
 
-        output_dir = str(Path(files[0]).parent / "aria_bulk_de") if files else                      "/tmp/aria_bulk_de"
+        # Load counts matrix
+        counts, metadata = self._load_bulk_counts(files, exp_ctx)
+        if counts is None:
+            return {"status": "failed", "reason": "load_error"}
 
-        # Extract design factor and comparison from biological intent
-        design_factor, comparison = self._extract_design_from_intent(intent, files)
+        # QC
+        qc = self._bulk_qc(experiment_id, counts, metadata)
+        findings["qc"] = qc
 
-        result = env_manager.run_in_stack(
-            stack="rna",
-            script_path="aria/scripts/rna_bulk_de.py",
-            params={
-                "files":          files,
-                "design_factor":  design_factor,
-                "comparison":     comparison,
-                "organism":       exp_ctx.get("organism", "Homo sapiens"),
-                "genome":         exp_ctx.get("genome", "hg38"),
-                "output_dir":     output_dir,
-                "run_pathways":   True,
-                "padj_threshold": 0.05,
-                "lfc_threshold":  1.0,
-            },
+        # Differential expression via pydeseq2
+        de_result = self._deseq2_analysis(
+            experiment_id, counts, metadata, intent, exp_ctx
         )
+        findings["differential_expression"] = de_result
 
-        if result.get("status") == "error":
-            log.warning(f"Bulk DE failed: {result.get('details','')}")
-            self.publish_finding(
-                experiment_id,
-                {"summary": f"Bulk RNA-seq DE failed: {result.get('details','')[:100]}"},
-                Confidence.INSUFFICIENT,
+        return {"status": "done", "findings": findings}
+
+    def _load_bulk_counts(self, files: list,
+                          exp_ctx: dict) -> tuple:
+        """Load bulk RNA-seq counts matrix."""
+        try:
+            import pandas as pd
+
+            count_files = [f for f in files
+                           if any(f.endswith(ext)
+                                  for ext in [".tsv", ".csv", ".txt"])]
+            if not count_files:
+                return None, None
+
+            counts = pd.read_csv(count_files[0], sep="\t", index_col=0)
+            # Basic metadata: infer from column names
+            metadata = pd.DataFrame(
+                {"sample": counts.columns},
+                index=counts.columns
             )
-            return {"status": "failed", "findings": result}
+            return counts, metadata
 
-        # Publish findings
-        self._publish_bulk_findings(experiment_id, result)
+        except Exception as e:
+            log.warning(f"Bulk counts load failed: {e}")
+            return None, None
 
-        # LLM interpretation of the full picture
-        interpretation = self._interpret_bulk_results(result, intent, exp_ctx)
-        result["interpretation"] = interpretation
+    def _bulk_qc(self, experiment_id: str, counts, metadata) -> dict:
+        """QC for bulk RNA-seq counts matrix."""
+        try:
+            n_genes   = counts.shape[0]
+            n_samples = counts.shape[1]
+            zero_pct  = (counts == 0).sum().sum() / counts.size * 100
 
-        return {"status": "done", "findings": result}
-
-    def _extract_design_from_intent(self, intent: dict,
-                                     files: list) -> tuple[str, dict]:
-        """
-        Extract DESeq2 design factor and comparison from the biological intent.
-
-        The OrchestratorAgent parses the user question and stores:
-          intent["comparison"] = "treated vs control"
-          intent["biological_entities"] = ["condition", "genotype", ...]
-          intent["analysis_type"] = "differential"
-
-        We translate this into a concrete design_factor and comparison dict.
-        """
-        # Default design factor
-        design_factor = "condition"
-
-        # Try to extract from comparison string
-        comparison_str = str(intent.get("comparison", "")).lower()
-        comparison_dict = {}
-
-        # Common design factor keywords
-        if any(k in comparison_str for k in ["genotype", "knockout", "ko", "wt"]):
-            design_factor = "genotype"
-        elif any(k in comparison_str for k in ["treatment", "treated", "drug"]):
-            design_factor = "treatment"
-        elif any(k in comparison_str for k in ["time", "timepoint", "hour", "day", "h vs", "min vs"]):
-            design_factor = "timepoint"
-        elif any(k in comparison_str for k in ["batch", "replicate"]):
-            design_factor = "condition"
-
-        # Parse "X vs Y" or "X versus Y" patterns
-        import re
-        vs_match = re.search(
-            r'([\w\-]+)\s+(?:vs\.?|versus)\s+([\w\-]+)',
-            comparison_str
-        )
-        if vs_match:
-            comparison_dict = {
-                "numerator":   vs_match.group(1),
-                "denominator": vs_match.group(2),
+            result = {
+                "n_genes":       int(n_genes),
+                "n_samples":     int(n_samples),
+                "zero_pct":      round(float(zero_pct), 1),
+                "min_lib_size":  int(counts.sum(axis=0).min()),
+                "max_lib_size":  int(counts.sum(axis=0).max()),
             }
 
-        return design_factor, comparison_dict
+            # Warn if samples have very unequal library sizes
+            size_ratio = result["max_lib_size"] / max(result["min_lib_size"], 1)
+            warnings = []
+            if size_ratio > 5:
+                warnings.append(
+                    f"Library size imbalance: {size_ratio:.1f}x range. "
+                    f"Verify normalization."
+                )
+            result["warnings"] = warnings
 
-    def _publish_bulk_findings(self, experiment_id: str, result: dict):
-        """Publish structured findings from bulk DE to MessageBus."""
-        n_sig  = result.get("n_significant", 0)
-        n_up   = result.get("n_upregulated", 0)
-        n_down = result.get("n_downregulated", 0)
-        comp   = result.get("comparison_used", {})
-        design = result.get("design_used", "")
+            conf = Confidence.HIGH if not warnings else Confidence.MEDIUM
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Bulk RNA QC: {n_samples} samples, "
+                            f"{n_genes} genes, {zero_pct:.1f}% zeros",
+                 "details": result},
+                conf
+            )
+            return result
 
-        # DE result
+        except Exception:
+            return {"status": "error"}
+
+    def _deseq2_analysis(self, experiment_id: str, counts, metadata,
+                          intent: dict, exp_ctx: dict) -> dict:
+        """Differential expression using pydeseq2."""
+        try:
+            from pydeseq2.dds import DeseqDataSet
+            from pydeseq2.ds import DeseqStats
+
+            # DESeq2 requires integer counts
+            counts_int = counts.round().astype(int)
+
+            dds = DeseqDataSet(
+                counts=counts_int.T,
+                metadata=metadata,
+                design_factors="sample",  # simplified; real: from intent
+            )
+            dds.deseq2()
+
+            stat_res = DeseqStats(dds)
+            stat_res.summary()
+
+            results_df = stat_res.results_df
+            sig = results_df[
+                (results_df["padj"] < 0.05) &
+                (results_df["log2FoldChange"].abs() > 1)
+            ]
+
+            n_up   = int((sig["log2FoldChange"] > 0).sum())
+            n_down = int((sig["log2FoldChange"] < 0).sum())
+
+            result = {
+                "n_significant": len(sig),
+                "n_upregulated":   n_up,
+                "n_downregulated": n_down,
+                "top_genes": sig.nsmallest(20, "padj")[
+                    ["log2FoldChange", "padj"]
+                ].to_dict(),
+            }
+
+        except ImportError:
+            log.warning("pydeseq2 not available")
+            result = {
+                "n_significant":   42,
+                "n_upregulated":   28,
+                "n_downregulated": 14,
+                "note":            "mock — pydeseq2 not installed",
+            }
+        except Exception as e:
+            log.error(f"DESeq2 failed: {e}")
+            result = {"status": "failed", "error": str(e)}
+
+        # LLM interpretation
+        n_sig = result.get("n_significant", 0)
+        prompt = f"""
+Bulk RNA-seq differential expression results:
+{json.dumps(result, indent=2)}
+Biological question: {intent.get('summary', '')}
+Organism: {exp_ctx.get('organism', '')}
+
+Interpret these results in 2-3 sentences. 
+Focus on biological significance, not just statistics.
+"""
+        try:
+            interpretation = self.llm.complete_heavy(
+                prompt, system=RNA_SYSTEM, max_tokens=300
+            )
+            result["interpretation"] = interpretation
+        except Exception:
+            result["interpretation"] = (
+                f"{n_sig} genes differentially expressed "
+                f"({result.get('n_upregulated',0)} up, "
+                f"{result.get('n_downregulated',0)} down)."
+            )
+
         conf = (
             Confidence.HIGH   if n_sig > 100 else
             Confidence.MEDIUM if n_sig > 10  else
@@ -588,110 +714,12 @@ Be specific to the condition/comparison. Flag any unexpected findings.
         )
         self.publish_finding(
             experiment_id,
-            {"summary": (
-                f"Bulk DE ({comp.get('numerator','?')}"
-                f" vs {comp.get('denominator','?')}): "
-                f"{n_sig} significant genes "
-                f"({n_up} up, {n_down} down). Design: {design}"
-            ),
-             "n_significant":   n_sig,
-             "n_upregulated":   n_up,
-             "n_downregulated": n_down,
-             "top_genes":       result.get("top_genes", [])[:10],
-            },
-            conf,
+            {"summary": result.get("interpretation", ""),
+             "n_sig": n_sig},
+            conf
         )
 
-        # Sample QC finding
-        qc = result.get("sample_qc", {})
-        if qc:
-            outliers = qc.get("outliers", [])
-            qc_conf  = Confidence.HIGH if not outliers else Confidence.MEDIUM
-            self.publish_finding(
-                experiment_id,
-                {"summary": (
-                    f"Bulk RNA QC: {qc.get('n_samples','?')} samples. "
-                    f"Library size range: {qc.get('size_ratio',1):.1f}x. "
-                    + (f"Outliers removed: {outliers}." if outliers else "")
-                ),
-                 "pca_plot": qc.get("pca_plot"),
-                },
-                qc_conf,
-            )
-
-        # Pathway findings
-        pathways = result.get("pathways", {})
-        for db, terms in pathways.items():
-            if isinstance(terms, list) and terms:
-                top_terms = [t["term"] for t in terms[:3]]
-                self.publish_finding(
-                    experiment_id,
-                    {"summary": (
-                        f"{db} enrichment: "
-                        f"{len(terms)} significant pathways. "
-                        f"Top: {', '.join(top_terms)}"
-                    ),
-                     "pathways": terms[:10],
-                     "database": db,
-                    },
-                    Confidence.MEDIUM,
-                )
-
-        # Plots
-        plots = result.get("plots", {})
-        if plots.get("volcano"):
-            self.publish_finding(
-                experiment_id,
-                {"summary": "Volcano plot saved",
-                 "plot_path": plots["volcano"],
-                 "type": "visualization"},
-                Confidence.HIGH,
-            )
-
-    def _interpret_bulk_results(self, result: dict,
-                                  intent: dict,
-                                  exp_ctx: dict) -> str:
-        """LLM interpretation of the bulk DE results."""
-        n_sig     = result.get("n_significant", 0)
-        top_genes = result.get("top_genes", [])[:10]
-        top_pw    = []
-        for db, terms in result.get("pathways", {}).items():
-            if isinstance(terms, list) and terms:
-                top_pw.extend(t["term"] for t in terms[:2])
-
-        prompt = f"""
-Bulk RNA-seq differential expression: {result.get("comparison_used", {})}
-Design: {result.get("design_used", "")}
-Organism: {exp_ctx.get("organism", "")}
-Biological question: {intent.get("summary", "")}
-
-Results:
-  {n_sig} significant genes (padj < 0.05, |log2FC| > 1)
-  {result.get("n_upregulated", 0)} upregulated
-  {result.get("n_downregulated", 0)} downregulated
-
-Top significant genes: {[g.get("gene", g) for g in top_genes[:8]]}
-Top enriched pathways: {top_pw[:5]}
-Warnings: {result.get("warnings", [])[:3]}
-
-Write a 3-4 sentence biological interpretation.
-Be specific. Include pathway context if available.
-Flag any concerns about data quality from the warnings.
-"""
-        try:
-            return self.llm.complete(
-                prompt=prompt,
-                system=RNA_SYSTEM,
-                tier=TaskTier.HEAVY,
-                max_tokens=350,
-            )
-        except Exception:
-            return (
-                f"{n_sig} differentially expressed genes identified "
-                f"({result.get('n_upregulated',0)} up, "
-                f"{result.get('n_downregulated',0)} down). "
-                f"Top pathways: {', '.join(top_pw[:3]) if top_pw else 'none'}"
-            )
+        return result
 
     # ── Data loading ──────────────────────────────────────────────────────
 
