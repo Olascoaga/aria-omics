@@ -102,6 +102,7 @@ MODALITY_TO_AGENT = {
     "scRNA":        "scrna_agent",
     "bulk_RNA_raw": "preprocessing_agent",  # raw FASTQs → preprocessing first
     "bulk_RNA":     "bulk_rna_agent",
+    "bulk_RNA_raw": "bulk_rna_agent",
     "scATAC":      "chromatin_agent",
     "bulk_ATAC":   "chromatin_agent",
     "ChIP":        "chromatin_agent",
@@ -122,7 +123,7 @@ class OrchestratorAgent(BaseAgent):
                  llm: LLMProvider = None,
                  api_key: str = None):
         super().__init__(memory, api_key)
-        self.llm                   = llm or LLMProvider()
+        self.llm                   = llm or LLMProvider.from_config()
         self._pending_checkpoints  = {}
         self._experiment_plans     = {}
         self._agent_results        = {}

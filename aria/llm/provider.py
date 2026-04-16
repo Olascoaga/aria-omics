@@ -65,7 +65,7 @@ class ModelConfig:
 
 DEFAULT_MODELS: dict[TaskTier, list[ModelConfig]] = {
     TaskTier.HEAVY: [
-        ModelConfig("anthropic", "claude-sonnet-4-20250514",   200_000),
+        ModelConfig("anthropic", "claude-haiku-4-5-20251001", 200_000),  # default; overridden by config.yaml
         ModelConfig("openai",    "gpt-4o",                     128_000),
         ModelConfig("gemini",    "gemini/gemini-1.5-pro",      1_000_000),
         ModelConfig("ollama",    "ollama/llama3:70b",           8_000,  is_local=True,
