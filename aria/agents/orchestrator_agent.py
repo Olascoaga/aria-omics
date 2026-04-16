@@ -43,7 +43,8 @@ Your job:
 
 You know these agents are available:
 - data_audit_agent: always runs first
-- rna_agent: handles bulk RNA-seq and scRNA-seq
+- scrna_agent: single-cell RNA-seq (QC, clustering, annotation, DE)
+- bulk_rna_agent: bulk RNA-seq (DESeq2, pathway enrichment, plots)
 - chromatin_agent: handles ATAC, ChIP, CUT&RUN, CUT&TAG
 - genome_arch_agent: handles HiC, compartments, TADs, loops
 - integration_agent: multimodal integration (needs 2+ modalities)
@@ -57,9 +58,13 @@ Always think about the biology first, then the methods.
 # Lazy imports prevent circular dependencies at module load time.
 
 AGENT_REGISTRY = {
-    "rna_agent": {
-        "module": "aria.agents.rna_agent",
-        "class":  "RNAAgent",
+    "scrna_agent": {
+        "module": "aria.agents.scrna_agent",
+        "class":  "scRNAAgent",
+    },
+    "bulk_rna_agent": {
+        "module": "aria.agents.bulk_rna_agent",
+        "class":  "BulkRNAAgent",
     },
     "chromatin_agent": {
         "module": "aria.agents.chromatin_agent",
@@ -77,11 +82,16 @@ AGENT_REGISTRY = {
         "module": "aria.agents.narrative_agent",
         "class":  "NarrativeAgent",
     },
+    # Legacy alias — kept for backward compatibility
+    "rna_agent": {
+        "module": "aria.agents.scrna_agent",
+        "class":  "scRNAAgent",
+    },
 }
 
 MODALITY_TO_AGENT = {
-    "scRNA":       "rna_agent",
-    "bulk_RNA":    "rna_agent",
+    "scRNA":       "scrna_agent",
+    "bulk_RNA":    "bulk_rna_agent",
     "scATAC":      "chromatin_agent",
     "bulk_ATAC":   "chromatin_agent",
     "ChIP":        "chromatin_agent",
@@ -286,7 +296,9 @@ class OrchestratorAgent(BaseAgent):
                 context={
                     "exp_context":       exp_context,
                     "biological_intent": intent,
-                    "rna_results":       agent_results.get("rna_agent", {}),
+                    "rna_results":       agent_results.get("scrna_agent",
+                                        agent_results.get("bulk_rna_agent",
+                                        agent_results.get("rna_agent", {}))),
                     "chromatin_results": agent_results.get("chromatin_agent", {}),
                     "hic_results":       agent_results.get("genome_arch_agent", {}),
                 },

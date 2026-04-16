@@ -129,18 +129,18 @@ class MetricEvaluator:
 
     @staticmethod
     def _mock_metrics(resolution: float) -> dict:
-        """Mock metrics for testing without scanpy."""
+        """Mock metrics for testing without scanpy. Returns Python native types."""
         import random
         random.seed(int(resolution * 100))
-        n = max(2, int(resolution * 15) + random.randint(-2, 2))
+        n   = max(2, int(resolution * 15) + random.randint(-2, 2))
         sil = max(0.2, 0.85 - resolution * 0.3 + random.uniform(-0.05, 0.05))
         return {
-            "n_clusters":           n,
-            "silhouette":           round(sil, 4),
-            "modularity":           round(0.6 - resolution * 0.15, 4),
-            "n_singleton_clusters": max(0, n - 8),
-            "min_cluster_size":     max(5, 200 - int(resolution * 100)),
-            "max_cluster_size":     1500,
+            "n_clusters":              int(n),
+            "silhouette":              round(float(sil), 4),
+            "modularity":              round(float(0.6 - resolution * 0.15), 4),
+            "n_singleton_clusters":    int(max(0, n - 8)),
+            "min_cluster_size":        int(max(5, 200 - int(resolution * 100))),
+            "max_cluster_size":        int(1500),
         }
 
     @staticmethod
@@ -586,12 +586,20 @@ class ParameterAdvisor:
             for h in historical[:3]
         ]
 
+        # numpy types are not JSON serializable — convert before dumping
+        def _json_safe(obj):
+            if hasattr(obj, "item"):          # numpy scalar → Python scalar
+                return obj.item()
+            if hasattr(obj, "tolist"):         # numpy array → list
+                return obj.tolist()
+            raise TypeError(f"Not serializable: {type(obj)}")
+
         prompt = f"""
-Biological context: {json.dumps(biological_context, indent=2)}
+Biological context: {json.dumps(biological_context, indent=2, default=_json_safe)}
 Parameter: {parameter_name}
 Chosen value: {chosen.value}
-All candidates evaluated: {json.dumps(candidates_summary, indent=2)}
-Lab historical decisions: {json.dumps(hist_summary, indent=2)}
+All candidates evaluated: {json.dumps(candidates_summary, indent=2, default=_json_safe)}
+Lab historical decisions: {json.dumps(hist_summary, indent=2, default=_json_safe)}
 
 Write a 1-2 sentence scientific justification for choosing {parameter_name}={chosen.value}.
 Be specific: cite the metrics, the biological intent, and historical precedent if relevant.
@@ -631,7 +639,7 @@ Do NOT hedge. Be direct. Use scientific language appropriate for a methods secti
                         {"value": c.value, "score": c.score}
                         for c in decision.candidates
                     ],
-                }),
+                }, default=lambda o: o.item() if hasattr(o, "item") else str(o)),
                 confidence="medium",
             )
         except Exception as e:
