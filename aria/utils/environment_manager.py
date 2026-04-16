@@ -108,7 +108,7 @@ class EnvironmentManager:
         run_id      = str(uuid.uuid4())[:8]
         input_file  = self.workspace / f"input_{run_id}.json"
         output_file = self.workspace / f"output_{run_id}.json"
-        max_time    = timeout or self.TIMEOUTS.get(stack, 3600)
+        max_time    = max(timeout or self.TIMEOUTS.get(stack, 3600), 120)  # min 2 min
 
         try:
             # 1. Write parameters to input file
