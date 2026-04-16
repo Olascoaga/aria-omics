@@ -49,6 +49,7 @@ class EnvironmentManager:
     # Analytical stack -> Conda environment name
     STACKS: dict[str, str] = {
         "rna":         "aria-rna-env",
+        "rnaseq":      "aria-rnaseq-env",   # raw FASTQ processing: fastp/STAR/featureCounts
         "chromatin":   "aria-chromatin-env",
         "hic":         "aria-hic-env",
         "integration": "aria-integration-env",
@@ -60,7 +61,8 @@ class EnvironmentManager:
     TIMEOUTS: dict[str, int] = {
         "rna":         3600,    # 1 hour
         "chromatin":   7200,    # 2 hours
-        "hic":         14400,   # 4 hours
+        "hic":         14400,
+        "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
         "integration": 7200,    # 2 hours
         "spatial":     3600,    # 1 hour
     }
@@ -234,17 +236,40 @@ class EnvironmentManager:
 
     def _resolve_env(self, stack: str) -> str:
         """
-        Return the Conda env name for a stack.
-        Falls back to FALLBACK_ENV if the dedicated env is not installed.
+        Resolve which conda environment to use for a stack.
+
+        Resolution order:
+          1. Alias set by SetupAgent (~/.aria/env_aliases.json)
+          2. Preferred env name (STACKS[stack]) if installed
+          3. FALLBACK_ENV (aria-env / base)
+
+        SetupAgent handles detection of compatible envs and tool-aware
+        matching. This method just reads what SetupAgent decided.
         """
-        env_name = self.STACKS[stack]
+        import json
+        from pathlib import Path
+
+        # Check SetupAgent aliases first
+        aliases_file = Path.home() / ".aria" / "env_aliases.json"
+        if aliases_file.exists():
+            try:
+                aliases  = json.loads(aliases_file.read_text())
+                env_name = self.STACKS.get(stack, self.FALLBACK_ENV)
+                if env_name in aliases:
+                    resolved = aliases[env_name]
+                    log.debug(f"Stack '{stack}' resolved via alias: {resolved}")
+                    return resolved
+            except Exception:
+                pass
+
+        env_name  = self.STACKS.get(stack, self.FALLBACK_ENV)
         available = self.check_environments()
 
         if not available.get(stack, False):
             log.warning(
                 f"Environment '{env_name}' not found. "
                 f"Falling back to '{self.FALLBACK_ENV}'. "
-                f"Install with: conda env create -f envs/aria-{stack}-env.yml"
+                f"ARIA will attempt automatic setup on next run."
             )
             return self.FALLBACK_ENV
 

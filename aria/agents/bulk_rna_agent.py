@@ -43,6 +43,15 @@ Critical knowledge:
 """.strip()
 
 
+
+def _is_fastq(files: list) -> bool:
+    """Detect if files are FASTQs (raw reads) vs count matrices."""
+    if not files:
+        return False
+    ext = str(files[0]).lower()
+    return any(ext.endswith(s) for s in
+               [".fastq.gz", ".fq.gz", ".fastq", ".fq"])
+
 class BulkRNAAgent(BaseAgent):
 
     name        = "bulk_rna_agent"
@@ -66,14 +75,29 @@ class BulkRNAAgent(BaseAgent):
         if not files:
             return {"status": "failed", "reason": "no_bulk_rna_files"}
 
-        self.publish_status(experiment_id,
-                            "BulkRNAAgent starting...", 0.0)
+        self.publish_status(experiment_id, "BulkRNAAgent starting...", 0.0)
 
-        # Extract design from intent
+        # ── Detect if files are FASTQs (raw) or count matrices ───────────
+        is_raw = _is_fastq(files)
+
+        if is_raw:
+            # Full pipeline: FASTQ → trim → align → quantify → DE
+            counts_files, preprocessing = self._run_preprocessing(
+                experiment_id, files, exp_ctx, intent
+            )
+            if counts_files is None:
+                return {"status": "failed",
+                        "findings": preprocessing,
+                        "reason": "preprocessing_failed"}
+            # Hand off to DE with the generated counts matrix
+            files = counts_files
+        else:
+            preprocessing = None
+
+        # ── Differential expression ───────────────────────────────────────
         design_factor, comparison = self._extract_design(intent, files)
-
         self.publish_status(experiment_id,
-                            f"Running DESeq2 ({design_factor})...", 0.2)
+                            f"Running DESeq2 ({design_factor})...", 0.7)
 
         result = self.env.run_in_stack(
             stack="rna",
@@ -94,21 +118,174 @@ class BulkRNAAgent(BaseAgent):
         if result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": f"Bulk DE failed: "
-                            f"{result.get('details','')[:100]}"},
+                {"summary": f"Bulk DE failed: {result.get('details','')[:100]}"},
                 Confidence.INSUFFICIENT,
             )
             return {"status": "failed", "findings": result}
 
-        # Publish findings
-        self._publish_findings(experiment_id, result)
+        if preprocessing:
+            result["preprocessing"] = preprocessing
 
-        # LLM interpretation
+        self._publish_findings(experiment_id, result)
         result["interpretation"] = self._interpret(result, intent, exp_ctx)
 
-        self.publish_status(experiment_id,
-                            "BulkRNAAgent complete.", 1.0)
+        self.publish_status(experiment_id, "BulkRNAAgent complete.", 1.0)
         return {"status": "done", "findings": result}
+
+    # ── FASTQ preprocessing pipeline ──────────────────────────────────────
+
+    def _run_preprocessing(self, experiment_id: str, fastq_files: list,
+                            exp_ctx: dict, intent: dict) -> tuple:
+        """
+        Full pipeline: FASTQ → fastp → STAR → featureCounts → counts matrix.
+        Returns (counts_file_list, preprocessing_summary) or (None, error).
+        """
+        from pathlib import Path
+
+        fastq_dir  = str(Path(fastq_files[0]).parent)
+        output_dir = str(Path(fastq_files[0]).parent.parent / "aria_processing")
+        organism   = exp_ctx.get("organism", "Homo sapiens")
+        genome_cfg = exp_ctx.get("genome_config", {})
+
+        # Step 1: FASTQ QC + trimming
+        self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
+        qc_result = self.env.run_in_stack(
+            stack="rnaseq",
+            script_path="aria/scripts/rna_fastq_qc.py",
+            params={
+                "fastq_dir":  fastq_dir,
+                "output_dir": str(Path(output_dir) / "qc"),
+                "threads":    8,
+            },
+        )
+
+        if qc_result.get("status") == "error":
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"FASTQ QC failed: {qc_result.get('details','')[:100]}"},
+                Confidence.INSUFFICIENT,
+            )
+            return None, qc_result
+
+        # Publish QC findings
+        self._publish_fastq_qc_findings(experiment_id, qc_result)
+        self.publish_status(
+            experiment_id,
+            f"QC complete: {qc_result.get('n_samples',0)} samples trimmed",
+            0.20
+        )
+
+        # Step 2: Alignment with STAR
+        self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
+        align_result = self.env.run_in_stack(
+            stack="rnaseq",
+            script_path="aria/scripts/rna_align.py",
+            params={
+                "samples":       qc_result.get("samples", []),
+                "genome_dir":    genome_cfg.get("star_index", ""),
+                "genome_fasta":  genome_cfg.get("fasta", ""),
+                "gtf_file":      genome_cfg.get("gtf", ""),
+                "output_dir":    str(Path(output_dir) / "aligned"),
+                "threads":       8,
+                "two_pass":      True,
+            },
+        )
+
+        if align_result.get("status") == "error":
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Alignment failed: {align_result.get('details','')[:100]}"},
+                Confidence.INSUFFICIENT,
+            )
+            return None, align_result
+
+        # Publish alignment findings
+        self._publish_alignment_findings(experiment_id, align_result)
+        n_aligned = align_result.get("n_aligned", 0)
+        self.publish_status(
+            experiment_id,
+            f"Alignment complete: {n_aligned} samples mapped",
+            0.55
+        )
+
+        # Step 3: Quantification with featureCounts
+        self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
+        quant_result = self.env.run_in_stack(
+            stack="rnaseq",
+            script_path="aria/scripts/rna_quantify.py",
+            params={
+                "bam_files":  align_result.get("bam_files", []),
+                "gtf_file":   genome_cfg.get("gtf", ""),
+                "output_dir": str(Path(output_dir) / "counts"),
+                "threads":    8,
+                "paired":     True,
+                "strand":     genome_cfg.get("strand", 0),
+            },
+        )
+
+        if quant_result.get("status") == "error":
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Quantification failed: {quant_result.get('details','')[:100]}"},
+                Confidence.INSUFFICIENT,
+            )
+            return None, quant_result
+
+        counts_path = quant_result.get("counts_matrix")
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Quantification complete: {quant_result.get('n_genes',0):,} genes × "
+                f"{quant_result.get('n_samples',0)} samples"
+            )},
+            Confidence.HIGH,
+        )
+        self.publish_status(experiment_id, "Preprocessing complete.", 0.65)
+
+        preprocessing = {
+            "qc":         qc_result,
+            "alignment":  align_result,
+            "quantification": quant_result,
+        }
+
+        return [counts_path], preprocessing
+
+    def _publish_fastq_qc_findings(self, experiment_id: str, qc: dict):
+        samples = qc.get("samples", [])
+        if not samples:
+            return
+        avg_pass = sum(s.get("pct_passed", 0) for s in samples) / len(samples)
+        low_qual = [s["name"] for s in samples
+                    if s.get("pct_passed", 100) < 80]
+        conf = Confidence.HIGH if not low_qual else Confidence.MEDIUM
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"FASTQ QC: {len(samples)} samples trimmed. "
+                f"Avg {avg_pass:.1f}% reads passed."
+                + (f" Low quality: {low_qual}" if low_qual else "")
+            ),
+             "multiqc": qc.get("multiqc_report")},
+            conf,
+        )
+
+    def _publish_alignment_findings(self, experiment_id: str, align: dict):
+        bams = align.get("bam_files", [])
+        if not bams:
+            return
+        ok_bams   = [b for b in bams if b.get("status") == "success"]
+        avg_map   = sum(b.get("pct_unique", 0) for b in ok_bams) / max(len(ok_bams), 1)
+        low_map   = [b["name"] for b in ok_bams if b.get("pct_unique", 100) < 70]
+        conf = Confidence.HIGH if avg_map > 75 and not low_map else Confidence.MEDIUM
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"STAR alignment: {len(ok_bams)}/{len(bams)} samples mapped. "
+                f"Avg unique mapping: {avg_map:.1f}%."
+                + (f" Low mapping: {low_map}" if low_map else "")
+            )},
+            conf,
+        )
 
     # ── Design extraction ─────────────────────────────────────────────────
 

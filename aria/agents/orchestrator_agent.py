@@ -43,6 +43,7 @@ Your job:
 
 You know these agents are available:
 - data_audit_agent: always runs first
+- preprocessing_agent: raw FASTQs → fastp → STAR → featureCounts
 - scrna_agent: single-cell RNA-seq (QC, clustering, annotation, DE)
 - bulk_rna_agent: bulk RNA-seq (DESeq2, pathway enrichment, plots)
 - chromatin_agent: handles ATAC, ChIP, CUT&RUN, CUT&TAG
@@ -58,6 +59,10 @@ Always think about the biology first, then the methods.
 # Lazy imports prevent circular dependencies at module load time.
 
 AGENT_REGISTRY = {
+    "setup_agent": {
+        "module": "aria.agents.setup_agent",
+        "class":  "SetupAgent",
+    },
     "scrna_agent": {
         "module": "aria.agents.scrna_agent",
         "class":  "scRNAAgent",
@@ -82,6 +87,10 @@ AGENT_REGISTRY = {
         "module": "aria.agents.narrative_agent",
         "class":  "NarrativeAgent",
     },
+    "preprocessing_agent": {
+        "module": "aria.agents.preprocessing_agent",
+        "class":  "PreprocessingAgent",
+    },
     # Legacy alias — kept for backward compatibility
     "rna_agent": {
         "module": "aria.agents.scrna_agent",
@@ -90,8 +99,9 @@ AGENT_REGISTRY = {
 }
 
 MODALITY_TO_AGENT = {
-    "scRNA":       "scrna_agent",
-    "bulk_RNA":    "bulk_rna_agent",
+    "scRNA":        "scrna_agent",
+    "bulk_RNA_raw": "preprocessing_agent",  # raw FASTQs → preprocessing first
+    "bulk_RNA":     "bulk_rna_agent",
     "scATAC":      "chromatin_agent",
     "bulk_ATAC":   "chromatin_agent",
     "ChIP":        "chromatin_agent",
@@ -249,6 +259,26 @@ class OrchestratorAgent(BaseAgent):
                         ).get("intent", {})
         agent_results = {}
 
+        # ── Step 0: SetupAgent — provision environment before analysis ────
+        # Installs conda envs, downloads genome, builds STAR index.
+        # Transparent to the user — runs silently if already set up.
+        self.publish_status(experiment_id,
+                            "Checking computational environment...", 0.05)
+        setup_result = self._run_agent(
+            agent_name="setup_agent",
+            experiment_id=experiment_id,
+            context={
+                "exp_context":       exp_context,
+                "biological_intent": intent,
+            },
+        )
+        agent_results["setup_agent"] = setup_result
+
+        # Inject genome_config into exp_context for downstream agents
+        if setup_result.get("status") == "done":
+            genome_config = setup_result.get("genome_config", {})
+            exp_context   = {**exp_context, "genome_config": genome_config}
+
         steps = plan.get("steps", []) or self._infer_steps(modalities)
         ordered = self._resolve_execution_order(steps)
 
@@ -257,6 +287,12 @@ class OrchestratorAgent(BaseAgent):
             for m in modalities
             if m in MODALITY_TO_AGENT
         }
+
+        # If raw FASTQs detected, preprocessing must run before bulk DE
+        has_raw = "bulk_RNA_raw" in modalities
+        if has_raw:
+            agents_needed.add("preprocessing_agent")
+            agents_needed.add("bulk_rna_agent")
 
         # ── Modality agents ──────────────────────────────────────────────
         n_steps = max(len(ordered), 1)
