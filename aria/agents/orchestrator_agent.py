@@ -100,9 +100,8 @@ AGENT_REGISTRY = {
 
 MODALITY_TO_AGENT = {
     "scRNA":        "scrna_agent",
-    "bulk_RNA_raw": "preprocessing_agent",  # raw FASTQs → preprocessing first
     "bulk_RNA":     "bulk_rna_agent",
-    "bulk_RNA_raw": "bulk_rna_agent",
+    "bulk_RNA_raw": "bulk_rna_agent",   # raw FASTQs — bulk_rna_agent handles preprocessing
     "scATAC":      "chromatin_agent",
     "bulk_ATAC":   "chromatin_agent",
     "ChIP":        "chromatin_agent",
@@ -260,6 +259,16 @@ class OrchestratorAgent(BaseAgent):
                         ).get("intent", {})
         agent_results = {}
 
+        # Merge raw-FASTQ modality into main key so bulk_rna_agent
+        # (which reads modalities["bulk_RNA"]) sees the files.
+        # The agent detects FASTQ vs counts by file extension.
+        if "bulk_RNA_raw" in modalities:
+            raw_files = modalities["bulk_RNA_raw"]
+            existing  = modalities.get("bulk_RNA", [])
+            modalities = {**modalities,
+                          "bulk_RNA": list(existing) + list(raw_files)}
+            exp_context = {**exp_context, "modalities": modalities}
+
         # ── Step 0: SetupAgent — provision environment before analysis ────
         # Installs conda envs, downloads genome, builds STAR index.
         # Transparent to the user — runs silently if already set up.
@@ -289,36 +298,55 @@ class OrchestratorAgent(BaseAgent):
             if m in MODALITY_TO_AGENT
         }
 
-        # If raw FASTQs detected, preprocessing must run before bulk DE
-        has_raw = "bulk_RNA_raw" in modalities
-        if has_raw:
-            agents_needed.add("preprocessing_agent")
+        # If raw FASTQs detected, bulk_rna_agent handles preprocessing
+        # internally (fastp → STAR → featureCounts → DESeq2 in one invocation).
+        if "bulk_RNA_raw" in modalities:
             agents_needed.add("bulk_rna_agent")
 
         # ── Modality agents ──────────────────────────────────────────────
-        # Deduplicate: each agent runs at most once per experiment.
-        # The LLM plan may list multiple steps under the same agent
-        # (e.g. "FASTQ QC", "Alignment", "DE" all → bulk_rna_agent).
-        # The agent itself handles its internal pipeline stages.
+        # Ground truth: agents_needed (built from detected modalities).
+        # The LLM plan provides an ordering hint via `step.agent`, but
+        # we do NOT filter by it — if the LLM forgot to set `agent:` on
+        # its steps, we still run the required agents.
+        #
+        # Each agent runs at most once. The agent internally handles its
+        # full pipeline (for bulk_rna_agent: fastp → STAR → featureCounts
+        # → DESeq2, all stages inside one invocation).
+        runnable = sorted(agents_needed - {"integration_agent",
+                                              "narrative_agent"})
+
+        # Use the LLM plan to decide ordering when possible.
+        # Steps that mention an agent-looking keyword get priority.
+        def _step_hint(step: dict) -> str:
+            text = (step.get("agent", "") + " " +
+                    str(step.get("analysis", "")) + " " +
+                    str(step.get("description", ""))).lower()
+            for a in runnable:
+                if a in text or a.replace("_agent","") in text:
+                    return a
+            return ""
+
+        ordered_by_plan = []
+        for step in ordered:
+            hint = _step_hint(step)
+            if hint and hint not in ordered_by_plan:
+                ordered_by_plan.append(hint)
+        # Append any remaining agents the plan didn't mention
+        for a in runnable:
+            if a not in ordered_by_plan:
+                ordered_by_plan.append(a)
+
         agents_run: set = set()
-        n_steps = max(len(ordered), 1)
+        n_agents = max(len(ordered_by_plan), 1)
 
-        for i, step in enumerate(ordered):
-            agent_name = step.get("agent", "")
-
-            if agent_name not in agents_needed:
-                continue
-            if agent_name in ("integration_agent", "narrative_agent"):
-                continue
+        for i, agent_name in enumerate(ordered_by_plan):
             if agent_name in agents_run:
-                # Agent already executed — skip duplicate steps
-                log.debug(f"Skipping duplicate step for {agent_name}")
-                continue
+                continue   # safety dedup
 
             self.publish_status(
                 experiment_id,
                 f"Running {agent_name}...",
-                0.15 + (i / n_steps) * 0.50,
+                0.15 + (i / n_agents) * 0.50,
             )
 
             result = self._run_agent(

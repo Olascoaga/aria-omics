@@ -66,6 +66,7 @@ C = {
 AGENT_COLORS = {
     "orchestrator":      C['cyan'],
     "data_audit_agent":  C['teal'],
+    "setup_agent":       "#fbbf24",
     "scrna_agent":       C['green'],
     "bulk_rna_agent":    "#34d399",
     "rna_agent":         C['green'],
@@ -77,16 +78,32 @@ AGENT_COLORS = {
 }
 
 AGENT_ICONS = {
-    "orchestrator":      "[o]",
-    "data_audit_agent":  "[?]",
-    "scrna_agent":       "[sc]",
-    "bulk_rna_agent":    "[b]",
-    "rna_agent":         "[r]",
-    "chromatin_agent":   "[c]",
-    "genome_arch_agent": "[g]",
-    "integration_agent": "[i]",
-    "narrative_agent":   "[n]",
-    "debate_council":    "[d]",
+    "orchestrator":      "(orch )",
+    "data_audit_agent":  "(audit)",
+    "setup_agent":       "(setup)",
+    "scrna_agent":       "(scRNA)",
+    "bulk_rna_agent":    "(bulk )",
+    "rna_agent":         "(rna  )",
+    "chromatin_agent":   "(chrom)",
+    "genome_arch_agent": "( 3D  )",
+    "integration_agent": "(integ)",
+    "narrative_agent":   "(narr )",
+    "debate_council":    "(deb  )",
+}
+
+# Human-readable names for display (paired with icons)
+AGENT_NAMES = {
+    "orchestrator":      "Orchestrator",
+    "data_audit_agent":  "Data Audit",
+    "setup_agent":       "Setup",
+    "scrna_agent":       "scRNA",
+    "bulk_rna_agent":    "Bulk RNA",
+    "rna_agent":         "RNA",
+    "chromatin_agent":   "Chromatin",
+    "genome_arch_agent": "3D Genome",
+    "integration_agent": "Integration",
+    "narrative_agent":   "Report",
+    "debate_council":    "Debate",
 }
 
 CHECKPOINT_TITLES = {
@@ -179,19 +196,24 @@ def print_checkpoint(number: int, title: str,
 
 
 def print_agent_progress(msg: Message):
-    """Display a STATUS message from an agent."""
+    """Display a STATUS message from an agent with clear identification."""
     agent    = msg.sender
     progress = msg.payload.get("progress", 0)
     status   = msg.payload.get("status", "")
     pct      = f"{int(progress * 100):3d}%"
     color    = AGENT_COLORS.get(agent, C['muted'])
-    icon     = AGENT_ICONS.get(agent, "[-]")
-    bar_len  = 20
+    icon     = AGENT_ICONS.get(agent, f"({agent[:5]:<5})")
+    name     = AGENT_NAMES.get(agent, agent.replace("_agent", "").title())
+    bar_len  = 16
     filled   = int(bar_len * progress)
     bar      = "█" * filled + "░" * (bar_len - filled)
+    # Format: [icon] Name        [bar]  PCT  status text
     console.print(
-        f"  [{C['dim']}]{icon}[/] [{color}]{bar}[/] "
-        f"[{C['dim']}]{pct}[/]  [{C['muted']}]{status}[/]"
+        f"  [{color}]{icon:<8}[/] "
+        f"[{color}]{name:<12}[/] "
+        f"[{color}]{bar}[/] "
+        f"[{C['dim']}]{pct}[/]  "
+        f"[{C['muted']}]{status}[/]"
     )
 
 
@@ -412,7 +434,17 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
 
             if msg.type == MessageType.STATUS:
                 print_agent_progress(msg)
-                if msg.payload.get("progress", 0) >= 1.0:
+                # CRITICAL: only the NarrativeAgent reaching 1.0 signals
+                # the end of the pipeline. SetupAgent, BulkRNAAgent, etc.
+                # also hit 1.0 when they finish their own work — but the
+                # overall analysis isn't done until the report is written.
+                if (msg.sender == "narrative_agent"
+                        and msg.payload.get("progress", 0) >= 1.0):
+                    analysis_done = True
+                # Also accept an explicit "all done" from the orchestrator
+                elif (msg.sender == "orchestrator"
+                        and msg.payload.get("progress", 0) >= 1.0
+                        and "complete" in str(msg.payload.get("status","")).lower()):
                     analysis_done = True
 
             elif msg.type == MessageType.FINDING:
