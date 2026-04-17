@@ -147,10 +147,33 @@ def _build_star_index(genome_dir: Path, fasta: str, gtf: str,
         return "STAR index build timed out (>2h)"
 
 
+def _star_output_valid(bam_path: Path, log_file: Path) -> bool:
+    """
+    Check if STAR output is present and complete.
+    Requires:
+      - BAM file exists and > 1 MB (even tiny datasets produce MB-scale BAMs)
+      - Log.final.out present (STAR writes this only after finishing)
+      - samtools quickcheck passes (BAM is not truncated)
+    """
+    try:
+        if not bam_path.exists() or bam_path.stat().st_size < 1_000_000:
+            return False
+        if not log_file.exists():
+            return False
+        # samtools quickcheck exit 0 = complete, non-zero = truncated/corrupt
+        proc = subprocess.run(
+            ["samtools", "quickcheck", str(bam_path)],
+            capture_output=True, timeout=60
+        )
+        return proc.returncode == 0
+    except Exception:
+        return False
+
+
 def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
                    threads: int, two_pass: bool,
                    warnings: list) -> dict:
-    """Align one sample with STAR."""
+    """Align one sample with STAR. Idempotent: skips if BAM already valid."""
     name   = sample["name"]
     r1     = sample.get("r1_trimmed") or sample.get("r1")
     r2     = sample.get("r2_trimmed") or sample.get("r2")
@@ -159,6 +182,32 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
     sample_dir = output_dir / name
     sample_dir.mkdir(exist_ok=True)
     prefix = str(sample_dir / f"{name}_")
+
+    result = {
+        "name":   name,
+        "status": "pending",
+    }
+
+    # ── Resume check: valid BAM already present? ─────────────────────────
+    bam_path = Path(f"{prefix}Aligned.sortedByCoord.out.bam")
+    log_file = Path(f"{prefix}Log.final.out")
+    if _star_output_valid(bam_path, log_file):
+        stats = _parse_star_log(log_file)
+        warnings.append(
+            f"[resume] STAR skipped for {name} "
+            f"(valid BAM exists: {stats.get('pct_unique',0)}% unique)"
+        )
+        result.update({
+            "status":      "success",
+            "bam":         str(bam_path),
+            "log":         str(log_file),
+            "pct_unique":  stats.get("pct_unique", 0),
+            "pct_multi":   stats.get("pct_multi",  0),
+            "pct_unmapped":stats.get("pct_unmapped", 0),
+            "n_input":     stats.get("n_input", 0),
+            "resumed":     True,
+        })
+        return result
 
     cmd = [
         "STAR",
@@ -172,21 +221,15 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
         "--outSAMstrandField",   "intronMotif",
         "--outFilterIntronMotifs", "RemoveNoncanonical",
         "--outSAMunmapped",      "Within",
-        "--quantMode",           "GeneCounts",  # produces ReadsPerGene.out.tab
+        "--quantMode",           "GeneCounts",
     ]
 
     if paired and r2:
-        # Insert r2 right after r1
         r1_idx = cmd.index(r1)
         cmd.insert(r1_idx + 1, r2)
 
     if two_pass:
         cmd += ["--twopassMode", "Basic"]
-
-    result = {
-        "name":   name,
-        "status": "pending",
-    }
 
     try:
         proc = subprocess.run(

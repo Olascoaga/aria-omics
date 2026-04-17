@@ -78,6 +78,36 @@ def rna_quantify(params: dict) -> dict:
     bam_paths    = [b["bam"] for b in valid_bams]
     sample_names = [b["name"] for b in valid_bams]
     counts_file  = str(output_dir / "counts.txt")
+    matrix_file  = output_dir / "counts_matrix.tsv"
+    summary_file = counts_file + ".summary"
+
+    # ── Resume check: clean matrix + summary already present? ───────────
+    # We check for the cleaned-up matrix (counts_matrix.tsv) because that
+    # is the final deliverable. If it's present AND has all samples as
+    # columns AND the BAMs are older than the matrix → skip featureCounts.
+    if _counts_outputs_valid(matrix_file, sample_names, bam_paths):
+        try:
+            import pandas as _pd
+            df = _pd.read_csv(matrix_file, sep="\t", index_col=0, nrows=5)
+            n_genes_resumed = sum(1 for _ in open(matrix_file)) - 1
+            warnings.append(
+                f"[resume] featureCounts skipped "
+                f"(valid counts_matrix.tsv exists: "
+                f"{n_genes_resumed} genes × {len(sample_names)} samples)"
+            )
+            return {
+                "status":        "success",
+                "counts_matrix": str(matrix_file),
+                "summary":       summary_file if Path(summary_file).exists() else None,
+                "n_genes":       n_genes_resumed,
+                "n_samples":     len(valid_bams),
+                "strand_used":   strand,
+                "sample_names":  sample_names,
+                "warnings":      warnings,
+                "resumed":       True,
+            }
+        except Exception:
+            pass  # fall through to full run
 
     cmd = [
         "featureCounts",
@@ -117,8 +147,6 @@ def rna_quantify(params: dict) -> dict:
             counts_file, sample_names, output_dir, warnings
         )
 
-        summary_file = counts_file + ".summary"
-
         return {
             "status":        "success",
             "counts_matrix": str(matrix_path),
@@ -143,6 +171,31 @@ def rna_quantify(params: dict) -> dict:
             "details":    "featureCounts timed out (>1h)",
             "warnings":   warnings,
         }
+
+
+def _counts_outputs_valid(matrix_file: Path, expected_samples: list,
+                           bam_paths: list) -> bool:
+    """
+    Check if counts_matrix.tsv is present, complete, and newer than BAMs.
+    """
+    try:
+        if not matrix_file.exists() or matrix_file.stat().st_size < 1024:
+            return False
+        with open(matrix_file) as f:
+            header = f.readline().rstrip("\n")
+        cols = header.split("\t")
+        cols_set = set(cols)
+        missing = [s for s in expected_samples if s not in cols_set]
+        if missing:
+            return False
+        matrix_mtime = matrix_file.stat().st_mtime
+        for b in bam_paths:
+            bp = Path(b)
+            if bp.exists() and bp.stat().st_mtime > matrix_mtime:
+                return False
+        return True
+    except Exception:
+        return False
 
 
 def _clean_counts_matrix(counts_file: str, sample_names: list,

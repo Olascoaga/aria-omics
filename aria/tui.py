@@ -389,14 +389,21 @@ def _drain_checkpoints(orchestrator: OrchestratorAgent,
 def _live_analysis_loop(orchestrator: OrchestratorAgent,
                          experiment_id: str,
                          poll_interval: float = 0.5,
-                         timeout: float = 7200.0):
+                         timeout: float = 43200.0,
+                         idle_warning_after: float = 1800.0):
     """
     The polling loop that keeps the TUI alive during background dispatch.
 
     Runs until:
-      a) A STATUS message with progress=1.0 arrives (analysis complete)
+      a) A STATUS message from narrative_agent with progress=1.0 arrives
       b) Checkpoint 5 (final report) is processed
-      c) Timeout reached
+      c) Timeout reached (default 12 h)
+
+    Idle handling:
+      - If no new messages for `idle_warning_after` seconds (default 30 min),
+        print a gentle reminder that the analysis is still working.
+      - STAR alignment on a full human bulk RNA-seq dataset routinely takes
+        2-3 hours per sample sequentially, so we expect long silences.
 
     On each tick:
       1. Check for new STATUS messages → show progress
@@ -411,15 +418,53 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
 
     seen_message_ids: set = set()
     start_time = time.time()
+    last_message_time = start_time
+    last_heartbeat_time = start_time
+    idle_warning_shown = False
     analysis_done = False
 
+    # Known long-running stages (published status before the silence)
+    # that justify suppressing the "something is wrong" anxiety
+    LONG_STAGES = ("aligning to genome", "star", "building", "star index",
+                    "counting reads", "featurecounts", "differential expression")
+    last_status_text = ""
+
     while not analysis_done:
-        if time.time() - start_time > timeout:
+        elapsed = time.time() - start_time
+        silent  = time.time() - last_message_time
+
+        if elapsed > timeout:
             console.print(
-                f"\n  [{C['amber']}]Timeout reached ({timeout/3600:.0f}h). "
-                f"Check ~/.aria/reports/ for partial results.[/]\n"
+                f"\n  [{C['amber']}]TUI timeout reached ({timeout/3600:.0f}h). "
+                f"The background pipeline may still be running.[/]\n"
+                f"  [{C['muted']}]Check: ps aux | grep -E 'STAR|fastp|featureCounts'[/]\n"
+                f"  [{C['muted']}]Report will be saved to ~/.aria/reports/ "
+                f"when complete.[/]\n"
             )
             break
+
+        # Idle reminder (once, when silence exceeds threshold)
+        if silent > idle_warning_after and not idle_warning_shown:
+            is_long_stage = any(s in last_status_text.lower()
+                                 for s in LONG_STAGES)
+            hint = (
+                "This is expected during STAR alignment (silent stage). "
+                if is_long_stage else ""
+            )
+            console.print(
+                f"\n  [{C['muted']}]No updates for {silent/60:.0f} min. "
+                f"{hint}Still running in background.[/]\n"
+            )
+            idle_warning_shown = True
+
+        # Heartbeat every 5 min during extended silence (keeps you informed)
+        if silent > 300 and (time.time() - last_heartbeat_time) > 300:
+            stage_label = last_status_text[:60] if last_status_text else "working"
+            console.print(
+                f"  [{C['dim']}]● heartbeat: {stage_label} "
+                f"({silent/60:.0f} min silent, {elapsed/60:.0f} min total)[/]"
+            )
+            last_heartbeat_time = time.time()
 
         # ── Collect new messages from MessageBus ──────────────────────────
         all_msgs = bus.get_log()
@@ -431,9 +476,12 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
 
         for msg in new_msgs:
             seen_message_ids.add(msg.id)
+            last_message_time = time.time()     # reset idle counter
+            idle_warning_shown = False
 
             if msg.type == MessageType.STATUS:
                 print_agent_progress(msg)
+                last_status_text = str(msg.payload.get("status", ""))
                 # CRITICAL: only the NarrativeAgent reaching 1.0 signals
                 # the end of the pipeline. SetupAgent, BulkRNAAgent, etc.
                 # also hit 1.0 when they finish their own work — but the

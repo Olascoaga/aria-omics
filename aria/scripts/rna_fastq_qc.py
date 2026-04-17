@@ -165,10 +165,39 @@ def _detect_samples(fastq_dir: Path, warnings: list) -> list[dict]:
     return samples
 
 
+def _fastp_outputs_valid(r1_out: str, r2_out: str, json_out: str,
+                          paired: bool) -> bool:
+    """
+    Check if fastp outputs are present and valid for skipping.
+    Requires:
+      - R1 trimmed file > 1 KB (non-empty gzip)
+      - R2 trimmed file > 1 KB if paired
+      - JSON report > 100 bytes (non-empty report)
+    Note: a valid gzip file has a minimum empty-payload size of ~20 bytes;
+    we use 1 KB as a conservative real-data floor.
+    """
+    try:
+        r1 = Path(r1_out)
+        if not r1.exists() or r1.stat().st_size < 1024:
+            return False
+        if paired:
+            if not r2_out:
+                return False
+            r2 = Path(r2_out)
+            if not r2.exists() or r2.stat().st_size < 1024:
+                return False
+        j = Path(json_out)
+        if not j.exists() or j.stat().st_size < 100:
+            return False
+        return True
+    except Exception:
+        return False
+
+
 def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
                threads: int, min_len: int, quality: int,
                warnings: list) -> dict:
-    """Run fastp on one sample."""
+    """Run fastp on one sample. Idempotent: skips if outputs already valid."""
     name   = sample["name"]
     r1_in  = sample["r1"]
     r2_in  = sample.get("r2")
@@ -178,6 +207,44 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     r2_out = str(trimmed_dir / f"{name}_R2_trimmed.fq.gz") if paired else None
     json_out = str(fastp_dir / f"{name}_fastp.json")
     html_out = str(fastp_dir / f"{name}_fastp.html")
+
+    result = {
+        "name":       name,
+        "r1_raw":     r1_in,
+        "r2_raw":     r2_in,
+        "r1_trimmed": r1_out,
+        "r2_trimmed": r2_out,
+        "paired":     paired,
+    }
+
+    # ── Resume check: do all outputs exist and parse cleanly? ────────────
+    if _fastp_outputs_valid(r1_out, r2_out, json_out, paired):
+        try:
+            with open(json_out) as f:
+                fastp_data = json.load(f)
+            summary = fastp_data.get("summary", {})
+            before  = summary.get("before_filtering", {})
+            after   = summary.get("after_filtering", {})
+            n_raw     = int(before.get("total_reads", 0))
+            n_trimmed = int(after.get("total_reads",  0))
+            pct_pass  = round(n_trimmed / max(n_raw, 1) * 100, 1)
+            result.update({
+                "status":          "success",
+                "n_reads_raw":     n_raw,
+                "n_reads_trimmed": n_trimmed,
+                "pct_passed":      pct_pass,
+                "q30_rate":        round(float(after.get("q30_rate", 0))
+                                          * 100, 1),
+                "resumed":         True,
+            })
+            warnings.append(
+                f"[resume] fastp skipped for {name} "
+                f"(valid outputs exist: {pct_pass}% passed previously)"
+            )
+            return result
+        except Exception:
+            # JSON corrupted — fall through to re-run fastp
+            pass
 
     cmd = [
         "fastp",
@@ -194,18 +261,7 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     ]
     if paired and r2_in and r2_out:
         cmd += ["--in2", r2_in, "--out2", r2_out]
-
-    # Remove empty strings
     cmd = [c for c in cmd if c]
-
-    result = {
-        "name":       name,
-        "r1_raw":     r1_in,
-        "r2_raw":     r2_in,
-        "r1_trimmed": r1_out,
-        "r2_trimmed": r2_out,
-        "paired":     paired,
-    }
 
     try:
         proc = subprocess.run(
