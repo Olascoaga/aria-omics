@@ -62,7 +62,7 @@ class EnvironmentManager:
         "rna":         3600,    # 1 hour
         "chromatin":   7200,    # 2 hours
         "hic":         14400,
-        "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
+        "rnaseq":      18000,   # 5h — fastp(18min) + STAR index(30min) + align(2.5h) + featureCounts
         "integration": 7200,    # 2 hours
         "spatial":     3600,    # 1 hour
     }

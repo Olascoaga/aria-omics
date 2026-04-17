@@ -62,7 +62,19 @@ def bulk_rna_de(params: dict) -> dict:
     files          = params.get("files", [])
     metadata_file  = params.get("metadata_file", "")
     design_factor  = params.get("design_factor", "condition")
-    comparison     = params.get("comparison", {})
+
+    # v3: accept list of contrasts OR single comparison (backward compat)
+    contrasts_in   = params.get("contrasts", [])
+    if not contrasts_in:
+        single_comp = params.get("comparison", {})
+        if single_comp:
+            contrasts_in = [{
+                "numerator":   single_comp.get("numerator", ""),
+                "denominator": single_comp.get("denominator", ""),
+                "name":        f"{single_comp.get('numerator','?')} vs "
+                               f"{single_comp.get('denominator','?')}",
+            }]
+
     organism       = params.get("organism", "Homo sapiens")
     output_dir     = params.get("output_dir", "/tmp/aria_bulk_de")
     run_pathways   = bool(params.get("run_pathways", True))
@@ -75,7 +87,6 @@ def bulk_rna_de(params: dict) -> dict:
     # ── 1. Load counts matrix ─────────────────────────────────────────────
     counts, load_warn = _load_counts(files)
     warnings.extend(load_warn)
-
     if counts is None:
         return {
             "status":     "error",
@@ -88,128 +99,285 @@ def bulk_rna_de(params: dict) -> dict:
         counts, metadata_file, design_factor
     )
     warnings.extend(meta_warn)
-
     if metadata is None:
         return {
             "status":     "error",
             "error_type": "MetadataFailed",
-            "details":    (
+            "details": (
                 "Could not construct sample metadata. "
                 "Provide a metadata TSV with 'sample' and condition columns, "
                 "or name samples as: condition_replicate (e.g. ctrl_1, treat_1)."
             ),
         }
-
-    # Verify design factor exists
     if design_factor not in metadata.columns:
         return {
             "status":     "error",
             "error_type": "DesignFactorMissing",
-            "details":    (
+            "details": (
                 f"Column '{design_factor}' not found in metadata. "
                 f"Available columns: {list(metadata.columns)}"
             ),
         }
 
-    # Resolve comparison groups
-    comparison, comp_warn = _resolve_comparison(
-        metadata, design_factor, comparison
-    )
-    warnings.extend(comp_warn)
-
-    numerator   = comparison.get("numerator", "")
-    denominator = comparison.get("denominator", "")
-
-    # ── 3. Sample QC — outlier detection ─────────────────────────────────
+    # ── 3. Sample QC (shared across contrasts) ───────────────────────────
     sample_qc = _sample_qc(counts, metadata, output_dir, warnings)
-
-    # Remove outliers from analysis if detected
     outlier_samples = sample_qc.get("outliers", [])
     if outlier_samples:
         counts   = counts.drop(columns=outlier_samples, errors="ignore")
         metadata = metadata.drop(index=outlier_samples, errors="ignore")
         warnings.append(
-            f"Sample outliers removed before DE: {outlier_samples}. "
-            f"These samples clustered away from their group in PCA."
+            f"Sample outliers removed: {outlier_samples}. "
+            f"Clustered away from group centroid in PCA."
         )
 
-    # ── 4. Filter low-count genes ─────────────────────────────────────────
-    min_samples  = max(2, metadata.shape[0] // 4)
-    keep         = (counts > 10).sum(axis=1) >= min_samples
-    counts_filt  = counts[keep]
-    n_filtered   = int((~keep).sum())
+    # ── 4. Filter low-count genes (shared across contrasts) ──────────────
+    min_samples = max(2, metadata.shape[0] // 4)
+    keep        = (counts > 10).sum(axis=1) >= min_samples
+    counts_filt = counts[keep]
+    n_filtered  = int((~keep).sum())
     if n_filtered:
         warnings.append(
             f"{n_filtered} low-count genes removed "
             f"(< 10 counts in < {min_samples} samples)."
         )
 
-    # ── 5. DESeq2 differential expression ────────────────────────────────
-    de_result, de_warn = _run_deseq2(
-        counts_filt, metadata, design_factor,
-        numerator, denominator, padj_thr, lfc_thr
-    )
-    warnings.extend(de_warn)
-
-    if de_result.get("status") == "error":
-        return {**de_result, "warnings": warnings}
-
-    # ── 6. Pathway enrichment ─────────────────────────────────────────────
-    pathways = {}
-    if run_pathways and de_result.get("sig_genes"):
-        pathways, pw_warn = _run_pathway_enrichment(
-            sig_genes=de_result["sig_genes"],
-            up_genes=de_result.get("up_genes", []),
-            down_genes=de_result.get("down_genes", []),
-            organism=organism,
-            output_dir=output_dir,
+    # ── 5. If no contrasts provided, auto-generate from groups ──────────
+    if not contrasts_in:
+        contrasts_in, auto_warn = _auto_contrasts(
+            metadata, design_factor
         )
-        warnings.extend(pw_warn)
+        warnings.extend(auto_warn)
+        if not contrasts_in:
+            return {
+                "status":     "error",
+                "error_type": "NoContrastsBuildable",
+                "details":    f"Could not build contrasts from "
+                              f"{design_factor}={list(metadata[design_factor].unique())}",
+            }
 
-    # ── 7. Visualizations ─────────────────────────────────────────────────
-    plots = _generate_plots(
-        de_result=de_result,
-        sample_qc=sample_qc,
-        counts_filt=counts_filt,
-        metadata=metadata,
-        design_factor=design_factor,
-        output_dir=output_dir,
-        padj_thr=padj_thr,
-        lfc_thr=lfc_thr,
-    )
+    # ── 6. Run each contrast ─────────────────────────────────────────────
+    contrast_results = []
 
-    # ── 8. Format top genes ───────────────────────────────────────────────
-    top_genes = [
-        {
-            "gene":      g,
-            "log2fc":    round(float(de_result["results"].loc[g, "log2FoldChange"]), 3)
-                         if g in de_result.get("results", {}).index else 0,
-            "padj":      float(de_result["results"].loc[g, "padj"])
-                         if g in de_result.get("results", {}).index else 1,
-            "direction": "up" if de_result["results"].loc[g, "log2FoldChange"] > 0
-                         else "down"
-                         if g in de_result.get("results", {}).index else "unknown",
+    for contrast in contrasts_in:
+        num  = contrast.get("numerator",   "")
+        den  = contrast.get("denominator", "")
+        name = contrast.get("name", f"{num} vs {den}")
+
+        # Validate groups exist in metadata
+        available_groups = list(metadata[design_factor].unique())
+        if num not in available_groups or den not in available_groups:
+            warnings.append(
+                f"Skipping contrast '{name}': "
+                f"groups {num!r}, {den!r} not in {available_groups}"
+            )
+            continue
+
+        # Run DE for this contrast
+        de_result, de_warn = _run_deseq2(
+            counts_filt, metadata, design_factor,
+            num, den, padj_thr, lfc_thr
+        )
+
+        if de_result.get("status") == "error":
+            contrast_results.append({
+                "name":         name,
+                "numerator":    num,
+                "denominator":  den,
+                "status":       "error",
+                "error":        de_result.get("details", ""),
+                "warnings":     de_warn,
+            })
+            warnings.extend([f"[{name}] {w}" for w in de_warn])
+            continue
+
+        warnings.extend([f"[{name}] {w}" for w in de_warn])
+
+        # Pathway enrichment per contrast
+        pathways = {}
+        if run_pathways and de_result.get("sig_genes"):
+            pathways, pw_warn = _run_pathway_enrichment(
+                sig_genes=de_result["sig_genes"],
+                up_genes=de_result.get("up_genes", []),
+                down_genes=de_result.get("down_genes", []),
+                organism=organism,
+                output_dir=output_dir,
+            )
+            warnings.extend([f"[{name}] {w}" for w in pw_warn])
+
+        # Plots per contrast — one volcano and one heatmap each
+        contrast_dir = Path(output_dir) / _slugify(name)
+        contrast_dir.mkdir(exist_ok=True)
+        plots = _generate_plots(
+            de_result=de_result,
+            sample_qc=sample_qc,
+            counts_filt=counts_filt,
+            metadata=metadata,
+            design_factor=design_factor,
+            output_dir=str(contrast_dir),
+            padj_thr=padj_thr,
+            lfc_thr=lfc_thr,
+            title_suffix=name,
+        )
+
+        # Format top genes
+        top_genes = _format_top_genes(de_result)
+
+        contrast_results.append({
+            "name":           name,
+            "numerator":      num,
+            "denominator":    den,
+            "status":         "success",
+            "n_genes_tested": int(counts_filt.shape[0]),
+            "n_significant":  int(de_result.get("n_sig", 0)),
+            "n_upregulated":  int(de_result.get("n_up", 0)),
+            "n_downregulated":int(de_result.get("n_down", 0)),
+            "top_genes":      top_genes,
+            "pathways":       pathways,
+            "plots":          plots,
+        })
+
+    if not contrast_results:
+        return {
+            "status":     "error",
+            "error_type": "AllContrastsFailed",
+            "details":    "No contrasts produced valid results.",
+            "warnings":   warnings,
         }
-        for g in de_result.get("sig_genes", [])[:30]
-        if g in de_result.get("results", {}).index
-    ]
+
+    # ── 7. Aggregate summary ─────────────────────────────────────────────
+    total_sig  = sum(c.get("n_significant",   0) for c in contrast_results)
+    total_up   = sum(c.get("n_upregulated",   0) for c in contrast_results)
+    total_down = sum(c.get("n_downregulated", 0) for c in contrast_results)
+
+    # Cross-contrast overlap (shared DE genes)
+    overlap_info = _contrast_overlap(contrast_results)
 
     return {
         "status":           "success",
-        "n_genes_tested":   int(counts_filt.shape[0]),
-        "n_significant":    int(de_result.get("n_sig", 0)),
-        "n_upregulated":    int(de_result.get("n_up", 0)),
-        "n_downregulated":  int(de_result.get("n_down", 0)),
-        "top_genes":        top_genes,
+        "n_contrasts":      len(contrast_results),
+        "contrasts":        contrast_results,
+        "n_significant":    total_sig,       # legacy total
+        "n_upregulated":    total_up,
+        "n_downregulated":  total_down,
         "sample_qc":        sample_qc,
-        "pathways":         pathways,
-        "plots":            plots,
         "design_used":      f"~{design_factor}",
-        "comparison_used":  comparison,
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
+        "overlap":          overlap_info,
         "warnings":         warnings,
     }
+
+
+def _slugify(s: str) -> str:
+    """Make a string safe for use as a directory name."""
+    import re
+    return re.sub(r"[^a-z0-9_]+", "_", str(s).lower()).strip("_") or "contrast"
+
+
+def _format_top_genes(de_result: dict) -> list:
+    """Format top genes from a DE result."""
+    results = de_result.get("results")
+    if results is None or len(results) == 0:
+        return []
+    top = []
+    for g in de_result.get("sig_genes", [])[:30]:
+        if g not in results.index:
+            continue
+        row = results.loc[g]
+        try:
+            top.append({
+                "gene":      g,
+                "log2fc":    round(float(row["log2FoldChange"]), 3),
+                "padj":      float(row["padj"]),
+                "direction": "up" if row["log2FoldChange"] > 0 else "down",
+            })
+        except Exception:
+            continue
+    return top
+
+
+def _auto_contrasts(metadata, design_factor: str) -> tuple:
+    """Generate contrasts when none provided — each group vs control."""
+    warnings = []
+    groups = sorted(metadata[design_factor].unique())
+
+    if len(groups) < 2:
+        return [], [
+            f"Only one group in '{design_factor}': {groups}. "
+            f"Cannot run differential expression."
+        ]
+
+    # Identify control
+    ctrl_keywords = ["wt", "wildtype", "control", "ctrl",
+                     "vehicle", "dmso", "untreated", "mock",
+                     "normal", "healthy", "baseline", "scramble"]
+    control = None
+    for kw in ctrl_keywords:
+        for g in groups:
+            if g.lower() == kw:
+                control = g
+                break
+        if control:
+            break
+    if not control:
+        for kw in ctrl_keywords:
+            for g in groups:
+                if kw in g.lower():
+                    control = g
+                    break
+            if control:
+                break
+
+    contrasts = []
+    if control:
+        for g in groups:
+            if g == control:
+                continue
+            contrasts.append({
+                "numerator":   g,
+                "denominator": control,
+                "name":        f"{g} vs {control}",
+            })
+    else:
+        # Alphabetical pairwise (only first vs rest to limit explosion)
+        ref = groups[0]
+        for g in groups[1:]:
+            contrasts.append({
+                "numerator":   g,
+                "denominator": ref,
+                "name":        f"{g} vs {ref}",
+            })
+        warnings.append(
+            f"No control group identified in {groups}. "
+            f"Using '{ref}' as reference."
+        )
+
+    return contrasts, warnings
+
+
+def _contrast_overlap(contrast_results: list) -> dict:
+    """Compute DE gene overlap between contrasts."""
+    successful = [c for c in contrast_results if c.get("status") == "success"]
+    if len(successful) < 2:
+        return {}
+
+    gene_sets = {
+        c["name"]: set(g["gene"] for g in c.get("top_genes", []))
+        for c in successful
+    }
+    names = list(gene_sets.keys())
+
+    overlaps = {}
+    for i, a in enumerate(names):
+        for b in names[i+1:]:
+            shared = gene_sets[a] & gene_sets[b]
+            overlaps[f"{a} ∩ {b}"] = {
+                "n_shared":      len(shared),
+                "n_in_first":    len(gene_sets[a]),
+                "n_in_second":   len(gene_sets[b]),
+                "shared_genes":  sorted(shared)[:20],
+            }
+    return overlaps
 
 
 # ── Data loading ──────────────────────────────────────────────────────────────
@@ -449,8 +617,18 @@ def _resolve_comparison(metadata, design_factor: str,
 def _sample_qc(counts, metadata, output_dir: str,
                warnings: list) -> dict:
     """
-    PCA-based sample outlier detection.
-    Outliers are samples > 3 SD from group centroid in PC1-PC2 space.
+    Sample-level QC for bulk RNA-seq.
+
+    Two complementary checks:
+      (a) Pairwise replicate concordance — Spearman correlation between
+          samples within the same biological group. A sample that
+          correlates < 0.85 with its replicates is technically suspect.
+      (b) PCA-based global outlier detection — samples > 2.5 SD from the
+          centroid in PC1-PC2 are flagged. These are dataset-level
+          outliers (could be wrong condition assignment, batch effect).
+
+    A sample is reported as "outlier" if it fails BOTH (more conservative).
+    Outliers are removed from downstream DE.
     """
     try:
         import pandas as pd
@@ -458,57 +636,114 @@ def _sample_qc(counts, metadata, output_dir: str,
         from sklearn.decomposition import PCA
         from sklearn.preprocessing import StandardScaler
 
-        # VST-like normalization for PCA
-        counts_norm = np.log2(counts + 1)
-        scaler      = StandardScaler()
-        X           = scaler.fit_transform(counts_norm.T)
+        # ── Library size stats ────────────────────────────────────────────
+        lib_sizes  = counts.sum(axis=0)
+        size_ratio = float(lib_sizes.max() / max(lib_sizes.min(), 1))
+        if size_ratio > 10:
+            warnings.append(
+                f"Library size range: {size_ratio:.1f}× "
+                f"(max={int(lib_sizes.max()):,}, "
+                f"min={int(lib_sizes.min()):,}). "
+                f"DESeq2 normalization handles modest variation; "
+                f"consider re-sequencing low-depth samples if >100×."
+            )
 
-        pca     = PCA(n_components=min(10, X.shape[0] - 1))
+        # ── (a) Replicate concordance ─────────────────────────────────────
+        # Use log2(counts+1) so highly-expressed genes don't dominate.
+        # Spearman is rank-based → robust to outlier genes.
+        log_counts = np.log2(counts.astype(float) + 1)
+        corr_full  = log_counts.corr(method="spearman")
+
+        # Identify the condition column from metadata
+        condition_col = None
+        for c in metadata.columns:
+            if c not in ("sample", "batch", "replicate"):
+                condition_col = c
+                break
+
+        replicate_outliers = []
+        replicate_report   = {}
+
+        if condition_col:
+            for group, samples in metadata.groupby(condition_col):
+                sample_ids = list(samples.index)
+                if len(sample_ids) < 3:
+                    # Need ≥3 reps to assess concordance reliably
+                    continue
+                sub_corr = corr_full.loc[sample_ids, sample_ids]
+                # Mean correlation of each sample with the others in its group
+                # (exclude self-correlation = 1.0)
+                for s in sample_ids:
+                    others = [x for x in sample_ids if x != s]
+                    mean_r = sub_corr.loc[s, others].mean()
+                    replicate_report[s] = round(float(mean_r), 4)
+                    if mean_r < 0.85:
+                        replicate_outliers.append(s)
+                        warnings.append(
+                            f"Sample '{s}' has mean Spearman r={mean_r:.3f} "
+                            f"with other {group} replicates (<0.85). "
+                            f"Possible technical issue or sample swap."
+                        )
+
+        # ── (b) PCA-based outlier detection ───────────────────────────────
+        scaler = StandardScaler()
+        X      = scaler.fit_transform(log_counts.T)
+
+        n_components = max(2, min(10, X.shape[0] - 1))
+        pca     = PCA(n_components=n_components)
         coords  = pca.fit_transform(X)
         var_exp = pca.explained_variance_ratio_[:2]
 
-        # Detect outliers: > 3 SD from mean in PC1-PC2
-        pc12     = coords[:, :2]
-        mean_pc  = pc12.mean(axis=0)
-        std_pc   = pc12.std(axis=0) + 1e-8
-        z_scores = np.abs((pc12 - mean_pc) / std_pc)
-        outlier_mask = z_scores.max(axis=1) > 2.0  # 2 SD to catch real outliers
+        # 2.5 SD: standard outlier threshold (~99% CI for normal),
+        # less aggressive than 2 SD (which can flag valid biology),
+        # less permissive than 3 SD (which lets bad samples slip through).
+        pc12        = coords[:, :2]
+        mean_pc     = pc12.mean(axis=0)
+        std_pc      = pc12.std(axis=0) + 1e-8
+        z_scores    = np.abs((pc12 - mean_pc) / std_pc)
+        pca_outlier_mask = z_scores.max(axis=1) > 2.5
 
-        outlier_samples = [
+        pca_outliers = [
             counts.columns[i]
-            for i in range(len(outlier_mask))
-            if outlier_mask[i]
+            for i in range(len(pca_outlier_mask))
+            if pca_outlier_mask[i]
         ]
 
-        if outlier_samples:
+        # ── Combine: a sample is an outlier if it fails BOTH checks ──────
+        # OR if its replicate correlation is so low (<0.70) that it's
+        # almost certainly broken regardless of PCA.
+        critical_replicate = [
+            s for s in replicate_outliers
+            if replicate_report.get(s, 1.0) < 0.70
+        ]
+        confirmed_outliers = sorted(set(
+            critical_replicate +
+            [s for s in pca_outliers if s in replicate_outliers]
+        ))
+
+        if pca_outliers and not confirmed_outliers:
             warnings.append(
-                f"PCA outliers detected: {outlier_samples}. "
-                f"These samples are > 3 SD from the group mean in PC1-PC2."
+                f"PCA flagged {pca_outliers} as off-centroid (>2.5 SD), "
+                f"but their replicate correlation is good. Likely real "
+                f"biological variation — keeping in analysis."
             )
 
-        # Library size stats
-        lib_sizes  = counts.sum(axis=0)
-        size_ratio = float(lib_sizes.max() / max(lib_sizes.min(), 1))
-
-        if size_ratio > 10:
-            warnings.append(
-                f"Library size range: {size_ratio:.1f}x. "
-                f"Verify depth normalization is appropriate."
-            )
-
-        # Save PCA plot
+        # ── Save PCA plot ──────────────────────────────────────────────────
         pca_plot = _plot_sample_pca(
             coords, counts.columns, metadata,
             var_exp, output_dir
         )
 
         return {
-            "n_samples":     int(counts.shape[1]),
-            "outliers":      outlier_samples,
-            "pca_variance":  [round(float(v), 3) for v in var_exp],
-            "lib_size_range": [int(lib_sizes.min()), int(lib_sizes.max())],
-            "size_ratio":     round(float(size_ratio), 1),
-            "pca_plot":       pca_plot,
+            "n_samples":           int(counts.shape[1]),
+            "outliers":            confirmed_outliers,
+            "pca_outliers":        pca_outliers,
+            "replicate_outliers":  replicate_outliers,
+            "replicate_correlations": replicate_report,
+            "pca_variance":        [round(float(v), 3) for v in var_exp],
+            "lib_size_range":      [int(lib_sizes.min()), int(lib_sizes.max())],
+            "size_ratio":          round(float(size_ratio), 1),
+            "pca_plot":            pca_plot,
         }
 
     except Exception as e:
@@ -769,7 +1004,8 @@ def _mock_pathways(sig_genes: list) -> dict:
 def _generate_plots(de_result: dict, sample_qc: dict,
                     counts_filt, metadata, design_factor: str,
                     output_dir: str, padj_thr: float,
-                    lfc_thr: float) -> dict:
+                    lfc_thr: float,
+                    title_suffix: str = "") -> dict:
     """Generate volcano, heatmap, and sample PCA plots."""
     plots = {}
 
@@ -825,12 +1061,13 @@ def _generate_plots(de_result: dict, sample_qc: dict,
 
             ax.set_xlabel("log₂ Fold Change", color="#94a3b8")
             ax.set_ylabel("-log₁₀ adjusted p-value", color="#94a3b8")
-            ax.set_title(
-                f"Differential Expression\n"
-                f"{de_result.get('n_up',0)} up  "
-                f"{de_result.get('n_down',0)} down",
-                color="#22d3ee", fontsize=11,
+            title_text = (
+                f"Differential Expression" +
+                (f" — {title_suffix}" if title_suffix else "") +
+                f"\n{de_result.get('n_up',0)} up  "
+                f"{de_result.get('n_down',0)} down"
             )
+            ax.set_title(title_text, color="#22d3ee", fontsize=11)
             ax.tick_params(colors="#64748b")
             for spine in ax.spines.values():
                 spine.set_edgecolor("#2d3f6e")
@@ -872,7 +1109,8 @@ def _generate_plots(de_result: dict, sample_qc: dict,
                 ax.set_facecolor("#1a2744")
                 plt.colorbar(im, ax=ax, label="Z-score",
                              fraction=0.02, pad=0.04)
-                ax.set_title("Top DE Genes", color="#22d3ee", fontsize=10)
+                hm_title = "Top DE Genes" + (f" — {title_suffix}" if title_suffix else "")
+                ax.set_title(hm_title, color="#22d3ee", fontsize=10)
 
                 heatmap_path = str(Path(output_dir) / "heatmap.svg")
                 plt.tight_layout()

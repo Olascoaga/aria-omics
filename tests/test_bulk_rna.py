@@ -119,35 +119,24 @@ except Exception as e:
 section("Fix 2 — Design factor extracted from biological intent")
 
 try:
-    from aria.agents.rna_agent import RNAAgent
+    # BulkRNAAgent replaced RNAAgent in v3 (split from unified rna_agent).
+    from aria.agents.bulk_rna_agent import BulkRNAAgent, _infer_lfc_threshold
 
-    class MockMem:
-        def get_decisions(self, *a): return []
-        def create_wing(self, *a, **kw): pass
-        def store_decision(self, *a, **kw): pass
-
-    class MockLLM:
-        def complete(self, *a, **kw): return "mock"
-        def complete_heavy(self, *a, **kw): return "mock"
-        def complete_medium(self, *a, **kw): return "mock"
-
-    agent = RNAAgent.__new__(RNAAgent)
-    agent.llm    = MockLLM()
-    agent.memory = MockMem()
+    agent_cls = BulkRNAAgent
 
     INTENT_TESTS = [
-        ({"comparison": "knockout vs wildtype", "analysis_type": "differential"},
+        ({"comparison": "knockout vs wildtype", "summary": "KO vs WT"},
          "genotype", "KO vs WT → genotype factor"),
-        ({"comparison": "treated vs control", "analysis_type": "differential"},
+        ({"comparison": "treated vs control", "summary": "drug treatment"},
          "treatment", "treated vs control → treatment factor"),
-        ({"comparison": "24h vs 0h", "analysis_type": "temporal"},
+        ({"comparison": "24h vs 0h", "summary": "timepoint course"},
          "timepoint", "timepoint comparison"),
-        ({"comparison": "lupus vs healthy", "analysis_type": "differential"},
+        ({"comparison": "lupus vs healthy", "summary": "disease state"},
          "condition", "disease comparison → condition factor"),
     ]
 
     for intent, expected_factor, desc in INTENT_TESTS:
-        factor, comp = agent._extract_design_from_intent(intent, [])
+        factor = agent_cls._infer_design_factor(intent)
         assert factor == expected_factor, \
             f"Expected '{expected_factor}', got '{factor}'"
         ok(f"Design factor: '{factor}'", desc)
@@ -156,15 +145,37 @@ except Exception as e:
     fail("Design factor extraction", str(e))
 
 try:
-    # Comparison parsing — "X vs Y" extraction
-    intent = {"comparison": "KRAS_mutant vs KRAS_wildtype"}
-    factor, comp = agent._extract_design_from_intent(intent, [])
-    assert comp.get("numerator")   == "kras_mutant" or \
-           "mutant" in str(comp.get("numerator","")).lower(), \
-        f"Comparison not parsed: {comp}"
-    ok(f"Comparison parsed from 'X vs Y': {comp}")
+    # v3: entity-to-label mapping replaces regex comparison parsing.
+    # A TF knockout should get the lower LFC threshold.
+    intent = {
+        "comparison": "BMAL1 KO vs wildtype",
+        "summary":    "BMAL1 knockout human H9",
+        "biological_entities": ["BMAL1", "wildtype"],
+    }
+    lfc = _infer_lfc_threshold(intent)
+    assert lfc == 0.58, f"TF knockout should get 0.58 LFC, got {lfc}"
+    ok(f"TF-aware LFC threshold for BMAL1 KO: {lfc} (1.5x)")
+
+    # Disease (non-TF) should keep default 1.0
+    intent_d = {"comparison": "disease vs healthy",
+                "biological_entities": ["lupus"]}
+    lfc_d = _infer_lfc_threshold(intent_d)
+    assert lfc_d == 1.0, f"Non-TF should get 1.0, got {lfc_d}"
+    ok(f"Non-TF LFC threshold preserved: {lfc_d} (2x)")
+
+    # Entity-to-label matching: BMAL1 should map to label 'B'
+    mapping = BulkRNAAgent.__new__(BulkRNAAgent)._map_entities_to_labels(
+        entities=["BMAL1", "REV-ERBa", "wildtype"],
+        group_names=["B", "R", "WT"],
+        intent={},
+    )
+    assert mapping.get("BMAL1")     == "B",  f"BMAL1 → {mapping.get('BMAL1')}"
+    assert mapping.get("REV-ERBa")  == "R",  f"REV-ERBa → {mapping.get('REV-ERBa')}"
+    assert mapping.get("wildtype")  == "WT", f"wildtype → {mapping.get('wildtype')}"
+    ok(f"Entity→label mapping: {mapping}")
+
 except Exception as e:
-    fail("Comparison string parsing", str(e))
+    fail("Comparison/LFC/label-matching", str(e))
 
 
 # ── Fix 3: Sample outlier detection ──────────────────────────────────────────
@@ -258,15 +269,18 @@ section("End-to-end — bulk_rna_de() with synthetic counts")
 
 try:
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Write synthetic counts to TSV
         counts_df = make_counts(300)
         counts_path = Path(tmpdir) / "counts.tsv"
         counts_df.to_csv(str(counts_path), sep="\t")
 
+        # v3 API: use contrasts (list) instead of comparison (dict)
         result = bulk_rna_de({
             "files":         [str(counts_path)],
             "design_factor": "condition",
-            "comparison":    {"numerator": "treat", "denominator": "ctrl"},
+            "contrasts": [
+                {"numerator": "treat", "denominator": "ctrl",
+                 "name": "treat vs ctrl"},
+            ],
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  True,
@@ -276,26 +290,122 @@ try:
 
     assert result["status"] == "success", \
         f"Expected success, got: {result.get('status')} — {result.get('details','')}"
-    assert "n_significant"   in result
-    assert "n_upregulated"   in result
-    assert "n_downregulated" in result
-    assert "sample_qc"       in result
-    assert "pathways"        in result
-    assert "plots"           in result
-    assert "design_used"     in result
-    assert "comparison_used" in result
 
-    ok(f"Full pipeline: {result['n_significant']} DE genes "
-       f"({result['n_upregulated']} up, {result['n_downregulated']} down)")
+    # v3 shape: contrasts list in result
+    assert "contrasts"  in result, f"Missing 'contrasts' key; keys: {list(result)}"
+    assert "sample_qc"  in result
+    assert "design_used" in result
+    assert len(result["contrasts"]) == 1
+
+    c0 = result["contrasts"][0]
+    assert "n_significant"   in c0
+    assert "n_upregulated"   in c0
+    assert "n_downregulated" in c0
+    assert "plots"           in c0
+    assert "pathways"        in c0
+
+    ok(f"Full pipeline: 1 contrast → {c0['n_significant']} DE genes "
+       f"({c0['n_upregulated']} up, {c0['n_downregulated']} down)")
     ok(f"Sample QC: {result['sample_qc']['n_samples']} samples, "
        f"outliers={result['sample_qc']['outliers']}")
-    ok(f"Pathways: {list(result['pathways'].keys())}")
-    ok(f"Plots: {[k for k,v in result['plots'].items() if v]}")
+    ok(f"Pathways: {list(c0['pathways'].keys())}")
+    ok(f"Plots: {[k for k,v in c0['plots'].items() if v]}")
     ok(f"Design used: {result['design_used']}")
-    ok(f"Comparison: {result['comparison_used']}")
 
 except Exception as e:
     fail("Full bulk_rna_de() pipeline", str(e))
+
+
+# ── Multi-contrast: the v3 key feature ──────────────────────────────────────
+
+section("Multi-contrast — all pairwise contrasts in one run (v3)")
+
+try:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Three groups: B, R, WT (matching H9 experiment)
+        samples = ["B_1","B_2","B_3","R_1","R_2","R_3","WT_1","WT_2","WT_3"]
+        counts_df = make_counts(300, samples=samples)
+        counts_path = Path(tmpdir) / "counts.tsv"
+        counts_df.to_csv(str(counts_path), sep="\t")
+
+        result = bulk_rna_de({
+            "files":         [str(counts_path)],
+            "design_factor": "condition",
+            "contrasts": [
+                {"numerator": "B", "denominator": "WT", "name": "BMAL1 KO vs WT"},
+                {"numerator": "R", "denominator": "WT", "name": "REV-ERBa KO vs WT"},
+            ],
+            "organism":      "Homo sapiens",
+            "output_dir":    tmpdir,
+            "run_pathways":  False,   # skip to avoid gseapy HTTP dependency
+            "lfc_threshold": 0.58,    # TF threshold
+        })
+
+    assert result["status"] == "success"
+    assert result["n_contrasts"] == 2
+    names = [c["name"] for c in result["contrasts"]]
+    assert "BMAL1 KO vs WT" in names
+    assert "REV-ERBa KO vs WT" in names
+    ok(f"Multi-contrast: {result['n_contrasts']} contrasts run — {names}")
+
+    # Overlap computed
+    assert "overlap" in result
+    ok(f"Cross-contrast overlap computed: "
+       f"{list(result['overlap'].keys())[:1] or 'no pairs'}")
+
+except Exception as e:
+    fail("Multi-contrast bulk_rna_de()", str(e))
+
+
+# ── Replicate concordance (v3 QC addition) ───────────────────────────────────
+
+section("Replicate concordance — corrupted sample is detected")
+
+try:
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Generate clean replicates then corrupt one
+        rng = np.random.default_rng(42)
+        n_genes = 500
+        samples = ["B_1","B_2","B_3","WT_1","WT_2","WT_3"]
+        gene_mean = rng.exponential(100, n_genes)
+        data = np.array([rng.poisson(gene_mean) for _ in samples]).T.astype(float)
+
+        # Heavily corrupt B_2: multiplicative noise on 70% of genes
+        n_corrupt = int(n_genes * 0.7)
+        idx = rng.choice(n_genes, n_corrupt, replace=False)
+        data[idx, 1] = data[idx, 1] * np.exp(rng.uniform(-2.3, 2.3, n_corrupt))
+
+        df = pd.DataFrame(data.astype(int),
+                           index=[f"g_{i}" for i in range(n_genes)],
+                           columns=samples)
+        cp = Path(tmpdir) / "counts.tsv"
+        df.to_csv(str(cp), sep="\t")
+
+        result = bulk_rna_de({
+            "files":         [str(cp)],
+            "design_factor": "condition",
+            "contrasts": [{"numerator": "B", "denominator": "WT",
+                           "name": "B vs WT"}],
+            "organism":      "Homo sapiens",
+            "output_dir":    tmpdir,
+            "run_pathways":  False,
+            "lfc_threshold": 0.58,
+        })
+
+    sqc = result.get("sample_qc", {})
+    rep_corr = sqc.get("replicate_correlations", {})
+    assert rep_corr, "replicate_correlations not present in sample_qc"
+    # B_2 should have the lowest mean correlation
+    lowest = min(rep_corr, key=rep_corr.get)
+    assert lowest == "B_2", \
+        f"B_2 should have lowest concordance, got {lowest} ({rep_corr})"
+    assert rep_corr["B_2"] < 0.85, \
+        f"B_2 correlation {rep_corr['B_2']:.3f} should be < 0.85"
+    ok(f"Corrupted sample B_2 detected: r={rep_corr['B_2']:.3f} "
+       f"(< 0.85 threshold)")
+
+except Exception as e:
+    fail("Replicate concordance detection", str(e))
 
 
 # ── DESeq2 design factor validation ──────────────────────────────────────────
@@ -311,24 +421,24 @@ try:
         result = bulk_rna_de({
             "files":         [str(counts_path)],
             "design_factor": "condition",
-            "comparison":    {"numerator": "treat", "denominator": "ctrl"},
+            "contrasts":     [{"numerator": "treat", "denominator": "ctrl",
+                               "name": "treat vs ctrl"}],
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  False,
         })
 
     # The design_used should reflect the actual design factor
-    assert "~condition" in result.get("design_used", "") or \
-           "condition"  in result.get("design_used", ""), \
-        f"design_used does not reflect 'condition': {result.get('design_used')}"
-    ok(f"Design factor correctly used: {result.get('design_used')}")
+    design_used = result.get("design_used", "") or ""
+    assert "condition" in design_used, \
+        f"design_used does not reflect 'condition': {design_used}"
+    ok(f"Design factor correctly used: {design_used}")
 except Exception as e:
     fail("Design factor in DESeq2", str(e))
 
 try:
-    # Test insufficient replicates returns structured error
+    # Test insufficient replicates handled gracefully
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Only 1 sample per group
         counts_1rep = make_counts(200, ["ctrl_1","treat_1"])
         cp = Path(tmpdir) / "counts.tsv"
         counts_1rep.to_csv(str(cp), sep="\t")
@@ -336,14 +446,15 @@ try:
         result = bulk_rna_de({
             "files":         [str(cp)],
             "design_factor": "condition",
-            "comparison":    {"numerator": "treat", "denominator": "ctrl"},
+            "contrasts":     [{"numerator": "treat", "denominator": "ctrl",
+                               "name": "treat vs ctrl"}],
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  False,
         })
 
-    # Should fail gracefully with structured error
-    assert result.get("status") in ("error", "success")  # mock may succeed
+    # Should fail gracefully with structured response
+    assert result.get("status") in ("error", "success")
     ok(f"1 replicate per group: status={result.get('status')} "
        f"(graceful handling)")
 except Exception as e:

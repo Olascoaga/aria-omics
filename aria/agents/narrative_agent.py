@@ -144,6 +144,7 @@ class NarrativeAgent(BaseAgent):
             grouped_findings=grouped,
             methods=methods,
             decisions=decisions,
+            agent_results=agent_results,
         )
 
         self.publish_status(experiment_id,
@@ -217,10 +218,20 @@ Do not speculate beyond what the data showed.
         """
         sections = {}
 
-        # RNA findings
+        # Bulk RNA (v3: multi-contrast aware)
+        bulk = agent_results.get("bulk_rna_agent", {})
+        if bulk.get("status") == "done":
+            sections["bulk_rna"] = self._summarize_bulk_rna(bulk, grouped)
+
+        # scRNA
+        scrna = agent_results.get("scrna_agent", {})
+        if scrna.get("status") == "done":
+            sections["scrna"] = self._summarize_rna(scrna, grouped)
+
+        # Legacy "rna_agent" key (backward compatibility)
         rna = agent_results.get("rna_agent", {})
-        if rna.get("status") == "done":
-            sections["rna"] = self._summarize_rna(rna, grouped)
+        if rna.get("status") == "done" and "scrna" not in sections:
+            sections["scrna"] = self._summarize_rna(rna, grouped)
 
         # Chromatin findings
         chrom = agent_results.get("chromatin_agent", {})
@@ -265,10 +276,94 @@ Do not speculate beyond what the data showed.
             f"aligned to the {genome} reference assembly."
         )
 
-        # RNA methods
-        rna = agent_results.get("rna_agent", {})
-        if rna.get("status") == "done":
-            findings_rna = rna.get("findings", {})
+        # Bulk RNA methods
+        bulk = agent_results.get("bulk_rna_agent", {})
+        if bulk.get("status") == "done":
+            findings_bulk = bulk.get("findings", {})
+            preprocessing = findings_bulk.get("preprocessing", {})
+            contrasts     = findings_bulk.get("contrasts", [])
+            lfc_thr       = findings_bulk.get("lfc_threshold", 1.0)
+
+            lines.append(f"\n**Bulk RNA-seq**\n")
+
+            # Preprocessing methods
+            if preprocessing:
+                qc_info = preprocessing.get("qc", {})
+                lines.append(
+                    f"Raw paired-end FASTQ reads were trimmed with fastp "
+                    f"(default parameters, min read length 36 bp, "
+                    f"Phred quality ≥ 20), "
+                    f"retaining an average of "
+                    f"{self._avg_pct_passed(qc_info):.1f}% of reads across "
+                    f"{qc_info.get('n_samples', '?')} samples. "
+                    f"Per-sample MultiQC reports were generated."
+                )
+                lines.append(
+                    f"Reads were aligned to the {genome} reference genome "
+                    f"(Ensembl release 112) using STAR (2-pass mode) with "
+                    f"--outSAMtype BAM SortedByCoordinate and --quantMode "
+                    f"GeneCounts enabled. Gene-level counts were computed "
+                    f"with featureCounts (subread) using the Ensembl GTF "
+                    f"annotation; paired-end reads were counted as "
+                    f"fragments."
+                )
+
+            # DE methods
+            lines.append(
+                f"Differential expression was performed with DESeq2 "
+                f"(via pydeseq2). Low-count genes "
+                f"(<10 counts in fewer than 25% of samples) were "
+                f"filtered. Cook's distance was used to refit "
+                f"outlier counts. Sample QC used PCA-based outlier "
+                f"detection (>2 SD from group centroid in PC1–PC2)."
+            )
+
+            if contrasts:
+                contrast_names = [c.get("name", "?") for c in contrasts
+                                   if c.get("status") == "success"]
+                design_used = findings_bulk.get("design_used", "~condition")
+                if len(contrast_names) > 1:
+                    lines.append(
+                        f"Contrasts tested: {'; '.join(contrast_names)}. "
+                        f"Each contrast was analyzed independently using "
+                        f"the Wald test with the design {design_used}. "
+                        f"Significance thresholds: adjusted p-value < 0.05 "
+                        f"(Benjamini–Hochberg) and |log2 fold-change| > "
+                        f"{lfc_thr}."
+                    )
+                else:
+                    lines.append(
+                        f"Significance thresholds: adjusted p-value < 0.05 "
+                        f"and |log2 fold-change| > {lfc_thr}."
+                    )
+
+                if lfc_thr < 0.8:
+                    lines.append(
+                        f"Note: a lower log2FC threshold of {lfc_thr} "
+                        f"(≈1.5× fold change) was used because the "
+                        f"biological question involves transcription "
+                        f"factor perturbation, where direct target genes "
+                        f"typically show modest effect sizes."
+                    )
+
+            # Pathway enrichment methods
+            has_pathways = any(
+                c.get("pathways") for c in contrasts
+                if c.get("status") == "success"
+            )
+            if has_pathways:
+                lines.append(
+                    f"Over-representation analysis was performed with "
+                    f"gseapy (Enrichr endpoint) against GO Biological "
+                    f"Process, KEGG, and Reactome gene sets. "
+                    f"Significance was defined as adjusted p-value < 0.05."
+                )
+
+        # Single-cell RNA methods
+        scrna = agent_results.get("scrna_agent",
+                                    agent_results.get("rna_agent", {}))
+        if scrna.get("status") == "done":
+            findings_rna = scrna.get("findings", {})
             qc           = findings_rna.get("scRNA", {}).get(
                                "findings", {}
                            ).get("qc", {})
@@ -358,6 +453,155 @@ Do not speculate beyond what the data showed.
         return "\n".join(lines)
 
     # ── Per-agent summarizers ─────────────────────────────────────────────
+
+    @staticmethod
+    def _avg_pct_passed(qc_info: dict) -> float:
+        """Average percentage of reads passing QC across samples."""
+        samples = qc_info.get("samples", [])
+        if not samples:
+            return 0.0
+        pct_list = [s.get("pct_passed", 0) for s in samples]
+        return sum(pct_list) / max(len(pct_list), 1)
+
+    def _summarize_bulk_rna(self, bulk_result: dict,
+                              grouped: dict) -> str:
+        """
+        Summarize bulk RNA-seq findings. Handles multi-contrast format (v3).
+
+        Returns prose describing:
+          - Sample QC (libraries, outliers)
+          - Per-contrast results (DE counts, top genes)
+          - Cross-contrast overlap (shared vs unique biology)
+          - LLM interpretation (if available)
+        """
+        findings = bulk_result.get("findings", {})
+        parts    = []
+
+        # Preprocessing summary (if raw FASTQs were processed)
+        preprocessing = findings.get("preprocessing", {})
+        if preprocessing:
+            qc = preprocessing.get("qc", {})
+            align = preprocessing.get("alignment", {})
+            if qc.get("n_samples"):
+                parts.append(
+                    f"Raw FASTQ processing: "
+                    f"{qc.get('n_samples', '?')} samples trimmed with fastp."
+                )
+            if align.get("n_aligned"):
+                parts.append(
+                    f"Reads aligned with STAR "
+                    f"({align.get('n_aligned', '?')} samples, 2-pass mode)."
+                )
+
+        # Sample QC
+        sqc = findings.get("sample_qc", {})
+        if sqc:
+            n_samples = sqc.get("n_samples", "?")
+            outliers  = sqc.get("outliers", [])
+            lib_range = sqc.get("size_ratio", 1)
+            if outliers:
+                parts.append(
+                    f"PCA-based QC on {n_samples} samples identified "
+                    f"outliers: {outliers}, which were excluded from "
+                    f"differential expression."
+                )
+            else:
+                parts.append(
+                    f"PCA-based QC on {n_samples} samples passed; "
+                    f"library size range {lib_range:.1f}× "
+                    f"(no outliers removed)."
+                )
+
+        # Multi-contrast results
+        contrasts = findings.get("contrasts", [])
+        lfc_thr   = findings.get("lfc_threshold", 1.0)
+
+        if contrasts:
+            n_ok = sum(1 for c in contrasts if c.get("status") == "success")
+            padj_str = f"padj < 0.05, |log2FC| > {lfc_thr}"
+
+            if len(contrasts) == 1:
+                c = contrasts[0]
+                parts.append(
+                    f"Differential expression ({c.get('name', '?')}, "
+                    f"DESeq2, {padj_str}): "
+                    f"{c.get('n_significant', 0)} significant genes "
+                    f"({c.get('n_upregulated', 0)} upregulated, "
+                    f"{c.get('n_downregulated', 0)} downregulated)."
+                )
+            else:
+                parts.append(
+                    f"Differential expression was performed across "
+                    f"{n_ok} contrasts (DESeq2, {padj_str}):"
+                )
+                for c in contrasts:
+                    if c.get("status") != "success":
+                        continue
+                    parts.append(
+                        f"  • {c.get('name', '?')}: "
+                        f"{c.get('n_significant', 0)} DE genes "
+                        f"({c.get('n_upregulated', 0)} up, "
+                        f"{c.get('n_downregulated', 0)} down)."
+                    )
+
+            # Cross-contrast overlap
+            overlap = findings.get("overlap", {})
+            if overlap and len(contrasts) > 1:
+                for pair_name, info in list(overlap.items())[:3]:
+                    shared = info.get("n_shared", 0)
+                    n_a    = info.get("n_in_first", 0)
+                    n_b    = info.get("n_in_second", 0)
+                    if shared > 0:
+                        parts.append(
+                            f"Shared DE genes between {pair_name}: "
+                            f"{shared} (out of {n_a} and {n_b})."
+                        )
+
+            # Top pathways from first contrast (representative)
+            first_ok = next(
+                (c for c in contrasts if c.get("status") == "success"),
+                None
+            )
+            if first_ok and first_ok.get("pathways"):
+                top_dbs = list(first_ok["pathways"].keys())[:2]
+                if top_dbs:
+                    examples = []
+                    for db in top_dbs:
+                        terms = first_ok["pathways"].get(db, [])
+                        if isinstance(terms, list) and terms:
+                            examples.append(
+                                f"{db}: {terms[0].get('term', '?')}"
+                            )
+                    if examples:
+                        parts.append(
+                            f"Pathway enrichment top hits "
+                            f"({first_ok.get('name')}): "
+                            + "; ".join(examples) + "."
+                        )
+
+        else:
+            # Legacy single-contrast fallback
+            n_sig = findings.get("n_significant", 0)
+            if n_sig:
+                comp = findings.get("comparison_used", {})
+                parts.append(
+                    f"Differential expression "
+                    f"({comp.get('numerator','?')} vs "
+                    f"{comp.get('denominator','?')}): "
+                    f"{n_sig} significant genes "
+                    f"({findings.get('n_upregulated', 0)} up, "
+                    f"{findings.get('n_downregulated', 0)} down)."
+                )
+
+        # LLM interpretation (already generated by BulkRNAAgent)
+        interpretation = findings.get("interpretation", "")
+        if interpretation and isinstance(interpretation, str):
+            parts.append("\n" + interpretation.strip())
+
+        return "\n".join(parts) if parts else \
+               "Bulk RNA-seq analysis completed. See findings table for details."
+
+    # ── Legacy scRNA summarizer ───────────────────────────────────────────
 
     def _summarize_rna(self, rna_result: dict,
                         grouped: dict) -> str:
@@ -554,7 +798,8 @@ Do not speculate beyond what the data showed.
                              findings_sections: dict,
                              grouped_findings: dict,
                              methods: str,
-                             decisions: list) -> Path:
+                             decisions: list,
+                             agent_results: dict = None) -> Path:
         """
         Render the full HTML report.
         Self-contained: CSS embedded, no external dependencies.
@@ -698,7 +943,7 @@ Do not speculate beyond what the data showed.
 {self._build_qc_section(grouped_findings)}
 
 <h2>Findings</h2>
-{self._build_findings_section(findings_sections)}
+{self._build_findings_section(findings_sections, agent_results)}
 
 <h2>All Findings ({sum(len(v) for v in grouped_findings.values())} total)</h2>
 <table>
@@ -772,9 +1017,13 @@ Do not speculate beyond what the data showed.
   </p>
 </div>"""
 
-    def _build_findings_section(self, sections: dict) -> str:
+    def _build_findings_section(self, sections: dict,
+                                  agent_results: dict = None) -> str:
+        """Build the findings cards. When agent_results provided, embed plots."""
         parts = []
         section_labels = {
+            "bulk_rna":    ("Bulk RNA-seq", "var(--green)"),
+            "scrna":       ("Single-cell RNA-seq", "var(--green)"),
             "rna":         ("RNA-seq", "var(--green)"),
             "chromatin":   ("Chromatin", "var(--teal)"),
             "hic":         ("3D Genome", "#a78bfa"),
@@ -782,14 +1031,89 @@ Do not speculate beyond what the data showed.
         }
         for key, (label, color) in section_labels.items():
             text = sections.get(key, "")
-            if text:
-                parts.append(f"""
+            if not text:
+                continue
+
+            # Build plot embeds if we have bulk RNA results
+            plot_html = ""
+            if key == "bulk_rna" and agent_results:
+                plot_html = self._build_bulk_rna_plots(
+                    agent_results.get("bulk_rna_agent", {})
+                )
+
+            # Escape HTML-breaking newlines into <br> for readability
+            body_html = (text
+                         .replace("&", "&amp;")
+                         .replace("<", "&lt;")
+                         .replace(">", "&gt;")
+                         .replace("\n", "<br>"))
+            parts.append(f"""
 <div class="card">
   <h3 style="color:{color}">{label}</h3>
-  <p>{text}</p>
+  <p>{body_html}</p>
+  {plot_html}
 </div>""")
         return "\n".join(parts) if parts else \
                '<div class="card"><p>No modality findings available.</p></div>'
+
+    def _build_bulk_rna_plots(self, bulk_result: dict) -> str:
+        """Embed bulk RNA plots (volcano per contrast + shared PCA) as <img>."""
+        findings = bulk_result.get("findings", {})
+        contrasts = findings.get("contrasts", [])
+        sqc       = findings.get("sample_qc", {})
+
+        import base64
+        from pathlib import Path
+
+        def _embed_svg(path: str) -> str:
+            """Inline an SVG as a data URI. Returns empty on failure."""
+            try:
+                p = Path(path)
+                if not p.exists():
+                    return ""
+                data = p.read_bytes()
+                b64  = base64.b64encode(data).decode("ascii")
+                return f"data:image/svg+xml;base64,{b64}"
+            except Exception:
+                return ""
+
+        html_parts = []
+
+        # Shared PCA (one per experiment)
+        pca_path = sqc.get("pca_plot")
+        if pca_path:
+            src = _embed_svg(pca_path)
+            if src:
+                html_parts.append(
+                    f'<div style="margin:1rem 0">'
+                    f'<div style="color:var(--muted);font-size:0.85rem;'
+                    f'margin-bottom:0.3rem">Sample PCA (all groups)</div>'
+                    f'<img src="{src}" alt="Sample PCA" '
+                    f'style="max-width:100%;height:auto;'
+                    f'border-radius:6px;background:#0f1729"></div>'
+                )
+
+        # Volcano per contrast
+        for c in contrasts:
+            if c.get("status") != "success":
+                continue
+            plots = c.get("plots", {})
+            vpath = plots.get("volcano")
+            if not vpath:
+                continue
+            src = _embed_svg(vpath)
+            if src:
+                html_parts.append(
+                    f'<div style="margin:1rem 0">'
+                    f'<div style="color:var(--muted);font-size:0.85rem;'
+                    f'margin-bottom:0.3rem">'
+                    f'Volcano plot — {c.get("name","contrast")}</div>'
+                    f'<img src="{src}" alt="Volcano {c.get("name","")}" '
+                    f'style="max-width:100%;height:auto;'
+                    f'border-radius:6px;background:#0f1729"></div>'
+                )
+
+        return "\n".join(html_parts)
 
     def _build_findings_table(self, grouped: dict) -> str:
         rows = []

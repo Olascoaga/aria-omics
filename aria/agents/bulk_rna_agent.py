@@ -1,18 +1,25 @@
 """
-ARIA BulkRNAAgent
------------------
-Bulk RNA-seq differential expression and pathway analysis only.
+ARIA BulkRNAAgent (v3)
+----------------------
+Bulk RNA-seq differential expression and pathway analysis.
 
-Delegates all computation to aria/scripts/rna_bulk_de.py
-running inside aria-rna-env via EnvironmentManager.
-
-Does NOT handle: single-cell, clustering, cell type annotation
-                 (→ scRNAAgent)
+v3 CHANGES (critical biology fixes):
+  1. Label-aware intent parsing — matches biological entities in the
+     user's question (BMAL1, REV-ERBα) to actual sample label prefixes
+     (B, R, WT). Uses heuristics + LLM fallback, not regex on free text.
+  2. Multiple contrasts — when 3+ groups exist, runs all biologically
+     meaningful pairwise comparisons (B vs WT, R vs WT) instead of one
+     arbitrary contrast. Auto-identifies the control group.
+  3. Context-aware LFC threshold — TF knockouts (BMAL1, etc.) use 0.58
+     (1.5x) default because direct targets often have modest effect sizes.
+     Non-TF perturbations keep the 1.0 (2x) default.
 """
 
 from __future__ import annotations
 
+import gzip
 import logging
+import re
 from pathlib import Path
 
 from aria.agents.base_agent import BaseAgent
@@ -36,21 +43,58 @@ Your expertise:
 Critical knowledge:
 - DESeq2 requires integer counts — round if needed
 - Design factor must match the biological comparison, not "sample"
-- Pseudo-replication invalidates DE results
-- Low-count genes must be filtered before DE
-- Pathway enrichment requires background gene set matching analysis
+- TF knockouts produce modest direct effects (log2FC 0.5-1); use lower
+  LFC thresholds for direct target discovery
 - Multiple testing correction: always use adjusted p-values
 """.strip()
 
 
+# ── Transcription factors — use lower LFC threshold for direct targets ────
+KNOWN_TFS = {
+    # Circadian
+    "bmal1", "arntl", "clock", "per1", "per2", "per3",
+    "cry1", "cry2", "nr1d1", "reverba", "nr1d2",
+    "rora", "rorb", "rorc",
+    # Pluripotency
+    "oct4", "pou5f1", "sox2", "nanog", "klf4", "lin28",
+    # Lineage TFs
+    "gata1", "gata2", "gata3", "gata4", "gata6",
+    "tbx5", "runx1", "runx2", "runx3",
+    "foxa1", "foxa2", "foxp3", "foxo1", "foxo3",
+    "cebpa", "cebpb", "pparg", "ppara",
+    "rela", "relb", "stat1", "stat3", "stat5",
+    "tp53", "trp53", "myc", "max", "sp1", "e2f1",
+    "hif1a", "arnt", "yap1", "wwtr1",
+}
+
 
 def _is_fastq(files: list) -> bool:
-    """Detect if files are FASTQs (raw reads) vs count matrices."""
     if not files:
         return False
     ext = str(files[0]).lower()
     return any(ext.endswith(s) for s in
                [".fastq.gz", ".fq.gz", ".fastq", ".fq"])
+
+
+def _infer_lfc_threshold(intent: dict) -> float:
+    """TF knockouts → 0.58 (1.5x). Others → 1.0 (2x)."""
+    entities = [str(e).lower() for e in intent.get("biological_entities", [])]
+    text     = " ".join([
+        str(intent.get("summary",    "")),
+        str(intent.get("comparison", "")),
+        *entities,
+    ]).lower()
+    # Normalize hyphens (rev-erba → reverba)
+    text_norm = re.sub(r'[\-\s]', '', text)
+
+    if any(tf in text_norm for tf in KNOWN_TFS):
+        return 0.58
+    if re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text):
+        return 0.58
+    if "transcription factor" in text or "regulator" in text:
+        return 0.58
+    return 1.0
+
 
 class BulkRNAAgent(BaseAgent):
 
@@ -77,11 +121,8 @@ class BulkRNAAgent(BaseAgent):
 
         self.publish_status(experiment_id, "BulkRNAAgent starting...", 0.0)
 
-        # ── Detect if files are FASTQs (raw) or count matrices ───────────
-        is_raw = _is_fastq(files)
-
-        if is_raw:
-            # Full pipeline: FASTQ → trim → align → quantify → DE
+        # ── Preprocessing if raw FASTQs ──────────────────────────────────
+        if _is_fastq(files):
             counts_files, preprocessing = self._run_preprocessing(
                 experiment_id, files, exp_ctx, intent
             )
@@ -89,36 +130,62 @@ class BulkRNAAgent(BaseAgent):
                 return {"status": "failed",
                         "findings": preprocessing,
                         "reason": "preprocessing_failed"}
-            # Hand off to DE with the generated counts matrix
             files = counts_files
         else:
             preprocessing = None
 
-        # ── Differential expression ───────────────────────────────────────
-        design_factor, comparison = self._extract_design(intent, files)
-        self.publish_status(experiment_id,
-                            f"Running DESeq2 ({design_factor})...", 0.7)
+        # ── Discover actual group labels from counts matrix ──────────────
+        sample_names, group_labels = self._discover_groups(files)
 
+        if not group_labels:
+            self.publish_finding(
+                experiment_id,
+                {"summary": "Could not infer experimental groups "
+                            "from sample names."},
+                Confidence.INSUFFICIENT,
+            )
+            return {"status": "failed", "reason": "group_inference_failed"}
+
+        self.publish_status(
+            experiment_id,
+            f"Detected groups: {list(group_labels.keys())}",
+            0.68,
+        )
+
+        # ── Build contrasts from intent + real labels ────────────────────
+        design_factor, contrasts = self._build_contrasts(
+            intent, group_labels, experiment_id
+        )
+        lfc_thr = _infer_lfc_threshold(intent)
+
+        self.publish_status(
+            experiment_id,
+            f"Running {len(contrasts)} contrast(s), |log2FC|>{lfc_thr}...",
+            0.70,
+        )
+
+        # ── Run all contrasts in one script invocation ───────────────────
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_bulk_de.py",
             params={
                 "files":          files,
                 "design_factor":  design_factor,
-                "comparison":     comparison,
+                "contrasts":      contrasts,
                 "organism":       exp_ctx.get("organism", "Homo sapiens"),
                 "genome":         exp_ctx.get("genome", "hg38"),
                 "output_dir":     self._output_dir(files),
                 "run_pathways":   True,
                 "padj_threshold": 0.05,
-                "lfc_threshold":  1.0,
+                "lfc_threshold":  lfc_thr,
             },
         )
 
         if result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": f"Bulk DE failed: {result.get('details','')[:100]}"},
+                {"summary": f"Bulk DE failed: "
+                            f"{result.get('details','')[:100]}"},
                 Confidence.INSUFFICIENT,
             )
             return {"status": "failed", "findings": result}
@@ -136,18 +203,10 @@ class BulkRNAAgent(BaseAgent):
 
     def _run_preprocessing(self, experiment_id: str, fastq_files: list,
                             exp_ctx: dict, intent: dict) -> tuple:
-        """
-        Full pipeline: FASTQ → fastp → STAR → featureCounts → counts matrix.
-        Returns (counts_file_list, preprocessing_summary) or (None, error).
-        """
-        from pathlib import Path
-
         fastq_dir  = str(Path(fastq_files[0]).parent)
         output_dir = str(Path(fastq_files[0]).parent.parent / "aria_processing")
-        organism   = exp_ctx.get("organism", "Homo sapiens")
         genome_cfg = exp_ctx.get("genome_config", {})
 
-        # Step 1: FASTQ QC + trimming
         self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
         qc_result = self.env.run_in_stack(
             stack="rnaseq",
@@ -158,25 +217,24 @@ class BulkRNAAgent(BaseAgent):
                 "threads":    8,
             },
         )
-
         if qc_result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": f"FASTQ QC failed: {qc_result.get('details','')[:100]}"},
+                {"summary": f"FASTQ QC failed: "
+                            f"{qc_result.get('details','')[:100]}"},
                 Confidence.INSUFFICIENT,
             )
             return None, qc_result
 
-        # Publish QC findings
         self._publish_fastq_qc_findings(experiment_id, qc_result)
         self.publish_status(
             experiment_id,
             f"QC complete: {qc_result.get('n_samples',0)} samples trimmed",
-            0.20
+            0.20,
         )
 
-        # Step 2: Alignment with STAR
-        self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
+        self.publish_status(experiment_id,
+                            "Aligning to genome (STAR)...", 0.25)
         align_result = self.env.run_in_stack(
             stack="rnaseq",
             script_path="aria/scripts/rna_align.py",
@@ -190,26 +248,25 @@ class BulkRNAAgent(BaseAgent):
                 "two_pass":      True,
             },
         )
-
         if align_result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": f"Alignment failed: {align_result.get('details','')[:100]}"},
+                {"summary": f"Alignment failed: "
+                            f"{align_result.get('details','')[:100]}"},
                 Confidence.INSUFFICIENT,
             )
             return None, align_result
 
-        # Publish alignment findings
         self._publish_alignment_findings(experiment_id, align_result)
-        n_aligned = align_result.get("n_aligned", 0)
         self.publish_status(
             experiment_id,
-            f"Alignment complete: {n_aligned} samples mapped",
-            0.55
+            f"Alignment complete: "
+            f"{align_result.get('n_aligned', 0)} samples mapped",
+            0.55,
         )
 
-        # Step 3: Quantification with featureCounts
-        self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
+        self.publish_status(experiment_id,
+                            "Counting reads (featureCounts)...", 0.60)
         quant_result = self.env.run_in_stack(
             stack="rnaseq",
             script_path="aria/scripts/rna_quantify.py",
@@ -219,14 +276,16 @@ class BulkRNAAgent(BaseAgent):
                 "output_dir": str(Path(output_dir) / "counts"),
                 "threads":    8,
                 "paired":     True,
-                "strand":     genome_cfg.get("strand", 0),
+                # "auto" triggers _detect_strandedness on the first BAM.
+                # Override only if user/genome_config specifies an integer.
+                "strand":     genome_cfg.get("strand", "auto"),
             },
         )
-
         if quant_result.get("status") == "error":
             self.publish_finding(
                 experiment_id,
-                {"summary": f"Quantification failed: {quant_result.get('details','')[:100]}"},
+                {"summary": f"Quantification failed: "
+                            f"{quant_result.get('details','')[:100]}"},
                 Confidence.INSUFFICIENT,
             )
             return None, quant_result
@@ -235,20 +294,345 @@ class BulkRNAAgent(BaseAgent):
         self.publish_finding(
             experiment_id,
             {"summary": (
-                f"Quantification complete: {quant_result.get('n_genes',0):,} genes × "
+                f"Quantification complete: "
+                f"{quant_result.get('n_genes',0):,} genes × "
                 f"{quant_result.get('n_samples',0)} samples"
             )},
             Confidence.HIGH,
         )
         self.publish_status(experiment_id, "Preprocessing complete.", 0.65)
 
-        preprocessing = {
+        return [counts_path], {
             "qc":         qc_result,
             "alignment":  align_result,
             "quantification": quant_result,
         }
 
-        return [counts_path], preprocessing
+    # ── Group discovery ──────────────────────────────────────────────────
+
+    def _discover_groups(self, files: list) -> tuple[list, dict]:
+        """Peek at counts header, infer groups. Returns (samples, {label:[samples]})."""
+        if not files:
+            return [], {}
+
+        sample_names = self._read_sample_names(files[0])
+        if not sample_names:
+            return [], {}
+
+        groups = self._infer_groups_local(sample_names)
+        if not groups:
+            return sample_names, {}
+
+        by_group: dict = {}
+        for sample, label in groups.items():
+            by_group.setdefault(label, []).append(sample)
+        return sample_names, by_group
+
+    @staticmethod
+    def _read_sample_names(path: str) -> list[str]:
+        try:
+            p = Path(path)
+            if not p.exists():
+                return []
+            opener = gzip.open if str(p).endswith(".gz") else open
+            with opener(p, "rt") as f:
+                header = f.readline().rstrip("\n")
+            sep = "\t" if "\t" in header else ","
+            cols = header.split(sep)
+            skip = {
+                "gene_id", "geneid", "", "chr", "start", "end",
+                "strand", "length", "gene_name", "symbol",
+                "feature", "ensembl", "ensembl_id", "entrez", "entrez_id",
+            }
+            return [c for c in cols if c.lower().strip() not in skip]
+        except Exception as e:
+            log.warning(f"Failed to read samples from {path}: {e}")
+            return []
+
+    @staticmethod
+    def _infer_groups_local(samples: list[str]) -> dict:
+        p1 = re.compile(r'^([A-Za-z][A-Za-z0-9]+)[_\-](\d+)$')
+        m = {s: match.group(1) for s in samples if (match := p1.match(s))}
+        if len(m) == len(samples) and len(set(m.values())) >= 2:
+            return m
+
+        p2 = re.compile(
+            r'^([A-Za-z][A-Za-z0-9]+)[_\-]([Rr]ep\d+|[A-Za-z]\d*)$'
+        )
+        m = {s: match.group(1) for s in samples if (match := p2.match(s))}
+        if len(m) == len(samples) and len(set(m.values())) >= 2:
+            return m
+
+        if all("_" in s for s in samples):
+            gr = {s: "_".join(s.split("_")[:-1]) for s in samples}
+            if len(set(gr.values())) >= 2:
+                return gr
+
+        p4 = re.compile(r'^([A-Za-z][A-Za-z0-9\-]*?)(\d.*)$')
+        m = {s: match.group(1).rstrip("_-") for s in samples
+             if (match := p4.match(s))}
+        if len(m) == len(samples) and len(set(m.values())) >= 2:
+            return m
+
+        return {}
+
+    # ── Intent ↔ label matching ───────────────────────────────────────────
+
+    def _build_contrasts(self, intent: dict,
+                          group_labels: dict,
+                          experiment_id: str) -> tuple[str, list]:
+        design_factor = self._infer_design_factor(intent)
+        group_names   = list(group_labels.keys())
+        entities      = intent.get("biological_entities", [])
+
+        entity_to_label = self._map_entities_to_labels(
+            entities, group_names, intent
+        )
+
+        control = self._identify_control(group_names)
+
+        contrasts = []
+        if control:
+            for label in group_names:
+                if label == control:
+                    continue
+                name = self._humanize_contrast(label, control, entity_to_label)
+                contrasts.append({
+                    "numerator":   label,
+                    "denominator": control,
+                    "name":        name,
+                })
+        else:
+            sorted_g = sorted(group_names)
+            for i, a in enumerate(sorted_g):
+                for b in sorted_g[i+1:]:
+                    contrasts.append({
+                        "numerator":   a,
+                        "denominator": b,
+                        "name":        f"{a} vs {b}",
+                    })
+
+        if entity_to_label:
+            mapping_str = ", ".join(
+                f"{ent}→{lab}" for ent, lab in entity_to_label.items()
+            )
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"Entity-to-label mapping: {mapping_str}. "
+                            f"Contrasts: {[c['name'] for c in contrasts]}"},
+                Confidence.HIGH,
+            )
+
+        return design_factor, contrasts
+
+    @staticmethod
+    def _infer_design_factor(intent: dict) -> str:
+        text = (str(intent.get("comparison", "")).lower() + " " +
+                str(intent.get("summary",    "")).lower())
+        if any(k in text for k in ["knockout", "ko ", "knockdown", "kd ",
+                                     "genotype", "mutant", "wt ", "wildtype"]):
+            return "genotype"
+        if any(k in text for k in ["treat", "drug", "vehicle", "dmso"]):
+            return "treatment"
+        if any(k in text for k in ["time", "timepoint", "hour", "day", "min"]):
+            return "timepoint"
+        return "condition"
+
+    def _map_entities_to_labels(self, entities: list,
+                                  group_names: list,
+                                  intent: dict) -> dict:
+        """Map biological entities → group labels. Heuristics first, LLM fallback."""
+        mapping = {}
+        used_labels = set()
+
+        ent_clean = []
+        for e in entities:
+            s = re.sub(r'[^a-z0-9]', '', str(e).lower())
+            if s and s not in ("cells", "cell", "h9", "h1", "hesc"):
+                ent_clean.append((str(e), s))
+
+        # Heuristic 1: label is prefix of (or equals) entity name
+        #   e.g. label "B" matches entity "BMAL1" (B is prefix of bmal1)
+        #   e.g. label "WT" matches entity "wildtype" (wt is prefix of wildtype)
+        #   We iterate labels by descending length to prefer longer matches.
+        sorted_labels = sorted(group_names, key=len, reverse=True)
+        for label in sorted_labels:
+            if label in used_labels:
+                continue
+            lbl_norm = label.lower()
+            for original, norm in ent_clean:
+                if original in mapping:
+                    continue
+                if norm.startswith(lbl_norm) and len(lbl_norm) >= 1:
+                    mapping[original] = label
+                    used_labels.add(label)
+                    break
+
+        # Heuristic 2: WT/wildtype/control entities → WT-like label
+        wt_keywords = {"wt", "wildtype", "control", "ctrl", "untreated"}
+        for original, norm in ent_clean:
+            if original in mapping:
+                continue
+            if any(w in norm for w in wt_keywords):
+                for label in group_names:
+                    if label in used_labels:
+                        continue
+                    if label.lower() in wt_keywords:
+                        mapping[original] = label
+                        used_labels.add(label)
+                        break
+
+        # If we matched at least half the entities, trust heuristics
+        if len(mapping) >= max(1, len(ent_clean) // 2):
+            return mapping
+
+        # LLM fallback
+        try:
+            llm_mapping = self._llm_match_labels(
+                entities, group_names, intent
+            )
+            if llm_mapping:
+                return llm_mapping
+        except Exception as e:
+            log.warning(f"LLM label matching failed: {e}")
+
+        return mapping
+
+    def _llm_match_labels(self, entities: list,
+                           group_names: list,
+                           intent: dict) -> dict:
+        prompt = f"""
+User asked about these biological entities: {entities}
+Biological question: {intent.get('summary', '')}
+Comparison described: {intent.get('comparison', '')}
+Actual sample group labels found in the data: {group_names}
+
+Match each biological entity to its corresponding group label.
+Return JSON like: {{"BMAL1": "B", "REV-ERBa": "R", "wildtype": "WT"}}
+Return only entities that have a clear match. If uncertain, omit.
+"""
+        result = self.think_structured(
+            prompt=prompt,
+            system="You match biological names to data labels. Be conservative.",
+            schema_hint="Return a JSON object mapping entity names to label strings.",
+        )
+        if isinstance(result, dict):
+            return {k: v for k, v in result.items()
+                    if v in group_names and isinstance(v, str)}
+        return {}
+
+    @staticmethod
+    def _identify_control(group_names: list) -> str | None:
+        priority = [
+            "wt", "wildtype", "control", "ctrl",
+            "vehicle", "dmso", "untreated", "scramble",
+            "mock", "normal", "healthy", "baseline",
+        ]
+        for keyword in priority:
+            for label in group_names:
+                if label.lower() == keyword:
+                    return label
+        for keyword in priority:
+            for label in group_names:
+                if keyword in label.lower():
+                    return label
+        return None
+
+    @staticmethod
+    def _humanize_contrast(num_label: str, den_label: str,
+                            entity_to_label: dict) -> str:
+        label_to_entity = {v: k for k, v in entity_to_label.items()}
+        num_human = label_to_entity.get(num_label, num_label)
+        den_human = label_to_entity.get(den_label, den_label)
+        return f"{num_human} vs {den_human}"
+
+    # ── Findings publishing ──────────────────────────────────────────────
+
+    def _publish_findings(self, experiment_id: str, result: dict):
+        contrast_results = result.get("contrasts", [])
+
+        if not contrast_results:
+            self._publish_single_contrast_findings(experiment_id, result)
+            return
+
+        for c_result in contrast_results:
+            name   = c_result.get("name", "unknown")
+            n_sig  = c_result.get("n_significant",   0)
+            n_up   = c_result.get("n_upregulated",   0)
+            n_down = c_result.get("n_downregulated", 0)
+
+            conf = (Confidence.HIGH   if n_sig > 100 else
+                    Confidence.MEDIUM if n_sig > 10  else
+                    Confidence.LOW    if n_sig > 0   else
+                    Confidence.INSUFFICIENT)
+
+            self.publish_finding(
+                experiment_id,
+                {"summary": (
+                    f"[{name}] {n_sig} DE genes "
+                    f"({n_up} up, {n_down} down) "
+                    f"at padj<0.05, |log2FC|>{result.get('lfc_threshold',1.0)}"
+                ),
+                 "contrast":        name,
+                 "n_significant":   n_sig,
+                 "n_upregulated":   n_up,
+                 "n_downregulated": n_down,
+                 "top_genes":       c_result.get("top_genes", [])[:10]},
+                conf,
+            )
+
+            for db, terms in c_result.get("pathways", {}).items():
+                if isinstance(terms, list) and terms:
+                    self.publish_finding(
+                        experiment_id,
+                        {"summary": (
+                            f"[{name}] {db}: {len(terms)} pathways. "
+                            f"Top: {', '.join(t['term'] for t in terms[:3])}"
+                        ),
+                         "contrast": name,
+                         "pathways": terms[:10],
+                         "database": db},
+                        Confidence.MEDIUM,
+                    )
+
+        qc = result.get("sample_qc", {})
+        if qc:
+            outliers = qc.get("outliers", [])
+            self.publish_finding(
+                experiment_id,
+                {"summary": (
+                    f"Bulk QC: {qc.get('n_samples','?')} samples. "
+                    f"Lib size range: {qc.get('size_ratio',1):.1f}x."
+                    + (f" Outliers: {outliers}." if outliers else "")
+                )},
+                Confidence.HIGH if not outliers else Confidence.MEDIUM,
+            )
+
+    def _publish_single_contrast_findings(self, experiment_id: str,
+                                             result: dict):
+        n_sig  = result.get("n_significant",   0)
+        n_up   = result.get("n_upregulated",   0)
+        n_down = result.get("n_downregulated", 0)
+        comp   = result.get("comparison_used", {})
+
+        conf = (Confidence.HIGH   if n_sig > 100 else
+                Confidence.MEDIUM if n_sig > 10  else
+                Confidence.LOW    if n_sig > 0   else
+                Confidence.INSUFFICIENT)
+
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Bulk DE ({comp.get('numerator','?')} vs "
+                f"{comp.get('denominator','?')}): "
+                f"{n_sig} genes ({n_up} up, {n_down} down)"
+            ),
+             "n_significant":   n_sig,
+             "n_upregulated":   n_up,
+             "n_downregulated": n_down,
+             "top_genes":       result.get("top_genes", [])[:10]},
+            conf,
+        )
 
     def _publish_fastq_qc_findings(self, experiment_id: str, qc: dict):
         samples = qc.get("samples", [])
@@ -273,10 +657,13 @@ class BulkRNAAgent(BaseAgent):
         bams = align.get("bam_files", [])
         if not bams:
             return
-        ok_bams   = [b for b in bams if b.get("status") == "success"]
-        avg_map   = sum(b.get("pct_unique", 0) for b in ok_bams) / max(len(ok_bams), 1)
-        low_map   = [b["name"] for b in ok_bams if b.get("pct_unique", 100) < 70]
-        conf = Confidence.HIGH if avg_map > 75 and not low_map else Confidence.MEDIUM
+        ok_bams = [b for b in bams if b.get("status") == "success"]
+        avg_map = sum(b.get("pct_unique", 0) for b in ok_bams) / \
+                  max(len(ok_bams), 1)
+        low_map = [b["name"] for b in ok_bams
+                   if b.get("pct_unique", 100) < 70]
+        conf = Confidence.HIGH if avg_map > 75 and not low_map \
+               else Confidence.MEDIUM
         self.publish_finding(
             experiment_id,
             {"summary": (
@@ -287,101 +674,60 @@ class BulkRNAAgent(BaseAgent):
             conf,
         )
 
-    # ── Design extraction ─────────────────────────────────────────────────
-
-    def _extract_design(self, intent: dict,
-                         files: list) -> tuple[str, dict]:
-        """Extract DESeq2 design factor and comparison from intent."""
-        import re
-
-        design_factor   = "condition"
-        comparison_dict = {}
-        comparison_str  = str(intent.get("comparison", "")).lower()
-
-        if any(k in comparison_str for k in
-               ["genotype", "knockout", "ko", "wt"]):
-            design_factor = "genotype"
-        elif any(k in comparison_str for k in
-                 ["treatment", "treated", "drug"]):
-            design_factor = "treatment"
-        elif any(k in comparison_str for k in
-                 ["time", "timepoint", "hour", "day",
-                  "h vs", "min vs"]):
-            design_factor = "timepoint"
-
-        vs = re.search(
-            r'([\w\-]+)\s+(?:vs\.?|versus)\s+([\w\-]+)',
-            comparison_str
-        )
-        if vs:
-            comparison_dict = {
-                "numerator":   vs.group(1),
-                "denominator": vs.group(2),
-            }
-
-        return design_factor, comparison_dict
-
-    # ── Findings publisher ────────────────────────────────────────────────
-
-    def _publish_findings(self, experiment_id: str, result: dict):
-        n_sig  = result.get("n_significant",   0)
-        n_up   = result.get("n_upregulated",   0)
-        n_down = result.get("n_downregulated", 0)
-        comp   = result.get("comparison_used", {})
-
-        conf = (Confidence.HIGH   if n_sig > 100 else
-                Confidence.MEDIUM if n_sig > 10  else
-                Confidence.LOW    if n_sig > 0   else
-                Confidence.INSUFFICIENT)
-
-        self.publish_finding(
-            experiment_id,
-            {"summary": (
-                f"Bulk DE ({comp.get('numerator','?')} vs "
-                f"{comp.get('denominator','?')}): "
-                f"{n_sig} genes ({n_up} up, {n_down} down)"
-            ),
-             "n_significant":   n_sig,
-             "n_upregulated":   n_up,
-             "n_downregulated": n_down,
-             "top_genes":       result.get("top_genes", [])[:10],
-            },
-            conf,
-        )
-
-        # QC
-        qc = result.get("sample_qc", {})
-        if qc:
-            outliers = qc.get("outliers", [])
-            self.publish_finding(
-                experiment_id,
-                {"summary": (
-                    f"Bulk QC: {qc.get('n_samples','?')} samples. "
-                    f"Size range: {qc.get('size_ratio',1):.1f}x."
-                    + (f" Outliers removed: {outliers}."
-                       if outliers else "")
-                )},
-                Confidence.HIGH if not outliers else Confidence.MEDIUM,
-            )
-
-        # Pathways
-        for db, terms in result.get("pathways", {}).items():
-            if isinstance(terms, list) and terms:
-                self.publish_finding(
-                    experiment_id,
-                    {"summary": (
-                        f"{db}: {len(terms)} pathways. "
-                        f"Top: {', '.join(t['term'] for t in terms[:3])}"
-                    ),
-                     "pathways": terms[:10],
-                     "database": db},
-                    Confidence.MEDIUM,
-                )
-
     # ── LLM interpretation ────────────────────────────────────────────────
 
     def _interpret(self, result: dict, intent: dict,
                     exp_ctx: dict) -> str:
+        contrasts = result.get("contrasts", [])
+        if not contrasts:
+            return self._interpret_single(result, intent, exp_ctx)
+
+        summaries = []
+        for c in contrasts:
+            tops = [g.get("gene", g) for g in c.get("top_genes", [])[:5]]
+            top_pw = [
+                t["term"]
+                for db, terms in c.get("pathways", {}).items()
+                if isinstance(terms, list)
+                for t in terms[:2]
+            ][:3]
+            summaries.append(
+                f"  {c.get('name','?')}: "
+                f"{c.get('n_significant', 0)} DE genes "
+                f"({c.get('n_upregulated', 0)} up, "
+                f"{c.get('n_downregulated', 0)} down). "
+                f"Top: {tops}. Pathways: {top_pw}"
+            )
+
+        prompt = f"""
+Bulk RNA-seq, multiple contrasts:
+Organism: {exp_ctx.get("organism", "")}
+Question: {intent.get("summary", "")}
+LFC threshold used: {result.get('lfc_threshold', 1.0)}
+
+Per-contrast results:
+{chr(10).join(summaries)}
+
+Write a 4-6 sentence biological synthesis:
+- Compare gene overlap and pathway convergence across contrasts
+- Identify shared vs unique biology between the perturbations
+- Flag data quality concerns: {result.get("warnings", [])[:3]}
+- Ground interpretation in the specific biology (no generic statements)
+"""
+        try:
+            return self.llm.complete(
+                prompt=prompt,
+                system=BULK_RNA_SYSTEM,
+                tier=TaskTier.HEAVY,
+                max_tokens=500,
+            )
+        except Exception:
+            total_sig = sum(c.get("n_significant", 0) for c in contrasts)
+            return (f"{len(contrasts)} contrasts analyzed, "
+                    f"{total_sig} total DE genes across them.")
+
+    def _interpret_single(self, result: dict, intent: dict,
+                            exp_ctx: dict) -> str:
         n_sig  = result.get("n_significant", 0)
         tops   = [g.get("gene", g) for g in result.get("top_genes", [])[:8]]
         top_pw = [t["term"]
@@ -391,19 +737,16 @@ class BulkRNAAgent(BaseAgent):
 
         prompt = f"""
 Bulk RNA-seq DE: {result.get("comparison_used", {})}
-Design: {result.get("design_used", "")}
 Organism: {exp_ctx.get("organism", "")}
 Question: {intent.get("summary", "")}
 
 Results:
-  {n_sig} significant genes (padj < 0.05, |log2FC| > 1)
+  {n_sig} significant genes
   {result.get("n_upregulated", 0)} up / {result.get("n_downregulated", 0)} down
   Top genes: {tops}
   Top pathways: {top_pw[:5]}
-  Warnings: {result.get("warnings", [])[:3]}
 
 Write a 3-4 sentence biological interpretation.
-Include pathway context. Flag data quality concerns.
 """
         try:
             return self.llm.complete(
@@ -413,10 +756,7 @@ Include pathway context. Flag data quality concerns.
                 max_tokens=350,
             )
         except Exception:
-            return (
-                f"{n_sig} DE genes identified. "
-                f"Top pathways: {', '.join(top_pw[:3]) if top_pw else 'none'}"
-            )
+            return f"{n_sig} DE genes identified."
 
     def _output_dir(self, files: list) -> str:
         if files:

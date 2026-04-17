@@ -296,13 +296,23 @@ class OrchestratorAgent(BaseAgent):
             agents_needed.add("bulk_rna_agent")
 
         # ── Modality agents ──────────────────────────────────────────────
+        # Deduplicate: each agent runs at most once per experiment.
+        # The LLM plan may list multiple steps under the same agent
+        # (e.g. "FASTQ QC", "Alignment", "DE" all → bulk_rna_agent).
+        # The agent itself handles its internal pipeline stages.
+        agents_run: set = set()
         n_steps = max(len(ordered), 1)
+
         for i, step in enumerate(ordered):
             agent_name = step.get("agent", "")
 
             if agent_name not in agents_needed:
                 continue
             if agent_name in ("integration_agent", "narrative_agent"):
+                continue
+            if agent_name in agents_run:
+                # Agent already executed — skip duplicate steps
+                log.debug(f"Skipping duplicate step for {agent_name}")
                 continue
 
             self.publish_status(
@@ -320,6 +330,7 @@ class OrchestratorAgent(BaseAgent):
                 },
             )
             agent_results[agent_name] = result
+            agents_run.add(agent_name)
             log.info(f"{agent_name}: {result.get('status', '?')}")
 
         # ── IntegrationAgent ─────────────────────────────────────────────

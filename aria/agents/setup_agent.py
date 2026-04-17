@@ -472,6 +472,7 @@ class SetupAgent(BaseAgent):
                         warnings: list) -> dict:
         """
         Download FASTA + GTF from Ensembl if not in ~/.aria/genomes/.
+        Decompresses FASTA (STAR cannot read .gz FASTAs).
         Returns genome_cfg dict for downstream agents.
         """
         info      = GENOME_REGISTRY[genome_key]
@@ -479,41 +480,56 @@ class SetupAgent(BaseAgent):
         gdir.mkdir(exist_ok=True)
 
         fasta_gz  = gdir / "genome.fa.gz"
+        fasta     = gdir / "genome.fa"        # decompressed (STAR needs this)
         gtf_gz    = gdir / "annotation.gtf.gz"
 
         cfg = {
             "genome_key":  genome_key,
             "genome_dir":  str(gdir),
-            "fasta":       str(fasta_gz),
-            "gtf":         str(gtf_gz),
+            "fasta":       str(fasta),           # decompressed
+            "fasta_gz":    str(fasta_gz),
+            "gtf":         str(gdir / "annotation.gtf"),   # decompressed
+            "gtf_gz":      str(gtf_gz),
             "star_index":  str(gdir / "star_index"),
             "fasta_ready": False,
             "gtf_ready":   False,
             "index_ready": False,
-            "strand":      0,
+            "strand":      "auto",               # trigger strand auto-detection
         }
 
-        # FASTA
-        if fasta_gz.exists() and fasta_gz.stat().st_size > 1_000_000:
-            cfg["fasta_ready"] = True
-        else:
+        # ── FASTA: download if missing, then decompress ──────────────────
+        if not (fasta_gz.exists() and fasta_gz.stat().st_size > 1_000_000):
             self.publish_status(
                 experiment_id,
-                f"Downloading {genome_key} genome (~{info['size_gb']:.0f} GB, "
-                f"one-time)...",
+                f"Downloading {genome_key} genome "
+                f"(~{info['size_gb']:.0f} GB, one-time)...",
                 0.62,
             )
             err = self._download(info["fasta_url"], fasta_gz)
             if err:
                 warnings.append(f"FASTA download failed: {err}")
-            else:
-                actions.append(f"downloaded_fasta:{genome_key}")
-                cfg["fasta_ready"] = True
+                return cfg
+            actions.append(f"downloaded_fasta:{genome_key}")
 
-        # GTF
-        if gtf_gz.exists() and gtf_gz.stat().st_size > 100_000:
-            cfg["gtf_ready"] = True
-        else:
+        # Decompress if not already done
+        if not (fasta.exists() and fasta.stat().st_size > 1_000_000):
+            self.publish_status(
+                experiment_id,
+                f"Decompressing {genome_key} FASTA (required by STAR)...",
+                0.66,
+            )
+            err = self._decompress(fasta_gz, fasta)
+            if err:
+                warnings.append(f"FASTA decompression failed: {err}")
+                return cfg
+            actions.append(f"decompressed_fasta:{genome_key}")
+
+        cfg["fasta_ready"] = True
+
+        # ── GTF: download, decompress (STAR + featureCounts both prefer plain) ──
+        gtf     = gdir / "annotation.gtf"
+
+        if not (gtf_gz.exists() and gtf_gz.stat().st_size > 100_000):
             self.publish_status(
                 experiment_id,
                 f"Downloading {genome_key} annotation (GTF)...",
@@ -522,11 +538,70 @@ class SetupAgent(BaseAgent):
             err = self._download(info["gtf_url"], gtf_gz)
             if err:
                 warnings.append(f"GTF download failed: {err}")
+                return cfg
+            actions.append(f"downloaded_gtf:{genome_key}")
+
+        if not (gtf.exists() and gtf.stat().st_size > 100_000):
+            self.publish_status(
+                experiment_id,
+                f"Decompressing {genome_key} GTF...",
+                0.74,
+            )
+            err = self._decompress(gtf_gz, gtf)
+            if err:
+                warnings.append(f"GTF decompression failed: {err}")
             else:
-                actions.append(f"downloaded_gtf:{genome_key}")
-                cfg["gtf_ready"] = True
+                actions.append(f"decompressed_gtf:{genome_key}")
+
+        if gtf.exists() and gtf.stat().st_size > 100_000:
+            cfg["gtf"] = str(gtf)          # use decompressed
+            cfg["gtf_gz"] = str(gtf_gz)
+            cfg["gtf_ready"] = True
 
         return cfg
+
+    def _decompress(self, src_gz: Path, dest: Path) -> Optional[str]:
+        """Decompress a .gz file. Uses gunzip via subprocess (streams, low memory)."""
+        try:
+            # gunzip keeps the source; we use -c and redirect for safety.
+            # For a ~900 MB hg38 FASTA this takes ~30 s on a typical machine.
+            with open(dest, "wb") as out:
+                r = subprocess.run(
+                    ["gunzip", "-c", str(src_gz)],
+                    stdout=out, stderr=subprocess.PIPE, timeout=600,
+                )
+            if r.returncode != 0:
+                dest.unlink(missing_ok=True)
+                return r.stderr.decode("utf-8", errors="ignore")[:200]
+            if not dest.exists() or dest.stat().st_size == 0:
+                return "decompression produced empty file"
+            return None
+        except subprocess.TimeoutExpired:
+            dest.unlink(missing_ok=True)
+            return "gunzip timed out (>10 min)"
+        except FileNotFoundError:
+            # Fallback: pure Python gzip
+            return self._decompress_python(src_gz, dest)
+        except Exception as e:
+            dest.unlink(missing_ok=True)
+            return str(e)
+
+    def _decompress_python(self, src_gz: Path, dest: Path) -> Optional[str]:
+        """Pure-Python decompression fallback (no gunzip binary)."""
+        import gzip as _gzip
+        try:
+            with _gzip.open(src_gz, "rb") as f_in, \
+                 open(dest, "wb") as f_out:
+                # Stream in 16 MB chunks
+                while True:
+                    chunk = f_in.read(16 * 1024 * 1024)
+                    if not chunk:
+                        break
+                    f_out.write(chunk)
+            return None
+        except Exception as e:
+            dest.unlink(missing_ok=True)
+            return str(e)
 
     def _download(self, url: str, dest: Path) -> Optional[str]:
         """Download a file. Returns None on success, error string on failure."""
