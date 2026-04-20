@@ -28,6 +28,43 @@ from typing import Any
 log = logging.getLogger("aria.env")
 
 
+# ARIA package root — this file is at /aria/utils/environment_manager.py
+# so the package root is two levels up. Used to resolve script_path values
+# like "aria/scripts/rna_qc.py" reliably regardless of the caller's CWD.
+# (Without this, Path("aria/scripts/...").resolve() depends on os.getcwd(),
+# which produces wrong paths like /Samael/ARIA/aria/scripts/aria/scripts/...
+# when ARIA is launched from inside aria/ or aria/scripts/.)
+_ARIA_PACKAGE_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def _resolve_script_path(script_path: str) -> Path:
+    """
+    Resolve a script_path string to an absolute Path.
+
+    Acceptable inputs:
+      - "aria/scripts/rna_qc.py"      (relative to ARIA package root)
+      - "scripts/rna_qc.py"           (relative — also tried under aria/)
+      - "/abs/path/to/script.py"      (absolute — used as-is)
+
+    Returns the first form that resolves to an existing file. If none
+    exist, returns the package-root-relative form (so the error message
+    points at a sensible location).
+    """
+    p = Path(script_path)
+    if p.is_absolute():
+        return p
+
+    candidates = [
+        _ARIA_PACKAGE_ROOT / script_path,           # aria/scripts/rna_qc.py
+        _ARIA_PACKAGE_ROOT / "aria" / script_path,  # in case "scripts/..." form
+        Path(script_path).resolve(),                # CWD-relative as last resort
+    ]
+    for c in candidates:
+        if c.exists():
+            return c
+    return candidates[0]   # for the error message
+
+
 class EnvironmentManager:
     """
     Manages isolated subprocess execution per analytical stack.
@@ -62,7 +99,7 @@ class EnvironmentManager:
         "rna":         3600,    # 1 hour
         "chromatin":   7200,    # 2 hours
         "hic":         14400,
-        "rnaseq":      18000,   # 5h — fastp(18min) + STAR index(30min) + align(2.5h) + featureCounts
+        "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
         "integration": 7200,    # 2 hours
         "spatial":     3600,    # 1 hour
     }
@@ -115,18 +152,32 @@ class EnvironmentManager:
             with open(input_file, "w") as f:
                 json.dump(params, f)
 
-            # 2. Build command
+            # 2. Build command — resolve script path against package root
+            # (CWD-based resolution caused duplicate path bugs like
+            # /aria/scripts/aria/scripts/foo.py when launched from aria/scripts/)
+            resolved_script = _resolve_script_path(script_path)
+            if not resolved_script.exists():
+                return {
+                    "status":     "error",
+                    "error_type": "ScriptNotFound",
+                    "details": (
+                        f"Script not found: {script_path}\n"
+                        f"Resolved to: {resolved_script}\n"
+                        f"ARIA package root: {_ARIA_PACKAGE_ROOT}"
+                    ),
+                }
+
             cmd = [
                 "conda", "run",
                 "--no-capture-output",   # let heavy C logs go to system stderr
                 "-n", env_name,
                 "python",
-                str(Path(script_path).resolve()),
+                str(resolved_script),
                 str(input_file),
                 str(output_file),
             ]
 
-            log.debug(f"Running {Path(script_path).name} in {env_name} "
+            log.debug(f"Running {resolved_script.name} in {env_name} "
                       f"(timeout={max_time}s)")
 
             # 3. Execute

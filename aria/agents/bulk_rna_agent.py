@@ -196,8 +196,117 @@ class BulkRNAAgent(BaseAgent):
         self._publish_findings(experiment_id, result)
         result["interpretation"] = self._interpret(result, intent, exp_ctx)
 
+        # ── Auto-record methodology decisions to memory (NEW v3.9) ────
+        # Each analytical choice becomes a row in the decisions log so
+        # the narrative report can render them in the Decision Log table.
+        # These are "auto" decisions (ARIA made them without user input).
+        # In v4.0, DesignAgent will add interactive user decisions on top.
+        self._record_methodology_decisions(experiment_id, result)
+
         self.publish_status(experiment_id, "BulkRNAAgent complete.", 1.0)
         return {"status": "done", "findings": result}
+
+    def _record_methodology_decisions(self, experiment_id: str,
+                                        result: dict) -> None:
+        """
+        Persist the methodology choices this agent made into the memory's
+        decisions table. Each call is idempotent (INSERT OR REPLACE keyed
+        on decision_id). Safe to call multiple times across reruns.
+        """
+        try:
+            import uuid
+
+            methodology = (result.get("methodology") or {})
+            decisions   = methodology.get("decisions", []) or []
+            if not decisions:
+                return
+
+            # Map methodology steps into the decision log schema.
+            # checkpoint number is synthetic — reflects pipeline stage order.
+            stage_to_cp = {
+                "Differential expression (DESeq2)":        1,
+                "PCA + MDS (sample-level structure)":      2,
+                "Heatmap (padj top 50)":                   3,
+                "Heatmap (|log2FC| top 50)":               4,
+                "Pathway enrichment (ORA)":                5,
+                "GSEA (pre-ranked)":                       6,
+                "TPM (supplementary export)":              7,
+            }
+
+            for d in decisions:
+                step = d.get("step", "")
+                cp   = stage_to_cp.get(step, 0)
+                # Build a compact decision summary: what tool / input / filter
+                decision_summary = (
+                    f"{d.get('input','?')} | "
+                    f"{d.get('normalization','?')} | "
+                    f"{d.get('gene_filter','?')}"
+                )
+                # Use deterministic ID so reruns overwrite (INSERT OR REPLACE)
+                deterministic_id = f"{experiment_id[:8]}-auto-{cp:02d}"
+
+                try:
+                    self.memory.store_decision(
+                        decision_id=deterministic_id,
+                        wing_id=experiment_id,
+                        checkpoint=cp,
+                        question=step,
+                        decision=decision_summary,
+                        rationale=d.get("justification", "")[:500],
+                        made_by="bulk_rna_agent (auto)",
+                    )
+                except Exception as e:
+                    log.debug(f"Failed to store decision '{step}': {e}")
+
+            # Also record two pipeline-level decisions (thresholds)
+            try:
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-auto-00-thr",
+                    wing_id=experiment_id,
+                    checkpoint=0,
+                    question="Statistical thresholds for DE significance",
+                    decision=(
+                        f"padj < {result.get('padj_threshold', 0.05)}, "
+                        f"|log2FC| > {result.get('lfc_threshold', 1.0)}"
+                    ),
+                    rationale=(
+                        "padj < 0.05 is the community-standard FDR cutoff. "
+                        "|log2FC| threshold is lower (0.58 ≈ 1.5-fold) for TF "
+                        "knockouts because TFs mediate most effects indirectly "
+                        "at modest magnitudes."
+                    ),
+                    made_by="bulk_rna_agent (auto)",
+                )
+            except Exception as e:
+                log.debug(f"Failed to store threshold decision: {e}")
+
+            # Design formula
+            try:
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-auto-00-design",
+                    wing_id=experiment_id,
+                    checkpoint=0,
+                    question="DESeq2 design formula",
+                    decision=result.get("design_used", "~condition"),
+                    rationale=(
+                        "Single-factor design inferred from sample labels. "
+                        "No batch or covariate adjustment applied. "
+                        "v4.0 DesignAgent will replace this with an "
+                        "interactive design-confirmation checkpoint."
+                    ),
+                    made_by="bulk_rna_agent (auto)",
+                )
+            except Exception as e:
+                log.debug(f"Failed to store design decision: {e}")
+
+            # Report how many decisions were recorded (informational)
+            log.info(
+                f"Recorded {len(decisions) + 2} methodology decisions "
+                f"to memory for experiment {experiment_id[:8]}."
+            )
+        except Exception as e:
+            # Non-fatal: if decision logging fails, the pipeline still runs.
+            log.warning(f"Decision logging failed (non-fatal): {e}")
 
     # ── FASTQ preprocessing pipeline ──────────────────────────────────────
 
@@ -684,7 +793,8 @@ Return only entities that have a clear match. If uncertain, omit.
 
         summaries = []
         for c in contrasts:
-            tops = [g.get("gene", g) for g in c.get("top_genes", [])[:5]]
+            tops = [g.get("symbol") or g.get("gene", g)
+                    for g in c.get("top_genes", [])[:5]]
             top_pw = [
                 t["term"]
                 for db, terms in c.get("pathways", {}).items()
@@ -699,6 +809,40 @@ Return only entities that have a clear match. If uncertain, omit.
                 f"Top: {tops}. Pathways: {top_pw}"
             )
 
+        # Collect ALL pathway-related warnings to feed verbatim to LLM.
+        # This is the anti-hallucination guard: if pathways are empty,
+        # the LLM should report the EXACT error from the script, not
+        # invent a plausible-sounding cause.
+        all_warnings = result.get("warnings", []) or []
+        pathway_warnings = [
+            w for w in all_warnings
+            if any(k in w.lower() for k in
+                   ("pathway", "enrichment", "enrichr", "gseapy",
+                    "go_bp", "kegg", "reactome", "symbol", "gtf"))
+        ]
+
+        # Detect the empty-pathways case explicitly
+        has_pathways = any(c.get("pathways") for c in contrasts
+                            if c.get("status") == "success")
+        pathway_status_block = ""
+        if not has_pathways:
+            pathway_status_block = f"""
+
+PATHWAY ENRICHMENT STATUS: NO RESULTS RETURNED.
+Verbatim warnings from the pipeline (use these EXACT facts —
+do NOT invent or speculate about other causes):
+{chr(10).join(f"  - {w}" for w in pathway_warnings) if pathway_warnings
+              else "  - (no pathway-related warnings recorded)"}
+
+When discussing this in your synthesis:
+- State the empty-result fact directly
+- Quote ONE of the verbatim warnings above as the cause if any exists
+- Do NOT invent organism naming issues, annotation problems, or other
+  causes that aren't in the warnings above
+- If no warnings exist, just say "pathway enrichment did not return
+  results; cause unclear from the available logs"
+"""
+
         prompt = f"""
 Bulk RNA-seq, multiple contrasts:
 Organism: {exp_ctx.get("organism", "")}
@@ -707,12 +851,13 @@ LFC threshold used: {result.get('lfc_threshold', 1.0)}
 
 Per-contrast results:
 {chr(10).join(summaries)}
-
+{pathway_status_block}
 Write a 4-6 sentence biological synthesis:
 - Compare gene overlap and pathway convergence across contrasts
 - Identify shared vs unique biology between the perturbations
-- Flag data quality concerns: {result.get("warnings", [])[:3]}
 - Ground interpretation in the specific biology (no generic statements)
+- If pathway enrichment is empty, state this honestly using the
+  verbatim warning above — do NOT speculate about causes
 """
         try:
             return self.llm.complete(
@@ -729,7 +874,8 @@ Write a 4-6 sentence biological synthesis:
     def _interpret_single(self, result: dict, intent: dict,
                             exp_ctx: dict) -> str:
         n_sig  = result.get("n_significant", 0)
-        tops   = [g.get("gene", g) for g in result.get("top_genes", [])[:8]]
+        tops   = [g.get("symbol") or g.get("gene", g)
+                  for g in result.get("top_genes", [])[:8]]
         top_pw = [t["term"]
                   for db, terms in result.get("pathways", {}).items()
                   if isinstance(terms, list)

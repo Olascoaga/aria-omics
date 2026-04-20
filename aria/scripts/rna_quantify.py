@@ -142,14 +142,18 @@ def rna_quantify(params: dict) -> dict:
                 "warnings":   warnings,
             }
 
-        # ── Clean up counts matrix ─────────────────────────────────────
+        # ── Clean up counts matrix + annotate symbols ─────────────────
         matrix_path, n_genes = _clean_counts_matrix(
-            counts_file, sample_names, output_dir, warnings
+            counts_file, sample_names, output_dir, warnings,
+            gtf_file=gtf_file,
         )
 
+        symbols_path = output_dir / "counts_with_symbols.tsv"
         return {
             "status":        "success",
             "counts_matrix": str(matrix_path),
+            "counts_with_symbols": (str(symbols_path)
+                                      if symbols_path.exists() else None),
             "summary":       summary_file if Path(summary_file).exists() else None,
             "n_genes":       n_genes,
             "n_samples":     len(valid_bams),
@@ -199,17 +203,21 @@ def _counts_outputs_valid(matrix_file: Path, expected_samples: list,
 
 
 def _clean_counts_matrix(counts_file: str, sample_names: list,
-                           output_dir: Path, warnings: list) -> tuple:
+                           output_dir: Path, warnings: list,
+                           gtf_file: str = None) -> tuple:
     """
     featureCounts output has extra columns (Chr, Start, End, Strand, Length).
     Clean to genes × samples TSV that DESeq2 expects.
+
+    If gtf_file is provided, also annotate Ensembl IDs with gene symbols
+    and write counts_with_symbols.tsv (used by pathway enrichment which
+    needs HGNC symbols, not ENSG IDs).
     """
     import pandas as pd
 
     df = pd.read_csv(counts_file, sep="\t", comment="#")
 
     # First 6 columns: Geneid, Chr, Start, End, Strand, Length
-    # Remaining: BAM file paths (use clean sample names)
     count_cols = df.columns[6:].tolist()
 
     counts = df[["Geneid"] + count_cols].copy()
@@ -227,10 +235,71 @@ def _clean_counts_matrix(counts_file: str, sample_names: list,
             f"samples removed."
         )
 
-    out_path = output_dir / "counts_clean.tsv"
+    # Standard output: counts_matrix.tsv (matches resume check filename)
+    out_path = output_dir / "counts_matrix.tsv"
     counts.to_csv(str(out_path), sep="\t")
 
+    # ── Gene symbol annotation (for pathway enrichment) ──────────────────
+    # Enrichr/gseapy require HGNC symbols, not Ensembl IDs.
+    if gtf_file and Path(gtf_file).exists():
+        symbol_map = _build_ensembl_to_symbol_map(gtf_file, warnings)
+        if symbol_map:
+            n_mapped = sum(1 for gid in counts.index if gid in symbol_map)
+            symbols  = pd.Series(
+                [symbol_map.get(gid, gid) for gid in counts.index],
+                index=counts.index,
+                name="gene_symbol",
+            )
+            counts_sym = counts.copy()
+            counts_sym.insert(0, "gene_symbol", symbols)
+
+            sym_path = output_dir / "counts_with_symbols.tsv"
+            counts_sym.to_csv(str(sym_path), sep="\t")
+
+            warnings.append(
+                f"Annotated {n_mapped:,}/{len(counts):,} genes with HGNC "
+                f"symbols from GTF."
+            )
+
     return out_path, len(counts)
+
+
+def _build_ensembl_to_symbol_map(gtf_file: str, warnings: list) -> dict:
+    """
+    Parse a GTF to build {ensembl_id: gene_symbol}.
+
+    Handles both gzipped and plain GTF. Reads only `gene` feature lines
+    (one per gene, fast even for full Ensembl GTF on hg38).
+
+    Returns empty dict on failure (graceful — pathway enrichment will
+    fall back to using Ensembl IDs and report no matches).
+    """
+    import gzip as _gzip
+    import re as _re
+
+    mapping = {}
+    opener = _gzip.open if str(gtf_file).endswith(".gz") else open
+
+    try:
+        with opener(gtf_file, "rt") as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) < 9 or fields[2] != "gene":
+                    continue
+                attrs = fields[8]
+                gid_match = _re.search(r'gene_id "([^"]+)"', attrs)
+                sym_match = _re.search(r'gene_name "([^"]+)"', attrs)
+                if gid_match and sym_match:
+                    # Strip Ensembl version suffix (ENSG00000123.4 → ENSG00000123)
+                    gid = gid_match.group(1).split(".")[0]
+                    mapping[gid] = sym_match.group(1)
+    except Exception as e:
+        warnings.append(f"GTF symbol mapping failed: {e}")
+        return {}
+
+    return mapping
 
 
 def _detect_strandedness(bam: str, gtf: str,

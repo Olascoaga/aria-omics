@@ -55,3 +55,6 @@ dependencies:
     # Gene set / pathway analysis
     - gseapy>=1.0
     - decoupler-py>=1.4
+
+    # GSEA with running sum plots (pre-ranked, more sensitive than ORA cutoff)
+    - blitzgsea>=1.3

@@ -168,6 +168,10 @@ class NarrativeAgent(BaseAgent):
         """
         One-paragraph executive summary for the PI.
         Uses HEAVY tier — this is user-facing prose.
+
+        Feeds the LLM BOTH the findings bus AND concrete agent results
+        (DE counts, pathways, contrast details) so it can't hallucinate
+        that analyses "didn't run" when their outputs are clearly present.
         """
         high_findings = grouped["high"][:5]
         med_findings  = grouped["medium"][:3]
@@ -175,39 +179,149 @@ class NarrativeAgent(BaseAgent):
         n_insuff      = len(grouped["insufficient"])
 
         finding_summaries = "\n".join([
-            f"- [HIGH] {f.get('summary', str(f))[:120]}"
+            f"- [HIGH] {f.get('summary', str(f))[:200]}"
             for f in high_findings
         ] + [
-            f"- [MEDIUM] {f.get('summary', str(f))[:120]}"
+            f"- [MEDIUM] {f.get('summary', str(f))[:200]}"
             for f in med_findings
         ])
 
+        # Build a CONCRETE results block from agent_results (anti-hallucination)
+        concrete = self._summarize_agent_results_for_llm(agent_results)
+
         prompt = f"""
+You are writing the executive summary of a bioinformatics report for a
+PI scientist. Be direct and specific. No marketing language.
+
 Experiment: {exp_ctx.get('organism', 'unknown')} / {exp_ctx.get('genome', 'unknown')}
 Biological question: {intent.get('summary', exp_ctx.get('user_question', 'unknown'))}
 Analysis type: {intent.get('analysis_type', 'unknown')}
 
-Key findings (by confidence):
+═══════════════════════════════════════════════════════════════════
+CONCRETE RESULTS FROM PIPELINE (use these numbers, don't invent):
+═══════════════════════════════════════════════════════════════════
+{concrete}
+═══════════════════════════════════════════════════════════════════
+
+Additional findings on the confidence bus:
 {finding_summaries}
 
-Additional context:
-- {n_low} findings with LOW confidence (require validation)
-- {n_insuff} analyses where data was insufficient to conclude
+Note: {n_low} LOW-confidence findings, {n_insuff} insufficient analyses.
 
-Write a 2-3 sentence executive summary for a PI.
-Be specific about what was found. Include confidence levels.
-Do not speculate beyond what the data showed.
+Write 3-4 sentences. STRICT requirements:
+1. Lead with the biological question and whether the data answers it
+2. Quote specific numbers FROM THE CONCRETE RESULTS SECTION ABOVE
+3. State confidence honestly (HIGH/MEDIUM/LOW)
+4. End with the most important next step or actionable limitation
+
+CRITICAL: If CONCRETE RESULTS shows DE genes, pathways, or contrasts,
+the pipeline DID run those analyses — do NOT claim they're incomplete.
+Only report incompleteness if CONCRETE RESULTS says "not run" or is empty.
+
+FORBIDDEN phrases: "comprehensive analysis", "robust evidence",
+"foundational", "provides insights", "reveals important",
+"this study", "elucidate", "leverage". Use plain scientific English.
+
+Example good tone: "Bulk RNA-seq comparing BMAL1 KO vs wildtype H9 cells
+(3v3 replicates) identified 2,232 DE genes with high confidence. Top
+hits IGFBP5 and COL3A1 suggest ECM remodeling as a primary BMAL1 target.
+Pathway enrichment converges on p53 signaling across both contrasts —
+a novel observation warranting follow-up. Sample size (n=3/group) limits
+power for small-effect genes."
 """
         try:
             return self.llm.complete(
                 prompt=prompt,
                 system=NARRATIVE_SYSTEM,
                 tier=TaskTier.HEAVY,
-                max_tokens=300,
+                max_tokens=400,
             )
         except Exception as e:
             log.warning(f"Executive summary LLM failed: {e}")
             return self._fallback_executive_summary(grouped, intent)
+
+    def _summarize_agent_results_for_llm(self, agent_results: dict) -> str:
+        """
+        Build a concise, concrete summary of agent outputs for the LLM.
+
+        This is the anti-hallucination substrate — the LLM sees raw numbers
+        from the actual pipeline and cannot claim an analysis is missing
+        when its outputs are present in this block.
+        """
+        if not agent_results:
+            return "(no agent results available)"
+
+        lines = []
+
+        # Bulk RNA
+        bulk = agent_results.get("bulk_rna_agent", {})
+        if bulk.get("status") == "done":
+            findings = bulk.get("findings", {}) or {}
+            contrasts = findings.get("contrasts", []) or []
+            successful = [c for c in contrasts if c.get("status") == "success"]
+            if successful:
+                lines.append(
+                    f"BULK RNA-seq: {len(successful)} contrast(s) ran "
+                    f"successfully (DESeq2 completed, not just QC/alignment)."
+                )
+                for c in successful:
+                    name = c.get("name", "?")
+                    n_sig = c.get("n_significant", 0)
+                    n_up  = c.get("n_upregulated", 0)
+                    n_dn  = c.get("n_downregulated", 0)
+                    tops  = c.get("top_genes", [])[:6]
+                    top_str = ", ".join(
+                        f"{g.get('symbol') or g.get('gene')}"
+                        f"({'↑' if g.get('log2fc',0)>0 else '↓'}"
+                        f"{abs(g.get('log2fc',0)):.1f})"
+                        for g in tops
+                    )
+                    pw_dict = c.get("pathways", {}) or {}
+                    n_pw = sum(len(v) if isinstance(v, list) else 0
+                               for v in pw_dict.values())
+                    pw_top = []
+                    for db in list(pw_dict.keys())[:3]:
+                        terms = pw_dict.get(db) or []
+                        if terms and isinstance(terms, list):
+                            pw_top.append(f"{db}: {terms[0].get('term','?')[:60]}")
+                    lines.append(
+                        f"  • {name}: {n_sig} DE genes ({n_up} up, {n_dn} down). "
+                        f"Top: {top_str}."
+                    )
+                    if pw_top:
+                        lines.append(
+                            f"    Enriched pathways ({n_pw} total): "
+                            + "; ".join(pw_top)
+                        )
+                # Overlap
+                overlap = findings.get("overlap", {}) or {}
+                for pair, info in list(overlap.items())[:2]:
+                    lines.append(
+                        f"  • Shared DE genes [{pair}]: "
+                        f"{info.get('n_shared',0)} "
+                        f"(Jaccard={info.get('jaccard',0)})"
+                    )
+                # Sample QC
+                sqc = findings.get("sample_qc", {}) or {}
+                if sqc.get("n_samples"):
+                    lines.append(
+                        f"  • Sample QC: {sqc['n_samples']} samples, "
+                        f"library-size range {sqc.get('size_ratio', 0)}×, "
+                        f"{len(sqc.get('outliers', []))} outliers removed."
+                    )
+            else:
+                lines.append("BULK RNA-seq: ran but no successful contrasts.")
+
+        # scRNA
+        sc = agent_results.get("scrna_agent", {})
+        if sc.get("status") == "done":
+            f = sc.get("findings", {}) or {}
+            lines.append(
+                f"scRNA-seq: {f.get('n_cells_after_qc','?')} cells, "
+                f"{f.get('n_clusters','?')} clusters."
+            )
+
+        return "\n".join(lines) if lines else "(no concrete outputs recorded)"
 
     def _write_findings_sections(self, grouped: dict,
                                   agent_results: dict,
@@ -544,40 +658,64 @@ Do not speculate beyond what the data showed.
                         f"{c.get('n_downregulated', 0)} down)."
                     )
 
-            # Cross-contrast overlap
+            # Cross-contrast overlap (uses FULL DE list now, not top 30)
             overlap = findings.get("overlap", {})
             if overlap and len(contrasts) > 1:
                 for pair_name, info in list(overlap.items())[:3]:
-                    shared = info.get("n_shared", 0)
-                    n_a    = info.get("n_in_first", 0)
-                    n_b    = info.get("n_in_second", 0)
+                    shared  = info.get("n_shared", 0)
+                    n_a     = info.get("n_in_first", 0)
+                    n_b     = info.get("n_in_second", 0)
+                    jaccard = info.get("jaccard", 0)
                     if shared > 0:
+                        # Show first few shared genes (already in symbols
+                        # if symbol_map was available)
+                        examples = info.get("shared_genes", [])[:8]
+                        ex_str   = (f" Examples: {', '.join(examples)}."
+                                     if examples else "")
                         parts.append(
-                            f"Shared DE genes between {pair_name}: "
-                            f"{shared} (out of {n_a} and {n_b})."
+                            f"Shared DE genes [{pair_name}]: "
+                            f"{shared} genes (Jaccard={jaccard}, "
+                            f"{n_a} and {n_b} per contrast).{ex_str}"
                         )
 
-            # Top pathways from first contrast (representative)
-            first_ok = next(
-                (c for c in contrasts if c.get("status") == "success"),
-                None
-            )
-            if first_ok and first_ok.get("pathways"):
-                top_dbs = list(first_ok["pathways"].keys())[:2]
-                if top_dbs:
-                    examples = []
-                    for db in top_dbs:
-                        terms = first_ok["pathways"].get(db, [])
-                        if isinstance(terms, list) and terms:
-                            examples.append(
-                                f"{db}: {terms[0].get('term', '?')}"
-                            )
-                    if examples:
-                        parts.append(
-                            f"Pathway enrichment top hits "
-                            f"({first_ok.get('name')}): "
-                            + "; ".join(examples) + "."
+            # Top genes per contrast — by HGNC symbol when available
+            for c in contrasts:
+                if c.get("status") != "success":
+                    continue
+                tops = c.get("top_genes", [])[:8]
+                if not tops:
+                    continue
+                gene_strs = []
+                for g in tops:
+                    sym = g.get("symbol") or g.get("gene", "?")
+                    lfc = g.get("log2fc", 0)
+                    arrow = "↑" if lfc > 0 else "↓"
+                    gene_strs.append(f"{sym} ({arrow}{abs(lfc):.1f})")
+                parts.append(
+                    f"Top DE genes [{c.get('name')}]: "
+                    + ", ".join(gene_strs[:6]) + "."
+                )
+
+            # Top pathways across ALL contrasts (not just first)
+            for c in contrasts:
+                if c.get("status") != "success":
+                    continue
+                pw_dict = c.get("pathways", {})
+                if not pw_dict:
+                    continue
+                top_dbs = list(pw_dict.keys())[:3]
+                examples = []
+                for db in top_dbs:
+                    terms = pw_dict.get(db, [])
+                    if isinstance(terms, list) and terms:
+                        examples.append(
+                            f"{db}: {terms[0].get('term', '?')[:60]}"
                         )
+                if examples:
+                    parts.append(
+                        f"Top enriched pathways [{c.get('name')}]: "
+                        + "; ".join(examples) + "."
+                    )
 
         else:
             # Legacy single-contrast fallback
@@ -989,10 +1127,71 @@ Do not speculate beyond what the data showed.
 </body>
 </html>"""
 
-        report_path = self.reports_dir / f"{experiment_id}.html"
+        # Build a per-experiment report directory:
+        #   ~/.aria/reports/aria_YYYYMMDD_HHMMSS_slug_uuid4/
+        #     ├── report.html              (this file)
+        #     ├── figures/                 (copied from contrast_dir/figures/)
+        #     │   ├── pca_all_samples.svg
+        #     │   ├── bmal1_vs_wt/
+        #     │   │   ├── volcano.svg
+        #     │   │   ├── pathway_dotplot_GO_BP.png
+        #     │   │   └── ...
+        #     │   └── rev_erba_vs_wt/...
+        #     └── tables/                  (copied from contrast_dir/tables/)
+        #         ├── bmal1_vs_wt_de_genes.tsv
+        #         └── ...
+        ts        = datetime.now().strftime("%Y%m%d_%H%M%S")
+        slug      = self._build_slug(intent, exp_ctx)
+        suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
+                      else experiment_id)
+        report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
+                        else f"aria_{ts}_{suffix}")
+
+        report_dir = self.reports_dir / report_name
+        report_dir.mkdir(parents=True, exist_ok=True)
+        (report_dir / "figures").mkdir(exist_ok=True)
+        (report_dir / "tables").mkdir(exist_ok=True)
+
+        # Copy contrast figures and tables into report_dir
+        # (so the whole directory is shareable and self-contained)
+        self._stage_artifacts(agent_results, report_dir)
+
+        report_path = report_dir / "report.html"
         report_path.write_text(html, encoding="utf-8")
         log.info(f"Report written to {report_path}")
         return report_path
+
+    @staticmethod
+    def _build_slug(intent: dict, exp_ctx: dict) -> str:
+        """
+        Build a short URL-safe slug from biological entities or the question.
+        Examples:
+          {entities: ['BMAL1', 'REV-ERBa']} → "bmal1_reverba"
+          {summary: "Effect of TNF on macrophages"} → "tnf_macrophages"
+        """
+        import re as _re
+        # Prefer biological entities (most specific)
+        entities = intent.get("biological_entities", []) or []
+        if entities:
+            parts = [_re.sub(r"[^a-z0-9]+", "", str(e).lower())
+                     for e in entities[:3]]
+            parts = [p for p in parts if p and p not in
+                     ("cells", "cell", "h9", "h1", "wildtype", "wt")]
+            if parts:
+                return "_".join(parts)[:40]
+
+        # Fallback: first few words of the summary or user_question
+        text = (str(intent.get("summary", "")) or
+                str(exp_ctx.get("user_question", ""))).lower()
+        if text:
+            words = _re.findall(r"[a-z0-9]+", text)
+            stop  = {"the", "a", "an", "of", "to", "in", "and", "or", "for",
+                     "with", "is", "are", "what", "how", "this", "that",
+                     "vs", "versus", "between", "from", "on"}
+            keep  = [w for w in words if w not in stop and len(w) > 2][:3]
+            if keep:
+                return "_".join(keep)[:40]
+        return ""
 
     # ── HTML helpers ──────────────────────────────────────────────────────
 
@@ -1056,64 +1255,344 @@ Do not speculate beyond what the data showed.
         return "\n".join(parts) if parts else \
                '<div class="card"><p>No modality findings available.</p></div>'
 
-    def _build_bulk_rna_plots(self, bulk_result: dict) -> str:
-        """Embed bulk RNA plots (volcano per contrast + shared PCA) as <img>."""
+    def _build_methodology_table(self, bulk_result: dict) -> str:
+        """
+        Render the methodology decisions table.
+
+        Each row documents a pipeline step: what input data was used,
+        what normalization was applied, what gene filter, and why.
+        This lets reviewers audit the analysis without reading the code.
+        """
         findings = bulk_result.get("findings", {})
+        methodology = findings.get("methodology", {})
+        decisions = methodology.get("decisions", [])
+        if not decisions:
+            return ""
+
+        rows = []
+        for d in decisions:
+            rows.append(
+                f'<tr>'
+                f'<td style="color:#22d3ee;font-weight:600">{d.get("step", "")}</td>'
+                f'<td>{d.get("input", "")}</td>'
+                f'<td>{d.get("normalization", "")}</td>'
+                f'<td style="color:#94a3b8;font-size:0.9em">{d.get("gene_filter", "")}</td>'
+                f'<td style="color:#cbd5e1;font-size:0.88em;font-style:italic">'
+                f'{d.get("justification", "")}</td>'
+                f'</tr>'
+            )
+
+        return f"""
+<details style="margin-top:1.5rem">
+  <summary style="cursor:pointer;color:#22d3ee;font-weight:600;
+                   padding:0.6rem 0;border-bottom:1px solid #2d3f6e">
+    Methods &amp; Decisions (click to expand)
+  </summary>
+  <div style="margin-top:0.8rem;overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:0.9em">
+      <thead>
+        <tr style="border-bottom:2px solid #2d3f6e;color:#22d3ee">
+          <th style="text-align:left;padding:0.4rem;width:22%">Step</th>
+          <th style="text-align:left;padding:0.4rem;width:15%">Input</th>
+          <th style="text-align:left;padding:0.4rem;width:18%">Normalization</th>
+          <th style="text-align:left;padding:0.4rem;width:15%">Gene filter</th>
+          <th style="text-align:left;padding:0.4rem;width:30%">Justification</th>
+        </tr>
+      </thead>
+      <tbody>
+        {''.join(f'<tr style="border-bottom:1px solid #1a2744">{row.replace("<tr>", "").replace("</tr>", "")}</tr>' for row in rows)}
+      </tbody>
+    </table>
+    <p style="font-size:0.82em;color:#94a3b8;margin-top:0.6rem;font-style:italic">
+      All methodology choices are explicit and auditable.
+      Raw counts, VST matrix, and TPM are all exported as supplementary TSV
+      tables for downstream analysis.
+    </p>
+  </div>
+</details>
+"""
+
+    def _build_bulk_rna_plots(self, bulk_result: dict) -> str:
+        """
+        Embed all bulk RNA visualizations in the HTML report:
+          - Sample PCA (shared across contrasts)
+          - Per contrast: volcano, heatmap, ORA dotplots (per database),
+            GSEA running sums, GSEA top table
+          - Links to supplementary TSV tables in tables/
+        """
+        findings  = bulk_result.get("findings", {})
         contrasts = findings.get("contrasts", [])
         sqc       = findings.get("sample_qc", {})
 
         import base64
         from pathlib import Path
 
-        def _embed_svg(path: str) -> str:
-            """Inline an SVG as a data URI. Returns empty on failure."""
+        def _embed(path: str) -> str:
+            """Inline a file as a data URI (auto-detect SVG/PNG)."""
             try:
                 p = Path(path)
                 if not p.exists():
                     return ""
                 data = p.read_bytes()
                 b64  = base64.b64encode(data).decode("ascii")
-                return f"data:image/svg+xml;base64,{b64}"
+                if p.suffix.lower() == ".svg":
+                    return f"data:image/svg+xml;base64,{b64}"
+                if p.suffix.lower() == ".png":
+                    return f"data:image/png;base64,{b64}"
+                if p.suffix.lower() in (".jpg", ".jpeg"):
+                    return f"data:image/jpeg;base64,{b64}"
+                return ""
             except Exception:
                 return ""
 
+        def _figure(src: str, caption: str, alt: str = "") -> str:
+            if not src:
+                return ""
+            return (
+                f'<figure style="margin:1.2rem 0;text-align:center">'
+                f'<img src="{src}" alt="{alt or caption}" '
+                f'style="max-width:100%;height:auto;border-radius:6px;'
+                f'background:#0f1729;border:1px solid #2d3f6e">'
+                f'<figcaption style="color:var(--muted);font-size:0.82rem;'
+                f'margin-top:0.4rem;font-style:italic">{caption}</figcaption>'
+                f'</figure>'
+            )
+
         html_parts = []
 
-        # Shared PCA (one per experiment)
+        # ── Shared PCA + MDS (top of bulk section) ─────────────────────
+        # Both are VST-based with protein_coding-filtered variable genes (v3.8)
+        n_genes_dr     = sqc.get("n_genes_dr", 0)
+        n_pc           = sqc.get("n_protein_coding", 0)
+        dr_basis       = (f"VST, top {n_genes_dr:,} variable protein_coding genes"
+                          if n_pc > 0 else
+                          f"VST, top {n_genes_dr:,} most-variable genes")
+
         pca_path = sqc.get("pca_plot")
         if pca_path:
-            src = _embed_svg(pca_path)
+            src = _embed(pca_path)
             if src:
-                html_parts.append(
-                    f'<div style="margin:1rem 0">'
-                    f'<div style="color:var(--muted);font-size:0.85rem;'
-                    f'margin-bottom:0.3rem">Sample PCA (all groups)</div>'
-                    f'<img src="{src}" alt="Sample PCA" '
-                    f'style="max-width:100%;height:auto;'
-                    f'border-radius:6px;background:#0f1729"></div>'
-                )
+                html_parts.append(_figure(
+                    src,
+                    f"Sample PCA — {dr_basis}. "
+                    f"Variance-stabilized counts (homoscedastic, library-size corrected).",
+                    "Sample PCA",
+                ))
 
-        # Volcano per contrast
+        mds_path = sqc.get("mds_plot")
+        if mds_path:
+            src = _embed(mds_path)
+            if src:
+                html_parts.append(_figure(
+                    src,
+                    f"Sample MDS — {dr_basis}, Euclidean distance. "
+                    f"Non-linear sample-to-sample distances; complements linear PCA.",
+                    "Sample MDS",
+                ))
+
+        # ── Methods & Decisions table (v3.8) ─────────────────────────
+        # Explicit record of every methodology choice. Collapsible to keep
+        # the report focused on results but auditable on demand.
+        methods_html = self._build_methodology_table(bulk_result)
+        if methods_html:
+            html_parts.append(methods_html)
+
+        # ── Per contrast section ─────────────────────────────────────
         for c in contrasts:
             if c.get("status") != "success":
                 continue
-            plots = c.get("plots", {})
-            vpath = plots.get("volcano")
-            if not vpath:
-                continue
-            src = _embed_svg(vpath)
+            cname  = c.get("name", "contrast")
+            plots  = c.get("plots", {})
+
+            html_parts.append(
+                f'<h4 style="color:#22d3ee;margin-top:1.5rem;'
+                f'border-bottom:1px solid #2d3f6e;padding-bottom:0.3rem">'
+                f'{cname}</h4>'
+            )
+
+            # Volcano (existing)
+            src = _embed(plots.get("volcano", ""))
             if src:
+                html_parts.append(_figure(src,
+                    f"Volcano plot — {cname}. "
+                    f"Red: significant DE genes (padj<0.05 & |log2FC| above threshold).",
+                    f"Volcano {cname}"))
+
+            # Heatmap by padj (most significant, NEW v3.8)
+            src = _embed(plots.get("heatmap_padj", plots.get("heatmap", "")))
+            if src:
+                html_parts.append(_figure(src,
+                    f"Heatmap of top 50 DE genes by padj — {cname}. "
+                    f"Input: VST-transformed counts, row z-scored. "
+                    f"Rows: HGNC symbols when available.",
+                    f"Heatmap padj {cname}"))
+
+            # Heatmap by |log2FC| (largest effect sizes, NEW v3.8)
+            src = _embed(plots.get("heatmap_lfc", ""))
+            if src:
+                html_parts.append(_figure(src,
+                    f"Heatmap of top 50 DE genes by |log2FC| — {cname}. "
+                    f"Complementary view: largest effect sizes (may differ from padj-ranked).",
+                    f"Heatmap lfc {cname}"))
+
+            # ORA dotplots (per database)
+            ora = plots.get("ora_dotplots", {}) or {}
+            for db, dot_path in ora.items():
+                src = _embed(dot_path)
+                if src:
+                    html_parts.append(_figure(src,
+                        f"ORA dotplot ({db}) — top 15 enriched terms. "
+                        f"X: log₂(Odds Ratio); color: −log₁₀(FDR); "
+                        f"size: gene count.",
+                        f"ORA {db} {cname}"))
+
+            # GSEA running sum plots (top 3)
+            gsea_runs = plots.get("gsea_running_sums", []) or []
+            for i, gpath in enumerate(gsea_runs):
+                src = _embed(gpath)
+                if src:
+                    html_parts.append(_figure(src,
+                        f"GSEA running sum #{i+1} (ranked by log₂FC) — {cname}.",
+                        f"GSEA running sum {i+1} {cname}"))
+
+            # GSEA top table summary
+            tt = _embed(plots.get("gsea_top_table", ""))
+            if tt:
+                html_parts.append(_figure(tt,
+                    f"GSEA top 15 enriched gene sets — {cname}. "
+                    f"Sorted by FDR; shows NES distribution.",
+                    f"GSEA top table {cname}"))
+
+            # Supplementary table links (relative paths within report dir)
+            tables = plots.get("tables", {}) or {}
+            de_tsv = tables.get("de_genes")
+            pw_tsv = tables.get("pathways")
+            link_parts = []
+            if de_tsv:
+                # Use relative path: report_dir/tables/<contrast>_de_genes.tsv
+                rel = f"tables/{Path(de_tsv).parent.parent.name}_de_genes.tsv"
+                link_parts.append(
+                    f'<a href="{rel}" style="color:#22d3ee;'
+                    f'text-decoration:underline">DE genes (TSV)</a>'
+                )
+            if pw_tsv:
+                rel = f"tables/{Path(pw_tsv).parent.parent.name}_pathways.tsv"
+                link_parts.append(
+                    f'<a href="{rel}" style="color:#22d3ee;'
+                    f'text-decoration:underline">Pathways (TSV)</a>'
+                )
+            if link_parts:
                 html_parts.append(
-                    f'<div style="margin:1rem 0">'
-                    f'<div style="color:var(--muted);font-size:0.85rem;'
-                    f'margin-bottom:0.3rem">'
-                    f'Volcano plot — {c.get("name","contrast")}</div>'
-                    f'<img src="{src}" alt="Volcano {c.get("name","")}" '
-                    f'style="max-width:100%;height:auto;'
-                    f'border-radius:6px;background:#0f1729"></div>'
+                    f'<p style="text-align:center;font-size:0.85rem;'
+                    f'color:var(--muted);margin:0.5rem 0">'
+                    f'Supplementary tables: ' + " &middot; ".join(link_parts)
+                    + '</p>'
                 )
 
         return "\n".join(html_parts)
+
+    def _stage_artifacts(self, agent_results: dict, report_dir: Path):
+        """
+        Copy figures and tables from contrast working dirs into the
+        report directory tree, so the report folder is self-contained.
+
+        Source layout:
+          <output_dir>/<contrast_slug>/figures/*.svg|*.png
+          <output_dir>/<contrast_slug>/tables/*.tsv
+
+        Destination layout:
+          report_dir/figures/<contrast_slug>/*.svg|*.png
+          report_dir/tables/<contrast_slug>_*.tsv
+        """
+        import shutil
+
+        bulk = agent_results.get("bulk_rna_agent", {})
+        if not bulk or bulk.get("status") != "done":
+            return
+
+        contrasts = bulk.get("findings", {}).get("contrasts", [])
+        for c in contrasts:
+            if c.get("status") != "success":
+                continue
+
+            contrast_dir = c.get("contrast_dir")
+            if not contrast_dir:
+                continue
+
+            slug = Path(contrast_dir).name
+
+            # Stage figures: report_dir/figures/<slug>/
+            src_fig = Path(contrast_dir) / "figures"
+            if src_fig.exists():
+                dst_fig = report_dir / "figures" / slug
+                dst_fig.mkdir(parents=True, exist_ok=True)
+                for f in src_fig.iterdir():
+                    if f.is_file():
+                        try:
+                            shutil.copy2(f, dst_fig / f.name)
+                        except Exception as e:
+                            log.warning(f"Stage figure {f.name}: {e}")
+
+            # Stage tables: report_dir/tables/<slug>_*.tsv
+            src_tbl = Path(contrast_dir) / "tables"
+            if src_tbl.exists():
+                for f in src_tbl.iterdir():
+                    if f.is_file():
+                        try:
+                            shutil.copy2(
+                                f,
+                                report_dir / "tables" / f"{slug}_{f.name}",
+                            )
+                        except Exception as e:
+                            log.warning(f"Stage table {f.name}: {e}")
+
+        # Also stage shared figures + tables at report_dir level (v3.8)
+        import shutil as _sh
+        sqc = bulk.get("findings", {}).get("sample_qc", {})
+
+        # PCA (existing)
+        pca = sqc.get("pca_plot")
+        if pca and Path(pca).exists():
+            try:
+                _sh.copy2(pca, report_dir / "figures" / "pca_all_samples.svg")
+            except Exception as e:
+                log.warning(f"Stage PCA: {e}")
+
+        # MDS (new v3.8)
+        mds = sqc.get("mds_plot")
+        if mds and Path(mds).exists():
+            try:
+                _sh.copy2(mds, report_dir / "figures" / "mds_all_samples.svg")
+            except Exception as e:
+                log.warning(f"Stage MDS: {e}")
+
+        # Individual PCA + MDS SVGs if they were saved separately
+        for fname in ("pca.svg", "mds.svg", "pca_mds.svg"):
+            for c in contrasts:
+                cdir = c.get("contrast_dir")
+                if cdir:
+                    candidate = Path(cdir).parent / fname
+                    if candidate.exists():
+                        try:
+                            _sh.copy2(candidate,
+                                       report_dir / "figures" / fname)
+                        except Exception:
+                            pass
+                    break
+
+        # TPM supplementary table (new v3.8)
+        # rna_bulk_de writes it into the output_dir (parent of contrast_dirs)
+        if contrasts:
+            cdir = contrasts[0].get("contrast_dir")
+            if cdir:
+                tpm_src = Path(cdir).parent / "counts_tpm.tsv"
+                if tpm_src.exists():
+                    try:
+                        _sh.copy2(tpm_src,
+                                   report_dir / "tables" / "counts_tpm.tsv")
+                    except Exception as e:
+                        log.warning(f"Stage TPM: {e}")
+
 
     def _build_findings_table(self, grouped: dict) -> str:
         rows = []
@@ -1141,15 +1620,19 @@ Do not speculate beyond what the data showed.
         rows = []
         for d in decisions[:30]:
             cp        = d.get("checkpoint", "")
-            question  = d.get("question", "")[:60]
-            decision  = d.get("decision", "")[:40]
-            rationale = d.get("rationale", "")[:100]
+            question  = d.get("question", "")[:120]
+            decision  = d.get("decision", "")[:160]
+            rationale = d.get("rationale", "")[:300]
+            made_by   = d.get("made_by", "")
+            made_tag  = (f' <span style="color:#64748b;font-size:0.85em">'
+                          f'({made_by})</span>' if made_by else '')
             rows.append(
                 f'<tr>'
-                f'<td style="color:var(--muted)">CP {cp}</td>'
-                f'<td>{question}</td>'
-                f'<td style="color:var(--cyan)">{decision}</td>'
-                f'<td style="color:var(--dim)">{rationale}</td>'
+                f'<td style="color:var(--muted);white-space:nowrap">CP {cp}</td>'
+                f'<td style="color:#e2e8f0">{question}{made_tag}</td>'
+                f'<td style="color:var(--cyan);font-weight:500">{decision}</td>'
+                f'<td style="color:var(--dim);font-size:0.88em;font-style:italic">'
+                f'{rationale}</td>'
                 f'</tr>'
             )
         return "\n".join(rows)

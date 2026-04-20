@@ -119,8 +119,16 @@ def bulk_rna_de(params: dict) -> dict:
             ),
         }
 
+    # ── 2b. Load gene annotation maps (biotype, length) from GTF ────────
+    # Used for DR filtering (protein_coding) and TPM computation.
+    # Graceful fallback if GTF not locatable → warnings explain consequences.
+    gene_annotation = _load_gene_annotation(files, warnings)
+    biotype_map     = gene_annotation.get("biotype", {})
+    gene_lengths    = gene_annotation.get("length", {})
+
     # ── 3. Sample QC (shared across contrasts) ───────────────────────────
-    sample_qc = _sample_qc(counts, metadata, output_dir, warnings)
+    sample_qc = _sample_qc(counts, metadata, output_dir, warnings,
+                              biotype_map=biotype_map)
     outlier_samples = sample_qc.get("outliers", [])
     if outlier_samples:
         counts   = counts.drop(columns=outlier_samples, errors="ignore")
@@ -129,6 +137,22 @@ def bulk_rna_de(params: dict) -> dict:
             f"Sample outliers removed: {outlier_samples}. "
             f"Clustered away from group centroid in PCA."
         )
+
+    # ── 3b. TPM supplementary table ──────────────────────────────────────
+    # TPM is NOT used internally by ARIA (DESeq2 uses raw, DR uses VST).
+    # Computed here as a supplementary output for downstream tools that
+    # require TPM (ssGSEA, deconvolution methods, external sharing).
+    try:
+        tpm_matrix = _compute_tpm(counts, gene_lengths, warnings)
+        if tpm_matrix is not None:
+            tpm_path = Path(output_dir) / "counts_tpm.tsv"
+            tpm_matrix.to_csv(tpm_path, sep="\t")
+            warnings.append(
+                f"TPM table written ({len(tpm_matrix)} genes) — "
+                f"supplementary only; not used for DE or PCA."
+            )
+    except Exception as e:
+        warnings.append(f"TPM export failed (non-fatal): {e}")
 
     # ── 4. Filter low-count genes (shared across contrasts) ──────────────
     min_samples = max(2, metadata.shape[0] // 4)
@@ -192,6 +216,10 @@ def bulk_rna_de(params: dict) -> dict:
 
         warnings.extend([f"[{name}] {w}" for w in de_warn])
 
+        # Load gene symbol map (used both for pathway enrichment and
+        # for annotating top_genes with HGNC symbols)
+        symbol_map = _load_symbol_map(files, warnings)
+
         # Pathway enrichment per contrast
         pathways = {}
         if run_pathways and de_result.get("sig_genes"):
@@ -201,26 +229,109 @@ def bulk_rna_de(params: dict) -> dict:
                 down_genes=de_result.get("down_genes", []),
                 organism=organism,
                 output_dir=output_dir,
+                symbol_map=symbol_map,
             )
             warnings.extend([f"[{name}] {w}" for w in pw_warn])
 
         # Plots per contrast — one volcano and one heatmap each
         contrast_dir = Path(output_dir) / _slugify(name)
         contrast_dir.mkdir(exist_ok=True)
+        figures_dir = contrast_dir / "figures"
+        tables_dir  = contrast_dir / "tables"
+        figures_dir.mkdir(exist_ok=True)
+        tables_dir.mkdir(exist_ok=True)
+
+        # Inject symbol_map into sample_qc so heatmap/DR plots can label
+        # rows with HGNC symbols instead of bare Ensembl IDs.
+        sample_qc["_symbol_map"] = symbol_map
+
         plots = _generate_plots(
             de_result=de_result,
             sample_qc=sample_qc,
             counts_filt=counts_filt,
             metadata=metadata,
             design_factor=design_factor,
-            output_dir=str(contrast_dir),
+            output_dir=str(figures_dir),
             padj_thr=padj_thr,
             lfc_thr=lfc_thr,
             title_suffix=name,
         )
 
-        # Format top genes
-        top_genes = _format_top_genes(de_result)
+        # ── Pathway visualizations (ORA dotplots + GSEA running sums) ──
+        # Lazy import: avoid pulling matplotlib/blitzgsea at module load
+        try:
+            from aria.scripts.rna_pathway_viz import (
+                make_ora_dotplot,
+                make_gsea_running_sums,
+                export_de_table,
+                export_pathways_table,
+            )
+
+            # ORA dotplots — one per database
+            ora_dotplots = {}
+            for db, terms in (pathways or {}).items():
+                if not isinstance(terms, list) or not terms:
+                    continue
+                dot_path = figures_dir / f"pathway_dotplot_{_slugify(db)}.png"
+                result_path = make_ora_dotplot(
+                    pathways_list=terms,
+                    db_name=db,
+                    contrast_name=name,
+                    output_path=str(dot_path),
+                )
+                if result_path:
+                    ora_dotplots[db] = result_path
+            plots["ora_dotplots"] = ora_dotplots
+
+            # GSEA running sums (uses ranked log2FC, complementary to ORA)
+            results_df = de_result.get("results")
+            if results_df is not None and len(results_df) > 0:
+                gsea_out = make_gsea_running_sums(
+                    de_results_df=results_df,
+                    symbol_map=symbol_map,
+                    contrast_name=name,
+                    output_dir=str(figures_dir),
+                    organism=_gseapy_organism(organism),
+                )
+                plots["gsea_running_sums"] = gsea_out.get("running_sums", [])
+                plots["gsea_top_table"]    = gsea_out.get("top_table_fig")
+                plots["gsea_table"]        = gsea_out.get("gsea_table")
+                if gsea_out.get("n_pathways"):
+                    warnings.append(
+                        f"[{name}] GSEA: {gsea_out['n_pathways']} pathways "
+                        f"at FDR<0.25"
+                    )
+
+            # Export supplementary tables (DE genes + pathways)
+            de_tsv = export_de_table(
+                de_results_df=results_df,
+                symbol_map=symbol_map,
+                contrast_name=name,
+                output_path=str(tables_dir / "de_genes.tsv"),
+                padj_thr=padj_thr,
+            )
+            pw_tsv = export_pathways_table(
+                pathways_dict=pathways,
+                contrast_name=name,
+                output_path=str(tables_dir / "pathways.tsv"),
+            )
+            plots["tables"] = {
+                "de_genes": de_tsv,
+                "pathways": pw_tsv,
+            }
+
+        except Exception as e:
+            warnings.append(
+                f"[{name}] Pathway visualization failed: {str(e)[:150]}"
+            )
+
+        # Format top genes (annotated with HGNC symbols when known)
+        top_genes = _format_top_genes(de_result, symbol_map=symbol_map)
+
+        # Convert all sig_genes to symbols (or keep as IDs) for overlap computation
+        all_sig = de_result.get("sig_genes", []) or []
+        all_sig_symbols = _to_symbols(all_sig, symbol_map) if symbol_map \
+                            else list(all_sig)
 
         contrast_results.append({
             "name":           name,
@@ -232,8 +343,14 @@ def bulk_rna_de(params: dict) -> dict:
             "n_upregulated":  int(de_result.get("n_up", 0)),
             "n_downregulated":int(de_result.get("n_down", 0)),
             "top_genes":      top_genes,
+            # Full DE list for cross-contrast overlap (in symbols when available,
+            # else Ensembl IDs — both work for set intersection)
+            "all_sig_genes":  all_sig_symbols,
             "pathways":       pathways,
             "plots":          plots,
+            "contrast_dir":   str(contrast_dir),
+            "figures_dir":    str(figures_dir),
+            "tables_dir":     str(tables_dir),
         })
 
     if not contrast_results:
@@ -252,6 +369,71 @@ def bulk_rna_de(params: dict) -> dict:
     # Cross-contrast overlap (shared DE genes)
     overlap_info = _contrast_overlap(contrast_results)
 
+    # Strip non-JSON-serializable items before returning
+    # (vst_matrix is a DataFrame, symbol_map is big and already elsewhere)
+    sample_qc_clean = {k: v for k, v in sample_qc.items()
+                        if k not in ("vst_matrix", "_symbol_map")}
+
+    # ── Methodology decisions record (NEW in v3.8) ──────────────────────
+    # Explicit record of normalization choices, gene filters, and their
+    # justifications. Rendered as a table in the HTML report so reviewers
+    # and collaborators can audit methodology without reading the code.
+    methodology = {
+        "decisions": [
+            {
+                "step":           "Differential expression (DESeq2)",
+                "input":          "Raw integer counts",
+                "normalization":  "DESeq2 median-of-ratios (internal)",
+                "gene_filter":    f"≥10 counts in ≥{max(2, metadata.shape[0] // 4)} samples",
+                "justification":  "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
+            },
+            {
+                "step":           "PCA + MDS (sample-level structure)",
+                "input":          "VST-transformed counts",
+                "normalization":  "Variance-Stabilizing Transformation (pydeseq2)",
+                "gene_filter":    f"Top 2000 most-variable protein_coding genes",
+                "justification":  "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
+            },
+            {
+                "step":           "Heatmap (padj top 50)",
+                "input":          "VST (or log2(counts+1) fallback)",
+                "normalization":  "Row z-score",
+                "gene_filter":    "50 most significant DE genes (sorted by padj)",
+                "justification":  "Statistically confident signal; symbol-annotated rows.",
+            },
+            {
+                "step":           "Heatmap (|log2FC| top 50)",
+                "input":          "VST (or log2(counts+1) fallback)",
+                "normalization":  "Row z-score",
+                "gene_filter":    "50 DE genes with largest effect sizes",
+                "justification":  "Complementary view — surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
+            },
+            {
+                "step":           "Pathway enrichment (ORA)",
+                "input":          "DE gene symbols",
+                "normalization":  "Enrichr Fisher's exact test",
+                "gene_filter":    "padj<0.05 and |log2FC|>threshold",
+                "justification":  "Standard over-representation for discrete gene lists; thresholds are user-configurable.",
+            },
+            {
+                "step":           "GSEA (pre-ranked)",
+                "input":          "All DE-tested genes ranked by log2FC",
+                "normalization":  "blitzgsea running sum",
+                "gene_filter":    "None (uses full ranking)",
+                "justification":  "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
+            },
+            {
+                "step":           "TPM (supplementary export)",
+                "input":          "Raw counts + exon-union gene lengths",
+                "normalization":  "TPM (transcripts per million)",
+                "gene_filter":    "Genes with length annotation in GTF",
+                "justification":  "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA — both use more appropriate methods.",
+            },
+        ],
+        "n_genes_dr":         sample_qc.get("n_genes_dr", 0),
+        "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
+    }
+
     return {
         "status":           "success",
         "n_contrasts":      len(contrast_results),
@@ -259,11 +441,12 @@ def bulk_rna_de(params: dict) -> dict:
         "n_significant":    total_sig,       # legacy total
         "n_upregulated":    total_up,
         "n_downregulated":  total_down,
-        "sample_qc":        sample_qc,
+        "sample_qc":        sample_qc_clean,
         "design_used":      f"~{design_factor}",
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
         "overlap":          overlap_info,
+        "methodology":      methodology,
         "warnings":         warnings,
     }
 
@@ -274,19 +457,23 @@ def _slugify(s: str) -> str:
     return re.sub(r"[^a-z0-9_]+", "_", str(s).lower()).strip("_") or "contrast"
 
 
-def _format_top_genes(de_result: dict) -> list:
-    """Format top genes from a DE result."""
+def _format_top_genes(de_result: dict, symbol_map: dict = None) -> list:
+    """Format top genes from a DE result. Adds symbol if mapping available."""
     results = de_result.get("results")
     if results is None or len(results) == 0:
         return []
+    sm = symbol_map or {}
     top = []
     for g in de_result.get("sig_genes", [])[:30]:
         if g not in results.index:
             continue
         row = results.loc[g]
         try:
+            clean_id = str(g).split(".")[0]
+            symbol   = sm.get(clean_id, "")
             top.append({
-                "gene":      g,
+                "gene":      g,                    # Ensembl ID (or whatever)
+                "symbol":    symbol or g,          # HGNC symbol if known, else fallback to ID
                 "log2fc":    round(float(row["log2FoldChange"]), 3),
                 "padj":      float(row["padj"]),
                 "direction": "up" if row["log2FoldChange"] > 0 else "down",
@@ -356,26 +543,41 @@ def _auto_contrasts(metadata, design_factor: str) -> tuple:
 
 
 def _contrast_overlap(contrast_results: list) -> dict:
-    """Compute DE gene overlap between contrasts."""
+    """
+    Compute DE gene overlap between contrasts.
+    Uses the FULL list of significant DE genes per contrast (not just
+    the top 30 used for display) — otherwise overlap counts are
+    misleadingly small.
+    """
     successful = [c for c in contrast_results if c.get("status") == "success"]
     if len(successful) < 2:
         return {}
 
-    gene_sets = {
-        c["name"]: set(g["gene"] for g in c.get("top_genes", []))
-        for c in successful
-    }
-    names = list(gene_sets.keys())
+    # Prefer all_sig_genes (full DE list) over top_genes (display top 30)
+    gene_sets = {}
+    for c in successful:
+        if c.get("all_sig_genes"):
+            gene_sets[c["name"]] = set(c["all_sig_genes"])
+        else:
+            # Fallback if all_sig_genes not present
+            gene_sets[c["name"]] = set(g["gene"] for g in c.get("top_genes", []))
 
+    names = list(gene_sets.keys())
     overlaps = {}
     for i, a in enumerate(names):
         for b in names[i+1:]:
             shared = gene_sets[a] & gene_sets[b]
+            n_a, n_b = len(gene_sets[a]), len(gene_sets[b])
+            # Hypergeometric expectation if independent: rough sanity check
+            # (assumes ~30k expressed genes universe; can be refined with the
+            # actual n_genes_tested if passed in)
+            jaccard = len(shared) / max(len(gene_sets[a] | gene_sets[b]), 1)
             overlaps[f"{a} ∩ {b}"] = {
                 "n_shared":      len(shared),
-                "n_in_first":    len(gene_sets[a]),
-                "n_in_second":   len(gene_sets[b]),
-                "shared_genes":  sorted(shared)[:20],
+                "n_in_first":    n_a,
+                "n_in_second":   n_b,
+                "jaccard":       round(jaccard, 3),
+                "shared_genes":  sorted(shared)[:50],   # cap for serialization
             }
     return overlaps
 
@@ -614,8 +816,383 @@ def _resolve_comparison(metadata, design_factor: str,
 
 # ── Sample QC ─────────────────────────────────────────────────────────────────
 
+# ══════════════════════════════════════════════════════════════════════════════
+# METHODOLOGY LAYER — explicit normalization & dimensionality reduction
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Decisions baked into this module (all justified in methods section of report):
+#
+#   1. DESeq2 DE test        → raw counts (DESeq2 normalizes internally)
+#   2. PCA / MDS             → VST + top N variable protein_coding genes
+#   3. Heatmap (padj top)    → log2(counts+1) + row z-score
+#   4. Heatmap (|log2FC| top)→ log2(counts+1) + row z-score (NEW in v3.8)
+#   5. TPM (supplementary)   → gene-length × library-size normalized (NEW)
+#
+# Why VST over log2(raw+1) + StandardScaler for PCA:
+#   - VST is the DESeq2 authors' recommendation (Love, Huber, Anders 2014).
+#   - Produces homoscedastic values — equal variance across expression levels.
+#   - StandardScaler z-scores per gene over-weight low-variance genes and
+#     compress high-variance (biologically meaningful) genes.
+#   - log2(raw+1) doesn't correct for library size differences across samples.
+#
+# Why top N variable protein_coding only for DR:
+#   - Pseudogenes/rRNAs dominate raw variance without biological meaning.
+#   - Low-variance genes are noise; top 2000 captures informative signal.
+#   - Matches the standard DESeq2 vignette workflow.
+
+
+def _run_vst(counts_raw, metadata, warnings: list):
+    """
+    Variance-Stabilizing Transformation via pydeseq2.
+
+    Returns a DataFrame (genes × samples) of VST-transformed values.
+    Falls back to log2(normed+1) if pydeseq2 VST is unavailable.
+
+    Used for: PCA, MDS, heatmaps at the sample level (NOT for DE testing).
+    DESeq2 DE still receives raw counts — it has its own internal normalization.
+    """
+    try:
+        from pydeseq2.dds import DeseqDataSet
+        import pandas as pd
+        import numpy as np
+
+        # pydeseq2 expects samples × genes; use intercept-only design since
+        # this is a normalization step, not a test for DE.
+        dds = DeseqDataSet(
+            counts=counts_raw.T.astype(int),
+            metadata=metadata,
+            design="~1",
+            refit_cooks=False,
+            quiet=True,
+        )
+        dds.fit_size_factors()
+
+        # Try VST first (preferred — fast, handles large datasets).
+        # If not available in the installed version, fall back to rlog,
+        # then to log2(normalized_counts+1).
+        try:
+            dds.vst_fit(use_design=False)
+            vst = dds.vst_transform()
+        except AttributeError:
+            try:
+                dds.deseq2()
+                vst = np.log2(dds.layers["normed_counts"] + 1)
+                warnings.append(
+                    "pydeseq2 VST unavailable — using log2(size-factor normalized + 1)."
+                )
+            except Exception as e:
+                warnings.append(
+                    f"VST/rlog failed ({e}); falling back to raw log2. "
+                    f"PCA/MDS may be affected by library size differences."
+                )
+                vst = np.log2(counts_raw.T.astype(float) + 1)
+
+        # vst is samples × genes; transpose back to genes × samples
+        vst_df = pd.DataFrame(
+            np.asarray(vst).T,
+            index=counts_raw.index,
+            columns=counts_raw.columns,
+        )
+        return vst_df
+
+    except ImportError:
+        warnings.append(
+            "pydeseq2 not available for VST — using log2(counts+1) + lib-size scaling. "
+            "PCA may be dominated by library size differences."
+        )
+        import pandas as pd
+        import numpy as np
+        lib = counts_raw.sum(axis=0)
+        scale_factor = lib.median() / lib
+        normed = counts_raw * scale_factor
+        return pd.DataFrame(
+            np.log2(normed.astype(float) + 1),
+            index=counts_raw.index,
+            columns=counts_raw.columns,
+        )
+
+
+def _select_variable_genes(matrix, n_top: int = 2000,
+                             biotype_map: dict | None = None,
+                             warnings: list | None = None):
+    """
+    Select the top-N most variable genes from a VST-transformed matrix.
+
+    If biotype_map is provided, restrict to protein_coding genes first.
+    Returns (filtered_matrix, n_protein_coding, n_after_variance_filter).
+
+    Args:
+        matrix:      DataFrame (genes × samples) — should be VST-transformed.
+        n_top:       number of most-variable genes to keep.
+        biotype_map: optional {ensembl_id_no_version: biotype_string}.
+        warnings:    list to append advisory messages to.
+    """
+    if warnings is None:
+        warnings = []
+
+    # Strip Ensembl version suffix from matrix index (for biotype lookup)
+    if biotype_map:
+        def _lookup_biotype(gid):
+            return biotype_map.get(str(gid).split(".")[0], "unknown")
+        biotypes = matrix.index.map(_lookup_biotype)
+        n_pc     = int((biotypes == "protein_coding").sum())
+        n_total  = len(matrix)
+        pc_frac  = n_pc / max(n_total, 1)
+
+        if n_pc < 500:
+            warnings.append(
+                f"Only {n_pc} protein_coding genes found in matrix "
+                f"({pc_frac:.0%} of {n_total}). Falling back to all biotypes "
+                f"for DR — results may be affected by pseudogenes/ncRNAs."
+            )
+        elif pc_frac < 0.70 and biotype_map:
+            warnings.append(
+                f"GTF annotation has unusually low protein_coding fraction "
+                f"({pc_frac:.0%}). Expected ~70-85% for human/mouse."
+            )
+            matrix_pc = matrix[biotypes == "protein_coding"]
+            matrix    = matrix_pc
+        else:
+            matrix = matrix[biotypes == "protein_coding"]
+    else:
+        n_pc = 0
+
+    # Top-N most variable
+    variance = matrix.var(axis=1)
+    n_keep   = min(n_top, len(matrix))
+    top_idx  = variance.nlargest(n_keep).index
+
+    return matrix.loc[top_idx], n_pc, n_keep
+
+
+def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
+    """
+    Compute TPM (Transcripts Per Million) from raw counts.
+
+    TPM = (reads_per_gene / gene_length_kb) / (sum_of_all / 1e6)
+
+    TPM is NOT used by ARIA for DE or PCA (both use better methods).
+    It's computed as a supplementary table for downstream tools that
+    require TPM input (e.g., ssGSEA, single-sample deconvolution).
+
+    Args:
+        counts_raw:   DataFrame (genes × samples), raw integer counts.
+        gene_lengths: {ensembl_id: length_bp} — from GTF exon sum.
+                     If missing, returns None with a warning.
+    """
+    try:
+        import pandas as pd
+        import numpy as np
+
+        if not gene_lengths:
+            warnings.append(
+                "Gene lengths not available from GTF — cannot compute TPM. "
+                "DE analysis is unaffected (uses raw counts)."
+            )
+            return None
+
+        # Map matrix rows (possibly versioned IDs) to lengths
+        def _get_length(gid):
+            clean = str(gid).split(".")[0]
+            return gene_lengths.get(clean)
+
+        lengths = counts_raw.index.map(_get_length)
+        has_len = ~pd.isna(lengths)
+        n_with_len = int(has_len.sum())
+
+        if n_with_len < len(counts_raw) * 0.5:
+            warnings.append(
+                f"TPM: only {n_with_len}/{len(counts_raw)} genes have lengths "
+                f"in GTF — TPM table will be incomplete."
+            )
+
+        # Drop genes without lengths (can't TPM-normalize them)
+        mat      = counts_raw.loc[has_len]
+        lens_kb  = pd.Series(
+            lengths[has_len].astype(float) / 1000.0,
+            index=mat.index,
+        )
+
+        # RPK = reads per kilobase per gene
+        rpk = mat.div(lens_kb, axis=0)
+
+        # Scaling factor = sum of RPK per sample / 1e6
+        scale = rpk.sum(axis=0) / 1e6
+
+        tpm = rpk.div(scale, axis=1)
+        tpm = tpm.round(3)
+        return tpm
+
+    except Exception as e:
+        warnings.append(f"TPM computation failed: {e}")
+        return None
+
+
+def _plot_pca_mds(vst_variable, metadata, output_dir: str,
+                    warnings: list) -> tuple:
+    """
+    Generate PCA + MDS plots from a VST-transformed, variable-filtered matrix.
+
+    Both plots operate on the SAME data matrix → apples-to-apples comparison.
+    PCA: linear orthogonal components capturing variance.
+    MDS: preserves Euclidean distances (non-linear relationships).
+
+    Returns (pca_path, mds_path, pca_coords, pca_variance_pct).
+    """
+    try:
+        import numpy as np
+        import pandas as pd
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from sklearn.decomposition import PCA
+        from sklearn.manifold import MDS
+        from scipy.spatial.distance import pdist, squareform
+
+        # Samples × genes for PCA/MDS (standard orientation)
+        X = vst_variable.T.values
+
+        # Identify the condition column
+        condition_col = None
+        for c in metadata.columns:
+            if c not in ("sample", "batch", "replicate"):
+                condition_col = c
+                break
+        conditions = (metadata[condition_col].astype(str)
+                       if condition_col else
+                       pd.Series(["all"] * X.shape[0], index=metadata.index))
+
+        # ── PCA ──────────────────────────────────────────────────────────
+        # NO StandardScaler — VST already stabilizes variance.
+        # PCA on genes × samples with centered (not z-scored) values.
+        pca     = PCA(n_components=min(5, X.shape[0] - 1))
+        coords  = pca.fit_transform(X)
+        var_pct = pca.explained_variance_ratio_ * 100
+
+        # ── MDS (classical / metric) ─────────────────────────────────────
+        # Euclidean distance on VST — same convention as edgeR's plotMDS.
+        dist_matrix = squareform(pdist(X, metric="euclidean"))
+        # Use future defaults explicitly to avoid FutureWarnings on sklearn 1.9+
+        import warnings as _w
+        with _w.catch_warnings():
+            _w.simplefilter("ignore", FutureWarning)
+            try:
+                # sklearn 1.9+ signature
+                mds = MDS(n_components=2, metric=True,
+                           normalized_stress="auto", random_state=42,
+                           n_init=4, dissimilarity="precomputed")
+            except TypeError:
+                mds = MDS(n_components=2, dissimilarity="precomputed",
+                           random_state=42)
+            mds_coords = mds.fit_transform(dist_matrix)
+
+        # ── Plot both side by side in the dark theme ─────────────────────
+        fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+        fig.patch.set_facecolor("#0f1729")
+
+        # Palette: cycle cyan/amber/pink for groups
+        groups = sorted(conditions.unique())
+        palette = ["#22d3ee", "#f59e0b", "#ec4899", "#10b981",
+                    "#8b5cf6", "#ef4444", "#14b8a6"]
+        color_map = {g: palette[i % len(palette)] for i, g in enumerate(groups)}
+
+        for ax, coords_plot, title, xlbl, ylbl in [
+            (axes[0], coords[:, :2], "PCA (VST, top variable PC genes)",
+             f"PC1 ({var_pct[0]:.1f}%)", f"PC2 ({var_pct[1]:.1f}%)"),
+            (axes[1], mds_coords,    "MDS (VST, Euclidean distance)",
+             "MDS1", "MDS2"),
+        ]:
+            ax.set_facecolor("#1a2744")
+            for g in groups:
+                mask = (conditions.values == g)
+                ax.scatter(coords_plot[mask, 0], coords_plot[mask, 1],
+                           s=120, c=color_map[g], label=g,
+                           edgecolor="white", linewidth=0.8, alpha=0.9)
+            # Sample labels
+            for i, s in enumerate(metadata.index):
+                ax.annotate(s, (coords_plot[i, 0], coords_plot[i, 1]),
+                            fontsize=8, color="#e2e8f0",
+                            xytext=(5, 5), textcoords="offset points")
+            ax.set_title(title, color="#22d3ee", fontsize=11)
+            ax.set_xlabel(xlbl, color="#94a3b8")
+            ax.set_ylabel(ylbl, color="#94a3b8")
+            ax.tick_params(colors="#64748b")
+            ax.legend(facecolor="#1a2744", edgecolor="#2d3f6e",
+                      labelcolor="#e2e8f0", fontsize=9, loc="best")
+            for spine in ax.spines.values():
+                spine.set_edgecolor("#2d3f6e")
+
+        plt.tight_layout()
+        combined_path = str(Path(output_dir) / "pca_mds.svg")
+        plt.savefig(combined_path, format="svg",
+                     facecolor=fig.get_facecolor())
+        plt.close(fig)
+
+        # Also save individual SVGs for manuscript use
+        pca_path = _save_single_dr_plot(
+            coords[:, :2], conditions, metadata.index, color_map,
+            f"PCA (VST, top variable PC genes)",
+            f"PC1 ({var_pct[0]:.1f}%)", f"PC2 ({var_pct[1]:.1f}%)",
+            str(Path(output_dir) / "pca.svg"),
+        )
+        mds_path = _save_single_dr_plot(
+            mds_coords, conditions, metadata.index, color_map,
+            "MDS (VST, Euclidean distance)",
+            "MDS1", "MDS2",
+            str(Path(output_dir) / "mds.svg"),
+        )
+
+        return pca_path, mds_path, coords, [round(float(v), 3)
+                                               for v in var_pct[:2]]
+
+    except Exception as e:
+        warnings.append(f"PCA/MDS plotting failed: {e}")
+        return None, None, None, []
+
+
+def _save_single_dr_plot(coords, conditions, sample_names, color_map,
+                          title, xlbl, ylbl, output_path):
+    """Helper — single-axis DR plot for manuscript figures."""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+
+        fig, ax = plt.subplots(figsize=(6, 5))
+        fig.patch.set_facecolor("#0f1729")
+        ax.set_facecolor("#1a2744")
+        for g in sorted(color_map.keys()):
+            mask = (conditions.values == g)
+            ax.scatter(coords[mask, 0], coords[mask, 1],
+                       s=140, c=color_map[g], label=g,
+                       edgecolor="white", linewidth=0.8, alpha=0.9)
+        for i, s in enumerate(sample_names):
+            ax.annotate(s, (coords[i, 0], coords[i, 1]),
+                        fontsize=8, color="#e2e8f0",
+                        xytext=(5, 5), textcoords="offset points")
+        ax.set_title(title, color="#22d3ee", fontsize=12)
+        ax.set_xlabel(xlbl, color="#94a3b8")
+        ax.set_ylabel(ylbl, color="#94a3b8")
+        ax.tick_params(colors="#64748b")
+        ax.legend(facecolor="#1a2744", edgecolor="#2d3f6e",
+                  labelcolor="#e2e8f0", fontsize=9, loc="best")
+        for spine in ax.spines.values():
+            spine.set_edgecolor("#2d3f6e")
+        plt.tight_layout()
+        plt.savefig(output_path, format="svg",
+                     facecolor=fig.get_facecolor())
+        plt.close(fig)
+        return output_path
+    except Exception:
+        return None
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+
+
 def _sample_qc(counts, metadata, output_dir: str,
-               warnings: list) -> dict:
+               warnings: list,
+               biotype_map: dict | None = None) -> dict:
     """
     Sample-level QC for bulk RNA-seq.
 
@@ -685,18 +1262,39 @@ def _sample_qc(counts, metadata, output_dir: str,
                             f"Possible technical issue or sample swap."
                         )
 
-        # ── (b) PCA-based outlier detection ───────────────────────────────
-        scaler = StandardScaler()
-        X      = scaler.fit_transform(log_counts.T)
+        # ── (b) VST-based dimensionality reduction (PCA + MDS) ────────────
+        # Methodology (v3.8):
+        #   • VST instead of log2(raw+1) → homoscedastic, corrects lib size
+        #   • Top variable protein_coding genes → remove noise, focus signal
+        #   • NO StandardScaler (VST already stabilizes variance)
+        # See methodology docstring at top of this file for full justification.
+        vst_matrix = _run_vst(counts, metadata, warnings)
+        vst_variable, n_pc, n_var = _select_variable_genes(
+            vst_matrix, n_top=2000,
+            biotype_map=biotype_map,
+            warnings=warnings,
+        )
+        if n_pc > 0:
+            warnings.append(
+                f"DR input: {n_var} most-variable protein_coding genes "
+                f"(from {n_pc} total protein_coding)."
+            )
+        else:
+            warnings.append(
+                f"DR input: {n_var} most-variable genes "
+                f"(no biotype filtering — GTF annotation lacked gene_biotype)."
+            )
 
-        n_components = max(2, min(10, X.shape[0] - 1))
-        pca     = PCA(n_components=n_components)
-        coords  = pca.fit_transform(X)
-        var_exp = pca.explained_variance_ratio_[:2]
+        # Run PCA + MDS on same matrix (apples to apples)
+        pca_plot, mds_plot, coords, var_exp = _plot_pca_mds(
+            vst_variable, metadata, output_dir, warnings,
+        )
+        if coords is None:
+            # DR failed entirely — empty fallback
+            coords = np.zeros((counts.shape[1], 2))
+            var_exp = [0, 0]
 
-        # 2.5 SD: standard outlier threshold (~99% CI for normal),
-        # less aggressive than 2 SD (which can flag valid biology),
-        # less permissive than 3 SD (which lets bad samples slip through).
+        # 2.5 SD outlier threshold (same logic as before, now on VST PCA)
         pc12        = coords[:, :2]
         mean_pc     = pc12.mean(axis=0)
         std_pc      = pc12.std(axis=0) + 1e-8
@@ -728,22 +1326,20 @@ def _sample_qc(counts, metadata, output_dir: str,
                 f"biological variation — keeping in analysis."
             )
 
-        # ── Save PCA plot ──────────────────────────────────────────────────
-        pca_plot = _plot_sample_pca(
-            coords, counts.columns, metadata,
-            var_exp, output_dir
-        )
-
         return {
             "n_samples":           int(counts.shape[1]),
             "outliers":            confirmed_outliers,
             "pca_outliers":        pca_outliers,
             "replicate_outliers":  replicate_outliers,
             "replicate_correlations": replicate_report,
-            "pca_variance":        [round(float(v), 3) for v in var_exp],
+            "pca_variance":        var_exp,
             "lib_size_range":      [int(lib_sizes.min()), int(lib_sizes.max())],
             "size_ratio":          round(float(size_ratio), 1),
             "pca_plot":            pca_plot,
+            "mds_plot":            mds_plot,
+            "vst_matrix":          vst_matrix,     # for downstream heatmaps
+            "n_genes_dr":          int(n_var),
+            "n_protein_coding":    int(n_pc),
         }
 
     except Exception as e:
@@ -806,6 +1402,10 @@ def _run_deseq2(counts, metadata, design_factor: str,
             (results_df["padj"]             < padj_thr) &
             (results_df["log2FoldChange"].abs() > lfc_thr)
         ]
+        # Sort by padj ascending (most significant first) so that
+        # downstream "top N" slicing returns the most reliable hits,
+        # not the most extreme log2FC (which can be noisy at low counts).
+        sig = sig.sort_values("padj")
 
         up_genes   = list(sig[sig["log2FoldChange"] > 0].index)
         down_genes = list(sig[sig["log2FoldChange"] < 0].index)
@@ -873,12 +1473,298 @@ def _mock_de_result(padj_thr, lfc_thr) -> dict:
 
 # ── Pathway enrichment ────────────────────────────────────────────────────────
 
+def _load_symbol_map(files: list, warnings: list,
+                       gtf_hint: str = None) -> dict:
+    """
+    Load Ensembl-ID → HGNC-symbol mapping.
+
+    Strategy:
+      1. Look for counts_with_symbols.tsv next to the counts file.
+      2. If missing, auto-regenerate from a GTF (search standard locations
+         + hint provided by the agent).
+      3. If still no GTF found, fall back to {} and warn loudly.
+
+    The auto-regeneration matters because resume logic (v3.1+) skips
+    featureCounts when counts_matrix.tsv exists — but if the matrix was
+    written by an older version of ARIA (before v3.3), the symbols file
+    won't exist. This function patches that gap without re-running
+    featureCounts.
+    """
+    if not files:
+        return {}
+    try:
+        import pandas as pd
+        counts_path = Path(files[0])
+        sym_path    = counts_path.parent / "counts_with_symbols.tsv"
+
+        # ── Path A: symbols file already exists ──────────────────────
+        if sym_path.exists():
+            df = pd.read_csv(sym_path, sep="\t", index_col=0)
+            if "gene_symbol" not in df.columns:
+                warnings.append(
+                    "counts_with_symbols.tsv missing 'gene_symbol' "
+                    "column — regenerating."
+                )
+            else:
+                clean = {}
+                for k, v in df["gene_symbol"].items():
+                    if isinstance(k, str) and isinstance(v, str):
+                        clean[k.split(".")[0]] = v
+                return clean
+
+        # ── Path B: regenerate from GTF ──────────────────────────────
+        gtf_path = _locate_gtf(counts_path, gtf_hint)
+        if not gtf_path:
+            warnings.append(
+                "counts_with_symbols.tsv missing AND no GTF found in "
+                "standard locations (~/.aria/genomes/*/annotation.gtf*). "
+                "Pathway enrichment will use Ensembl IDs (likely 0 matches)."
+            )
+            return {}
+
+        warnings.append(
+            f"Auto-generating gene-symbol map from GTF: {gtf_path.name}"
+        )
+        mapping = _gtf_to_symbol_map(str(gtf_path))
+        if not mapping:
+            warnings.append(
+                "GTF parse returned 0 mappings — check gene_name "
+                "annotations are present."
+            )
+            return {}
+
+        # Persist the regenerated symbols file for next time
+        try:
+            counts_df = pd.read_csv(counts_path, sep="\t", index_col=0)
+            counts_with_sym = counts_df.copy()
+            counts_with_sym.insert(
+                0, "gene_symbol",
+                [mapping.get(str(g).split(".")[0], str(g))
+                 for g in counts_with_sym.index]
+            )
+            counts_with_sym.to_csv(str(sym_path), sep="\t")
+            warnings.append(
+                f"Wrote {sym_path.name} ({len(mapping):,} symbol mappings) "
+                f"for future runs."
+            )
+        except Exception as e:
+            warnings.append(f"Could not persist symbols file: {e}")
+
+        return mapping
+
+    except Exception as e:
+        warnings.append(f"Symbol map load failed: {e}")
+        return {}
+
+
+def _locate_gtf(counts_path: Path, hint: str = None) -> Path | None:
+    """
+    Find a GTF file in standard locations.
+
+    Search order:
+      1. Explicit hint from the caller
+      2. Sibling of the counts file (~/.../counts/annotation.gtf)
+      3. ~/.aria/genomes/*/annotation.gtf{,.gz}
+      4. ~/.aria/genomes/hg38/annotation.gtf etc.
+    """
+    candidates = []
+    if hint:
+        candidates.append(Path(hint))
+
+    # Sibling of counts file
+    candidates.extend([
+        counts_path.parent / "annotation.gtf",
+        counts_path.parent / "annotation.gtf.gz",
+        counts_path.parent.parent / "annotation.gtf",
+    ])
+
+    # ~/.aria/genomes/*/annotation.gtf
+    aria_genomes = Path.home() / ".aria" / "genomes"
+    if aria_genomes.exists():
+        for genome_dir in aria_genomes.iterdir():
+            if genome_dir.is_dir():
+                candidates.extend([
+                    genome_dir / "annotation.gtf",
+                    genome_dir / "annotation.gtf.gz",
+                ])
+
+    for c in candidates:
+        if c.exists() and c.stat().st_size > 100_000:
+            return c
+    return None
+
+
+def _gtf_to_symbol_map(gtf_file: str) -> dict:
+    """
+    Parse a GTF for {ensembl_id (no version): gene_symbol}.
+    Streaming, low memory. Same logic as rna_quantify._build_ensembl_to_symbol_map.
+    """
+    import gzip as _gzip
+    import re as _re
+
+    mapping = {}
+    opener = _gzip.open if str(gtf_file).endswith(".gz") else open
+    try:
+        with opener(gtf_file, "rt") as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) < 9 or fields[2] != "gene":
+                    continue
+                attrs = fields[8]
+                gid_match = _re.search(r'gene_id "([^"]+)"', attrs)
+                sym_match = _re.search(r'gene_name "([^"]+)"', attrs)
+                if gid_match and sym_match:
+                    gid = gid_match.group(1).split(".")[0]
+                    mapping[gid] = sym_match.group(1)
+    except Exception:
+        return {}
+
+    return mapping
+
+
+def _load_gene_annotation(files: list, warnings: list) -> dict:
+    """
+    Load {biotype_map, length_map} from the GTF — used for DR filtering
+    (protein_coding only) and TPM computation.
+
+    biotype_map: {ensembl_id_no_version: biotype_string}
+    length_map:  {ensembl_id_no_version: union_exon_length_bp}
+
+    Exon-union length is the gene-model-appropriate length for TPM
+    (sums non-overlapping exon regions). Falls back to gene coordinate
+    length if exon parsing fails.
+
+    Returns empty dicts gracefully if GTF not locatable.
+    """
+    if not files:
+        return {"biotype": {}, "length": {}}
+    try:
+        counts_path = Path(files[0])
+        gtf_path    = _locate_gtf(counts_path)
+        if not gtf_path:
+            warnings.append(
+                "GTF not found for biotype/length annotation — "
+                "DR will use all biotypes; TPM will not be computed."
+            )
+            return {"biotype": {}, "length": {}}
+
+        biotype_map, length_map = _parse_gtf_biotype_and_length(str(gtf_path))
+        warnings.append(
+            f"Gene annotation loaded from {gtf_path.name}: "
+            f"{len(biotype_map):,} biotypes, {len(length_map):,} lengths."
+        )
+        return {"biotype": biotype_map, "length": length_map}
+    except Exception as e:
+        warnings.append(f"Gene annotation load failed (non-fatal): {e}")
+        return {"biotype": {}, "length": {}}
+
+
+def _parse_gtf_biotype_and_length(gtf_file: str) -> tuple:
+    """
+    Single pass through GTF to extract both biotype (from gene lines)
+    and exon-union length (sum of non-overlapping exon spans per gene).
+
+    Returns (biotype_map, length_map).
+    """
+    import gzip as _gzip
+    import re as _re
+    from collections import defaultdict
+
+    biotype_map = {}
+    exons_by_gene = defaultdict(list)  # gid -> list of (start, end)
+
+    opener = _gzip.open if str(gtf_file).endswith(".gz") else open
+    try:
+        with opener(gtf_file, "rt") as f:
+            for line in f:
+                if line.startswith("#"):
+                    continue
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) < 9:
+                    continue
+
+                feature = fields[2]
+                if feature not in ("gene", "exon"):
+                    continue
+
+                attrs = fields[8]
+                gid_match = _re.search(r'gene_id "([^"]+)"', attrs)
+                if not gid_match:
+                    continue
+                gid = gid_match.group(1).split(".")[0]
+
+                if feature == "gene":
+                    bio_match = (_re.search(r'gene_biotype "([^"]+)"', attrs)
+                                  or _re.search(r'gene_type "([^"]+)"', attrs))
+                    if bio_match:
+                        biotype_map[gid] = bio_match.group(1)
+
+                elif feature == "exon":
+                    try:
+                        start = int(fields[3])
+                        end   = int(fields[4])
+                        exons_by_gene[gid].append((start, end))
+                    except ValueError:
+                        continue
+    except Exception:
+        return biotype_map, {}
+
+    # Compute union-exon length per gene (merge overlapping intervals)
+    length_map = {}
+    for gid, intervals in exons_by_gene.items():
+        if not intervals:
+            continue
+        # Merge overlapping intervals
+        intervals.sort()
+        merged = [intervals[0]]
+        for s, e in intervals[1:]:
+            if s <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(merged[-1][1], e))
+            else:
+                merged.append((s, e))
+        length_map[gid] = sum(e - s + 1 for s, e in merged)
+
+    return biotype_map, length_map
+
+
+def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
+    """
+    Convert Ensembl IDs to HGNC symbols. Genes without a symbol are
+    dropped (Enrichr won't match them anyway). Returns deduplicated list.
+    """
+    if not symbol_map:
+        return list(gene_ids)
+    seen = set()
+    out  = []
+    for gid in gene_ids:
+        if not isinstance(gid, str):
+            continue
+        clean = gid.split(".")[0]   # strip version
+        sym = symbol_map.get(clean)
+        # If not in map, check if input might already be a symbol
+        if not sym:
+            if not clean.startswith(("ENSG", "ENSMUSG", "ENS")):
+                sym = clean   # already a symbol
+            else:
+                continue       # unmapped Ensembl ID — skip
+        if sym not in seen:
+            seen.add(sym)
+            out.append(sym)
+    return out
+
+
 def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                               down_genes: list, organism: str,
-                              output_dir: str) -> tuple:
+                              output_dir: str,
+                              symbol_map: dict = None) -> tuple:
     """
     Run pathway enrichment via gseapy.
     Tests GO Biological Process, KEGG, and Reactome.
+
+    If symbol_map is provided, Ensembl IDs are converted to HGNC symbols
+    before sending to Enrichr (which requires symbols).
     """
     warnings  = []
     pathways  = {}
@@ -887,13 +1773,38 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
     if not sig_genes:
         return {}, ["No significant genes for pathway enrichment."]
 
+    # Convert IDs → symbols if we have a mapping
+    sig_symbols  = _to_symbols(sig_genes,  symbol_map or {})
+    up_symbols   = _to_symbols(up_genes,   symbol_map or {})
+    down_symbols = _to_symbols(down_genes, symbol_map or {})
+
+    if symbol_map and len(sig_symbols) < len(sig_genes) * 0.3:
+        warnings.append(
+            f"Symbol mapping yielded only {len(sig_symbols)}/{len(sig_genes)} "
+            f"genes (< 30%). Pathway enrichment may be underpowered."
+        )
+
+    if not sig_symbols:
+        warnings.append(
+            "No valid gene symbols to enrich — check that GTF gene_name "
+            "annotations are present."
+        )
+        return {}, warnings
+
     try:
         import gseapy as gp
+        import time as _time
 
-        for db, db_name in gene_sets.items():
+        for i, (db, db_name) in enumerate(gene_sets.items()):
+            # Rate-limit: Enrichr blocks aggressive callers. Pattern from
+            # production scripts: ~5-15 sec between calls (we use 8 — enough
+            # to avoid throttling but tolerable for 3 databases).
+            if i > 0:
+                _time.sleep(8)
+
             try:
                 enr = gp.enrichr(
-                    gene_list=sig_genes[:500],  # top 500 to limit runtime
+                    gene_list=sig_symbols[:500],
                     gene_sets=db_name,
                     organism=_gseapy_organism(organism),
                     outdir=None,
@@ -910,6 +1821,8 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                             "term":    row["Term"],
                             "padj":    round(float(row["Adjusted P-value"]), 5),
                             "overlap": row.get("Overlap", ""),
+                            "odds_ratio": round(float(row.get("Odds Ratio", 1)), 2),
+                            "combined_score": round(float(row.get("Combined Score", 0)), 1),
                             "genes":   row.get("Genes", "").split(";")[:10],
                         }
                         for _, row in sig_pw.head(20).iterrows()
@@ -917,21 +1830,35 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
 
                     if not pathways[db]:
                         warnings.append(
-                            f"No significant {db} pathways at padj < 0.05."
+                            f"No significant {db} pathways at padj < 0.05 "
+                            f"({len(results)} terms tested)."
                         )
+                else:
+                    warnings.append(
+                        f"{db} returned empty results from Enrichr "
+                        f"(0 of {len(sig_symbols)} symbols matched)."
+                    )
             except Exception as e:
-                warnings.append(f"{db} enrichment failed: {str(e)[:100]}")
+                # Capture the REAL error so the LLM doesn't need to
+                # invent a cause (and bad explanations won't poison
+                # the report).
+                err_msg = str(e)[:200]
+                warnings.append(
+                    f"{db} enrichment ERROR: {err_msg}. "
+                    f"(Sent {len(sig_symbols)} symbols, organism="
+                    f"{_gseapy_organism(organism)}.)"
+                )
 
     except ImportError:
         warnings.append("gseapy not installed — skipping pathway enrichment.")
         pathways = _mock_pathways(sig_genes)
 
-    # Directional enrichment: up vs down separately
-    if up_genes and down_genes:
+    # Directional enrichment: up vs down separately (uses symbols)
+    if up_symbols and down_symbols:
         try:
             import gseapy as gp
-            for direction, genes in [("up", up_genes[:200]),
-                                      ("down", down_genes[:200])]:
+            for direction, genes in [("up", up_symbols[:200]),
+                                      ("down", down_symbols[:200])]:
                 enr = gp.enrichr(
                     gene_list=genes,
                     gene_sets="KEGG_2021_Human"
@@ -975,11 +1902,28 @@ def _get_gene_sets(organism: str) -> dict:
 
 
 def _gseapy_organism(organism: str) -> str:
-    if "sapiens" in organism.lower():
-        return "Human"
-    if "musculus" in organism.lower():
-        return "Mouse"
-    return "Human"
+    """
+    Return the organism string in the format gseapy/Enrichr expects.
+
+    gseapy 1.1.13+ explicitly validates against a lowercase whitelist:
+        human, hsapiens, h. sapiens, hs, mouse, mus musculus, ...
+    Capitalized strings like "Human" or "Homo sapiens" are REJECTED with:
+        "Invalid organism 'Human'. Valid options are: ..."
+    """
+    s = organism.lower()
+    if "sapiens" in s or s in ("human", "hs", "hsapiens", "h. sapiens"):
+        return "human"
+    if "musculus" in s or s in ("mouse", "mm"):
+        return "mouse"
+    if "rerio" in s or s in ("zebrafish", "danio rerio"):
+        return "fish"
+    if "melanogaster" in s or s in ("fly", "drosophila"):
+        return "fly"
+    if "elegans" in s:
+        return "worm"
+    if "cerevisiae" in s or s == "yeast":
+        return "yeast"
+    return "human"   # safest default for the most common use case
 
 
 def _mock_pathways(sig_genes: list) -> dict:
@@ -1079,54 +2023,154 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             plt.close()
             plots["volcano"] = volcano_path
 
-        # ── Heatmap of top DE genes ────────────────────────────────────
-        top_genes = de_result.get("sig_genes", [])[:50]
-        if top_genes and counts_filt is not None:
-            available = [g for g in top_genes if g in counts_filt.index]
-            if available:
-                import numpy as np
-                hm_data = np.log2(
-                    counts_filt.loc[available].astype(float) + 1
+        # ── Heatmaps of top DE genes (two complementary views) ──────────
+        # (a) Top 50 by padj — most statistically confident genes
+        # (b) Top 50 by |log2FC| — largest effect sizes (user-requested v3.8)
+        #
+        # Input data: VST if available (sample_qc provides it), else
+        # log2(counts+1). Then row z-score for visualization.
+        # Symbol annotation: use symbol_map to replace ENSG with HGNC.
+        de_results_df = de_result.get("results")
+        vst_matrix    = sample_qc.get("vst_matrix")   # may be None
+        symbol_map    = sample_qc.get("_symbol_map", {})  # passed via QC dict
+
+        if de_results_df is not None and not de_results_df.empty:
+            # Intersect with gene matrix (only plot genes we have data for)
+            available_all = [g for g in de_results_df.index
+                              if (vst_matrix is not None and g in vst_matrix.index)
+                              or (counts_filt is not None and g in counts_filt.index)]
+
+            if available_all:
+                # (a) Top 50 by padj — already sig_genes-ordered by padj asc
+                top_padj = [g for g in de_result.get("sig_genes", [])[:50]
+                            if g in available_all]
+                hm_a = _plot_heatmap(
+                    genes=top_padj,
+                    vst_matrix=vst_matrix,
+                    counts_filt=counts_filt,
+                    symbol_map=symbol_map,
+                    title_prefix="Top 50 DE genes by padj",
+                    title_suffix=title_suffix,
+                    output_path=str(Path(output_dir) / "heatmap_padj.svg"),
                 )
-                # Z-score across samples
-                row_mean = hm_data.mean(axis=1)
-                row_std  = hm_data.std(axis=1).replace(0, 1)
-                hm_z     = ((hm_data.T - row_mean) / row_std).T
+                if hm_a:
+                    plots["heatmap"]      = hm_a   # backward compat
+                    plots["heatmap_padj"] = hm_a
 
-                fig, ax = plt.subplots(
-                    figsize=(max(6, len(available) * 0.15),
-                             max(4, len(available) * 0.25))
+                # (b) Top 50 by |log2FC| (NEW in v3.8)
+                lfc_sorted = de_results_df.dropna(subset=["padj","log2FoldChange"])
+                lfc_sorted = lfc_sorted[lfc_sorted["padj"] < padj_thr]
+                lfc_sorted = lfc_sorted.assign(
+                    abs_lfc=lfc_sorted["log2FoldChange"].abs()
+                ).sort_values("abs_lfc", ascending=False)
+                top_lfc = [g for g in lfc_sorted.index[:50]
+                            if g in available_all]
+                hm_b = _plot_heatmap(
+                    genes=top_lfc,
+                    vst_matrix=vst_matrix,
+                    counts_filt=counts_filt,
+                    symbol_map=symbol_map,
+                    title_prefix="Top 50 DE genes by |log2FC|",
+                    title_suffix=title_suffix,
+                    output_path=str(Path(output_dir) / "heatmap_lfc.svg"),
                 )
-                fig.patch.set_facecolor("#0f1729")
-
-                im = ax.imshow(hm_z, aspect="auto", cmap="RdBu_r",
-                               vmin=-3, vmax=3)
-                ax.set_xticks(range(len(hm_data.columns)))
-                ax.set_xticklabels(hm_data.columns, rotation=45,
-                                   ha="right", fontsize=7, color="#94a3b8")
-                ax.set_yticks(range(len(available)))
-                ax.set_yticklabels(available, fontsize=6, color="#e2e8f0")
-                ax.set_facecolor("#1a2744")
-                plt.colorbar(im, ax=ax, label="Z-score",
-                             fraction=0.02, pad=0.04)
-                hm_title = "Top DE Genes" + (f" — {title_suffix}" if title_suffix else "")
-                ax.set_title(hm_title, color="#22d3ee", fontsize=10)
-
-                heatmap_path = str(Path(output_dir) / "heatmap.svg")
-                plt.tight_layout()
-                plt.savefig(heatmap_path, format="svg",
-                            facecolor=fig.get_facecolor())
-                plt.close()
-                plots["heatmap"] = heatmap_path
+                if hm_b:
+                    plots["heatmap_lfc"] = hm_b
 
     except Exception as e:
         plots["error"] = str(e)
 
-    # PCA was already generated in _sample_qc
+    # PCA and MDS were already generated in _sample_qc (v3.8: VST-based)
     if sample_qc.get("pca_plot"):
         plots["pca"] = sample_qc["pca_plot"]
+    if sample_qc.get("mds_plot"):
+        plots["mds"] = sample_qc["mds_plot"]
 
     return plots
+
+
+def _plot_heatmap(genes: list, vst_matrix, counts_filt,
+                    symbol_map: dict,
+                    title_prefix: str, title_suffix: str,
+                    output_path: str) -> str | None:
+    """
+    Plot a row-z-score heatmap of the given genes.
+
+    Data source priority:
+      1. VST matrix if provided (homoscedastic, lib-size corrected)
+      2. log2(counts_filt+1) as fallback
+
+    Row labels are replaced with HGNC symbols when available.
+    Dark theme matching the rest of the report.
+    """
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import pandas as pd
+
+        if not genes:
+            return None
+
+        if vst_matrix is not None:
+            available = [g for g in genes if g in vst_matrix.index]
+            if not available:
+                return None
+            hm_data = vst_matrix.loc[available]
+        elif counts_filt is not None:
+            available = [g for g in genes if g in counts_filt.index]
+            if not available:
+                return None
+            hm_data = np.log2(counts_filt.loc[available].astype(float) + 1)
+        else:
+            return None
+
+        # Row z-score across samples
+        row_mean = hm_data.mean(axis=1)
+        row_std  = hm_data.std(axis=1).replace(0, 1)
+        hm_z     = ((hm_data.T - row_mean) / row_std).T
+
+        # Gene labels: symbols when available
+        row_labels = []
+        for g in available:
+            clean = str(g).split(".")[0]
+            sym   = (symbol_map or {}).get(clean, "")
+            row_labels.append(sym if sym else clean)
+
+        n_genes = len(available)
+        fig, ax = plt.subplots(
+            figsize=(
+                max(6, len(hm_data.columns) * 0.6),
+                max(5, n_genes * 0.18),
+            )
+        )
+        fig.patch.set_facecolor("#0f1729")
+
+        im = ax.imshow(hm_z, aspect="auto", cmap="RdBu_r", vmin=-3, vmax=3)
+        ax.set_xticks(range(len(hm_data.columns)))
+        ax.set_xticklabels(hm_data.columns, rotation=45,
+                            ha="right", fontsize=9, color="#94a3b8")
+        ax.set_yticks(range(n_genes))
+        ax.set_yticklabels(row_labels, fontsize=7, color="#e2e8f0")
+        ax.set_facecolor("#1a2744")
+
+        cbar = plt.colorbar(im, ax=ax, label="Z-score (VST or log2)",
+                             fraction=0.025, pad=0.04)
+        cbar.ax.tick_params(colors="#94a3b8")
+        cbar.set_label("Z-score (VST or log2)", color="#e2e8f0")
+
+        title = title_prefix + (f" — {title_suffix}" if title_suffix else "")
+        ax.set_title(title, color="#22d3ee", fontsize=11, pad=10)
+
+        plt.tight_layout()
+        plt.savefig(output_path, format="svg",
+                     facecolor=fig.get_facecolor())
+        plt.close(fig)
+        return output_path
+    except Exception as e:
+        log.warning(f"Heatmap failed ({title_prefix}): {e}")
+        return None
 
 
 def _plot_sample_pca(coords, samples, metadata, var_exp: list,
