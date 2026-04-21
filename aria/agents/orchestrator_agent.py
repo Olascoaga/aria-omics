@@ -9,11 +9,12 @@ Flow:
   2. Delegate to DataAuditAgent (always first)
   3. Wait for Checkpoint 1 confirmation
   4. Present analysis plan → Checkpoint 2
-  5. DISPATCH modality agents in dependency order   ← the missing piece
-  6. Collect findings from all agents
-  7. Trigger IntegrationAgent if multimodal
-  8. Dispatch NarrativeAgent for final report
-  9. Present Checkpoint 5 (final review)
+  5. Intercept modifications via Checkpoint 3 (Parameter Tuning)
+  6. DISPATCH modality agents in dependency order
+  7. Collect findings from all agents
+  8. Trigger IntegrationAgent if multimodal
+  9. Dispatch NarrativeAgent for final report
+  10. Present Checkpoint 5 (final review)
 """
 
 from __future__ import annotations
@@ -56,7 +57,6 @@ Always think about the biology first, then the methods.
 
 
 # ── Agent registry ─────────────────────────────────────────────────────────────
-# Lazy imports prevent circular dependencies at module load time.
 
 AGENT_REGISTRY = {
     "setup_agent": {
@@ -91,7 +91,6 @@ AGENT_REGISTRY = {
         "module": "aria.agents.preprocessing_agent",
         "class":  "PreprocessingAgent",
     },
-    # Legacy alias — kept for backward compatibility
     "rna_agent": {
         "module": "aria.agents.scrna_agent",
         "class":  "scRNAAgent",
@@ -101,7 +100,7 @@ AGENT_REGISTRY = {
 MODALITY_TO_AGENT = {
     "scRNA":        "scrna_agent",
     "bulk_RNA":     "bulk_rna_agent",
-    "bulk_RNA_raw": "bulk_rna_agent",   # raw FASTQs — bulk_rna_agent handles preprocessing
+    "bulk_RNA_raw": "bulk_rna_agent",
     "scATAC":      "chromatin_agent",
     "bulk_ATAC":   "chromatin_agent",
     "ChIP":        "chromatin_agent",
@@ -127,12 +126,8 @@ class OrchestratorAgent(BaseAgent):
         self._experiment_plans     = {}
         self._agent_results        = {}
 
-    # ── Entry point ─────────────────────────────────────────────────────────
-
     def run(self, experiment_id: str, context: dict) -> dict:
-        self.publish_status(experiment_id,
-                            "ARIA starting analysis...", 0.0)
-
+        self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
         intent = self._parse_question(context["user_question"])
 
         self._experiment_plans[experiment_id] = {
@@ -150,35 +145,30 @@ class OrchestratorAgent(BaseAgent):
         plan = self._experiment_plans.get(experiment_id, {})
         return DataAuditAgent(self.memory).run(experiment_id, plan["context"])
 
-    # ── Checkpoint routing ──────────────────────────────────────────────────
-
     def on_checkpoint_resolved(self, message_id: str,
                                 user_decision: str,
                                 experiment_id: str) -> dict:
         bus.resolve_checkpoint(message_id, {"choice": user_decision})
 
-        resolved_msg = next(
-            (m for m in bus.get_log() if m.id == message_id), None
-        )
+        resolved_msg = next((m for m in bus.get_log() if m.id == message_id), None)
         if not resolved_msg:
             return {"status": "error", "message": "Checkpoint not found"}
 
         cp = resolved_msg.checkpoint
         if cp == 1:
-            return self._after_checkpoint_1(
-                experiment_id, user_decision, resolved_msg)
+            return self._after_checkpoint_1(experiment_id, user_decision, resolved_msg)
         elif cp == 2:
-            return self._after_checkpoint_2(
-                experiment_id, user_decision, resolved_msg)
+            return self._after_checkpoint_2(experiment_id, user_decision, resolved_msg)
+        elif cp == 3:
+            return self._after_checkpoint_3(experiment_id, user_decision, resolved_msg)
+                
         return {"status": "ok"}
 
-    def _after_checkpoint_1(self, experiment_id: str,
-                             decision: str, msg: Message) -> dict:
+    def _after_checkpoint_1(self, experiment_id: str, decision: str, msg: Message) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
 
         exp_context = msg.payload.get("context", {}).get("exp_context", {})
-
         self.memory.store_decision(
             decision_id=str(uuid.uuid4())[:8],
             wing_id=experiment_id,
@@ -190,7 +180,6 @@ class OrchestratorAgent(BaseAgent):
         )
 
         plan = self._design_analysis_plan(experiment_id, exp_context)
-
         self.publish_escalation(
             experiment_id=experiment_id,
             checkpoint=2,
@@ -198,20 +187,29 @@ class OrchestratorAgent(BaseAgent):
             options=["Confirm and run", "Modify plan", "Cancel"],
             context={"plan": plan, "exp_context": exp_context},
         )
-
         return {"status": "plan_ready", "plan": plan}
 
-    def _after_checkpoint_2(self, experiment_id: str,
-                             decision: str, msg: Message) -> dict:
-        """
-        After plan confirmation — dispatch analysis agents.
-        Runs in a background thread so the TUI remains responsive.
-        """
+    def _after_checkpoint_2(self, experiment_id: str, decision: str, msg: Message) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
 
         plan        = msg.payload.get("context", {}).get("plan", {})
         exp_context = msg.payload.get("context", {}).get("exp_context", {})
+
+        if "modify" in decision.lower():
+            self.publish_escalation(
+                experiment_id=experiment_id,
+                checkpoint=3,
+                question="Select the statistical thresholds for Differential Expression (padj & log2FC):\n\n"
+                         "  1. Strict Profile (padj < 0.01, |log2FC| > 1.5)\n"
+                         "  2. Standard Profile (padj < 0.05, |log2FC| > 1.0)\n"
+                         "  3. Exploratory/TF Profile (padj < 0.05, |log2FC| > 0.58)\n"
+                         "  4. High Sensitivity Profile (padj < 0.10, |log2FC| > 0.58)\n"
+                         "  5. Keep Default (Agent decides)",
+                options=["Strict", "Standard", "Exploratory/TF", "High Sensitivity", "Keep Default"],
+                context={"plan": plan, "exp_context": exp_context}
+            )
+            return {"status": "modifying_plan"}
 
         self.memory.store_decision(
             decision_id=str(uuid.uuid4())[:8],
@@ -219,7 +217,7 @@ class OrchestratorAgent(BaseAgent):
             checkpoint=2,
             question="Analysis plan confirmed",
             decision=decision,
-            rationale="User approved analysis plan",
+            rationale="User approved analysis plan directly.",
             made_by="user",
         )
 
@@ -229,62 +227,73 @@ class OrchestratorAgent(BaseAgent):
             daemon=True,
         ).start()
 
-        return {
-            "status":        "analysis_running",
-            "plan":          plan,
-            "exp_context":   exp_context,
-        }
+        return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
-    # ── Dispatcher ──────────────────────────────────────────────────────────
+    def _after_checkpoint_3(self, experiment_id: str, decision: str, msg: Message) -> dict:
+        if "cancel" in decision.lower():
+            return {"status": "cancelled"}
+            
+        plan        = msg.payload.get("context", {}).get("plan", {})
+        exp_context = msg.payload.get("context", {}).get("exp_context", {})
+        
+        rationale = "User maintained default/agent-inferred analytical thresholds."
+        
+        if "strict" in decision.lower():
+            exp_context["global_padj"] = 0.01
+            exp_context["global_lfc"] = 1.5
+            rationale = "User enforced Strict analytical thresholds (padj < 0.01, LFC > 1.5) to isolate high-confidence targets."
+        elif "standard" in decision.lower():
+            exp_context["global_padj"] = 0.05
+            exp_context["global_lfc"] = 1.0
+            rationale = "User enforced Standard analytical thresholds (padj < 0.05, LFC > 1.0) for conventional DE."
+        elif "exploratory" in decision.lower() or "tf" in decision.lower():
+            exp_context["global_padj"] = 0.05
+            exp_context["global_lfc"] = 0.58
+            rationale = "User enforced Exploratory/TF analytical thresholds (padj < 0.05, LFC > 0.58) to capture subtle regulatory signals."
+        elif "sensitivity" in decision.lower():
+            exp_context["global_padj"] = 0.10
+            exp_context["global_lfc"] = 0.58
+            rationale = "User enforced High Sensitivity analytical thresholds (padj < 0.10, LFC > 0.58) to maximize target discovery."
 
-    def _dispatch_agents(self, experiment_id: str,
-                          plan: dict, exp_context: dict):
-        """
-        Instantiate and run each agent in dependency order.
+        self.memory.store_decision(
+            decision_id=str(uuid.uuid4())[:8],
+            wing_id=experiment_id,
+            checkpoint=3,
+            question="Statistical Threshold Tuning (padj & log2FC)",
+            decision=decision,
+            rationale=rationale,
+            made_by="user",
+        )
 
-        This is the piece that was missing — the actual connection
-        between the LLM-designed plan and the agents that execute it.
+        threading.Thread(
+            target=self._dispatch_agents,
+            args=(experiment_id, plan, exp_context),
+            daemon=True,
+        ).start()
 
-        Order:
-          1. Modality agents (RNA, Chromatin, HiC)
-          2. IntegrationAgent (if 2+ modalities)
-          3. NarrativeAgent (always)
-        """
-        self.publish_status(experiment_id,
-                            "Dispatching agents...", 0.1)
+        return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
+
+    def _dispatch_agents(self, experiment_id: str, plan: dict, exp_context: dict):
+        self.publish_status(experiment_id, "Dispatching agents...", 0.1)
 
         modalities    = exp_context.get("modalities", {})
-        intent        = self._experiment_plans.get(
-                            experiment_id, {}
-                        ).get("intent", {})
+        intent        = self._experiment_plans.get(experiment_id, {}).get("intent", {})
         agent_results = {}
 
-        # Merge raw-FASTQ modality into main key so bulk_rna_agent
-        # (which reads modalities["bulk_RNA"]) sees the files.
-        # The agent detects FASTQ vs counts by file extension.
         if "bulk_RNA_raw" in modalities:
             raw_files = modalities["bulk_RNA_raw"]
             existing  = modalities.get("bulk_RNA", [])
-            modalities = {**modalities,
-                          "bulk_RNA": list(existing) + list(raw_files)}
+            modalities = {**modalities, "bulk_RNA": list(existing) + list(raw_files)}
             exp_context = {**exp_context, "modalities": modalities}
 
-        # ── Step 0: SetupAgent — provision environment before analysis ────
-        # Installs conda envs, downloads genome, builds STAR index.
-        # Transparent to the user — runs silently if already set up.
-        self.publish_status(experiment_id,
-                            "Checking computational environment...", 0.05)
+        self.publish_status(experiment_id, "Checking computational environment...", 0.05)
         setup_result = self._run_agent(
             agent_name="setup_agent",
             experiment_id=experiment_id,
-            context={
-                "exp_context":       exp_context,
-                "biological_intent": intent,
-            },
+            context={"exp_context": exp_context, "biological_intent": intent},
         )
         agent_results["setup_agent"] = setup_result
 
-        # Inject genome_config into exp_context for downstream agents
         if setup_result.get("status") == "done":
             genome_config = setup_result.get("genome_config", {})
             exp_context   = {**exp_context, "genome_config": genome_config}
@@ -292,35 +301,14 @@ class OrchestratorAgent(BaseAgent):
         steps = plan.get("steps", []) or self._infer_steps(modalities)
         ordered = self._resolve_execution_order(steps)
 
-        agents_needed = {
-            MODALITY_TO_AGENT[m]
-            for m in modalities
-            if m in MODALITY_TO_AGENT
-        }
-
-        # If raw FASTQs detected, bulk_rna_agent handles preprocessing
-        # internally (fastp → STAR → featureCounts → DESeq2 in one invocation).
+        agents_needed = {MODALITY_TO_AGENT[m] for m in modalities if m in MODALITY_TO_AGENT}
         if "bulk_RNA_raw" in modalities:
             agents_needed.add("bulk_rna_agent")
 
-        # ── Modality agents ──────────────────────────────────────────────
-        # Ground truth: agents_needed (built from detected modalities).
-        # The LLM plan provides an ordering hint via `step.agent`, but
-        # we do NOT filter by it — if the LLM forgot to set `agent:` on
-        # its steps, we still run the required agents.
-        #
-        # Each agent runs at most once. The agent internally handles its
-        # full pipeline (for bulk_rna_agent: fastp → STAR → featureCounts
-        # → DESeq2, all stages inside one invocation).
-        runnable = sorted(agents_needed - {"integration_agent",
-                                              "narrative_agent"})
+        runnable = sorted(agents_needed - {"integration_agent", "narrative_agent"})
 
-        # Use the LLM plan to decide ordering when possible.
-        # Steps that mention an agent-looking keyword get priority.
         def _step_hint(step: dict) -> str:
-            text = (step.get("agent", "") + " " +
-                    str(step.get("analysis", "")) + " " +
-                    str(step.get("description", ""))).lower()
+            text = (step.get("agent", "") + " " + str(step.get("analysis", "")) + " " + str(step.get("description", ""))).lower()
             for a in runnable:
                 if a in text or a.replace("_agent","") in text:
                     return a
@@ -331,7 +319,6 @@ class OrchestratorAgent(BaseAgent):
             hint = _step_hint(step)
             if hint and hint not in ordered_by_plan:
                 ordered_by_plan.append(hint)
-        # Append any remaining agents the plan didn't mention
         for a in runnable:
             if a not in ordered_by_plan:
                 ordered_by_plan.append(a)
@@ -341,47 +328,34 @@ class OrchestratorAgent(BaseAgent):
 
         for i, agent_name in enumerate(ordered_by_plan):
             if agent_name in agents_run:
-                continue   # safety dedup
+                continue
 
-            self.publish_status(
-                experiment_id,
-                f"Running {agent_name}...",
-                0.15 + (i / n_agents) * 0.50,
-            )
-
+            self.publish_status(experiment_id, f"Running {agent_name}...", 0.15 + (i / n_agents) * 0.50)
             result = self._run_agent(
                 agent_name=agent_name,
                 experiment_id=experiment_id,
-                context={
-                    "exp_context":       exp_context,
-                    "biological_intent": intent,
-                },
+                context={"exp_context": exp_context, "biological_intent": intent},
             )
             agent_results[agent_name] = result
             agents_run.add(agent_name)
             log.info(f"{agent_name}: {result.get('status', '?')}")
 
-        # ── IntegrationAgent ─────────────────────────────────────────────
         n_mods = len([m for m in modalities if m in MODALITY_TO_AGENT])
         if n_mods >= 2 or plan.get("integration_needed"):
-            self.publish_status(experiment_id,
-                                "Running IntegrationAgent...", 0.72)
+            self.publish_status(experiment_id, "Running IntegrationAgent...", 0.72)
             result = self._run_agent(
                 agent_name="integration_agent",
                 experiment_id=experiment_id,
                 context={
                     "exp_context":       exp_context,
                     "biological_intent": intent,
-                    "rna_results":       agent_results.get("scrna_agent",
-                                        agent_results.get("bulk_rna_agent",
-                                        agent_results.get("rna_agent", {}))),
+                    "rna_results":       agent_results.get("scrna_agent", agent_results.get("bulk_rna_agent", agent_results.get("rna_agent", {}))),
                     "chromatin_results": agent_results.get("chromatin_agent", {}),
                     "hic_results":       agent_results.get("genome_arch_agent", {}),
                 },
             )
             agent_results["integration_agent"] = result
 
-        # ── NarrativeAgent ────────────────────────────────────────────────
         self.publish_status(experiment_id, "Generating report...", 0.88)
         findings = bus.get_findings(experiment_id)
 
@@ -398,122 +372,63 @@ class OrchestratorAgent(BaseAgent):
         agent_results["narrative_agent"] = narrative_result
         self._agent_results[experiment_id] = agent_results
 
-        # ── Checkpoint 5: final summary ───────────────────────────────────
-        self._present_final_summary(
-            experiment_id, agent_results, findings
-        )
+        self._present_final_summary(experiment_id, agent_results, findings)
         self.publish_status(experiment_id, "Analysis complete.", 1.0)
 
-    def _run_agent(self, agent_name: str,
-                   experiment_id: str,
-                   context: dict) -> dict:
-        """
-        Instantiate and run one agent by name.
-        Uses lazy import to avoid circular dependencies.
-        Returns a structured error dict if the agent is unavailable.
-        """
+    def _run_agent(self, agent_name: str, experiment_id: str, context: dict) -> dict:
         if agent_name not in AGENT_REGISTRY:
-            return {
-                "status":     "error",
-                "error_type": "UnknownAgent",
-                "details":    f"'{agent_name}' not in AGENT_REGISTRY.",
-            }
-
+            return {"status": "error", "error_type": "UnknownAgent", "details": f"'{agent_name}' not in AGENT_REGISTRY."}
         entry = AGENT_REGISTRY[agent_name]
-
         try:
             import importlib
-            module     = importlib.import_module(entry["module"])
+            module = importlib.import_module(entry["module"])
             AgentClass = getattr(module, entry["class"])
-            agent      = AgentClass(memory=self.memory, llm=self.llm)
+            agent = AgentClass(memory=self.memory, llm=self.llm)
             return agent.run(experiment_id, context)
-
-        except ModuleNotFoundError as e:
-            log.warning(f"Module not found for {agent_name}: {e}")
-            return {"status": "skipped", "reason": str(e),
-                    "agent": agent_name}
-
         except Exception as e:
             log.error(f"{agent_name} raised: {e}", exc_info=True)
-            return {"status": "error", "error_type": type(e).__name__,
-                    "details": str(e), "agent": agent_name}
-
-    # ── Helpers ─────────────────────────────────────────────────────────────
+            return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
 
     def _resolve_execution_order(self, steps: list) -> list:
-        """Topological sort by depends_on."""
-        remaining = list(steps)
-        ordered   = []
-        completed = set()
-
+        remaining, ordered, completed = list(steps), [], set()
         for _ in range(len(steps) + 1):
-            if not remaining:
-                break
+            if not remaining: break
             for step in remaining[:]:
                 if set(step.get("depends_on", [])) <= completed:
                     ordered.append(step)
                     completed.add(step.get("agent", ""))
                     remaining.remove(step)
-
-        ordered.extend(remaining)  # add anything with circular deps
+        ordered.extend(remaining) 
         return ordered
 
     def _infer_steps(self, modalities: dict) -> list:
-        """Fallback step list when LLM plan fails."""
-        steps = []
-        seen  = set()
-        order = 1
+        steps, seen, order = [], set(), 1
         for m in modalities:
             agent = MODALITY_TO_AGENT.get(m)
             if agent and agent not in seen:
-                steps.append({
-                    "order":       order,
-                    "agent":       agent,
-                    "analysis":    f"Analyze {m}",
-                    "depends_on":  [],
-                    "can_parallel": False,
-                })
+                steps.append({"order": order, "agent": agent, "analysis": f"Analyze {m}", "depends_on": [], "can_parallel": False})
                 seen.add(agent)
                 order += 1
         return steps
 
-    def _present_final_summary(self, experiment_id: str,
-                                agent_results: dict,
-                                findings: list):
-        n_done   = sum(1 for r in agent_results.values()
-                       if r.get("status") == "done")
-        n_errors = sum(1 for r in agent_results.values()
-                       if r.get("status") == "error")
-        report   = agent_results.get("narrative_agent", {}).get(
-                        "report_path")
+    def _present_final_summary(self, experiment_id: str, agent_results: dict, findings: list):
+        n_done   = sum(1 for r in agent_results.values() if r.get("status") == "done")
+        n_errors = sum(1 for r in agent_results.values() if r.get("status") == "error")
+        report   = agent_results.get("narrative_agent", {}).get("report_path")
 
-        lines = [
-            f"Analysis complete.",
-            f"",
-            f"Agents completed:  {n_done}/{len(agent_results)}",
-            f"Findings reported: {len(findings)}",
-        ]
-        if n_errors:
-            errors = [k for k, r in agent_results.items()
-                      if r.get("status") == "error"]
-            lines.append(f"Errors in:         {', '.join(errors)}")
-        if report:
-            lines.append(f"Report:            {report}")
+        lines = [f"Analysis complete.\n", f"Agents completed:  {n_done}/{len(agent_results)}", f"Findings reported: {len(findings)}"]
+        if n_errors: lines.append(f"Errors in:         {', '.join(k for k, r in agent_results.items() if r.get('status') == 'error')}")
+        if report: lines.append(f"Report:            {report}")
 
         self.publish_escalation(
-            experiment_id=experiment_id,
-            checkpoint=5,
-            question="\n".join(lines),
-            options=["Accept report", "Request revision", "Export methods"],
+            experiment_id=experiment_id, checkpoint=5,
+            question="\n".join(lines), options=["Accept report", "Request revision", "Export methods"],
             context={"n_findings": len(findings), "report_path": report},
         )
-
-    # ── Analysis planning ────────────────────────────────────────────────────
 
     def _parse_question(self, user_question: str) -> dict:
         prompt = f"""
 User question: "{user_question}"
-
 Extract the biological analysis intent. Return JSON:
 {{
   "analysis_type": "differential|regulatory|structural|temporal|cell_type|integration",
@@ -524,70 +439,39 @@ Extract the biological analysis intent. Return JSON:
   "summary": "one sentence biological question summary"
 }}
 """
-        return self.think_structured(
-            prompt,
-            system=ORCHESTRATOR_SYSTEM,
-            schema_hint="Return analysis intent as JSON.",
-        )
+        return self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM, schema_hint="Return analysis intent as JSON.")
 
-    def _design_analysis_plan(self, experiment_id: str,
-                               exp_context: dict) -> dict:
-        modalities    = list(exp_context.get("modalities", {}).keys())
-        user_question = exp_context.get("user_question", "")
-
+    def _design_analysis_plan(self, experiment_id: str, exp_context: dict) -> dict:
         prompt = f"""
-Available modalities: {modalities}
-User question: "{user_question}"
+Available modalities: {list(exp_context.get("modalities", {}).keys())}
+User question: "{exp_context.get("user_question", "")}"
 Organism: {exp_context.get("organism")}
 Genome: {exp_context.get("genome")}
 Is multimodal: {exp_context.get("is_multimodal")}
 
 Design the analysis pipeline. Return JSON:
 {{
-  "steps": [
-    {{
-      "order": 1,
-      "agent": "rna_agent",
-      "analysis": "description",
-      "depends_on": [],
-      "can_parallel": false
-    }}
-  ],
+  "steps": [{{"order": 1, "agent": "rna_agent", "analysis": "description", "depends_on": [], "can_parallel": false}}],
   "integration_needed": true,
   "integration_type": "WNN|MOFA|none",
   "estimated_complexity": "low|medium|high",
   "rationale": "brief explanation"
 }}
 """
-        plan = self.think_structured(
-            prompt,
-            system=ORCHESTRATOR_SYSTEM,
-            schema_hint="Return analysis plan as JSON.",
-        )
+        plan = self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM, schema_hint="Return analysis plan as JSON.")
         self._experiment_plans[experiment_id]["plan"] = plan
         return plan
 
     def _format_plan_summary(self, plan: dict) -> str:
-        steps = plan.get("steps", [])
         lines = ["ARIA Analysis Plan:\n"]
-        for step in steps:
-            p = " (parallel)" if step.get("can_parallel") else ""
-            lines.append(f"  Step {step['order']}: "
-                         f"[{step['agent']}] {step['analysis']}{p}")
-        if plan.get("integration_needed"):
-            lines.append(
-                f"\n  Integration: {plan.get('integration_type', 'TBD')}")
-        lines.append(
-            f"\n  Complexity: {plan.get('estimated_complexity', '?')}")
-        lines.append(f"\n  {plan.get('rationale', '')}")
-        lines.append("\nProceed with this plan?")
+        for step in plan.get("steps", []):
+            lines.append(f"  Step {step['order']}: [{step['agent']}] {step['analysis']}{' (parallel)' if step.get('can_parallel') else ''}")
+        if plan.get("integration_needed"): lines.append(f"\n  Integration: {plan.get('integration_type', 'TBD')}")
+        lines.append(f"\n  Complexity: {plan.get('estimated_complexity', '?')}\n  {plan.get('rationale', '')}\nProceed with this plan?")
         return "\n".join(lines)
 
     def receive(self, message: Message):
-        if message.type == MessageType.FINDING:
-            exp_id = message.experiment_id
-            if exp_id in self._experiment_plans:
-                self._experiment_plans[exp_id]["findings"].append(
-                    message.payload)
+        if message.type == MessageType.FINDING and message.experiment_id in self._experiment_plans:
+            self._experiment_plans[message.experiment_id]["findings"].append(message.payload)
         elif message.type == MessageType.ESCALATION:
             self._pending_checkpoints[message.id] = message

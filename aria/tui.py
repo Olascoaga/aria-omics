@@ -107,11 +107,12 @@ AGENT_NAMES = {
 }
 
 CHECKPOINT_TITLES = {
-    1: "Data Audit Results",
-    2: "Analysis Plan",
-    3: "Quality Control / Parameter Decision",
-    4: "Preliminary Findings",
-    5: "Final Report Ready",
+    1:   "Data Audit Results",
+    2:   "Analysis Plan",
+    2.5: "Modify Analysis Parameters",   # <-- nuevo para modificación interactiva
+    3:   "Quality Control / Parameter Decision",
+    4:   "Preliminary Findings",
+    5:   "Final Report Ready",
 }
 
 console = Console(highlight=False)
@@ -159,7 +160,7 @@ def print_agent_message(agent: str, message: str):
     console.print(prefix + msg)
 
 
-def print_checkpoint(number: int, title: str,
+def print_checkpoint(number, title: str,
                      content: str, options: list[str]) -> str:
     """
     Display a checkpoint and block until user responds.
@@ -511,6 +512,21 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
             cp_num = msg.payload.get("checkpoint", "?")
             title  = CHECKPOINT_TITLES.get(cp_num, f"Checkpoint {cp_num}")
 
+            # ── Special handling for modification checkpoint (2.5) ─────────
+            if cp_num == "2.5" or cp_num == 2.5:
+                choice = print_checkpoint(
+                    number="2.5",
+                    title=CHECKPOINT_TITLES.get(2.5, "Modify Parameters"),
+                    content=msg.payload.get("question", ""),
+                    options=msg.payload.get("options", ["Continue", "Cancel"]),
+                )
+                orchestrator.on_modify_checkpoint_resolved(msg.id, choice)
+                print_agent_message(
+                    "orchestrator", f"Parameter modification: {choice}"
+                )
+                continue
+
+            # Normal checkpoints (1, 2, 3, 4, 5)
             console.print()  # Spacing before checkpoint
             choice = print_checkpoint(
                 number=cp_num,

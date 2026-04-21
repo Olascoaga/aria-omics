@@ -100,7 +100,10 @@ class ARIAMemory:
         else:
             self.db_path = str(Path(db_path).expanduser())
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
-        self._conn = sqlite3.connect(self.db_path)
+            
+        # BUG FIX: Permitir que los agentes en hilos secundarios lean/escriban en la DB
+        self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
+        
         self._conn.row_factory = sqlite3.Row
         self._conn.executescript(SCHEMA)
         self._conn.commit()
