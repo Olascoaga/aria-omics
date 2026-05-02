@@ -16,11 +16,12 @@ Flow:
   1. User submits question + data dir
   2. Orchestrator.run() → intent parsed
   3. DataAuditAgent → Checkpoint 1 (confirm data detected)
-  4. Checkpoint 2 (confirm analysis plan)
-  5. Dispatcher thread launched in background
-  6. [POLLING LOOP] — stays alive, showing agent progress +
+  4. DesignAgent → Checkpoints 2.1‑2.6 (experimental design)  [v4.0]
+  5. Checkpoint 2 (confirm analysis plan)
+  6. Dispatcher thread launched in background
+  7. [POLLING LOOP] — stays alive, showing agent progress +
      surfacing checkpoints 3-5 as agents publish them
-  7. Thread completes → final summary shown
+  8. Thread completes → final summary shown
 """
 
 from __future__ import annotations
@@ -75,6 +76,7 @@ AGENT_COLORS = {
     "integration_agent": "#f472b6",
     "narrative_agent":   C['amber'],
     "debate_council":    C['red'],
+    "design_agent":      C['teal'],   # v4.0
 }
 
 AGENT_ICONS = {
@@ -89,6 +91,7 @@ AGENT_ICONS = {
     "integration_agent": "(integ)",
     "narrative_agent":   "(narr )",
     "debate_council":    "(deb  )",
+    "design_agent":      "(design)",  # v4.0
 }
 
 # Human-readable names for display (paired with icons)
@@ -104,12 +107,18 @@ AGENT_NAMES = {
     "integration_agent": "Integration",
     "narrative_agent":   "Report",
     "debate_council":    "Debate",
+    "design_agent":      "Design",   # v4.0
 }
 
 CHECKPOINT_TITLES = {
     1:   "Data Audit Results",
     2:   "Analysis Plan",
-    2.5: "Modify Analysis Parameters",   # <-- nuevo para modificación interactiva
+    2.1: "Experimental Groups",        # v4.0
+    2.2: "Organism",                   # v4.0
+    2.3: "Experimental Factor",        # v4.0
+    2.4: "Batch Effects",              # v4.0
+    2.5: "Pseudoreplication Check",    # v4.0
+    2.6: "Design Confirmation",        # v4.0
     3:   "Quality Control / Parameter Decision",
     4:   "Preliminary Findings",
     5:   "Final Report Ready",
@@ -128,7 +137,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v0.2.0-alpha"
+VERSION = "v4.0.0-alpha"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────
@@ -347,7 +356,7 @@ def _drain_checkpoints(orchestrator: OrchestratorAgent,
                         max_rounds: int = 10):
     """
     Process all currently pending checkpoints synchronously.
-    Used for pre-dispatch checkpoints (1 and 2).
+    Used for pre-dispatch checkpoints (1 and 2, and now the design checkpoints).
     """
     for _ in range(max_rounds):
         pending = [
@@ -512,21 +521,7 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
             cp_num = msg.payload.get("checkpoint", "?")
             title  = CHECKPOINT_TITLES.get(cp_num, f"Checkpoint {cp_num}")
 
-            # ── Special handling for modification checkpoint (2.5) ─────────
-            if cp_num == "2.5" or cp_num == 2.5:
-                choice = print_checkpoint(
-                    number="2.5",
-                    title=CHECKPOINT_TITLES.get(2.5, "Modify Parameters"),
-                    content=msg.payload.get("question", ""),
-                    options=msg.payload.get("options", ["Continue", "Cancel"]),
-                )
-                orchestrator.on_modify_checkpoint_resolved(msg.id, choice)
-                print_agent_message(
-                    "orchestrator", f"Parameter modification: {choice}"
-                )
-                continue
-
-            # Normal checkpoints (1, 2, 3, 4, 5)
+            # Normal checkpoints (1, 2, 3, 4, 5, and now the design sub-checkpoints)
             console.print()  # Spacing before checkpoint
             choice = print_checkpoint(
                 number=cp_num,

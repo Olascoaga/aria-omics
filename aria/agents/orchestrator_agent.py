@@ -8,13 +8,14 @@ Flow:
   1. Parse biological question → structured analysis plan
   2. Delegate to DataAuditAgent (always first)
   3. Wait for Checkpoint 1 confirmation
-  4. Present analysis plan → Checkpoint 2
-  5. Intercept modifications via Checkpoint 3 (Parameter Tuning)
-  6. DISPATCH modality agents in dependency order
-  7. Collect findings from all agents
-  8. Trigger IntegrationAgent if multimodal
-  9. Dispatch NarrativeAgent for final report
-  10. Present Checkpoint 5 (final review)
+  4. INTERACTIVE EXPERIMENTAL DESIGN via DesignAgent (v4.0)
+  5. Present analysis plan → Checkpoint 2
+  6. Intercept modifications via Checkpoint 3 (Parameter Tuning)
+  7. DISPATCH modality agents in dependency order
+  8. Collect findings from all agents
+  9. Trigger IntegrationAgent if multimodal
+  10. Dispatch NarrativeAgent for final report
+  11. Present Checkpoint 5 (final review)
 """
 
 from __future__ import annotations
@@ -125,6 +126,8 @@ class OrchestratorAgent(BaseAgent):
         self._pending_checkpoints  = {}
         self._experiment_plans     = {}
         self._agent_results        = {}
+        # v4.0: active DesignAgent instance (state machine)
+        self._active_design_agent  = None
 
     def run(self, experiment_id: str, context: dict) -> dict:
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
@@ -145,6 +148,7 @@ class OrchestratorAgent(BaseAgent):
         plan = self._experiment_plans.get(experiment_id, {})
         return DataAuditAgent(self.memory).run(experiment_id, plan["context"])
 
+    # ── Callback principal para checkpoints resueltos ───────────────────
     def on_checkpoint_resolved(self, message_id: str,
                                 user_decision: str,
                                 experiment_id: str) -> dict:
@@ -155,6 +159,43 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "error", "message": "Checkpoint not found"}
 
         cp = resolved_msg.checkpoint
+
+        # ── v4.0: Delegar checkpoints de diseño al DesignAgent ──────────
+        if cp in (2.1, 2.2, 2.3, 2.4, 2.5, 2.6) and self._active_design_agent is not None:
+            result = self._active_design_agent.handle_user_response(
+                experiment_id=experiment_id,
+                checkpoint_num=cp,
+                choice=user_decision,
+            )
+            if result.get("status") == "cancelled":
+                self._active_design_agent = None
+                return {"status": "cancelled", "reason": "Design cancelled by user"}
+
+            elif result.get("status") == "done":
+                # Diseño completado → enriquecer contexto y pasar a CP2
+                design = result["design"]
+                exp_context = self._experiment_plans.get(experiment_id, {}).get("exp_context", {})
+                exp_context["organism"] = design["organism"]
+                exp_context["genome"]   = design["genome"]
+                exp_context["design"]   = design
+                self._experiment_plans[experiment_id]["exp_context"] = exp_context
+                self._active_design_agent = None
+
+                plan = self._design_analysis_plan(experiment_id, exp_context)
+                self.publish_escalation(
+                    experiment_id=experiment_id,
+                    checkpoint=2,           # plan de análisis
+                    question=self._format_plan_summary(plan),
+                    options=["Confirm and run", "Modify plan", "Cancel"],
+                    context={"plan": plan, "exp_context": exp_context},
+                )
+                return {"status": "plan_ready", "plan": plan}
+
+            else:
+                # El DesignAgent ya publicó el siguiente checkpoint
+                return {"status": "design_in_progress", "next_step": result.get("step")}
+
+        # ── Checkpoints normales ────────────────────────────────────────
         if cp == 1:
             return self._after_checkpoint_1(experiment_id, user_decision, resolved_msg)
         elif cp == 2:
@@ -164,6 +205,7 @@ class OrchestratorAgent(BaseAgent):
                 
         return {"status": "ok"}
 
+    # ── Checkpoint 1: Auditoría completada ──────────────────────────────
     def _after_checkpoint_1(self, experiment_id: str, decision: str, msg: Message) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
@@ -179,16 +221,26 @@ class OrchestratorAgent(BaseAgent):
             made_by="user",
         )
 
-        plan = self._design_analysis_plan(experiment_id, exp_context)
-        self.publish_escalation(
+        # ── v4.0: Iniciar máquina de estados del DesignAgent ────────────
+        from aria.agents.design_agent import DesignAgent
+        design_agent = DesignAgent(memory=self.memory, llm=self.llm)
+        result = design_agent.start_design(
             experiment_id=experiment_id,
-            checkpoint=2,
-            question=self._format_plan_summary(plan),
-            options=["Confirm and run", "Modify plan", "Cancel"],
-            context={"plan": plan, "exp_context": exp_context},
+            exp_context=exp_context,
+            biological_intent=self._experiment_plans.get(experiment_id, {}).get("intent", {}),
         )
-        return {"status": "plan_ready", "plan": plan}
 
+        if result.get("status") == "failed":
+            return {"status": "cancelled", "reason": result.get("reason", "Design failed")}
+
+        # Guardar el agente activo para seguir recibiendo sus checkpoints
+        self._active_design_agent = design_agent
+        self._experiment_plans[experiment_id]["exp_context"] = exp_context
+
+        # El primer checkpoint de diseño (2.1) ya fue publicado.
+        return {"status": "design_in_progress", "next_checkpoint": 2.1}
+
+    # ── Checkpoint 2: Plan de análisis ─────────────────────────────────
     def _after_checkpoint_2(self, experiment_id: str, decision: str, msg: Message) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
@@ -220,6 +272,11 @@ class OrchestratorAgent(BaseAgent):
             rationale="User approved analysis plan directly.",
             made_by="user",
         )
+        
+        # v4.0: inject plan contrasts into design for BulkRNAAgent
+        plan_contrasts = plan.get("contrasts")
+        if plan_contrasts and exp_context.get("design"):
+            exp_context["design"]["plan_contrasts"] = plan_contrasts
 
         threading.Thread(
             target=self._dispatch_agents,
@@ -229,6 +286,7 @@ class OrchestratorAgent(BaseAgent):
 
         return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
+    # ── Checkpoint 3: Perfiles de umbral ───────────────────────────────
     def _after_checkpoint_3(self, experiment_id: str, decision: str, msg: Message) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
@@ -264,6 +322,11 @@ class OrchestratorAgent(BaseAgent):
             rationale=rationale,
             made_by="user",
         )
+        
+        # v4.0: inject plan contrasts into design (también en CP3)
+        plan_contrasts = plan.get("contrasts")
+        if plan_contrasts and exp_context.get("design"):
+            exp_context["design"]["plan_contrasts"] = plan_contrasts
 
         threading.Thread(
             target=self._dispatch_agents,
@@ -273,6 +336,7 @@ class OrchestratorAgent(BaseAgent):
 
         return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
+    # ── Despacho de agentes (hilo separado) ─────────────────────────────
     def _dispatch_agents(self, experiment_id: str, plan: dict, exp_context: dict):
         self.publish_status(experiment_id, "Dispatching agents...", 0.1)
 
@@ -452,26 +516,54 @@ Is multimodal: {exp_context.get("is_multimodal")}
 Design the analysis pipeline. Return JSON:
 {{
   "steps": [{{"order": 1, "agent": "rna_agent", "analysis": "description", "depends_on": [], "can_parallel": false}}],
+  "contrasts": [{{"numerator": "groupA", "denominator": "groupB"}}],
   "integration_needed": true,
   "integration_type": "WNN|MOFA|none",
   "estimated_complexity": "low|medium|high",
   "rationale": "brief explanation"
 }}
 """
-        plan = self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM, schema_hint="Return analysis plan as JSON.")
+        try:
+            plan = self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM,
+                                         schema_hint="Return analysis plan as JSON.")
+            if not plan or "steps" not in plan:
+                raise ValueError("Invalid plan from LLM")
+        except Exception as e:
+            log.warning(f"LLM plan generation failed: {e}. Using fallback plan.")
+            plan = self._fallback_plan(exp_context)
+        
         self._experiment_plans[experiment_id]["plan"] = plan
         return plan
 
+    def _fallback_plan(self, exp_context: dict) -> dict:
+        """Generate a minimal plan if LLM fails."""
+        modalities = exp_context.get("modalities", {})
+        steps = []
+        order = 1
+        for mod in modalities:
+            if mod in MODALITY_TO_AGENT:
+                steps.append({
+                    "order": order,
+                    "agent": MODALITY_TO_AGENT[mod],
+                    "analysis": f"Analyze {mod}",
+                    "depends_on": [],
+                    "can_parallel": False
+                })
+                order += 1
+        return {
+            "steps": steps,
+            "integration_needed": len(steps) > 1,
+            "integration_type": "WNN" if len(steps) > 1 else "none",
+            "estimated_complexity": "low",
+            "rationale": "Fallback plan (LLM unavailable)",
+            "contrasts": []
+        }
+    
     def _format_plan_summary(self, plan: dict) -> str:
         lines = ["ARIA Analysis Plan:\n"]
         for step in plan.get("steps", []):
             lines.append(f"  Step {step['order']}: [{step['agent']}] {step['analysis']}{' (parallel)' if step.get('can_parallel') else ''}")
-        if plan.get("integration_needed"): lines.append(f"\n  Integration: {plan.get('integration_type', 'TBD')}")
-        lines.append(f"\n  Complexity: {plan.get('estimated_complexity', '?')}\n  {plan.get('rationale', '')}\nProceed with this plan?")
+        if plan.get("integration_needed"):
+            lines.append(f"\n  Integration: {plan.get('integration_type', 'TBD')}")
+            lines.append(f"\n  Complexity: {plan.get('estimated_complexity', '?')}\n  {plan.get('rationale', '')}\nProceed with this plan?")
         return "\n".join(lines)
-
-    def receive(self, message: Message):
-        if message.type == MessageType.FINDING and message.experiment_id in self._experiment_plans:
-            self._experiment_plans[message.experiment_id]["findings"].append(message.payload)
-        elif message.type == MessageType.ESCALATION:
-            self._pending_checkpoints[message.id] = message

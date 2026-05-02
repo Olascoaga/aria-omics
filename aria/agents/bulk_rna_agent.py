@@ -1,11 +1,11 @@
 """
-ARIA BulkRNAAgent (v3.1)
-----------------------
+ARIA BulkRNAAgent (v3.10 → v4.0)
+---------------------------------
 Bulk RNA-seq differential expression and pathway analysis.
 
-v3.1 CHANGES (critical parameter injection fix):
-  - Agent now properly pulls `global_padj` and `global_lfc` from exp_context
-    (injected via Orchestrator Checkpoint 3) rather than hardcoding 0.05.
+v4.0 CHANGE: if exp_context contains a 'design' key (from DesignAgent),
+agent attempts to use it. If application fails, falls back to automatic
+inference from file names (backward compatible).
 """
 
 from __future__ import annotations
@@ -71,6 +71,7 @@ class BulkRNAAgent(BaseAgent):
         from aria.utils.environment_manager import env_manager
         self.env = env_manager
 
+    # ── Main entry point ──────────────────────────────────────────────────
     def run(self, experiment_id: str, context: dict) -> dict:
         exp_ctx    = context.get("exp_context", {})
         intent     = context.get("biological_intent", {})
@@ -90,19 +91,66 @@ class BulkRNAAgent(BaseAgent):
         else:
             preprocessing = None
 
-        sample_names, group_labels = self._discover_groups(files)
-
-        if not group_labels:
-            self.publish_finding(experiment_id, {"summary": "Could not infer experimental groups from sample names."}, Confidence.INSUFFICIENT)
-            return {"status": "failed", "reason": "group_inference_failed"}
+        # ── v4.0: Attempt to apply DesignAgent output; fallback to legacy if fails ──
+        design = exp_ctx.get("design")
+        if design and design.get("groups"):
+            self.publish_status(experiment_id, "Applying confirmed experimental design...", 0.65)
+            try:
+                sample_names, group_labels, design_factor, contrasts = \
+                    self._apply_design(design, files, experiment_id)
+                if not contrasts:
+                    raise ValueError("No contrasts built from design")
+                # Record the design fact
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-design-01",
+                    wing_id=experiment_id,
+                    checkpoint=2,
+                    question="Experimental design (source: DesignAgent)",
+                    decision=design.get("design_formula", ""),
+                    rationale="User confirmed design interactively.",
+                    made_by="user"
+                )
+            except Exception as e:
+                log.warning(f"Design application failed ({e}), falling back to inference")
+                self.publish_finding(experiment_id,
+                    {"summary": f"Could not apply design: {e}. Using automatic inference."},
+                    Confidence.MEDIUM)
+                # Fallback to legacy
+                design = None
+        if not design or not design.get("groups"):
+            # ── Legacy inference (fallback) ────────────────────────────
+            sample_names, group_labels = self._discover_groups(files)
+            if not group_labels:
+                self.publish_finding(experiment_id,
+                    {"summary": "Could not infer experimental groups from sample names."},
+                    Confidence.INSUFFICIENT)
+                return {"status": "failed", "reason": "group_inference_failed"}
+            design_factor, contrasts = self._build_contrasts(intent, group_labels, experiment_id)
+        # ────────────────────────────────────────────────────────────────────
 
         self.publish_status(experiment_id, f"Detected groups: {list(group_labels.keys())}", 0.68)
-        design_factor, contrasts = self._build_contrasts(intent, group_labels, experiment_id)
-        
-        # BUG FIX: Properly ingest modified thresholds from Orchestrator Checkpoint 3
+        # Add plan contrasts if available
+        if design and design.get("plan_contrasts"):
+            existing = set((c["numerator"], c["denominator"]) for c in contrasts)
+            for pc in design["plan_contrasts"]:
+                num, den = pc["numerator"], pc["denominator"]
+                if (num, den) not in existing and (den, num) not in existing:
+                    contrasts.append(pc)
+                    existing.add((num, den))
+
+
         padj_thr = exp_ctx.get("global_padj", 0.05)
         lfc_thr  = exp_ctx.get("global_lfc", _infer_lfc_threshold(intent))
-
+        
+        # Add plan contrasts if available
+        if design and design.get("plan_contrasts"):
+            existing = set((c["numerator"], c["denominator"]) for c in contrasts)
+            for pc in design["plan_contrasts"]:
+                num, den = pc["numerator"], pc["denominator"]
+                if (num, den) not in existing and (den, num) not in existing:
+                    contrasts.append(pc)
+                    existing.add((num, den))
+                    
         self.publish_status(
             experiment_id,
             f"Running {len(contrasts)} contrast(s), padj < {padj_thr}, |log2FC| > {lfc_thr}...",
@@ -126,13 +174,14 @@ class BulkRNAAgent(BaseAgent):
         )
 
         if result.get("status") == "error":
-            self.publish_finding(experiment_id, {"summary": f"Bulk DE failed: {result.get('details','')[:100]}"}, Confidence.INSUFFICIENT)
+            self.publish_finding(experiment_id,
+                {"summary": f"Bulk DE failed: {result.get('details','')[:100]}"},
+                Confidence.INSUFFICIENT)
             return {"status": "failed", "findings": result}
 
         if preprocessing:
             result["preprocessing"] = preprocessing
-            
-        # Ensure thresholds are passed to interpretation and memory 
+
         result["padj_threshold"] = padj_thr
         result["lfc_threshold"]  = lfc_thr
 
@@ -143,67 +192,87 @@ class BulkRNAAgent(BaseAgent):
         self.publish_status(experiment_id, "BulkRNAAgent complete.", 1.0)
         return {"status": "done", "findings": result}
 
-    def _record_methodology_decisions(self, experiment_id: str, result: dict) -> None:
+    #  v4.0 Design integration ─────────────────────────────────────────
+    def _apply_design(self, design: dict, files: list, experiment_id: str):
+        """
+        Use the DesignAgent-confirmed groups and factor to build
+        sample mapping, contrasts, and design factor.
+        Raises ValueError if mapping fails.
+        """
+        groups = design["groups"]
+        factor = design.get("main_factor", "condition")
+        sample_stems = {sample: group for group, samples in groups.items() for sample in samples}
+
+        # Read actual column names from the first count file
         try:
-            methodology = (result.get("methodology") or {})
-            decisions   = methodology.get("decisions", []) or []
-            stage_to_cp = {"Differential expression (DESeq2)": 1, "PCA + MDS (sample-level structure)": 2, "Heatmap (padj top 50)": 3, "Heatmap (|log2FC| top 50)": 4, "Pathway enrichment (ORA)": 5, "GSEA (pre-ranked)": 6, "TPM (supplementary export)": 7}
-
-            for d in decisions:
-                step, cp = d.get("step", ""), stage_to_cp.get(d.get("step", ""), 0)
-                decision_summary = f"{d.get('input','?')} | {d.get('normalization','?')} | {d.get('gene_filter','?')}"
-                try:
-                    self.memory.store_decision(
-                        decision_id=f"{experiment_id[:8]}-auto-{cp:02d}", wing_id=experiment_id, checkpoint=cp,
-                        question=step, decision=decision_summary, rationale=d.get("justification", "")[:500], made_by="bulk_rna_agent (auto)"
-                    )
-                except Exception as e: log.debug(f"Failed to store decision '{step}': {e}")
-
-            try:
-                self.memory.store_decision(
-                    decision_id=f"{experiment_id[:8]}-auto-00-thr", wing_id=experiment_id, checkpoint=0,
-                    question="Statistical thresholds for DE significance",
-                    decision=f"padj < {result.get('padj_threshold')}, |log2FC| > {result.get('lfc_threshold')}",
-                    rationale="Thresholds enforced via User Checkpoint 3 profile selection or inferred by Agent based on TF/KO targets.",
-                    made_by="User / bulk_rna_agent"
-                )
-            except Exception as e: log.debug(f"Failed to store threshold decision: {e}")
-
-            try:
-                self.memory.store_decision(
-                    decision_id=f"{experiment_id[:8]}-auto-00-design", wing_id=experiment_id, checkpoint=0,
-                    question="DESeq2 design formula", decision=result.get("design_used", "~condition"),
-                    rationale="Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-                    made_by="bulk_rna_agent (auto)"
-                )
-            except Exception as e: log.debug(f"Failed to store design decision: {e}")
+            with open(files[0], 'r') as f:
+                header = f.readline().rstrip('\n')
+            colnames = header.split('\t')
         except Exception as e:
-            log.warning(f"Decision logging failed (non-fatal): {e}")
+            raise ValueError(f"Cannot read header from counts file {files[0]}: {e}")
 
-    def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
-        fastq_dir, output_dir, genome_cfg = str(Path(fastq_files[0]).parent), str(Path(fastq_files[0]).parent.parent / "aria_processing"), exp_ctx.get("genome_config", {})
+        # Map stem→group to column→group using fuzzy match
+        group_labels = {}
+        for col in colnames:
+            if col.lower() in ("geneid", "gene_id", "ensembl_id", ""):
+                continue
+            best_match = None
+            for stem, grp in sample_stems.items():
+                if stem in col:
+                    if best_match is not None:
+                        log.warning(f"Ambiguous column '{col}' matches both '{best_match}' and '{stem}'")
+                        best_match = None
+                        break
+                    best_match = grp
+            if best_match:
+                group_labels[col] = best_match
+                
 
-        self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
-        qc_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_fastq_qc.py", {"fastq_dir": fastq_dir, "output_dir": str(Path(output_dir) / "qc"), "threads": 8})
-        if qc_result.get("status") == "error": return None, qc_result
+                # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
+        ordered_cols = [c for c in colnames if c.lower() not in ("geneid", "gene_id", "ensembl_id", "")]
+        if not group_labels:
+            for col in ordered_cols:
+                best_match = None
+                for stem, grp in sample_stems.items():
+                    # Trim common suffixes from col
+                    col_base = re.sub(r"[_\-]?[12]$", "", col)
+                    if col_base == stem or stem.startswith(col_base) or col_base.startswith(stem):
+                        if best_match is not None:
+                            best_match = None
+                            break
+                        best_match = grp
+                if best_match:
+                    group_labels[col] = best_match
 
-        self._publish_fastq_qc_findings(experiment_id, qc_result)
-        self.publish_status(experiment_id, f"QC complete: {qc_result.get('n_samples',0)} samples trimmed", 0.20)
+        # Fallback: if no match, assign from design directly (assumes column order)
+        if not group_labels:
+            ordered_samples = list(sample_stems.keys())
+            if len(ordered_samples) == len(ordered_cols):
+                for i, col in enumerate(ordered_cols):
+                    group_labels[col] = sample_stems[ordered_samples[i]]
 
-        self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
-        align_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_align.py", {"samples": qc_result.get("samples", []), "genome_dir": genome_cfg.get("star_index", ""), "genome_fasta": genome_cfg.get("fasta", ""), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "aligned"), "threads": 8, "two_pass": True})
-        if align_result.get("status") == "error": return None, align_result
+        if not group_labels or len(set(group_labels.values())) < 2:
+            raise ValueError(
+                f"Could not map design groups to count matrix columns. "
+                f"Design stems: {list(sample_stems.keys())}, Columns: {colnames}"
+            )
 
-        self._publish_alignment_findings(experiment_id, align_result)
-        self.publish_status(experiment_id, f"Alignment complete: {align_result.get('n_aligned', 0)} samples mapped", 0.55)
+        sample_names = list(group_labels.keys())
+        # Build contrasts: each group vs control
+        control = self._identify_control(list(groups.keys()))
+        if not control:
+            control = sorted(groups.keys())[0]
+        contrasts = []
+        for grp in groups.keys():
+            if grp != control:
+                contrasts.append({
+                    "numerator": grp,
+                    "denominator": control,
+                    "name": f"{grp} vs {control}"
+                })
+        return sample_names, group_labels, factor, contrasts
 
-        self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
-        quant_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_quantify.py", {"bam_files": align_result.get("bam_files", []), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "counts"), "threads": 8, "paired": True, "strand": genome_cfg.get("strand", "auto")})
-        if quant_result.get("status") == "error": return None, quant_result
-
-        self.publish_finding(experiment_id, {"summary": f"Quantification complete: {quant_result.get('n_genes',0):,} genes × {quant_result.get('n_samples',0)} samples"}, Confidence.HIGH)
-        return [quant_result.get("counts_matrix")], {"qc": qc_result, "alignment": align_result, "quantification": quant_result}
-
+    # ── Legacy inference (unchanged) ────────────────────────────────────
     def _discover_groups(self, files: list) -> tuple[list, dict]:
         if not files: return [], {}
         sample_names = self._read_sample_names(files[0])
@@ -294,6 +363,67 @@ class BulkRNAAgent(BaseAgent):
     def _humanize_contrast(num_label: str, den_label: str, entity_to_label: dict) -> str:
         label_to_entity = {v: k for k, v in entity_to_label.items()}
         return f"{label_to_entity.get(num_label, num_label)} vs {label_to_entity.get(den_label, den_label)}"
+
+    def _record_methodology_decisions(self, experiment_id: str, result: dict) -> None:
+        try:
+            methodology = (result.get("methodology") or {})
+            decisions   = methodology.get("decisions", []) or []
+            stage_to_cp = {"Differential expression (DESeq2)": 1, "PCA + MDS (sample-level structure)": 2, "Heatmap (padj top 50)": 3, "Heatmap (|log2FC| top 50)": 4, "Pathway enrichment (ORA)": 5, "GSEA (pre-ranked)": 6, "TPM (supplementary export)": 7}
+
+            for d in decisions:
+                step, cp = d.get("step", ""), stage_to_cp.get(d.get("step", ""), 0)
+                decision_summary = f"{d.get('input','?')} | {d.get('normalization','?')} | {d.get('gene_filter','?')}"
+                try:
+                    self.memory.store_decision(
+                        decision_id=f"{experiment_id[:8]}-auto-{cp:02d}", wing_id=experiment_id, checkpoint=cp,
+                        question=step, decision=decision_summary, rationale=d.get("justification", "")[:500], made_by="bulk_rna_agent (auto)"
+                    )
+                except Exception as e: log.debug(f"Failed to store decision '{step}': {e}")
+
+            try:
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-auto-00-thr", wing_id=experiment_id, checkpoint=0,
+                    question="Statistical thresholds for DE significance",
+                    decision=f"padj < {result.get('padj_threshold')}, |log2FC| > {result.get('lfc_threshold')}",
+                    rationale="Thresholds enforced via User Checkpoint 3 profile selection or inferred by Agent based on TF/KO targets.",
+                    made_by="User / bulk_rna_agent"
+                )
+            except Exception as e: log.debug(f"Failed to store threshold decision: {e}")
+
+            try:
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id[:8]}-auto-00-design", wing_id=experiment_id, checkpoint=0,
+                    question="DESeq2 design formula", decision=result.get("design_used", "~condition"),
+                    rationale="Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
+                    made_by="bulk_rna_agent (auto)"
+                )
+            except Exception as e: log.debug(f"Failed to store design decision: {e}")
+        except Exception as e:
+            log.warning(f"Decision logging failed (non-fatal): {e}")
+
+    def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
+        fastq_dir, output_dir, genome_cfg = str(Path(fastq_files[0]).parent), str(Path(fastq_files[0]).parent.parent / "aria_processing"), exp_ctx.get("genome_config", {})
+
+        self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
+        qc_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_fastq_qc.py", {"fastq_dir": fastq_dir, "output_dir": str(Path(output_dir) / "qc"), "threads": 8})
+        if qc_result.get("status") == "error": return None, qc_result
+
+        self._publish_fastq_qc_findings(experiment_id, qc_result)
+        self.publish_status(experiment_id, f"QC complete: {qc_result.get('n_samples',0)} samples trimmed", 0.20)
+
+        self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
+        align_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_align.py", {"samples": qc_result.get("samples", []), "genome_dir": genome_cfg.get("star_index", ""), "genome_fasta": genome_cfg.get("fasta", ""), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "aligned"), "threads": 8, "two_pass": True})
+        if align_result.get("status") == "error": return None, align_result
+
+        self._publish_alignment_findings(experiment_id, align_result)
+        self.publish_status(experiment_id, f"Alignment complete: {align_result.get('n_aligned', 0)} samples mapped", 0.55)
+
+        self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
+        quant_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_quantify.py", {"bam_files": align_result.get("bam_files", []), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "counts"), "threads": 8, "paired": True, "strand": genome_cfg.get("strand", "auto")})
+        if quant_result.get("status") == "error": return None, quant_result
+
+        self.publish_finding(experiment_id, {"summary": f"Quantification complete: {quant_result.get('n_genes',0):,} genes × {quant_result.get('n_samples',0)} samples"}, Confidence.HIGH)
+        return [quant_result.get("counts_matrix")], {"qc": qc_result, "alignment": align_result, "quantification": quant_result}
 
     def _publish_findings(self, experiment_id: str, result: dict):
         if not result.get("contrasts", []):
