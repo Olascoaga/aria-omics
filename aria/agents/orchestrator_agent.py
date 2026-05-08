@@ -96,6 +96,10 @@ AGENT_REGISTRY = {
         "module": "aria.agents.scrna_agent",
         "class":  "scRNAAgent",
     },
+    "audit_agent": {
+        "module": "aria.agents.audit_agent",
+        "class":  "AuditAgent",
+    },
 }
 
 MODALITY_TO_AGENT = {
@@ -128,6 +132,8 @@ class OrchestratorAgent(BaseAgent):
         self._agent_results        = {}
         # v4.0: active DesignAgent instance (state machine)
         self._active_design_agent  = None
+        # v4.1: pending dispatch held while audit CP 3.5 is open
+        self._pending_dispatch     = {}
 
     def run(self, experiment_id: str, context: dict) -> dict:
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
@@ -208,7 +214,9 @@ class OrchestratorAgent(BaseAgent):
             return self._after_checkpoint_2(experiment_id, user_decision, resolved_msg)
         elif cp == 3:
             return self._after_checkpoint_3(experiment_id, user_decision, resolved_msg)
-                
+        elif cp == 3.5:
+            return self._after_audit_checkpoint(experiment_id, user_decision, resolved_msg)
+
         return {"status": "ok"}
 
     # ── Checkpoint 1: Auditoría completada ──────────────────────────────
@@ -289,13 +297,7 @@ class OrchestratorAgent(BaseAgent):
         if plan_contrasts and exp_context.get("design"):
             exp_context["design"]["plan_contrasts"] = plan_contrasts
 
-        threading.Thread(
-            target=self._dispatch_agents,
-            args=(experiment_id, plan, exp_context),
-            daemon=True,
-        ).start()
-
-        return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
+        return self._gate_and_dispatch(experiment_id, plan, exp_context)
 
     # ── Checkpoint 3: Perfiles de umbral ───────────────────────────────
     def _after_checkpoint_3(self, experiment_id: str, decision: str, msg: Message) -> dict:
@@ -339,12 +341,93 @@ class OrchestratorAgent(BaseAgent):
         if plan_contrasts and exp_context.get("design"):
             exp_context["design"]["plan_contrasts"] = plan_contrasts
 
+        return self._gate_and_dispatch(experiment_id, plan, exp_context)
+
+    # ── Audit gate (v4.1) ────────────────────────────────────────────────
+
+    def _gate_and_dispatch(self, experiment_id: str,
+                           plan: dict, exp_context: dict) -> dict:
+        """
+        Run AuditAgent synchronously. If blocking issues found, publish CP 3.5
+        and hold dispatch. Otherwise start the analysis thread immediately.
+        """
+        from aria.agents.audit_agent import AuditAgent
+
+        audit = AuditAgent(memory=self.memory, llm=self.llm)
+        audit_result = audit.run_audit(exp_context, experiment_id)
+        findings = audit_result.get("findings", [])
+
+        # Store audit findings in exp_context so NarrativeAgent can surface them
+        exp_context["audit_findings"] = findings
+
+        if audit_result["status"] == "blocking":
+            # Serialize the blocking issues for the user-facing question
+            blocking = [f for f in findings if f["severity"] == "blocking"]
+            lines = []
+            for i, f in enumerate(blocking, 1):
+                lines.append(f"  [{i}] {f['message']}")
+                lines.append(f"      → {f['recommendation']}")
+            issue_text = "\n".join(lines)
+
+            warnings = [f for f in findings if f["severity"] == "warning"]
+            warn_text = ""
+            if warnings:
+                warn_lines = [f"  • {w['message']}" for w in warnings]
+                warn_text = "\n\nAdditional warnings:\n" + "\n".join(warn_lines)
+
+            question = (
+                f"Quality Audit found {len(blocking)} blocking issue(s) "
+                f"that may compromise your results:\n\n"
+                f"{issue_text}{warn_text}\n\n"
+                f"How would you like to proceed?"
+            )
+
+            # Hold the dispatch payload
+            self._pending_dispatch[experiment_id] = (plan, exp_context)
+
+            self.publish_escalation(
+                experiment_id=experiment_id,
+                checkpoint=3.5,
+                question=question,
+                options=["Proceed anyway", "Cancel analysis"],
+                context={"plan": plan, "exp_context": exp_context,
+                         "audit_findings": findings},
+            )
+            return {"status": "audit_blocking", "audit": audit_result}
+
+        # No blocking issues — start analysis immediately
+        if findings:
+            warn_msgs = "; ".join(f["message"][:80] for f in findings)
+            self.publish_status(
+                experiment_id,
+                f"Audit warnings (non-blocking): {warn_msgs}",
+                0.09,
+            )
+
         threading.Thread(
             target=self._dispatch_agents,
             args=(experiment_id, plan, exp_context),
             daemon=True,
         ).start()
+        return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
+    def _after_audit_checkpoint(self, experiment_id: str,
+                                decision: str, msg: Message) -> dict:
+        """CP 3.5 — user decided whether to proceed despite blocking audit issues."""
+        pending = self._pending_dispatch.pop(experiment_id, None)
+
+        if "cancel" in decision.lower() or pending is None:
+            return {"status": "cancelled"}
+
+        plan, exp_context = pending
+        self.publish_status(
+            experiment_id, "Proceeding with analysis despite audit warnings.", 0.10
+        )
+        threading.Thread(
+            target=self._dispatch_agents,
+            args=(experiment_id, plan, exp_context),
+            daemon=True,
+        ).start()
         return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
     # ── Despacho de agentes (hilo separado) ─────────────────────────────

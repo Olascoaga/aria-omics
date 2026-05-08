@@ -1191,7 +1191,7 @@ power for small-effect genes."
 </div>
 
 <h2>Quality Control Summary</h2>
-{self._build_qc_section(grouped_findings, agent_results)}
+{self._build_qc_section(grouped_findings, agent_results, exp_ctx)}
 
 <h2>Findings</h2>
 {self._build_findings_section(findings_sections, agent_results)}
@@ -1309,7 +1309,8 @@ power for small-effect genes."
     # ── HTML helpers ──────────────────────────────────────────────────────
 
     def _build_qc_section(self, grouped: dict,
-                           agent_results: dict = None) -> str:
+                           agent_results: dict = None,
+                           exp_ctx: dict = None) -> str:
         high  = len(grouped["high"])
         med   = len(grouped["medium"])
         low   = len(grouped["low"])
@@ -1392,7 +1393,35 @@ power for small-effect genes."
   {''.join(rows)}
 </table>"""
 
-        if total == 0 and not qc_rows:
+        # Audit findings panel (v4.1)
+        audit_html = ""
+        audit_findings = (exp_ctx or {}).get("audit_findings", [])
+        if audit_findings:
+            rows_html = []
+            for f in audit_findings:
+                sev   = f.get("severity", "warning")
+                color = "var(--red)" if sev == "blocking" else "var(--amber)"
+                label = "BLOCKING" if sev == "blocking" else "WARNING"
+                msg   = (f.get("message", "")
+                          .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                rec   = (f.get("recommendation", "")
+                          .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+                rows_html.append(
+                    f"<tr>"
+                    f"<td style='color:{color};font-weight:600'>{label}</td>"
+                    f"<td>{f.get('check','').replace('_',' ').title()}</td>"
+                    f"<td>{msg}<br><em style='color:var(--muted);font-size:0.8em'>"
+                    f"Recommendation: {rec}</em></td>"
+                    f"</tr>"
+                )
+            audit_html = f"""
+<h4 style="margin-top:1.2rem;color:var(--red)">Pre-analysis Quality Audit</h4>
+<table style="margin-top:0.5rem">
+  <tr><th>Severity</th><th>Check</th><th>Detail</th></tr>
+  {''.join(rows_html)}
+</table>"""
+
+        if total == 0 and not qc_rows and not audit_html:
             return '<div class="card"><p>No QC data available.</p></div>'
 
         return f"""
@@ -1406,6 +1435,7 @@ power for small-effect genes."
     require validation before inclusion in publications.
   </p>
   {qc_rows}
+  {audit_html}
 </div>"""
 
     def _build_findings_section(self, sections: dict,
