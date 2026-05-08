@@ -182,9 +182,15 @@ class OrchestratorAgent(BaseAgent):
                 self._active_design_agent = None
 
                 plan = self._design_analysis_plan(experiment_id, exp_context)
+                # Annotate plan with resolved thresholds — single source of truth
+                # so the preview and the actual run always agree.
+                intent = self._experiment_plans.get(experiment_id, {}).get("intent", {})
+                from aria.agents.bulk_rna_agent import _infer_lfc_threshold
+                plan["lfc_threshold"]  = _infer_lfc_threshold(intent)
+                plan["padj_threshold"] = 0.05
                 self.publish_escalation(
                     experiment_id=experiment_id,
-                    checkpoint=2,           # plan de análisis
+                    checkpoint=2,
                     question=self._format_plan_summary(plan),
                     options=["Confirm and run", "Modify plan", "Cancel"],
                     context={"plan": plan, "exp_context": exp_context},
@@ -272,7 +278,12 @@ class OrchestratorAgent(BaseAgent):
             rationale="User approved analysis plan directly.",
             made_by="user",
         )
-        
+
+        # Propagate resolved thresholds into exp_context so BulkRNAAgent
+        # uses the same values shown in the plan preview.
+        exp_context.setdefault("global_padj", plan.get("padj_threshold", 0.05))
+        exp_context.setdefault("global_lfc",  plan.get("lfc_threshold",  1.0))
+
         # v4.0: inject plan contrasts into design for BulkRNAAgent
         plan_contrasts = plan.get("contrasts")
         if plan_contrasts and exp_context.get("design"):
@@ -562,8 +573,23 @@ Design the analysis pipeline. Return JSON:
     def _format_plan_summary(self, plan: dict) -> str:
         lines = ["ARIA Analysis Plan:\n"]
         for step in plan.get("steps", []):
-            lines.append(f"  Step {step['order']}: [{step['agent']}] {step['analysis']}{' (parallel)' if step.get('can_parallel') else ''}")
+            lines.append(
+                f"  Step {step['order']}: [{step['agent']}] {step['analysis']}"
+                f"{' (parallel)' if step.get('can_parallel') else ''}"
+            )
+        has_bulk = any(
+            "bulk_rna" in s.get("agent", "") or "rna" in s.get("agent", "")
+            for s in plan.get("steps", [])
+        )
+        if has_bulk:
+            lfc  = plan.get("lfc_threshold",  1.0)
+            padj = plan.get("padj_threshold", 0.05)
+            lines.append(f"\n  DE thresholds: padj < {padj}, |log2FC| > {lfc}")
         if plan.get("integration_needed"):
             lines.append(f"\n  Integration: {plan.get('integration_type', 'TBD')}")
-            lines.append(f"\n  Complexity: {plan.get('estimated_complexity', '?')}\n  {plan.get('rationale', '')}\nProceed with this plan?")
+        lines.append(
+            f"\n  Complexity: {plan.get('estimated_complexity', '?')}"
+            f"\n  {plan.get('rationale', '')}"
+            f"\nProceed with this plan?"
+        )
         return "\n".join(lines)

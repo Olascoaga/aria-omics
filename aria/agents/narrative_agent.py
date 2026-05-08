@@ -316,10 +316,58 @@ power for small-effect genes."
         sc = agent_results.get("scrna_agent", {})
         if sc.get("status") == "done":
             f = sc.get("findings", {}) or {}
+            sc_f = f.get("scRNA", {}).get("findings", {}) or {}
+            qc   = sc_f.get("qc", {}) or {}
+            clus = sc_f.get("clustering_decision", {}) or {}
+            n_cells   = qc.get("n_cells_after") or f.get("n_cells_after_qc", "?")
+            n_clusters = clus.get("n_clusters") or f.get("n_clusters", "?")
+            ct = sc_f.get("cell_types", {})
+            ct_list = list(set(ct.get("cell_types", {}).values()))[:5] if ct else []
+            ct_str  = f" Cell types: {', '.join(ct_list)}." if ct_list else ""
             lines.append(
-                f"scRNA-seq: {f.get('n_cells_after_qc','?')} cells, "
-                f"{f.get('n_clusters','?')} clusters."
+                f"scRNA-seq: {n_cells} cells after QC, "
+                f"{n_clusters} clusters identified.{ct_str}"
             )
+
+        # Chromatin
+        chrom = agent_results.get("chromatin_agent", {})
+        if chrom.get("status") == "done":
+            chrom_f = chrom.get("findings", {}) or {}
+            chrom_lines = []
+            for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
+                af = chrom_f.get(assay, {}).get("findings", {})
+                peaks = af.get("peaks", {})
+                if peaks.get("n_peaks"):
+                    frip = peaks.get("frip", "?")
+                    frip_str = (f"{frip:.2f}" if isinstance(frip, float)
+                                else str(frip))
+                    chrom_lines.append(
+                        f"{assay}: {peaks['n_peaks']:,} peaks "
+                        f"(FRiP={frip_str})"
+                    )
+            if chrom_lines:
+                lines.append("CHROMATIN: " + "; ".join(chrom_lines) + ".")
+
+        # 3D genome / HiC
+        hic = agent_results.get("genome_arch_agent", {})
+        if hic.get("status") == "done":
+            hic_f  = hic.get("findings", {}) or {}
+            topo   = hic_f.get("topology", {}) or {}
+            tads   = topo.get("tads", {})
+            comp   = topo.get("compartments", {})
+            loops  = topo.get("loops", {})
+            hic_parts = []
+            if tads.get("n_tads"):
+                hic_parts.append(f"{tads['n_tads']:,} TADs")
+            if comp.get("pct_A"):
+                hic_parts.append(
+                    f"compartments {comp['pct_A']:.1f}% A / "
+                    f"{comp.get('pct_B', 0):.1f}% B"
+                )
+            if loops.get("n_loops"):
+                hic_parts.append(f"{loops['n_loops']:,} loops")
+            if hic_parts:
+                lines.append("3D GENOME: " + ", ".join(hic_parts) + ".")
 
         return "\n".join(lines) if lines else "(no concrete outputs recorded)"
 
@@ -396,7 +444,8 @@ power for small-effect genes."
             findings_bulk = bulk.get("findings", {})
             preprocessing = findings_bulk.get("preprocessing", {})
             contrasts     = findings_bulk.get("contrasts", [])
-            lfc_thr       = findings_bulk.get("lfc_threshold", 1.0)
+            lfc_thr       = findings_bulk.get("lfc_threshold",  1.0)
+            padj_thr_used = findings_bulk.get("padj_threshold", 0.05)
 
             lines.append(f"\n**Bulk RNA-seq**\n")
 
@@ -441,13 +490,13 @@ power for small-effect genes."
                         f"Contrasts tested: {'; '.join(contrast_names)}. "
                         f"Each contrast was analyzed independently using "
                         f"the Wald test with the design {design_used}. "
-                        f"Significance thresholds: adjusted p-value < 0.05 "
+                        f"Significance thresholds: adjusted p-value < {padj_thr_used} "
                         f"(Benjamini–Hochberg) and |log2 fold-change| > "
                         f"{lfc_thr}."
                     )
                 else:
                     lines.append(
-                        f"Significance thresholds: adjusted p-value < 0.05 "
+                        f"Significance thresholds: adjusted p-value < {padj_thr_used} "
                         f"and |log2 fold-change| > {lfc_thr}."
                     )
 
@@ -497,14 +546,15 @@ power for small-effect genes."
                     f"and log1p-transformed."
                 )
             if clustering:
-                res = clustering.get("recommended", "")
+                res          = clustering.get("recommended", "")
+                n_candidates = clustering.get("n_candidates", 4)
                 lines.append(
                     f"Dimensionality reduction was performed using PCA "
                     f"(50 components), followed by k-nearest neighbor "
                     f"graph construction (k=15) and UMAP visualization. "
                     f"Leiden clustering was performed at resolution={res}, "
                     f"selected by the ParameterAdvisor based on silhouette "
-                    f"score maximization across {4} candidates."
+                    f"score maximization across {n_candidates} candidates."
                 )
 
         # Chromatin methods
@@ -786,7 +836,7 @@ power for small-effect genes."
         parts    = []
 
         for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
-            assay_f = findings.get(assay, {}).get("findings", {})
+            assay_f = (findings.get(assay) or {}).get("findings", {}) or {}
             peaks   = assay_f.get("peaks", {})
             if peaks.get("n_peaks"):
                 parts.append(
@@ -963,54 +1013,90 @@ power for small-effect genes."
 <title>ARIA Report — {exp_short}</title>
 <style>
   :root {{
-    --navy:  #0f1729;
-    --panel: #1a2744;
-    --card:  #1e2d50;
-    --cyan:  #22d3ee;
-    --teal:  #14b8a6;
-    --green: #4ade80;
-    --amber: #fbbf24;
-    --red:   #f87171;
-    --text:  #e2e8f0;
-    --muted: #94a3b8;
-    --dim:   #64748b;
-    --border:#2d3f6e;
+    --bg:     #ffffff;
+    --bg-alt: #f8fafc;
+    --panel:  #f1f5f9;
+    --text:   #1e293b;
+    --muted:  #475569;
+    --dim:    #94a3b8;
+    --border: #e2e8f0;
+    --navy:   #0f172a;
+    --blue:   #1d4ed8;
+    --teal:   #0d9488;
+    --green:  #15803d;
+    --amber:  #92400e;
+    --red:    #991b1b;
   }}
   * {{ box-sizing: border-box; margin: 0; padding: 0; }}
   body {{
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--navy);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
     color: var(--text);
-    line-height: 1.6;
-    padding: 2rem;
-    max-width: 960px;
+    line-height: 1.65;
+    padding: 3rem 2rem;
+    max-width: 900px;
     margin: 0 auto;
+    font-size: 15px;
   }}
-  h1 {{ color: var(--cyan); font-size: 1.8rem; margin-bottom: 0.3rem; }}
-  h2 {{ color: var(--teal); font-size: 1.2rem; margin: 2rem 0 0.8rem;
-        border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; }}
-  h3 {{ color: var(--muted); font-size: 1rem; margin: 1.2rem 0 0.4rem; }}
-  p  {{ margin: 0.6rem 0; color: var(--text); }}
-  .meta {{ color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }}
+  h1 {{
+    color: var(--navy);
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+  }}
+  h2 {{
+    color: var(--navy);
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 2.5rem 0 0.8rem;
+    border-bottom: 2px solid var(--navy);
+    padding-bottom: 0.35rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }}
+  h3 {{
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin: 1.2rem 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }}
+  h4 {{
+    color: var(--navy);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 1.4rem 0 0.4rem;
+  }}
+  p {{ margin: 0.6rem 0; }}
+  .meta {{
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }}
   .card {{
-    background: var(--card);
+    background: var(--bg-alt);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 1.2rem 1.5rem;
-    margin: 1rem 0;
+    border-radius: 6px;
+    padding: 1.25rem 1.5rem;
+    margin: 0.8rem 0;
   }}
   .badge {{
     display: inline-block;
-    padding: 0.15rem 0.6rem;
-    border-radius: 99px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
     margin-right: 0.4rem;
+    text-transform: uppercase;
   }}
-  .high   {{ background: #14532d; color: var(--green); }}
-  .medium {{ background: #451a03; color: var(--amber); }}
-  .low    {{ background: #450a0a; color: var(--red); }}
-  .insuff {{ background: #1e293b; color: var(--dim); }}
+  .high   {{ background: #dcfce7; color: var(--green);  border: 1px solid #86efac; }}
+  .medium {{ background: #fef3c7; color: var(--amber);  border: 1px solid #fcd34d; }}
+  .low    {{ background: #fee2e2; color: var(--red);    border: 1px solid #fca5a5; }}
+  .insuff {{ background: var(--panel); color: var(--dim); border: 1px solid var(--border); }}
   table {{
     width: 100%;
     border-collapse: collapse;
@@ -1018,42 +1104,69 @@ power for small-effect genes."
     margin: 0.8rem 0;
   }}
   th {{
-    background: var(--panel);
-    color: var(--muted);
+    background: var(--navy);
+    color: #ffffff;
     text-align: left;
-    padding: 0.5rem 0.75rem;
-    font-weight: 500;
+    padding: 0.55rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }}
   td {{
-    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
     padding: 0.5rem 0.75rem;
     vertical-align: top;
   }}
-  tr:hover td {{ background: rgba(255,255,255,0.02); }}
+  tr:nth-child(even) td {{ background: var(--bg-alt); }}
   pre {{
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1rem;
+    border-left: 4px solid var(--teal);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
     font-size: 0.82rem;
     white-space: pre-wrap;
-    color: var(--muted);
+    color: var(--text);
     margin: 0.8rem 0;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
   }}
   .warning {{
-    border-left: 3px solid var(--amber);
-    padding-left: 1rem;
+    border-left: 4px solid var(--amber);
+    padding: 0.75rem 1rem;
+    background: #fffbeb;
     color: var(--amber);
     font-size: 0.9rem;
     margin: 0.8rem 0;
+    border-radius: 0 4px 4px 0;
   }}
   footer {{
-    margin-top: 3rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid var(--border);
     color: var(--dim);
     font-size: 0.8rem;
     text-align: center;
+  }}
+  a {{ color: var(--blue); text-decoration: underline; }}
+  figure {{ margin: 1.5rem 0; text-align: center; }}
+  figcaption {{
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-top: 0.4rem;
+    font-style: italic;
+  }}
+  figure img {{
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }}
+  @media print {{
+    body {{ padding: 1rem; font-size: 11pt; }}
+    h2 {{ page-break-after: avoid; }}
+    .card {{ border: 1px solid #ccc; break-inside: avoid; }}
+    footer {{ margin-top: 2rem; }}
   }}
 </style>
 </head>
@@ -1078,7 +1191,7 @@ power for small-effect genes."
 </div>
 
 <h2>Quality Control Summary</h2>
-{self._build_qc_section(grouped_findings)}
+{self._build_qc_section(grouped_findings, agent_results)}
 
 <h2>Findings</h2>
 {self._build_findings_section(findings_sections, agent_results)}
@@ -1195,13 +1308,91 @@ power for small-effect genes."
 
     # ── HTML helpers ──────────────────────────────────────────────────────
 
-    def _build_qc_section(self, grouped: dict) -> str:
-        high = len(grouped["high"])
-        med  = len(grouped["medium"])
-        low  = len(grouped["low"])
-        ins  = len(grouped["insufficient"])
+    def _build_qc_section(self, grouped: dict,
+                           agent_results: dict = None) -> str:
+        high  = len(grouped["high"])
+        med   = len(grouped["medium"])
+        low   = len(grouped["low"])
+        ins   = len(grouped["insufficient"])
         total = high + med + low + ins
-        if total == 0:
+
+        # Build per-modality QC rows from agent_results
+        qc_rows = ""
+        if agent_results:
+            rows = []
+
+            # Bulk RNA
+            bulk = agent_results.get("bulk_rna_agent", {})
+            if bulk.get("status") == "done":
+                sqc = bulk.get("findings", {}).get("sample_qc", {}) or {}
+                n   = sqc.get("n_samples", "?")
+                out = sqc.get("outliers", [])
+                ratio = sqc.get("size_ratio", "")
+                ratio_str = (f" · library-size range {ratio:.1f}×"
+                             if isinstance(ratio, float) else "")
+                out_str = (f" · <span style='color:var(--amber)'>"
+                           f"{len(out)} outlier(s) removed</span>"
+                           if out else " · no outliers removed")
+                rows.append(
+                    f"<tr><td>Bulk RNA-seq</td>"
+                    f"<td>{n} samples{ratio_str}{out_str}</td></tr>"
+                )
+
+            # scRNA
+            sc = agent_results.get("scrna_agent", {})
+            if sc.get("status") == "done":
+                sc_f = (sc.get("findings", {}) or {}).get("scRNA", {}) \
+                         .get("findings", {}) or {}
+                qc   = sc_f.get("qc", {}) or {}
+                n_b  = qc.get("n_cells_before", "?")
+                n_a  = qc.get("n_cells_after", "?")
+                pct  = qc.get("pct_removed", "")
+                pct_str = (f" · {pct:.1f}% removed"
+                           if isinstance(pct, (int, float)) else "")
+                rows.append(
+                    f"<tr><td>scRNA-seq</td>"
+                    f"<td>{n_b} → {n_a} cells{pct_str}</td></tr>"
+                )
+
+            # Chromatin
+            chrom = agent_results.get("chromatin_agent", {})
+            if chrom.get("status") == "done":
+                chrom_f = chrom.get("findings", {}) or {}
+                for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
+                    af    = chrom_f.get(assay, {}).get("findings", {}) or {}
+                    peaks = af.get("peaks", {}) or {}
+                    if peaks.get("n_peaks"):
+                        frip = peaks.get("frip", "?")
+                        frip_str = (f"{frip:.2f}"
+                                    if isinstance(frip, float) else str(frip))
+                        tss  = peaks.get("tss_enrichment", "")
+                        tss_str = (f" · TSS enrichment {tss:.1f}"
+                                   if isinstance(tss, float) else "")
+                        rows.append(
+                            f"<tr><td>{assay}</td>"
+                            f"<td>{peaks['n_peaks']:,} peaks · "
+                            f"FRiP={frip_str}{tss_str}</td></tr>"
+                        )
+
+            # HiC
+            hic = agent_results.get("genome_arch_agent", {})
+            if hic.get("status") == "done":
+                hic_f = hic.get("findings", {}) or {}
+                bal   = hic_f.get("balancing", {}) or {}
+                if bal.get("status"):
+                    rows.append(
+                        f"<tr><td>Hi-C</td>"
+                        f"<td>ICE balancing: {bal.get('status', 'done')}</td></tr>"
+                    )
+
+            if rows:
+                qc_rows = f"""
+<table style="margin-top:1rem">
+  <tr><th>Modality</th><th>QC outcome</th></tr>
+  {''.join(rows)}
+</table>"""
+
+        if total == 0 and not qc_rows:
             return '<div class="card"><p>No QC data available.</p></div>'
 
         return f"""
@@ -1214,6 +1405,7 @@ power for small-effect genes."
     {total} findings across all modalities. LOW and INSUFFICIENT findings
     require validation before inclusion in publications.
   </p>
+  {qc_rows}
 </div>"""
 
     def _build_findings_section(self, sections: dict,
@@ -1273,25 +1465,25 @@ power for small-effect genes."
         for d in decisions:
             rows.append(
                 f'<tr>'
-                f'<td style="color:#22d3ee;font-weight:600">{d.get("step", "")}</td>'
+                f'<td style="color:var(--navy);font-weight:600">{d.get("step", "")}</td>'
                 f'<td>{d.get("input", "")}</td>'
                 f'<td>{d.get("normalization", "")}</td>'
-                f'<td style="color:#94a3b8;font-size:0.9em">{d.get("gene_filter", "")}</td>'
-                f'<td style="color:#cbd5e1;font-size:0.88em;font-style:italic">'
+                f'<td style="color:var(--muted);font-size:0.9em">{d.get("gene_filter", "")}</td>'
+                f'<td style="color:var(--muted);font-size:0.88em;font-style:italic">'
                 f'{d.get("justification", "")}</td>'
                 f'</tr>'
             )
 
         return f"""
 <details style="margin-top:1.5rem">
-  <summary style="cursor:pointer;color:#22d3ee;font-weight:600;
-                   padding:0.6rem 0;border-bottom:1px solid #2d3f6e">
+  <summary style="cursor:pointer;color:var(--navy);font-weight:600;
+                   padding:0.6rem 0;border-bottom:1px solid var(--border)">
     Methods &amp; Decisions (click to expand)
   </summary>
   <div style="margin-top:0.8rem;overflow-x:auto">
     <table style="width:100%;border-collapse:collapse;font-size:0.9em">
       <thead>
-        <tr style="border-bottom:2px solid #2d3f6e;color:#22d3ee">
+        <tr style="border-bottom:2px solid var(--border);color:var(--navy)">
           <th style="text-align:left;padding:0.4rem;width:22%">Step</th>
           <th style="text-align:left;padding:0.4rem;width:15%">Input</th>
           <th style="text-align:left;padding:0.4rem;width:18%">Normalization</th>
@@ -1300,10 +1492,10 @@ power for small-effect genes."
         </tr>
       </thead>
       <tbody>
-        {''.join(f'<tr style="border-bottom:1px solid #1a2744">{row.replace("<tr>", "").replace("</tr>", "")}</tr>' for row in rows)}
+        {''.join(f'<tr style="border-bottom:1px solid var(--border)">{row.replace("<tr>", "").replace("</tr>", "")}</tr>' for row in rows)}
       </tbody>
     </table>
-    <p style="font-size:0.82em;color:#94a3b8;margin-top:0.6rem;font-style:italic">
+    <p style="font-size:0.82em;color:var(--muted);margin-top:0.6rem;font-style:italic">
       All methodology choices are explicit and auditable.
       Raw counts, VST matrix, and TPM are all exported as supplementary TSV
       tables for downstream analysis.
@@ -1352,7 +1544,7 @@ power for small-effect genes."
                 f'<figure style="margin:1.2rem 0;text-align:center">'
                 f'<img src="{src}" alt="{alt or caption}" '
                 f'style="max-width:100%;height:auto;border-radius:6px;'
-                f'background:#0f1729;border:1px solid #2d3f6e">'
+                f'background:var(--bg-alt);border:1px solid var(--border)">'
                 f'<figcaption style="color:var(--muted);font-size:0.82rem;'
                 f'margin-top:0.4rem;font-style:italic">{caption}</figcaption>'
                 f'</figure>'
@@ -1405,8 +1597,8 @@ power for small-effect genes."
             plots  = c.get("plots", {})
 
             html_parts.append(
-                f'<h4 style="color:#22d3ee;margin-top:1.5rem;'
-                f'border-bottom:1px solid #2d3f6e;padding-bottom:0.3rem">'
+                f'<h4 style="color:var(--navy);margin-top:1.5rem;'
+                f'border-bottom:2px solid var(--navy);padding-bottom:0.3rem">'
                 f'{cname}</h4>'
             )
 
@@ -1472,13 +1664,13 @@ power for small-effect genes."
                 # Use relative path: report_dir/tables/<contrast>_de_genes.tsv
                 rel = f"tables/{Path(de_tsv).parent.parent.name}_de_genes.tsv"
                 link_parts.append(
-                    f'<a href="{rel}" style="color:#22d3ee;'
+                    f'<a href="{rel}" style="color:var(--blue);'
                     f'text-decoration:underline">DE genes (TSV)</a>'
                 )
             if pw_tsv:
                 rel = f"tables/{Path(pw_tsv).parent.parent.name}_pathways.tsv"
                 link_parts.append(
-                    f'<a href="{rel}" style="color:#22d3ee;'
+                    f'<a href="{rel}" style="color:var(--blue);'
                     f'text-decoration:underline">Pathways (TSV)</a>'
                 )
             if link_parts:
@@ -1624,13 +1816,13 @@ power for small-effect genes."
             decision  = d.get("decision", "")[:160]
             rationale = d.get("rationale", "")[:300]
             made_by   = d.get("made_by", "")
-            made_tag  = (f' <span style="color:#64748b;font-size:0.85em">'
+            made_tag  = (f' <span style="color:var(--dim);font-size:0.85em">'
                           f'({made_by})</span>' if made_by else '')
             rows.append(
                 f'<tr>'
                 f'<td style="color:var(--muted);white-space:nowrap">CP {cp}</td>'
-                f'<td style="color:#e2e8f0">{question}{made_tag}</td>'
-                f'<td style="color:var(--cyan);font-weight:500">{decision}</td>'
+                f'<td style="color:var(--text)">{question}{made_tag}</td>'
+                f'<td style="color:var(--navy);font-weight:600">{decision}</td>'
                 f'<td style="color:var(--dim);font-size:0.88em;font-style:italic">'
                 f'{rationale}</td>'
                 f'</tr>'

@@ -166,17 +166,32 @@ class DesignAgent(BaseAgent):
         return {"status": "awaiting_user", "step": "organism"}
 
     def _handle_organism_response(self, choice: str) -> dict:
+        import re as _re
         org_map = {
-            "Homo sapiens (hg38)": ("Homo sapiens", "hg38"),
-            "Mus musculus (mm39)": ("Mus musculus", "mm39"),
-            "Rattus norvegicus (rn7)": ("Rattus norvegicus", "rn7"),
-            "Danio rerio (danRer11)": ("Danio rerio", "danRer11"),
+            "Homo sapiens (hg38)":      ("Homo sapiens",      "hg38"),
+            "Mus musculus (mm39)":      ("Mus musculus",      "mm39"),
+            "Rattus norvegicus (rn7)":  ("Rattus norvegicus", "rn7"),
+            "Danio rerio (danRer11)":   ("Danio rerio",       "danRer11"),
         }
         if choice in org_map:
             self._organism, self._genome = org_map[choice]
         else:
-            # Default fallback
-            self._organism, self._genome = "Homo sapiens", "hg38"
+            # Free-text: expect "Species name (assembly)" — e.g. "Gallus gallus (galGal6)"
+            m = _re.match(r'^(.+?)\s*\(([^)]+)\)\s*$', choice.strip())
+            if m:
+                self._organism = m.group(1).strip()
+                self._genome   = m.group(2).strip()
+            elif choice.strip() and not choice.lower().startswith("other"):
+                # Plain organism name without assembly
+                self._organism = choice.strip()
+                self._genome   = "unknown"
+            else:
+                # Empty input or unrecognised "Other..." string — warn and fall back
+                log.warning(
+                    "Organism free-text was empty or not parseable ('%s'). "
+                    "Defaulting to Homo sapiens / hg38.", choice
+                )
+                self._organism, self._genome = "Homo sapiens", "hg38"
 
         self._step = DesignStep.FACTOR
         self._publish_factor_checkpoint()
@@ -267,6 +282,7 @@ class DesignAgent(BaseAgent):
             "[2] Mus musculus (mm39)\n"
             "[3] Rattus norvegicus (rn7)\n"
             "[4] Danio rerio (danRer11)\n"
+            "[5] Other — type name and assembly (e.g. Gallus gallus (galGal6))\n"
         )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
@@ -277,7 +293,7 @@ class DesignAgent(BaseAgent):
                 "Mus musculus (mm39)",
                 "Rattus norvegicus (rn7)",
                 "Danio rerio (danRer11)",
-                "Cancel",
+                "Other organism / assembly...",
             ],
         )
         self._pending_escalation_id = msg.id

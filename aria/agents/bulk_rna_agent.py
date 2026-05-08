@@ -131,26 +131,20 @@ class BulkRNAAgent(BaseAgent):
         self.publish_status(experiment_id, f"Detected groups: {list(group_labels.keys())}", 0.68)
         # Add plan contrasts if available
         if design and design.get("plan_contrasts"):
-            existing = set((c["numerator"], c["denominator"]) for c in contrasts)
+            existing = set(
+                (c["numerator"].lower(), c["denominator"].lower()) for c in contrasts
+            )
             for pc in design["plan_contrasts"]:
                 num, den = pc["numerator"], pc["denominator"]
-                if (num, den) not in existing and (den, num) not in existing:
+                if (num.lower(), den.lower()) not in existing \
+                        and (den.lower(), num.lower()) not in existing:
                     contrasts.append(pc)
-                    existing.add((num, den))
+                    existing.add((num.lower(), den.lower()))
 
 
         padj_thr = exp_ctx.get("global_padj", 0.05)
         lfc_thr  = exp_ctx.get("global_lfc", _infer_lfc_threshold(intent))
-        
-        # Add plan contrasts if available
-        if design and design.get("plan_contrasts"):
-            existing = set((c["numerator"], c["denominator"]) for c in contrasts)
-            for pc in design["plan_contrasts"]:
-                num, den = pc["numerator"], pc["denominator"]
-                if (num, den) not in existing and (den, num) not in existing:
-                    contrasts.append(pc)
-                    existing.add((num, den))
-                    
+
         self.publish_status(
             experiment_id,
             f"Running {len(contrasts)} contrast(s), padj < {padj_thr}, |log2FC| > {lfc_thr}...",
@@ -220,7 +214,11 @@ class BulkRNAAgent(BaseAgent):
             for stem, grp in sample_stems.items():
                 if stem in col:
                     if best_match is not None:
-                        log.warning(f"Ambiguous column '{col}' matches both '{best_match}' and '{stem}'")
+                        log.warning(
+                            f"Ambiguous column '{col}' matches both group "
+                            f"'{best_match}' and '{stem}' — skipping, will "
+                            f"retry with suffix-trimming or positional fallback."
+                        )
                         best_match = None
                         break
                     best_match = grp
@@ -258,17 +256,26 @@ class BulkRNAAgent(BaseAgent):
             )
 
         sample_names = list(group_labels.keys())
-        # Build contrasts: each group vs control
         control = self._identify_control(list(groups.keys()))
         if not control:
             control = sorted(groups.keys())[0]
+
+        non_ctrl = sorted(g for g in groups.keys() if g != control)
         contrasts = []
-        for grp in groups.keys():
-            if grp != control:
+        # X vs control for every treatment group
+        for grp in non_ctrl:
+            contrasts.append({
+                "numerator":   grp,
+                "denominator": control,
+                "name":        f"{grp} vs {control}",
+            })
+        # All pairwise among non-control groups (e.g. BMAL1_KO vs REV-ERBa_KO)
+        for i in range(len(non_ctrl)):
+            for j in range(i + 1, len(non_ctrl)):
                 contrasts.append({
-                    "numerator": grp,
-                    "denominator": control,
-                    "name": f"{grp} vs {control}"
+                    "numerator":   non_ctrl[i],
+                    "denominator": non_ctrl[j],
+                    "name":        f"{non_ctrl[i]} vs {non_ctrl[j]}",
                 })
         return sample_names, group_labels, factor, contrasts
 
@@ -308,7 +315,23 @@ class BulkRNAAgent(BaseAgent):
         control, contrasts = self._identify_control(group_names), []
         
         if control:
-            contrasts = [{"numerator": l, "denominator": control, "name": self._humanize_contrast(l, control, entity_to_label)} for l in group_names if l != control]
+            non_ctrl = sorted(l for l in group_names if l != control)
+            # X vs control for every treatment group
+            contrasts = [
+                {"numerator": l, "denominator": control,
+                 "name": self._humanize_contrast(l, control, entity_to_label)}
+                for l in non_ctrl
+            ]
+            # All pairwise among non-control groups (e.g. BMAL1_KO vs REV-ERBa_KO)
+            for i in range(len(non_ctrl)):
+                for j in range(i + 1, len(non_ctrl)):
+                    contrasts.append({
+                        "numerator":   non_ctrl[i],
+                        "denominator": non_ctrl[j],
+                        "name": self._humanize_contrast(
+                            non_ctrl[i], non_ctrl[j], entity_to_label
+                        ),
+                    })
         else:
             sorted_g = sorted(group_names)
             contrasts = [{"numerator": sorted_g[i], "denominator": b, "name": f"{sorted_g[i]} vs {b}"} for i in range(len(sorted_g)) for b in sorted_g[i+1:]]

@@ -52,6 +52,25 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from pathlib import Path
 
+# ── Paper theme — applied to every plot in this module ────────────────────────
+_P = dict(
+    fig     = "white",
+    ax      = "white",
+    text    = "#1e293b",
+    muted   = "#475569",
+    dim     = "#94a3b8",
+    border  = "#e2e8f0",
+    title   = "#0f172a",
+    up      = "#dc2626",   # upregulated  (red  — convention)
+    down    = "#2563eb",   # downregulated (blue — convention)
+    ns      = "#d1d5db",   # non-significant (light gray)
+    ref     = "#94a3b8",   # threshold reference lines
+    annot   = "#374151",   # gene label annotations
+    palette = ["#1d4ed8", "#dc2626", "#059669", "#d97706",
+               "#7c3aed", "#db2777", "#0891b2"],
+)
+# ──────────────────────────────────────────────────────────────────────────────
+
 
 def bulk_rna_de(params: dict) -> dict:
     from pathlib import Path
@@ -1088,13 +1107,11 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
 
         # ── Plot both side by side in the dark theme ─────────────────────
         fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-        fig.patch.set_facecolor("#0f1729")
+        fig.patch.set_facecolor(_P["fig"])
 
-        # Palette: cycle cyan/amber/pink for groups
         groups = sorted(conditions.unique())
-        palette = ["#22d3ee", "#f59e0b", "#ec4899", "#10b981",
-                    "#8b5cf6", "#ef4444", "#14b8a6"]
-        color_map = {g: palette[i % len(palette)] for i, g in enumerate(groups)}
+        color_map = {g: _P["palette"][i % len(_P["palette"])]
+                     for i, g in enumerate(groups)}
 
         for ax, coords_plot, title, xlbl, ylbl in [
             (axes[0], coords[:, :2], "PCA (VST, top variable PC genes)",
@@ -1102,7 +1119,7 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
             (axes[1], mds_coords,    "MDS (VST, Euclidean distance)",
              "MDS1", "MDS2"),
         ]:
-            ax.set_facecolor("#1a2744")
+            ax.set_facecolor(_P["ax"])
             for g in groups:
                 mask = (conditions.values == g)
                 ax.scatter(coords_plot[mask, 0], coords_plot[mask, 1],
@@ -1111,21 +1128,21 @@ def _plot_pca_mds(vst_variable, metadata, output_dir: str,
             # Sample labels
             for i, s in enumerate(metadata.index):
                 ax.annotate(s, (coords_plot[i, 0], coords_plot[i, 1]),
-                            fontsize=8, color="#e2e8f0",
+                            fontsize=8, color=_P["annot"],
                             xytext=(5, 5), textcoords="offset points")
-            ax.set_title(title, color="#22d3ee", fontsize=11)
-            ax.set_xlabel(xlbl, color="#94a3b8")
-            ax.set_ylabel(ylbl, color="#94a3b8")
-            ax.tick_params(colors="#64748b")
-            ax.legend(facecolor="#1a2744", edgecolor="#2d3f6e",
-                      labelcolor="#e2e8f0", fontsize=9, loc="best")
+            ax.set_title(title, color=_P["title"], fontsize=11, fontweight="bold")
+            ax.set_xlabel(xlbl, color=_P["muted"])
+            ax.set_ylabel(ylbl, color=_P["muted"])
+            ax.tick_params(colors=_P["muted"])
+            ax.legend(facecolor=_P["fig"], edgecolor=_P["border"],
+                      labelcolor=_P["text"], fontsize=9, loc="best")
             for spine in ax.spines.values():
-                spine.set_edgecolor("#2d3f6e")
+                spine.set_edgecolor(_P["border"])
 
         plt.tight_layout()
         combined_path = str(Path(output_dir) / "pca_mds.svg")
         plt.savefig(combined_path, format="svg",
-                     facecolor=fig.get_facecolor())
+                     facecolor=_P["fig"])
         plt.close(fig)
 
         # Also save individual SVGs for manuscript use
@@ -1159,8 +1176,8 @@ def _save_single_dr_plot(coords, conditions, sample_names, color_map,
         import matplotlib.pyplot as plt
 
         fig, ax = plt.subplots(figsize=(6, 5))
-        fig.patch.set_facecolor("#0f1729")
-        ax.set_facecolor("#1a2744")
+        fig.patch.set_facecolor(_P["fig"])
+        ax.set_facecolor(_P["ax"])
         for g in sorted(color_map.keys()):
             mask = (conditions.values == g)
             ax.scatter(coords[mask, 0], coords[mask, 1],
@@ -1168,19 +1185,19 @@ def _save_single_dr_plot(coords, conditions, sample_names, color_map,
                        edgecolor="white", linewidth=0.8, alpha=0.9)
         for i, s in enumerate(sample_names):
             ax.annotate(s, (coords[i, 0], coords[i, 1]),
-                        fontsize=8, color="#e2e8f0",
+                        fontsize=8, color=_P["annot"],
                         xytext=(5, 5), textcoords="offset points")
-        ax.set_title(title, color="#22d3ee", fontsize=12)
-        ax.set_xlabel(xlbl, color="#94a3b8")
-        ax.set_ylabel(ylbl, color="#94a3b8")
-        ax.tick_params(colors="#64748b")
-        ax.legend(facecolor="#1a2744", edgecolor="#2d3f6e",
-                  labelcolor="#e2e8f0", fontsize=9, loc="best")
+        ax.set_title(title, color=_P["title"], fontsize=12, fontweight="bold")
+        ax.set_xlabel(xlbl, color=_P["muted"])
+        ax.set_ylabel(ylbl, color=_P["muted"])
+        ax.tick_params(colors=_P["muted"])
+        ax.legend(facecolor=_P["fig"], edgecolor=_P["border"],
+                  labelcolor=_P["text"], fontsize=9, loc="best")
         for spine in ax.spines.values():
-            spine.set_edgecolor("#2d3f6e")
+            spine.set_edgecolor(_P["border"])
         plt.tight_layout()
         plt.savefig(output_path, format="svg",
-                     facecolor=fig.get_facecolor())
+                     facecolor=_P["fig"])
         plt.close(fig)
         return output_path
     except Exception:
@@ -1963,8 +1980,8 @@ def _generate_plots(de_result: dict, sample_qc: dict,
         if results_df is not None and not results_df.empty:
             # ── Volcano plot ───────────────────────────────────────────
             fig, ax = plt.subplots(figsize=(8, 6))
-            fig.patch.set_facecolor("#0f1729")
-            ax.set_facecolor("#1a2744")
+            fig.patch.set_facecolor(_P["fig"])
+            ax.set_facecolor(_P["ax"])
 
             lfc = results_df["log2FoldChange"].clip(-8, 8)
             neg_log_p = -np.log10(results_df["padj"].clip(1e-300, 1) + 1e-300)
@@ -1978,19 +1995,19 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             down_mask = sig_mask & (results_df["log2FoldChange"] < 0)
 
             ax.scatter(lfc[~sig_mask], neg_log_p[~sig_mask],
-                       color="#475569", alpha=0.4, s=8, linewidths=0)
+                       color=_P["ns"], alpha=0.5, s=8, linewidths=0)
             ax.scatter(lfc[up_mask], neg_log_p[up_mask],
-                       color="#4ade80", alpha=0.7, s=12, linewidths=0)
+                       color=_P["up"], alpha=0.8, s=12, linewidths=0)
             ax.scatter(lfc[down_mask], neg_log_p[down_mask],
-                       color="#f87171", alpha=0.7, s=12, linewidths=0)
+                       color=_P["down"], alpha=0.8, s=12, linewidths=0)
 
             # Reference lines
-            ax.axhline(-np.log10(padj_thr), color="#94a3b8",
-                       linestyle="--", alpha=0.5, linewidth=0.8)
-            ax.axvline( lfc_thr, color="#94a3b8",
-                       linestyle="--", alpha=0.5, linewidth=0.8)
-            ax.axvline(-lfc_thr, color="#94a3b8",
-                       linestyle="--", alpha=0.5, linewidth=0.8)
+            ax.axhline(-np.log10(padj_thr), color=_P["ref"],
+                       linestyle="--", alpha=0.6, linewidth=0.8)
+            ax.axvline( lfc_thr, color=_P["ref"],
+                       linestyle="--", alpha=0.6, linewidth=0.8)
+            ax.axvline(-lfc_thr, color=_P["ref"],
+                       linestyle="--", alpha=0.6, linewidth=0.8)
 
             # Labels for top genes
             top_sig = results_df[sig_mask].nsmallest(10, "padj")
@@ -2000,26 +2017,28 @@ def _generate_plots(de_result: dict, sample_qc: dict,
                     xy=(float(row["log2FoldChange"]),
                         float(-np.log10(row["padj"] + 1e-300))),
                     xytext=(3, 3), textcoords="offset points",
-                    fontsize=6, color="#e2e8f0", alpha=0.9,
+                    fontsize=6, color=_P["annot"], alpha=0.9,
                 )
 
-            ax.set_xlabel("log₂ Fold Change", color="#94a3b8")
-            ax.set_ylabel("-log₁₀ adjusted p-value", color="#94a3b8")
+            ax.set_xlabel("log₂ Fold Change", color=_P["muted"])
+            ax.set_ylabel("-log₁₀ adjusted p-value", color=_P["muted"])
+            n_up   = de_result.get("n_up",   0)
+            n_down = de_result.get("n_down", 0)
             title_text = (
-                f"Differential Expression" +
-                (f" — {title_suffix}" if title_suffix else "") +
-                f"\n{de_result.get('n_up',0)} up  "
-                f"{de_result.get('n_down',0)} down"
+                f"Differential Expression"
+                + (f" — {title_suffix}" if title_suffix else "")
+                + f"\n{n_up} up (red)  {n_down} down (blue)"
             )
-            ax.set_title(title_text, color="#22d3ee", fontsize=11)
-            ax.tick_params(colors="#64748b")
+            ax.set_title(title_text, color=_P["title"], fontsize=11,
+                         fontweight="bold")
+            ax.tick_params(colors=_P["muted"])
             for spine in ax.spines.values():
-                spine.set_edgecolor("#2d3f6e")
+                spine.set_edgecolor(_P["border"])
 
             volcano_path = str(Path(output_dir) / "volcano.svg")
             plt.tight_layout()
             plt.savefig(volcano_path, format="svg",
-                        facecolor=fig.get_facecolor())
+                        facecolor=_P["fig"])
             plt.close()
             plots["volcano"] = volcano_path
 
@@ -2145,27 +2164,28 @@ def _plot_heatmap(genes: list, vst_matrix, counts_filt,
                 max(5, n_genes * 0.18),
             )
         )
-        fig.patch.set_facecolor("#0f1729")
+        fig.patch.set_facecolor(_P["fig"])
 
         im = ax.imshow(hm_z, aspect="auto", cmap="RdBu_r", vmin=-3, vmax=3)
         ax.set_xticks(range(len(hm_data.columns)))
         ax.set_xticklabels(hm_data.columns, rotation=45,
-                            ha="right", fontsize=9, color="#94a3b8")
+                            ha="right", fontsize=9, color=_P["text"])
         ax.set_yticks(range(n_genes))
-        ax.set_yticklabels(row_labels, fontsize=7, color="#e2e8f0")
-        ax.set_facecolor("#1a2744")
+        ax.set_yticklabels(row_labels, fontsize=7, color=_P["text"])
+        ax.set_facecolor(_P["ax"])
 
         cbar = plt.colorbar(im, ax=ax, label="Z-score (VST or log2)",
                              fraction=0.025, pad=0.04)
-        cbar.ax.tick_params(colors="#94a3b8")
-        cbar.set_label("Z-score (VST or log2)", color="#e2e8f0")
+        cbar.ax.tick_params(colors=_P["muted"])
+        cbar.set_label("Z-score (VST or log2)", color=_P["text"])
 
         title = title_prefix + (f" — {title_suffix}" if title_suffix else "")
-        ax.set_title(title, color="#22d3ee", fontsize=11, pad=10)
+        ax.set_title(title, color=_P["title"], fontsize=11,
+                     fontweight="bold", pad=10)
 
         plt.tight_layout()
         plt.savefig(output_path, format="svg",
-                     facecolor=fig.get_facecolor())
+                     facecolor=_P["fig"])
         plt.close(fig)
         return output_path
     except Exception as e:
@@ -2183,11 +2203,10 @@ def _plot_sample_pca(coords, samples, metadata, var_exp: list,
         import numpy as np
 
         fig, ax = plt.subplots(figsize=(7, 5))
-        fig.patch.set_facecolor("#0f1729")
-        ax.set_facecolor("#1a2744")
+        fig.patch.set_facecolor(_P["fig"])
+        ax.set_facecolor(_P["ax"])
 
-        COLORS = ["#22d3ee", "#4ade80", "#f87171",
-                  "#fbbf24", "#a78bfa", "#f472b6"]
+        COLORS = _P["palette"]
 
         # Get condition for each sample
         condition_col = None
@@ -2205,29 +2224,29 @@ def _plot_sample_pca(coords, samples, metadata, var_exp: list,
             ax.scatter(
                 coords[mask, 0], coords[mask, 1],
                 label=grp, color=COLORS[i % len(COLORS)],
-                s=80, alpha=0.85, edgecolors="#0f1729", linewidths=0.5,
+                s=80, alpha=0.85, edgecolors=_P["fig"], linewidths=0.5,
             )
 
         for j, s in enumerate(samples):
             ax.annotate(s[:10], (coords[j, 0], coords[j, 1]),
                         xytext=(4, 4), textcoords="offset points",
-                        fontsize=6, color="#94a3b8")
+                        fontsize=6, color=_P["muted"])
 
         pct1 = round(float(var_exp[0]) * 100, 1) if len(var_exp) > 0 else 0
         pct2 = round(float(var_exp[1]) * 100, 1) if len(var_exp) > 1 else 0
-        ax.set_xlabel(f"PC1 ({pct1}%)", color="#94a3b8")
-        ax.set_ylabel(f"PC2 ({pct2}%)", color="#94a3b8")
-        ax.set_title("Sample PCA", color="#22d3ee")
-        ax.tick_params(colors="#64748b")
+        ax.set_xlabel(f"PC1 ({pct1}%)", color=_P["muted"])
+        ax.set_ylabel(f"PC2 ({pct2}%)", color=_P["muted"])
+        ax.set_title("Sample PCA", color=_P["title"], fontweight="bold")
+        ax.tick_params(colors=_P["muted"])
         for spine in ax.spines.values():
-            spine.set_edgecolor("#2d3f6e")
-        ax.legend(fontsize=8, facecolor="#1e2d50",
-                  labelcolor="#e2e8f0", edgecolor="#2d3f6e")
+            spine.set_edgecolor(_P["border"])
+        ax.legend(fontsize=8, facecolor=_P["fig"],
+                  labelcolor=_P["text"], edgecolor=_P["border"])
 
         pca_path = str(Path(output_dir) / "sample_pca.svg")
         plt.tight_layout()
         plt.savefig(pca_path, format="svg",
-                    facecolor=fig.get_facecolor())
+                    facecolor=_P["fig"])
         plt.close()
         return pca_path
 

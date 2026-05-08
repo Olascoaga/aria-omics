@@ -202,7 +202,19 @@ def print_checkpoint(number, title: str,
             choices=[str(i) for i in range(1, len(options) + 1)],
             console=console,
         )
-        return options[int(choice) - 1]
+        selected = options[int(choice) - 1]
+        # Free-text follow-up for "Other" options (e.g. custom organism)
+        if selected.lower().startswith("other"):
+            console.print(
+                f"\n  [{C['muted']}]Type the value "
+                f"(e.g. Gallus gallus (galGal6)):[/]"
+            )
+            custom = Prompt.ask(
+                f"  [bold {C['cyan']}]Value[/]",
+                console=console,
+            ).strip()
+            return custom if custom else selected
+        return selected
 
 
 def print_agent_progress(msg: Message):

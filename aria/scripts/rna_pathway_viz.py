@@ -22,11 +22,11 @@ from typing import Optional
 log = logging.getLogger("aria.pathway_viz")
 
 
-# Match the dark theme of the HTML report (matches rna_bulk_de plots)
-_DARK_BG    = "#0f1729"
-_DARK_PANEL = "#1a2744"
-_DARK_TEXT  = "#e2e8f0"
-_DARK_MUTED = "#94a3b8"
+# Paper theme — white background, publication-ready
+_DARK_BG    = "white"
+_DARK_PANEL = "white"
+_DARK_TEXT  = "#1e293b"
+_DARK_MUTED = "#475569"
 
 
 def make_ora_dotplot(pathways_list: list,
@@ -150,11 +150,11 @@ def make_ora_dotplot(pathways_list: list,
         ax.set_xlabel("log₂(Odds Ratio)", fontsize=13, color=_DARK_TEXT)
         ax.set_ylabel("", fontsize=13)
         ax.set_title(f"{db_name} Enrichment — {contrast_name}",
-                     fontsize=14, fontweight="bold", color="#22d3ee", pad=12)
+                     fontsize=14, fontweight="bold", color="#0f172a", pad=12)
 
         ax.tick_params(colors=_DARK_MUTED, labelsize=10)
         for spine in ax.spines.values():
-            spine.set_edgecolor("#2d3f6e")
+            spine.set_edgecolor("#e2e8f0")
 
         plt.tight_layout()
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -273,13 +273,9 @@ def make_gsea_running_sums(de_results_df,
                     signature, term, library,
                     result=result, compact=False,
                 )
-                # Style override: dark background to match report theme
-                for ax in fig.get_axes():
-                    ax.set_facecolor(_DARK_PANEL)
-                fig.patch.set_facecolor(_DARK_BG)
                 rank_path = Path(output_dir) / f"gsea_running_sum_{i+1}.png"
                 fig.savefig(rank_path, dpi=200, bbox_inches="tight",
-                            facecolor=fig.get_facecolor())
+                            facecolor="white")
                 plt.close(fig)
                 out["running_sums"].append(str(rank_path))
             except Exception as e:
@@ -289,12 +285,9 @@ def make_gsea_running_sums(de_results_df,
         # ── Top table figure (summary) ───────────────────────────────────
         try:
             fig_table = blitz.plot.top_table(signature, library, result, n=15)
-            fig_table.patch.set_facecolor(_DARK_BG)
-            for ax in fig_table.get_axes():
-                ax.set_facecolor(_DARK_PANEL)
             tt_path = Path(output_dir) / "gsea_top_table.png"
             fig_table.savefig(tt_path, dpi=200, bbox_inches="tight",
-                              facecolor=fig_table.get_facecolor())
+                              facecolor="white")
             plt.close(fig_table)
             out["top_table_fig"] = str(tt_path)
         except Exception as e:
