@@ -57,7 +57,9 @@ _COUNT_PATTERNS  = re.compile(
     r"(count|raw|matrix|expression|tpm|fpkm|rpkm)", re.IGNORECASE
 )
 _SKIP_PATTERNS   = re.compile(
-    r"(readme|supplementary|supp_note|figures?|table|filelist)", re.IGNORECASE
+    r"(readme|supplementary|supp_note|figures?|table|filelist"
+    r"|deseq2?|edger|limma|_significant|_sig\.|fold.?change|normalized|norm\.)",
+    re.IGNORECASE
 )
 
 

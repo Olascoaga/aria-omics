@@ -197,18 +197,24 @@ class BulkRNAAgent(BaseAgent):
         factor = design.get("main_factor", "condition")
         sample_stems = {sample: group for group, samples in groups.items() for sample in samples}
 
-        # Read actual column names from the first count file
+        # Read actual column names from the first count file (gzip-aware)
         try:
-            with open(files[0], 'r') as f:
-                header = f.readline().rstrip('\n')
-            colnames = header.split('\t')
+            p = Path(files[0])
+            opener = gzip.open if str(p).endswith(".gz") else open
+            with opener(p, "rt") as f:
+                header = f.readline().rstrip("\n")
+            sep      = "\t" if "\t" in header else ","
+            colnames = [c.strip().strip('"').strip("'") for c in header.split(sep)]
         except Exception as e:
             raise ValueError(f"Cannot read header from counts file {files[0]}: {e}")
+
+        _GENE_COLS = {"geneid", "gene_id", "ensembl_id", "", "gene",
+                      "gene_name", "symbol", "feature", "name"}
 
         # Map stem→group to column→group using fuzzy match
         group_labels = {}
         for col in colnames:
-            if col.lower() in ("geneid", "gene_id", "ensembl_id", ""):
+            if col.lower() in _GENE_COLS:
                 continue
             best_match = None
             for stem, grp in sample_stems.items():
@@ -227,7 +233,7 @@ class BulkRNAAgent(BaseAgent):
                 
 
                 # Attempt to match by trimming potential technical replicate suffixes (_1, _2, etc.)
-        ordered_cols = [c for c in colnames if c.lower() not in ("geneid", "gene_id", "ensembl_id", "")]
+        ordered_cols = [c for c in colnames if c.lower() not in _GENE_COLS]
         if not group_labels:
             for col in ordered_cols:
                 best_match = None
