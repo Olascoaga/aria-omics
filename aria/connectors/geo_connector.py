@@ -57,7 +57,7 @@ _COUNT_PATTERNS  = re.compile(
     r"(count|raw|matrix|expression|tpm|fpkm|rpkm)", re.IGNORECASE
 )
 _SKIP_PATTERNS   = re.compile(
-    r"(readme|supplementary|supp_note|figures?|table)", re.IGNORECASE
+    r"(readme|supplementary|supp_note|figures?|table|filelist)", re.IGNORECASE
 )
 
 
@@ -133,7 +133,7 @@ class GEOConnector:
             "genome":          genome,
             "data_type":       data_type,
             "n_samples":       len(metadata.get("samples", [])),
-            "local_dir":       local_dir,
+            "local_dir":       str(local_dir),
             "files":           files,
             "inferred_design": design,
             "geo_metadata":    metadata,
@@ -200,10 +200,18 @@ class GEOConnector:
             log.warning(f"Could not list supplementary files: {e}")
             return files
 
-        # Extract file names from FTP HTML listing
-        fnames = re.findall(r'href="([^"/?][^"]*?)"', html)
-        fnames = [f for f in fnames
-                  if not f.startswith(("?", "..")) and "." in f]
+        # Extract bare filenames from FTP HTML listing.
+        # The NCBI FTP via HTTP returns an Apache-style index; href values are
+        # plain filenames (no slashes, no scheme).  Filter out anything that
+        # looks like a relative path, absolute URL, or navigation link.
+        fnames = re.findall(r'href="([^"]+)"', html)
+        fnames = [
+            f for f in fnames
+            if "." in f
+            and "/" not in f
+            and "://" not in f
+            and not f.startswith(("?", ".."))
+        ]
 
         for fname in fnames:
             if _SKIP_PATTERNS.search(fname):
@@ -306,7 +314,7 @@ class GEOConnector:
             "genome":          genome,
             "data_type":       data_type,
             "n_samples":       len(samples),
-            "local_dir":       local_dir,
+            "local_dir":       str(local_dir),
             "files":           {"counts": [], "h5ad": [], "h5": [], "mtx": [],
                                 "fastq_pending": True},
             "inferred_design": design,
