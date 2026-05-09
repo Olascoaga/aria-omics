@@ -449,7 +449,9 @@ def run_analysis(orchestrator: OrchestratorAgent,
         orchestrator.run_audit(experiment_id)
 
     # Phase 2: Process checkpoints 1 and 2 (pre-dispatch)
-    _drain_checkpoints(orchestrator, experiment_id)
+    status = _drain_checkpoints(orchestrator, experiment_id)
+    if status == "cancelled":
+        return
 
     # After CP2, dispatcher thread is running in background.
     # Phase 3: Live polling loop — stays alive until thread done.

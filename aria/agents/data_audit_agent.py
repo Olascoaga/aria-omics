@@ -141,20 +141,22 @@ class DataAuditAgent(BaseAgent):
     def run(self, experiment_id: str, context: dict) -> dict:
         """
         Main audit pipeline.
-        
+
         context must contain:
           - data_dir: path to the raw data directory
           - user_question: what the user wants to analyze (optional)
+          - geo_metadata: (optional) dict from GEOConnector.fetch()
         """
-        data_dir = Path(context["data_dir"])
+        data_dir      = Path(context["data_dir"])
         user_question = context.get("user_question", "")
+        geo_metadata  = context.get("geo_metadata")
 
         self.publish_status(experiment_id,
             f"Scanning {data_dir}...", progress=0.0)
 
         # 1. Scan files
         all_files = self._scan_directory(data_dir)
-        if not all_files:
+        if not all_files and not geo_metadata:
             return {
                 "status": "failed",
                 "error": f"No files found in {data_dir}"
@@ -163,10 +165,31 @@ class DataAuditAgent(BaseAgent):
         # 2. Classify files by modality
         classified = self._classify_files(all_files)
 
-        # 3. Infer organism and genome
-        genome, organism = self._infer_genome_organism(
-            all_files, data_dir, user_question
-        )
+        # 2b. When GEO metadata is present, enrich classification with
+        #     already-typed files and remove them from "unknown".
+        if geo_metadata:
+            geo_files     = geo_metadata.get("files", {})
+            geo_data_type = geo_metadata.get("data_type", "bulk_RNA")
+            modality      = "scRNA" if geo_data_type == "scRNA" else "bulk_RNA"
+
+            for ftype, bucket in (("counts", modality), ("h5ad", "scRNA"),
+                                  ("h5", "scRNA"), ("mtx", "scRNA")):
+                for fpath in geo_files.get(ftype, []):
+                    if Path(fpath).exists():
+                        classified.setdefault(bucket, []).append(fpath)
+                        unknown = classified.get("unknown", [])
+                        if fpath in unknown:
+                            unknown.remove(fpath)
+
+        # 3. Infer organism and genome (GEO metadata takes precedence)
+        if geo_metadata:
+            inferred = geo_metadata.get("inferred_design", {})
+            organism = inferred.get("organism", "") or geo_metadata.get("organism", "unknown")
+            genome   = inferred.get("genome",   "") or geo_metadata.get("genome",   "unknown")
+        else:
+            genome, organism = self._infer_genome_organism(
+                all_files, data_dir, user_question
+            )
 
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
@@ -176,6 +199,11 @@ class DataAuditAgent(BaseAgent):
             experiment_id, data_dir, classified,
             genome, organism, warnings, user_question
         )
+
+        # Propagate GEO metadata into exp_context so downstream agents can use it
+        if geo_metadata:
+            exp_context["geo_metadata"]    = geo_metadata
+            exp_context["inferred_design"] = geo_metadata.get("inferred_design", {})
 
         # 6. Store in memory
         self.memory.create_wing(

@@ -99,22 +99,47 @@ class DesignAgent(BaseAgent):
         raw_files = []
         for mod in ("bulk_RNA", "bulk_RNA_raw", "scRNA"):
             raw_files.extend(exp_context.get("modalities", {}).get(mod, []))
+
+        geo_metadata    = exp_context.get("geo_metadata")
+        inferred_design = exp_context.get("inferred_design", {})
+
         if not raw_files:
-            self.publish_finding(
-                experiment_id,
-                {"summary": "No sample files found for design phase."},
-                Confidence.INSUFFICIENT,
-            )
-            self._step = DesignStep.DONE
-            return {"status": "failed", "reason": "no_samples"}
+            if geo_metadata and inferred_design.get("groups"):
+                # GEO dataset: groups and organism are already known from SOFT metadata.
+                # Synthesize sample entries so the rest of the state machine works.
+                geo_samples = [
+                    s
+                    for samples in inferred_design["groups"].values()
+                    for s in samples
+                ]
+                self._parsed_samples = [
+                    {"raw": s, "stem": s,
+                     "tokens": s.lower().split(), "paired_files": [s]}
+                    for s in geo_samples
+                ]
+                self._proposed_groups = {
+                    "groups":     inferred_design["groups"],
+                    "confidence": "high",
+                    "reasoning":  "Groups inferred from GEO SOFT metadata",
+                }
+                # Pre-seed organism/genome so CP2.2 shows the right value
+                self._organism = inferred_design.get("organism", "")
+                self._genome   = inferred_design.get("genome", "")
+            else:
+                self.publish_finding(
+                    experiment_id,
+                    {"summary": "No sample files found for design phase."},
+                    Confidence.INSUFFICIENT,
+                )
+                self._step = DesignStep.DONE
+                return {"status": "failed", "reason": "no_samples"}
+        else:
+            # Normal file-based path
+            self._parsed_samples = self._parse_samples(raw_files)
+            self._proposed_groups = self._propose_groups(self._parsed_samples,
+                                                          biological_intent)
 
-        # Store parsed samples and intent for later steps
-        self._parsed_samples = self._parse_samples(raw_files)
         self._biological_intent = biological_intent
-
-        # Ask LLM to propose groups (not blocking)
-        self._proposed_groups = self._propose_groups(self._parsed_samples,
-                                                      biological_intent)
 
         # Publish first checkpoint: group confirmation
         self._step = DesignStep.GROUPS
@@ -276,25 +301,40 @@ class DesignAgent(BaseAgent):
         self._pending_escalation_id = msg.id
 
     def _publish_organism_checkpoint(self):
+        std_options = [
+            "Homo sapiens (hg38)",
+            "Mus musculus (mm39)",
+            "Rattus norvegicus (rn7)",
+            "Danio rerio (danRer11)",
+            "Other organism / assembly...",
+        ]
+
+        # If organism is already known (e.g. from GEO), surface it as first option
+        if self._organism and self._genome:
+            geo_opt = f"{self._organism} ({self._genome})"
+            if geo_opt in std_options:
+                options = std_options
+                geo_note = ""
+            else:
+                options = [geo_opt] + [o for o in std_options
+                                        if o != "Other organism / assembly..."] \
+                          + ["Other organism / assembly..."]
+                geo_note = f"\n\n  [GEO] Detected: {geo_opt}"
+        else:
+            options     = std_options
+            geo_note    = ""
+
+        lines = [f"[{i}] {o}" for i, o in enumerate(options, 1)]
         question = (
-            "Please confirm the organism and genome assembly:\n\n"
-            "[1] Homo sapiens (hg38)\n"
-            "[2] Mus musculus (mm39)\n"
-            "[3] Rattus norvegicus (rn7)\n"
-            "[4] Danio rerio (danRer11)\n"
-            "[5] Other — type name and assembly (e.g. Gallus gallus (galGal6))\n"
+            "Please confirm the organism and genome assembly:"
+            + geo_note + "\n\n"
+            + "\n".join(lines) + "\n"
         )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.2,
             question=question,
-            options=[
-                "Homo sapiens (hg38)",
-                "Mus musculus (mm39)",
-                "Rattus norvegicus (rn7)",
-                "Danio rerio (danRer11)",
-                "Other organism / assembly...",
-            ],
+            options=options,
         )
         self._pending_escalation_id = msg.id
 
