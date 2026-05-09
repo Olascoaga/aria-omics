@@ -263,14 +263,35 @@ def print_finding(msg: Message):
 
 # ── Input helpers ─────────────────────────────────────────────────────────────
 
-def select_data_directory() -> Path:
-    print_section("Data Directory", C['cyan'])
+_GEO_ACCESSION_RE = re.compile(
+    r"^(GSE\d+|SRP\d+|PRJNA\d+|ERP\d+|DRP\d+)$", re.IGNORECASE
+)
+
+
+def select_data_directory() -> tuple:
+    """
+    Returns (data_dir: Path, geo_meta: dict | None).
+    Accepts local paths OR GEO/SRA accession numbers (e.g. GSE183948).
+    """
+    print_section("Data / Accession", C['cyan'])
     console.print(
-        f"  [{C['muted']}]Enter the path to your raw data directory.[/]\n"
-        f"  [{C['dim']}]Example: /data/my_experiment  or  ~/lab/project1[/]\n"
+        f"  [{C['muted']}]Enter a local data directory or a GEO/SRA accession.[/]\n"
+        f"  [{C['dim']}]Local:   /data/my_experiment  or  ~/lab/project1[/]\n"
+        f"  [{C['dim']}]Public:  GSE183948   SRP123456   PRJNA987654[/]\n"
     )
     while True:
-        raw  = Prompt.ask(f"  [bold {C['cyan']}]Data path[/]", console=console)
+        raw = Prompt.ask(f"  [bold {C['cyan']}]Data path or accession[/]",
+                         console=console)
+        raw = raw.strip()
+
+        # ── GEO / SRA accession ──────────────────────────────────────────
+        if _GEO_ACCESSION_RE.match(raw):
+            geo_result = _resolve_geo_accession(raw.upper())
+            if geo_result:
+                return geo_result["local_dir"], geo_result
+            continue
+
+        # ── Local path ───────────────────────────────────────────────────
         path = Path(raw).expanduser().resolve()
         if path.exists() and path.is_dir():
             n = sum(1 for f in path.rglob("*") if f.is_file())
@@ -281,8 +302,79 @@ def select_data_directory() -> Path:
                 f"  [{C['dim']}]{path}[/]",
                 border_style=C['green'], padding=(0, 1),
             ))
-            return path
+            return path, None
         console.print(f"\n  [{C['red']}]Directory not found: {path}[/]\n")
+
+
+def _resolve_geo_accession(accession: str) -> dict | None:
+    """Download a GEO/SRA accession and return GEOConnector result dict."""
+    from aria.connectors.geo_connector import GEOConnector
+
+    console.print()
+    status_lines: list[str] = []
+
+    def _status(msg: str):
+        status_lines.append(msg)
+
+    with console.status(
+        f"  [{C['teal']}]Connecting to NCBI GEO...[/]", spinner="dots"
+    ):
+        try:
+            gc     = GEOConnector()
+            result = gc.fetch(accession, status_callback=_status)
+        except Exception as e:
+            console.print(f"\n  [{C['red']}]GEO fetch failed: {e}[/]\n")
+            return None
+
+    # Show what was found
+    design = result.get("inferred_design", {})
+    groups = design.get("groups", {})
+    files  = result.get("files", {})
+    n_files = sum(len(v) for v in files.values() if isinstance(v, list))
+
+    group_str = "  ".join(
+        f"[{C['green']}]{g}[/] ({len(s)})" for g, s in list(groups.items())[:5]
+    )
+    has_raw = files.get("fastq_pending")
+
+    file_summary = []
+    if files.get("counts"):
+        file_summary.append(f"{len(files['counts'])} count matrix file(s)")
+    if files.get("h5ad"):
+        file_summary.append(f"{len(files['h5ad'])} h5ad file(s)")
+    if files.get("h5"):
+        file_summary.append(f"{len(files['h5'])} 10x h5 file(s)")
+    if files.get("mtx"):
+        file_summary.append(f"{len(files['mtx'])} MEX matrix file(s)")
+    if has_raw:
+        file_summary.append("FASTQs available via SRA (not auto-downloaded)")
+    if not file_summary:
+        file_summary.append("no processed files found")
+
+    console.print()
+    console.print(Panel(
+        f"  [{C['cyan']}]Accession:[/]  {accession}\n"
+        f"  [{C['cyan']}]Title:[/]      {result.get('title','')[:80]}\n"
+        f"  [{C['cyan']}]Organism:[/]   {result.get('organism','')} "
+        f"({result.get('genome','')})\n"
+        f"  [{C['cyan']}]Platform:[/]   {result.get('data_type','unknown')}\n"
+        f"  [{C['cyan']}]Samples:[/]    {result.get('n_samples', '?')}\n"
+        f"  [{C['cyan']}]Groups:[/]     {group_str or 'not inferred'}\n"
+        f"  [{C['cyan']}]Files:[/]      {', '.join(file_summary)}\n"
+        f"  [{C['dim']}]Local cache: {result['local_dir']}[/]",
+        title=f"[bold {C['teal']}]GEO Dataset Found[/]",
+        border_style=C['teal'],
+        padding=(0, 1),
+    ))
+    console.print()
+
+    if n_files == 0 and not has_raw:
+        console.print(
+            f"  [{C['amber']}]Warning: no downloadable processed files found "
+            f"for {accession}. You may need to provide local files.[/]\n"
+        )
+
+    return result
 
 
 def ask_biological_question() -> str:
@@ -663,15 +755,31 @@ def main():
         console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
         return
 
-    data_dir      = select_data_directory()
-    question      = ask_biological_question()
-    experiment_id = str(uuid.uuid4())[:12]
+    data_dir, geo_meta = select_data_directory()
+    question           = ask_biological_question()
+    experiment_id      = str(uuid.uuid4())[:12]
 
     console.print()
+    if geo_meta:
+        acc   = geo_meta.get("accession", "")
+        title = geo_meta.get("title", "")[:70]
+        org   = geo_meta.get("organism", "")
+        dtype = geo_meta.get("data_type", "")
+        n_sam = geo_meta.get("n_samples", "")
+        data_line = (
+            f"  [{C['cyan']}]Accession:[/]     [{C['dim']}]{acc}[/]\n"
+            f"  [{C['cyan']}]Title:[/]         [{C['text']}]{title}[/]\n"
+            + (f"  [{C['cyan']}]Organism:[/]     [{C['dim']}]{org}[/]\n" if org else "")
+            + (f"  [{C['cyan']}]Type / Samples:[/] [{C['dim']}]{dtype}  ·  {n_sam} samples[/]\n" if dtype or n_sam else "")
+            + f"  [{C['cyan']}]Local cache:[/]  [{C['dim']}]{data_dir}[/]"
+        )
+    else:
+        data_line = f"  [{C['cyan']}]Data:[/]          [{C['dim']}]{data_dir}[/]"
+
     console.print(Panel(
         f"  [{C['cyan']}]Experiment ID:[/] [{C['dim']}]{experiment_id}[/]\n"
-        f"  [{C['cyan']}]Data:[/]          [{C['dim']}]{data_dir}[/]\n"
-        f"  [{C['cyan']}]Question:[/]      [{C['text']}]{question}[/]",
+        + data_line + "\n"
+        + f"  [{C['cyan']}]Question:[/]      [{C['text']}]{question}[/]",
         border_style=C['border'],
         padding=(0, 1),
     ))
@@ -684,11 +792,15 @@ def main():
         console.print(f"\n  [{C['muted']}]Cancelled.[/]\n")
         return
 
+    ctx: dict = {"data_dir": str(data_dir), "user_question": question}
+    if geo_meta:
+        ctx["geo_metadata"] = geo_meta
+
     try:
         run_analysis(
             orchestrator=orchestrator,
             experiment_id=experiment_id,
-            context={"data_dir": str(data_dir), "user_question": question},
+            context=ctx,
         )
     except KeyboardInterrupt:
         console.print(
