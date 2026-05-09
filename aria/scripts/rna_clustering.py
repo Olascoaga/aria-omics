@@ -68,10 +68,8 @@ def rna_clustering(params: dict) -> dict:
     top_markers = {}
     for cluster in adata.obs["leiden"].unique():
         try:
-            genes = list(adata.uns["rank_genes_groups"]["names"][:20][
-                adata.uns["rank_genes_groups"]["names"].dtype.names[0]
-            ])
-            top_markers[str(cluster)] = genes[:10]
+            genes = list(adata.uns["rank_genes_groups"]["names"][str(cluster)][:10])
+            top_markers[str(cluster)] = [g for g in genes if g and str(g) != "nan"]
         except Exception:
             top_markers[str(cluster)] = []
 

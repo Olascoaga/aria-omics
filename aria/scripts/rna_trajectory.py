@@ -1,0 +1,165 @@
+"""
+ARIA RNA Trajectory Script
+---------------------------
+Pseudotime and trajectory inference for scRNA-seq data.
+Executed inside aria-rna-env by EnvironmentManager (standalone entry point).
+
+Methods (in order of application):
+  1. PAGA         — graph abstraction of cluster connectivity (always)
+  2. DPT          — diffusion pseudotime from a root cell (always)
+  3. scVelo       — RNA velocity (only if spliced/unspliced layers present)
+
+Input params:
+    data_path:       str  — path to clustered .h5ad
+    root_cell_type:  str  (optional) — cell type to use as trajectory root
+    cell_type_col:   str  (optional) — obs column with cell type labels (default: "cell_type")
+    output_dir:      str  (optional)
+
+Output:
+    {
+      "status":  "success" | "error",
+      "paga":    {"top_connections": {"A→B": float, ...}},
+      "pseudotime": {
+          "computed": bool,
+          "pseudotime_by_group": {group: mean_pt, ...},
+          "root_used": str,
+      },
+      "velocity": {"computed": bool, "method": str | "reason": str},
+      "groupby":  str,
+      "output_path": str,
+    }
+"""
+
+from __future__ import annotations
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from aria.scripts._base import run_script
+
+
+def rna_trajectory(params: dict) -> dict:
+    import scanpy as sc
+    import numpy as np
+    from pathlib import Path
+
+    data_path      = params["data_path"]
+    root_cell_type = params.get("root_cell_type")
+    cell_type_col  = params.get("cell_type_col", "cell_type")
+    output_dir     = params.get("output_dir", str(Path(data_path).parent))
+
+    adata = sc.read_h5ad(data_path)
+
+    # Pick grouping column
+    if "leiden" in adata.obs.columns:
+        groupby = "leiden"
+    elif cell_type_col in adata.obs.columns:
+        groupby = cell_type_col
+    else:
+        return {"status": "error", "error_type": "NoClusters",
+                "details": "Need 'leiden' or cell_type column for PAGA."}
+
+    # Ensure neighbor graph
+    if "neighbors" not in adata.uns:
+        rep = "X_pca_harmony" if "X_pca_harmony" in adata.obsm else "X_pca"
+        sc.pp.neighbors(adata, use_rep=rep, n_pcs=30)
+
+    # ── 1. PAGA ──────────────────────────────────────────────────────────
+    sc.tl.paga(adata, groups=groupby)
+
+    paga_conn: dict = {}
+    try:
+        conn_mat = adata.uns["paga"]["connectivities"]
+        if hasattr(conn_mat, "toarray"):
+            conn_mat = conn_mat.toarray()
+        cats = (list(adata.obs[groupby].cat.categories)
+                if hasattr(adata.obs[groupby], "cat")
+                else sorted(adata.obs[groupby].unique()))
+        for i, g1 in enumerate(cats):
+            for j, g2 in enumerate(cats):
+                if i < j:
+                    v = float(conn_mat[i, j])
+                    if v > 0.10:
+                        paga_conn[f"{g1}→{g2}"] = round(v, 3)
+    except Exception:
+        pass
+
+    top_connections = dict(
+        sorted(paga_conn.items(), key=lambda x: -x[1])[:15]
+    )
+
+    # ── 2. Diffusion Pseudotime ───────────────────────────────────────────
+    dpt_result: dict = {"computed": False}
+    try:
+        sc.tl.diffmap(adata)
+
+        # Root selection
+        root_used = "auto"
+        if root_cell_type and cell_type_col in adata.obs.columns:
+            mask = adata.obs[cell_type_col] == root_cell_type
+            if mask.sum() > 0:
+                adata.uns["iroot"] = int(np.where(mask)[0][0])
+                root_used = root_cell_type
+        if "iroot" not in adata.uns:
+            # Heuristic: cell with fewest genes (least differentiated)
+            if "n_genes_by_counts" in adata.obs.columns:
+                adata.uns["iroot"] = int(
+                    adata.obs["n_genes_by_counts"].values.argmin()
+                )
+            else:
+                adata.uns["iroot"] = 0
+            root_used = "auto (min complexity)"
+
+        sc.tl.dpt(adata)
+
+        # Mean pseudotime per group
+        col = cell_type_col if cell_type_col in adata.obs.columns else groupby
+        pt_by_group = (
+            adata.obs.groupby(col)["dpt_pseudotime"]
+            .mean()
+            .sort_values()
+            .round(4)
+            .to_dict()
+        )
+        dpt_result = {
+            "computed":             True,
+            "pseudotime_by_group":  pt_by_group,
+            "root_used":            root_used,
+        }
+    except Exception as e:
+        dpt_result = {"computed": False, "reason": str(e)}
+
+    # ── 3. RNA Velocity (optional) ────────────────────────────────────────
+    velocity_result: dict
+    if "spliced" in adata.layers and "unspliced" in adata.layers:
+        try:
+            import scvelo as scv
+            scv.pp.filter_and_normalize(adata, min_shared_counts=20, n_top_genes=2000)
+            scv.pp.moments(adata, n_pcs=30, n_neighbors=30)
+            scv.tl.velocity(adata)
+            scv.tl.velocity_graph(adata)
+            velocity_result = {"computed": True, "method": "scvelo_stochastic"}
+        except ImportError:
+            velocity_result = {"computed": False, "reason": "scvelo not installed"}
+        except Exception as e:
+            velocity_result = {"computed": False, "reason": str(e)}
+    else:
+        velocity_result = {
+            "computed": False,
+            "reason":   "no spliced/unspliced layers — provide loom/raw data for velocity",
+        }
+
+    output_path = str(Path(output_dir) / "trajectory.h5ad")
+    adata.write_h5ad(output_path)
+
+    return {
+        "status":      "success",
+        "paga":        {"top_connections": top_connections,
+                        "n_connections":   len(paga_conn)},
+        "pseudotime":  dpt_result,
+        "velocity":    velocity_result,
+        "groupby":     groupby,
+        "output_path": output_path,
+    }
+
+
+if __name__ == "__main__":
+    run_script(rna_trajectory)

@@ -315,18 +315,60 @@ power for small-effect genes."
         # scRNA
         sc = agent_results.get("scrna_agent", {})
         if sc.get("status") == "done":
-            f = sc.get("findings", {}) or {}
-            sc_f = f.get("scRNA", {}).get("findings", {}) or {}
+            f    = sc.get("findings", {}) or {}
+            sc_f = f.get("scRNA", {}).get("findings", {}) or f
             qc   = sc_f.get("qc", {}) or {}
             clus = sc_f.get("clustering_decision", {}) or {}
-            n_cells   = qc.get("n_cells_after") or f.get("n_cells_after_qc", "?")
+            n_cells    = qc.get("n_cells_after") or f.get("n_cells_after_qc", "?")
             n_clusters = clus.get("n_clusters") or f.get("n_clusters", "?")
-            ct = sc_f.get("cell_types", {})
-            ct_list = list(set(ct.get("cell_types", {}).values()))[:5] if ct else []
-            ct_str  = f" Cell types: {', '.join(ct_list)}." if ct_list else ""
+            ct = sc_f.get("cell_types", {}) or {}
+            ct_raw = ct.get("cell_types", {}) or {}
+            ct_list = list({
+                v.get("cell_type", "") if isinstance(v, dict) else str(v)
+                for v in ct_raw.values()
+            } - {""})[:5]
+            ct_str = f" Cell types: {', '.join(ct_list)}." if ct_list else ""
+
+            # Integration
+            integ = sc_f.get("integration", {}) or {}
+            integ_str = ""
+            if integ.get("status") == "done":
+                integ_str = (
+                    f" Harmony batch correction: {integ.get('n_batches','?')} batches, "
+                    f"silhouette {integ.get('silhouette_before','?')} → "
+                    f"{integ.get('silhouette_after','?')}."
+                )
+
+            # Trajectory
+            traj = sc_f.get("trajectory", {}) or {}
+            traj_str = ""
+            if traj.get("status") == "done":
+                pt = traj.get("pseudotime", {}) or {}
+                n_conn = len(traj.get("paga_top_connections", {}))
+                vel = traj.get("velocity", {}) or {}
+                traj_str = (
+                    f" PAGA: {n_conn} top transitions. "
+                    f"DPT pseudotime computed: {pt.get('computed', False)}."
+                    + (" RNA velocity computed." if vel.get("computed") else "")
+                )
+
+            # Cell-cell communication
+            ccc = sc_f.get("cell_communication", {}) or {}
+            ccc_str = ""
+            if ccc.get("status") == "done":
+                top_p = ccc.get("top_pairs", [])[:3]
+                ccc_str = (
+                    f" Cell-cell comm ({ccc.get('method','?')}): "
+                    f"{ccc.get('n_interactions','?')} L-R interactions. "
+                    f"Top pairs: {', '.join(top_p)}."
+                ) if top_p else (
+                    f" Cell-cell comm: {ccc.get('n_interactions','?')} interactions."
+                )
+
             lines.append(
                 f"scRNA-seq: {n_cells} cells after QC, "
                 f"{n_clusters} clusters identified.{ct_str}"
+                f"{integ_str}{traj_str}{ccc_str}"
             )
 
         # Chromatin
