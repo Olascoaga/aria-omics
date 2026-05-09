@@ -103,38 +103,37 @@ class DesignAgent(BaseAgent):
         geo_metadata    = exp_context.get("geo_metadata")
         inferred_design = exp_context.get("inferred_design", {})
 
-        if not raw_files:
-            if geo_metadata and inferred_design.get("groups"):
-                # GEO dataset: groups and organism are already known from SOFT metadata.
-                # Synthesize sample entries so the rest of the state machine works.
-                geo_samples = [
-                    s
-                    for samples in inferred_design["groups"].values()
-                    for s in samples
-                ]
-                self._parsed_samples = [
-                    {"raw": s, "stem": s,
-                     "tokens": s.lower().split(), "paired_files": [s]}
-                    for s in geo_samples
-                ]
-                self._proposed_groups = {
-                    "groups":     inferred_design["groups"],
-                    "confidence": "high",
-                    "reasoning":  "Groups inferred from GEO SOFT metadata",
-                }
-                # Pre-seed organism/genome so CP2.2 shows the right value
-                self._organism = inferred_design.get("organism", "")
-                self._genome   = inferred_design.get("genome", "")
-            else:
-                self.publish_finding(
-                    experiment_id,
-                    {"summary": "No sample files found for design phase."},
-                    Confidence.INSUFFICIENT,
-                )
-                self._step = DesignStep.DONE
-                return {"status": "failed", "reason": "no_samples"}
+        if geo_metadata and inferred_design.get("groups"):
+            # GEO dataset: groups, organism, and genome are already known from
+            # SOFT metadata — always prefer them over filename-based inference.
+            geo_samples = [
+                s
+                for samples in inferred_design["groups"].values()
+                for s in samples
+            ]
+            self._parsed_samples = [
+                {"raw": s, "stem": s,
+                 "tokens": s.lower().split(), "paired_files": [s]}
+                for s in geo_samples
+            ]
+            self._proposed_groups = {
+                "groups":     inferred_design["groups"],
+                "confidence": "high",
+                "reasoning":  "Groups inferred from GEO SOFT metadata",
+            }
+            # Pre-seed organism/genome so CP2.2 shows the right value
+            self._organism = inferred_design.get("organism", "")
+            self._genome   = inferred_design.get("genome", "")
+        elif not raw_files:
+            self.publish_finding(
+                experiment_id,
+                {"summary": "No sample files found for design phase."},
+                Confidence.INSUFFICIENT,
+            )
+            self._step = DesignStep.DONE
+            return {"status": "failed", "reason": "no_samples"}
         else:
-            # Normal file-based path
+            # Normal file-based path: infer groups from sample filenames via LLM
             self._parsed_samples = self._parse_samples(raw_files)
             self._proposed_groups = self._propose_groups(self._parsed_samples,
                                                           biological_intent)
