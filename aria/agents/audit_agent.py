@@ -39,6 +39,9 @@ class AuditAgent(BaseAgent):
     name        = "audit_agent"
     description = "Quality linter: inspects data before dispatch."
 
+    def run(self, experiment_id: str, context: dict) -> dict:
+        return self.run_audit(context.get("exp_context", context), experiment_id)
+
     # ── Public entry point ────────────────────────────────────────────────
 
     def run_audit(self, exp_context: dict, experiment_id: str) -> dict:
