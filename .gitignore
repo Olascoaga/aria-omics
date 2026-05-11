@@ -17,6 +17,7 @@ venv/
 *.db
 data/
 aria-data/
+cache/
 
 # Jupyter
 .ipynb_checkpoints/
