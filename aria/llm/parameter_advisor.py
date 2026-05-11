@@ -430,16 +430,31 @@ class ParameterAdvisor:
         """
         Constrain Leiden resolution range based on biological question.
         This is Layer 1: the LLM's biological understanding drives the search.
+
+        Keywords cover English and Spanish — ARIA users frequently phrase
+        questions in either language.
         """
         intent   = bio_context.get("analysis_type", "")
         question = bio_context.get("user_question", "").lower()
 
         # Fine-grained: looking for rare subpopulations
-        fine_keywords = ["rare", "subpopulation", "subtype", "progenitor",
-                         "transitional", "fine", "heterogeneity"]
+        fine_keywords = [
+            # English
+            "rare", "subpopulation", "subtype", "progenitor",
+            "transitional", "fine", "heterogeneity",
+            # Spanish
+            "raras", "raro", "subpoblacion", "subpoblación",
+            "subtipo", "progenitora", "progenitor",
+            "transicional", "transición", "fina", "heterogeneidad",
+        ]
         # Coarse: major cell types
-        coarse_keywords = ["major", "type", "lineage", "broad",
-                           "main", "principal"]
+        coarse_keywords = [
+            # English
+            "major", "type", "lineage", "broad", "main", "principal",
+            # Spanish
+            "mayor", "tipo", "linaje", "amplia", "amplio",
+            "principal", "general",
+        ]
 
         if any(k in question for k in fine_keywords):
             return (0.6, 1.4)
