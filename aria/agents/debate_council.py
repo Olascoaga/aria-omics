@@ -30,7 +30,9 @@ Max 3 debate rounds per finding (cost control).
 
 from __future__ import annotations
 
+import json
 import logging
+import re
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
@@ -118,12 +120,14 @@ Your mandate (from Gemini's review framework):
    REJECT — evidence is insufficient or alternative hypothesis is more likely
    INSUFFICIENT — not enough data to conclude; recommend additional experiments
 
-Format your response as:
-ALTERNATIVE_HYPOTHESIS: [the most likely alternative explanation]
-CHALLENGES: [specific evidence gaps or logical flaws]
-EVIDENCE_REQUESTED: [what would change your verdict]
-VERDICT: [ACCEPT / ACCEPT_REVISED / REJECT / INSUFFICIENT]
-REVISED_CLAIM (if applicable): [more conservative wording]
+Respond with ONLY valid JSON (no preamble, no markdown fences) matching:
+{
+  "alternative_hypothesis": "string — the most likely alternative explanation",
+  "challenges":             ["string", ...]  — specific evidence gaps,
+  "evidence_requested":     ["string", ...]  — what would change your verdict,
+  "verdict":                "ACCEPT" | "ACCEPT_REVISED" | "REJECT" | "INSUFFICIENT",
+  "revised_claim":          "string — more conservative wording, empty if not ACCEPT_REVISED"
+}
 """.strip()
 
 
@@ -344,34 +348,85 @@ Be honest. If the verdict is REJECT or INSUFFICIENT, say so clearly.
 
     # ── Parsing ───────────────────────────────────────────────────────────
 
+    _VERDICT_MAP = {
+        "ACCEPT":         DebateVerdict.ACCEPT,
+        "ACCEPT_REVISED": DebateVerdict.ACCEPT_REVISED,
+        "REJECT":         DebateVerdict.REJECT,
+        "INSUFFICIENT":   DebateVerdict.INSUFFICIENT,
+    }
+
     def _parse_critic(self, critic_response: str
                        ) -> tuple[DebateVerdict, str, list[str], str]:
-        """Extract structured fields from critic response."""
-        lines = critic_response.split("\n")
+        """
+        Extract structured fields from critic response.
+        Primary path: JSON (as instructed in CRITIC_SYSTEM).
+        Fallback:     legacy line-prefix parser (handles older formats).
+        """
+        # Primary: JSON
+        json_blob = self._extract_json(critic_response)
+        if json_blob is not None:
+            try:
+                data = json.loads(json_blob)
+                verdict = self._VERDICT_MAP.get(
+                    str(data.get("verdict", "")).upper().strip(),
+                    DebateVerdict.INSUFFICIENT,
+                )
+                alternative = str(data.get("alternative_hypothesis", "") or "").strip()
+                raw_challenges = data.get("challenges", []) or []
+                raw_evidence   = data.get("evidence_requested", []) or []
+                if isinstance(raw_challenges, str):
+                    raw_challenges = [raw_challenges]
+                if isinstance(raw_evidence, str):
+                    raw_evidence = [raw_evidence]
+                challenges = [str(c).strip() for c in raw_challenges if str(c).strip()]
+                challenges.extend(str(e).strip() for e in raw_evidence if str(e).strip())
+                revised_claim = str(data.get("revised_claim", "") or "").strip()
+                return verdict, alternative, challenges, revised_claim
+            except (json.JSONDecodeError, TypeError, AttributeError) as e:
+                log.debug(f"Critic JSON parse failed: {e}; falling back to line parser")
 
+        # Fallback: legacy prefix parser (case-insensitive, tolerates markdown)
         verdict       = DebateVerdict.INSUFFICIENT
         alternative   = ""
         challenges    = []
         revised_claim = ""
 
-        for line in lines:
-            line = line.strip()
-            if line.startswith("VERDICT:"):
-                v = line.replace("VERDICT:", "").strip().upper()
-                verdict = {
-                    "ACCEPT":         DebateVerdict.ACCEPT,
-                    "ACCEPT_REVISED": DebateVerdict.ACCEPT_REVISED,
-                    "REJECT":         DebateVerdict.REJECT,
-                    "INSUFFICIENT":   DebateVerdict.INSUFFICIENT,
-                }.get(v, DebateVerdict.INSUFFICIENT)
-            elif line.startswith("ALTERNATIVE_HYPOTHESIS:"):
-                alternative = line.replace("ALTERNATIVE_HYPOTHESIS:", "").strip()
-            elif line.startswith("CHALLENGES:") or line.startswith("EVIDENCE_REQUESTED:"):
+        for raw_line in critic_response.split("\n"):
+            # Strip markdown inline marks (** _ # `) anywhere on the line
+            line = re.sub(r"[*_#`]+", "", raw_line).strip()
+            upper = line.upper()
+            if upper.startswith("VERDICT:"):
+                v = line.split(":", 1)[1].strip().upper()
+                verdict = self._VERDICT_MAP.get(v, DebateVerdict.INSUFFICIENT)
+            elif upper.startswith("ALTERNATIVE_HYPOTHESIS:") or \
+                 upper.startswith("ALTERNATIVE HYPOTHESIS:"):
+                alternative = line.split(":", 1)[1].strip()
+            elif upper.startswith("CHALLENGES:") or \
+                 upper.startswith("EVIDENCE_REQUESTED:") or \
+                 upper.startswith("EVIDENCE REQUESTED:"):
                 challenges.append(line.split(":", 1)[1].strip())
-            elif line.startswith("REVISED_CLAIM:"):
-                revised_claim = line.replace("REVISED_CLAIM:", "").strip()
+            elif upper.startswith("REVISED_CLAIM:") or \
+                 upper.startswith("REVISED CLAIM:"):
+                revised_claim = line.split(":", 1)[1].strip()
 
         return verdict, alternative, challenges, revised_claim
+
+    @staticmethod
+    def _extract_json(text: str) -> Optional[str]:
+        """Return the first balanced JSON object found in text, or None."""
+        # Fast path: text is already pure JSON
+        stripped = text.strip()
+        if stripped.startswith("{") and stripped.endswith("}"):
+            return stripped
+
+        # Strip ```json ... ``` fences
+        fence = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+        if fence:
+            return fence.group(1)
+
+        # Last resort: greedy first {...} block
+        m = re.search(r"\{.*\}", text, re.DOTALL)
+        return m.group(0) if m else None
 
     # ── Helpers ───────────────────────────────────────────────────────────
 
