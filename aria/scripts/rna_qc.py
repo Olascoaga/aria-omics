@@ -90,9 +90,44 @@ def rna_qc(params: dict) -> dict:
                           f"Supported: .h5ad, .h5, MEX directory.",
         }
 
+    # CellRanger 10x matrices commonly contain duplicate gene symbols (multiple
+    # Ensembl IDs collapsing to the same HGNC name). Without dedup, downstream
+    # HVG/PCA/Scanpy ops emit warnings and can produce non-deterministic var
+    # ordering after filter_genes.
+    adata.var_names_make_unique()
+
+    warnings_list  = []
+    n_barcodes_raw = adata.n_obs
+
+    # ── Drop empty droplets BEFORE estimating MAD thresholds ─────────────
+    # When data_path points to a raw_feature_bc_matrix (CellRanger raw output),
+    # ~95% of barcodes are empty drops. Their dominance in the count
+    # distribution collapses median→0 and MAD→0, producing mt_high=NaN and
+    # nuking every real cell. Apply a coarse initial filter so the adaptive
+    # MAD thresholds are estimated on plausible cells only.
+    initial_min_genes = int(params.get("initial_min_genes", 200))
+    initial_min_cells = int(params.get("initial_min_cells", 3))
+    sc.pp.filter_cells(adata, min_genes=initial_min_genes)
+    sc.pp.filter_genes(adata, min_cells=initial_min_cells)
+
+    if adata.n_obs == 0:
+        return {
+            "status":     "error",
+            "error_type": "NoCellsAfterInitialFilter",
+            "details":    (f"No barcodes survived initial filter "
+                           f"(min_genes={initial_min_genes}, "
+                           f"min_cells={initial_min_cells}) from "
+                           f"{n_barcodes_raw} raw barcodes."),
+        }
+
     n_cells_before = adata.n_obs
     n_genes_before = adata.n_vars
-    warnings_list  = []
+    if n_barcodes_raw > n_cells_before * 1.5:
+        warnings_list.append(
+            f"Input looks like a raw_feature_bc_matrix: "
+            f"{n_barcodes_raw} barcodes → {n_cells_before} after empty-drop "
+            f"removal (min_genes={initial_min_genes})."
+        )
 
     # ── Mitochondrial gene prefix ─────────────────────────────────────────
     # Human and mouse use MT- / mt- respectively
@@ -107,9 +142,11 @@ def rna_qc(params: dict) -> dict:
     )
 
     # ── Adaptive MAD thresholds ───────────────────────────────────────────
+    # Use nanmedian: pct_counts_mt is NaN when a cell has total_counts=0,
+    # which can still slip through if initial_min_genes is lowered.
     def mad_bounds(values: np.ndarray, n_mad: float = 3.0):
-        median = np.median(values)
-        mad    = np.median(np.abs(values - median))
+        median = float(np.nanmedian(values))
+        mad    = float(np.nanmedian(np.abs(values - median)))
         return median - n_mad * mad, median + n_mad * mad
 
     counts_low, counts_high = mad_bounds(adata.obs["total_counts"].values)
