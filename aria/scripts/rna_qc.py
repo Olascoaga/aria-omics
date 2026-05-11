@@ -4,12 +4,21 @@ ARIA RNA QC Script
 Runs quality control on scRNA-seq or bulk RNA-seq data.
 Executed inside aria-rna-env by EnvironmentManager.
 
+QC pipeline:
+  1. MT% / total_counts / n_genes_by_counts filtering (MAD-adaptive,
+     stress-context-aware via biological_context).
+  2. Doublet detection via Scrublet (single-cell only, opt-out with
+     `run_scrublet=False`). Operates on raw counts BEFORE normalization.
+  3. Persist filtered .h5ad with doublet_score / predicted_doublet in obs.
+
 Input params:
     data_path:       str  — path to .h5ad, .h5 (10x), or MEX directory
     organism:        str  — "Homo sapiens", "Mus musculus", etc.
     mt_threshold:    float (optional) — max mitochondrial % (default: adaptive MAD)
     min_genes:       int  (optional) — min genes per cell (default: 200)
     min_cells:       int  (optional) — min cells per gene (default: 3)
+    run_scrublet:    bool (optional) — disable doublet detection (default: True)
+    expected_doublet_rate: float (optional) — 10x rate-of-thumb (default: 0.06)
     biological_context: dict (optional) — from OrchestratorAgent intent
                                           used to adjust thresholds for
                                           stress/senescence phenotypes
@@ -24,6 +33,13 @@ Output:
       "pct_removed":      float,
       "mt_threshold_used": float,
       "min_genes_used":   int,
+      "scrublet": {
+          "ran":               bool,
+          "n_doublets":        int,
+          "doublet_rate":      float,   # observed
+          "threshold_used":    float,
+          "expected_rate":     float,
+      },
       "warnings":         [str],
       "output_path":      str   — path to filtered .h5ad
     }
@@ -43,9 +59,11 @@ def rna_qc(params: dict) -> dict:
     import scanpy as sc
     from pathlib import Path
 
-    data_path = params["data_path"]
-    organism  = params.get("organism", "Homo sapiens")
-    bio_ctx   = params.get("biological_context", {})
+    data_path             = params["data_path"]
+    organism              = params.get("organism", "Homo sapiens")
+    bio_ctx               = params.get("biological_context", {})
+    run_scrublet          = bool(params.get("run_scrublet", True))
+    expected_doublet_rate = float(params.get("expected_doublet_rate", 0.06))
 
     # ── Load data ─────────────────────────────────────────────────────────
     path = Path(data_path)
@@ -127,6 +145,81 @@ def rna_qc(params: dict) -> dict:
     sc.pp.filter_genes(adata, min_cells=min_cells)
     adata = adata[adata.obs["pct_counts_mt"] <= mt_threshold].copy()
 
+    # ── Doublet detection (Scrublet) ─────────────────────────────────────
+    # Run BEFORE normalization on raw counts. Skip if scrublet not
+    # installed or caller explicitly disabled it.
+    scrublet_report = {
+        "ran":            False,
+        "n_doublets":     0,
+        "doublet_rate":   0.0,
+        "threshold_used": None,
+        "expected_rate":  expected_doublet_rate,
+    }
+    if run_scrublet and adata.n_obs >= 50:
+        try:
+            import scrublet as scr
+            counts = adata.X
+            if hasattr(counts, "toarray"):
+                # Scrublet wants a sparse or dense numpy matrix; CSR is fine.
+                pass
+            scrub = scr.Scrublet(
+                counts,
+                expected_doublet_rate=expected_doublet_rate,
+                random_state=0,
+            )
+            doublet_scores, predicted = scrub.scrub_doublets(
+                min_counts=2, min_cells=3,
+                min_gene_variability_pctl=85,
+                n_prin_comps=30, verbose=False,
+            )
+            # If Scrublet failed to converge on a threshold it returns None.
+            # Fall back to a conservative 0.5 cutoff so we don't drop cells
+            # we can't justify dropping.
+            if predicted is None:
+                predicted = doublet_scores > 0.5
+                thr_used  = 0.5
+                warnings_list.append(
+                    "Scrublet could not auto-derive a doublet threshold; "
+                    "fell back to score>0.5. Inspect doublet_score in obs."
+                )
+            else:
+                thr_used = float(getattr(scrub, "threshold_", 0.0))
+
+            adata.obs["doublet_score"]     = doublet_scores
+            adata.obs["predicted_doublet"] = predicted.astype(bool)
+
+            n_doublets = int(predicted.sum())
+            obs_rate   = round(float(n_doublets) / adata.n_obs, 4)
+
+            # Drop predicted doublets from the filtered AnnData.
+            adata = adata[~adata.obs["predicted_doublet"]].copy()
+
+            scrublet_report.update({
+                "ran":            True,
+                "n_doublets":     n_doublets,
+                "doublet_rate":   obs_rate,
+                "threshold_used": round(thr_used, 4),
+            })
+
+            # Warn if the observed rate is wildly off from the 10x rule of
+            # thumb — possible cell-type composition issue or batch artefact.
+            if obs_rate > expected_doublet_rate * 3:
+                warnings_list.append(
+                    f"Scrublet flagged {obs_rate*100:.1f}% doublets "
+                    f"(expected ~{expected_doublet_rate*100:.1f}%). "
+                    f"Review raw barcode QC and loading concentration."
+                )
+        except ImportError:
+            warnings_list.append(
+                "scrublet not available — doublet detection skipped. "
+                "Install scrublet in aria-rna-env to enable."
+            )
+        except Exception as e:
+            warnings_list.append(
+                f"Scrublet failed ({type(e).__name__}: {str(e)[:120]}); "
+                f"continuing without doublet filtering."
+            )
+
     n_cells_after = adata.n_obs
     n_genes_after = adata.n_vars
     pct_removed   = round(
@@ -169,6 +262,7 @@ def rna_qc(params: dict) -> dict:
         "mt_threshold_used": float(mt_threshold),
         "min_genes_used":    int(min_genes),
         "stress_context":    bool(is_stress_context),
+        "scrublet":          scrublet_report,
         "warnings":          warnings_list,
         "output_path":       output_path,
         "mt_stats": {
