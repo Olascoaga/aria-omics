@@ -101,8 +101,11 @@ class scRNAAgent(BaseAgent):
                     "findings": findings}
 
         # 2. Integration (if batch present) ───────────────────────────────
+        # When QC concatenated multiple samples, it returns the batch_col
+        # it populated — prefer that over the design-declared one so we
+        # never silently skip Harmony on a multi-sample run.
         design = exp_ctx.get("design", {})
-        batch_col = self._resolve_batch_column(design)
+        batch_col = qc.get("batch_col") or self._resolve_batch_column(design)
         if batch_col:
             self.publish_status(experiment_id,
                                 "Batch correction (Harmony)...", 0.30)
@@ -185,14 +188,128 @@ class scRNAAgent(BaseAgent):
 
     # ── QC ────────────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _sample_id_from_path(path: str) -> str:
+        """
+        Derive a stable per-sample label from a 10x .h5 / MEX / .h5ad path.
+        Strips well-known 10x suffixes so accessions stay readable
+        (e.g. GSE278576_hc11_raw_feature_bc_matrix.h5 → GSE278576_hc11).
+        """
+        stem = Path(path).stem
+        for suffix in ("_raw_feature_bc_matrix",
+                       "_filtered_feature_bc_matrix",
+                       "_feature_bc_matrix",
+                       "_matrix"):
+            if stem.endswith(suffix):
+                stem = stem[: -len(suffix)]
+                break
+        return stem or "sample"
+
     def _run_qc(self, experiment_id: str, files: list,
                 exp_ctx: dict, intent: dict) -> dict:
+        """
+        Single-sample → call rna_qc directly.
+        Multi-sample  → QC each sample, then concatenate via rna_concat so
+                        downstream Harmony has a populated obs["batch"].
+        """
+        if not files:
+            return {"status": "error",
+                    "error_type": "NoInputs",
+                    "details":    "scRNA modality is empty."}
+
+        organism = exp_ctx.get("organism", "Homo sapiens")
+
+        # Single-sample fast-path — backwards compatible with prior runs.
+        if len(files) == 1:
+            return self._qc_single(experiment_id, files[0], organism, intent)
+
+        # Multi-sample: per-sample QC followed by concat. Each rna_qc call
+        # gets its own sample_id so the script writes qc_filtered_{sid}.h5ad
+        # without overwriting siblings.
+        workspace = Path("~/.aria/workspace/scrna_multi").expanduser()
+        workspace.mkdir(parents=True, exist_ok=True)
+
+        per_sample = []
+        manifest   = []
+        for f in files:
+            sid = self._sample_id_from_path(f)
+            sample_result = self.env.run_in_stack(
+                stack="rna",
+                script_path="aria/scripts/rna_qc.py",
+                params={
+                    "data_path":          f,
+                    "organism":           organism,
+                    "biological_context": intent,
+                    "sample_id":          sid,
+                    "output_dir":         str(workspace),
+                },
+            )
+            if sample_result.get("status") != "success":
+                log.warning(f"rna_qc.py failed on sample {sid}: "
+                            f"{sample_result.get('error_type', '?')}")
+                return {"status":     "error",
+                        "error_type": "PerSampleQCFailed",
+                        "details":    (f"Sample {sid}: "
+                                       f"{sample_result.get('error_type', '?')} "
+                                       f"— {sample_result.get('details', '')[:200]}"),
+                        "failed_sample": sid}
+            per_sample.append({
+                "sample_id":     sid,
+                "n_cells_after": sample_result.get("n_cells_after", 0),
+                "pct_removed":   sample_result.get("pct_removed", 0),
+                "scrublet":      sample_result.get("scrublet", {}),
+            })
+            manifest.append({
+                "path":      sample_result["output_path"],
+                "sample_id": sid,
+            })
+
+        # Concatenate the per-sample QC outputs into one .h5ad.
+        concat_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_concat.py",
+            params={
+                "samples":    manifest,
+                "output_dir": str(workspace),
+                "join":       "inner",
+            },
+        )
+        if concat_result.get("status") != "success":
+            log.warning(f"rna_concat.py failed: "
+                        f"{concat_result.get('error_type', '?')}")
+            return {"status":     "error",
+                    "error_type": "ConcatFailed",
+                    "details":    concat_result.get("details", "")[:300],
+                    "per_sample": per_sample}
+
+        n_total = concat_result.get("n_cells_total", 0)
+        self.publish_finding(
+            experiment_id,
+            {"summary": (f"Multi-sample QC + concat: "
+                         f"{len(files)} samples → {n_total} cells "
+                         f"({concat_result.get('n_genes_shared', 0)} shared genes)."),
+             "per_sample": per_sample},
+            Confidence.HIGH,
+        )
+
+        return {
+            "status":        "success",
+            "output_path":   concat_result["output_path"],
+            "n_samples":     len(files),
+            "n_cells_total": n_total,
+            "n_genes_shared": concat_result.get("n_genes_shared"),
+            "per_sample":    per_sample,
+            "batch_col":     concat_result.get("batch_col", "batch"),
+        }
+
+    def _qc_single(self, experiment_id: str, path: str,
+                   organism: str, intent: dict) -> dict:
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_qc.py",
             params={
-                "data_path":          files[0] if files else "",
-                "organism":           exp_ctx.get("organism", "Homo sapiens"),
+                "data_path":          path,
+                "organism":           organism,
                 "biological_context": intent,
             },
         )

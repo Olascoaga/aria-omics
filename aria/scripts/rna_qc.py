@@ -22,6 +22,12 @@ Input params:
     biological_context: dict (optional) — from OrchestratorAgent intent
                                           used to adjust thresholds for
                                           stress/senescence phenotypes
+    sample_id:       str (optional) — per-sample label injected into
+                                        obs["sample_id"]/obs["batch"]; also
+                                        used to name the output as
+                                        qc_filtered_{sample_id}.h5ad
+    output_dir:      str (optional) — write the filtered .h5ad here instead
+                                        of next to the input
 
 Output:
     {
@@ -64,6 +70,11 @@ def rna_qc(params: dict) -> dict:
     bio_ctx               = params.get("biological_context", {})
     run_scrublet          = bool(params.get("run_scrublet", True))
     expected_doublet_rate = float(params.get("expected_doublet_rate", 0.06))
+    # Multi-sample workflow: caller injects a per-sample label so the output
+    # filename and obs columns are sample-aware (avoiding qc_filtered.h5ad
+    # collisions when multiple inputs share an output directory).
+    sample_id             = params.get("sample_id")
+    output_dir            = params.get("output_dir")
 
     # ── Load data ─────────────────────────────────────────────────────────
     path = Path(data_path)
@@ -95,6 +106,13 @@ def rna_qc(params: dict) -> dict:
     # HVG/PCA/Scanpy ops emit warnings and can produce non-deterministic var
     # ordering after filter_genes.
     adata.var_names_make_unique()
+
+    # Annotate per-sample provenance for downstream concat / batch correction.
+    # We always stamp these columns when sample_id is provided so rna_concat
+    # can stack without further annotation work.
+    if sample_id:
+        adata.obs["sample_id"] = str(sample_id)
+        adata.obs["batch"]     = str(sample_id)
 
     warnings_list  = []
     n_barcodes_raw = adata.n_obs
@@ -286,11 +304,16 @@ def rna_qc(params: dict) -> dict:
         )
 
     # ── Save filtered data ────────────────────────────────────────────────
-    output_path = str(Path(data_path).parent / "qc_filtered.h5ad")
+    out_dir  = Path(output_dir) if output_dir else Path(data_path).parent
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_name = (f"qc_filtered_{sample_id}.h5ad"
+                if sample_id else "qc_filtered.h5ad")
+    output_path = str(out_dir / out_name)
     adata.write_h5ad(output_path)
 
     return {
         "status":            "success",
+        "sample_id":         sample_id,
         "n_cells_before":    int(n_cells_before),
         "n_cells_after":     int(n_cells_after),
         "n_genes_before":    int(n_genes_before),
