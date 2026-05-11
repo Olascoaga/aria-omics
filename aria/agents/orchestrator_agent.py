@@ -128,8 +128,18 @@ class OrchestratorAgent(BaseAgent):
         self._active_design_agent  = None
         # v4.1: pending dispatch held while audit CP 3.5 is open
         self._pending_dispatch     = {}
+        # Per-experiment file log handlers (attached in run, detached at end)
+        self._log_handlers         = {}
 
     def run(self, experiment_id: str, context: dict) -> dict:
+        # Open a per-experiment log file so background-thread agent failures
+        # are recoverable without scrolling the TUI.
+        try:
+            from aria.utils.logging_setup import attach_experiment_log
+            self._log_handlers[experiment_id] = attach_experiment_log(experiment_id)
+        except Exception as e:
+            log.debug(f"Could not attach experiment log: {e}")
+
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
         intent = self._parse_question(context["user_question"])
 
@@ -577,6 +587,16 @@ class OrchestratorAgent(BaseAgent):
             question="\n".join(lines), options=["Accept report", "Request revision", "Export methods"],
             context={"n_findings": len(findings), "report_path": report},
         )
+
+        # Detach the per-experiment log handler so the file is flushed and
+        # the next experiment starts with a fresh handler list.
+        handler = self._log_handlers.pop(experiment_id, None)
+        if handler is not None:
+            try:
+                from aria.utils.logging_setup import detach_experiment_log
+                detach_experiment_log(handler)
+            except Exception:
+                pass
 
     def _parse_question(self, user_question: str) -> dict:
         prompt = f"""
