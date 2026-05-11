@@ -215,7 +215,7 @@ class AuditAgent(BaseAgent):
             import numpy as np
             import pandas as pd
             from sklearn.decomposition import PCA
-            from sklearn.preprocessing import LabelEncoder
+            from sklearn.preprocessing import StandardScaler
         except ImportError:
             return []
 
@@ -238,8 +238,13 @@ class AuditAgent(BaseAgent):
         cpm  = expressed.div(expressed.sum(axis=0) / 1e6)
         lcpm = np.log1p(cpm).T.values  # shape: (n_samples, n_genes)
 
-        pca = PCA(n_components=min(2, lcpm.shape[0] - 1))
-        coords = pca.fit_transform(lcpm)
+        # Standardize each gene (column) to mean 0 / unit variance so PC1
+        # reflects covariance structure rather than the few highly-expressed
+        # genes that dominate raw log-CPM.
+        scaled = StandardScaler(with_mean=True, with_std=True).fit_transform(lcpm)
+
+        pca = PCA(n_components=min(2, scaled.shape[0] - 1), random_state=0)
+        coords = pca.fit_transform(scaled)
         pc1    = coords[:, 0]
         var1   = pca.explained_variance_ratio_[0]
 
