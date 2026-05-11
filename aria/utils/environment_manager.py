@@ -20,10 +20,13 @@ from __future__ import annotations
 
 import json
 import logging
+import shutil
 import subprocess
 import uuid
 from pathlib import Path
 from typing import Any
+
+shutil_rmtree = shutil.rmtree
 
 log = logging.getLogger("aria.env")
 
@@ -106,9 +109,14 @@ class EnvironmentManager:
 
     FALLBACK_ENV = "aria-env"   # Base environment used when stack env is missing
 
+    # Number of failed runs to keep on disk for postmortem inspection.
+    # Files live in <workspace>/failed/ — older runs are evicted FIFO.
+    MAX_FAILED_RUNS = 20
+
     def __init__(self, workspace_dir: str = "~/.aria/workspace"):
         self.workspace = Path(workspace_dir).expanduser()
         self.workspace.mkdir(parents=True, exist_ok=True)
+        (self.workspace / "failed").mkdir(exist_ok=True)
         self._conda_ok = self._verify_conda()
 
     # ── Public interface ──────────────────────────────────────────────────
@@ -147,6 +155,8 @@ class EnvironmentManager:
         output_file = self.workspace / f"output_{run_id}.json"
         max_time    = max(timeout or self.TIMEOUTS.get(stack, 3600), 120)  # min 2 min
 
+        result: dict = {"status": "error"}
+        succeeded = False
         try:
             # 1. Write parameters to input file
             with open(input_file, "w") as f:
@@ -157,7 +167,7 @@ class EnvironmentManager:
             # /aria/scripts/aria/scripts/foo.py when launched from aria/scripts/)
             resolved_script = _resolve_script_path(script_path)
             if not resolved_script.exists():
-                return {
+                result = {
                     "status":     "error",
                     "error_type": "ScriptNotFound",
                     "details": (
@@ -166,6 +176,7 @@ class EnvironmentManager:
                         f"ARIA package root: {_ARIA_PACKAGE_ROOT}"
                     ),
                 }
+                return result
 
             cmd = [
                 "conda", "run",
@@ -194,16 +205,17 @@ class EnvironmentManager:
                     f"Subprocess failed in {env_name} "
                     f"(exit {process.returncode}): {process.stderr[-500:]}"
                 )
-                return {
+                result = {
                     "status":     "error",
                     "error_type": "SubprocessFailed",
                     "exit_code":  process.returncode,
                     "details":    process.stderr[-1000:],
                 }
+                return result
 
             # 5. Read structured output
             if not output_file.exists():
-                return {
+                result = {
                     "status":     "error",
                     "error_type": "MissingOutput",
                     "details":    (
@@ -211,36 +223,78 @@ class EnvironmentManager:
                         f"but produced no output JSON."
                     ),
                 }
+                return result
 
             with open(output_file, "r") as f:
                 result = json.load(f)
 
+            succeeded = (result.get("status") == "success")
             return result
 
         except subprocess.TimeoutExpired:
             log.error(f"Stack '{stack}' timed out after {max_time}s")
-            return {
+            result = {
                 "status":     "error",
                 "error_type": "Timeout",
                 "details":    f"Execution exceeded {max_time}s limit.",
             }
+            return result
 
         except Exception as e:
             log.error(f"EnvironmentManager exception: {e}")
-            return {
+            result = {
                 "status":     "error",
                 "error_type": type(e).__name__,
                 "details":    str(e),
             }
+            return result
 
         finally:
-            # Always clean up temp files
-            for f in (input_file, output_file):
-                if f.exists():
-                    try:
-                        f.unlink()
-                    except OSError:
-                        pass
+            if succeeded:
+                # Happy path: drop the temp files immediately.
+                for f in (input_file, output_file):
+                    if f.exists():
+                        try:
+                            f.unlink()
+                        except OSError:
+                            pass
+            else:
+                # Failure: preserve input + output for postmortem.
+                self._archive_failed_run(run_id, stack, input_file, output_file, result)
+
+    def _archive_failed_run(self, run_id: str, stack: str,
+                             input_file: Path, output_file: Path,
+                             result: dict):
+        """
+        Move input/output JSON of a failed run to <workspace>/failed/ so the
+        user can inspect what went wrong. Evicts the oldest archived runs to
+        cap disk usage at MAX_FAILED_RUNS.
+        """
+        failed_dir = self.workspace / "failed"
+        run_dir    = failed_dir / f"{stack}_{run_id}"
+        try:
+            run_dir.mkdir(parents=True, exist_ok=True)
+            if input_file.exists():
+                input_file.replace(run_dir / "input.json")
+            if output_file.exists():
+                output_file.replace(run_dir / "output.json")
+            # Drop the error summary next to the JSON for easy triage.
+            (run_dir / "error.json").write_text(json.dumps(result, indent=2))
+        except Exception as e:
+            log.warning(f"Could not archive failed run {run_id}: {e}")
+            return
+
+        # FIFO eviction so the failed/ dir stays bounded.
+        try:
+            archived = sorted(
+                failed_dir.iterdir(),
+                key=lambda p: p.stat().st_mtime,
+            )
+            while len(archived) > self.MAX_FAILED_RUNS:
+                oldest = archived.pop(0)
+                shutil_rmtree(oldest)
+        except Exception as e:
+            log.debug(f"Failed-run eviction skipped: {e}")
 
     def check_environments(self) -> dict[str, bool]:
         """
