@@ -17,6 +17,7 @@ Loading: Progressive (L0 -> L3), only what is needed per query
 from __future__ import annotations
 import sqlite3
 import json
+import threading
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -100,104 +101,120 @@ class ARIAMemory:
         else:
             self.db_path = str(Path(db_path).expanduser())
             Path(self.db_path).parent.mkdir(parents=True, exist_ok=True)
-            
-        # BUG FIX: Permitir que los agentes en hilos secundarios lean/escriban en la DB
+
+        # Agents run on background threads (Orchestrator._dispatch_agents);
+        # share one connection with check_same_thread=False and serialize
+        # every read/write through a single lock so concurrent commits cannot
+        # interleave and corrupt the WAL.
         self._conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        
+        self._lock = threading.RLock()
+
+        # WAL allows concurrent readers and a single writer without "database
+        # is locked" errors; safe to enable on shared, file-backed DBs.
+        if db_path != ":memory:":
+            try:
+                self._conn.execute("PRAGMA journal_mode=WAL")
+                self._conn.execute("PRAGMA synchronous=NORMAL")
+            except sqlite3.DatabaseError:
+                pass
+
         self._conn.row_factory = sqlite3.Row
-        self._conn.executescript(SCHEMA)
-        self._conn.commit()
+        with self._lock:
+            self._conn.executescript(SCHEMA)
+            self._conn.commit()
+
+    # ── Internal helpers (all DB access funnels through these) ──────────
+
+    def _write(self, sql: str, params: tuple = ()):
+        with self._lock:
+            self._conn.execute(sql, params)
+            self._conn.commit()
+
+    def _fetchone(self, sql: str, params: tuple = ()):
+        with self._lock:
+            return self._conn.execute(sql, params).fetchone()
+
+    def _fetchall(self, sql: str, params: tuple = ()):
+        with self._lock:
+            return self._conn.execute(sql, params).fetchall()
 
     # ── Wings ────────────────────────────────────────────────────────────
 
     def create_wing(self, experiment_id: str, name: str,
                     organism: str = None, genome: str = None) -> str:
         now = datetime.now().isoformat()
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO wings VALUES (?,?,?,?,?,?,?)",
-            (experiment_id, name, organism, genome, now, now, None)
+            (experiment_id, name, organism, genome, now, now, None),
         )
-        self._conn.commit()
         return experiment_id
 
     def update_wing_summary(self, experiment_id: str, summary: str):
-        self._conn.execute(
+        self._write(
             "UPDATE wings SET summary=?, updated_at=? WHERE id=?",
-            (summary, datetime.now().isoformat(), experiment_id)
+            (summary, datetime.now().isoformat(), experiment_id),
         )
-        self._conn.commit()
 
     def get_wing(self, experiment_id: str) -> Optional[dict]:
-        row = self._conn.execute(
-            "SELECT * FROM wings WHERE id=?", (experiment_id,)
-        ).fetchone()
+        row = self._fetchone("SELECT * FROM wings WHERE id=?", (experiment_id,))
         return dict(row) if row else None
 
     def list_wings(self) -> list[dict]:
-        rows = self._conn.execute(
+        rows = self._fetchall(
             "SELECT id, name, organism, genome, updated_at, summary FROM wings"
-        ).fetchall()
+        )
         return [dict(r) for r in rows]
 
     # ── Halls ────────────────────────────────────────────────────────────
 
     def create_hall(self, hall_id: str, wing_id: str, modality: str) -> str:
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO halls VALUES (?,?,?,?)",
-            (hall_id, wing_id, modality, "pending")
+            (hall_id, wing_id, modality, "pending"),
         )
-        self._conn.commit()
         return hall_id
 
     def update_hall_status(self, hall_id: str, status: str):
-        self._conn.execute(
-            "UPDATE halls SET status=? WHERE id=?", (status, hall_id)
-        )
-        self._conn.commit()
+        self._write("UPDATE halls SET status=? WHERE id=?", (status, hall_id))
 
     def get_halls(self, wing_id: str) -> list[dict]:
-        rows = self._conn.execute(
-            "SELECT * FROM halls WHERE wing_id=?", (wing_id,)
-        ).fetchall()
+        rows = self._fetchall("SELECT * FROM halls WHERE wing_id=?", (wing_id,))
         return [dict(r) for r in rows]
 
     # ── Rooms ────────────────────────────────────────────────────────────
 
     def create_room(self, room_id: str, hall_id: str, analysis: str,
                     params: dict = None, tool: str = None) -> str:
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO rooms VALUES (?,?,?,?,?,?)",
             (room_id, hall_id, analysis,
              json.dumps(params or {}), tool,
-             datetime.now().isoformat())
+             datetime.now().isoformat()),
         )
-        self._conn.commit()
         return room_id
 
     # ── Findings ─────────────────────────────────────────────────────────
 
     def store_finding(self, finding_id: str, room_id: str,
                       content: str, confidence: str) -> str:
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO findings VALUES (?,?,?,?,?,?,?)",
             (finding_id, room_id, content, confidence, 0,
-             datetime.now().isoformat(), None)
+             datetime.now().isoformat(), None),
         )
-        self._conn.commit()
         return finding_id
 
     def invalidate_finding(self, finding_id: str):
-        self._conn.execute(
+        self._write(
             "UPDATE findings SET is_stale=1, valid_until=? WHERE id=?",
-            (datetime.now().isoformat(), finding_id)
+            (datetime.now().isoformat(), finding_id),
         )
-        self._conn.commit()
 
     def get_active_findings(self, room_id: str) -> list[dict]:
-        rows = self._conn.execute(
+        rows = self._fetchall(
             "SELECT * FROM findings WHERE room_id=? AND is_stale=0",
-            (room_id,)
-        ).fetchall()
+            (room_id,),
+        )
         return [dict(r) for r in rows]
 
     # ── Tunnels ──────────────────────────────────────────────────────────
@@ -206,24 +223,23 @@ class ARIAMemory:
                       from_hall: str, to_hall: str,
                       entity: str, description: str,
                       confidence: str = "medium"):
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO tunnels VALUES (?,?,?,?,?,?,?,?)",
             (tunnel_id, wing_id, from_hall, to_hall,
              entity, description, confidence,
-             datetime.now().isoformat())
+             datetime.now().isoformat()),
         )
-        self._conn.commit()
 
     def get_tunnels(self, wing_id: str, entity: str = None) -> list[dict]:
         if entity:
-            rows = self._conn.execute(
+            rows = self._fetchall(
                 "SELECT * FROM tunnels WHERE wing_id=? AND entity=?",
-                (wing_id, entity)
-            ).fetchall()
+                (wing_id, entity),
+            )
         else:
-            rows = self._conn.execute(
+            rows = self._fetchall(
                 "SELECT * FROM tunnels WHERE wing_id=?", (wing_id,)
-            ).fetchall()
+            )
         return [dict(r) for r in rows]
 
     # ── Decisions ────────────────────────────────────────────────────────
@@ -232,18 +248,17 @@ class ARIAMemory:
                        checkpoint: int, question: str,
                        decision: str, rationale: str = "",
                        made_by: str = "user"):
-        self._conn.execute(
+        self._write(
             "INSERT OR REPLACE INTO decisions VALUES (?,?,?,?,?,?,?,?)",
             (decision_id, wing_id, checkpoint, question,
-             decision, rationale, datetime.now().isoformat(), made_by)
+             decision, rationale, datetime.now().isoformat(), made_by),
         )
-        self._conn.commit()
 
     def get_decisions(self, wing_id: str) -> list[dict]:
-        rows = self._conn.execute(
+        rows = self._fetchall(
             "SELECT * FROM decisions WHERE wing_id=? ORDER BY made_at",
-            (wing_id,)
-        ).fetchall()
+            (wing_id,),
+        )
         return [dict(r) for r in rows]
 
     # ── L0 Startup context ───────────────────────────────────────────────
@@ -267,4 +282,5 @@ class ARIAMemory:
         return "\n".join(lines)
 
     def close(self):
-        self._conn.close()
+        with self._lock:
+            self._conn.close()
