@@ -17,11 +17,14 @@ Each tier falls back to the next available model automatically.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import os
 import time
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
 from typing import Optional
 
 import litellm
@@ -109,11 +112,26 @@ class LLMProvider:
         self,
         models:      dict[TaskTier, list[ModelConfig]] = None,
         api_keys:    dict[str, str] = None,
+        cache_dir:   Optional[str] = None,
     ):
         self.models   = models or DEFAULT_MODELS
         self.api_keys = api_keys or {}
         self._context_managers: dict[str, ContextManager] = {}
         self._inject_api_keys()
+        # File-backed prompt cache. Disabled when ARIA_LLM_CACHE=0.
+        # Cache key: sha256(model + system + prompt + max_tokens).
+        self._cache_enabled = os.environ.get("ARIA_LLM_CACHE", "1") != "0"
+        if self._cache_enabled:
+            base = cache_dir or os.environ.get("ARIA_LLM_CACHE_DIR") \
+                   or str(Path.home() / ".aria" / "llm_cache")
+            self._cache_dir = Path(base)
+            try:
+                self._cache_dir.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                self._cache_enabled = False
+                self._cache_dir = None
+        else:
+            self._cache_dir = None
 
     # ── Public interface ─────────────────────────────────────────────────
 
@@ -184,6 +202,16 @@ class LLMProvider:
     ) -> str:
         """Execute a single LiteLLM call with context management."""
 
+        # Cache lookup (only for single-prompt calls — multi-turn histories
+        # are skipped because the cache key would explode in size).
+        cache_key = None
+        if self._cache_enabled and messages is None:
+            cache_key = self._cache_key(cfg.model, system, prompt, max_tokens)
+            cached = self._cache_get(cache_key)
+            if cached is not None:
+                log.debug(f"LLM cache hit: {cfg.model} key={cache_key[:8]}")
+                return cached
+
         # Get or build ContextManager for this model
         ctx_mgr = self._get_context_manager(cfg)
 
@@ -221,7 +249,45 @@ class LLMProvider:
             kwargs["api_key"] = api_key
 
         response = completion(**kwargs)
-        return response.choices[0].message.content
+        text = response.choices[0].message.content
+        if cache_key is not None and text:
+            self._cache_put(cache_key, text)
+        return text
+
+    # ── Prompt cache helpers ─────────────────────────────────────────────
+
+    @staticmethod
+    def _cache_key(model: str, system: str, prompt: str, max_tokens: int) -> str:
+        blob = json.dumps(
+            {"m": model, "s": system, "p": prompt, "t": max_tokens},
+            sort_keys=True,
+        )
+        return hashlib.sha256(blob.encode("utf-8")).hexdigest()
+
+    def _cache_path(self, key: str) -> Path:
+        # 2-char shard prefix to keep any single directory shallow.
+        return self._cache_dir / key[:2] / f"{key}.json"
+
+    def _cache_get(self, key: str) -> Optional[str]:
+        try:
+            path = self._cache_path(key)
+            if not path.exists():
+                return None
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f).get("text")
+        except (OSError, json.JSONDecodeError):
+            return None
+
+    def _cache_put(self, key: str, text: str) -> None:
+        try:
+            path = self._cache_path(key)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump({"text": text}, f)
+            tmp.replace(path)
+        except OSError:
+            pass  # cache is best-effort
 
     def _get_context_manager(self, cfg: ModelConfig) -> ContextManager:
         """Get or create a ContextManager for a model."""
