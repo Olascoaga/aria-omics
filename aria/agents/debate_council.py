@@ -392,8 +392,11 @@ Be honest. If the verdict is REJECT or INSUFFICIENT, say so clearly.
         revised_claim = ""
 
         for raw_line in critic_response.split("\n"):
-            # Strip markdown inline marks (** _ # `) anywhere on the line
-            line = re.sub(r"[*_#`]+", "", raw_line).strip()
+            # Strip markdown inline marks (** # `) anywhere on the line.
+            # Keep underscores: the section names contain them (e.g.
+            # ALTERNATIVE_HYPOTHESIS) and stripping them silently broke the
+            # legacy fallback path.
+            line = re.sub(r"[*#`]+", "", raw_line).strip()
             upper = line.upper()
             if upper.startswith("VERDICT:"):
                 v = line.split(":", 1)[1].strip().upper()
