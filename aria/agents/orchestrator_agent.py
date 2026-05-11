@@ -45,7 +45,6 @@ Your job:
 
 You know these agents are available:
 - data_audit_agent: always runs first
-- preprocessing_agent: raw FASTQs → fastp → STAR → featureCounts
 - scrna_agent: single-cell RNA-seq (QC, clustering, annotation, DE)
 - bulk_rna_agent: bulk RNA-seq (DESeq2, pathway enrichment, plots)
 - chromatin_agent: handles ATAC, ChIP, CUT&RUN, CUT&TAG
@@ -87,10 +86,6 @@ AGENT_REGISTRY = {
     "narrative_agent": {
         "module": "aria.agents.narrative_agent",
         "class":  "NarrativeAgent",
-    },
-    "preprocessing_agent": {
-        "module": "aria.agents.preprocessing_agent",
-        "class":  "PreprocessingAgent",
     },
     "rna_agent": {
         "module": "aria.agents.scrna_agent",
