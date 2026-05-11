@@ -69,6 +69,8 @@ class ModelProfile:
 
 # Pre-defined profiles for common models
 PROFILES = {
+    "claude-opus-4-7":           ModelProfile("claude-opus-4-7",           200_000),
+    "claude-sonnet-4-6":         ModelProfile("claude-sonnet-4-6",         200_000),
     "claude-sonnet-4-20250514":  ModelProfile("claude-sonnet-4-20250514",  200_000),
     "claude-haiku-4-5-20251001": ModelProfile("claude-haiku-4-5-20251001", 200_000),
     "gpt-4o":                    ModelProfile("gpt-4o",                    128_000),
