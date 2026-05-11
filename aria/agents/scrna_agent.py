@@ -145,12 +145,23 @@ class scRNAAgent(BaseAgent):
             current_h5ad = annotation["annotated_h5ad"]
 
         # 5. DE per cluster (always when ≥2 clusters) ─────────────────────
+        de_result = None
         if cluster_result.get("n_clusters", 0) >= 2:
             self.publish_status(experiment_id,
-                                "Differential expression per cluster...", 0.78)
-            findings["differential_expression"] = self._differential_expression(
+                                "Differential expression per cluster...", 0.75)
+            de_result = self._differential_expression(
                 experiment_id, current_h5ad, intent, exp_ctx
             )
+            findings["differential_expression"] = de_result
+
+            # 5b. Pathway enrichment per cluster (depends on DE) ──────────
+            if de_result.get("status") == "success" and \
+                    de_result.get("n_significant_genes", 0) > 0:
+                self.publish_status(experiment_id,
+                                    "Pathway enrichment per cluster...", 0.82)
+                findings["pathways"] = self._run_pathway_per_cluster(
+                    experiment_id, de_result, exp_ctx
+                )
 
         # 6. Trajectory (developmental / time-course intent) ──────────────
         if self._needs_trajectory(intent):
@@ -603,6 +614,71 @@ Rules:
             "interpretation":       interpretation,
             "output_csv":           result.get("output_csv"),
         }
+
+    # ── Pathway enrichment per cluster (ORA) ─────────────────────────────
+
+    def _run_pathway_per_cluster(self, experiment_id: str,
+                                   de_result: dict, exp_ctx: dict) -> dict:
+        """
+        Run ORA per Leiden cluster against GO_BP / KEGG / Reactome via the
+        rna_pathway_per_cluster.py subprocess. Anchors cell-type biology in
+        actual pathway hits instead of "what does the LLM guess about this
+        marker gene".
+        """
+        de_by_cluster = de_result.get("de_genes_by_cluster", {})
+        if not de_by_cluster:
+            return {"status": "skipped", "reason": "no DE genes to enrich"}
+
+        result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_pathway_per_cluster.py",
+            params={
+                "de_genes_by_cluster":   de_by_cluster,
+                "organism":              exp_ctx.get("organism", "Homo sapiens"),
+                "top_genes_per_cluster": 200,
+                "padj_db_max":           0.05,
+            },
+            # Pathway enrichment hits Enrichr with rate limits; for a 10-cluster
+            # × 3-database dataset that's 30 calls × 8s sleep = ~4 min minimum.
+            # Allow up to 30 min so very dense datasets don't time out.
+            timeout=1800,
+        )
+
+        if result.get("status") != "success":
+            log.warning(
+                f"Pathway per cluster failed: "
+                f"{result.get('error_type', '?')} — "
+                f"{result.get('details', '')[:200]}"
+            )
+            return result
+
+        per_cluster = result.get("per_cluster", {})
+        total_sig   = sum(c.get("n_significant", 0) for c in per_cluster.values())
+        top_terms_preview = []
+        for cl, info in list(per_cluster.items())[:4]:
+            for db, terms in info.get("results", {}).items():
+                if terms:
+                    top_terms_preview.append(
+                        f"cluster {cl}/{db}: {terms[0]['term']}"
+                    )
+                    break
+
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Per-cluster ORA: {total_sig} significant pathway hits "
+                f"across {len(per_cluster)} clusters "
+                f"({', '.join(result.get('databases', {}).keys())}). "
+                f"Top: {' | '.join(top_terms_preview[:3])}."
+             ),
+             "n_significant": total_sig,
+             "databases":     result.get("databases", {}),
+             "output_csv":    result.get("output_csv")},
+            Confidence.HIGH if total_sig > 20 else
+            Confidence.MEDIUM if total_sig > 0 else
+            Confidence.INSUFFICIENT,
+        )
+        return result
 
     # ── Trajectory ────────────────────────────────────────────────────────
 
