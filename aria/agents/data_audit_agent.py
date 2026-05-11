@@ -363,22 +363,18 @@ class DataAuditAgent(BaseAgent):
                        classified: dict, genome: str,
                        organism: str, warnings: list,
                        user_question: str) -> dict:
-        # Merge bulk_RNA_raw into bulk_RNA so the Orchestrator
-        # routes to BulkRNAAgent which handles raw FASTQs.
-        # BulkRNAAgent detects FASTQs internally via _is_fastq().
-        merged = dict(classified)
-        if "bulk_RNA_raw" in merged:
-            raw_files = merged.pop("bulk_RNA_raw")
-            merged.setdefault("bulk_RNA", []).extend(raw_files)
-
-        modalities = {k: v for k, v in merged.items() if k != "unknown"}
+        # Preserve the bulk_RNA / bulk_RNA_raw distinction here so the
+        # NarrativeAgent can report whether the experiment started from raw
+        # FASTQs or pre-quantified counts. OrchestratorAgent._dispatch_agents
+        # is the right place to merge them before routing to BulkRNAAgent.
+        modalities = {k: v for k, v in classified.items() if k != "unknown"}
 
         return {
             "experiment_id":  experiment_id,
             "data_dir":       str(data_dir),
             "user_question":  user_question,
             "modalities":     modalities,
-            "unknown_files":  merged.get("unknown", []),
+            "unknown_files":  classified.get("unknown", []),
             "genome":         genome,
             "organism":       organism,
             "warnings":       warnings,
