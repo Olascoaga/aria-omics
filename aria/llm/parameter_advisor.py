@@ -86,42 +86,54 @@ class MetricEvaluator:
             import numpy as np
             from sklearn.metrics import silhouette_score
 
-            sc.tl.leiden(adata, resolution=resolution, key_added="_eval_leiden")
-            labels = adata.obs["_eval_leiden"].values
+            # Deterministic Leiden seed so repeat evaluations agree.
+            sc.tl.leiden(
+                adata, resolution=resolution,
+                key_added="_eval_leiden", random_state=0,
+            )
+            try:
+                labels = adata.obs["_eval_leiden"].values
 
-            n_clusters   = len(set(labels))
-            cluster_sizes = [sum(labels == l) for l in set(labels)]
-            n_singletons  = sum(1 for s in cluster_sizes if s < 10)
+                n_clusters   = len(set(labels))
+                cluster_sizes = [sum(labels == l) for l in set(labels)]
+                n_singletons  = sum(1 for s in cluster_sizes if s < 10)
 
-            # Silhouette on PCA embedding
-            sil = 0.0
-            if n_clusters > 1 and n_clusters < len(labels):
+                # Silhouette on PCA embedding
+                sil = 0.0
+                if n_clusters > 1 and n_clusters < len(labels):
+                    try:
+                        pca_key = "X_pca" if "X_pca" in adata.obsm else None
+                        if pca_key:
+                            sil = float(silhouette_score(
+                                adata.obsm[pca_key][:, :20], labels,
+                                sample_size=2000, random_state=0,
+                            ))
+                    except Exception:
+                        pass
+
+                # Modularity (from igraph if available)
+                modularity = 0.0
                 try:
-                    pca_key = "X_pca" if "X_pca" in adata.obsm else None
-                    if pca_key:
-                        sil = float(silhouette_score(
-                            adata.obsm[pca_key][:, :20], labels, sample_size=2000
-                        ))
-                except Exception:
+                    import igraph as ig
+                    # Approximate: use scanpy's connectivities
+                    pass  # full implementation in production
+                except ImportError:
                     pass
 
-            # Modularity (from igraph if available)
-            modularity = 0.0
-            try:
-                import igraph as ig
-                # Approximate: use scanpy's connectivities
-                pass  # full implementation in production
-            except ImportError:
-                pass
-
-            return {
-                "n_clusters":        n_clusters,
-                "silhouette":        round(sil, 4),
-                "modularity":        round(modularity, 4),
-                "n_singleton_clusters": n_singletons,
-                "min_cluster_size":  min(cluster_sizes),
-                "max_cluster_size":  max(cluster_sizes),
-            }
+                return {
+                    "n_clusters":        n_clusters,
+                    "silhouette":        round(sil, 4),
+                    "modularity":        round(modularity, 4),
+                    "n_singleton_clusters": n_singletons,
+                    "min_cluster_size":  min(cluster_sizes),
+                    "max_cluster_size":  max(cluster_sizes),
+                }
+            finally:
+                # Don't leave the eval column sitting on the AnnData; the
+                # caller iterates this method N times and we don't want
+                # downstream agents to see a stale resolution.
+                if "_eval_leiden" in adata.obs.columns:
+                    adata.obs.drop(columns="_eval_leiden", inplace=True)
 
         except ImportError:
             log.warning("scanpy not available — using mock metrics")
