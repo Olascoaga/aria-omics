@@ -200,22 +200,26 @@ class DesignAgent(BaseAgent):
         if choice in org_map:
             self._organism, self._genome = org_map[choice]
         else:
+            stripped = choice.strip()
             # Free-text: expect "Species name (assembly)" — e.g. "Gallus gallus (galGal6)"
-            m = _re.match(r'^(.+?)\s*\(([^)]+)\)\s*$', choice.strip())
+            m = _re.match(r'^(.+?)\s*\(([^)]+)\)\s*$', stripped)
             if m:
                 self._organism = m.group(1).strip()
                 self._genome   = m.group(2).strip()
-            elif choice.strip() and not choice.lower().startswith("other"):
+            elif stripped and not stripped.lower().startswith("other"):
                 # Plain organism name without assembly
-                self._organism = choice.strip()
+                self._organism = stripped
                 self._genome   = "unknown"
             else:
-                # Empty input or unrecognised "Other..." string — warn and fall back
+                # Empty input or literal "Other..." sentinel — don't silently
+                # default. Re-publish the organism checkpoint so the user gets
+                # another chance instead of an inferred hg38 they never picked.
                 log.warning(
-                    "Organism free-text was empty or not parseable ('%s'). "
-                    "Defaulting to Homo sapiens / hg38.", choice
+                    "Organism free-text was empty or unparseable ('%s'). "
+                    "Re-asking the user.", choice
                 )
-                self._organism, self._genome = "Homo sapiens", "hg38"
+                self._publish_organism_checkpoint()
+                return {"status": "awaiting_user", "step": "organism"}
 
         self._step = DesignStep.FACTOR
         self._publish_factor_checkpoint()
