@@ -129,15 +129,20 @@ class scRNAAgent(BaseAgent):
                     "findings": findings}
         current_h5ad = cluster_result["output_path"]
 
-        # 4. Annotation (LLM proposes, code stays in charge of mapping) ──
+        # 4. Annotation: CellTypist (code-guarantee) → LLM reinterprets ──
         self.publish_status(experiment_id, "Annotating cell types...", 0.65)
         annotation = self._annotate_cell_types(
             experiment_id,
+            clustered_h5ad=current_h5ad,
             top_markers=cluster_result.get("top_markers", {}),
             exp_ctx=exp_ctx,
             intent=intent,
         )
         findings["cell_types"] = annotation
+        # If CellTypist annotated successfully, downstream scripts can use
+        # the cell_type_celltypist column on the new annotated.h5ad.
+        if annotation.get("annotated_h5ad"):
+            current_h5ad = annotation["annotated_h5ad"]
 
         # 5. DE per cluster (always when ≥2 clusters) ─────────────────────
         if cluster_result.get("n_clusters", 0) >= 2:
@@ -160,7 +165,7 @@ class scRNAAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Cell-cell communication (LIANA)...", 0.92)
             findings["cell_communication"] = self._run_cell_communication(
-                experiment_id, current_h5ad, exp_ctx
+                experiment_id, current_h5ad, exp_ctx, annotation=annotation
             )
 
         self.publish_status(experiment_id, "scRNAAgent complete.", 1.0)
@@ -305,65 +310,201 @@ class scRNAAgent(BaseAgent):
 
         return result, decision
 
-    # ── Cell type annotation (LLM proposes, agent maps) ──────────────────
+    # ── Cell type annotation: CellTypist anchors, LLM reinterprets ───────
+
+    # Tissue keywords → CellTypist tissue_hint. Order matters: most-specific
+    # first so "fetal brain" routes to fetal, not brain.
+    _TISSUE_KEYWORDS = [
+        ("fetal",     ["fetal", "fetus", "prenatal", "embryon"]),
+        ("brain",     ["brain", "cortex", "neuron", "hippocamp", "cerebr"]),
+        ("kidney",    ["kidney", "renal", "nephron"]),
+        ("lung",      ["lung", "pulmonary", "alveol", "bronch"]),
+        ("intestine", ["intestin", "gut", "colon", "ileum"]),
+        ("skin",      ["skin", "epidermis", "dermal"]),
+        ("pbmc",      ["pbmc", "peripheral blood", "blood mononuclear"]),
+        ("immune",    ["immune", "t cell", "b cell", "monocyt", "lymph",
+                       "macrophag", "dendritic", "nk cell"]),
+    ]
+
+    @classmethod
+    def _infer_tissue_hint(cls, exp_ctx: dict, intent: dict) -> str:
+        text = " ".join(filter(None, [
+            intent.get("summary", ""),
+            intent.get("user_question", ""),
+            exp_ctx.get("user_question", ""),
+            " ".join(intent.get("biological_entities", []) or []),
+        ])).lower()
+        for hint, keywords in cls._TISSUE_KEYWORDS:
+            if any(kw in text for kw in keywords):
+                return hint
+        return "immune"  # CellTypist default — Immune_All_Low covers PBMC well
 
     def _annotate_cell_types(self, experiment_id: str,
+                              clustered_h5ad: str,
                               top_markers: dict,
                               exp_ctx: dict, intent: dict) -> dict:
         if not top_markers:
-            return {"cell_types": {}, "markers_used": {}, "n_clusters": 0}
+            return {"cell_types": {}, "markers_used": {}, "n_clusters": 0,
+                    "celltypist": {"ran": False}}
 
-        # Trim to top-20 per cluster for the LLM prompt.
+        # ── Layer 1: CellTypist (database-backed, code-guarantee) ────────
+        tissue_hint = self._infer_tissue_hint(exp_ctx, intent)
+        celltypist_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_celltypist.py",
+            params={
+                "data_path":    clustered_h5ad,
+                "organism":     exp_ctx.get("organism", "Homo sapiens"),
+                "tissue_hint":  tissue_hint,
+                "cluster_col":  "leiden",
+                "majority_voting": True,
+            },
+        )
+
+        # Trim markers for the LLM prompt (independent of CellTypist status).
         markers_for_prompt = {
             str(k): [g for g in (v or [])[:20] if g and str(g) != "nan"]
             for k, v in top_markers.items()
         }
 
-        prompt = f"""
+        # ── Layer 2: LLM reinterprets CellTypist results in biological
+        #            context — does NOT invent labels from markers alone ──
+        if celltypist_result.get("status") == "success":
+            per_cluster = celltypist_result.get("per_cluster", {})
+            celltypist_evidence = json.dumps(per_cluster, indent=2)
+            prompt = f"""
+You are reinterpreting database-backed cell type calls in their biological
+context. CellTypist (model: {celltypist_result.get("model_used")}) produced
+these per-cluster labels for {exp_ctx.get("organism", "?")} data.
+
+Biological question: {intent.get("summary", exp_ctx.get("user_question", "?"))}
+Tissue hint: {tissue_hint}
+
+CellTypist per-cluster results (label = majority-voted, frequency = fraction
+of cluster carrying that label, alt_labels = runner-up labels):
+{celltypist_evidence}
+
+Top marker genes per cluster (for cross-validation):
+{json.dumps(markers_for_prompt, indent=2)}
+
+Return JSON ONLY (no markdown fences):
+{{
+  "cluster_id": {{
+    "cell_type":         "<chosen final label>",
+    "celltypist_label":  "<what celltypist said>",
+    "agrees_with_celltypist": true | false,
+    "confidence":        "high" | "medium" | "low",
+    "rationale":         "<one sentence: why this label, in this tissue>",
+    "key_markers":       ["gene1", "gene2"]
+  }},
+  ...
+}}
+
+Rules:
+- Default to the CellTypist label. Only override if the markers contradict
+  it AND you can justify the override with a specific marker mismatch.
+- HIGH confidence: CellTypist frequency >= 0.85 AND markers consistent.
+- MEDIUM: frequency 0.5-0.85 OR markers partially support.
+- LOW: frequency < 0.5 OR markers contradict — say so explicitly.
+- If you override, set agrees_with_celltypist=false and explain in rationale.
+- Do NOT invent labels not supported by either source.
+"""
+        else:
+            log.warning(
+                f"CellTypist failed ({celltypist_result.get('error_type', '?')}); "
+                f"falling back to LLM-only annotation."
+            )
+            celltypist_evidence = None
+            prompt = f"""
+CellTypist annotation was not available for this run. Annotate clusters
+from marker genes alone — be conservative about confidence.
+
 Organism: {exp_ctx.get("organism", "unknown")}
-Tissue/context: {intent.get("summary", "unknown")}
+Biological question: {intent.get("summary", "unknown")}
 Cluster marker genes (top per cluster):
 {json.dumps(markers_for_prompt, indent=2)}
 
-Annotate each cluster. Return JSON ONLY (no markdown fences, no preamble):
+Return JSON ONLY:
 {{"cluster_id": {{"cell_type": "name", "confidence": "high|medium|low",
-  "key_markers": ["gene1", "gene2"]}}}}
+  "key_markers": ["gene1", "gene2"], "rationale": "<one sentence>"}}}}
 
 Rules:
 - If markers are ambiguous, say "ambiguous — possible types: X, Y"
-- Use established cell type names (T cell, not "T lymphocyte")
-- HIGH confidence: 3+ unambiguous markers
-- MEDIUM: 1-2 markers or tissue context required
-- LOW: no clear markers
+- Without CellTypist evidence, max confidence is MEDIUM.
 """
+
         cell_types: dict = {}
         try:
             raw = self.llm.complete(
                 prompt=prompt, system=SCRNA_SYSTEM,
-                tier=TaskTier.HEAVY, max_tokens=1000,
+                tier=TaskTier.HEAVY, max_tokens=1500,
             )
             cell_types = self._parse_annotation_json(raw)
         except Exception as e:
             log.warning(f"LLM annotation failed: {e}")
 
         if not cell_types:
-            cell_types = {
-                k: {"cell_type": "annotation_failed", "confidence": "low"}
-                for k in markers_for_prompt
-            }
+            # Fall back to raw CellTypist labels if we have them; otherwise mark
+            # as annotation_failed so the report flags it honestly.
+            if celltypist_result.get("status") == "success":
+                cell_types = {
+                    cl: {
+                        "cell_type":               info["label"],
+                        "celltypist_label":        info["label"],
+                        "agrees_with_celltypist":  True,
+                        "confidence":              "medium",
+                        "rationale": (
+                            f"LLM unavailable; using CellTypist label directly "
+                            f"({info['frequency']*100:.0f}% of cluster)."
+                        ),
+                        "key_markers": markers_for_prompt.get(cl, [])[:5],
+                    }
+                    for cl, info in celltypist_result.get("per_cluster", {}).items()
+                }
+            else:
+                cell_types = {
+                    k: {"cell_type": "annotation_failed", "confidence": "low"}
+                    for k in markers_for_prompt
+                }
+
+        # Confidence summary for the bus message.
+        agree_count = sum(
+            1 for v in cell_types.values()
+            if isinstance(v, dict) and v.get("agrees_with_celltypist") is True
+        )
+        labels_preview = [
+            v.get("cell_type", "?") if isinstance(v, dict) else str(v)
+            for v in list(cell_types.values())[:5]
+        ]
 
         self.publish_finding(
             experiment_id,
-            {"summary": f"Annotated {len(markers_for_prompt)} clusters: "
-                        f"{[v.get('cell_type', '?') if isinstance(v, dict) else v for v in list(cell_types.values())[:5]]}",
+            {"summary": (
+                f"Annotated {len(markers_for_prompt)} clusters "
+                f"(CellTypist: {celltypist_result.get('model_used', 'N/A')}, "
+                f"{agree_count}/{len(cell_types)} agree with LLM): "
+                f"{labels_preview}"
+             ),
              "cell_types":   cell_types,
+             "celltypist":   {
+                 "ran":         celltypist_result.get("status") == "success",
+                 "model_used":  celltypist_result.get("model_used"),
+                 "tissue_hint": tissue_hint,
+                 "per_cluster": celltypist_result.get("per_cluster", {}),
+             },
              "markers_used": {k: v[:5] for k, v in markers_for_prompt.items()}},
-            Confidence.MEDIUM,
+            Confidence.HIGH if (
+                celltypist_result.get("status") == "success" and
+                agree_count == len(cell_types)
+            ) else Confidence.MEDIUM,
         )
         return {
-            "cell_types":   cell_types,
-            "markers_used": markers_for_prompt,
-            "n_clusters":   len(markers_for_prompt),
+            "cell_types":     cell_types,
+            "markers_used":   markers_for_prompt,
+            "n_clusters":     len(markers_for_prompt),
+            "celltypist":     celltypist_result,
+            "tissue_hint":    tissue_hint,
+            "annotated_h5ad": celltypist_result.get("output_path"),
         }
 
     @staticmethod
@@ -476,13 +617,21 @@ Rules:
     def _run_trajectory(self, experiment_id: str,
                          clustered_h5ad: str,
                          annotation: dict, intent: dict) -> dict:
+        # Prefer CellTypist labels for group naming if available — the
+        # pseudotime-by-group output is far more interpretable with real
+        # cell type names than with leiden numbers.
+        cell_type_col = (
+            "cell_type_celltypist"
+            if annotation.get("celltypist", {}).get("status") == "success"
+            else "leiden"
+        )
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_trajectory.py",
             params={
                 "data_path":      clustered_h5ad,
                 "root_cell_type": intent.get("root_cell_type"),
-                "cell_type_col":  "leiden",  # use cluster IDs until CellTypist lands
+                "cell_type_col":  cell_type_col,
             },
         )
 
@@ -519,13 +668,22 @@ Rules:
 
     def _run_cell_communication(self, experiment_id: str,
                                  clustered_h5ad: str,
-                                 exp_ctx: dict) -> dict:
+                                 exp_ctx: dict,
+                                 annotation: dict | None = None) -> dict:
+        # Use CellTypist labels as cell type groups when available; falls
+        # back to leiden otherwise. rna_cellcomm.py already auto-falls to
+        # leiden if the requested column is missing.
+        cell_type_col = (
+            "cell_type_celltypist"
+            if (annotation or {}).get("celltypist", {}).get("status") == "success"
+            else "leiden"
+        )
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_cellcomm.py",
             params={
                 "data_path":     clustered_h5ad,
-                "cell_type_col": "leiden",  # until CellTypist writes cell_type
+                "cell_type_col": cell_type_col,
                 "organism":      exp_ctx.get("organism", "Homo sapiens"),
                 "n_perms":       100,
             },
