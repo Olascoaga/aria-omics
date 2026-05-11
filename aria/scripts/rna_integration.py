@@ -71,24 +71,31 @@ def rna_integration(params: dict) -> dict:
         sample_size=min(2000, len(batch_labels)), random_state=seed,
     ))
 
-    # Harmony integration — try scanpy.external first (calls harmonypy under
-    # the hood), then bare harmonypy as a fallback.
-    try:
-        sc.external.pp.harmony_integrate(
-            adata, batch_col,
-            basis="X_pca",
-            adjusted_basis="X_pca_harmony",
-            random_state=seed,
-        )
-        rep = "X_pca_harmony"
-    except Exception:
-        import harmonypy as hm
-        ho = hm.run_harmony(
-            adata.obsm["X_pca"], adata.obs, batch_col,
-            random_state=seed,
-        )
-        adata.obsm["X_pca_harmony"] = ho.Z_corr.T
-        rep = "X_pca_harmony"
+    # Harmony integration — call harmonypy directly. scanpy's
+    # sc.external.pp.harmony_integrate hardcodes `harmony_out.Z_corr.T`,
+    # which is wrong for harmonypy >= 2.0 where Z_corr is already shaped
+    # (n_cells, n_PCs). Doing the assignment ourselves with a shape guard
+    # keeps the script working across harmonypy API revisions.
+    import harmonypy as hm
+    ho = hm.run_harmony(
+        adata.obsm["X_pca"], adata.obs, batch_col,
+        random_state=seed,
+    )
+    Z = ho.Z_corr
+    # Tolerate either (n_cells, n_PCs) [harmonypy >= 2.0] or (n_PCs, n_cells)
+    # [legacy] by transposing only when the first axis isn't the cells axis.
+    if Z.shape[0] != adata.n_obs:
+        Z = Z.T
+    if Z.shape != (adata.n_obs, adata.obsm["X_pca"].shape[1]):
+        return {
+            "status":     "error",
+            "error_type": "HarmonyShapeMismatch",
+            "details":    (f"Z_corr shape {ho.Z_corr.shape} could not be "
+                           f"reconciled with PCA shape "
+                           f"{adata.obsm['X_pca'].shape} / n_obs={adata.n_obs}"),
+        }
+    adata.obsm["X_pca_harmony"] = Z
+    rep = "X_pca_harmony"
 
     sil_after = float(silhouette_score(
         adata.obsm[rep][:, :20], batch_labels,
