@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.1-blue)
+![Version](https://img.shields.io/badge/version-4.3.1-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -71,8 +71,8 @@ GenomeArchAgent                    done
   hic_qc_and_balance.py            done
   hic_topology.py (out-of-core)    done
 NarrativeAgent (HTML report)       done  ✓ paper theme
-IntegrationAgent (WNN + MOFA+)     building
-GEO/SRA connectors                 planned
+IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
+GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
 **End-to-end validated** on human H9 cells (bulk RNA-seq, 3 conditions × 3 replicates):
@@ -269,12 +269,13 @@ ARIA_DEV_PROVIDER=gemini   # free tier — or "ollama" for local GPU
 ## Roadmap
 
 ```
-v4.0  done     DesignAgent, all pairwise contrasts, paper-theme reports
-v4.1  done     AuditAgent — quality linter gates dispatch before DESeq2
-v4.2  next     GEO/SRA connector — analyze public datasets by accession
-v4.3           IntegrationAgent (WNN + MOFA+), multimodal reports
-v4.4           Interactive HTML report (sortable tables, plotly figures)
-v5.0           Docker image, HPC support, bioRxiv preprint
+v4.0     done     DesignAgent, all pairwise contrasts, paper-theme reports
+v4.1     done     AuditAgent — quality linter gates dispatch before DESeq2
+v4.2/4.3 done     GEO/SRA connector — analyze public datasets by accession
+v4.3.1   done     Hardening: thread-safe bus/memory, prompt cache, exp logs
+v4.4     next     IntegrationAgent end-to-end validation (WNN + MOFA+)
+v4.5              Interactive HTML report (sortable tables, plotly figures)
+v5.0              Docker image, HPC support, bioRxiv preprint
 ```
 
 ---
