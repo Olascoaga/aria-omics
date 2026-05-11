@@ -7,6 +7,8 @@ Only NarrativeAgent outputs are decompressed for the user.
 """
 
 from __future__ import annotations
+import threading
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -77,52 +79,73 @@ class MessageBus:
     The bus logs every message for full traceability.
     """
 
-    def __init__(self):
+    # Maximum messages kept in memory. Old messages are evicted (FIFO).
+    # 100k covers very long sessions; each Message is small (~1-2KB).
+    MAX_LOG_SIZE = 100_000
+
+    def __init__(self, max_log_size: int = None):
         self._subscribers: dict[str, list] = {}
-        self._log:         list[Message]   = []
-        self._agents:      dict[str, Any]  = {}
+        self._log: deque[Message] = deque(
+            maxlen=max_log_size or self.MAX_LOG_SIZE
+        )
+        self._agents: dict[str, Any] = {}
+        self._lock = threading.RLock()
 
     def register(self, agent_name: str, agent_instance: Any):
-        self._agents[agent_name] = agent_instance
-        self._subscribers.setdefault(agent_name, [])
+        with self._lock:
+            self._agents[agent_name] = agent_instance
+            self._subscribers.setdefault(agent_name, [])
 
     def publish(self, message: Message) -> None:
-        self._log.append(message)
-        receiver = message.receiver
-        if receiver == "all":
-            for name, agent in self._agents.items():
-                if name != message.sender and hasattr(agent, "receive"):
-                    agent.receive(message)
-        elif receiver in self._agents:
-            agent = self._agents[receiver]
+        # Snapshot receivers under the lock, then dispatch outside it so a
+        # slow agent.receive() cannot block other publishers.
+        with self._lock:
+            self._log.append(message)
+            receiver = message.receiver
+            if receiver == "all":
+                targets = [(n, a) for n, a in self._agents.items()
+                           if n != message.sender]
+            elif receiver in self._agents:
+                targets = [(receiver, self._agents[receiver])]
+            else:
+                targets = []
+
+        for _name, agent in targets:
             if hasattr(agent, "receive"):
                 agent.receive(message)
 
     def get_log(self, experiment_id: str = None) -> list[Message]:
+        with self._lock:
+            snapshot = list(self._log)
         if experiment_id:
-            return [m for m in self._log if m.experiment_id == experiment_id]
-        return self._log
+            return [m for m in snapshot if m.experiment_id == experiment_id]
+        return snapshot
 
     def get_findings(self, experiment_id: str) -> list[Message]:
+        with self._lock:
+            snapshot = list(self._log)
         return [
-            m for m in self._log
+            m for m in snapshot
             if m.type == MessageType.FINDING
             and m.experiment_id == experiment_id
         ]
 
     def get_pending_checkpoints(self) -> list[Message]:
+        with self._lock:
+            snapshot = list(self._log)
         return [
-            m for m in self._log
+            m for m in snapshot
             if m.type == MessageType.ESCALATION
             and m.payload.get("resolved") is not True
         ]
 
     def resolve_checkpoint(self, message_id: str, user_decision: dict) -> None:
-        for m in self._log:
-            if m.id == message_id and m.type == MessageType.ESCALATION:
-                m.payload["resolved"]        = True
-                m.payload["user_decision"]   = user_decision
-                break
+        with self._lock:
+            for m in self._log:
+                if m.id == message_id and m.type == MessageType.ESCALATION:
+                    m.payload["resolved"]      = True
+                    m.payload["user_decision"] = user_decision
+                    break
 
 
 # Global bus instance — imported by all agents
