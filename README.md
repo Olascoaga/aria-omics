@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.1-blue)
+![Version](https://img.shields.io/badge/version-4.3.2-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -60,9 +60,16 @@ AuditAgent (quality linter, v4.1)  done
 BulkRNAAgent (DESeq2)              done  ✓ H9 BMAL1/REV-ERBα
   rna_bulk_de.py                   done
   rna_pathway_viz.py               done
-scRNAAgent                         done  ✓ PBMC 3k
-  rna_qc.py  (MAD + stress ctx)    done
+scRNAAgent                         done  ✓ PBMC 3k + GSE278576 hippocampus
+  rna_qc.py  (MAD + Scrublet)      done
+  rna_advise_resolution.py         done
   rna_clustering.py (Leiden)       done
+  rna_celltypist.py                done
+  rna_de_per_cluster.py            done
+  rna_pathway_per_cluster.py       done
+  rna_integration.py (Harmony)     done — single-batch only; multi-batch TBD
+  rna_trajectory.py (PAGA+DPT)     scaffolded — not yet end-to-end validated
+  rna_cellcomm.py (LIANA)          scaffolded — not yet end-to-end validated
 ChromatinAgent                     done
   chromatin_qc.py                  done
   chromatin_peaks.py (MACS3)       done
@@ -75,11 +82,22 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-**End-to-end validated** on human H9 cells (bulk RNA-seq, 3 conditions × 3 replicates):
+**End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
 - All pairwise contrasts generated: BMAL1 vs WT, REV-ERBα vs WT, BMAL1 vs REV-ERBα
 - DESeq2 + ORA (GO_BP, KEGG, Reactome) + GSEA per contrast
 - Publication-ready HTML report with embedded volcano plots and pathway dotplots
+
+**End-to-end validated on scRNA-seq** (v4.3.2) — `tests/test_scrna_e2e.py`:
+
+- **PBMC 3k** → `Immune_All_Low` CellTypist model: T helper, classical monocytes,
+  CD16⁺ NK, B cells (4 clusters at Leiden 0.2, silhouette 0.36). Per-cluster ORA
+  recovers expected biology (B cells → MHC II antigen presentation; monocytes →
+  neutrophil degranulation; NK → cytotoxicity).
+- **GSE278576 hippocampus (hc11)** → `Adult_Human_PrefrontalCortex` model: OPC,
+  Oligo, Astro, Micro, InN VIP (5 clusters at Leiden 0.2, silhouette 0.60).
+  Per-cluster ORA: chemical synaptic transmission, glutamatergic synapse, axon
+  development.
 
 ---
 
@@ -273,6 +291,7 @@ v4.0     done     DesignAgent, all pairwise contrasts, paper-theme reports
 v4.1     done     AuditAgent — quality linter gates dispatch before DESeq2
 v4.2/4.3 done     GEO/SRA connector — analyze public datasets by accession
 v4.3.1   done     Hardening: thread-safe bus/memory, prompt cache, exp logs
+v4.3.2   done     scRNA end-to-end validated; rna_qc handles raw 10x matrices
 v4.4     next     IntegrationAgent end-to-end validation (WNN + MOFA+)
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
