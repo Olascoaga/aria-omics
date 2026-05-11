@@ -213,21 +213,90 @@ class ParameterAdvisor:
     def __init__(self, memory: ARIAMemory, llm: LLMProvider):
         self.memory = memory
         self.llm    = llm
+        # Lazy: env_manager only needed when callers use data_path mode.
+        self._env = None
+
+    def _get_env(self):
+        if self._env is None:
+            from aria.utils.environment_manager import env_manager
+            self._env = env_manager
+        return self._env
+
+    def _evaluate_via_subprocess(
+        self,
+        data_path:          str,
+        resolutions:        list[float],
+        biological_context: dict,
+    ) -> list[ParameterCandidate]:
+        """
+        Run rna_advise_resolution.py inside aria-rna-env to score each
+        resolution. Returns ParameterCandidate list ranked by score.
+        """
+        result = self._get_env().run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_advise_resolution.py",
+            params={
+                "data_path":   data_path,
+                "resolutions": list(resolutions),
+            },
+        )
+        if result.get("status") != "success":
+            log.warning(
+                f"advise_resolution subprocess failed "
+                f"({result.get('error_type', '?')}): "
+                f"{result.get('details', result.get('reason', ''))[:200]}"
+            )
+            # Fall back to mock metrics so the user still sees a CP3
+            # instead of a hard crash.
+            return [
+                ParameterCandidate(
+                    value=val,
+                    metrics=MetricEvaluator._mock_metrics(val),
+                    flags=["subprocess evaluation failed — using heuristic"],
+                    score=self._score_leiden(
+                        MetricEvaluator._mock_metrics(val), biological_context
+                    ),
+                )
+                for val in resolutions
+            ]
+
+        candidates: list[ParameterCandidate] = []
+        for entry in result.get("candidates", []):
+            metrics = {
+                "n_clusters":           entry.get("n_clusters", 0),
+                "silhouette":           entry.get("silhouette", 0.0),
+                "modularity":           0.0,  # not computed in subprocess yet
+                "n_singleton_clusters": entry.get("n_singleton_clusters", 0),
+                "min_cluster_size":    entry.get("min_cluster_size", 0),
+                "max_cluster_size":    entry.get("max_cluster_size", 0),
+            }
+            flags = self._flag_leiden_issues(entry["resolution"], metrics)
+            score = self._score_leiden(metrics, biological_context)
+            candidates.append(ParameterCandidate(
+                value=entry["resolution"],
+                metrics=metrics, flags=flags, score=score,
+            ))
+        return candidates
 
     # ── Public advisors ───────────────────────────────────────────────────
 
     def advise_leiden_resolution(
         self,
-        adata,
         experiment_id:      str,
         biological_context: dict,
+        data_path:          str = None,
+        adata=None,
         n_candidates:       int = 4,
     ) -> ParameterDecision:
         """
         Advise on Leiden clustering resolution.
         Layer 1: constrain range from biological intent
-        Layer 2: evaluate candidates with silhouette + modularity
+        Layer 2: evaluate candidates with silhouette (via aria-rna-env script)
         Layer 3: check lab memory for similar experiments
+
+        Either `data_path` (preferred, subprocess isolation) or `adata`
+        (legacy, in-process scanpy) must be provided. data_path is required
+        when the caller is in a conda env that does not have scanpy.
         """
         # Layer 1: intent-constrained search space
         search_range = self._intent_to_leiden_range(biological_context)
@@ -240,15 +309,25 @@ class ParameterAdvisor:
             f"(intent: {biological_context.get('analysis_type', '?')})"
         )
 
-        # Layer 2: evaluate each candidate
-        candidates = []
-        for val in candidates_values:
-            metrics = MetricEvaluator.leiden_resolution(adata, val)
-            flags   = self._flag_leiden_issues(val, metrics)
-            score   = self._score_leiden(metrics, biological_context)
-            candidates.append(ParameterCandidate(
-                value=val, metrics=metrics, flags=flags, score=score
-            ))
+        # Layer 2: evaluate candidates
+        candidates: list[ParameterCandidate] = []
+        if data_path is not None:
+            candidates = self._evaluate_via_subprocess(
+                data_path, candidates_values, biological_context
+            )
+        elif adata is not None:
+            for val in candidates_values:
+                metrics = MetricEvaluator.leiden_resolution(adata, val)
+                flags   = self._flag_leiden_issues(val, metrics)
+                score   = self._score_leiden(metrics, biological_context)
+                candidates.append(ParameterCandidate(
+                    value=val, metrics=metrics, flags=flags, score=score
+                ))
+        else:
+            raise ValueError(
+                "advise_leiden_resolution requires either data_path "
+                "(preferred) or adata (legacy)."
+            )
 
         # Layer 3: memory-informed recommendation
         historical = self._recall_similar_decisions(
