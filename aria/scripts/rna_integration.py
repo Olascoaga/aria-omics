@@ -36,6 +36,7 @@ def rna_integration(params: dict) -> dict:
     data_path  = params["data_path"]
     batch_col  = params.get("batch_col", "batch")
     output_dir = params.get("output_dir", str(Path(data_path).parent))
+    seed       = int(params.get("seed", 0))
 
     adata = sc.read_h5ad(data_path)
 
@@ -48,42 +49,56 @@ def rna_integration(params: dict) -> dict:
         return {"status": "skipped",
                 "reason":  "only one batch — no integration needed"}
 
-    # Ensure PCA is present
+    # Ensure PCA is present. Preserve raw before HVG subsetting so downstream
+    # DE / pathway / cell-comm can still address non-HVG genes.
     if "X_pca" not in adata.obsm:
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
+        if adata.raw is None:
+            adata.raw = adata
         sc.pp.highly_variable_genes(adata, n_top_genes=3000, subset=True)
         sc.pp.scale(adata, max_value=10)
-        sc.tl.pca(adata, svd_solver="arpack", n_comps=50)
+        sc.tl.pca(adata, svd_solver="arpack", n_comps=50, random_state=seed)
 
-    # Silhouette score — measures batch separation (lower is better after correction)
+    # Silhouette score — batch separation (lower is better AFTER correction).
     from sklearn.metrics import silhouette_score
     from sklearn.preprocessing import LabelEncoder
     le = LabelEncoder()
     batch_labels = le.fit_transform(adata.obs[batch_col].astype(str))
     pca20 = adata.obsm["X_pca"][:, :20]
-    sil_before = float(silhouette_score(pca20, batch_labels))
+    sil_before = float(silhouette_score(
+        pca20, batch_labels,
+        sample_size=min(2000, len(batch_labels)), random_state=seed,
+    ))
 
-    # Harmony integration
+    # Harmony integration — try scanpy.external first (calls harmonypy under
+    # the hood), then bare harmonypy as a fallback.
     try:
         sc.external.pp.harmony_integrate(
             adata, batch_col,
             basis="X_pca",
             adjusted_basis="X_pca_harmony",
+            random_state=seed,
         )
         rep = "X_pca_harmony"
     except Exception:
-        # Direct harmonypy fallback
         import harmonypy as hm
-        ho = hm.run_harmony(adata.obsm["X_pca"], adata.obs, batch_col)
+        ho = hm.run_harmony(
+            adata.obsm["X_pca"], adata.obs, batch_col,
+            random_state=seed,
+        )
         adata.obsm["X_pca_harmony"] = ho.Z_corr.T
         rep = "X_pca_harmony"
 
-    sil_after = float(silhouette_score(adata.obsm[rep][:, :20], batch_labels))
+    sil_after = float(silhouette_score(
+        adata.obsm[rep][:, :20], batch_labels,
+        sample_size=min(2000, len(batch_labels)), random_state=seed,
+    ))
 
-    # Recompute graph + UMAP on corrected embedding
-    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=30)
-    sc.tl.umap(adata)
+    # Recompute graph + UMAP on corrected embedding.
+    sc.pp.neighbors(adata, use_rep=rep, n_neighbors=15, n_pcs=30,
+                    random_state=seed)
+    sc.tl.umap(adata, random_state=seed)
 
     output_path = str(Path(output_dir) / "integrated.h5ad")
     adata.write_h5ad(output_path)
