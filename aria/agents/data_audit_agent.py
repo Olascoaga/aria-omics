@@ -135,8 +135,10 @@ class DataAuditAgent(BaseAgent):
         "validates experimental design, triggers Checkpoint 1."
     )
 
-    def __init__(self, memory: ARIAMemory, api_key: str = None):
-        super().__init__(memory, api_key)
+    def __init__(self, memory: ARIAMemory,
+                 llm=None,
+                 api_key: str = None):
+        super().__init__(memory, llm=llm, api_key=api_key)
 
     def run(self, experiment_id: str, context: dict) -> dict:
         """

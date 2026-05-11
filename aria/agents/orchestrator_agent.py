@@ -125,8 +125,7 @@ class OrchestratorAgent(BaseAgent):
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider = None,
                  api_key: str = None):
-        super().__init__(memory, api_key)
-        self.llm                   = llm or LLMProvider.from_config()
+        super().__init__(memory, llm=llm, api_key=api_key)
         self._pending_checkpoints  = {}
         self._experiment_plans     = {}
         self._agent_results        = {}
