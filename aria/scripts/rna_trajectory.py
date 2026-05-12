@@ -109,12 +109,43 @@ def rna_trajectory(params: dict) -> dict:
         sc.tl.diffmap(adata)
 
         # Root selection
+        #
+        # Order of preference:
+        #   1. Explicit `root_cell_type` from the caller (user / intent).
+        #   2. Auto-detect a progenitor-like cell type from common markers
+        #      (OPC, NSC, NPC, GMP, MPP, HSC, stem, progenitor, ...). This
+        #      avoids the v4.3.10 hippocampus failure where "min complexity"
+        #      selected mature Oligo as root and inverted OPC→Oligo lineage.
+        #   3. Last-resort heuristic: cell with fewest genes ("min complexity").
+        PROGENITOR_TOKENS = (
+            "opc", "nsc", "npc", "rgl", "rg ", "gmp", "mpp", "hsc",
+            "stem", "progenitor", "precursor",
+        )
         root_used = "auto"
         if root_cell_type and cell_type_col in adata.obs.columns:
             mask = adata.obs[cell_type_col] == root_cell_type
             if mask.sum() > 0:
                 adata.uns["iroot"] = int(np.where(mask)[0][0])
                 root_used = root_cell_type
+        if "iroot" not in adata.uns and cell_type_col in adata.obs.columns:
+            labels = [
+                str(x) for x in adata.obs[cell_type_col].unique() if x
+            ]
+            # Prefer the largest progenitor cluster so root pseudotime is
+            # statistically meaningful — small contaminants are skipped.
+            best_label = None
+            best_size  = -1
+            for lab in labels:
+                lab_lc = lab.lower()
+                if any(tok in lab_lc for tok in PROGENITOR_TOKENS):
+                    n = int((adata.obs[cell_type_col] == lab).sum())
+                    if n > best_size:
+                        best_size = n
+                        best_label = lab
+            if best_label is not None:
+                mask = adata.obs[cell_type_col] == best_label
+                adata.uns["iroot"] = int(np.where(mask)[0][0])
+                root_used = f"auto (progenitor match: {best_label})"
         if "iroot" not in adata.uns:
             # Heuristic: cell with fewest genes (least differentiated)
             if "n_genes_by_counts" in adata.obs.columns:
