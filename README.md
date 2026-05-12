@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.8-blue)
+![Version](https://img.shields.io/badge/version-4.3.9-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -353,6 +353,9 @@ v4.3.7   done     Cell-cell communication (LIANA) E2E + autocrine
                   exclusion + adaptive rank-metric fallback
 v4.3.8   done     TUI/Orchestrator → NarrativeAgent shape normalisation:
                   the path is now end-to-end ready for scRNA reports
+v4.3.9   done     Pseudobulk DE between conditions auto-dispatched on
+                  comparison intent — TUI now runs aging / treatment
+                  contrasts per cell type in one shot
 v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module
