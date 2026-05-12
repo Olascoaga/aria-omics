@@ -275,10 +275,11 @@ class scRNAAgent(BaseAgent):
                                        f"— {sample_result.get('details', '')[:200]}"),
                         "failed_sample": sid}
             per_sample.append({
-                "sample_id":     sid,
-                "n_cells_after": sample_result.get("n_cells_after", 0),
-                "pct_removed":   sample_result.get("pct_removed", 0),
-                "scrublet":      sample_result.get("scrublet", {}),
+                "sample_id":      sid,
+                "n_cells_before": sample_result.get("n_cells_before", 0),
+                "n_cells_after":  sample_result.get("n_cells_after", 0),
+                "pct_removed":    sample_result.get("pct_removed", 0),
+                "scrublet":       sample_result.get("scrublet", {}),
             })
             manifest.append({
                 "path":      sample_result["output_path"],
@@ -313,14 +314,27 @@ class scRNAAgent(BaseAgent):
             Confidence.HIGH,
         )
 
+        # Aggregate per-sample counts so downstream report consumers
+        # (narrative_agent QC table, _narrative_scrna.summarize_scrna_text)
+        # can show "before → after" without special-casing the multi-sample
+        # shape.
+        n_before_total = sum(int(p.get("n_cells_before", 0)) for p in per_sample)
+        n_after_total  = sum(int(p.get("n_cells_after",  0)) for p in per_sample)
+        pct_removed    = (
+            round(100.0 * (n_before_total - n_after_total) / n_before_total, 2)
+            if n_before_total else 0.0
+        )
         return {
-            "status":        "success",
-            "output_path":   concat_result["output_path"],
-            "n_samples":     len(files),
-            "n_cells_total": n_total,
+            "status":         "success",
+            "output_path":    concat_result["output_path"],
+            "n_samples":      len(files),
+            "n_cells_before": n_before_total,
+            "n_cells_after":  n_after_total,
+            "n_cells_total":  n_total,
+            "pct_removed":    pct_removed,
             "n_genes_shared": concat_result.get("n_genes_shared"),
-            "per_sample":    per_sample,
-            "batch_col":     concat_result.get("batch_col", "batch"),
+            "per_sample":     per_sample,
+            "batch_col":      concat_result.get("batch_col", "batch"),
         }
 
     def _qc_single(self, experiment_id: str, path: str,
