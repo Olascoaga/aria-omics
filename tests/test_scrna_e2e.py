@@ -144,6 +144,9 @@ def main() -> int:
                           "chain). e.g. '80-100:20-39;60-79:20-39'"))
     ap.add_argument("--pseudobulk-covariates", default="",
                     help="comma-separated obs columns for the design formula")
+    ap.add_argument("--emit-html", action="store_true",
+                    help=("After stages succeed, render the NarrativeAgent "
+                          "HTML report into <workspace>/report/"))
     args = ap.parse_args()
 
     inputs    = _expand_inputs(args.data)
@@ -410,7 +413,7 @@ def main() -> int:
                       f"{info.get('n_significant', 0)} sig pathways "
                       f"({top_str}){RST}")
 
-    return _save_and_exit(report, workspace, 0)
+    return _save_and_exit(report, workspace, 0, args=args)
 
 
 def _run_pseudobulk_flow(args, h5ad: Path, workspace: Path,
@@ -512,7 +515,7 @@ def _run_pseudobulk_flow(args, h5ad: Path, workspace: Path,
 
     if not de_for_ora:
         warn("No significant pseudobulk hits to pathway-enrich.")
-        return _save_and_exit(report, workspace, 0)
+        return _save_and_exit(report, workspace, 0, args=args)
 
     pw = step("2. rna_pathway_per_cluster.py (per group×comparison)",
               lambda: env_manager.run_in_stack(
@@ -543,10 +546,84 @@ def _run_pseudobulk_flow(args, h5ad: Path, workspace: Path,
                   f"{info.get('n_significant', 0)} sig pathways "
                   f"({top_str}){RST}")
 
-    return _save_and_exit(report, workspace, 0)
+    return _save_and_exit(report, workspace, 0, args=args)
 
 
-def _save_and_exit(report: dict, workspace: Path, code: int) -> int:
+def _emit_narrative_report(report: dict, workspace: Path, args) -> None:
+    """
+    Render the NarrativeAgent HTML report from the freshly-completed
+    e2e_report. Stub the LLM + bus so the harness stays subprocess-only.
+    """
+    from aria.scripts.rna_narrative_adapter import adapt
+    from aria.agents import _narrative_scrna
+    from aria.agents.narrative_agent import NarrativeAgent
+    from aria.llm.provider import TaskTier
+    from aria.utils.environment_manager import env_manager as _envm
+
+    banner("7. NarrativeAgent — HTML report")
+    report_dir = workspace / "report"
+    figures_dir = report_dir / "figures"
+    report_dir.mkdir(parents=True, exist_ok=True)
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    bundle = adapt(report, workspace=workspace)
+    scrna_envelope = bundle["agent_results"]["scrna_agent"]
+    findings = scrna_envelope["findings"]["scRNA"]["findings"]
+    h5ad_path = scrna_envelope.get("output_h5ad")
+    print(f"    {DIM}h5ad for figures: {h5ad_path}{RST}")
+
+    t0 = time.perf_counter()
+    _narrative_scrna.generate_figures(
+        findings,
+        h5ad_path=h5ad_path,
+        output_dir=figures_dir,
+        env_manager=_envm,
+    )
+    figs = findings.get("figures") or {}
+    print(f"    {DIM}figures: "
+          f"{sum(1 for k in figs if k.startswith('umap_'))} UMAPs, "
+          f"{1 if 'per_celltype_de_bar' in figs else 0} DE bar, "
+          f"{len(figs.get('pathway_dotplots') or {})} pathway blocks "
+          f"({time.perf_counter()-t0:.1f}s){RST}")
+
+    class _StubLLM:
+        def complete(self, prompt, system="", tier=TaskTier.MEDIUM,
+                     max_tokens=400, **kw):
+            raise RuntimeError("LLM stubbed in harness")
+
+    class _StubMemory:
+        def get_decisions(self, experiment_id):
+            return []
+        def __getattr__(self, name):
+            return lambda *a, **kw: None
+
+    agent = NarrativeAgent.__new__(NarrativeAgent)
+    agent.name        = "narrative_agent"
+    agent.memory      = _StubMemory()
+    agent.llm         = _StubLLM()
+    agent.reports_dir = report_dir
+
+    from aria.bus.message_bus import bus as _bus
+    _bus.register(agent.name, agent)
+
+    exp_id = f"e2e_{int(time.time())}"
+    result = agent.run(exp_id, {
+        "exp_context":       bundle["exp_context"],
+        "biological_intent": bundle["intent"],
+        "agent_results":     bundle["agent_results"],
+        "findings":          bundle["findings_list"],
+    })
+
+    ok(f"HTML report: {result.get('report_path')}")
+    report["narrative"] = {
+        "status":      result.get("status"),
+        "report_path": result.get("report_path"),
+        "figures":     figs,
+    }
+
+
+def _save_and_exit(report: dict, workspace: Path, code: int,
+                   args=None) -> int:
     out = workspace / "e2e_report.json"
     with open(out, "w") as f:
         json.dump(report, f, indent=2, default=str)
@@ -559,6 +636,17 @@ def _save_and_exit(report: dict, workspace: Path, code: int) -> int:
     print(f"\n{DIM}Report: {out}{RST}")
     if code == 0:
         print(f"{GRN}{BLD}✓ E2E validation PASSED{RST}\n")
+        if args is not None and getattr(args, "emit_html", False):
+            try:
+                _emit_narrative_report(report, workspace, args)
+                # Re-save now that report["narrative"] is populated
+                with open(out, "w") as f:
+                    json.dump(report, f, indent=2, default=str)
+            except Exception as e:
+                import traceback
+                fail("NarrativeAgent emission failed",
+                     f"{type(e).__name__}: {e}\n{traceback.format_exc()}")
+                return 2
     else:
         print(f"{RED}{BLD}✗ E2E validation FAILED — first failure above{RST}\n")
     return code
