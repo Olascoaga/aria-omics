@@ -38,6 +38,24 @@ from typing import Optional
 log = logging.getLogger("aria.narrative.scrna")
 
 
+# ── Shape normalisation ───────────────────────────────────────────────────
+
+def unwrap_scrna_findings(agent_result: dict) -> dict:
+    """
+    Return the scRNA findings dict from a scrna_agent envelope, robust to
+    both shapes that exist in the codebase:
+
+        - Adapter / multimodal-wrapped:  {findings: {scRNA: {findings: {...}}}}
+        - scrna_agent.run() direct:      {findings: {qc, clustering, ...}}
+
+    Without this helper the TUI / Orchestrator path silently returns empty
+    findings (the inner scRNA wrapper does not exist on the direct emit).
+    """
+    f = agent_result.get("findings", {}) or {}
+    wrapped = (f.get("scRNA", {}) or {}).get("findings", {}) or {}
+    return wrapped or f
+
+
 # ── Text summaries ────────────────────────────────────────────────────────
 
 def summarize_scrna_text(findings: dict) -> str:

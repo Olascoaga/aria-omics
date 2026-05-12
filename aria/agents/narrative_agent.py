@@ -315,8 +315,10 @@ power for small-effect genes."
         # scRNA
         sc = agent_results.get("scrna_agent", {})
         if sc.get("status") == "done":
+            from aria.agents import _narrative_scrna
+            sc_f = _narrative_scrna.unwrap_scrna_findings(sc)
+            # Keep f around for legacy fallback keys (n_cells_after_qc etc.)
             f    = sc.get("findings", {}) or {}
-            sc_f = f.get("scRNA", {}).get("findings", {}) or f
             qc   = sc_f.get("qc", {}) or {}
             clus = sc_f.get("clustering_decision", {}) or {}
             n_cells    = qc.get("n_cells_after") or f.get("n_cells_after_qc", "?")
@@ -565,13 +567,12 @@ power for small-effect genes."
                 )
 
         # Single-cell RNA methods (delegated to _narrative_scrna for full
-        # pseudobulk/standard handling)
+        # pseudobulk/standard/trajectory/cellcomm handling)
         scrna = agent_results.get("scrna_agent",
                                     agent_results.get("rna_agent", {}))
         if scrna.get("status") == "done":
             from aria.agents import _narrative_scrna
-            sc_findings = (scrna.get("findings", {}) or {}) \
-                          .get("scRNA", {}).get("findings", {}) or {}
+            sc_findings = _narrative_scrna.unwrap_scrna_findings(scrna)
             scrna_methods = _narrative_scrna.build_scrna_methods(sc_findings)
             if scrna_methods:
                 lines.append(f"\n**Single-cell RNA-seq**\n")
@@ -814,9 +815,10 @@ power for small-effect genes."
     def _summarize_rna(self, rna_result: dict,
                         grouped: dict) -> str:
         from aria.agents import _narrative_scrna
-        findings = rna_result.get("findings", {})
-        sc       = findings.get("scRNA", {}).get("findings", {})
-        # Delegate to the scRNA module: it knows about pseudobulk + standard.
+        # Delegate to the scRNA module: it knows about pseudobulk + standard
+        # + trajectory + cellcomm. unwrap_scrna_findings is robust to both
+        # the adapter (wrapped) and direct scrna_agent.run() (unwrapped) shapes.
+        sc = _narrative_scrna.unwrap_scrna_findings(rna_result)
         return _narrative_scrna.summarize_scrna_text(sc)
 
     def _summarize_chromatin(self, chrom_result: dict,
@@ -1331,8 +1333,8 @@ power for small-effect genes."
             # scRNA
             sc = agent_results.get("scrna_agent", {})
             if sc.get("status") == "done":
-                sc_f = (sc.get("findings", {}) or {}).get("scRNA", {}) \
-                         .get("findings", {}) or {}
+                from aria.agents import _narrative_scrna as _ns
+                sc_f = _ns.unwrap_scrna_findings(sc)
                 qc   = sc_f.get("qc", {}) or {}
                 n_b  = qc.get("n_cells_before", "?")
                 n_a  = qc.get("n_cells_after", "?")
@@ -1454,8 +1456,9 @@ power for small-effect genes."
                 from aria.agents import _narrative_scrna
                 sc_envelope = agent_results.get("scrna_agent") or \
                               agent_results.get("rna_agent", {})
-                sc_findings = (sc_envelope.get("findings", {}) or {}) \
-                              .get("scRNA", {}).get("findings", {}) or {}
+                sc_findings = _narrative_scrna.unwrap_scrna_findings(
+                    sc_envelope
+                )
                 plot_html = _narrative_scrna.build_scrna_html_section(
                     sc_findings
                 )
