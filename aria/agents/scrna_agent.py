@@ -166,6 +166,27 @@ class scRNAAgent(BaseAgent):
                     experiment_id, de_result, exp_ctx
                 )
 
+        # 5c. Pseudobulk DE between conditions ────────────────────────────
+        # Triggered when DesignAgent identified ≥2 biological groups AND the
+        # user's question carries comparison intent (aging, treatment vs
+        # control, etc.). This makes the TUI path emit the same kind of
+        # per-cell-type between-condition DE that v4.3.4's harness produces.
+        if self._needs_pseudobulk(intent, exp_ctx):
+            self.publish_status(experiment_id,
+                                "Pseudobulk DE between conditions...", 0.84)
+            pb_result = self._run_pseudobulk(
+                experiment_id, current_h5ad, exp_ctx, intent, annotation
+            )
+            if pb_result.get("status") == "success":
+                findings["pseudobulk_de"] = pb_result.get("pseudobulk_de")
+                pwp = pb_result.get("pseudobulk_pathways")
+                if pwp:
+                    findings["pseudobulk_pathways"] = pwp
+            elif pb_result.get("status") == "skipped":
+                log.info(
+                    f"Pseudobulk skipped: {pb_result.get('reason', '?')}"
+                )
+
         # 6. Trajectory (developmental / time-course intent) ──────────────
         if self._needs_trajectory(intent):
             self.publish_status(experiment_id,
@@ -796,6 +817,213 @@ Rules:
             Confidence.INSUFFICIENT,
         )
         return result
+
+    # ── Pseudobulk DE between conditions ─────────────────────────────────
+
+    PSEUDOBULK_KEYWORDS = (
+        # Aging / time
+        "aging", "age", "young", "old", "lifespan", "senescen",
+        # Comparison / contrast verbs
+        "compare", "comparison", "contrast", "between", "differential",
+        "differentially expressed", "deg", "versus", " vs ", "vs.",
+        # Disease vs healthy
+        "disease", "disorder", "healthy", "control", "wildtype", "wild-type",
+        # Treatment / perturbation
+        "treatment", "treated", "untreated", "perturb", "stimulus",
+        "knockout", "knock-out", "knockdown", "ko ", "wt ",
+        # Common biological contrasts
+        "tumor", "normal", "responder", "non-responder",
+    )
+
+    def _needs_pseudobulk(self, intent: dict, exp_ctx: dict) -> bool:
+        """
+        True when DesignAgent identified ≥2 biological groups (the
+        prerequisite for any between-condition DE) AND the user's intent
+        carries comparison semantics. Conservative: returns False if either
+        side is missing — we never run a between-condition test against a
+        single group, and we don't surprise the user with extra compute
+        when the question is purely descriptive (cell-type characterisation).
+        """
+        design = (exp_ctx or {}).get("design", {}) or {}
+        groups = design.get("groups", {}) or {}
+        if len(groups) < 2:
+            return False
+        # Need ≥2 samples per group (pseudobulk requires biological reps)
+        if not all(len(s) >= 2 for s in groups.values()):
+            return False
+        text = (
+            (intent.get("summary", "") or "") + " "
+            + " ".join(intent.get("biological_entities", []) or [])
+            + " " + (exp_ctx.get("user_question", "") or "")
+        ).lower()
+        return any(kw in text for kw in self.PSEUDOBULK_KEYWORDS)
+
+    def _inject_condition_obs(self, h5ad_in: str, design: dict,
+                                output_path: str) -> dict:
+        """
+        Write a copy of `h5ad_in` with `obs[main_factor]` populated from
+        the sample_id → group mapping in `design.groups`. The cell-level
+        sample column is preferred from obs in this priority:
+        `sample_id` (set by rna_concat) → `batch` → `orig.ident`.
+
+        Returns:
+            {"status": "success" | "skipped" | "error",
+             "output_path": str | None,
+             "condition_col": str | None,
+             "replicate_col": str | None,
+             "matched_cells": int, "unmatched_cells": int}
+        """
+        result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_inject_condition.py",
+            params={
+                "data_path":    h5ad_in,
+                "groups":       design.get("groups", {}),
+                "factor":       design.get("main_factor", "condition"),
+                "batch_col":    design.get("batch_covariate"),
+                "output_path":  output_path,
+            },
+        )
+        return result
+
+    def _run_pseudobulk(self, experiment_id: str,
+                         current_h5ad: str,
+                         exp_ctx: dict, intent: dict,
+                         annotation: dict) -> dict:
+        """
+        Pseudobulk DE between condition groups identified by DesignAgent.
+
+        Aggregates counts per (cell_type × replicate), fits a pyDESeq2
+        model with design ~ condition [+ batch], and runs ORA per
+        (cell_type × comparison) on the top-N DE genes.
+        """
+        from pathlib import Path
+        design = (exp_ctx or {}).get("design", {}) or {}
+        groups = design.get("groups", {}) or {}
+        factor = design.get("main_factor", "condition")
+        batch_cov = design.get("batch_covariate")
+
+        # Pairwise comparisons (alphabetical pairs, smaller=ref by default)
+        group_names = sorted(groups.keys())
+        comparisons = []
+        for i, a in enumerate(group_names):
+            for b in group_names[i + 1:]:
+                comparisons.append([b, a])  # test=b, ref=a
+        if not comparisons:
+            return {"status": "skipped", "reason": "no_comparisons"}
+
+        # 1. Inject condition obs from sample → group mapping
+        workspace = Path(current_h5ad).parent / "pseudobulk"
+        workspace.mkdir(parents=True, exist_ok=True)
+        injected = workspace / "with_condition.h5ad"
+        inj = self._inject_condition_obs(current_h5ad, design, str(injected))
+        if inj.get("status") != "success":
+            return {"status": "skipped",
+                    "reason": f"inject_failed: {inj.get('reason', '?')}"}
+
+        # 2. Choose groupby column: CellTypist labels > leiden
+        cell_type_col = (
+            "cell_type_celltypist"
+            if (annotation or {}).get("celltypist", {}).get("status") == "success"
+            else "leiden"
+        )
+        replicate_col = inj.get("replicate_col") or "sample_id"
+        covariates = [batch_cov] if batch_cov else []
+
+        # 3. Run pseudobulk DE
+        pb = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_pseudobulk_de.py",
+            params={
+                "data_path":     str(injected),
+                "groupby":       cell_type_col,
+                "condition_col": factor,
+                "replicate_col": replicate_col,
+                "comparisons":   comparisons,
+                "covariates":    covariates,
+                "min_cells_per_pseudosample":   10,
+                "min_replicates_per_condition": 2,
+                "padj_max":      0.05,
+                "lfc_min":       0.5,
+                "top_n":         50,
+                "output_dir":    str(workspace),
+            },
+        )
+        if pb.get("status") != "success":
+            return {"status": "error",
+                    "reason": f"pseudobulk_de_failed: {pb.get('error_type', '?')}",
+                    "details": pb.get("details", "")[:300]}
+
+        # 4. Pathway ORA per (group × comparison) — reuse the per-cluster
+        # ORA script with synthetic cluster IDs like "Astro::old_vs_young".
+        de_for_ora: dict = {}
+        for group, info in (pb.get("per_group") or {}).items():
+            if info.get("status") == "skipped":
+                continue
+            for comp_key, comp in (info.get("per_comparison") or {}).items():
+                if comp.get("status") != "success" or not comp.get("all_sig"):
+                    continue
+                de_for_ora[f"{group}::{comp_key}"] = [
+                    {"gene": r["gene"], "log2fc": r["log2fc"], "padj": r["padj"]}
+                    for r in comp["all_sig"]
+                ]
+
+        pw_findings = None
+        if de_for_ora:
+            pw = self.env.run_in_stack(
+                stack="rna",
+                script_path="aria/scripts/rna_pathway_per_cluster.py",
+                params={
+                    "de_genes_by_cluster":   de_for_ora,
+                    "organism":              exp_ctx.get("organism",
+                                                          "Homo sapiens"),
+                    "top_genes_per_cluster": 200,
+                    "padj_db_max":           0.05,
+                    "output_dir":            str(workspace),
+                },
+            )
+            if pw.get("status") == "success":
+                pw_findings = {
+                    "organism":    pw.get("organism"),
+                    "databases":   pw.get("databases", {}),
+                    "per_cluster": pw.get("per_cluster", {}),
+                }
+
+        # 5. Build the finding payload + announce on the bus
+        pb_payload = {
+            "groupby":       pb.get("groupby"),
+            "condition_col": pb.get("condition_col"),
+            "replicate_col": pb.get("replicate_col"),
+            "covariates":    pb.get("covariates", []),
+            "thresholds":    pb.get("thresholds", {}),
+            "n_groups":      pb.get("n_groups"),
+            "per_group":     pb.get("per_group", {}),
+        }
+        # Summary line
+        per_group = pb.get("per_group", {}) or {}
+        n_with_de = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success" and c.get("n_significant", 0) > 0
+        )
+        comp_str = ", ".join(f"{t}_vs_{r}" for t, r in comparisons)
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Pseudobulk DE (DESeq2) on {pb.get('n_groups', 0)} cell "
+                f"types across {comp_str}: {n_with_de} (group × comparison) "
+                f"blocks with significant DE."),
+             "comparisons": comparisons,
+             "n_groups":    pb.get("n_groups"),
+             "output_csv":  pb.get("output_csv")},
+            Confidence.HIGH if n_with_de > 0 else Confidence.INSUFFICIENT,
+        )
+
+        return {
+            "status":               "success",
+            "pseudobulk_de":        pb_payload,
+            "pseudobulk_pathways":  pw_findings,
+        }
 
     # ── Trajectory ────────────────────────────────────────────────────────
 

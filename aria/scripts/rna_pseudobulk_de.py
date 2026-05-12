@@ -155,12 +155,23 @@ def rna_pseudobulk_de(params: dict) -> dict:
                                    f"Set allow_lognorm_recovery=True with a "
                                    f"valid lib_size_col, or supply an h5ad "
                                    f"with raw counts.")}
-        if lib_size_col not in adata.obs.columns:
+        # Tolerate both Seurat-derived (nCount_RNA) and scanpy-derived
+        # (total_counts / n_counts) library-size column names — try the
+        # requested one first, then the common alternatives.
+        candidate_libsize_cols = [lib_size_col,
+                                   "nCount_RNA", "total_counts", "n_counts"]
+        chosen_libsize_col = None
+        for c in candidate_libsize_cols:
+            if c and c in adata.obs.columns:
+                chosen_libsize_col = c
+                break
+        if chosen_libsize_col is None:
             return {"status":     "error",
                     "error_type": "MissingLibSizeColumn",
                     "details":    (f"counts look log-normalized (max={max_val:.2f}) "
-                                   f"but lib_size_col='{lib_size_col}' is not "
+                                   f"but none of {candidate_libsize_cols} are "
                                    f"in obs. Cannot recover counts.")}
+        lib_size_col = chosen_libsize_col
         if not _validate_lognorm_recovery(counts, adata.obs[lib_size_col].values):
             return {"status":     "error",
                     "error_type": "LognormRecoveryFailed",
