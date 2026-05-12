@@ -50,7 +50,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def integration_peak2gene(params: dict) -> dict:
@@ -65,6 +65,7 @@ def integration_peak2gene(params: dict) -> dict:
     distance_kb = int(params.get("distance_kb", 500))
     min_corr    = float(params.get("min_corr", 0.3))
     output_dir  = params.get("output_dir", "/tmp/aria_p2g")
+    allow_mock  = mocks_allowed(params)
     warnings    = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -119,7 +120,14 @@ def integration_peak2gene(params: dict) -> dict:
             atac = None
 
         if atac is None:
-            return _mock_peak2gene(reason="ATAC matrix not loadable")
+            if allow_mock:
+                return _mock_peak2gene(reason="ATAC matrix not loadable")
+            return {
+                "status":     "error",
+                "error_type": "ATACMatrixNotLoadable",
+                "details":    "Peak-to-gene linking requires a valid ATAC matrix.",
+                "warnings":   warnings,
+            }
 
         # Align cells
         common = list(set(rna.obs_names) & set(atac.obs_names))
@@ -261,7 +269,14 @@ def integration_peak2gene(params: dict) -> dict:
         }
 
     except ImportError as e:
-        return _mock_peak2gene(reason=str(e))
+        if allow_mock:
+            return _mock_peak2gene(reason=str(e))
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    f"Peak-to-gene dependencies are required: {e}",
+            "warnings":   warnings,
+        }
     except Exception as e:
         return {
             "status":     "error",

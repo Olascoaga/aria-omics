@@ -49,7 +49,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 from pathlib import Path
 
 # ── Paper theme — applied to every plot in this module ────────────────────────
@@ -99,6 +99,7 @@ def bulk_rna_de(params: dict) -> dict:
     run_pathways   = bool(params.get("run_pathways", True))
     padj_thr       = float(params.get("padj_threshold", 0.05))
     lfc_thr        = float(params.get("lfc_threshold", 1.0))
+    allow_mock     = mocks_allowed(params)
     warnings       = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -148,7 +149,10 @@ def bulk_rna_de(params: dict) -> dict:
     # ── 3. Sample QC (shared across contrasts) ───────────────────────────
     sample_qc = _sample_qc(counts, metadata, output_dir, warnings,
                               biotype_map=biotype_map)
-    outlier_samples = sample_qc.get("outliers", [])
+    outlier_samples = _prune_outliers_for_design(
+        sample_qc.get("outliers", []), metadata, design_factor, warnings
+    )
+    sample_qc["outliers"] = outlier_samples
     if outlier_samples:
         counts   = counts.drop(columns=outlier_samples, errors="ignore")
         metadata = metadata.drop(index=outlier_samples, errors="ignore")
@@ -218,7 +222,7 @@ def bulk_rna_de(params: dict) -> dict:
         # Run DE for this contrast
         de_result, de_warn = _run_deseq2(
             counts_filt, metadata, design_factor,
-            num, den, padj_thr, lfc_thr
+            num, den, padj_thr, lfc_thr, allow_mock=allow_mock
         )
 
         if de_result.get("status") == "error":
@@ -249,6 +253,7 @@ def bulk_rna_de(params: dict) -> dict:
                 organism=organism,
                 output_dir=output_dir,
                 symbol_map=symbol_map,
+                allow_mock=allow_mock,
             )
             warnings.extend([f"[{name}] {w}" for w in pw_warn])
 
@@ -1365,11 +1370,51 @@ def _sample_qc(counts, metadata, output_dir: str,
                 "pca_variance": [], "error": str(e)}
 
 
+def _prune_outliers_for_design(outliers: list, metadata,
+                               design_factor: str,
+                               warnings: list) -> list:
+    """
+    Keep QC from destroying the statistical design.
+
+    Sample-level QC can be noisy in very small or synthetic datasets. Removing
+    every low-concordance sample is worse than reporting the warning and then
+    running the requested contrast with explicit caveats. Only remove a sample
+    when every affected group still has at least two samples afterward.
+    """
+    if not outliers:
+        return []
+
+    outliers = [s for s in outliers if s in metadata.index]
+    if not outliers or design_factor not in metadata.columns:
+        return outliers
+
+    kept = []
+    skipped = []
+    for sample in outliers:
+        trial = set(kept + [sample])
+        remaining = metadata.drop(index=list(trial), errors="ignore")
+        group_sizes = remaining[design_factor].value_counts()
+        if (group_sizes < 2).any() or len(group_sizes) < 2:
+            skipped.append(sample)
+        else:
+            kept.append(sample)
+
+    if skipped:
+        warnings.append(
+            "QC flagged samples as potential outliers but kept them because "
+            "removal would leave at least one group with <2 replicates: "
+            f"{skipped}."
+        )
+
+    return kept
+
+
 # ── DESeq2 ────────────────────────────────────────────────────────────────────
 
 def _run_deseq2(counts, metadata, design_factor: str,
                 numerator: str, denominator: str,
-                padj_thr: float, lfc_thr: float) -> tuple:
+                padj_thr: float, lfc_thr: float,
+                allow_mock: bool = False) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -1398,13 +1443,23 @@ def _run_deseq2(counts, metadata, design_factor: str,
         import warnings as w
         w.filterwarnings("ignore")
 
-        # pydeseq2 expects samples × genes
-        dds = DeseqDataSet(
-            counts=counts_sub.T,          # samples × genes
-            metadata=meta_sub,
-            design_factors=design_factor,  # ← THE FIX: dynamic design factor
-            refit_cooks=True,
-        )
+        # pydeseq2 expects samples × genes. The public API changed from
+        # design_factors=... to design="~ factor"; support both.
+        try:
+            dds = DeseqDataSet(
+                counts=counts_sub.T,
+                metadata=meta_sub,
+                design=f"~ {design_factor}",
+                refit_cooks=True,
+                quiet=True,
+            )
+        except TypeError:
+            dds = DeseqDataSet(
+                counts=counts_sub.T,
+                metadata=meta_sub,
+                design_factors=design_factor,
+                refit_cooks=True,
+            )
         dds.deseq2()
 
         stat_res = DeseqStats(
@@ -1446,8 +1501,21 @@ def _run_deseq2(counts, metadata, design_factor: str,
         }, warnings
 
     except ImportError:
-        warnings.append("pydeseq2 not installed — returning mock DE results.")
-        return _mock_de_result(padj_thr, lfc_thr), warnings
+        if allow_mock:
+            warnings.append(
+                "pydeseq2 not installed — returning mock DE results "
+                "(explicit mock mode)."
+            )
+            return _mock_de_result(padj_thr, lfc_thr), warnings
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    (
+                "pydeseq2 is required for bulk RNA differential expression. "
+                "Install it in the RNA environment or rerun with explicit "
+                "allow_mock=true for development only."
+            ),
+        }, warnings
 
     except Exception as e:
         return {
@@ -1775,7 +1843,8 @@ def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
 def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                               down_genes: list, organism: str,
                               output_dir: str,
-                              symbol_map: dict = None) -> tuple:
+                              symbol_map: dict = None,
+                              allow_mock: bool = False) -> tuple:
     """
     Run pathway enrichment via gseapy.
     Tests GO Biological Process, KEGG, and Reactome.
@@ -1867,8 +1936,17 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                 )
 
     except ImportError:
-        warnings.append("gseapy not installed — skipping pathway enrichment.")
-        pathways = _mock_pathways(sig_genes)
+        if allow_mock:
+            warnings.append(
+                "gseapy not installed — returning mock pathway enrichment "
+                "(explicit mock mode)."
+            )
+            pathways = _mock_pathways(sig_genes)
+        else:
+            warnings.append(
+                "gseapy not installed — pathway enrichment skipped. "
+                "No simulated pathway terms were generated."
+            )
 
     # Directional enrichment: up vs down separately (uses symbols)
     if up_symbols and down_symbols:

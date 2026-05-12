@@ -31,7 +31,7 @@ import sys, os, subprocess, re
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def rna_quantify(params: dict) -> dict:
@@ -47,6 +47,7 @@ def rna_quantify(params: dict) -> dict:
     # Reads overlapping any exon of a gene contribute to that gene's count.
     # Using -t gene would also include intronic reads (DNA contamination noise).
     feature    = params.get("feature", "exon")
+    allow_mock = mocks_allowed(params)
     warnings   = []
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -59,7 +60,7 @@ def rna_quantify(params: dict) -> dict:
     if not valid_bams:
         # Check for mock BAMs (bam path doesn't exist but has "note": "mock")
         mock_bams = [b for b in bam_files if "mock" in str(b.get("note", ""))]
-        if mock_bams:
+        if mock_bams and allow_mock:
             return _mock_counts_matrix(mock_bams, output_dir, warnings)
         return {
             "status":     "error",
@@ -163,10 +164,18 @@ def rna_quantify(params: dict) -> dict:
         }
 
     except FileNotFoundError:
-        warnings.append(
-            "featureCounts not found — using mock counts matrix"
-        )
-        return _mock_counts_matrix(valid_bams, output_dir, warnings)
+        if allow_mock:
+            warnings.append(
+                "featureCounts not found — using mock counts matrix "
+                "(explicit mock mode)"
+            )
+            return _mock_counts_matrix(valid_bams, output_dir, warnings)
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    "featureCounts is required for RNA-seq quantification.",
+            "warnings":   warnings,
+        }
 
     except subprocess.TimeoutExpired:
         return {

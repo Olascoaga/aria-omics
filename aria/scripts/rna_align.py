@@ -33,7 +33,7 @@ import sys, os, subprocess, re
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def rna_align(params: dict) -> dict:
@@ -46,6 +46,7 @@ def rna_align(params: dict) -> dict:
     threads    = int(params.get("threads", 8))
     two_pass   = bool(params.get("two_pass", True))
     genome_fasta = params.get("genome_fasta", "")
+    allow_mock = mocks_allowed(params)
     warnings   = []
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -90,6 +91,7 @@ def rna_align(params: dict) -> dict:
             threads=threads,
             two_pass=two_pass,
             warnings=warnings,
+            allow_mock=allow_mock,
         )
         bam_files.append(result)
 
@@ -171,8 +173,9 @@ def _star_output_valid(bam_path: Path, log_file: Path) -> bool:
 
 
 def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
-                   threads: int, two_pass: bool,
-                   warnings: list) -> dict:
+                  threads: int, two_pass: bool,
+                  warnings: list,
+                  allow_mock: bool = False) -> dict:
     """Align one sample with STAR. Idempotent: skips if BAM already valid."""
     name   = sample["name"]
     r1     = sample.get("r1_trimmed") or sample.get("r1")
@@ -275,10 +278,17 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
         })
 
     except FileNotFoundError:
-        warnings.append(
-            f"STAR not found for {name} — using mock alignment"
-        )
-        result.update(_mock_alignment(name, prefix))
+        if allow_mock:
+            warnings.append(
+                f"STAR not found for {name} — using mock alignment "
+                "(explicit mock mode)"
+            )
+            result.update(_mock_alignment(name, prefix))
+        else:
+            warnings.append(f"STAR not found for {name}; alignment failed.")
+            result["status"] = "failed"
+            result["error_type"] = "MissingDependency"
+            result["details"] = "STAR is required for RNA-seq alignment."
 
     except subprocess.TimeoutExpired:
         warnings.append(f"STAR timed out for {name} (>2h)")

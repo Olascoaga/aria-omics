@@ -33,7 +33,7 @@ import sys, os, subprocess, json, re
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def rna_fastq_qc(params: dict) -> dict:
@@ -43,6 +43,7 @@ def rna_fastq_qc(params: dict) -> dict:
     threads    = int(params.get("threads", 4))
     min_len    = int(params.get("min_length", 36))
     quality    = int(params.get("quality", 20))
+    allow_mock = mocks_allowed(params)
     warnings   = []
 
     trimmed_dir = output_dir / "trimmed"
@@ -71,6 +72,7 @@ def rna_fastq_qc(params: dict) -> dict:
             min_len=min_len,
             quality=quality,
             warnings=warnings,
+            allow_mock=allow_mock,
         )
         processed.append(result)
 
@@ -196,7 +198,8 @@ def _fastp_outputs_valid(r1_out: str, r2_out: str, json_out: str,
 
 def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
                threads: int, min_len: int, quality: int,
-               warnings: list) -> dict:
+               warnings: list,
+               allow_mock: bool = False) -> dict:
     """Run fastp on one sample. Idempotent: skips if outputs already valid."""
     name   = sample["name"]
     r1_in  = sample["r1"]
@@ -307,10 +310,18 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
         warnings.append(f"fastp timed out for {name}")
         result["status"] = "timeout"
     except FileNotFoundError:
-        warnings.append("fastp not found — is aria-rnaseq-env active?")
-        result["status"] = "missing_tool"
-        result.update(_mock_fastp_result(name, r1_in, r2_in,
-                                          r1_out, r2_out, paired))
+        if allow_mock:
+            warnings.append(
+                "fastp not found — using mock QC result (explicit mock mode)"
+            )
+            result["status"] = "missing_tool"
+            result.update(_mock_fastp_result(name, r1_in, r2_in,
+                                              r1_out, r2_out, paired))
+        else:
+            warnings.append("fastp not found — FASTQ QC failed.")
+            result["status"] = "failed"
+            result["error_type"] = "MissingDependency"
+            result["details"] = "fastp is required for raw FASTQ preprocessing."
 
     return result
 

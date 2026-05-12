@@ -32,11 +32,29 @@ Usage (in your analysis script):
 from __future__ import annotations
 
 import json
+import os
 import sys
 import traceback
 import warnings
 from pathlib import Path
 from typing import Callable
+
+
+def mocks_allowed(params: dict | None = None) -> bool:
+    """
+    Return True only when simulated analysis output is explicitly enabled.
+
+    Production ARIA must fail loudly when a required bioinformatics dependency
+    is missing. Tests and development runs can opt in with allow_mock=true or
+    ARIA_ALLOW_MOCKS/ARIA_DEV_MODE.
+    """
+    params = params or {}
+    if "allow_mock" in params:
+        return bool(params["allow_mock"])
+    if "allow_mocks" in params:
+        return bool(params["allow_mocks"])
+    return os.environ.get("ARIA_ALLOW_MOCKS", "").lower() in {"1", "true", "yes"} \
+        or os.environ.get("ARIA_DEV_MODE", "").lower() in {"1", "true", "yes"}
 
 
 def run_script(analysis_fn: Callable[[dict], dict]) -> None:

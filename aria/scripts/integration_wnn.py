@@ -46,7 +46,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def integration_wnn(params: dict) -> dict:
@@ -59,6 +59,7 @@ def integration_wnn(params: dict) -> dict:
     organism    = params.get("organism", "Homo sapiens")
     k           = int(params.get("k", 20))
     output_dir  = params.get("output_dir", "/tmp/aria_wnn")
+    allow_mock  = mocks_allowed(params)
     warnings    = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -223,7 +224,14 @@ def integration_wnn(params: dict) -> dict:
         }
 
     except ImportError as e:
-        return _mock_wnn(n_cells=5000, k=k, reason=str(e))
+        if allow_mock:
+            return _mock_wnn(n_cells=5000, k=k, reason=str(e))
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    f"WNN integration dependencies are required: {e}",
+            "warnings":   warnings,
+        }
 
     except Exception as e:
         return {

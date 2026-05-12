@@ -41,7 +41,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def hic_qc_and_balance(params: dict) -> dict:
@@ -51,6 +51,7 @@ def hic_qc_and_balance(params: dict) -> dict:
     files      = params.get("files", [])
     genome     = params.get("genome", "hg38")
     resolution = int(params.get("resolution", 40_000))
+    allow_mock = mocks_allowed(params)
     warnings   = []
 
     valid_files = [f for f in files if Path(f).exists()]
@@ -65,7 +66,7 @@ def hic_qc_and_balance(params: dict) -> dict:
 
     for fpath in valid_files:
         file_result = _process_single_file(
-            fpath, genome, resolution, warnings
+            fpath, genome, resolution, warnings, allow_mock=allow_mock
         )
         results_per_file.append(file_result)
 
@@ -117,7 +118,8 @@ def hic_qc_and_balance(params: dict) -> dict:
 
 def _process_single_file(fpath: str, genome: str,
                           resolution: int,
-                          warnings: list) -> dict:
+                          warnings: list,
+                          allow_mock: bool = False) -> dict:
     """Process a single Hi-C file — QC and balance."""
     from pathlib import Path
 
@@ -126,9 +128,9 @@ def _process_single_file(fpath: str, genome: str,
 
     try:
         if ".cool" in ext or ".mcool" in ext:
-            return _process_cooler(str(path), resolution, warnings)
+            return _process_cooler(str(path), resolution, warnings, allow_mock)
         elif ext == ".hic":
-            return _process_hic(str(path), resolution, warnings)
+            return _process_hic(str(path), resolution, warnings, allow_mock)
         else:
             return {
                 "file":   fpath,
@@ -143,7 +145,8 @@ def _process_single_file(fpath: str, genome: str,
         }
 
 
-def _process_cooler(path: str, resolution: int, warnings: list) -> dict:
+def _process_cooler(path: str, resolution: int, warnings: list,
+                    allow_mock: bool = False) -> dict:
     """QC and balance a .cool or .mcool file using cooler."""
     try:
         import cooler
@@ -199,7 +202,13 @@ def _process_cooler(path: str, resolution: int, warnings: list) -> dict:
         }
 
     except ImportError:
-        return _mock_hic_qc(path, resolution)
+        if allow_mock:
+            return _mock_hic_qc(path, resolution)
+        return {
+            "file": path,
+            "status": "error",
+            "error": "cooler is required for .cool/.mcool Hi-C QC.",
+        }
     except Exception as e:
         return {
             "file":   path,
@@ -208,7 +217,8 @@ def _process_cooler(path: str, resolution: int, warnings: list) -> dict:
         }
 
 
-def _process_hic(path: str, resolution: int, warnings: list) -> dict:
+def _process_hic(path: str, resolution: int, warnings: list,
+                 allow_mock: bool = False) -> dict:
     """QC a .hic file using hic-straw."""
     try:
         import hicstraw
@@ -243,7 +253,13 @@ def _process_hic(path: str, resolution: int, warnings: list) -> dict:
         }
 
     except ImportError:
-        return _mock_hic_qc(path, resolution)
+        if allow_mock:
+            return _mock_hic_qc(path, resolution)
+        return {
+            "file": path,
+            "status": "error",
+            "error": "hic-straw is required for .hic QC.",
+        }
     except Exception as e:
         return {"file": path, "status": "error", "error": str(e)[:200]}
 

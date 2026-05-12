@@ -40,7 +40,7 @@ Output (varies by analysis):
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 def hic_topology(params: dict) -> dict:
@@ -53,6 +53,7 @@ def hic_topology(params: dict) -> dict:
     resolution = int(params.get("resolution", 100_000))
     out_dir    = params.get("output_dir", "/tmp/aria_hic_topology")
     chromosomes = params.get("chromosomes", "all")
+    allow_mock = mocks_allowed(params)
 
     Path(out_dir).mkdir(parents=True, exist_ok=True)
 
@@ -68,15 +69,20 @@ def hic_topology(params: dict) -> dict:
 
     if analysis == "compartments":
         return _compute_compartments(
-            fpath, genome, organism, resolution, chromosomes, out_dir
+            fpath, genome, organism, resolution, chromosomes, out_dir,
+            allow_mock=allow_mock,
         )
     elif analysis == "tads":
         window = int(params.get("window_size", resolution * 5))
         return _compute_tads(
-            fpath, genome, resolution, window, chromosomes, out_dir
+            fpath, genome, resolution, window, chromosomes, out_dir,
+            allow_mock=allow_mock,
         )
     elif analysis == "loops":
-        return _compute_loops(fpath, genome, resolution, chromosomes, out_dir)
+        return _compute_loops(
+            fpath, genome, resolution, chromosomes, out_dir,
+            allow_mock=allow_mock,
+        )
     elif analysis == "insulation_calibration":
         windows = [int(w) for w in params.get("windows", [resolution * 3,
                                                             resolution * 5,
@@ -94,7 +100,8 @@ def hic_topology(params: dict) -> dict:
 
 def _compute_compartments(fpath: str, genome: str, organism: str,
                             resolution: int, chromosomes,
-                            out_dir: str) -> dict:
+                            out_dir: str,
+                            allow_mock: bool = False) -> dict:
     """
     Compute A/B compartments via eigenvector decomposition (PC1).
     Chromosome by chromosome — never loads full genome matrix.
@@ -166,7 +173,13 @@ def _compute_compartments(fpath: str, genome: str, organism: str,
         }
 
     except ImportError as e:
-        return _mock_compartments(resolution, str(e))
+        if allow_mock:
+            return _mock_compartments(resolution, str(e))
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    f"Compartment analysis requires cooler/cooltools: {e}",
+        }
     except Exception as e:
         return {
             "status":     "error",
@@ -178,7 +191,8 @@ def _compute_compartments(fpath: str, genome: str, organism: str,
 # ── TAD calling — Insulation Score ───────────────────────────────────────────
 
 def _compute_tads(fpath: str, genome: str, resolution: int,
-                   window_size: int, chromosomes, out_dir: str) -> dict:
+                   window_size: int, chromosomes, out_dir: str,
+                   allow_mock: bool = False) -> dict:
     """
     Compute TADs using Insulation Score (Crane 2015).
     window_size controls domain size sensitivity.
@@ -249,7 +263,13 @@ def _compute_tads(fpath: str, genome: str, resolution: int,
         }
 
     except ImportError as e:
-        return _mock_tads(resolution, window_size, str(e))
+        if allow_mock:
+            return _mock_tads(resolution, window_size, str(e))
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    f"TAD analysis requires cooler/cooltools: {e}",
+        }
     except Exception as e:
         return {
             "status":     "error",
@@ -261,7 +281,8 @@ def _compute_tads(fpath: str, genome: str, resolution: int,
 # ── Loop calling ──────────────────────────────────────────────────────────────
 
 def _compute_loops(fpath: str, genome: str, resolution: int,
-                    chromosomes, out_dir: str) -> dict:
+                    chromosomes, out_dir: str,
+                    allow_mock: bool = False) -> dict:
     """
     Call chromatin loops using cooltools dots or chromosight.
     Requires high-resolution data (<=10kb).
@@ -337,7 +358,13 @@ def _cooltools_dots(fpath: str, resolution: int, out_dir: str) -> dict:
             "resolution": resolution,
         }
     except Exception as e:
-        return _mock_loops(resolution, str(e))
+        if allow_mock:
+            return _mock_loops(resolution, str(e))
+        return {
+            "status":     "error",
+            "error_type": "LoopCallingFailed",
+            "details":    str(e)[:500],
+        }
 
 
 # ── Insulation Score window calibration ──────────────────────────────────────

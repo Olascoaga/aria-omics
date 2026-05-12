@@ -404,5 +404,5 @@ pip install -e . --quiet
 
 ---
 
-*ARIA v0.1.0-alpha — Documentation in progress*
+*ARIA v4.3.11 — Documentation in progress*
 *Found a bug or have a suggestion? Open an issue on GitHub.*

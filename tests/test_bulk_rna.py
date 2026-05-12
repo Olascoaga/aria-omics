@@ -254,6 +254,7 @@ try:
         down_genes=["IL2","IFNG"],
         organism="Homo sapiens",
         output_dir="/tmp/test_pw",
+        allow_mock=True,
     )
     assert isinstance(pw, dict)
     ok(f"Pathway enrichment ran: {list(pw.keys())}")
@@ -286,6 +287,7 @@ try:
             "run_pathways":  True,
             "padj_threshold": 0.05,
             "lfc_threshold": 1.0,
+            "allow_mock":    True,
         })
 
     assert result["status"] == "success", \
@@ -339,6 +341,7 @@ try:
             "output_dir":    tmpdir,
             "run_pathways":  False,   # skip to avoid gseapy HTTP dependency
             "lfc_threshold": 0.58,    # TF threshold
+            "allow_mock":    True,
         })
 
     assert result["status"] == "success"
@@ -390,6 +393,7 @@ try:
             "output_dir":    tmpdir,
             "run_pathways":  False,
             "lfc_threshold": 0.58,
+            "allow_mock":    True,
         })
 
     sqc = result.get("sample_qc", {})
@@ -426,6 +430,7 @@ try:
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  False,
+            "allow_mock":    True,
         })
 
     # The design_used should reflect the actual design factor
@@ -451,6 +456,7 @@ try:
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  False,
+            "allow_mock":    True,
         })
 
     # Should fail gracefully with structured response

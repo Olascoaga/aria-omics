@@ -49,7 +49,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import mocks_allowed, run_script
 
 
 # Cell cycle gene markers (human)
@@ -69,6 +69,7 @@ def integration_mofa(params: dict) -> dict:
     organism   = params.get("organism", "Homo sapiens")
     n_factors  = int(params.get("n_factors", 10))
     output_dir = params.get("output_dir", "/tmp/aria_mofa")
+    allow_mock = mocks_allowed(params)
     warnings   = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -107,7 +108,14 @@ def integration_mofa(params: dict) -> dict:
                 n_cells_per_mod[mod_name] = adata.n_obs
 
         if len(adatas) < 2:
-            return _mock_mofa(n_factors, reason="Could not load 2+ modalities")
+            if allow_mock:
+                return _mock_mofa(n_factors, reason="Could not load 2+ modalities")
+            return {
+                "status":     "error",
+                "error_type": "InsufficientModalities",
+                "details":    "Could not load at least two valid modalities for MOFA+.",
+                "warnings":   warnings,
+            }
 
         # ── Align cells across modalities ─────────────────────────────────
         common_cells = set(list(adatas.values())[0].obs_names)
@@ -269,7 +277,14 @@ def integration_mofa(params: dict) -> dict:
         }
 
     except ImportError as e:
-        return _mock_mofa(n_factors, reason=str(e))
+        if allow_mock:
+            return _mock_mofa(n_factors, reason=str(e))
+        return {
+            "status":     "error",
+            "error_type": "MissingDependency",
+            "details":    f"MOFA+ dependencies are required: {e}",
+            "warnings":   warnings,
+        }
     except Exception as e:
         return {
             "status":     "error",
