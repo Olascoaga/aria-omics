@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.4-blue)
+![Version](https://img.shields.io/badge/version-4.3.5-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -114,6 +114,14 @@ GEO/SRA connectors                 done   ✓ GSE183948 validated
   dysfunction across Chandelier / LAMP5 / PVALB / SUB neurons and
   astrocytes; type I interferon signaling in VLMC; Parkinson disease
   pathway in SUB.
+
+**Publication-grade HTML report for scRNA / pseudobulk** (v4.3.5) — run
+`tests/test_scrna_e2e.py --emit-html` and ARIA writes a self-contained
+HTML to `<workspace>/report/` containing: UMAP coloured by cell-type and
+condition, per-cell-type DE summary bar, per-(group×comparison) DE table
+sorted by significance with top up/down genes, ORA dotplots for the top
+cell types across GO_BP / KEGG / Reactome, Methods section with exact
+thresholds and design formula, and the parameter-decisions log.
 
 ---
 
@@ -311,7 +319,9 @@ v4.3.2   done     scRNA end-to-end validated; rna_qc handles raw 10x matrices
 v4.3.3   done     scRNA multi-sample workflow: per-sample QC + concat + Harmony
 v4.3.4   done     Pseudobulk DE between conditions (rna_pseudobulk_de) +
                   lognorm-counts auto-recovery for Seurat-derived h5ads
-v4.3.5   next     NarrativeAgent E2E for scRNA / pseudobulk (HTML report)
+v4.3.5   done     NarrativeAgent E2E for scRNA / pseudobulk — UMAP +
+                  per-cell-type DE table + pathway dotplots in HTML report
+v4.3.6   next     Trajectory analysis (PAGA + DPT) E2E validation
 v4.4              IntegrationAgent end-to-end validation (WNN + MOFA+)
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
