@@ -180,14 +180,111 @@ class DesignAgent(BaseAgent):
             )
             self._publish_groups_checkpoint()
             return {"status": "awaiting_user", "step": "groups"}
+        elif choice == "Cancel experiment":
+            return {"status": "cancelled", "reason": "user_cancelled_groups"}
         else:
-            # Any other choice: keep original proposal for now
-            self._confirmed_groups = self._proposed_groups.get("groups", {})
+            # Free-text manual assignment, fed back via the TUI's "Other —"
+            # path. Accepted formats:
+            #   "young=hc1153,hc1265; old=hc11,hc77"
+            #   "young: hc1153 hc1265 | old: hc11 hc77"
+            # Sample matching is substring-based against parsed stems so the
+            # user does not have to type the full 10x suffix.
+            parsed = self._parse_manual_groups(choice)
+            if parsed:
+                self._proposed_groups = {
+                    "groups":     parsed,
+                    "confidence": "high",
+                    "reasoning":  "User-provided manual group assignment",
+                }
+                self._confirmed_groups = parsed
+            else:
+                log.warning(
+                    "Could not parse manual group assignment '%s'. "
+                    "Keeping the prior proposal.", choice
+                )
+                self._confirmed_groups = self._proposed_groups.get("groups", {})
 
         # Move to organism step
         self._step = DesignStep.ORGANISM
         self._publish_organism_checkpoint()
         return {"status": "awaiting_user", "step": "organism"}
+
+    def _parse_manual_groups(self, text: str) -> dict:
+        """
+        Parse a free-text manual group assignment from the user. Supports
+        common shapes:
+          - "young=hc1153,hc1265; old=hc11,hc77"
+          - "young: hc1153 hc1265 | old: hc11 hc77"
+          - JSON: {"young": ["hc1153","hc1265"], "old": ["hc11","hc77"]}
+        Returns {} if nothing usable could be parsed (caller decides what to
+        do with that — we never silently invent groups).
+        """
+        if not text or not isinstance(text, str):
+            return {}
+        stripped = text.strip()
+        # JSON shortcut
+        if stripped.startswith("{") and stripped.endswith("}"):
+            try:
+                obj = json.loads(stripped)
+                if isinstance(obj, dict) and obj:
+                    return self._normalise_manual_groups(obj)
+            except (json.JSONDecodeError, ValueError):
+                pass
+        # Generic "g1=s1,s2; g2=s3,s4" / "g1: s1 s2 | g2: s3 s4"
+        pieces = re.split(r"[;|]+", stripped)
+        proposed: dict = {}
+        for chunk in pieces:
+            if not chunk or ("=" not in chunk and ":" not in chunk):
+                continue
+            sep = "=" if "=" in chunk else ":"
+            name, body = chunk.split(sep, 1)
+            name = name.strip()
+            if not name:
+                continue
+            members = [m for m in re.split(r"[,\s]+", body) if m]
+            if members:
+                proposed[name] = members
+        if not proposed:
+            return {}
+        return self._normalise_manual_groups(proposed)
+
+    def _normalise_manual_groups(self, proposed: dict) -> dict:
+        """
+        Map user-supplied sample tokens (e.g. 'hc1153') back to the canonical
+        parsed stems (e.g. 'GSE278576_hc1153_raw_feature_bc_matrix') using
+        substring match. Drops tokens that match no parsed sample.
+        """
+        if not self._parsed_samples:
+            # No parsed samples to bind against — accept the user's strings
+            # verbatim so manual workflows are not blocked.
+            return {str(g): [str(s) for s in mems]
+                    for g, mems in proposed.items() if mems}
+        stems = [p["stem"] for p in self._parsed_samples]
+        out: dict = {}
+        for grp, tokens in proposed.items():
+            if not isinstance(tokens, (list, tuple)):
+                tokens = [tokens]
+            resolved: list[str] = []
+            for tok in tokens:
+                tok_str = str(tok).strip()
+                if not tok_str:
+                    continue
+                # Exact match wins
+                if tok_str in stems:
+                    resolved.append(tok_str)
+                    continue
+                # Substring match — first hit wins (preserves user order)
+                hit = next((s for s in stems if tok_str in s), None)
+                if hit:
+                    resolved.append(hit)
+                else:
+                    log.warning(
+                        "Manual group assignment: token '%s' did not match "
+                        "any sample stem — dropping.", tok_str
+                    )
+            if resolved:
+                out[str(grp)] = resolved
+        return out
 
     def _handle_organism_response(self, choice: str) -> dict:
         import re as _re
@@ -287,7 +384,10 @@ class DesignAgent(BaseAgent):
             "\n".join(summary_lines) +
             f"\n\nConfidence: {self._proposed_groups.get('confidence', '?')}\n"
             f"Reasoning: {self._proposed_groups.get('reasoning', 'none')}\n\n"
-            "Is this correct?"
+            "Is this correct?\n\n"
+            "If filenames carry no comparison signal (donor barcodes etc.) "
+            "pick the manual option below and type the mapping like:\n"
+            "  young=hc1153,hc1265; old=hc11,hc77"
         )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
@@ -296,7 +396,7 @@ class DesignAgent(BaseAgent):
             options=[
                 "Yes — confirm groups",
                 "Re‑infer groups",
-                "Edit group names (using defaults)",
+                "Other — manually assign groups (e.g. young=hc1153,hc1265; old=hc11,hc77)",
                 "Cancel experiment",
             ],
             context={"proposed_groups": groups},
@@ -493,14 +593,34 @@ class DesignAgent(BaseAgent):
 
     def _propose_groups(self, parsed: list[dict], intent: dict) -> dict:
         stems = [p["stem"] for p in parsed]
+        # The user's biological question often names the comparison (e.g.
+        # "young vs old", "WT vs KO"). Surface it to the LLM — without it the
+        # model can only pattern-match on filenames, which fails when sample
+        # IDs are opaque (donor barcodes hc11/hc77/...).
+        intent_block = ""
+        question = (intent or {}).get("question") or (intent or {}).get("text")
+        comparison = (intent or {}).get("comparison")
+        if question or comparison:
+            intent_block = (
+                "\n\nUser's biological question (use it to name the groups, "
+                "but only assign a sample to a group when the filename or "
+                "external metadata supports it — do NOT guess):\n"
+                f"  {question or comparison}\n"
+            )
         prompt = (
             "You are analyzing RNA‑seq sample names.\n\n"
             "Samples:\n" +
             "\n".join(f"- {s}" for s in stems) +
+            intent_block +
             "\n\nTask:\n"
             "1. Infer biological groups (NOT technical replicates).\n"
             "2. Assign each sample to a group.\n"
-            "3. Return ONLY valid JSON.\n\n"
+            "3. If the filenames carry no signal that maps samples to the\n"
+            "   comparison the user asked about (e.g. donor barcodes with no\n"
+            "   age/condition encoding), return a SINGLE group named 'all'\n"
+            "   containing every sample and set confidence='low' — the user\n"
+            "   will be offered a manual-assignment option downstream.\n"
+            "4. Return ONLY valid JSON.\n\n"
             'Output format:\n'
             '{\n  "groups": {\n    "group_name": ["sample1", "sample2"]\n  },\n'
             '  "confidence": "high|medium|low",\n'
