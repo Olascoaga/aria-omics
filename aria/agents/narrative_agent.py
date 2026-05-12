@@ -109,6 +109,14 @@ class NarrativeAgent(BaseAgent):
         # Group findings by confidence
         grouped = self._group_findings(raw_findings)
 
+        # Build the report directory up front so figure subprocesses can
+        # write into report_dir/figures/ before the HTML sections are
+        # composed (the TUI path used to skip this — only the harness
+        # called generate_figures, so reports came out at ~30 KB with
+        # zero embedded PNGs).
+        report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
+        self._generate_scrna_figures(agent_results, report_dir)
+
         self.publish_status(experiment_id,
                             "Writing executive summary...", 0.2)
 
@@ -145,6 +153,7 @@ class NarrativeAgent(BaseAgent):
             methods=methods,
             decisions=decisions,
             agent_results=agent_results,
+            report_dir=report_dir,
         )
 
         self.publish_status(experiment_id,
@@ -970,6 +979,57 @@ power for small-effect genes."
 
     # ── HTML rendering ────────────────────────────────────────────────────
 
+    def _build_report_dir(self, experiment_id: str,
+                           intent: dict, exp_ctx: dict) -> Path:
+        """
+        Construct (and mkdir) ~/.aria/reports/aria_<ts>_<slug>_<suffix>/
+        with figures/ + tables/ subdirs. Idempotent: call once early in
+        run() so figure subprocesses have a stable target.
+        """
+        ts        = datetime.now().strftime("%Y%m%d_%H%M%S")
+        slug      = self._build_slug(intent, exp_ctx)
+        suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
+                      else experiment_id)
+        report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
+                        else f"aria_{ts}_{suffix}")
+        report_dir = self.reports_dir / report_name
+        report_dir.mkdir(parents=True, exist_ok=True)
+        (report_dir / "figures").mkdir(exist_ok=True)
+        (report_dir / "tables").mkdir(exist_ok=True)
+        return report_dir
+
+    def _generate_scrna_figures(self, agent_results: dict,
+                                  report_dir: Path) -> None:
+        """
+        Orchestrate scRNA figure rendering (UMAPs + DE bar + pathway dotplots
+        + cellcomm + trajectory). Mutates agent_results so that the in-memory
+        scrna_agent envelope carries the figure paths into the section
+        builders that follow.
+        """
+        sc = (agent_results or {}).get("scrna_agent") or {}
+        if sc.get("status") != "done":
+            return
+        try:
+            from aria.agents import _narrative_scrna
+            from aria.utils.environment_manager import env_manager
+        except Exception as e:
+            log.warning(f"Cannot import figure helpers: {e}")
+            return
+        findings = _narrative_scrna.unwrap_scrna_findings(sc)
+        h5ad = sc.get("output_h5ad") or sc.get("output_path")
+        try:
+            _narrative_scrna.generate_figures(
+                findings=findings,
+                h5ad_path=h5ad,
+                output_dir=report_dir / "figures",
+                env_manager=env_manager,
+            )
+            # `findings` may be a reference to sc["findings"] (legacy shape)
+            # or a wrapped child (multimodal shape). Either way the mutation
+            # above already wrote into the dict that downstream readers see.
+        except Exception as e:
+            log.warning(f"scRNA figure generation failed: {e}", exc_info=True)
+
     def _render_html_report(self, experiment_id: str,
                              exp_ctx: dict,
                              intent: dict,
@@ -978,7 +1038,8 @@ power for small-effect genes."
                              grouped_findings: dict,
                              methods: str,
                              decisions: list,
-                             agent_results: dict = None) -> Path:
+                             agent_results: dict = None,
+                             report_dir: Optional[Path] = None) -> Path:
         """
         Render the full HTML report.
         Self-contained: CSS embedded, no external dependencies.
@@ -1244,17 +1305,11 @@ power for small-effect genes."
         #     └── tables/                  (copied from contrast_dir/tables/)
         #         ├── bmal1_vs_wt_de_genes.tsv
         #         └── ...
-        ts        = datetime.now().strftime("%Y%m%d_%H%M%S")
-        slug      = self._build_slug(intent, exp_ctx)
-        suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
-                      else experiment_id)
-        report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
-                        else f"aria_{ts}_{suffix}")
-
-        report_dir = self.reports_dir / report_name
-        report_dir.mkdir(parents=True, exist_ok=True)
-        (report_dir / "figures").mkdir(exist_ok=True)
-        (report_dir / "tables").mkdir(exist_ok=True)
+        # report_dir may have been pre-built by run() so figure subprocesses
+        # could write into it BEFORE the HTML sections were composed. Fall
+        # back to building it now for legacy callers (tests, harness).
+        if report_dir is None:
+            report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
 
         # Copy contrast figures and tables into report_dir
         # (so the whole directory is shareable and self-contained)
