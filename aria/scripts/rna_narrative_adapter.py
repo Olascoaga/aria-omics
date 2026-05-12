@@ -211,6 +211,24 @@ def adapt(report: Union[dict, str, Path],
             "per_cluster": pw.get("per_cluster", {}),
         }
 
+    # Cell-cell communication (v4.3.7) ────────────────────────────────────
+    ccc = stages.get("cell_communication") or stages.get("cellcomm")
+    if ccc and ccc.get("status") in ("success", "done"):
+        findings["cell_communication"] = {
+            "status":             "done",
+            "method":             ccc.get("method"),
+            "n_cell_types":       ccc.get("n_cell_types"),
+            "n_interactions":     ccc.get("n_interactions"),
+            "n_autocrine_dropped": ccc.get("n_autocrine_dropped", 0),
+            "top_interactions":   ccc.get("top_interactions", []) or [],
+            "top_pairs":          ccc.get("top_pairs", []) or [],
+            "output_path":        ccc.get("output_path"),
+        }
+        # cellcomm mode's input h5ad is the annotated/clustered one; use
+        # it as the figure source so UMAP fallback kicks in.
+        cc_inputs = report.get("cellcomm_inputs", {}) or {}
+        output_h5ad = output_h5ad or cc_inputs.get("h5ad")
+
     # Trajectory (v4.3.6) ─────────────────────────────────────────────────
     traj = stages.get("trajectory")
     if traj and traj.get("status") in ("success", "done"):
@@ -265,7 +283,19 @@ def adapt(report: Union[dict, str, Path],
     }
 
     pb_inputs = report.get("pseudobulk_inputs", {}) or {}
-    if mode == "pseudobulk":
+    cc_inputs = report.get("cellcomm_inputs", {}) or {}
+    if mode == "cellcomm":
+        cb = cc_inputs.get("groupby", "?")
+        user_question = (
+            f"Which cell types signal to which in this dataset "
+            f"(grouped by {cb}, autocrine excluded)?"
+        )
+        exp_context["design"] = {
+            "groupby":  cb,
+            "n_perms":  cc_inputs.get("n_perms"),
+            "method":   findings.get("cell_communication", {}).get("method"),
+        }
+    elif mode == "pseudobulk":
         cond = pb_inputs.get("condition", "?")
         cmps = pb_inputs.get("comparisons", []) or []
         cmp_str = ", ".join(f"{a} vs {b}" for a, b in cmps) if cmps else "?"

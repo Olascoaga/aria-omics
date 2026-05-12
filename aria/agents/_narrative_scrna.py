@@ -118,6 +118,23 @@ def summarize_scrna_text(findings: dict) -> str:
             f"with significant enrichment."
         )
 
+    ccc = findings.get("cell_communication") or {}
+    if ccc.get("status") in ("done", "success"):
+        method = ccc.get("method", "?")
+        n_int = ccc.get("n_interactions", 0)
+        n_ct = ccc.get("n_cell_types", 0)
+        n_auto = ccc.get("n_autocrine_dropped", 0)
+        top_pairs = ccc.get("top_pairs", [])[:3]
+        pair_str = (
+            f" Top sender→receiver pairs: {'; '.join(top_pairs)}."
+            if top_pairs else ""
+        )
+        lines.append(
+            f"Cell-cell communication ({method}): "
+            f"{n_int} significant L-R interactions across {n_ct} cell types "
+            f"({n_auto} autocrine pairs excluded).{pair_str}"
+        )
+
     traj = findings.get("trajectory") or {}
     if traj.get("status") in ("done", "success"):
         paga = traj.get("paga", {}) or {}
@@ -236,6 +253,29 @@ def build_scrna_methods(findings: dict) -> str:
             f"run on the top-200 DE genes per (group × comparison) against "
             f"{', '.join(dbs)}. Significance: adjusted p &lt; 0.05."
         )
+
+    ccc = findings.get("cell_communication") or {}
+    if ccc.get("status") in ("done", "success"):
+        method = ccc.get("method", "LIANA rank_aggregate")
+        if "liana" in method.lower():
+            lines.append(
+                f"Cell-cell communication was inferred with LIANA "
+                f"(rank_aggregate). The rank metric used was "
+                f"'{method.split('(')[-1].rstrip(')').strip() or 'specificity_rank'}' "
+                f"(lower rank = more specific or stronger interaction; "
+                f"when LIANA emits only NaN magnitude_rank values the "
+                f"pipeline falls back to specificity_rank to keep results "
+                f"deterministic and ranked). Autocrine pairs "
+                f"(source == target) are excluded a priori because they "
+                f"trivially overlap and dominate the score distribution."
+            )
+        else:
+            lines.append(
+                f"Cell-cell communication was scored by mean-expression "
+                f"product over a curated set of high-confidence "
+                f"ligand-receptor pairs (LIANA unavailable). Autocrine "
+                f"pairs are excluded."
+            )
 
     traj = findings.get("trajectory") or {}
     if traj.get("status") in ("done", "success"):
@@ -404,6 +444,155 @@ def render_pathway_dotplots(findings: dict,
         if per_db:
             figures[block_key] = per_db
     return figures
+
+
+def render_cellcomm_heatmap(findings: dict,
+                              output_path: Path) -> Optional[str]:
+    """
+    Heatmap of n_interactions per (source × target). Top_interactions only.
+    """
+    ccc = findings.get("cell_communication") or {}
+    top = ccc.get("top_interactions") or []
+    if not top:
+        return None
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+
+    df = pd.DataFrame(top)
+    if df.empty or "source" not in df.columns or "target" not in df.columns:
+        return None
+
+    counts = (df.groupby(["source", "target"]).size()
+              .reset_index(name="n"))
+    cell_types = sorted(set(counts["source"]).union(counts["target"]))
+    mat = pd.DataFrame(0, index=cell_types, columns=cell_types, dtype=int)
+    for _, r in counts.iterrows():
+        mat.loc[r["source"], r["target"]] = int(r["n"])
+
+    n = len(cell_types)
+    fig, ax = plt.subplots(figsize=(max(5, 0.55 * n + 2),
+                                     max(4, 0.55 * n + 1.5)),
+                           dpi=160)
+    im = ax.imshow(mat.values, cmap="magma_r", aspect="auto",
+                   vmin=0, vmax=max(1, mat.values.max()))
+    ax.set_xticks(range(n)); ax.set_yticks(range(n))
+    ax.set_xticklabels(cell_types, rotation=55, ha="right", fontsize=8)
+    ax.set_yticklabels(cell_types, fontsize=8)
+    ax.set_xlabel("Receiver", fontsize=9)
+    ax.set_ylabel("Sender", fontsize=9)
+    ax.set_title(
+        f"Cell-cell communication — interactions among top {len(top)} "
+        f"(autocrine excluded)",
+        fontsize=10, fontweight="bold",
+    )
+    # Cell-level labels
+    for i in range(n):
+        for j in range(n):
+            v = mat.values[i, j]
+            if v > 0:
+                ax.text(j, i, str(v),
+                        ha="center", va="center", fontsize=7,
+                        color="white" if v >= mat.values.max() * 0.5
+                              else "#1e293b")
+    plt.colorbar(im, ax=ax, fraction=0.045, pad=0.02,
+                 label="n interactions").ax.tick_params(labelsize=7)
+    for sp in ax.spines.values():
+        sp.set_linewidth(0.5)
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=160, bbox_inches="tight",
+                facecolor="white")
+    plt.close(fig)
+    return str(output_path)
+
+
+def render_cellcomm_top_pairs_bar(findings: dict,
+                                    output_path: Path,
+                                    top_n: int = 15) -> Optional[str]:
+    """Horizontal barplot of top-N L-R interactions by score."""
+    ccc = findings.get("cell_communication") or {}
+    top = ccc.get("top_interactions") or []
+    if not top:
+        return None
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    # Ranks: lower = better for spec/mag. We invert so the best ranks
+    # appear with the LONGEST bars (visually more prominent).
+    rows = []
+    for ia in top[:top_n]:
+        label = (f"{ia.get('source', '?')[:18]} → "
+                 f"{ia.get('target', '?')[:18]}  "
+                 f"({ia.get('ligand', '?')}-{ia.get('receptor', '?')})")
+        rows.append((label, float(ia.get("score", 0))))
+    if not rows:
+        return None
+    labels = [r[0] for r in rows]
+    scores = np.array([r[1] for r in rows], dtype=float)
+
+    is_rank = (ccc.get("method") or "").startswith("liana")
+    if is_rank:
+        # Invert: higher bar = lower rank = better.
+        max_score = scores.max() if scores.max() > 0 else 1.0
+        plot_vals = max_score - scores + (max_score * 0.05)
+        xlabel = f"strength (inverted rank; metric: {ccc.get('method')})"
+    else:
+        plot_vals = scores
+        xlabel = "score"
+
+    fig, ax = plt.subplots(figsize=(8, max(3, 0.32 * len(rows) + 1.2)),
+                           dpi=160)
+    y = np.arange(len(rows))
+    ax.barh(y, plot_vals, color="#0d9488", edgecolor="#0f172a",
+            linewidth=0.4, height=0.7)
+    ax.set_yticks(y)
+    ax.set_yticklabels(labels, fontsize=7.5)
+    ax.invert_yaxis()  # first = top
+    ax.set_xlabel(xlabel, fontsize=8.5)
+    ax.set_title("Top ligand-receptor interactions",
+                 fontsize=10, fontweight="bold")
+    ax.tick_params(labelsize=7)
+    for sp in ax.spines.values():
+        sp.set_linewidth(0.5)
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(output_path, dpi=160, bbox_inches="tight",
+                facecolor="white")
+    plt.close(fig)
+    return str(output_path)
+
+
+def extract_cellcomm_table(findings: dict, top_n: int = 20) -> str:
+    """HTML <tbody> rows for top L-R interactions."""
+    ccc = findings.get("cell_communication") or {}
+    top = (ccc.get("top_interactions") or [])[:top_n]
+    if not top:
+        return ""
+    rows = []
+    for ia in top:
+        src = html.escape(str(ia.get("source", "")))
+        tgt = html.escape(str(ia.get("target", "")))
+        lig = html.escape(str(ia.get("ligand", "")))
+        rec = html.escape(str(ia.get("receptor", "")))
+        score = ia.get("score", "?")
+        pval = ia.get("cellphone_pval")
+        pval_str = (f"<code>{pval:.4g}</code>"
+                    if isinstance(pval, (int, float)) else "—")
+        rows.append(
+            f"<tr><td>{src}</td><td>{tgt}</td>"
+            f"<td><strong>{lig}</strong></td><td>{rec}</td>"
+            f"<td><code>{score}</code></td><td>{pval_str}</td></tr>"
+        )
+    return "\n".join(rows)
 
 
 def extract_trajectory_tables(findings: dict) -> dict:
@@ -674,6 +863,54 @@ def build_scrna_html_section(findings: dict,
                 '</table>'
             )
 
+    # 4b. Cell-cell communication section ─────────────────────────────────
+    ccc = findings.get("cell_communication") or {}
+    if ccc.get("status") in ("done", "success"):
+        parts.append('<h4 style="margin-top:1.4rem">'
+                     'Cell-cell communication</h4>')
+
+        ccc_figs = []
+        for fkey, caption in (
+            ("cellcomm_heatmap",   "Sender → receiver interaction count"),
+            ("cellcomm_top_pairs", "Top ligand-receptor interactions"),
+        ):
+            p = figs.get(fkey)
+            if p:
+                uri = _embed_png(p)
+                if uri:
+                    ccc_figs.append(
+                        f'<figure style="flex:1 1 320px;min-width:300px;'
+                        f'max-width:520px"><img src="{uri}" '
+                        f'alt="{html.escape(caption)}">'
+                        f'<figcaption>{html.escape(caption)}</figcaption>'
+                        f'</figure>'
+                    )
+        if ccc_figs:
+            parts.append('<div style="display:flex;flex-wrap:wrap;'
+                         'gap:1rem">')
+            parts.extend(ccc_figs)
+            parts.append('</div>')
+
+        cc_rows = extract_cellcomm_table(findings)
+        if cc_rows:
+            method = html.escape(str(ccc.get("method", "?")))
+            n_ct = ccc.get("n_cell_types", "?")
+            n_int = ccc.get("n_interactions", "?")
+            n_auto = ccc.get("n_autocrine_dropped", 0)
+            parts.append(
+                f'<h4 style="margin-top:1rem">'
+                f'Top L-R interactions  '
+                f'<span style="color:var(--muted);font-weight:400;'
+                f'font-size:0.85em">'
+                f'({method} · {n_int} interactions across {n_ct} cell '
+                f'types · {n_auto} autocrine pairs excluded)</span></h4>'
+                '<table style="width:100%;font-size:0.85em">'
+                '<thead><tr><th>Sender</th><th>Receiver</th>'
+                '<th>Ligand</th><th>Receptor</th>'
+                '<th>Score</th><th>CellPhone p</th></tr></thead>'
+                f'<tbody>{cc_rows}</tbody></table>'
+            )
+
     # 5. Pathway dotplots ─────────────────────────────────────────────────
     pw_figs = figs.get("pathway_dotplots") or {}
     if pw_figs:
@@ -800,6 +1037,18 @@ def generate_figures(findings: dict,
     pw_figs = render_pathway_dotplots(findings, output_dir / "pathways")
     if pw_figs:
         figs["pathway_dotplots"] = pw_figs
+
+    # 3b. Cell-cell communication figures ───────────────────────────────
+    heat_path = render_cellcomm_heatmap(
+        findings, output_dir / "cellcomm_heatmap.png"
+    )
+    if heat_path:
+        figs["cellcomm_heatmap"] = heat_path
+    bar_path_ccc = render_cellcomm_top_pairs_bar(
+        findings, output_dir / "cellcomm_top_pairs.png"
+    )
+    if bar_path_ccc:
+        figs["cellcomm_top_pairs"] = bar_path_ccc
 
     # 4. Trajectory figures (PAGA graph + DPT UMAP) ─────────────────────
     traj = findings.get("trajectory") or {}

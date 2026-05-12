@@ -85,6 +85,7 @@ def rna_cellcomm(params: dict) -> dict:
     method = "mean_expression_fallback"
 
     # ── Primary: LIANA ────────────────────────────────────────────────────
+    autocrine_count = 0
     try:
         import liana as li
         li.mt.rank_aggregate(
@@ -95,15 +96,53 @@ def rna_cellcomm(params: dict) -> dict:
             n_perms=n_perms,
         )
         liana_df = adata.uns["liana_res"].copy()
-        for _, row in liana_df.sort_values("magnitude_rank").head(50).iterrows():
+
+        # Drop self-interactions (autocrine) — they dominate the output
+        # because expression overlap with self is trivially perfect, but
+        # they're rarely the biological question for cell-cell comm.
+        autocrine_mask = liana_df["source"] == liana_df["target"]
+        autocrine_count = int(autocrine_mask.sum())
+        liana_df = liana_df[~autocrine_mask].copy()
+
+        # Pick a usable rank column. Recent LIANA versions emit
+        # magnitude_rank as NaN when the aggregate doesn't include any
+        # magnitude-scoring method, so we fall back to specificity_rank
+        # (RRA-aggregated p-value rank, lower = more specific).
+        rank_cols = [
+            c for c in ("magnitude_rank", "specificity_rank", "lrscore")
+            if c in liana_df.columns
+        ]
+        chosen_rank = None
+        for c in rank_cols:
+            if liana_df[c].notna().any():
+                chosen_rank = c
+                break
+        if chosen_rank is None:
+            raise RuntimeError(
+                f"LIANA returned only NaN ranks across {rank_cols}"
+            )
+
+        # specificity_rank / magnitude_rank: lower = better.
+        # lrscore: higher = better.
+        ascending = chosen_rank != "lrscore"
+        ranked = (liana_df
+                  .dropna(subset=[chosen_rank])
+                  .sort_values(chosen_rank, ascending=ascending)
+                  .head(50))
+        for _, row in ranked.iterrows():
             interactions.append({
                 "source":   str(row.get("source", "")),
                 "target":   str(row.get("target", "")),
-                "ligand":   str(row.get("ligand_complex", row.get("ligand", ""))),
-                "receptor": str(row.get("receptor_complex", row.get("receptor", ""))),
-                "score":    round(float(row.get("magnitude_rank", 0)), 4),
+                "ligand":   str(row.get("ligand_complex",
+                                         row.get("ligand", ""))),
+                "receptor": str(row.get("receptor_complex",
+                                         row.get("receptor", ""))),
+                "score":    round(float(row.get(chosen_rank, 0)), 4),
+                "rank_metric": chosen_rank,
+                "cellphone_pval": float(row.get("cellphone_pvals"))
+                                   if "cellphone_pvals" in row else None,
             })
-        method = "liana_rank_aggregate"
+        method = f"liana_rank_aggregate ({chosen_rank})"
 
     except (ImportError, Exception):
         # ── Fallback: curated mean-expression scoring ─────────────────────
@@ -158,19 +197,24 @@ def rna_cellcomm(params: dict) -> dict:
     # Save CSV
     result_path: str | None = None
     try:
-        result_path = str(Path(output_dir) / "cellcomm_interactions.csv")
+        out_dir = Path(output_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        result_path = str(out_dir / "cellcomm_interactions.csv")
         pd.DataFrame(interactions).to_csv(result_path, index=False)
-    except Exception:
+    except Exception as e:
         result_path = None
+        # Surface the reason in the result for downstream debugging
+        method = f"{method} (csv_write_failed: {e})"
 
     return {
-        "status":           "success",
-        "method":           method,
-        "n_cell_types":     n_types,
-        "n_interactions":   len(interactions),
-        "top_interactions": interactions[:20],
-        "top_pairs":        top_pairs,
-        "output_path":      result_path,
+        "status":             "success",
+        "method":             method,
+        "n_cell_types":       n_types,
+        "n_interactions":     len(interactions),
+        "n_autocrine_dropped": autocrine_count,
+        "top_interactions":   interactions[:20],
+        "top_pairs":          top_pairs,
+        "output_path":        result_path,
     }
 
 
