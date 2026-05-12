@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.7-blue)
+![Version](https://img.shields.io/badge/version-4.3.8-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -351,8 +351,10 @@ v4.3.6   done     Trajectory analysis (PAGA + DPT) E2E + adaptive
                   connectivity reporting for mature populations
 v4.3.7   done     Cell-cell communication (LIANA) E2E + autocrine
                   exclusion + adaptive rank-metric fallback
+v4.3.8   done     TUI/Orchestrator → NarrativeAgent shape normalisation:
+                  the path is now end-to-end ready for scRNA reports
 v4.4     next     IntegrationAgent end-to-end (WNN + MOFA+ + peak2gene)
-                  — hippocampus dataset has the ATAC half ready
+                  — hippocampus dataset is 10x Multiome, same-cell pairing
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
