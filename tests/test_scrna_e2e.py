@@ -154,22 +154,31 @@ def main() -> int:
                     help="obs column for PAGA grouping (default: cell_type)")
     ap.add_argument("--trajectory-root", default=None,
                     help="cell type label to use as DPT root (optional)")
+    # Cell-cell communication mode — analogous to trajectory mode.
+    ap.add_argument("--cellcomm-h5ad", default=None,
+                    help=("path to preprocessed h5ad with cell-type labels "
+                          "— when set, runs only rna_cellcomm.py"))
+    ap.add_argument("--cellcomm-groupby", default="cell_type_celltypist",
+                    help="obs column with cell-type labels for LIANA")
+    ap.add_argument("--cellcomm-perms", type=int, default=100,
+                    help="LIANA permutations (default 100)")
     ap.add_argument("--emit-html", action="store_true",
                     help=("After stages succeed, render the NarrativeAgent "
                           "HTML report into <workspace>/report/"))
     args = ap.parse_args()
 
     is_trajectory = args.trajectory_h5ad is not None
+    is_cellcomm   = args.cellcomm_h5ad is not None
     if is_trajectory:
-        # In trajectory mode, --data is ignored; the input is the
-        # preprocessed h5ad. Set inputs to that single file for
-        # consistency in `report["data"]`.
         inputs = [Path(args.trajectory_h5ad).resolve()]
+    elif is_cellcomm:
+        inputs = [Path(args.cellcomm_h5ad).resolve()]
     else:
         inputs = _expand_inputs(args.data)
     workspace = Path(args.workspace).resolve()
     workspace.mkdir(parents=True, exist_ok=True)
-    is_multi  = len(inputs) >= 2 and not is_trajectory
+    is_multi = (len(inputs) >= 2
+                and not is_trajectory and not is_cellcomm)
     is_pseudobulk = args.pseudobulk_condition is not None
 
     report: dict = {"data":        [str(p) for p in inputs],
@@ -190,6 +199,10 @@ def main() -> int:
     # ── Trajectory mode — early dispatch for preprocessed h5ad ──────────
     if is_trajectory:
         return _run_trajectory_flow(args, inputs[0], workspace, report)
+
+    # ── Cell-cell communication mode — preprocessed + annotated h5ad ────
+    if is_cellcomm:
+        return _run_cellcomm_flow(args, inputs[0], workspace, report)
 
     # ── Pseudobulk mode — early dispatch for preprocessed h5ad ──────────
     if is_pseudobulk:
@@ -434,6 +447,52 @@ def main() -> int:
                       f"{info.get('n_significant', 0)} sig pathways "
                       f"({top_str}){RST}")
 
+    return _save_and_exit(report, workspace, 0, args=args)
+
+
+def _run_cellcomm_flow(args, h5ad: Path, workspace: Path,
+                        report: dict) -> int:
+    """
+    Preprocessed-input fast path: run LIANA rank_aggregate over a
+    pre-annotated h5ad. Autocrine self-pairs are excluded by the script.
+    """
+    report["mode"] = "cellcomm"
+    report["cellcomm_inputs"] = {
+        "h5ad":    str(h5ad),
+        "groupby": args.cellcomm_groupby,
+        "n_perms": args.cellcomm_perms,
+    }
+    print(f"{DIM}mode=cellcomm | groupby={args.cellcomm_groupby} | "
+          f"n_perms={args.cellcomm_perms}{RST}")
+
+    ccc = step("1. rna_cellcomm.py (LIANA rank_aggregate)",
+               lambda: env_manager.run_in_stack(
+                   stack="rna",
+                   script_path="aria/scripts/rna_cellcomm.py",
+                   params={
+                       "data_path":     str(h5ad),
+                       "cell_type_col": args.cellcomm_groupby,
+                       "organism":      args.organism,
+                       "output_dir":    str(workspace),
+                       "n_perms":       args.cellcomm_perms,
+                   },
+               ))
+    report["stages"]["cell_communication"] = ccc
+    if ccc.get("status") != "success":
+        return _save_and_exit(report, workspace, 1, args=args)
+
+    print(f"    {DIM}method: {ccc.get('method')}{RST}")
+    print(f"    {DIM}cell types: {ccc.get('n_cell_types')}, "
+          f"interactions: {ccc.get('n_interactions')}, "
+          f"autocrine dropped: {ccc.get('n_autocrine_dropped', 0)}{RST}")
+    for pair in (ccc.get("top_pairs") or [])[:5]:
+        print(f"    {DIM}  {pair}{RST}")
+    print(f"    {DIM}top interactions:{RST}")
+    for ia in (ccc.get("top_interactions") or [])[:5]:
+        print(f"    {DIM}    {ia.get('source','?')[:18]:<18} → "
+              f"{ia.get('target','?')[:18]:<18}  "
+              f"{ia.get('ligand','?')}-{ia.get('receptor','?')}  "
+              f"(score={ia.get('score','?')}){RST}")
     return _save_and_exit(report, workspace, 0, args=args)
 
 
