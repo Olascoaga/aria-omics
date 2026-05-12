@@ -353,8 +353,12 @@ v4.3.7   done     Cell-cell communication (LIANA) E2E + autocrine
                   exclusion + adaptive rank-metric fallback
 v4.3.8   done     TUI/Orchestrator → NarrativeAgent shape normalisation:
                   the path is now end-to-end ready for scRNA reports
-v4.4     next     IntegrationAgent end-to-end (WNN + MOFA+ + peak2gene)
-                  — hippocampus dataset is 10x Multiome, same-cell pairing
+v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
+                  chromatin_peaks already scaffolded; need LSI clustering
+                  + differential accessibility + motifs + narrative module
+v4.5              ATAC bulk end-to-end — DA via DESeq2 on peak counts
+v4.6              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
+                  until both modalities work standalone
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
