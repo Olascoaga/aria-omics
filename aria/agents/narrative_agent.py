@@ -564,40 +564,18 @@ power for small-effect genes."
                     f"Significance was defined as adjusted p-value < 0.05."
                 )
 
-        # Single-cell RNA methods
+        # Single-cell RNA methods (delegated to _narrative_scrna for full
+        # pseudobulk/standard handling)
         scrna = agent_results.get("scrna_agent",
                                     agent_results.get("rna_agent", {}))
         if scrna.get("status") == "done":
-            findings_rna = scrna.get("findings", {})
-            qc           = findings_rna.get("scRNA", {}).get(
-                               "findings", {}
-                           ).get("qc", {})
-            clustering   = findings_rna.get("scRNA", {}).get(
-                               "findings", {}
-                           ).get("clustering_decision", {})
-
-            lines.append(f"\n**Single-cell RNA-seq**\n")
-            if qc:
-                mt_thr = qc.get("mt_threshold", "")
-                lines.append(
-                    f"Raw count matrices were processed using scanpy. "
-                    f"Cells were filtered using adaptive MAD-based thresholds "
-                    f"with a maximum mitochondrial fraction of "
-                    f"{mt_thr}%. "
-                    f"Counts were normalized to 10,000 reads per cell "
-                    f"and log1p-transformed."
-                )
-            if clustering:
-                res          = clustering.get("recommended", "")
-                n_candidates = clustering.get("n_candidates", 4)
-                lines.append(
-                    f"Dimensionality reduction was performed using PCA "
-                    f"(50 components), followed by k-nearest neighbor "
-                    f"graph construction (k=15) and UMAP visualization. "
-                    f"Leiden clustering was performed at resolution={res}, "
-                    f"selected by the ParameterAdvisor based on silhouette "
-                    f"score maximization across {n_candidates} candidates."
-                )
+            from aria.agents import _narrative_scrna
+            sc_findings = (scrna.get("findings", {}) or {}) \
+                          .get("scRNA", {}).get("findings", {}) or {}
+            scrna_methods = _narrative_scrna.build_scrna_methods(sc_findings)
+            if scrna_methods:
+                lines.append(f"\n**Single-cell RNA-seq**\n")
+                lines.append(scrna_methods)
 
         # Chromatin methods
         chrom = agent_results.get("chromatin_agent", {})
@@ -835,42 +813,11 @@ power for small-effect genes."
 
     def _summarize_rna(self, rna_result: dict,
                         grouped: dict) -> str:
+        from aria.agents import _narrative_scrna
         findings = rna_result.get("findings", {})
         sc       = findings.get("scRNA", {}).get("findings", {})
-
-        parts = []
-
-        qc = sc.get("qc", {})
-        if qc:
-            n_after  = qc.get("n_cells_after", "?")
-            pct_rm   = qc.get("pct_removed", "?")
-            parts.append(
-                f"After quality control, {n_after} cells were retained "
-                f"({pct_rm}% removed)."
-            )
-
-        ct = sc.get("cell_types", {})
-        if ct and ct.get("cell_types"):
-            unique_types = list(set(ct["cell_types"].values()))
-            # Filter out failed annotations
-            unique_types = [t for t in unique_types
-                            if "failed" not in str(t).lower()]
-            if unique_types:
-                parts.append(
-                    f"Cell type annotation identified: "
-                    f"{', '.join(unique_types[:6])}."
-                )
-
-        de = sc.get("differential_expression", {})
-        if de:
-            n_sig = de.get("n_significant", 0)
-            parts.append(
-                f"Differential expression analysis identified "
-                f"{n_sig} significant genes."
-            )
-
-        return " ".join(parts) if parts else \
-               "RNA analysis completed. See findings table for details."
+        # Delegate to the scRNA module: it knows about pseudobulk + standard.
+        return _narrative_scrna.summarize_scrna_text(sc)
 
     def _summarize_chromatin(self, chrom_result: dict,
                               grouped: dict) -> str:
@@ -1502,6 +1449,15 @@ power for small-effect genes."
             if key == "bulk_rna" and agent_results:
                 plot_html = self._build_bulk_rna_plots(
                     agent_results.get("bulk_rna_agent", {})
+                )
+            elif key == "scrna" and agent_results:
+                from aria.agents import _narrative_scrna
+                sc_envelope = agent_results.get("scrna_agent") or \
+                              agent_results.get("rna_agent", {})
+                sc_findings = (sc_envelope.get("findings", {}) or {}) \
+                              .get("scRNA", {}).get("findings", {}) or {}
+                plot_html = _narrative_scrna.build_scrna_html_section(
+                    sc_findings
                 )
 
             # Escape HTML-breaking newlines into <br> for readability
