@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.3-blue)
+![Version](https://img.shields.io/badge/version-4.3.4-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -67,8 +67,9 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_advise_resolution.py         done
   rna_clustering.py (Leiden)       done
   rna_celltypist.py                done
-  rna_de_per_cluster.py            done — slow on >10k cells (v4.3.4 target)
-  rna_pathway_per_cluster.py       done
+  rna_de_per_cluster.py            done — slow on >10k cells (cf. pseudobulk)
+  rna_pseudobulk_de.py             done — between-condition DE via pyDESeq2
+  rna_pathway_per_cluster.py       done — also used for per (group, comp) ORA
   rna_trajectory.py (PAGA+DPT)     scaffolded — not yet end-to-end validated
   rna_cellcomm.py (LIANA)          scaffolded — not yet end-to-end validated
 ChromatinAgent                     done
@@ -104,6 +105,15 @@ GEO/SRA connectors                 done   ✓ GSE183948 validated
   genes; Harmony silhouette −0.047 → −0.067 (lower = better mixing); 9
   clusters at Leiden 0.2 (silhouette 0.677) annotated as Oligo, Endo, L2-3
   excitatory neurons, InN VIP, Astro AQP4, Astro GFAP, Micro, etc.
+- **GSE278576 hippocampus (consolidated, 40 donors, 295k cells)** —
+  pseudobulk DE on a Seurat-derived `.h5ad` (lognorm-counts recovered
+  in-stream from `nCount_RNA`): age_group `80-100 vs 20-39` within each
+  of 18 cell-type subclasses, Gender as covariate, pyDESeq2 design
+  `~ age_group + Gender`. Recovered ORA signal matches the brain-aging
+  literature: electron transport chain / oxidative phosphorylation
+  dysfunction across Chandelier / LAMP5 / PVALB / SUB neurons and
+  astrocytes; type I interferon signaling in VLMC; Parkinson disease
+  pathway in SUB.
 
 ---
 
@@ -299,7 +309,9 @@ v4.2/4.3 done     GEO/SRA connector — analyze public datasets by accession
 v4.3.1   done     Hardening: thread-safe bus/memory, prompt cache, exp logs
 v4.3.2   done     scRNA end-to-end validated; rna_qc handles raw 10x matrices
 v4.3.3   done     scRNA multi-sample workflow: per-sample QC + concat + Harmony
-v4.3.4   next     scRNA DE speed-up (rank_genes_groups bottleneck on >10k cells)
+v4.3.4   done     Pseudobulk DE between conditions (rna_pseudobulk_de) +
+                  lognorm-counts auto-recovery for Seurat-derived h5ads
+v4.3.5   next     NarrativeAgent E2E for scRNA / pseudobulk (HTML report)
 v4.4              IntegrationAgent end-to-end validation (WNN + MOFA+)
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
