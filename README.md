@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.5-blue)
+![Version](https://img.shields.io/badge/version-4.3.6-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -122,6 +122,19 @@ condition, per-cell-type DE summary bar, per-(group×comparison) DE table
 sorted by significance with top up/down genes, ORA dotplots for the top
 cell types across GO_BP / KEGG / Reactome, Methods section with exact
 thresholds and design formula, and the parameter-decisions log.
+
+**Trajectory analysis (PAGA + DPT)** (v4.3.6) — preprocessed h5ads can
+be dispatched with `--trajectory-h5ad PATH --trajectory-groupby COL
+--trajectory-root TYPE`. Validated on a 50k-cell OPC + Oligo + Astro
+subset from the hippocampus dataset: DPT pseudotime correctly orders
+OPC (0.216) → Oligo (0.239) → Astro (0.367) with OPC selected as root.
+PAGA reports `max_connectivity = 0.00231` — characteristic of mature /
+non-developmental tissue — and the HTML embeds both a normal and a
+log-scaled cluster graph so weak adult-tissue edges remain visible
+without the report making false developmental claims. RNA velocity is
+automatically skipped (the dataset lacks spliced / unspliced layers);
+re-quantification via velocyto or kb-python `nac` mode is documented
+in the Methods section as the path to enable it.
 
 ---
 
@@ -321,7 +334,9 @@ v4.3.4   done     Pseudobulk DE between conditions (rna_pseudobulk_de) +
                   lognorm-counts auto-recovery for Seurat-derived h5ads
 v4.3.5   done     NarrativeAgent E2E for scRNA / pseudobulk — UMAP +
                   per-cell-type DE table + pathway dotplots in HTML report
-v4.3.6   next     Trajectory analysis (PAGA + DPT) E2E validation
+v4.3.6   done     Trajectory analysis (PAGA + DPT) E2E + adaptive
+                  connectivity reporting for mature populations
+v4.3.7   next     Cell-cell communication (LIANA) E2E validation
 v4.4              IntegrationAgent end-to-end validation (WNN + MOFA+)
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
