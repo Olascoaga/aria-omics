@@ -98,7 +98,19 @@ def summarize_scrna_text(findings: dict) -> str:
 
     ct = (findings.get("cell_types") or {}).get("cell_types", {}) or {}
     if ct:
-        unique = sorted({str(v) for v in ct.values() if v})
+        # cell_types can be either {cluster_id: "label"} (legacy / CellTypist
+        # majority vote) or {cluster_id: {cell_type, celltypist_label,
+        # rationale, key_markers, ...}} (LLM-reinterpreted shape from
+        # scrna_agent._annotate_cell_types). Extract just the label so the
+        # report does not dump raw Python dicts into the findings card.
+        def _label(v):
+            if isinstance(v, dict):
+                return (v.get("cell_type")
+                        or v.get("celltypist_label")
+                        or v.get("label")
+                        or "")
+            return str(v) if v else ""
+        unique = sorted({_label(v) for v in ct.values() if _label(v)})
         if unique:
             lines.append(
                 f"Cell-type annotation labelled {len(unique)} unique types "
@@ -224,13 +236,21 @@ def build_scrna_methods(findings: dict) -> str:
     clu = findings.get("clustering") or {}
     cdec = findings.get("clustering_decision") or {}
     if clu.get("n_clusters"):
+        # scrna_agent emits {resolution, justification, n_clusters} —
+        # earlier code looked for {recommended, n_candidates} which never
+        # existed, so Methods printed "resolution=? across ? candidates".
+        # Fall back across both shapes for safety.
+        res = (cdec.get("resolution")
+               or cdec.get("recommended")
+               or clu.get("resolution"))
+        n_cand = cdec.get("n_candidates")
+        cand_str = (f" (selected by silhouette across {n_cand} candidates)"
+                    if n_cand else "")
         lines.append(
             f"Dimensionality reduction used PCA (50 components) followed by "
             f"k-NN graph construction (k=15) and UMAP visualisation. "
-            f"Leiden clustering at resolution={cdec.get('recommended', '?')} "
-            f"(selected by silhouette across "
-            f"{cdec.get('n_candidates', '?')} candidates) yielded "
-            f"{clu['n_clusters']} clusters."
+            f"Leiden clustering at resolution={res if res is not None else '?'}"
+            f"{cand_str} yielded {clu['n_clusters']} clusters."
         )
 
     ct = findings.get("cell_types") or {}
