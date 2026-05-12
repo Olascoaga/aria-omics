@@ -211,6 +211,21 @@ def adapt(report: Union[dict, str, Path],
             "per_cluster": pw.get("per_cluster", {}),
         }
 
+    # Trajectory (v4.3.6) ─────────────────────────────────────────────────
+    traj = stages.get("trajectory")
+    if traj and traj.get("status") in ("success", "done"):
+        findings["trajectory"] = {
+            "status":     "done",
+            "groupby":    traj.get("groupby"),
+            "paga":       traj.get("paga", {}) or {},
+            "pseudotime": traj.get("pseudotime", {}) or {},
+            "velocity":   traj.get("velocity", {}) or {},
+            "output_path": traj.get("output_path"),
+        }
+        # The trajectory script writes a new h5ad with PAGA + DPT
+        # populated. Prefer it for downstream figure generation.
+        output_h5ad = traj.get("output_path") or output_h5ad
+
     # Pseudobulk DE (v4.3.4+) ─────────────────────────────────────────────
     pb = stages.get("pseudobulk")
     if pb and pb.get("status") in ("success", "done"):

@@ -118,6 +118,41 @@ def summarize_scrna_text(findings: dict) -> str:
             f"with significant enrichment."
         )
 
+    traj = findings.get("trajectory") or {}
+    if traj.get("status") in ("done", "success"):
+        paga = traj.get("paga", {}) or {}
+        pt = traj.get("pseudotime", {}) or {}
+        max_conn = paga.get("max_connectivity", 0) or 0
+        n_strong = paga.get("n_strong", 0)
+        thr = paga.get("strong_threshold", 0.05)
+        connectivity_note = (
+            f"; max edge {max_conn:.4f} — weak, consistent with "
+            f"mature / non-developmental populations"
+            if max_conn < thr else
+            f"; {n_strong} edges above {thr} threshold "
+            f"(suggests active lineage transitions)"
+        )
+        traj_line = (
+            f"Trajectory inference: PAGA on {paga.get('n_connections', 0)} "
+            f"cluster pairs{connectivity_note}."
+        )
+        if pt.get("computed"):
+            root = pt.get("root_used", "auto")
+            pt_by = pt.get("pseudotime_by_group", {}) or {}
+            if pt_by:
+                ordered = sorted(pt_by.items(), key=lambda kv: kv[1])
+                order_str = " → ".join(g for g, _ in ordered)
+                traj_line += (
+                    f" DPT pseudotime (root: {root}) orders groups "
+                    f"{order_str}."
+                )
+        vel = traj.get("velocity", {}) or {}
+        if not vel.get("computed") and vel.get("reason"):
+            traj_line += (
+                f" RNA velocity skipped ({vel['reason'][:60]})."
+            )
+        lines.append(traj_line)
+
     return "\n".join(lines) if lines else (
         "scRNA analysis completed. See findings table for details."
     )
@@ -201,6 +236,41 @@ def build_scrna_methods(findings: dict) -> str:
             f"run on the top-200 DE genes per (group × comparison) against "
             f"{', '.join(dbs)}. Significance: adjusted p &lt; 0.05."
         )
+
+    traj = findings.get("trajectory") or {}
+    if traj.get("status") in ("done", "success"):
+        pt = traj.get("pseudotime", {}) or {}
+        groupby = traj.get("groupby", "cell type")
+        method_parts = [
+            f"Trajectory inference was performed in scanpy. A k-nearest "
+            f"neighbour graph (k=15) was reused from the clustering step "
+            f"or recomputed on the Harmony-corrected PCA representation. "
+            f"PAGA (Partition-based Graph Abstraction; Wolf et al. 2019) "
+            f"was applied on the '{groupby}' grouping to estimate "
+            f"cluster-level connectivity."
+        ]
+        if pt.get("computed"):
+            root = pt.get("root_used", "auto")
+            method_parts.append(
+                f"Diffusion pseudotime (DPT; Haghverdi et al. 2016) was "
+                f"computed on the diffusion map embedding with root cell "
+                f"selected via {root}."
+            )
+        vel = traj.get("velocity", {}) or {}
+        if not vel.get("computed"):
+            method_parts.append(
+                f"RNA velocity was not computed: "
+                f"{vel.get('reason', 'spliced / unspliced layers absent')}. "
+                f"Re-quantification with velocyto / kb-python `nac` mode "
+                f"would be required to enable scVelo."
+            )
+        else:
+            method_parts.append(
+                f"RNA velocity was estimated with scVelo "
+                f"({vel.get('method', 'stochastic')} model) on spliced / "
+                f"unspliced layers."
+            )
+        lines.append(" ".join(method_parts))
 
     return "\n\n".join(lines)
 
@@ -336,6 +406,70 @@ def render_pathway_dotplots(findings: dict,
     return figures
 
 
+def extract_trajectory_tables(findings: dict) -> dict:
+    """
+    Return {paga_rows, pseudotime_rows} HTML strings for the trajectory
+    section. Each is a <tbody> inner snippet (caller wraps in <table>).
+    """
+    traj = findings.get("trajectory") or {}
+    paga = traj.get("paga", {}) or {}
+    pt = traj.get("pseudotime", {}) or {}
+
+    paga_rows = ""
+    top_conn = paga.get("top_connections", {}) or {}
+    if top_conn:
+        max_c = paga.get("max_connectivity") or max(
+            (v for v in top_conn.values() if isinstance(v, (int, float))),
+            default=0,
+        )
+        thr = paga.get("strong_threshold", 0.05)
+        rows = []
+        for edge, val in top_conn.items():
+            strong = isinstance(val, (int, float)) and val >= thr
+            badge = (
+                '<span style="background:#dcfce7;color:var(--green);'
+                'padding:2px 6px;border-radius:3px;font-size:0.75em;'
+                'font-weight:600">strong</span>'
+                if strong else
+                '<span style="color:var(--muted);font-size:0.85em">weak</span>'
+            )
+            rel = (val / max_c) if max_c else 0
+            bar_w = max(2, int(rel * 100))
+            rows.append(
+                f"<tr><td>{html.escape(str(edge))}</td>"
+                f"<td><code>{val}</code></td>"
+                f"<td>{badge}</td>"
+                f"<td><div style='background:#e2e8f0;width:120px;"
+                f"height:8px;border-radius:3px;overflow:hidden'>"
+                f"<div style='background:var(--teal);width:{bar_w}px;"
+                f"height:100%;'></div></div></td></tr>"
+            )
+        paga_rows = "\n".join(rows)
+
+    pseudotime_rows = ""
+    pt_by = pt.get("pseudotime_by_group", {}) or {}
+    if pt_by:
+        ordered = sorted(pt_by.items(), key=lambda kv: kv[1])
+        max_pt = max(pt_by.values()) if pt_by else 1
+        rows = []
+        for rank, (group, val) in enumerate(ordered, 1):
+            rel = (val / max_pt) if max_pt else 0
+            bar_w = max(2, int(rel * 140))
+            rows.append(
+                f"<tr><td>{rank}</td>"
+                f"<td><strong>{html.escape(str(group))}</strong></td>"
+                f"<td><code>{val:.4f}</code></td>"
+                f"<td><div style='background:#e2e8f0;width:160px;"
+                f"height:8px;border-radius:3px;overflow:hidden'>"
+                f"<div style='background:var(--blue);width:{bar_w}px;"
+                f"height:100%'></div></div></td></tr>"
+            )
+        pseudotime_rows = "\n".join(rows)
+
+    return {"paga_rows": paga_rows,
+            "pseudotime_rows": pseudotime_rows}
+
+
 def render_per_celltype_de_bar(findings: dict, output_path: Path) -> Optional[str]:
     """
     Stacked bar chart of n_up / n_down DE genes per (group × comparison)
@@ -418,7 +552,13 @@ def build_scrna_html_section(findings: dict,
     figs = findings.get("figures") or {}
 
     # 1. UMAP figures ─────────────────────────────────────────────────────
-    umaps = {k: v for k, v in figs.items() if k.startswith("umap_")}
+    # Exclude trajectory-specific UMAPs (e.g. dpt_pseudotime) — those are
+    # rendered inside the Trajectory section to keep the narrative
+    # contiguous.
+    umaps = {
+        k: v for k, v in figs.items()
+        if k.startswith("umap_") and k != "umap_dpt_pseudotime"
+    }
     if umaps:
         parts.append('<h4 style="margin-top:1rem">Embedding</h4>')
         parts.append('<div style="display:flex;flex-wrap:wrap;gap:1rem">')
@@ -464,7 +604,77 @@ def build_scrna_html_section(findings: dict,
             '</table>'
         )
 
-    # 4. Pathway dotplots ─────────────────────────────────────────────────
+    # 4. Trajectory section (PAGA + DPT) ──────────────────────────────────
+    traj = findings.get("trajectory") or {}
+    if traj.get("status") in ("done", "success"):
+        parts.append('<h4 style="margin-top:1.4rem">'
+                     'Trajectory — PAGA + DPT</h4>')
+
+        # PAGA + DPT-coloured UMAP figures, side by side
+        traj_figs = []
+        for fkey in ("paga_graph", "paga_log10_graph",
+                     "umap_dpt_pseudotime"):
+            p = figs.get(fkey)
+            if p:
+                uri = _embed_png(p)
+                if uri:
+                    cap = html.escape({
+                        "paga_graph":         "PAGA — group connectivity",
+                        "paga_log10_graph":   "PAGA — log-scaled edges",
+                        "umap_dpt_pseudotime": "UMAP — DPT pseudotime",
+                    }[fkey])
+                    traj_figs.append(
+                        f'<figure style="flex:1 1 280px;min-width:260px;'
+                        f'max-width:430px">'
+                        f'<img src="{uri}" alt="{cap}">'
+                        f'<figcaption>{cap}</figcaption>'
+                        f'</figure>'
+                    )
+        if traj_figs:
+            parts.append('<div style="display:flex;flex-wrap:wrap;'
+                         'gap:1rem">')
+            parts.extend(traj_figs)
+            parts.append('</div>')
+
+        # Tables: PAGA top connections + DPT pseudotime by group
+        tables = extract_trajectory_tables(findings)
+        if tables["paga_rows"]:
+            paga_meta = traj.get("paga", {}) or {}
+            max_c = paga_meta.get("max_connectivity", 0)
+            n_str = paga_meta.get("n_strong", 0)
+            thr_  = paga_meta.get("strong_threshold", 0.05)
+            note = (
+                f'<p style="color:var(--muted);font-size:0.82em;'
+                f'margin-top:0.4rem;font-style:italic">'
+                f'Max connectivity = {max_c:.4f}. '
+                f'{n_str} edge(s) above the {thr_} threshold. '
+                f'In mature / non-developmental populations, absolute '
+                f'connectivities are typically &lt; 0.01 — interpret '
+                f'rankings rather than absolute magnitudes.</p>'
+            )
+            parts.append(
+                '<h4 style="margin-top:1.2rem">PAGA — top connections</h4>'
+                '<table style="width:100%;font-size:0.88em">'
+                '<thead><tr><th>Edge</th><th>Connectivity</th>'
+                '<th>Strength</th><th>Visual</th></tr></thead>'
+                f'<tbody>{tables["paga_rows"]}</tbody>'
+                '</table>'
+                + note
+            )
+        if tables["pseudotime_rows"]:
+            pt = traj.get("pseudotime", {}) or {}
+            root_str = html.escape(str(pt.get("root_used", "auto")))
+            parts.append(
+                f'<h4 style="margin-top:1.2rem">DPT pseudotime by group '
+                f'(root: {root_str})</h4>'
+                '<table style="width:100%;font-size:0.88em">'
+                '<thead><tr><th>Rank</th><th>Group</th>'
+                '<th>Mean DPT</th><th>Visual</th></tr></thead>'
+                f'<tbody>{tables["pseudotime_rows"]}</tbody>'
+                '</table>'
+            )
+
+    # 5. Pathway dotplots ─────────────────────────────────────────────────
     pw_figs = figs.get("pathway_dotplots") or {}
     if pw_figs:
         parts.append(
@@ -590,5 +800,53 @@ def generate_figures(findings: dict,
     pw_figs = render_pathway_dotplots(findings, output_dir / "pathways")
     if pw_figs:
         figs["pathway_dotplots"] = pw_figs
+
+    # 4. Trajectory figures (PAGA graph + DPT UMAP) ─────────────────────
+    traj = findings.get("trajectory") or {}
+    if traj.get("status") in ("done", "success") and env_manager is not None:
+        traj_h5ad = traj.get("output_path") or h5ad_path
+        if traj_h5ad:
+            try:
+                paga_res = env_manager.run_in_stack(
+                    stack="rna",
+                    script_path="aria/scripts/rna_figure_paga.py",
+                    params={
+                        "h5ad_path":  str(traj_h5ad),
+                        "output_dir": str(output_dir / "trajectory"),
+                        "groupby":    traj.get("groupby"),
+                    },
+                )
+                if paga_res.get("status") == "success":
+                    figs.update(paga_res.get("figures") or {})
+                else:
+                    log.warning(
+                        f"PAGA figure failed: "
+                        f"{paga_res.get('error_type')} — "
+                        f"{paga_res.get('details', '')[:200]}"
+                    )
+            except Exception as e:
+                log.warning(f"PAGA figure subprocess crashed: {e}")
+
+            # DPT-coloured UMAP — only if dpt_pseudotime obs col exists.
+            pt = traj.get("pseudotime", {}) or {}
+            if pt.get("computed"):
+                try:
+                    dpt_res = env_manager.run_in_stack(
+                        stack="rna",
+                        script_path="aria/scripts/rna_figure_umap.py",
+                        params={
+                            "h5ad_path":  str(traj_h5ad),
+                            "color_by":   ["dpt_pseudotime"],
+                            "output_dir": str(output_dir / "trajectory"),
+                        },
+                    )
+                    if dpt_res.get("status") == "success":
+                        path = (dpt_res.get("figures") or {}).get(
+                            "dpt_pseudotime"
+                        )
+                        if path:
+                            figs["umap_dpt_pseudotime"] = path
+                except Exception as e:
+                    log.warning(f"DPT UMAP subprocess crashed: {e}")
 
     return findings

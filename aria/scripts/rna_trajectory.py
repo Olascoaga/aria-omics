@@ -65,7 +65,17 @@ def rna_trajectory(params: dict) -> dict:
     # ── 1. PAGA ──────────────────────────────────────────────────────────
     sc.tl.paga(adata, groups=groupby)
 
+    # PAGA-initialised UMAP for downstream figure generation. Skipped if
+    # the AnnData already carries a precomputed UMAP we should respect.
+    if "X_umap" not in adata.obsm:
+        try:
+            sc.tl.umap(adata, init_pos="paga")
+        except Exception as e:
+            log_msg = f"sc.tl.umap(init_pos=paga) skipped: {e}"
+            adata.uns.setdefault("paga_log", []).append(log_msg)
+
     paga_conn: dict = {}
+    max_off_diag = 0.0
     try:
         conn_mat = adata.uns["paga"]["connectivities"]
         if hasattr(conn_mat, "toarray"):
@@ -73,18 +83,25 @@ def rna_trajectory(params: dict) -> dict:
         cats = (list(adata.obs[groupby].cat.categories)
                 if hasattr(adata.obs[groupby], "cat")
                 else sorted(adata.obs[groupby].unique()))
+        # Adaptive threshold: scanpy's default for PAGA is 0.01, but for
+        # mature / well-separated populations (adult tissue) connectivity
+        # can be orders of magnitude lower. We keep top-N edges regardless,
+        # plus any edge above a floor of 0.005, so weak-but-real adjacency
+        # in adult datasets isn't silently dropped.
         for i, g1 in enumerate(cats):
             for j, g2 in enumerate(cats):
                 if i < j:
                     v = float(conn_mat[i, j])
-                    if v > 0.10:
-                        paga_conn[f"{g1}→{g2}"] = round(v, 3)
+                    max_off_diag = max(max_off_diag, v)
+                    paga_conn[f"{g1}→{g2}"] = round(v, 5)
     except Exception:
         pass
 
+    # Keep all edges, then sort & take top 25 (the report uses ≤15).
     top_connections = dict(
-        sorted(paga_conn.items(), key=lambda x: -x[1])[:15]
+        sorted(paga_conn.items(), key=lambda x: -x[1])[:25]
     )
+    n_strong = sum(1 for v in paga_conn.values() if v >= 0.05)
 
     # ── 2. Diffusion Pseudotime ───────────────────────────────────────────
     dpt_result: dict = {"computed": False}
@@ -152,8 +169,11 @@ def rna_trajectory(params: dict) -> dict:
 
     return {
         "status":      "success",
-        "paga":        {"top_connections": top_connections,
-                        "n_connections":   len(paga_conn)},
+        "paga":        {"top_connections":   top_connections,
+                        "n_connections":     len(paga_conn),
+                        "n_strong":          n_strong,
+                        "max_connectivity":  round(max_off_diag, 5),
+                        "strong_threshold":  0.05},
         "pseudotime":  dpt_result,
         "velocity":    velocity_result,
         "groupby":     groupby,
