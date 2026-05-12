@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.6-blue)
+![Version](https://img.shields.io/badge/version-4.3.7-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -135,6 +135,19 @@ without the report making false developmental claims. RNA velocity is
 automatically skipped (the dataset lacks spliced / unspliced layers);
 re-quantification via velocyto or kb-python `nac` mode is documented
 in the Methods section as the path to enable it.
+
+**Cell-cell communication (LIANA)** (v4.3.7) — dispatch with
+`--cellcomm-h5ad PATH --cellcomm-groupby cell_type_celltypist`.
+Validated on the GSE278576 multi-sample annotated h5ad (9 cell types):
+LIANA `rank_aggregate` with n_perms=50 runs in 7 s. Autocrine pairs
+(source == target) are excluded a priori (~1.5k of ~13.5k rows on this
+dataset). The script auto-falls back to `specificity_rank` when LIANA
+emits all-NaN `magnitude_rank` (a recent-version quirk). Top non-
+autocrine hits recovered are classical glia-neuron signaling axes:
+APOE → TREM2 (Astro → Micro), C3 → NRP1 (Micro → L2-3 neurons),
+VCAN → TLR2 (OPC → Micro), NRG1 → MS4A4A (InN VIP → Micro). HTML
+includes a sender × receiver interaction-count heatmap, the top-N
+L-R bar chart, and a sortable table with CellPhone p-values.
 
 ---
 
@@ -336,8 +349,10 @@ v4.3.5   done     NarrativeAgent E2E for scRNA / pseudobulk — UMAP +
                   per-cell-type DE table + pathway dotplots in HTML report
 v4.3.6   done     Trajectory analysis (PAGA + DPT) E2E + adaptive
                   connectivity reporting for mature populations
-v4.3.7   next     Cell-cell communication (LIANA) E2E validation
-v4.4              IntegrationAgent end-to-end validation (WNN + MOFA+)
+v4.3.7   done     Cell-cell communication (LIANA) E2E + autocrine
+                  exclusion + adaptive rank-metric fallback
+v4.4     next     IntegrationAgent end-to-end (WNN + MOFA+ + peak2gene)
+                  — hippocampus dataset has the ATAC half ready
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
