@@ -144,15 +144,32 @@ def main() -> int:
                           "chain). e.g. '80-100:20-39;60-79:20-39'"))
     ap.add_argument("--pseudobulk-covariates", default="",
                     help="comma-separated obs columns for the design formula")
+    # Trajectory mode — preprocessed h5ad with clusters/celltypes; run
+    # PAGA + DPT and skip QC / integration / clustering / pathways.
+    ap.add_argument("--trajectory-h5ad", default=None,
+                    help=("path to preprocessed h5ad (already QC'd + "
+                          "clustered) — when set, enters trajectory-only "
+                          "mode"))
+    ap.add_argument("--trajectory-groupby", default="cell_type",
+                    help="obs column for PAGA grouping (default: cell_type)")
+    ap.add_argument("--trajectory-root", default=None,
+                    help="cell type label to use as DPT root (optional)")
     ap.add_argument("--emit-html", action="store_true",
                     help=("After stages succeed, render the NarrativeAgent "
                           "HTML report into <workspace>/report/"))
     args = ap.parse_args()
 
-    inputs    = _expand_inputs(args.data)
+    is_trajectory = args.trajectory_h5ad is not None
+    if is_trajectory:
+        # In trajectory mode, --data is ignored; the input is the
+        # preprocessed h5ad. Set inputs to that single file for
+        # consistency in `report["data"]`.
+        inputs = [Path(args.trajectory_h5ad).resolve()]
+    else:
+        inputs = _expand_inputs(args.data)
     workspace = Path(args.workspace).resolve()
     workspace.mkdir(parents=True, exist_ok=True)
-    is_multi  = len(inputs) >= 2
+    is_multi  = len(inputs) >= 2 and not is_trajectory
     is_pseudobulk = args.pseudobulk_condition is not None
 
     report: dict = {"data":        [str(p) for p in inputs],
@@ -169,6 +186,10 @@ def main() -> int:
             print(f"    {DIM}- {_sample_id_from_path(p)}  ({p}){RST}")
     print(f"{DIM}organism={args.organism} | tissue={args.tissue}"
           f" | workspace={workspace}{RST}")
+
+    # ── Trajectory mode — early dispatch for preprocessed h5ad ──────────
+    if is_trajectory:
+        return _run_trajectory_flow(args, inputs[0], workspace, report)
 
     # ── Pseudobulk mode — early dispatch for preprocessed h5ad ──────────
     if is_pseudobulk:
@@ -412,6 +433,56 @@ def main() -> int:
                 print(f"    {DIM}  cluster {cl}: "
                       f"{info.get('n_significant', 0)} sig pathways "
                       f"({top_str}){RST}")
+
+    return _save_and_exit(report, workspace, 0, args=args)
+
+
+def _run_trajectory_flow(args, h5ad: Path, workspace: Path,
+                          report: dict) -> int:
+    """
+    Preprocessed-input fast path: skip QC/integration/clustering and run
+    PAGA + DPT (+ scVelo if spliced/unspliced layers exist) on the
+    grouping column provided.
+    """
+    report["mode"] = "trajectory"
+    report["trajectory_inputs"] = {
+        "h5ad":    str(h5ad),
+        "groupby": args.trajectory_groupby,
+        "root":    args.trajectory_root,
+    }
+    print(f"{DIM}mode=trajectory | groupby={args.trajectory_groupby} | "
+          f"root={args.trajectory_root or 'auto'}{RST}")
+
+    traj = step("1. rna_trajectory.py (PAGA + DPT)",
+                lambda: env_manager.run_in_stack(
+                    stack="rna",
+                    script_path="aria/scripts/rna_trajectory.py",
+                    params={
+                        "data_path":      str(h5ad),
+                        "root_cell_type": args.trajectory_root,
+                        "cell_type_col":  args.trajectory_groupby,
+                        "output_dir":     str(workspace),
+                    },
+                ))
+    report["stages"]["trajectory"] = traj
+    if traj.get("status") != "success":
+        return _save_and_exit(report, workspace, 1, args=args)
+
+    paga = traj.get("paga", {}) or {}
+    pt = traj.get("pseudotime", {}) or {}
+    print(f"    {DIM}PAGA: {paga.get('n_connections', 0)} edges, "
+          f"max={paga.get('max_connectivity', 0):.4f}, "
+          f"{paga.get('n_strong', 0)} strong (>{paga.get('strong_threshold', 0.05)}){RST}")
+    if pt.get("computed"):
+        pt_by = pt.get("pseudotime_by_group", {}) or {}
+        ordered = sorted(pt_by.items(), key=lambda kv: kv[1])
+        print(f"    {DIM}DPT root={pt.get('root_used')}, order: "
+              f"{' → '.join(g for g, _ in ordered)}{RST}")
+    vel = traj.get("velocity", {}) or {}
+    if vel.get("computed"):
+        print(f"    {DIM}scVelo: {vel.get('method', '?')}{RST}")
+    else:
+        print(f"    {DIM}scVelo: skipped ({vel.get('reason', '?')[:60]}){RST}")
 
     return _save_and_exit(report, workspace, 0, args=args)
 
