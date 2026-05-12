@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.2-blue)
+![Version](https://img.shields.io/badge/version-4.3.3-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -60,14 +60,15 @@ AuditAgent (quality linter, v4.1)  done
 BulkRNAAgent (DESeq2)              done  ✓ H9 BMAL1/REV-ERBα
   rna_bulk_de.py                   done
   rna_pathway_viz.py               done
-scRNAAgent                         done  ✓ PBMC 3k + GSE278576 hippocampus
-  rna_qc.py  (MAD + Scrublet)      done
+scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
+  rna_qc.py  (MAD + Scrublet)      done — per-sample mode with sample_id
+  rna_concat.py (multi-sample)     done — inner-join concat, raw preserved
+  rna_integration.py (Harmony)     done  ✓ validated on 3 donors
   rna_advise_resolution.py         done
   rna_clustering.py (Leiden)       done
   rna_celltypist.py                done
-  rna_de_per_cluster.py            done
+  rna_de_per_cluster.py            done — slow on >10k cells (v4.3.4 target)
   rna_pathway_per_cluster.py       done
-  rna_integration.py (Harmony)     done — single-batch only; multi-batch TBD
   rna_trajectory.py (PAGA+DPT)     scaffolded — not yet end-to-end validated
   rna_cellcomm.py (LIANA)          scaffolded — not yet end-to-end validated
 ChromatinAgent                     done
@@ -88,16 +89,21 @@ GEO/SRA connectors                 done   ✓ GSE183948 validated
 - DESeq2 + ORA (GO_BP, KEGG, Reactome) + GSEA per contrast
 - Publication-ready HTML report with embedded volcano plots and pathway dotplots
 
-**End-to-end validated on scRNA-seq** (v4.3.2) — `tests/test_scrna_e2e.py`:
+**End-to-end validated on scRNA-seq** (v4.3.3) — `tests/test_scrna_e2e.py`:
 
-- **PBMC 3k** → `Immune_All_Low` CellTypist model: T helper, classical monocytes,
-  CD16⁺ NK, B cells (4 clusters at Leiden 0.2, silhouette 0.36). Per-cluster ORA
-  recovers expected biology (B cells → MHC II antigen presentation; monocytes →
-  neutrophil degranulation; NK → cytotoxicity).
-- **GSE278576 hippocampus (hc11)** → `Adult_Human_PrefrontalCortex` model: OPC,
-  Oligo, Astro, Micro, InN VIP (5 clusters at Leiden 0.2, silhouette 0.60).
-  Per-cluster ORA: chemical synaptic transmission, glutamatergic synapse, axon
-  development.
+- **PBMC 3k** (single-sample) → `Immune_All_Low` CellTypist model: T helper,
+  classical monocytes, CD16⁺ NK, B cells (4 clusters at Leiden 0.2). Per-cluster
+  ORA recovers expected biology (B cells → MHC II antigen presentation;
+  monocytes → neutrophil degranulation; NK → cytotoxicity).
+- **GSE278576 hippocampus (hc11)** (single-sample) →
+  `Adult_Human_PrefrontalCortex` model: OPC, Oligo, Astro, Micro, InN VIP
+  (5 clusters at Leiden 0.2). Per-cluster ORA: glutamatergic synapse,
+  axon development.
+- **GSE278576 hippocampus (3 donors)** (multi-sample) — exercises
+  `rna_concat` + `rna_integration` (Harmony): 11,783 cells × 22,406 shared
+  genes; Harmony silhouette −0.047 → −0.067 (lower = better mixing); 9
+  clusters at Leiden 0.2 (silhouette 0.677) annotated as Oligo, Endo, L2-3
+  excitatory neurons, InN VIP, Astro AQP4, Astro GFAP, Micro, etc.
 
 ---
 
@@ -292,7 +298,9 @@ v4.1     done     AuditAgent — quality linter gates dispatch before DESeq2
 v4.2/4.3 done     GEO/SRA connector — analyze public datasets by accession
 v4.3.1   done     Hardening: thread-safe bus/memory, prompt cache, exp logs
 v4.3.2   done     scRNA end-to-end validated; rna_qc handles raw 10x matrices
-v4.4     next     IntegrationAgent end-to-end validation (WNN + MOFA+)
+v4.3.3   done     scRNA multi-sample workflow: per-sample QC + concat + Harmony
+v4.3.4   next     scRNA DE speed-up (rank_genes_groups bottleneck on >10k cells)
+v4.4              IntegrationAgent end-to-end validation (WNN + MOFA+)
 v4.5              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
