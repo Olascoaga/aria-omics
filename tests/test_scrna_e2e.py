@@ -130,12 +130,27 @@ def main() -> int:
                     help="comma-separated list of leiden resolutions to try")
     ap.add_argument("--workspace", default="/tmp/aria_e2e_pbmc3k/out",
                     help="output dir for intermediate artifacts")
+    # Pseudobulk mode — when --pseudobulk-condition is set, skip QC/cluster/DE
+    # and run between-condition DE directly on a preprocessed h5ad input.
+    ap.add_argument("--pseudobulk-condition", default=None,
+                    help=("obs column with experimental condition (e.g. "
+                          "'age_group'); enables pseudobulk DE mode"))
+    ap.add_argument("--pseudobulk-replicate", default="orig.ident",
+                    help="obs column with biological replicate ID")
+    ap.add_argument("--pseudobulk-groupby",   default="subclass",
+                    help="obs column for cell-type stratification")
+    ap.add_argument("--pseudobulk-compare",   default=None,
+                    help=("comma-separated pairs as test:ref (semicolons to "
+                          "chain). e.g. '80-100:20-39;60-79:20-39'"))
+    ap.add_argument("--pseudobulk-covariates", default="",
+                    help="comma-separated obs columns for the design formula")
     args = ap.parse_args()
 
     inputs    = _expand_inputs(args.data)
     workspace = Path(args.workspace).resolve()
     workspace.mkdir(parents=True, exist_ok=True)
     is_multi  = len(inputs) >= 2
+    is_pseudobulk = args.pseudobulk_condition is not None
 
     report: dict = {"data":        [str(p) for p in inputs],
                     "organism":    args.organism,
@@ -151,6 +166,14 @@ def main() -> int:
             print(f"    {DIM}- {_sample_id_from_path(p)}  ({p}){RST}")
     print(f"{DIM}organism={args.organism} | tissue={args.tissue}"
           f" | workspace={workspace}{RST}")
+
+    # ── Pseudobulk mode — early dispatch for preprocessed h5ad ──────────
+    if is_pseudobulk:
+        if len(inputs) != 1 or inputs[0].suffix != ".h5ad":
+            return _save_and_exit(
+                {**report, "error": "pseudobulk needs a single .h5ad input"},
+                workspace, 1)
+        return _run_pseudobulk_flow(args, inputs[0], workspace, report)
 
     # ── 1. QC + Scrublet ─────────────────────────────────────────────────
     if not is_multi:
@@ -386,6 +409,139 @@ def main() -> int:
                 print(f"    {DIM}  cluster {cl}: "
                       f"{info.get('n_significant', 0)} sig pathways "
                       f"({top_str}){RST}")
+
+    return _save_and_exit(report, workspace, 0)
+
+
+def _run_pseudobulk_flow(args, h5ad: Path, workspace: Path,
+                        report: dict) -> int:
+    """
+    Preprocessed-input fast path: skip QC/integration/clustering and run
+    between-condition DE on the cell types already in obs, followed by
+    pathway ORA per (group, comparison).
+    """
+    # Parse comparisons (e.g. "80-100:20-39;60-79:20-39")
+    comparisons = []
+    for pair in args.pseudobulk_compare.split(";") if args.pseudobulk_compare else []:
+        pair = pair.strip()
+        if not pair:
+            continue
+        if ":" not in pair:
+            return _save_and_exit(
+                {**report,
+                 "error": f"--pseudobulk-compare expects test:ref, got '{pair}'"},
+                workspace, 1)
+        test, ref = pair.split(":", 1)
+        comparisons.append([test.strip(), ref.strip()])
+    if not comparisons:
+        return _save_and_exit(
+            {**report, "error": "--pseudobulk-compare is required in pseudobulk mode"},
+            workspace, 1)
+
+    covariates = [c.strip() for c in args.pseudobulk_covariates.split(",") if c.strip()]
+    report["mode"]              = "pseudobulk"
+    report["pseudobulk_inputs"] = {
+        "h5ad":          str(h5ad),
+        "condition":     args.pseudobulk_condition,
+        "replicate":     args.pseudobulk_replicate,
+        "groupby":       args.pseudobulk_groupby,
+        "comparisons":   comparisons,
+        "covariates":    covariates,
+    }
+    print(f"{DIM}mode=pseudobulk | groupby={args.pseudobulk_groupby} | "
+          f"condition={args.pseudobulk_condition} | "
+          f"replicate={args.pseudobulk_replicate}{RST}")
+    print(f"{DIM}comparisons: "
+          f"{', '.join(f'{a}_vs_{b}' for a,b in comparisons)}{RST}")
+    if covariates:
+        print(f"{DIM}covariates: {', '.join(covariates)}{RST}")
+
+    pb = step("1. rna_pseudobulk_de.py",
+              lambda: env_manager.run_in_stack(
+                  stack="rna",
+                  script_path="aria/scripts/rna_pseudobulk_de.py",
+                  params={
+                      "data_path":     str(h5ad),
+                      "groupby":       args.pseudobulk_groupby,
+                      "condition_col": args.pseudobulk_condition,
+                      "replicate_col": args.pseudobulk_replicate,
+                      "comparisons":   comparisons,
+                      "covariates":    covariates,
+                      "min_cells_per_pseudosample":   10,
+                      "min_replicates_per_condition": 2,
+                      "padj_max":      0.05,
+                      "lfc_min":       0.5,
+                      "top_n":         50,
+                      "output_dir":    str(workspace),
+                  },
+              ))
+    report["stages"]["pseudobulk"] = pb
+    if pb.get("status") != "success":
+        return _save_and_exit(report, workspace, 1)
+
+    per_group = pb.get("per_group", {})
+    print()
+    print(f"    {DIM}{'group':<22}  {'pseudo':>6}  {'comp':>16}  "
+          f"{'sig':>4}  top up gene{RST}")
+    de_for_ora: dict = {}   # key: f"{group}_{comp}"  →  list of gene records
+    for group in sorted(per_group):
+        info = per_group[group]
+        if info.get("status") == "skipped":
+            print(f"    {DIM}{group:<22}  SKIP  {info.get('reason','')[:40]}{RST}")
+            continue
+        n_ps = info.get("n_pseudosamples", 0)
+        for comp_key, comp in info.get("per_comparison", {}).items():
+            if comp.get("status") != "success":
+                print(f"    {DIM}{group:<22}  {n_ps:>6}  {comp_key:>16}  "
+                      f"SKIP  {comp.get('reason', comp.get('error_type',''))[:30]}{RST}")
+                continue
+            n_sig = comp["n_significant"]
+            top = (comp.get("top_genes") or [{}])[0]
+            top_gene = top.get("gene", "-")
+            print(f"    {DIM}{group:<22}  {n_ps:>6}  {comp_key:>16}  "
+                  f"{n_sig:>4}  {top_gene} (LFC={top.get('log2fc',0):+.2f}){RST}")
+            if comp.get("all_sig"):
+                # Convert pseudobulk DE records to the format that
+                # rna_pathway_per_cluster expects: {gene, log2fc, padj}.
+                de_for_ora[f"{group}::{comp_key}"] = [
+                    {"gene":   r["gene"],
+                     "log2fc": r["log2fc"],
+                     "padj":   r["padj"]}
+                    for r in comp["all_sig"]
+                ]
+
+    if not de_for_ora:
+        warn("No significant pseudobulk hits to pathway-enrich.")
+        return _save_and_exit(report, workspace, 0)
+
+    pw = step("2. rna_pathway_per_cluster.py (per group×comparison)",
+              lambda: env_manager.run_in_stack(
+                  stack="rna",
+                  script_path="aria/scripts/rna_pathway_per_cluster.py",
+                  params={
+                      "de_genes_by_cluster":   de_for_ora,
+                      "organism":              args.organism,
+                      "top_genes_per_cluster": 200,
+                      "padj_db_max":           0.05,
+                      "output_dir":            str(workspace),
+                  },
+              ))
+    report["stages"]["pathways"] = pw
+    if pw.get("status") == "success":
+        per = pw.get("per_cluster", {})
+        ranked = sorted(per.items(),
+                        key=lambda kv: kv[1].get("n_significant", 0),
+                        reverse=True)[:8]
+        for cl, info in ranked:
+            results = info.get("results") or {}
+            top_terms = []
+            for db_label, entries in results.items():
+                if entries:
+                    top_terms.append(f"{db_label}: {entries[0]['term'][:40]}")
+            top_str = " | ".join(top_terms[:3])
+            print(f"    {DIM}  {cl}: "
+                  f"{info.get('n_significant', 0)} sig pathways "
+                  f"({top_str}){RST}")
 
     return _save_and_exit(report, workspace, 0)
 
