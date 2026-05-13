@@ -151,12 +151,16 @@ Evening handoff, 2026-05-12:
   Remaining age/young/old strings in production code are generic design
   heuristics or UI examples; hippocampus-specific values are confined to tests
   and handoff documentation.
+- ARIA now auto-loads API keys from `~/.aria/.env` when `LLMProvider` is
+  constructed. The loader accepts both `KEY=value` and `export KEY=value`,
+  preserves variables already exported in the terminal, and can be redirected
+  with `ARIA_ENV_FILE`.
 - Current working tree intentionally has uncommitted v4.3.12-dev changes in:
   `ARIA_CONTEXT.md`, `CLAUDE.md`, `aria/agents/data_audit_agent.py`,
   `aria/agents/design_agent.py`, `aria/agents/narrative_agent.py`,
   `aria/agents/_narrative_scrna.py`, `aria/agents/scrna_agent.py`,
-  `aria/scripts/rna_qc.py`, `tests/test_narrative_agent.py`, and
-  `tests/test_pytest_smoke.py`.
+  `aria/scripts/rna_qc.py`, `aria/utils/env_loader.py`,
+  `tests/test_narrative_agent.py`, and `tests/test_pytest_smoke.py`.
 - Pre-existing untracked files remain untouched: `audit.txt` and
   `pathways_per_cluster.csv`.
 

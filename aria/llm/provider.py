@@ -31,6 +31,7 @@ import litellm
 from litellm import completion
 
 from aria.llm.context_manager import ContextManager, ModelProfile
+from aria.utils.env_loader import load_aria_env
 
 log = logging.getLogger("aria.llm")
 
@@ -114,6 +115,7 @@ class LLMProvider:
         api_keys:    dict[str, str] = None,
         cache_dir:   Optional[str] = None,
     ):
+        load_aria_env()
         self.models   = models or DEFAULT_MODELS
         self.api_keys = api_keys or {}
         self._context_managers: dict[str, ContextManager] = {}

@@ -22,6 +22,67 @@ def test_package_compiles():
     assert result.returncode == 0, result.stderr or result.stdout
 
 
+def test_aria_env_loader_reads_export_file(tmp_path, monkeypatch):
+    from aria.utils import env_loader
+
+    env_file = tmp_path / ".env"
+    env_file.write_text(
+        "\n".join([
+            "# private ARIA keys",
+            "export ANTHROPIC_API_KEY='anthropic-test'",
+            'OPENAI_API_KEY="openai-test"',
+            "GEMINI_API_KEY=gemini-test",
+        ]),
+        encoding="utf-8",
+    )
+
+    for key in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(env_loader, "_LOADED_PATHS", set())
+
+    loaded = env_loader.load_aria_env(env_file)
+
+    assert loaded == {
+        "ANTHROPIC_API_KEY": "anthropic-test",
+        "OPENAI_API_KEY": "openai-test",
+        "GEMINI_API_KEY": "gemini-test",
+    }
+    assert os.environ["ANTHROPIC_API_KEY"] == "anthropic-test"
+    assert os.environ["OPENAI_API_KEY"] == "openai-test"
+    assert os.environ["GEMINI_API_KEY"] == "gemini-test"
+
+
+def test_aria_env_loader_preserves_existing_env(tmp_path, monkeypatch):
+    from aria.utils import env_loader
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("export ANTHROPIC_API_KEY=file-value\n",
+                        encoding="utf-8")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "terminal-value")
+    monkeypatch.setattr(env_loader, "_LOADED_PATHS", set())
+
+    loaded = env_loader.load_aria_env(env_file)
+
+    assert loaded == {}
+    assert os.environ["ANTHROPIC_API_KEY"] == "terminal-value"
+
+
+def test_llm_provider_loads_aria_env_file(tmp_path, monkeypatch):
+    from aria.llm.provider import LLMProvider
+    from aria.utils import env_loader
+
+    env_file = tmp_path / ".env"
+    env_file.write_text("export ANTHROPIC_API_KEY=provider-test\n",
+                        encoding="utf-8")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.setenv("ARIA_ENV_FILE", str(env_file))
+    monkeypatch.setattr(env_loader, "_LOADED_PATHS", set())
+
+    provider = LLMProvider()
+
+    assert provider.api_keys["anthropic"] == "provider-test"
+
+
 def test_bulk_rna_legacy_script_passes():
     env = os.environ.copy()
     env["ARIA_ALLOW_MOCKS"] = "1"
