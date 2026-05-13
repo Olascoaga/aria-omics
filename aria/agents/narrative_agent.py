@@ -37,6 +37,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
+import html as _html
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -176,12 +177,19 @@ class NarrativeAgent(BaseAgent):
                                   agent_results: dict) -> str:
         """
         One-paragraph executive summary for the PI.
-        Uses HEAVY tier — this is user-facing prose.
+        Uses deterministic structured summaries when scRNA outputs contain
+        enough detail; otherwise falls back to the LLM.
 
         Feeds the LLM BOTH the findings bus AND concrete agent results
         (DE counts, pathways, contrast details) so it can't hallucinate
         that analyses "didn't run" when their outputs are clearly present.
         """
+        deterministic = self._deterministic_executive_summary(
+            exp_ctx, intent, grouped, agent_results
+        )
+        if deterministic:
+            return deterministic
+
         high_findings = grouped["high"][:5]
         med_findings  = grouped["medium"][:3]
         n_low         = len(grouped["low"])
@@ -248,6 +256,116 @@ power for small-effect genes."
         except Exception as e:
             log.warning(f"Executive summary LLM failed: {e}")
             return self._fallback_executive_summary(grouped, intent)
+
+    def _deterministic_executive_summary(self, exp_ctx: dict,
+                                         intent: dict,
+                                         grouped: dict,
+                                         agent_results: dict) -> str:
+        """Build a grounded summary directly from structured outputs."""
+        sc = (agent_results or {}).get("scrna_agent") or \
+             (agent_results or {}).get("rna_agent") or {}
+        if sc.get("status") != "done":
+            return ""
+
+        from aria.agents import _narrative_scrna
+        sc_f = _narrative_scrna.unwrap_scrna_findings(sc)
+        qc = sc_f.get("qc", {}) or {}
+        clu = sc_f.get("clustering", {}) or {}
+        pb = sc_f.get("pseudobulk_de", {}) or {}
+        pwp = sc_f.get("pseudobulk_pathways", {}) or {}
+        ccc = sc_f.get("cell_communication", {}) or {}
+        traj = sc_f.get("trajectory", {}) or {}
+        if not any((pb, pwp, ccc, traj)):
+            return ""
+
+        question = intent.get("summary", exp_ctx.get("user_question", ""))
+        n_cells = qc.get("n_cells_after")
+        n_before = qc.get("n_cells_before")
+        n_clusters = clu.get("n_clusters")
+        qc_clause = ""
+        if n_cells and n_before:
+            qc_clause = (
+                f"after QC {n_cells:,}/{n_before:,} cells were retained"
+            )
+        elif n_cells:
+            qc_clause = f"after QC {n_cells:,} cells were retained"
+        if n_clusters:
+            qc_clause = (
+                f"{qc_clause}, with {n_clusters} Leiden clusters"
+                if qc_clause else f"{n_clusters} Leiden clusters"
+            )
+
+        parts = []
+        if question and qc_clause:
+            parts.append(
+                f"ARIA addressed the question '{question}' with "
+                f"MEDIUM-confidence scRNA evidence: {qc_clause}."
+            )
+        elif qc_clause:
+            parts.append(
+                f"ARIA produced MEDIUM-confidence scRNA results: {qc_clause}."
+            )
+
+        if pb:
+            per_group = pb.get("per_group", {}) or {}
+            n_success = sum(
+                1 for g in per_group.values()
+                for c in (g.get("per_comparison", {}) or {}).values()
+                if c.get("status") == "success"
+            )
+            n_with_de = sum(
+                1 for g in per_group.values()
+                for c in (g.get("per_comparison", {}) or {}).values()
+                if c.get("status") == "success"
+                and c.get("n_significant", 0) > 0
+            )
+            top_blocks = _narrative_scrna._top_de_blocks(pb, limit=2)
+            top_txt = ""
+            if top_blocks:
+                top_txt = "; strongest blocks: " + "; ".join(
+                    f"{g} {cmp} ({c.get('n_significant', 0):,} DE genes)"
+                    for g, cmp, c in top_blocks
+                )
+            parts.append(
+                f"Pseudobulk DE did run across {pb.get('n_groups', 0)} "
+                f"{pb.get('groupby', 'group')} groups: {n_success} "
+                f"group x comparison blocks were analyzable and "
+                f"{n_with_de} had significant DE{top_txt}."
+            )
+
+        if pwp.get("per_cluster"):
+            n_blocks = len(pwp["per_cluster"])
+            n_sig = sum(
+                1 for b in pwp["per_cluster"].values()
+                if b.get("n_significant", 0) > 0
+            )
+            parts.append(
+                f"Pathway ORA supported {n_sig}/{n_blocks} DE blocks; "
+                f"LIANA found {ccc.get('n_interactions', 0)} non-autocrine "
+                f"L-R interactions across {ccc.get('n_cell_types', 0)} "
+                f"cell types."
+            )
+        elif ccc.get("status") in ("done", "success"):
+            parts.append(
+                f"LIANA found {ccc.get('n_interactions', 0)} non-autocrine "
+                f"L-R interactions across {ccc.get('n_cell_types', 0)} "
+                f"cell types."
+            )
+
+        if traj.get("status") in ("done", "success"):
+            paga = traj.get("paga", {}) or {}
+            pt = traj.get("pseudotime", {}) or {}
+            parts.append(
+                f"Trajectory analysis evaluated "
+                f"{paga.get('n_connections', 0)} PAGA cluster pairs with "
+                f"{paga.get('n_strong', 0)} edges above threshold; "
+                f"DPT pseudotime computed={bool(pt.get('computed'))}. "
+                f"The actionable next step is biological curation of the "
+                f"largest between-condition DE/pathway blocks and validation of "
+                f"the top communication pairs."
+            )
+
+        return " ".join(parts[:4])
 
     def _summarize_agent_results_for_llm(self, agent_results: dict) -> str:
         """
@@ -329,7 +447,8 @@ power for small-effect genes."
             # Keep f around for legacy fallback keys (n_cells_after_qc etc.)
             f    = sc.get("findings", {}) or {}
             qc   = sc_f.get("qc", {}) or {}
-            clus = sc_f.get("clustering_decision", {}) or {}
+            clus = sc_f.get("clustering", {}) or \
+                sc_f.get("clustering_decision", {}) or {}
             n_cells    = qc.get("n_cells_after") or f.get("n_cells_after_qc", "?")
             n_clusters = clus.get("n_clusters") or f.get("n_clusters", "?")
             ct = sc_f.get("cell_types", {}) or {}
@@ -353,12 +472,15 @@ power for small-effect genes."
             # Trajectory
             traj = sc_f.get("trajectory", {}) or {}
             traj_str = ""
-            if traj.get("status") == "done":
+            if traj.get("status") in ("done", "success"):
                 pt = traj.get("pseudotime", {}) or {}
-                n_conn = len(traj.get("paga_top_connections", {}))
+                paga = traj.get("paga", {}) or {}
+                n_conn = paga.get("n_connections") or \
+                    len(paga.get("top_connections", {}) or {})
                 vel = traj.get("velocity", {}) or {}
                 traj_str = (
-                    f" PAGA: {n_conn} top transitions. "
+                    f" PAGA: {n_conn} cluster-pair connections, "
+                    f"{paga.get('n_strong', 0)} above threshold. "
                     f"DPT pseudotime computed: {pt.get('computed', False)}."
                     + (" RNA velocity computed." if vel.get("computed") else "")
                 )
@@ -366,7 +488,7 @@ power for small-effect genes."
             # Cell-cell communication
             ccc = sc_f.get("cell_communication", {}) or {}
             ccc_str = ""
-            if ccc.get("status") == "done":
+            if ccc.get("status") in ("done", "success"):
                 top_p = ccc.get("top_pairs", [])[:3]
                 ccc_str = (
                     f" Cell-cell comm ({ccc.get('method','?')}): "
@@ -376,10 +498,52 @@ power for small-effect genes."
                     f" Cell-cell comm: {ccc.get('n_interactions','?')} interactions."
                 )
 
+            # Pseudobulk DE and pathway enrichment
+            pb = sc_f.get("pseudobulk_de", {}) or {}
+            pb_str = ""
+            if pb:
+                per_group = pb.get("per_group", {}) or {}
+                n_success = sum(
+                    1 for g in per_group.values()
+                    for c in (g.get("per_comparison", {}) or {}).values()
+                    if c.get("status") == "success"
+                )
+                n_with_de = sum(
+                    1 for g in per_group.values()
+                    for c in (g.get("per_comparison", {}) or {}).values()
+                    if c.get("status") == "success"
+                    and c.get("n_significant", 0) > 0
+                )
+                top_blocks = _narrative_scrna._top_de_blocks(pb, limit=3)
+                top_str = "; ".join(
+                    f"{g} {cmp}: {c.get('n_significant', 0)} DE"
+                    for g, cmp, c in top_blocks
+                )
+                pb_str = (
+                    f" Pseudobulk DE: {pb.get('n_groups', '?')} "
+                    f"{pb.get('groupby', 'group')} groups, {n_success} "
+                    f"successful group x comparison blocks, {n_with_de} "
+                    f"with significant DE."
+                    + (f" Largest blocks: {top_str}." if top_str else "")
+                )
+
+            pwp = sc_f.get("pseudobulk_pathways", {}) or {}
+            pw_str = ""
+            if pwp.get("per_cluster"):
+                n_blocks = len(pwp["per_cluster"])
+                n_sig = sum(
+                    1 for b in pwp["per_cluster"].values()
+                    if b.get("n_significant", 0) > 0
+                )
+                pw_str = (
+                    f" Pathway ORA: {n_sig}/{n_blocks} DE blocks "
+                    f"with significant enrichment."
+                )
+
             lines.append(
                 f"scRNA-seq: {n_cells} cells after QC, "
                 f"{n_clusters} clusters identified.{ct_str}"
-                f"{integ_str}{traj_str}{ccc_str}"
+                f"{integ_str}{pb_str}{pw_str}{traj_str}{ccc_str}"
             )
 
         # Chromatin
@@ -464,6 +628,18 @@ power for small-effect genes."
             sections["integration"] = self._summarize_integration(
                 integ, grouped
             )
+
+        # Final structured synthesis for single-cell reports
+        sc = agent_results.get("scrna_agent") or agent_results.get("rna_agent", {})
+        if sc.get("status") == "done":
+            from aria.agents import _narrative_scrna
+            sc_findings = _narrative_scrna.unwrap_scrna_findings(sc)
+            synthesis = _narrative_scrna.build_scrna_integrated_interpretation(
+                sc_findings,
+                {"summary": exp_ctx.get("user_question", "")},
+            )
+            if synthesis:
+                sections["synthesis"] = synthesis
 
         # Conflicts and limitations
         sections["conflicts"] = self._summarize_conflicts(
@@ -1048,8 +1224,16 @@ power for small-effect genes."
         genome   = exp_ctx.get("genome", "Unknown assembly")
         question = intent.get("summary",
                                exp_ctx.get("user_question", ""))
+        agent_results = agent_results or {}
         date_str = datetime.now().strftime("%B %d, %Y")
         exp_short = experiment_id[:8]
+
+        # Build/stage report artifacts before composing section HTML. scRNA
+        # tables are generated from in-memory results here, and the findings
+        # object is annotated with links used by build_scrna_html_section().
+        if report_dir is None:
+            report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
+        self._stage_artifacts(agent_results, report_dir)
 
         # Findings table rows
         findings_rows = self._build_findings_table(grouped_findings)
@@ -1234,12 +1418,12 @@ power for small-effect genes."
 
 <div class="card">
   <h3>Biological Question</h3>
-  <p><em>{question}</em></p>
+  <p><em>{_html.escape(str(question))}</em></p>
 </div>
 
 <h2>Executive Summary</h2>
 <div class="card">
-  <p>{executive_summary}</p>
+  <p>{self._plain_text_to_html(executive_summary)}</p>
 </div>
 
 <h2>Quality Control Summary</h2>
@@ -1305,16 +1489,6 @@ power for small-effect genes."
         #     └── tables/                  (copied from contrast_dir/tables/)
         #         ├── bmal1_vs_wt_de_genes.tsv
         #         └── ...
-        # report_dir may have been pre-built by run() so figure subprocesses
-        # could write into it BEFORE the HTML sections were composed. Fall
-        # back to building it now for legacy callers (tests, harness).
-        if report_dir is None:
-            report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
-
-        # Copy contrast figures and tables into report_dir
-        # (so the whole directory is shareable and self-contained)
-        self._stage_artifacts(agent_results, report_dir)
-
         report_path = report_dir / "report.html"
         report_path.write_text(html, encoding="utf-8")
         log.info(f"Report written to {report_path}")
@@ -1495,6 +1669,7 @@ power for small-effect genes."
             "chromatin":   ("Chromatin", "var(--teal)"),
             "hic":         ("3D Genome", "#a78bfa"),
             "integration": ("Integration", "#f472b6"),
+            "synthesis":   ("Integrated Interpretation", "var(--navy)"),
         }
         for key, (label, color) in section_labels.items():
             text = sections.get(key, "")
@@ -1519,11 +1694,7 @@ power for small-effect genes."
                 )
 
             # Escape HTML-breaking newlines into <br> for readability
-            body_html = (text
-                         .replace("&", "&amp;")
-                         .replace("<", "&lt;")
-                         .replace(">", "&gt;")
-                         .replace("\n", "<br>"))
+            body_html = self._plain_text_to_html(text)
             parts.append(f"""
 <div class="card">
   <h3 style="color:{color}">{label}</h3>
@@ -1532,6 +1703,12 @@ power for small-effect genes."
 </div>""")
         return "\n".join(parts) if parts else \
                '<div class="card"><p>No modality findings available.</p></div>'
+
+    @staticmethod
+    def _plain_text_to_html(text: str) -> str:
+        """Escape plain report text and preserve line breaks."""
+        escaped = _html.escape(str(text or ""))
+        return escaped.replace("\n", "<br>")
 
     def _build_methodology_table(self, bulk_result: dict) -> str:
         """
@@ -1785,10 +1962,10 @@ power for small-effect genes."
         import shutil
 
         bulk = agent_results.get("bulk_rna_agent", {})
-        if not bulk or bulk.get("status") != "done":
-            return
 
-        contrasts = bulk.get("findings", {}).get("contrasts", [])
+        contrasts = []
+        if bulk and bulk.get("status") == "done":
+            contrasts = bulk.get("findings", {}).get("contrasts", [])
         for c in contrasts:
             if c.get("status") != "success":
                 continue
@@ -1826,7 +2003,7 @@ power for small-effect genes."
 
         # Also stage shared figures + tables at report_dir level (v3.8)
         import shutil as _sh
-        sqc = bulk.get("findings", {}).get("sample_qc", {})
+        sqc = bulk.get("findings", {}).get("sample_qc", {}) if bulk else {}
 
         # PCA (existing)
         pca = sqc.get("pca_plot")
@@ -1870,6 +2047,22 @@ power for small-effect genes."
                                    report_dir / "tables" / "counts_tpm.tsv")
                     except Exception as e:
                         log.warning(f"Stage TPM: {e}")
+
+        # scRNA reports usually carry rich result dictionaries rather than
+        # contrast_dir/tables folders. Export those dictionaries here.
+        sc = (agent_results or {}).get("scrna_agent") or \
+             (agent_results or {}).get("rna_agent") or {}
+        if sc.get("status") == "done":
+            try:
+                from aria.agents import _narrative_scrna
+                sc_findings = _narrative_scrna.unwrap_scrna_findings(sc)
+                _narrative_scrna.export_supplementary_tables(
+                    sc_findings,
+                    report_dir / "tables",
+                )
+            except Exception as e:
+                log.warning(f"Stage scRNA supplementary tables: {e}",
+                            exc_info=True)
 
 
     def _build_findings_table(self, grouped: dict) -> str:

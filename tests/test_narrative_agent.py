@@ -108,6 +108,77 @@ MOCK_AGENT_RESULTS = {
                             "4": "DC",
                         }
                     },
+                    "pseudobulk_de": {
+                        "groupby": "cell_type",
+                        "condition_col": "condition",
+                        "replicate_col": "donor",
+                        "covariates": ["sex"],
+                        "thresholds": {"padj_max": 0.05, "lfc_min": 0.5},
+                        "n_groups": 1,
+                        "per_group": {
+                            "T cell": {
+                                "n_pseudosamples": 6,
+                                "per_comparison": {
+                                    "old_vs_young": {
+                                        "status": "success",
+                                        "n_significant": 2,
+                                        "n_up": 1,
+                                        "n_down": 1,
+                                        "all_sig": [
+                                            {"gene": "PDCD1", "log2fc": 1.2,
+                                             "padj": 0.001},
+                                            {"gene": "CCR7", "log2fc": -0.8,
+                                             "padj": 0.01},
+                                        ],
+                                    }
+                                },
+                            }
+                        },
+                    },
+                    "pseudobulk_pathways": {
+                        "per_cluster": {
+                            "T cell::old_vs_young": {
+                                "n_significant": 1,
+                                "results": {
+                                    "GO_BP": [{
+                                        "term": "T cell activation",
+                                        "adjusted_p": 0.002,
+                                        "genes": "PDCD1",
+                                    }]
+                                },
+                            }
+                        }
+                    },
+                    "cell_communication": {
+                        "status": "done",
+                        "method": "liana_rank_aggregate",
+                        "n_cell_types": 2,
+                        "n_interactions": 1,
+                        "n_autocrine_dropped": 4,
+                        "top_pairs": ["T cell→B cell"],
+                        "top_interactions": [{
+                            "source": "T cell", "target": "B cell",
+                            "ligand": "CD40LG", "receptor": "CD40",
+                            "score": 0.01,
+                        }],
+                    },
+                    "trajectory": {
+                        "status": "done",
+                        "paga": {
+                            "n_connections": 1,
+                            "strong_threshold": 0.05,
+                            "n_strong": 1,
+                            "top_connections": {"T cell->B cell": 0.2},
+                        },
+                        "pseudotime": {
+                            "computed": True,
+                            "pseudotime_by_group": {
+                                "T cell": 0.1,
+                                "B cell": 0.7,
+                            },
+                        },
+                        "velocity": {"computed": False},
+                    },
                 }
             }
         },
@@ -441,6 +512,16 @@ with tempfile.TemporaryDirectory() as tmpdir:
         ok(f"Findings: {result['n_high']} HIGH, {result['n_medium']} MEDIUM, "
            f"{result['n_low']} LOW, "
            f"{result.get('n_insufficient', '?')} INSUFFICIENT")
+        tables_dir = Path(result["report_path"]).parent / "tables"
+        exported = {p.name for p in tables_dir.glob("*.tsv")}
+        assert "scrna_cell_types.tsv" in exported
+        assert "scrna_pseudobulk_de_summary.tsv" in exported
+        assert "scrna_pseudobulk_de_genes.tsv" in exported
+        assert "scrna_pathway_enrichment.tsv" in exported
+        assert "scrna_cellcomm_interactions.tsv" in exported
+        assert "scrna_paga_connections.tsv" in exported
+        assert "scrna_pseudotime_by_group.tsv" in exported
+        ok(f"scRNA supplementary tables exported: {len(exported)} TSV files")
     except Exception as e:
         fail("Full run()", str(e))
 

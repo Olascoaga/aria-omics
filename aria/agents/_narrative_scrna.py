@@ -30,6 +30,7 @@ Shape consumed (see aria/scripts/rna_narrative_adapter.py for construction):
 from __future__ import annotations
 
 import base64
+import csv
 import html
 import logging
 from pathlib import Path
@@ -58,6 +59,38 @@ def unwrap_scrna_findings(agent_result: dict) -> dict:
 
 # ── Text summaries ────────────────────────────────────────────────────────
 
+def _fmt_int(value) -> str:
+    try:
+        return f"{int(value):,}"
+    except Exception:
+        return str(value)
+
+
+def _label_cell_type(value) -> str:
+    if isinstance(value, dict):
+        return (value.get("cell_type")
+                or value.get("celltypist_label")
+                or value.get("label")
+                or "")
+    return str(value) if value else ""
+
+
+def _top_de_blocks(pb: dict, limit: int = 5) -> list[tuple[str, str, dict]]:
+    rows = []
+    for group, info in (pb.get("per_group", {}) or {}).items():
+        for comp_key, comp in (info.get("per_comparison", {}) or {}).items():
+            if comp.get("status") == "success":
+                rows.append((str(group), str(comp_key), comp))
+    rows.sort(key=lambda row: row[2].get("n_significant", 0), reverse=True)
+    return rows[:limit]
+
+
+def _top_pathway_blocks(pwp: dict, limit: int = 3) -> list[tuple[str, dict]]:
+    blocks = list((pwp.get("per_cluster", {}) or {}).items())
+    blocks.sort(key=lambda kv: kv[1].get("n_significant", 0), reverse=True)
+    return blocks[:limit]
+
+
 def summarize_scrna_text(findings: dict) -> str:
     """Multi-line text summary for findings_sections['scrna']."""
     lines = []
@@ -67,13 +100,19 @@ def summarize_scrna_text(findings: dict) -> str:
         n_b = qc.get("n_cells_before")
         n_a = qc.get("n_cells_after")
         if n_b and n_a:
+            n_samples = qc.get("n_samples")
+            sample_txt = (f" across {n_samples} samples"
+                          if n_samples not in (None, "", "?") else "")
             lines.append(
-                f"After QC, {n_a:,} of {n_b:,} cells were retained "
-                f"({qc.get('pct_removed', 0)}% removed across "
-                f"{qc.get('n_samples', '?')} samples)."
+                f"Data quality and representation: after QC, "
+                f"{n_a:,} of {n_b:,} cells were retained "
+                f"({qc.get('pct_removed', 0)}% removed{sample_txt})."
             )
         elif n_a:
-            lines.append(f"After QC, {n_a:,} cells were retained.")
+            lines.append(
+                f"Data quality and representation: after QC, "
+                f"{n_a:,} cells were retained."
+            )
 
     integ = findings.get("integration") or {}
     if integ.get("status") in ("done", "success"):
@@ -92,25 +131,15 @@ def summarize_scrna_text(findings: dict) -> str:
     clu = findings.get("clustering") or {}
     if clu.get("n_clusters"):
         lines.append(
-            f"Leiden clustering identified {clu['n_clusters']} clusters "
+            f"Cell-state structure: Leiden clustering identified "
+            f"{clu['n_clusters']} clusters "
             f"at resolution {clu.get('resolution', '?')}."
         )
 
     ct = (findings.get("cell_types") or {}).get("cell_types", {}) or {}
     if ct:
-        # cell_types can be either {cluster_id: "label"} (legacy / CellTypist
-        # majority vote) or {cluster_id: {cell_type, celltypist_label,
-        # rationale, key_markers, ...}} (LLM-reinterpreted shape from
-        # scrna_agent._annotate_cell_types). Extract just the label so the
-        # report does not dump raw Python dicts into the findings card.
-        def _label(v):
-            if isinstance(v, dict):
-                return (v.get("cell_type")
-                        or v.get("celltypist_label")
-                        or v.get("label")
-                        or "")
-            return str(v) if v else ""
-        unique = sorted({_label(v) for v in ct.values() if _label(v)})
+        unique = sorted({_label_cell_type(v) for v in ct.values()
+                         if _label_cell_type(v)})
         if unique:
             lines.append(
                 f"Cell-type annotation labelled {len(unique)} unique types "
@@ -121,6 +150,16 @@ def summarize_scrna_text(findings: dict) -> str:
     if pb:
         n_groups = pb.get("n_groups", 0)
         per_group = pb.get("per_group", {}) or {}
+        n_success = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success"
+        )
+        n_skipped = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "skipped"
+        )
         n_with_de = sum(
             1 for g in per_group.values()
             for c in (g.get("per_comparison", {}) or {}).values()
@@ -128,12 +167,26 @@ def summarize_scrna_text(findings: dict) -> str:
         )
         thr = pb.get("thresholds", {}) or {}
         lines.append(
-            f"Pseudobulk DE (DESeq2 on pseudosamples) ran across "
-            f"{n_groups} {pb.get('groupby', 'group')}s. "
-            f"{n_with_de} (group × comparison) blocks yielded significant DE "
+            f"Age-associated expression programs: pseudobulk DE "
+            f"(DESeq2 on pseudosamples) ran across {n_groups} "
+            f"{pb.get('groupby', 'group')}s and {n_success} analyzable "
+            f"group x comparison blocks"
+            f"{f' ({n_skipped} skipped for replicate support)' if n_skipped else ''}. "
+            f"{n_with_de} blocks yielded significant DE "
             f"at padj < {thr.get('padj_max', 0.05)} and "
             f"|log2FC| > {thr.get('lfc_min', 0.5)}."
         )
+        top = _top_de_blocks(pb, limit=5)
+        if top:
+            desc = []
+            for group, comp_key, comp in top:
+                desc.append(
+                    f"{group} {comp_key}: "
+                    f"{_fmt_int(comp.get('n_significant', 0))} DE genes "
+                    f"({_fmt_int(comp.get('n_up', 0))} up, "
+                    f"{_fmt_int(comp.get('n_down', 0))} down)"
+                )
+            lines.append("Largest DE blocks: " + "; ".join(desc) + ".")
 
     pwp = findings.get("pseudobulk_pathways") or {}
     if pwp.get("per_cluster"):
@@ -147,6 +200,19 @@ def summarize_scrna_text(findings: dict) -> str:
             f"(group × comparison): {n_sig_blocks}/{n_blocks} blocks "
             f"with significant enrichment."
         )
+        examples = []
+        for block_key, block in _top_pathway_blocks(pwp, limit=3):
+            results = block.get("results", {}) or {}
+            first_term = None
+            for terms in results.values():
+                if terms:
+                    first = terms[0]
+                    first_term = first.get("term") or first.get("Term")
+                    break
+            if first_term:
+                examples.append(f"{block_key.replace('::', ' ')}: {first_term}")
+        if examples:
+            lines.append("Top enriched examples: " + "; ".join(examples) + ".")
 
     ccc = findings.get("cell_communication") or {}
     if ccc.get("status") in ("done", "success"):
@@ -160,7 +226,7 @@ def summarize_scrna_text(findings: dict) -> str:
             if top_pairs else ""
         )
         lines.append(
-            f"Cell-cell communication ({method}): "
+            f"Cell-cell communication landscape ({method}): "
             f"{n_int} significant L-R interactions across {n_ct} cell types "
             f"({n_auto} autocrine pairs excluded).{pair_str}"
         )
@@ -180,7 +246,8 @@ def summarize_scrna_text(findings: dict) -> str:
             f"(suggests active lineage transitions)"
         )
         traj_line = (
-            f"Trajectory inference: PAGA on {paga.get('n_connections', 0)} "
+            f"Trajectory context: PAGA on "
+            f"{paga.get('n_connections', 0)} "
             f"cluster pairs{connectivity_note}."
         )
         if pt.get("computed"):
@@ -203,6 +270,100 @@ def summarize_scrna_text(findings: dict) -> str:
     return "\n".join(lines) if lines else (
         "scRNA analysis completed. See findings table for details."
     )
+
+
+def build_scrna_integrated_interpretation(findings: dict,
+                                          intent: Optional[dict] = None) -> str:
+    """
+    Deterministic final interpretation from structured scRNA outputs.
+    This avoids letting a generic LLM decide which completed analyses exist.
+    """
+    intent = intent or {}
+    parts = []
+
+    qc = findings.get("qc") or {}
+    pb = findings.get("pseudobulk_de") or {}
+    pwp = findings.get("pseudobulk_pathways") or {}
+    ccc = findings.get("cell_communication") or {}
+    traj = findings.get("trajectory") or {}
+
+    question = (intent.get("summary")
+                or "the submitted single-cell RNA-seq question")
+    if qc.get("n_cells_after"):
+        parts.append(
+            f"Integrated interpretation: ARIA had enough retained cells "
+            f"({_fmt_int(qc.get('n_cells_after'))}) to address {question} "
+            f"at cell-type resolution, with the main inferential weight "
+            f"coming from donor-level pseudobulk contrasts rather than "
+            f"cell-level tests."
+        )
+    else:
+        parts.append(
+            f"Integrated interpretation: ARIA addressed {question} using "
+            f"the structured scRNA outputs available in this run."
+        )
+
+    top_de = _top_de_blocks(pb, limit=3)
+    if top_de:
+        de_txt = []
+        for group, comp_key, comp in top_de:
+            de_txt.append(
+                f"{group} {comp_key} "
+                f"({_fmt_int(comp.get('n_significant', 0))} DE genes)"
+            )
+        parts.append(
+            "The strongest between-condition transcriptional shifts were "
+            + "; ".join(de_txt)
+            + ". These blocks should be treated as the primary candidates "
+            "for biological follow-up because they combine cell-type "
+            "specificity with replicate-aware differential expression."
+        )
+
+    if pwp.get("per_cluster"):
+        n_blocks = len(pwp.get("per_cluster", {}) or {})
+        n_sig = sum(
+            1 for b in (pwp.get("per_cluster", {}) or {}).values()
+            if b.get("n_significant", 0) > 0
+        )
+        parts.append(
+            f"Pathway enrichment supported the DE results in {n_sig}/{n_blocks} "
+            f"group x comparison blocks, giving a functional layer for "
+            f"prioritising the largest pseudobulk signals."
+        )
+
+    if ccc.get("status") in ("done", "success"):
+        top_pairs = ccc.get("top_pairs", [])[:3]
+        pair_txt = f" Top ranked non-autocrine pairs were {', '.join(top_pairs)}." \
+                   if top_pairs else ""
+        parts.append(
+            f"LIANA added a communication layer with "
+            f"{_fmt_int(ccc.get('n_interactions', 0))} ligand-receptor "
+            f"interactions across {_fmt_int(ccc.get('n_cell_types', 0))} "
+            f"cell types after excluding "
+            f"{_fmt_int(ccc.get('n_autocrine_dropped', 0))} autocrine pairs."
+            f"{pair_txt}"
+        )
+
+    if traj.get("status") in ("done", "success"):
+        paga = traj.get("paga", {}) or {}
+        pt = traj.get("pseudotime", {}) or {}
+        traj_txt = (
+            f"Trajectory analysis placed these findings in a lineage context: "
+            f"PAGA evaluated {_fmt_int(paga.get('n_connections', 0))} "
+            f"cluster pairs and found {_fmt_int(paga.get('n_strong', 0))} "
+            f"edge(s) above the configured connectivity threshold."
+        )
+        if pt.get("computed"):
+            traj_txt += (
+                " DPT pseudotime was computed, but it should be interpreted "
+                "as an ordering on the observed manifold, not as proof of "
+                "active differentiation without velocity or time-course data."
+            )
+        parts.append(traj_txt)
+
+    if not parts:
+        return ""
+    return "\n".join(parts)
 
 
 # ── Methods block ─────────────────────────────────────────────────────────
@@ -697,6 +858,217 @@ def extract_trajectory_tables(findings: dict) -> dict:
             "pseudotime_rows": pseudotime_rows}
 
 
+# ── Supplementary table export ────────────────────────────────────────────
+
+def _write_tsv(path: Path, rows: list[dict]) -> Optional[str]:
+    """Write rows as TSV. Returns path on success, None if no rows."""
+    if not rows:
+        return None
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = []
+    for row in rows:
+        for key in row.keys():
+            if key not in fieldnames:
+                fieldnames.append(key)
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t",
+                                extrasaction="ignore")
+        writer.writeheader()
+        writer.writerows(rows)
+    return str(path)
+
+
+def _term_value(term: dict, *keys, default=""):
+    for key in keys:
+        if key in term:
+            return term.get(key)
+    return default
+
+
+def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
+    """
+    Materialize scRNA result objects into report/tables/*.tsv.
+
+    The analytical scripts often return rich in-memory structures for the
+    NarrativeAgent but the report staging layer only copied bulk RNA tables.
+    This exporter keeps the report directory self-contained for scRNA runs.
+    """
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    tables: dict[str, str] = {}
+
+    qc = findings.get("qc") or {}
+    qc_rows = []
+    for sample in qc.get("per_sample", []) or []:
+        if isinstance(sample, dict):
+            qc_rows.append(sample)
+    p = _write_tsv(output_dir / "scrna_qc_per_sample.tsv", qc_rows)
+    if p:
+        tables["qc_per_sample"] = p
+
+    ct = (findings.get("cell_types") or {}).get("cell_types", {}) or {}
+    ct_rows = []
+    for cluster, value in ct.items():
+        row = {"cluster": cluster, "label": _label_cell_type(value)}
+        if isinstance(value, dict):
+            for key, val in value.items():
+                if isinstance(val, (str, int, float, bool)) or val is None:
+                    row[key] = val
+                elif isinstance(val, list):
+                    row[key] = ", ".join(map(str, val))
+        ct_rows.append(row)
+    p = _write_tsv(output_dir / "scrna_cell_types.tsv", ct_rows)
+    if p:
+        tables["cell_types"] = p
+
+    # Standard per-cluster marker DE.
+    de = findings.get("differential_expression") or {}
+    marker_rows = []
+    for cluster, genes in (de.get("de_genes_by_cluster", {}) or {}).items():
+        for gene in genes or []:
+            if isinstance(gene, dict):
+                row = {"cluster": cluster}
+                row.update(gene)
+            else:
+                row = {"cluster": cluster, "gene": gene}
+            marker_rows.append(row)
+    p = _write_tsv(output_dir / "scrna_cluster_markers.tsv", marker_rows)
+    if p:
+        tables["cluster_markers"] = p
+
+    pb = findings.get("pseudobulk_de") or {}
+    pb_summary_rows = []
+    pb_gene_rows = []
+    for group, info in (pb.get("per_group", {}) or {}).items():
+        n_ps = info.get("n_pseudosamples")
+        for comp_key, comp in (info.get("per_comparison", {}) or {}).items():
+            pb_summary_rows.append({
+                "group": group,
+                "comparison": comp_key,
+                "status": comp.get("status"),
+                "n_pseudosamples": n_ps,
+                "n_significant": comp.get("n_significant", 0),
+                "n_up": comp.get("n_up", 0),
+                "n_down": comp.get("n_down", 0),
+                "reason": comp.get("reason", ""),
+            })
+            records = comp.get("all_sig") or comp.get("top_genes") or []
+            for rec in records:
+                if not isinstance(rec, dict):
+                    continue
+                row = {
+                    "group": group,
+                    "comparison": comp_key,
+                    "gene": rec.get("gene"),
+                    "log2fc": rec.get("log2fc"),
+                    "padj": rec.get("padj"),
+                }
+                for key, val in rec.items():
+                    if key not in row:
+                        row[key] = val
+                pb_gene_rows.append(row)
+    p = _write_tsv(output_dir / "scrna_pseudobulk_de_summary.tsv",
+                   pb_summary_rows)
+    if p:
+        tables["pseudobulk_de_summary"] = p
+    p = _write_tsv(output_dir / "scrna_pseudobulk_de_genes.tsv",
+                   pb_gene_rows)
+    if p:
+        tables["pseudobulk_de_genes"] = p
+
+    def _pathway_rows(container: dict, mode: str) -> list[dict]:
+        rows = []
+        for block_key, block in (container.get("per_cluster", {}) or {}).items():
+            results = block.get("results", {}) or {}
+            for db_name, terms in results.items():
+                for term in terms or []:
+                    if not isinstance(term, dict):
+                        continue
+                    rows.append({
+                        "mode": mode,
+                        "block": block_key,
+                        "database": db_name,
+                        "term": _term_value(term, "term", "Term"),
+                        "adjusted_p": _term_value(
+                            term, "adjusted_p", "Adjusted P-value",
+                            "adj_p", "padj",
+                        ),
+                        "p_value": _term_value(term, "p_value", "P-value"),
+                        "overlap": _term_value(term, "overlap", "Overlap"),
+                        "odds_ratio": _term_value(
+                            term, "odds_ratio", "Odds Ratio"
+                        ),
+                        "combined_score": _term_value(
+                            term, "combined_score", "Combined Score"
+                        ),
+                        "genes": _term_value(
+                            term, "genes", "Genes", "lead_genes"
+                        ),
+                    })
+        return rows
+
+    pathway_rows = []
+    pathway_rows.extend(_pathway_rows(findings.get("pathways") or {},
+                                      "cluster_markers"))
+    pathway_rows.extend(_pathway_rows(findings.get("pseudobulk_pathways") or {},
+                                      "pseudobulk_de"))
+    p = _write_tsv(output_dir / "scrna_pathway_enrichment.tsv",
+                   pathway_rows)
+    if p:
+        tables["pathway_enrichment"] = p
+
+    ccc = findings.get("cell_communication") or {}
+    cc_rows = []
+    for rec in ccc.get("top_interactions", []) or []:
+        if isinstance(rec, dict):
+            cc_rows.append(rec)
+    p = _write_tsv(output_dir / "scrna_cellcomm_interactions.tsv", cc_rows)
+    if p:
+        tables["cellcomm_interactions"] = p
+
+    traj = findings.get("trajectory") or {}
+    paga = traj.get("paga", {}) or {}
+    paga_rows = []
+    for edge, val in (paga.get("top_connections", {}) or {}).items():
+        if "->" in str(edge):
+            source, target = str(edge).split("->", 1)
+        elif "→" in str(edge):
+            source, target = str(edge).split("→", 1)
+        else:
+            source, target = "", ""
+        paga_rows.append({
+            "edge": edge,
+            "source": source.strip(),
+            "target": target.strip(),
+            "connectivity": val,
+            "strong_threshold": paga.get("strong_threshold"),
+            "is_strong": (
+                isinstance(val, (int, float))
+                and val >= (paga.get("strong_threshold", 0.05) or 0.05)
+            ),
+        })
+    p = _write_tsv(output_dir / "scrna_paga_connections.tsv", paga_rows)
+    if p:
+        tables["paga_connections"] = p
+
+    pt = traj.get("pseudotime", {}) or {}
+    pt_rows = [
+        {"group": group, "mean_dpt": val}
+        for group, val in (pt.get("pseudotime_by_group", {}) or {}).items()
+    ]
+    pt_rows.sort(key=lambda r: r["mean_dpt"])
+    for i, row in enumerate(pt_rows, 1):
+        row["rank"] = i
+    p = _write_tsv(output_dir / "scrna_pseudotime_by_group.tsv", pt_rows)
+    if p:
+        tables["pseudotime_by_group"] = p
+
+    if tables:
+        findings["tables"] = tables
+    return tables
+
+
 def render_per_celltype_de_bar(findings: dict, output_path: Path) -> Optional[str]:
     """
     Stacked bar chart of n_up / n_down DE genes per (group × comparison)
@@ -984,6 +1356,36 @@ def build_scrna_html_section(findings: dict,
                 )
             n += 1
         parts.append('</div>')
+
+    # 6. Supplementary table links ────────────────────────────────────────
+    table_links = findings.get("tables") or {}
+    if table_links:
+        labels = {
+            "qc_per_sample": "QC per sample",
+            "cell_types": "Cell types",
+            "cluster_markers": "Cluster markers",
+            "pseudobulk_de_summary": "Pseudobulk DE summary",
+            "pseudobulk_de_genes": "Pseudobulk DE genes",
+            "pathway_enrichment": "Pathway enrichment",
+            "cellcomm_interactions": "Cell-cell communication",
+            "paga_connections": "PAGA connections",
+            "pseudotime_by_group": "Pseudotime by group",
+        }
+        links = []
+        for key, path in table_links.items():
+            name = labels.get(key, key.replace("_", " ").title())
+            rel = f"tables/{Path(path).name}"
+            links.append(
+                f'<a href="{html.escape(rel)}" style="color:var(--blue);'
+                f'text-decoration:underline">{html.escape(name)}</a>'
+            )
+        if links:
+            parts.append(
+                '<h4 style="margin-top:1.4rem">Supplementary tables</h4>'
+                '<p style="font-size:0.85rem;color:var(--muted)">'
+                + " &middot; ".join(links)
+                + '</p>'
+            )
 
     return "\n".join(parts)
 

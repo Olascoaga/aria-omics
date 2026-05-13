@@ -42,6 +42,7 @@ SIGNATURES = {
         r"features\.tsv(\.gz)?$",
         r"matrix\.mtx(\.gz)?$",
         r".*\.h5$",
+        r".*\.h5ad$",
         r".*filtered_feature_bc_matrix.*",
         r".*cellranger.*",
     ],
@@ -183,6 +184,13 @@ class DataAuditAgent(BaseAgent):
                         if fpath in unknown:
                             unknown.remove(fpath)
 
+        # 2c. Preprocessed h5ad files often already contain the experimental
+        # design in obs. Inspect it before DesignAgent so user checkpoints are
+        # seeded from data, not filename guesses.
+        h5ad_design = self._infer_h5ad_design(
+            classified.get("scRNA", []), user_question
+        )
+
         # 3. Infer organism and genome (GEO metadata takes precedence)
         if geo_metadata:
             inferred = geo_metadata.get("inferred_design", {})
@@ -195,6 +203,7 @@ class DataAuditAgent(BaseAgent):
 
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
+        warnings.extend(h5ad_design.get("warnings", []))
 
         # 5. Build ExperimentContext
         exp_context = self._build_context(
@@ -206,6 +215,8 @@ class DataAuditAgent(BaseAgent):
         if geo_metadata:
             exp_context["geo_metadata"]    = geo_metadata
             exp_context["inferred_design"] = geo_metadata.get("inferred_design", {})
+        elif h5ad_design.get("groups"):
+            exp_context["inferred_design"] = h5ad_design
 
         # 6. Store in memory
         self.memory.create_wing(
@@ -224,7 +235,8 @@ class DataAuditAgent(BaseAgent):
 
         # 7. CHECKPOINT #1 — show the user what was found
         checkpoint_msg = self._build_checkpoint_summary(
-            classified, genome, organism, warnings
+            classified, genome, organism, warnings,
+            inferred_design=exp_context.get("inferred_design", {}),
         )
 
         self.publish_escalation(
@@ -359,6 +371,195 @@ class DataAuditAgent(BaseAgent):
 
         return warnings
 
+    def _infer_h5ad_design(self, files: list[str],
+                           user_question: str = "") -> dict:
+        """
+        Inspect .h5ad obs metadata and infer design hints for scRNA pseudobulk.
+
+        This is deliberately conservative: it only proposes a design when it can
+        identify a condition column and a biological replicate column with at
+        least two replicates per condition. The user still confirms the design in
+        DesignAgent checkpoints.
+        """
+        h5ads = [f for f in files if str(f).lower().endswith(".h5ad")]
+        if not h5ads:
+            return {}
+
+        warnings = []
+        try:
+            import anndata as ad
+            import pandas as pd
+        except ImportError:
+            return {
+                "warnings": [
+                    "h5ad design inference skipped: anndata/pandas not available."
+                ]
+            }
+
+        frames = []
+        obs_columns = {}
+        n_cells = 0
+        for path in h5ads[:3]:
+            try:
+                adata = ad.read_h5ad(path, backed="r")
+                obs = adata.obs.copy()
+                backing_file = getattr(adata, "file", None)
+                if backing_file is not None:
+                    backing_file.close()
+            except Exception as e:
+                warnings.append(f"h5ad obs inspection failed for {Path(path).name}: {e}")
+                continue
+            if obs.empty:
+                continue
+            obs["_aria_source_file"] = Path(path).stem
+            frames.append(obs)
+            n_cells += int(obs.shape[0])
+            obs_columns[Path(path).name] = list(map(str, obs.columns))
+
+        if not frames:
+            return {"warnings": warnings}
+
+        obs_all = pd.concat(frames, axis=0, join="outer", sort=False)
+        condition_col = self._pick_h5ad_condition_col(obs_all, user_question)
+        replicate_col = self._pick_h5ad_replicate_col(obs_all)
+        groupby_col = self._pick_h5ad_groupby_col(obs_all)
+        covariates = self._pick_h5ad_covariates(obs_all, condition_col, replicate_col)
+
+        if not condition_col or not replicate_col:
+            return {
+                "source": "h5ad_obs",
+                "obs_columns": obs_columns,
+                "n_cells_inspected": n_cells,
+                "warnings": warnings + [
+                    "h5ad obs inspected but no reliable condition + replicate "
+                    "design could be inferred."
+                ],
+            }
+
+        obs_design = obs_all[[condition_col, replicate_col]].dropna().copy()
+        obs_design[condition_col] = obs_design[condition_col].astype(str)
+        obs_design[replicate_col] = obs_design[replicate_col].astype(str)
+
+        groups = {}
+        for level, sub in obs_design.groupby(condition_col):
+            reps = sorted(r for r in sub[replicate_col].unique() if r and r != "nan")
+            if reps:
+                groups[str(level)] = reps
+
+        groups = {g: reps for g, reps in groups.items() if len(reps) >= 1}
+        if len(groups) < 2:
+            return {
+                "source": "h5ad_obs",
+                "obs_columns": obs_columns,
+                "n_cells_inspected": n_cells,
+                "warnings": warnings + [
+                    f"h5ad obs condition column '{condition_col}' has <2 usable levels."
+                ],
+            }
+
+        replicate_counts = {g: len(reps) for g, reps in groups.items()}
+        if not all(n >= 2 for n in replicate_counts.values()):
+            warnings.append(
+                "h5ad obs design has condition levels with <2 biological "
+                f"replicates: {replicate_counts}. Pseudobulk may skip those contrasts."
+            )
+
+        comparisons = self._default_comparisons_from_groups(groups)
+        return {
+            "source": "h5ad_obs",
+            "groups": groups,
+            "main_factor": condition_col,
+            "condition_col": condition_col,
+            "replicate_col": replicate_col,
+            "groupby_col": groupby_col,
+            "covariates": covariates,
+            "comparisons": comparisons,
+            "pseudobulk": {
+                "from_obs": True,
+                "condition_col": condition_col,
+                "replicate_col": replicate_col,
+                "groupby_col": groupby_col,
+                "covariates": covariates,
+                "comparisons": comparisons,
+            },
+            "confidence": "high" if all(n >= 2 for n in replicate_counts.values()) else "medium",
+            "reasoning": (
+                f"Inferred from h5ad obs: condition='{condition_col}', "
+                f"replicate='{replicate_col}', groupby='{groupby_col}'."
+            ),
+            "obs_columns": obs_columns,
+            "n_cells_inspected": n_cells,
+            "warnings": warnings,
+        }
+
+    @staticmethod
+    def _pick_h5ad_condition_col(obs, user_question: str = "") -> str | None:
+        priority = [
+            "age_group", "age_bin", "condition", "treatment", "diagnosis",
+            "disease", "group", "genotype", "phenotype", "status",
+        ]
+        q = (user_question or "").lower()
+        if any(k in q for k in ("age", "aging", "young", "old")):
+            priority = ["age_group", "age_bin", "age", *priority]
+        for col in priority:
+            if col in obs.columns and _usable_design_col(obs[col]):
+                return col
+        candidates = []
+        for col in obs.columns:
+            name = str(col).lower()
+            if any(k in name for k in ("age", "condition", "treatment", "diagnos",
+                                       "disease", "group", "genotype")) \
+                    and _usable_design_col(obs[col]):
+                candidates.append(str(col))
+        return candidates[0] if candidates else None
+
+    @staticmethod
+    def _pick_h5ad_replicate_col(obs) -> str | None:
+        priority = [
+            "sample_id", "orig.ident", "donor_id", "donor", "subject_id",
+            "subject", "individual", "sample", "batch",
+        ]
+        for col in priority:
+            if col in obs.columns and _usable_replicate_col(obs[col]):
+                return col
+        for col in obs.columns:
+            name = str(col).lower()
+            if any(k in name for k in ("donor", "subject", "sample", "individual")) \
+                    and _usable_replicate_col(obs[col]):
+                return str(col)
+        return None
+
+    @staticmethod
+    def _pick_h5ad_groupby_col(obs) -> str | None:
+        priority = [
+            "cell_type_celltypist", "cell_type", "celltype", "subclass",
+            "class", "annotation", "predicted_labels", "leiden",
+        ]
+        for col in priority:
+            if col in obs.columns and _usable_groupby_col(obs[col]):
+                return col
+        return None
+
+    @staticmethod
+    def _pick_h5ad_covariates(obs, condition_col: str | None,
+                              replicate_col: str | None) -> list[str]:
+        covariates = []
+        for col in ("Gender", "gender", "sex", "Sex", "batch", "Batch"):
+            if col in obs.columns and col not in {condition_col, replicate_col} \
+                    and _usable_design_col(obs[col], min_levels=2, max_levels=8):
+                covariates.append(col)
+        return covariates[:2]
+
+    @staticmethod
+    def _default_comparisons_from_groups(groups: dict) -> list[list[str]]:
+        names = sorted(groups)
+        lower = {g.lower(): g for g in names}
+        for ref_key in ("young", "control", "ctrl", "wt", "healthy", "untreated"):
+            if ref_key in lower:
+                ref = lower[ref_key]
+                return [[g, ref] for g in names if g != ref]
+        return [[b, a] for i, a in enumerate(names) for b in names[i + 1:]]
+
     def _build_context(self, experiment_id: str, data_dir: Path,
                        classified: dict, genome: str,
                        organism: str, warnings: list,
@@ -383,7 +584,8 @@ class DataAuditAgent(BaseAgent):
 
     def _build_checkpoint_summary(self, classified: dict,
                                    genome: str, organism: str,
-                                   warnings: list) -> str:
+                                   warnings: list,
+                                   inferred_design: dict = None) -> str:
         modalities = {k: v for k, v in classified.items() if k != "unknown"}
         unknown    = classified.get("unknown", [])
 
@@ -407,6 +609,23 @@ class DataAuditAgent(BaseAgent):
         lines.append(f"\n  🌍 Organism: {organism}")
         lines.append(f"  🗺️  Genome:   {genome} {genome_flag}")
 
+        if inferred_design and inferred_design.get("source") == "h5ad_obs":
+            lines.append("\n  🧾 h5ad obs design hints:")
+            lines.append(
+                f"     • condition: {inferred_design.get('condition_col', '?')}"
+            )
+            lines.append(
+                f"     • replicate: {inferred_design.get('replicate_col', '?')}"
+            )
+            if inferred_design.get("groupby_col"):
+                lines.append(
+                    f"     • cell type/groupby: {inferred_design.get('groupby_col')}"
+                )
+            groups = inferred_design.get("groups", {})
+            if groups:
+                compact = ", ".join(f"{g}={len(v)} reps" for g, v in groups.items())
+                lines.append(f"     • groups: {compact}")
+
         if warnings:
             lines.append("\n  ⚠️  Warnings:")
             for w in warnings:
@@ -414,3 +633,30 @@ class DataAuditAgent(BaseAgent):
 
         lines.append("\nIs this correct?")
         return "\n".join(lines)
+
+
+def _usable_design_col(series, min_levels: int = 2, max_levels: int = 12) -> bool:
+    vals = series.dropna().astype(str)
+    if vals.empty:
+        return False
+    levels = [v for v in vals.unique() if v and v.lower() != "nan"]
+    if not (min_levels <= len(levels) <= max_levels):
+        return False
+    counts = vals.value_counts()
+    return bool((counts >= 5).sum() >= min_levels)
+
+
+def _usable_replicate_col(series) -> bool:
+    vals = series.dropna().astype(str)
+    if vals.empty:
+        return False
+    n_levels = vals.nunique()
+    return 2 <= n_levels <= max(200, len(vals) // 20)
+
+
+def _usable_groupby_col(series) -> bool:
+    vals = series.dropna().astype(str)
+    if vals.empty:
+        return False
+    n_levels = vals.nunique()
+    return 2 <= n_levels <= 100

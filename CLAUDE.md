@@ -1,6 +1,6 @@
 # CLAUDE.md — ARIA Operating Manual
 
-Last revised: v4.3.11 hardening pass.
+Last revised: 2026-05-12 evening handoff, TUI rerun in progress.
 
 This file is the handoff manual for Claude or any other coding agent working on
 ARIA. Keep it current after every meaningful architecture, testing, or workflow
@@ -112,9 +112,9 @@ Every important user or code decision should be visible later:
 
 ## Current Version
 
-Current repo state: v4.3.11.
+Current repo state: v4.3.12-dev.
 
-Version strings were aligned in:
+Packaged/released version strings are still v4.3.11 in:
 
 - `aria/__init__.py`
 - `aria/llm/__init__.py`
@@ -123,6 +123,9 @@ Version strings were aligned in:
 - `install.sh`
 - `README.md`
 - `docs/INSTALLATION.md`
+
+Do not bump/tag until the hippocampus TUI rerun validates the new h5ad obs
+design path end-to-end.
 
 ## What Was Done In v4.3.11
 
@@ -189,6 +192,90 @@ Tests that intentionally need mocks pass `allow_mock=true`.
 
 The previous `ARIA_CONTEXT.md` described v3.9 and v4.0 roadmap. It was no
 longer true. It has been replaced with current v4.3.11 memory.
+
+## What Was Done After v4.3.11
+
+### h5ad obs Design Repair
+
+The TUI run at
+`/home/medusa/.aria/reports/aria_20260512_131402_oligodendrocytes_opcs_microglia_-e5f/report.html`
+completed the scRNA workflow but did not run young-vs-old pseudobulk DE. The
+report explicitly said age-stratified differential analyses were absent.
+
+Root cause:
+
+- `DataAuditAgent` did not classify `.h5ad` as scRNA or inspect `adata.obs`.
+- `DesignAgent` accepted inferred design only when it came from GEO metadata.
+- `scRNAAgent` pseudobulk always injected a condition column from
+  `design.groups`, even when the h5ad already had condition/replicate/cell-type
+  columns.
+
+Fixes:
+
+- `aria/agents/data_audit_agent.py` now recognizes `.h5ad` and infers design
+  hints from `obs`: condition, biological replicate, groupby/cell-type,
+  covariates, groups, and comparisons.
+- `aria/agents/design_agent.py` now preserves inferred design from either GEO or
+  h5ad obs, seeds the main factor checkpoint, and carries
+  `design["pseudobulk"]` downstream.
+- `aria/agents/scrna_agent.py` now runs pseudobulk directly on native obs
+  columns when `design["pseudobulk"]["from_obs"]` is true.
+- `tests/test_pytest_smoke.py` covers h5ad obs design inference and direct
+  obs-based pseudobulk parameter wiring.
+
+Validation:
+
+- `python -m compileall -q aria`
+- `python -m pytest -q` passes 5 tests.
+
+### Processed h5ad QC Repair
+
+The follow-up TUI report at
+`/home/medusa/.aria/reports/aria_20260512_165405_oligodendrocytes_opcs_microglia_-0d2/report.html`
+proved h5ad obs design inference reached CP1/CP2, but scRNA failed immediately:
+the report said zero cells passed QC.
+
+Root cause:
+
+- The input h5ad was a processed Seurat-style object with 295,033 cells, 2,000
+  features, scaled/log-normalized `X`, and real QC metrics in `obs`
+  (`nFeature_RNA`, `nCount_RNA`, `percent.mt`).
+- `rna_qc.py` treated `X` as raw counts, recalculated Scanpy QC metrics, derived
+  a destructive `min_genes=1998`, and filtered all cells.
+- The script then returned success with `n_cells_after=0`, letting the report
+  become the first visible failure point.
+
+Fixes:
+
+- `aria/scripts/rna_qc.py` now detects h5ads with existing obs QC metrics and
+  filters cells using those metrics instead of recalculating from processed `X`.
+- It skips Scrublet in that mode because Scrublet requires raw counts.
+- It returns structured `NoCellsAfterQC` errors if any QC path leaves zero
+  cells, rather than saving an empty h5ad as success.
+- `tests/test_pytest_smoke.py` includes a processed-h5ad regression test with
+  negative/scaled `X` and Seurat-style QC columns.
+
+Latest validation:
+
+- The follow-up h5ad TUI report completed analytically: QC retained
+  242,405/295,033 cells, pseudobulk DE ran across 18 subclasses, pathway ORA,
+  LIANA communication, and PAGA/DPT trajectory outputs were present.
+- The remaining defects were in NarrativeAgent: the executive summary
+  contradicted the body by saying completed analyses were absent, scRNA prose
+  was too shallow, and the report `tables/` directory stayed empty for
+  scRNA-only runs.
+- NarrativeAgent now uses deterministic scRNA summaries when structured
+  pseudobulk/ORA/LIANA/trajectory outputs exist, includes those outputs in the
+  LLM concrete-results block, adds an Integrated Interpretation section, and
+  exports scRNA supplementary TSVs for QC, cell types, markers, pseudobulk DE,
+  pathway enrichment, LIANA interactions, PAGA connections, and DPT
+  pseudotime.
+- A hardcode audit removed dataset-specific narrative wording. Remaining
+  age/young/old strings in production code are either generic design heuristics
+  or UI examples; dataset-specific values are confined to tests and handoff
+  documentation.
+- Leave pre-existing untracked `audit.txt` and `pathways_per_cluster.csv`
+  untouched unless Samael explicitly decides what to do with them.
 
 ## Architecture Map
 
@@ -260,7 +347,7 @@ Current expected result:
 
 - compileall: no output, exit 0
 - bulk RNA: 30 passed / 0 failed
-- pytest: 2 passed
+- pytest: 5 passed
 
 Known non-fatal warnings in this environment:
 
@@ -298,9 +385,9 @@ for RNA stack installation and possibly a small fixture that runs with real
 
 ### scRNA
 
-The README claims substantial scRNA E2E validation. Code is organized and
-appears actively hardened. Still needs cleaner pytest coverage and explicit
-fixtures for report shape normalization.
+The code now has a specific repair for `.h5ad.obs` experimental design metadata
+feeding pseudobulk DE. Still needs the real hippocampus TUI rerun and cleaner
+pytest coverage for report shape normalization.
 
 ### Chromatin/scATAC
 
@@ -325,8 +412,8 @@ ATAC/Hi-C standalone workflows are reliable.
 
 ### Immediate
 
-1. Commit or package v4.3.11 hardening changes.
-2. Run full local verification once more after any doc/manual edits.
+1. Rerun the hippocampus TUI case and inspect whether pseudobulk DE executes.
+2. If the rerun passes, package/tag the h5ad design repair as v4.3.12.
 3. Decide whether `audit.txt` and `pathways_per_cluster.csv` should be ignored,
    committed as artifacts, or removed by user instruction.
 
@@ -405,6 +492,8 @@ Bulk RNA:
 
 scRNA:
 
+- `aria/agents/data_audit_agent.py`
+- `aria/agents/design_agent.py`
 - `aria/agents/scrna_agent.py`
 - `aria/agents/_narrative_scrna.py`
 - `tests/test_scrna_e2e.py`
@@ -435,4 +524,3 @@ Infrastructure:
 
 ARIA should be scientifically conservative. It is better to stop with a precise
 dependency/data/design error than to produce a polished but invalid report.
-

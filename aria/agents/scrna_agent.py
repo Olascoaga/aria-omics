@@ -860,10 +860,16 @@ Rules:
         """
         design = (exp_ctx or {}).get("design", {}) or {}
         groups = design.get("groups", {}) or {}
+        pb_cfg = design.get("pseudobulk", {}) or {}
+        has_obs_design = bool(
+            pb_cfg.get("condition_col") and pb_cfg.get("replicate_col")
+            and (len(groups) >= 2 or pb_cfg.get("comparisons"))
+        )
         if len(groups) < 2:
-            return False
+            if not has_obs_design:
+                return False
         # Need ≥2 samples per group (pseudobulk requires biological reps)
-        if not all(len(s) >= 2 for s in groups.values()):
+        if groups and not all(len(s) >= 2 for s in groups.values()):
             return False
         text = (
             (intent.get("summary", "") or "") + " "
@@ -914,42 +920,59 @@ Rules:
         from pathlib import Path
         design = (exp_ctx or {}).get("design", {}) or {}
         groups = design.get("groups", {}) or {}
-        factor = design.get("main_factor", "condition")
+        pb_cfg = design.get("pseudobulk", {}) or {}
+        factor = pb_cfg.get("condition_col") or design.get("main_factor", "condition")
         batch_cov = design.get("batch_covariate")
 
-        # Pairwise comparisons (alphabetical pairs, smaller=ref by default)
-        group_names = sorted(groups.keys())
-        comparisons = []
-        for i, a in enumerate(group_names):
-            for b in group_names[i + 1:]:
-                comparisons.append([b, a])  # test=b, ref=a
+        comparisons = self._normalise_pseudobulk_comparisons(
+            pb_cfg.get("comparisons")
+        )
+        if not comparisons:
+            # Pairwise comparisons (alphabetical pairs, smaller=ref by default)
+            group_names = sorted(groups.keys())
+            for i, a in enumerate(group_names):
+                for b in group_names[i + 1:]:
+                    comparisons.append([b, a])  # test=b, ref=a
         if not comparisons:
             return {"status": "skipped", "reason": "no_comparisons"}
 
-        # 1. Inject condition obs from sample → group mapping
+        # 1. Prefer h5ad-native obs design when CP1 inferred one. Otherwise
+        # inject condition obs from sample → group mapping.
         workspace = Path(current_h5ad).parent / "pseudobulk"
         workspace.mkdir(parents=True, exist_ok=True)
-        injected = workspace / "with_condition.h5ad"
-        inj = self._inject_condition_obs(current_h5ad, design, str(injected))
-        if inj.get("status") != "success":
-            return {"status": "skipped",
-                    "reason": f"inject_failed: {inj.get('reason', '?')}"}
+        use_obs_design = bool(
+            pb_cfg.get("from_obs") and factor and pb_cfg.get("replicate_col")
+        )
+        if use_obs_design:
+            pb_input = current_h5ad
+            replicate_col = pb_cfg.get("replicate_col")
+        else:
+            injected = workspace / "with_condition.h5ad"
+            inj = self._inject_condition_obs(current_h5ad, design, str(injected))
+            if inj.get("status") != "success":
+                return {"status": "skipped",
+                        "reason": f"inject_failed: {inj.get('reason', '?')}"}
+            pb_input = str(injected)
+            replicate_col = inj.get("replicate_col") or "sample_id"
 
         # 2. Choose groupby column: CellTypist labels > leiden
-        cell_type_col = (
-            "cell_type_celltypist"
-            if (annotation or {}).get("celltypist", {}).get("status") == "success"
-            else "leiden"
-        )
-        replicate_col = inj.get("replicate_col") or "sample_id"
-        covariates = [batch_cov] if batch_cov else []
+        cell_type_col = pb_cfg.get("groupby_col")
+        if not cell_type_col:
+            cell_type_col = (
+                "cell_type_celltypist"
+                if (annotation or {}).get("celltypist", {}).get("status") == "success"
+                else "leiden"
+            )
+        covariates = list(pb_cfg.get("covariates") or [])
+        if not covariates and batch_cov:
+            covariates = [batch_cov]
 
         # 3. Run pseudobulk DE
         pb = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_pseudobulk_de.py",
             params={
-                "data_path":     str(injected),
+                "data_path":     str(pb_input),
                 "groupby":       cell_type_col,
                 "condition_col": factor,
                 "replicate_col": replicate_col,
@@ -1009,6 +1032,7 @@ Rules:
             "condition_col": pb.get("condition_col"),
             "replicate_col": pb.get("replicate_col"),
             "covariates":    pb.get("covariates", []),
+            "from_obs":      use_obs_design,
             "thresholds":    pb.get("thresholds", {}),
             "n_groups":      pb.get("n_groups"),
             "per_group":     pb.get("per_group", {}),
@@ -1038,6 +1062,21 @@ Rules:
             "pseudobulk_de":        pb_payload,
             "pseudobulk_pathways":  pw_findings,
         }
+
+    @staticmethod
+    def _normalise_pseudobulk_comparisons(raw) -> list[list[str]]:
+        if not raw:
+            return []
+        comparisons = []
+        for comp in raw:
+            if isinstance(comp, dict):
+                test = comp.get("test") or comp.get("case") or comp.get("contrast")
+                ref = comp.get("ref") or comp.get("reference") or comp.get("control")
+                if test and ref:
+                    comparisons.append([str(test), str(ref)])
+            elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
+                comparisons.append([str(comp[0]), str(comp[1])])
+        return comparisons
 
     # ── Trajectory ────────────────────────────────────────────────────────
 

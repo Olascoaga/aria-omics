@@ -116,36 +116,78 @@ def rna_qc(params: dict) -> dict:
 
     warnings_list  = []
     n_barcodes_raw = adata.n_obs
+    existing_gene_col = next(
+        (c for c in ("nFeature_RNA", "n_genes_by_counts", "n_genes")
+         if c in adata.obs.columns),
+        None,
+    )
+    existing_count_col = next(
+        (c for c in ("nCount_RNA", "total_counts", "n_counts")
+         if c in adata.obs.columns),
+        None,
+    )
+    existing_mt_col = next(
+        (c for c in ("percent.mt", "pct_counts_mt", "percent_mito")
+         if c in adata.obs.columns),
+        None,
+    )
+    use_existing_h5ad_qc = bool(
+        path.suffix == ".h5ad"
+        and existing_gene_col
+        and existing_count_col
+        and existing_mt_col
+    )
 
-    # ── Drop empty droplets BEFORE estimating MAD thresholds ─────────────
-    # When data_path points to a raw_feature_bc_matrix (CellRanger raw output),
-    # ~95% of barcodes are empty drops. Their dominance in the count
-    # distribution collapses median→0 and MAD→0, producing mt_high=NaN and
-    # nuking every real cell. Apply a coarse initial filter so the adaptive
-    # MAD thresholds are estimated on plausible cells only.
-    initial_min_genes = int(params.get("initial_min_genes", 200))
-    initial_min_cells = int(params.get("initial_min_cells", 3))
-    sc.pp.filter_cells(adata, min_genes=initial_min_genes)
-    sc.pp.filter_genes(adata, min_cells=initial_min_cells)
-
-    if adata.n_obs == 0:
-        return {
-            "status":     "error",
-            "error_type": "NoCellsAfterInitialFilter",
-            "details":    (f"No barcodes survived initial filter "
-                           f"(min_genes={initial_min_genes}, "
-                           f"min_cells={initial_min_cells}) from "
-                           f"{n_barcodes_raw} raw barcodes."),
-        }
-
-    n_cells_before = adata.n_obs
-    n_genes_before = adata.n_vars
-    if n_barcodes_raw > n_cells_before * 1.5:
+    if use_existing_h5ad_qc:
         warnings_list.append(
-            f"Input looks like a raw_feature_bc_matrix: "
-            f"{n_barcodes_raw} barcodes → {n_cells_before} after empty-drop "
-            f"removal (min_genes={initial_min_genes})."
+            "Using existing h5ad obs QC metrics "
+            f"({existing_gene_col}, {existing_count_col}, {existing_mt_col}); "
+            "skipping X-based empty-droplet/gene filtering."
         )
+        adata.obs["n_genes_by_counts"] = adata.obs[existing_gene_col].astype(float)
+        adata.obs["total_counts"] = adata.obs[existing_count_col].astype(float)
+        adata.obs["pct_counts_mt"] = adata.obs[existing_mt_col].astype(float)
+        n_cells_before = adata.n_obs
+        n_genes_before = adata.n_vars
+
+        # Preprocessed Seurat/Scanpy h5ads often store scaled/log-normalized
+        # values in X. Scrublet requires raw counts and would be invalid here.
+        if run_scrublet:
+            run_scrublet = False
+            warnings_list.append(
+                "Scrublet skipped because h5ad provides precomputed QC metrics; "
+                "doublet status from obs is preserved when present."
+            )
+    else:
+        # ── Drop empty droplets BEFORE estimating MAD thresholds ─────────
+        # When data_path points to a raw_feature_bc_matrix (CellRanger raw
+        # output), ~95% of barcodes are empty drops. Their dominance in the
+        # count distribution collapses median→0 and MAD→0, producing
+        # mt_high=NaN and nuking every real cell. Apply a coarse initial filter
+        # so adaptive MAD thresholds are estimated on plausible cells only.
+        initial_min_genes = int(params.get("initial_min_genes", 200))
+        initial_min_cells = int(params.get("initial_min_cells", 3))
+        sc.pp.filter_cells(adata, min_genes=initial_min_genes)
+        sc.pp.filter_genes(adata, min_cells=initial_min_cells)
+
+        if adata.n_obs == 0:
+            return {
+                "status":     "error",
+                "error_type": "NoCellsAfterInitialFilter",
+                "details":    (f"No barcodes survived initial filter "
+                               f"(min_genes={initial_min_genes}, "
+                               f"min_cells={initial_min_cells}) from "
+                               f"{n_barcodes_raw} raw barcodes."),
+            }
+
+        n_cells_before = adata.n_obs
+        n_genes_before = adata.n_vars
+        if n_barcodes_raw > n_cells_before * 1.5:
+            warnings_list.append(
+                f"Input looks like a raw_feature_bc_matrix: "
+                f"{n_barcodes_raw} barcodes → {n_cells_before} after empty-drop "
+                f"removal (min_genes={initial_min_genes})."
+            )
 
     # ── Mitochondrial gene prefix ─────────────────────────────────────────
     # Human and mouse use MT- / mt- respectively
@@ -153,11 +195,12 @@ def rna_qc(params: dict) -> dict:
     is_mouse = "musculus" in organism.lower()
     mt_prefix = "MT-" if is_human else "mt-" if is_mouse else "MT-"
 
-    adata.var["mt"] = adata.var_names.str.startswith(mt_prefix)
-    sc.pp.calculate_qc_metrics(
-        adata, qc_vars=["mt"],
-        percent_top=None, log1p=False, inplace=True,
-    )
+    if not use_existing_h5ad_qc:
+        adata.var["mt"] = adata.var_names.str.startswith(mt_prefix)
+        sc.pp.calculate_qc_metrics(
+            adata, qc_vars=["mt"],
+            percent_top=None, log1p=False, inplace=True,
+        )
 
     # ── Adaptive MAD thresholds ───────────────────────────────────────────
     # Use nanmedian: pct_counts_mt is NaN when a cell has total_counts=0,
@@ -196,9 +239,32 @@ def rna_qc(params: dict) -> dict:
     min_cells    = int(params.get("min_cells", 3))
 
     # ── Filter ────────────────────────────────────────────────────────────
-    sc.pp.filter_cells(adata, min_genes=min_genes)
-    sc.pp.filter_genes(adata, min_cells=min_cells)
-    adata = adata[adata.obs["pct_counts_mt"] <= mt_threshold].copy()
+    if use_existing_h5ad_qc:
+        qc_mask = (
+            np.isfinite(adata.obs["n_genes_by_counts"].astype(float))
+            & np.isfinite(adata.obs["pct_counts_mt"].astype(float))
+            & (adata.obs["n_genes_by_counts"].astype(float) >= min_genes)
+            & (adata.obs["pct_counts_mt"].astype(float) <= mt_threshold)
+        )
+        adata = adata[qc_mask].copy()
+    else:
+        sc.pp.filter_cells(adata, min_genes=min_genes)
+        sc.pp.filter_genes(adata, min_cells=min_cells)
+        adata = adata[adata.obs["pct_counts_mt"] <= mt_threshold].copy()
+
+    if adata.n_obs == 0:
+        return {
+            "status":     "error",
+            "error_type": "NoCellsAfterQC",
+            "details":    (f"No cells survived QC "
+                           f"(min_genes={min_genes}, "
+                           f"mt_threshold={mt_threshold:.3f})."),
+            "n_cells_before": int(n_cells_before),
+            "n_cells_after":  0,
+            "min_genes_used": int(min_genes),
+            "mt_threshold_used": float(mt_threshold),
+            "warnings": warnings_list,
+        }
 
     # ── Doublet detection (Scrublet) ─────────────────────────────────────
     # Run BEFORE normalization on raw counts. Skip if scrublet not
@@ -277,6 +343,17 @@ def rna_qc(params: dict) -> dict:
 
     n_cells_after = adata.n_obs
     n_genes_after = adata.n_vars
+    if n_cells_after == 0:
+        return {
+            "status":     "error",
+            "error_type": "NoCellsAfterQC",
+            "details":    "No cells remained after doublet/QC filtering.",
+            "n_cells_before": int(n_cells_before),
+            "n_cells_after":  0,
+            "min_genes_used": int(min_genes),
+            "mt_threshold_used": float(mt_threshold),
+            "warnings": warnings_list,
+        }
     pct_removed   = round(
         (n_cells_before - n_cells_after) / n_cells_before * 100, 2
     )

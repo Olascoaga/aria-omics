@@ -78,6 +78,8 @@ class DesignAgent(BaseAgent):
         self._genome: Optional[str] = None
         self._main_factor: Optional[str] = None
         self._batch_covariate: Optional[str] = None
+        self._inferred_design: dict = {}
+        self._pseudobulk_design: dict = {}
         # IDs for current escalation (needed to resolve later)
         self._pending_escalation_id: Optional[str] = None
         self._experiment_id: Optional[str] = None
@@ -102,11 +104,12 @@ class DesignAgent(BaseAgent):
 
         geo_metadata    = exp_context.get("geo_metadata")
         inferred_design = exp_context.get("inferred_design", {})
+        self._inferred_design = inferred_design or {}
 
-        if geo_metadata and inferred_design.get("groups"):
-            # GEO dataset: groups, organism, and genome are already known from
-            # SOFT metadata — always prefer them over filename-based inference.
-            geo_samples = [
+        if inferred_design.get("groups"):
+            # External metadata or h5ad obs already carries the experimental
+            # design; prefer that over filename-based inference.
+            inferred_samples = [
                 s
                 for samples in inferred_design["groups"].values()
                 for s in samples
@@ -114,16 +117,29 @@ class DesignAgent(BaseAgent):
             self._parsed_samples = [
                 {"raw": s, "stem": s,
                  "tokens": s.lower().split(), "paired_files": [s]}
-                for s in geo_samples
+                for s in inferred_samples
             ]
+            source = inferred_design.get(
+                "source",
+                "GEO SOFT metadata" if geo_metadata else "inferred metadata",
+            )
             self._proposed_groups = {
                 "groups":     inferred_design["groups"],
-                "confidence": "high",
-                "reasoning":  "Groups inferred from GEO SOFT metadata",
+                "confidence": inferred_design.get("confidence", "high"),
+                "reasoning":  inferred_design.get(
+                    "reasoning", f"Groups inferred from {source}"
+                ),
             }
-            # Pre-seed organism/genome so CP2.2 shows the right value
-            self._organism = inferred_design.get("organism", "")
-            self._genome   = inferred_design.get("genome", "")
+            # Pre-seed known values so checkpoints surface metadata from the
+            # dataset instead of asking the LLM to infer them from sample IDs.
+            self._organism = inferred_design.get("organism", "") or exp_context.get("organism")
+            self._genome   = inferred_design.get("genome", "") or exp_context.get("genome")
+            self._main_factor = (
+                inferred_design.get("main_factor")
+                or inferred_design.get("condition_col")
+            )
+            self._batch_covariate = inferred_design.get("batch_covariate")
+            self._pseudobulk_design = inferred_design.get("pseudobulk", {}) or {}
         elif not raw_files:
             self.publish_finding(
                 experiment_id,
@@ -329,22 +345,26 @@ class DesignAgent(BaseAgent):
             "condition": "condition",
             "time": "time",
         }
-        self._main_factor = factor_map.get(choice, "condition")
+        if choice == "Cancel":
+            return {"status": "cancelled", "reason": "user_cancelled_factor"}
+        self._main_factor = factor_map.get(choice, choice.strip() or "condition")
         self._step = DesignStep.BATCH
         self._publish_batch_checkpoint()
         return {"status": "awaiting_user", "step": "batch"}
 
     def _handle_batch_response(self, choice: str) -> dict:
         if choice == "Yes — include as covariate":
-            # Pick the first detected batch keyword as name
+            # Preserve metadata-seeded batch/covariate when present. Otherwise
+            # pick the first detected batch keyword as name.
             batch_keywords = {"lane", "batch", "plate", "run", "flowcell"}
-            for sample in self._parsed_samples:
-                for tok in sample["tokens"]:
-                    if tok in batch_keywords:
-                        self._batch_covariate = tok
+            if not self._batch_covariate:
+                for sample in self._parsed_samples:
+                    for tok in sample["tokens"]:
+                        if tok in batch_keywords:
+                            self._batch_covariate = tok
+                            break
+                    if self._batch_covariate:
                         break
-                if self._batch_covariate:
-                    break
             if not self._batch_covariate:
                 self._batch_covariate = "batch"
         else:
@@ -444,33 +464,37 @@ class DesignAgent(BaseAgent):
     def _publish_factor_checkpoint(self):
         group_names = list(self._confirmed_groups.keys())
         # Quick LLM suggestion (non‑blocking, optional)
-        factor_guess = "condition"
-        try:
-            prompt = (
-                f"Groups: {', '.join(group_names)}\n"
-                "Most likely experimental factor? One word."
-            )
-            raw = self.think(prompt, system=DESIGN_SYSTEM,
-                             tier=TaskTier.LIGHT, max_tokens=15)
-            factor_guess = raw.strip().lower()
-        except Exception:
-            pass
+        factor_guess = self._main_factor or "condition"
+        if not self._main_factor:
+            try:
+                prompt = (
+                    f"Groups: {', '.join(group_names)}\n"
+                    "Most likely experimental factor? One word."
+                )
+                raw = self.think(prompt, system=DESIGN_SYSTEM,
+                                 tier=TaskTier.LIGHT, max_tokens=15)
+                factor_guess = raw.strip().lower()
+            except Exception:
+                pass
 
         question = (
             f"Main experimental factor: proposed '{factor_guess}'\n\n"
             "Choose the factor that is explicitly varied in this experiment:"
         )
+        options = [
+            "genotype",
+            "treatment",
+            "condition",
+            "time",
+            "Cancel",
+        ]
+        if factor_guess and factor_guess not in options:
+            options = [factor_guess] + options
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.3,
             question=question,
-            options=[
-                "genotype",
-                "treatment",
-                "condition",
-                "time",
-                "Cancel",
-            ],
+            options=options,
         )
         self._pending_escalation_id = msg.id
 
@@ -484,11 +508,14 @@ class DesignAgent(BaseAgent):
                     possible_batch.add(tok)
 
         if not possible_batch:
-            # No batch detected → skip to pseudorep
-            self._batch_covariate = None
-            self._step = DesignStep.PSEUDOREP
-            self._publish_pseudorep_checkpoint()
-            return
+            if self._batch_covariate:
+                possible_batch.add(self._batch_covariate)
+            else:
+                # No batch detected → skip to pseudorep
+                self._batch_covariate = None
+                self._step = DesignStep.PSEUDOREP
+                self._publish_pseudorep_checkpoint()
+                return
 
         question = (
             f"Possible batch variable detected: {', '.join(sorted(possible_batch))}\n\n"
@@ -643,10 +670,11 @@ class DesignAgent(BaseAgent):
                 "reasoning": "Heuristic fallback (LLM unavailable)"}
 
     def _build_design(self) -> dict:
+        main_factor = self._main_factor or "condition"
         if self._batch_covariate:
-            formula = f"~ {self._batch_covariate} + {self._main_factor}"
+            formula = f"~ {self._batch_covariate} + {main_factor}"
         else:
-            formula = f"~ {self._main_factor}"
+            formula = f"~ {main_factor}"
 
         replicates = {g: len(mems) for g, mems in (self._confirmed_groups or {}).items()}
 
@@ -654,9 +682,11 @@ class DesignAgent(BaseAgent):
             "organism":        self._organism,
             "genome":          self._genome,
             "groups":          self._confirmed_groups,
-            "main_factor":     self._main_factor,
+            "main_factor":     main_factor,
             "design_formula":  formula,
             "batch_covariate": self._batch_covariate,
+            "pseudobulk":      self._pseudobulk_design,
+            "source":          self._inferred_design.get("source"),
             "replicates":      replicates,
             "n_total_samples": sum(replicates.values()),
         }
