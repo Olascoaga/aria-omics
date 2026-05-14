@@ -42,6 +42,36 @@ decisions, and writes a report grounded in real output files.
 
 ---
 
+## Documentation
+
+Start with [docs/README.md](docs/README.md).
+
+Core public docs:
+
+- [Architecture overview](docs/architecture/overview.md)
+- [Design principles](docs/architecture/design_principles.md)
+- [Reporting and outputs](docs/architecture/reporting_and_outputs.md)
+- [Validation status](docs/validation_status.md)
+- [Installation guide](docs/INSTALLATION.md)
+
+Workflows:
+
+- [Bulk RNA-seq](docs/workflows/bulk_rna.md)
+- [Single-cell RNA-seq](docs/workflows/scrna.md)
+- [Pseudobulk scRNA-seq from h5ad obs metadata](docs/workflows/pseudobulk_scrna.md)
+- [Trajectory analysis](docs/workflows/trajectory.md)
+- [Cell-cell communication](docs/workflows/cell_communication.md)
+
+Roadmaps:
+
+- [Chromatin workflows](docs/workflows/chromatin_roadmap.md)
+- [Hi-C / Micro-C workflows](docs/workflows/hic_roadmap.md)
+- [Multimodal integration](docs/workflows/integration_roadmap.md)
+
+Diagrams are stored as Mermaid files under [docs/diagrams](docs/diagrams/).
+
+---
+
 ## Current Status — May 2026
 
 ```

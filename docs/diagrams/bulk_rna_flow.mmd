@@ -1,0 +1,12 @@
+flowchart TD
+    I[Counts matrix or FASTQ] --> DA[DataAuditAgent]
+    DA --> D[DesignAgent]
+    D --> A[AuditAgent]
+    A --> BR[BulkRNAAgent]
+    BR --> QC[Sample QC]
+    QC --> DE[DESeq2 / pyDESeq2 contrasts]
+    DE --> PW[ORA + GSEA]
+    DE --> FIG[Volcano, PCA/MDS, heatmaps]
+    PW --> N[NarrativeAgent]
+    FIG --> N
+    N --> R[HTML report + methods + tables]

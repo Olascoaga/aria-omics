@@ -126,10 +126,10 @@ Run these commands one at a time, pressing Enter after each:
 cd ~
 
 # Download ARIA
-git clone https://github.com/aria-omics/aria.git
+git clone https://github.com/Olascoaga/aria-omics.git
 
 # Enter the ARIA directory
-cd aria
+cd aria-omics
 ```
 
 > If git is not installed, run this first:
@@ -208,7 +208,7 @@ The prompt will change from `(base)` to `(aria-env)`.
 ### 5.2 Run the end-to-end test
 
 ```bash
-cd ~/aria
+cd ~/aria-omics
 python tests/test_pbmc_e2e.py
 ```
 
@@ -332,7 +332,7 @@ pip install "scanpy[leiden]"
 
 ### Installation was interrupted
 ```bash
-cd ~/aria
+cd ~/aria-omics
 bash install.sh
 ```
 The installer detects what is already installed and resumes from where it stopped.
@@ -397,12 +397,12 @@ Switch to `ARIA_DEV_MODE=false` for final production runs with Claude Sonnet.
 ## Update ARIA
 
 ```bash
-cd ~/aria
+cd ~/aria-omics
 git pull
 pip install -e . --quiet
 ```
 
 ---
 
-*ARIA v4.3.11 — Documentation in progress*
+*ARIA documentation — May 2026*
 *Found a bug or have a suggestion? Open an issue on GitHub.*

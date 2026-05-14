@@ -1,0 +1,17 @@
+flowchart TD
+    U[User question + local data] --> O[OrchestratorAgent]
+    O --> DA[DataAuditAgent]
+    DA --> CP1[Checkpoint 1: detected data]
+    CP1 --> D[DesignAgent]
+    D --> CP2[Design checkpoints]
+    CP2 --> A[AuditAgent]
+    A --> DISPATCH[Modality dispatch]
+    DISPATCH --> B[BulkRNAAgent]
+    DISPATCH --> S[scRNAAgent]
+    DISPATCH --> C[ChromatinAgent scaffolded]
+    DISPATCH --> H[GenomeArchAgent scaffolded]
+    B --> N[NarrativeAgent]
+    S --> N
+    C --> N
+    H --> N
+    N --> R[HTML report + TSV supplements + methods]

@@ -1,0 +1,10 @@
+flowchart TD
+    H[h5ad with obs metadata] --> AUDIT[DataAuditAgent inspects obs]
+    AUDIT --> DESIGN[DesignAgent confirms design]
+    DESIGN --> QC[rna_qc.py processed-h5ad aware QC]
+    QC --> ANNO[Annotation or existing labels]
+    ANNO --> PB[rna_pseudobulk_de.py]
+    PB --> ORA[rna_pathway_per_cluster.py]
+    ORA --> N[NarrativeAgent]
+    PB --> N
+    N --> R[Report + DE/pathway TSV supplements]

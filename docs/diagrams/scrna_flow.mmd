@@ -1,0 +1,16 @@
+flowchart TD
+    I[10x h5 / MEX / h5ad] --> QC[rna_qc.py]
+    QC --> C{Multiple samples?}
+    C -->|yes| CONCAT[rna_concat.py]
+    C -->|no| ONE[Single sample h5ad]
+    CONCAT --> INT[rna_integration.py]
+    ONE --> ADV[rna_advise_resolution.py]
+    INT --> ADV
+    ADV --> CLUST[rna_clustering.py]
+    CLUST --> CT[rna_celltypist.py]
+    CT --> ANNO[LLM reinterpretation or marker fallback]
+    ANNO --> DE[rna_de_per_cluster.py]
+    DE --> ORA[rna_pathway_per_cluster.py]
+    ORA --> N[NarrativeAgent]
+    ANNO --> N
+    N --> R[HTML report + TSV supplements]
