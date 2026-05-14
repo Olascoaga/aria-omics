@@ -4,14 +4,24 @@ flowchart TD
     DA --> CP1[Checkpoint 1: detected data]
     CP1 --> D[DesignAgent]
     D --> CP2[Design checkpoints]
-    CP2 --> A[AuditAgent]
-    A --> DISPATCH[Modality dispatch]
+    CP2 --> PLAN[Checkpoint 2: analysis plan]
+    PLAN -->|confirm| A[AuditAgent]
+    PLAN -->|modify thresholds| CP3[Checkpoint 3: thresholds]
+    CP3 --> A
+    A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
+    A -->|no blocking issues| SETUP[SetupAgent environment check]
+    CP35 -->|proceed| SETUP
+    SETUP --> DISPATCH[Modality dispatch]
     DISPATCH --> B[BulkRNAAgent]
     DISPATCH --> S[scRNAAgent]
     DISPATCH --> C[ChromatinAgent scaffolded]
     DISPATCH --> H[GenomeArchAgent scaffolded]
-    B --> N[NarrativeAgent]
-    S --> N
-    C --> N
-    H --> N
-    N --> R[HTML report + TSV supplements + methods]
+    B --> M{2+ modalities or integration requested?}
+    S --> M
+    C --> M
+    H --> M
+    M -->|yes| INT[IntegrationAgent scaffolded]
+    M -->|no| N[NarrativeAgent]
+    INT --> N
+    N --> CP5[Checkpoint 5: final review]
+    CP5 --> R[HTML report + TSV supplements + methods]

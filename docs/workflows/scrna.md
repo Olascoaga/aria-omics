@@ -25,7 +25,8 @@ metrics such as `nFeature_RNA`, `nCount_RNA`, and `percent.mt`.
 flowchart TD
     I[10x h5 / MEX / h5ad] --> QC[rna_qc.py]
     QC --> C{Multiple samples?}
-    C -->|yes| CONCAT[rna_concat.py]
+    C -->|yes| PS[Per-sample QC with sample_id]
+    PS --> CONCAT[rna_concat.py]
     C -->|no| ONE[Single sample h5ad]
     CONCAT --> INT[rna_integration.py Harmony if batch valid]
     ONE --> ADV[rna_advise_resolution.py]
@@ -35,8 +36,18 @@ flowchart TD
     CT --> ANNO[LLM-assisted reinterpretation or marker fallback]
     ANNO --> DE[rna_de_per_cluster.py]
     DE --> ORA[rna_pathway_per_cluster.py]
-    ORA --> N[NarrativeAgent]
-    ANNO --> N
+    ANNO --> PB{Comparison intent and replicate design?}
+    PB -->|yes| PBD[rna_pseudobulk_de.py]
+    PBD --> PBORA[rna_pathway_per_cluster.py for group x comparison]
+    ANNO --> TR{Trajectory intent?}
+    TR -->|yes| TRAJ[rna_trajectory.py]
+    ANNO --> CC{Communication intent?}
+    CC -->|yes| LIANA[rna_cellcomm.py]
+    ANNO --> N[NarrativeAgent]
+    ORA --> N
+    PBORA --> N
+    TRAJ --> N
+    LIANA --> N
     N --> R[HTML report + TSV supplements]
 ```
 
@@ -96,6 +107,8 @@ Fallback labels are marked as curation targets, not definitive identities.
 - Leiden cluster summaries;
 - CellTypist or marker-fallback annotations;
 - per-cluster DE and pathway outputs;
+- optional pseudobulk DE/pathway outputs when comparison design is present;
+- optional trajectory and LIANA outputs when the biological intent requests them;
 - HTML report and supplementary TSVs.
 
 ## Current Evidence

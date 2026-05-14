@@ -38,10 +38,18 @@ flowchart TD
     DA --> D[DesignAgent]
     D --> A[AuditAgent quality checks]
     A --> BR[BulkRNAAgent]
-    BR --> QC[Sample QC and replicate concordance]
-    QC --> DE[DESeq2 / pyDESeq2 contrasts]
+    BR --> T{FASTQ input?}
+    T -->|yes| FQ[rna_fastq_qc.py fastp]
+    FQ --> ALN[rna_align.py STAR]
+    ALN --> QNT[rna_quantify.py featureCounts]
+    QNT --> COUNTS[Counts matrix]
+    T -->|no| COUNTS
+    COUNTS --> DESIGN[Apply confirmed design or fallback inference]
+    DESIGN --> DE[rna_bulk_de.py DESeq2 / pyDESeq2]
+    DE --> QC[Sample QC and replicate concordance]
     DE --> PW[ORA + GSEA]
     DE --> FIG[Volcano, PCA/MDS, heatmaps]
+    QC --> N[NarrativeAgent]
     PW --> N[NarrativeAgent]
     FIG --> N
     N --> R[HTML report + methods + tables]
@@ -52,6 +60,7 @@ The same diagram is stored as [bulk_rna_flow.mmd](../diagrams/bulk_rna_flow.mmd)
 ## Outputs
 
 - all pairwise contrasts;
+- FASTQ QC, alignment, and quantification summaries when preprocessing runs;
 - DE tables per contrast;
 - pathway enrichment per contrast;
 - volcano plots;
@@ -62,6 +71,8 @@ The same diagram is stored as [bulk_rna_flow.mmd](../diagrams/bulk_rna_flow.mmd)
 ## Failure Rules
 
 - Missing pyDESeq2 must not silently produce fake DE.
+- Missing fastp, STAR, or featureCounts must fail explicitly unless mock mode is
+  explicitly enabled for development.
 - Missing pathway tools must produce explicit warnings.
 - Outlier pruning must preserve minimum replicate structure.
 - One-replicate groups should be handled explicitly and conservatively.

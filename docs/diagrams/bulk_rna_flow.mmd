@@ -3,10 +3,18 @@ flowchart TD
     DA --> D[DesignAgent]
     D --> A[AuditAgent]
     A --> BR[BulkRNAAgent]
-    BR --> QC[Sample QC]
-    QC --> DE[DESeq2 / pyDESeq2 contrasts]
+    BR --> T{FASTQ input?}
+    T -->|yes| FQ[rna_fastq_qc.py]
+    FQ --> ALN[rna_align.py]
+    ALN --> QNT[rna_quantify.py]
+    QNT --> COUNTS[Counts matrix]
+    T -->|no| COUNTS
+    COUNTS --> DESIGN[Confirmed design or fallback inference]
+    DESIGN --> DE[rna_bulk_de.py]
+    DE --> QC[Sample QC]
     DE --> PW[ORA + GSEA]
     DE --> FIG[Volcano, PCA/MDS, heatmaps]
+    QC --> N[NarrativeAgent]
     PW --> N[NarrativeAgent]
     FIG --> N
     N --> R[HTML report + methods + tables]

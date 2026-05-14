@@ -90,6 +90,7 @@ OrchestratorAgent                  done
 DataAuditAgent                     done
 DesignAgent (interactive, v4.0)    done
 AuditAgent (quality linter, v4.1)  done
+SetupAgent                         done
 BulkRNAAgent (DESeq2)              done  ✓ H9 BMAL1/REV-ERBα
   rna_bulk_de.py                   done
   rna_pathway_viz.py               done
@@ -233,16 +234,20 @@ ARIA
   DataAuditAgent          Auto-detects data types          [CHECKPOINT 1]
   DesignAgent             Interactive experimental design  [CHECKPOINTS 2.1–2.6]
     Groups → Organism → Factor → Batch → Pseudoreplication → Confirm
+  Analysis Plan           User confirms or modifies plan   [CHECKPOINT 2]
+  Threshold Tuning        Optional DE threshold profile     [CHECKPOINT 3]
   AuditAgent              Quality linter before dispatch   [CHECKPOINT 3.5 if blocking]
     · Replicate correlation (outlier / swap detection)
     · PCA batch dominance
     · STAR alignment rate
+  SetupAgent              Environment/genome readiness check before dispatch
   BulkRNAAgent            DESeq2, all pairwise contrasts, ORA, GSEA
   scRNAAgent              QC, clustering, annotation, DE
   ChromatinAgent          ATAC + ChIP + CUT&RUN + CUT&TAG  [scaffolded]
   GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
-  IntegrationAgent        Multimodal synthesis (WNN, MOFA+) [scaffolded]
+  IntegrationAgent        Conditional multimodal synthesis  [scaffolded]
   NarrativeAgent          HTML report + methods section
+  Final Review            Accept / revise / export          [CHECKPOINT 5]
 
   LLMProvider       Universal LLM abstraction (Anthropic / Gemini / Ollama)
   ContextManager    4-step degradation cascade for local models

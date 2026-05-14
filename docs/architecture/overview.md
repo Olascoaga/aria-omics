@@ -19,18 +19,27 @@ flowchart TD
     DA --> CP1[Checkpoint 1: detected data]
     CP1 --> D[DesignAgent]
     D --> CP2[Design checkpoints: groups, organism, factor, batch, replicates]
-    CP2 --> A[AuditAgent]
-    A --> CP35[Checkpoint 3.5 if blocking quality issues]
-    A --> DISPATCH[Modality dispatch]
+    CP2 --> PLAN[Checkpoint 2: analysis plan]
+    PLAN -->|confirm| A[AuditAgent]
+    PLAN -->|modify thresholds| CP3[Checkpoint 3: thresholds]
+    CP3 --> A
+    A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
+    A -->|no blocking issues| SETUP[SetupAgent environment check]
+    CP35 -->|proceed| SETUP
+    SETUP --> DISPATCH[Modality dispatch]
     DISPATCH --> B[BulkRNAAgent]
     DISPATCH --> S[scRNAAgent]
     DISPATCH --> C[ChromatinAgent scaffolded]
     DISPATCH --> H[GenomeArchAgent scaffolded]
-    B --> N[NarrativeAgent]
-    S --> N
-    C --> N
-    H --> N
-    N --> R[HTML report + TSV supplements + methods]
+    B --> MAYBEINT{2+ modalities or integration requested?}
+    S --> MAYBEINT
+    C --> MAYBEINT
+    H --> MAYBEINT
+    MAYBEINT -->|yes| INT[IntegrationAgent scaffolded]
+    MAYBEINT -->|no| N[NarrativeAgent]
+    INT --> N
+    N --> CP5[Checkpoint 5: final review]
+    CP5 --> R[HTML report + TSV supplements + methods]
 ```
 
 The same diagram is stored as [aria_overview.mmd](../diagrams/aria_overview.mmd).
@@ -43,8 +52,10 @@ The same diagram is stored as [aria_overview.mmd](../diagrams/aria_overview.mmd)
 | DataAuditAgent | Detects modalities and data structure |
 | DesignAgent | Confirms experimental design before compute |
 | AuditAgent | Runs pre-dispatch quality checks |
+| SetupAgent | Checks computational environment before modality agents run |
 | BulkRNAAgent | Orchestrates bulk RNA count/FASTQ workflows |
 | scRNAAgent | Orchestrates QC, integration, clustering, annotation, DE, pseudobulk, beta trajectory and LIANA |
+| IntegrationAgent | Runs only for multimodal analyses or when explicitly requested; still scaffolded |
 | NarrativeAgent | Writes reports from structured outputs and warnings |
 | EnvironmentManager | Runs modality scripts in isolated Conda stacks using JSON IPC |
 | ParameterAdvisor | Scores parameter candidates and records decisions |

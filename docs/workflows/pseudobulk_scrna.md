@@ -28,10 +28,13 @@ flowchart TD
     AUDIT --> DESIGN[DesignAgent confirms factor, groups, replicates, covariates]
     DESIGN --> QC[rna_qc.py processed-h5ad aware QC]
     QC --> ANNO[Annotation: CellTypist or existing/fallback labels]
-    ANNO --> PB[rna_pseudobulk_de.py]
+    ANNO --> OBS{Use native obs design?}
+    OBS -->|yes| PB[rna_pseudobulk_de.py]
+    OBS -->|no| INJ[rna_inject_condition.py]
+    INJ --> PB
     PB --> ORA[rna_pathway_per_cluster.py per group x comparison]
-    ORA --> N[NarrativeAgent]
-    PB --> N
+    PB --> N[NarrativeAgent]
+    ORA --> N
     N --> R[Report + DE/pathway TSV supplements]
 ```
 
@@ -47,6 +50,8 @@ The same diagram is stored as
   skip pseudobulk rather than guessing silently.
 - If condition metadata already exists in `obs`, ARIA should use it directly
   instead of injecting filename-derived labels.
+- If metadata is not available in `obs`, ARIA may inject condition labels from
+  the user-confirmed sample-to-group design before pseudobulk DE.
 
 ## Outputs
 
