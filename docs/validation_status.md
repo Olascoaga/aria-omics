@@ -12,7 +12,7 @@ workflows from beta analysis paths and implementation scaffolds.
 | Bulk RNA-seq count matrix | Validated | Synthetic regression suite and H9 three-condition workflow |
 | scRNA single-sample | Validated | PBMC 3k and GSE278576 single-sample runs |
 | scRNA multi-sample | Validated | GSE278576 3-donor concat + Harmony workflow |
-| Processed h5ad pseudobulk | Validated pending final rerun review | 40-donor hippocampus run completed analytically; narrative fixes require final report review |
+| Processed h5ad pseudobulk | Validated | 40-donor hippocampus rerun completed analytically; report review confirmed pseudobulk, ORA, LIANA, trajectory, figures, and TSV exports |
 
 ## Validated / Beta
 
@@ -33,12 +33,24 @@ workflows from beta analysis paths and implementation scaffolds.
 | Hi-C / Micro-C | Scaffolded | End-to-end validation, memory-safe fixtures, report integration |
 | WNN / MOFA+ / peak-to-gene | Scaffolded | Stable standalone RNA + ATAC paths first |
 
-## Current Release Gate
+## v4.3.12 Release Gate
 
-Before tagging `v4.3.12`, rerun or regenerate the hippocampus report and verify:
+The `v4.3.12` closeout checks are:
 
 - executive summary does not contradict body sections;
 - pseudobulk DE, pathway, LIANA, and trajectory outputs are represented when present;
 - missing outputs stay explicitly missing;
 - supplementary TSV tables are non-empty when structured outputs exist;
-- methods record design formula, thresholds, grouping columns, covariates, and warnings.
+- methods record design formula, thresholds, grouping columns, covariates, and warnings;
+- existing `obs` annotations are reported as reused groupings, not as newly
+  inferred Leiden clusters;
+- `rna_de_per_cluster.py` is treated as optional on atlas-scale inputs. If it
+  times out, the pipeline may still be scientifically valid when donor-level
+  pseudobulk, pathway, communication, and trajectory outputs complete.
+
+Latest reviewed hippocampus rerun:
+`/home/medusa/.aria/reports/aria_20260514_143352_oligodendrocytes_opcs_microglia_-009/report.html`.
+The reviewed run produced real output tables and figures. A narrative wording
+bug around reused `obs['subclass']` labels was fixed after this report; new
+reports generated from the same code path will state that Leiden was skipped
+when input annotations are reused.

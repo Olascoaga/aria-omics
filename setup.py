@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="aria-omics",
-    version="4.3.11",
+    version="4.3.12",
     description="Agentic Research Intelligence for -omics Analysis",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

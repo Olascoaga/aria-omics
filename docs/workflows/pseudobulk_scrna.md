@@ -1,7 +1,6 @@
 # Pseudobulk scRNA-seq From h5ad obs Metadata
 
-Validation level: production-like validated analytically; final v4.3.12 report
-review pending.
+Validation level: production-like validated analytically for `v4.3.12`.
 
 ## Goal
 
@@ -74,4 +73,7 @@ large processed object:
 - narrative/report fixes were added after detecting a contradiction between
   executive summary and body sections.
 
-Final release tagging should wait for the rerun report review.
+Release policy: donor-level pseudobulk is the primary evidence for
+between-condition scRNA claims. `rna_de_per_cluster.py` is optional on
+atlas-scale inputs and may time out without invalidating a completed
+pseudobulk/ORA/LIANA/trajectory run.

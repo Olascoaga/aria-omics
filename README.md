@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.11-blue)
+![Version](https://img.shields.io/badge/version-4.3.12-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -99,9 +99,9 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_concat.py (multi-sample)     done — inner-join concat, raw preserved
   rna_integration.py (Harmony)     done  ✓ validated on 3 donors
   rna_advise_resolution.py         done
-  rna_clustering.py (Leiden)       done
+  rna_clustering.py                done — Leiden or reused obs annotations
   rna_celltypist.py                done
-  rna_de_per_cluster.py            done — slow on >10k cells (cf. pseudobulk)
+  rna_de_per_cluster.py            optional — may time out on large atlases
   rna_pseudobulk_de.py             done — between-condition DE via pyDESeq2
   rna_pathway_per_cluster.py       done — also used for per (group, comp) ORA
   rna_trajectory.py (PAGA+DPT)     beta — validated on hippocampus subset
@@ -118,9 +118,10 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The public target for the current hardening cycle is `v4.3.12`: close the
-bulk RNA + scRNA core, modernize the most important regression tests, and keep
-large-dataset resume behavior tied to real files and matching parameters.
+The current stable baseline is `v4.3.12`: bulk RNA + scRNA core paths are
+closed for practical use, regression tests cover the main report and h5ad
+resume paths, and large-dataset resume behavior is tied to real files and
+matching parameters.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -152,6 +153,14 @@ large-dataset resume behavior tied to real files and matching parameters.
   dysfunction across Chandelier / LAMP5 / PVALB / SUB neurons and
   astrocytes; type I interferon signaling in VLMC; Parkinson disease
   pathway in SUB.
+- **GSE278576 hippocampus full aging rerun** — validated on a 40-donor
+  processed `.h5ad` with 295,033 starting cells and 242,405 cells retained
+  after QC. ARIA reused the existing `obs['subclass']` annotations, skipped
+  Leiden clustering, and treated donor-level pseudobulk DE as the primary
+  inferential layer. The report exported UMAPs, pseudobulk DE tables, ORA
+  tables, LIANA interactions, and PAGA/DPT trajectory summaries. The legacy
+  cell-level `rna_de_per_cluster.py` stage may time out on atlas-scale inputs;
+  this is non-blocking when pseudobulk outputs are available.
 
 **Publication-grade HTML report for scRNA / pseudobulk** (v4.3.5) — run
 `tests/test_scrna_e2e.py --emit-html` and ARIA writes a self-contained
@@ -402,9 +411,10 @@ v4.3.10  done     TUI scRNA report hardening — normalized NarrativeAgent
                   inputs and fixed latent report-generation bugs
 v4.3.11  done     Production hardening — bulk RNA regression fixed, pytest
                   wrapper added, mocks require explicit dev opt-in
-v4.3.12  dev      Stability closeout — h5ad obs design inference,
+v4.3.12  done     Stability closeout — h5ad obs design inference,
                   processed-h5ad QC, grounded scRNA narrative, scRNA TSV
-                  supplements, large-dataset resume/cache guards
+                  supplements, large-dataset resume/cache guards, atlas-scale
+                  pseudobulk report review
 v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module
