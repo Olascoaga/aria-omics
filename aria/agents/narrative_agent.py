@@ -282,6 +282,11 @@ power for small-effect genes."
         n_cells = qc.get("n_cells_after")
         n_before = qc.get("n_cells_before")
         n_clusters = clu.get("n_clusters")
+        groupby = clu.get("groupby") or (sc_f.get("clustering_decision") or {}).get("groupby")
+        predef_clusters = bool(
+            clu.get("predef_clusters")
+            or (sc_f.get("clustering_decision") or {}).get("predef_clusters")
+        )
         qc_clause = ""
         if n_cells and n_before:
             qc_clause = (
@@ -290,9 +295,15 @@ power for small-effect genes."
         elif n_cells:
             qc_clause = f"after QC {n_cells:,} cells were retained"
         if n_clusters:
+            cluster_label = (
+                f"{n_clusters} {_narrative_scrna._group_label(groupby, n_clusters)} "
+                f"from obs['{groupby}']"
+                if predef_clusters and groupby else
+                f"{n_clusters} Leiden clusters"
+            )
             qc_clause = (
-                f"{qc_clause}, with {n_clusters} Leiden clusters"
-                if qc_clause else f"{n_clusters} Leiden clusters"
+                f"{qc_clause}, with {cluster_label}"
+                if qc_clause else cluster_label
             )
 
         parts = []
@@ -328,7 +339,8 @@ power for small-effect genes."
                 )
             parts.append(
                 f"Pseudobulk DE did run across {pb.get('n_groups', 0)} "
-                f"{pb.get('groupby', 'group')} groups: {n_success} "
+                f"{_narrative_scrna._group_label(pb.get('groupby'), pb.get('n_groups', 0))}: "
+                f"{n_success} "
                 f"group x comparison blocks were analyzable and "
                 f"{n_with_de} had significant DE{top_txt}."
             )

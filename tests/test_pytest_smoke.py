@@ -616,6 +616,50 @@ def test_clustering_predefined_groupby_keeps_all_cells(tmp_path, monkeypatch):
     assert result["cluster_sizes"] == {"OPC": 4, "Astro": 4, "Micro": 4}
 
 
+def test_scrna_narrative_reports_predefined_groupby_not_leiden():
+    from aria.agents import _narrative_scrna
+
+    findings = {
+        "clustering": {
+            "n_clusters": 18,
+            "groupby": "subclass",
+            "predef_clusters": True,
+        },
+        "clustering_decision": {
+            "groupby": "subclass",
+            "predef_clusters": True,
+        },
+        "pseudobulk_de": {
+            "groupby": "subclass",
+            "n_groups": 18,
+            "thresholds": {"padj_max": 0.05, "lfc_min": 0.5},
+            "per_group": {},
+        },
+        "trajectory": {
+            "status": "done",
+            "paga": {
+                "n_connections": 153,
+                "n_strong": 40,
+                "strong_threshold": 0.05,
+                "max_connectivity": 1.0,
+            },
+            "pseudotime": {"computed": False},
+            "velocity": {"computed": False},
+        },
+    }
+
+    summary = _narrative_scrna.summarize_scrna_text(findings)
+    methods = _narrative_scrna.build_scrna_methods(findings)
+
+    assert "obs['subclass']" in summary
+    assert "Leiden clustering was skipped" in summary
+    assert "subclass groups" in summary
+    assert "subclasss" not in summary
+    assert "active lineage transitions" not in summary
+    assert "not proof of active differentiation" in summary
+    assert "skipped Leiden clustering" in methods
+
+
 def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")

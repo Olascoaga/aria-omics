@@ -152,10 +152,14 @@ def adapt(report: Union[dict, str, Path],
             "cluster_sizes": clu.get("cluster_sizes", {}),
             "top_markers":   clu.get("top_markers", {}),
             "rep_used":      clu.get("rep_used"),
+            "groupby":       clu.get("groupby"),
+            "predef_clusters": clu.get("predef_clusters", False),
         }
         findings["clustering_decision"] = {
             "n_clusters":  clu.get("n_clusters"),
             "recommended": clu.get("resolution"),
+            "groupby":     clu.get("groupby"),
+            "predef_clusters": clu.get("predef_clusters", False),
             "n_candidates": len(
                 (stages.get("advise", {}) or {}).get("candidates", []) or []
             ) or 1,

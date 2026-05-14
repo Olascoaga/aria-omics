@@ -66,6 +66,19 @@ def _fmt_int(value) -> str:
         return str(value)
 
 
+def _group_label(groupby: str | None, n: int | None = None) -> str:
+    """Human-readable label for an obs grouping column."""
+    if not groupby:
+        return "groups"
+    if groupby in {"cell_type", "celltype", "cell_type_celltypist"}:
+        singular = "cell type"
+    elif groupby == "leiden":
+        singular = "Leiden cluster"
+    else:
+        singular = f"{groupby} group"
+    return singular if n == 1 else f"{singular}s"
+
+
 def _label_cell_type(value) -> str:
     if isinstance(value, dict):
         return (value.get("cell_type")
@@ -161,11 +174,19 @@ def summarize_scrna_text(findings: dict) -> str:
 
     clu = findings.get("clustering") or {}
     if clu.get("n_clusters"):
-        lines.append(
-            f"Cell-state structure: Leiden clustering identified "
-            f"{clu['n_clusters']} clusters "
-            f"at resolution {clu.get('resolution', '?')}."
-        )
+        if clu.get("predef_clusters"):
+            groupby = clu.get("groupby", "input annotation")
+            lines.append(
+                f"Cell-state structure: reused {clu['n_clusters']} "
+                f"{_group_label(groupby, clu.get('n_clusters'))} from "
+                f"input obs['{groupby}']; Leiden clustering was skipped."
+            )
+        else:
+            lines.append(
+                f"Cell-state structure: Leiden clustering identified "
+                f"{clu['n_clusters']} clusters "
+                f"at resolution {clu.get('resolution', '?')}."
+            )
 
     ct = (findings.get("cell_types") or {}).get("cell_types", {}) or {}
     if ct:
@@ -210,7 +231,8 @@ def summarize_scrna_text(findings: dict) -> str:
         lines.append(
             f"Age-associated expression programs: pseudobulk DE "
             f"(DESeq2 on pseudosamples) ran across {n_groups} "
-            f"{pb.get('groupby', 'group')}s and {n_success} analyzable "
+            f"{_group_label(pb.get('groupby'), n_groups)} and "
+            f"{n_success} analyzable "
             f"group x comparison blocks"
             f"{f' ({n_skipped} skipped for replicate support)' if n_skipped else ''}. "
             f"{n_with_de} blocks yielded significant DE "
@@ -284,7 +306,8 @@ def summarize_scrna_text(findings: dict) -> str:
             f"mature / non-developmental populations"
             if max_conn < thr else
             f"; {n_strong} edges above {thr} threshold "
-            f"(suggests active lineage transitions)"
+            f"(exploratory manifold connectivity; not proof of active "
+            f"differentiation without velocity or time-course data)"
         )
         traj_line = (
             f"Trajectory context: PAGA on "
@@ -463,12 +486,22 @@ def build_scrna_methods(findings: dict) -> str:
         n_cand = cdec.get("n_candidates")
         cand_str = (f" (selected by silhouette across {n_cand} candidates)"
                     if n_cand else "")
-        lines.append(
-            f"Dimensionality reduction used PCA (50 components) followed by "
-            f"k-NN graph construction (k=15) and UMAP visualisation. "
-            f"Leiden clustering at resolution={res if res is not None else '?'}"
-            f"{cand_str} yielded {clu['n_clusters']} clusters."
-        )
+        if clu.get("predef_clusters") or cdec.get("predef_clusters"):
+            groupby = clu.get("groupby") or cdec.get("groupby") or "input annotation"
+            lines.append(
+                f"Dimensionality reduction used PCA (50 components) followed "
+                f"by k-NN graph construction (k=15) and UMAP visualisation. "
+                f"ARIA reused pre-existing obs['{groupby}'] labels as "
+                f"{_group_label(groupby)} and skipped Leiden clustering, "
+                f"yielding {clu['n_clusters']} groups."
+            )
+        else:
+            lines.append(
+                f"Dimensionality reduction used PCA (50 components) followed by "
+                f"k-NN graph construction (k=15) and UMAP visualisation. "
+                f"Leiden clustering at resolution={res if res is not None else '?'}"
+                f"{cand_str} yielded {clu['n_clusters']} clusters."
+            )
 
     ct = findings.get("cell_types") or {}
     if ct.get("model_used"):
