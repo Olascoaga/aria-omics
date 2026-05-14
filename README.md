@@ -13,19 +13,22 @@
 
 ## What is ARIA?
 
-ARIA is an open-source agentic system that automates multi-omics analysis
-for biological researchers. Instead of running dozens of tools manually,
-you describe what you want to know — and a coordinated team of AI agents
-handles the rest.
+ARIA is an open-source agentic system for supervised omics analysis. Instead
+of only exposing pipeline commands, ARIA asks for the biological question,
+confirms the experimental design, runs modality-specific code, records
+decisions, and writes a report grounded in real output files.
 
-**Supported modalities:**
+**Current validation boundary:**
 
-- scRNA-seq and bulk RNA-seq
-- scATAC-seq and bulk ATAC-seq
-- ChIP-seq (TF binding and histone marks)
-- CUT&RUN / CUT&TAG
-- HiC / Micro-C (3D genome: TADs, loops, compartments A/B)
-- Multimodal integration of any combination above
+- **Production-like validated:** bulk RNA-seq count matrices; scRNA-seq
+  single-sample and multi-sample workflows; processed `.h5ad` pseudobulk
+  workflows with design metadata in `obs`.
+- **Validated / beta:** bulk RNA-seq FASTQ preprocessing, trajectory
+  summaries, LIANA cell-cell communication, processed `.h5ad` recovery, and
+  GEO/SRA connector paths.
+- **Scaffolded / roadmap:** scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN /
+  CUT&TAG, full Hi-C / Micro-C workflows, and multimodal WNN/MOFA+
+  integration.
 
 **ARIA produces:**
 
@@ -44,7 +47,7 @@ handles the rest.
 ```
 INFRASTRUCTURE                     STATUS
 ────────────────────────────────────────────────────
-MessageBus + CavemanMode           done
+MessageBus + compact wire format   done
 ARIAMemory (SQLite hierarchical)   done
 LLMProvider + ContextManager       done
 ParameterAdvisor (3-layer)         done
@@ -70,19 +73,23 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_de_per_cluster.py            done — slow on >10k cells (cf. pseudobulk)
   rna_pseudobulk_de.py             done — between-condition DE via pyDESeq2
   rna_pathway_per_cluster.py       done — also used for per (group, comp) ORA
-  rna_trajectory.py (PAGA+DPT)     scaffolded — not yet end-to-end validated
-  rna_cellcomm.py (LIANA)          scaffolded — not yet end-to-end validated
-ChromatinAgent                     done
+  rna_trajectory.py (PAGA+DPT)     beta — validated on hippocampus subset
+  rna_cellcomm.py (LIANA)          beta — validated on GSE278576
+ChromatinAgent                     scaffolded
   chromatin_qc.py                  done
-  chromatin_peaks.py (MACS3)       done
-GenomeArchAgent                    done
+  chromatin_peaks.py (MACS3)       scaffolded
+GenomeArchAgent                    scaffolded
   hic_inspect.py                   done
   hic_qc_and_balance.py            done
-  hic_topology.py (out-of-core)    done
+  hic_topology.py (out-of-core)    scaffolded
 NarrativeAgent (HTML report)       done  ✓ paper theme
 IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
+
+The public target for the current hardening cycle is `v4.3.12`: close the
+bulk RNA + scRNA core, modernize the most important regression tests, and keep
+large-dataset resume behavior tied to real files and matching parameters.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -180,8 +187,8 @@ preferences and cites historical decisions in its justifications.
 environment. IPC via JSON files prevents C-library conflicts between
 scanpy, cooler, MACS3, and pysam.
 
-**Token-efficient** — Inter-agent communication uses CavemanMode
-compression. Only user-facing outputs are in normal prose.
+**Token-efficient** — Inter-agent communication uses a compact internal wire
+format. Only user-facing outputs are in normal prose.
 
 **Provider-agnostic** — Works with Claude (Anthropic), Gemini (Google),
 or local models via Ollama. Switch providers in one config line.
@@ -202,9 +209,9 @@ ARIA
     · STAR alignment rate
   BulkRNAAgent            DESeq2, all pairwise contrasts, ORA, GSEA
   scRNAAgent              QC, clustering, annotation, DE
-  ChromatinAgent          ATAC + ChIP + CUT&RUN + CUT&TAG
-  GenomeArchAgent         HiC, TADs, loops, compartments A/B
-  IntegrationAgent        Multimodal synthesis (WNN, MOFA+)  [building]
+  ChromatinAgent          ATAC + ChIP + CUT&RUN + CUT&TAG  [scaffolded]
+  GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
+  IntegrationAgent        Multimodal synthesis (WNN, MOFA+) [scaffolded]
   NarrativeAgent          HTML report + methods section
 
   LLMProvider       Universal LLM abstraction (Anthropic / Gemini / Ollama)
@@ -213,7 +220,7 @@ ARIA
   EnvironmentManager IPC via JSON, isolated Conda stacks per modality
   DebateCouncil     Internal peer review: Proposer vs Critic (2–3 rounds)
   ARIAMemory        Hierarchical SQLite: Wings / Halls / Rooms / Findings
-  MessageBus        Inter-agent pub/sub with CavemanMode compression
+  MessageBus        Inter-agent pub/sub with compact internal messages
   TUI               Terminal interface (Rich)
 ```
 
@@ -360,13 +367,16 @@ v4.3.10  done     TUI scRNA report hardening — normalized NarrativeAgent
                   inputs and fixed latent report-generation bugs
 v4.3.11  done     Production hardening — bulk RNA regression fixed, pytest
                   wrapper added, mocks require explicit dev opt-in
+v4.3.12  dev      Stability closeout — h5ad obs design inference,
+                  processed-h5ad QC, grounded scRNA narrative, scRNA TSV
+                  supplements, large-dataset resume/cache guards
 v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module
 v4.5              ATAC bulk end-to-end — DA via DESeq2 on peak counts
 v4.6              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
                   until both modalities work standalone
-v4.5              Interactive HTML report (sortable tables, plotly figures)
+v4.7              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
 

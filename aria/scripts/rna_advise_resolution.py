@@ -13,6 +13,7 @@ Input params:
     resolutions:   list[float]  — resolutions to evaluate (default: [0.2,0.5,0.8,1.2])
     rep:           str  (opt)   — embedding key for silhouette (default: auto)
                                    prefers X_pca_harmony, falls back to X_pca
+    max_cells:     int  (opt)   — sketch size for objective scoring
 
 Output:
     {
@@ -41,6 +42,9 @@ from aria.scripts._base import run_script
 def rna_advise_resolution(params: dict) -> dict:
     import scanpy as sc
     import numpy as np
+    import json
+    import hashlib
+    from pathlib import Path
     from sklearn.metrics import silhouette_score
 
     data_path   = params["data_path"]
@@ -49,8 +53,56 @@ def rna_advise_resolution(params: dict) -> dict:
     seed        = int(params.get("seed", 0))
     n_hvg       = int(params.get("n_hvg", 3000))
     n_pcs       = int(params.get("n_pcs", 40))
+    max_cells   = int(params.get("max_cells", 100_000))
+
+    data_file = Path(data_path)
+    cache_key = hashlib.sha1(json.dumps({
+        "data_path": str(data_file.resolve()),
+        "resolutions": [float(r) for r in resolutions],
+        "rep": rep_pref,
+        "seed": seed,
+        "n_hvg": n_hvg,
+        "n_pcs": n_pcs,
+        "max_cells": max_cells,
+    }, sort_keys=True).encode()).hexdigest()[:12]
+    cache_path = data_file.parent / f"leiden_advice_{cache_key}.json"
+    if (cache_path.exists() and data_file.exists() and
+            cache_path.stat().st_mtime >= data_file.stat().st_mtime):
+        try:
+            with open(cache_path) as f:
+                cached = json.load(f)
+            cached["resumed"] = True
+            cached["warnings"] = (
+                cached.get("warnings", []) +
+                ["[resume] Leiden resolution advice loaded from cache"]
+            )
+            return cached
+        except Exception:
+            pass
 
     adata = sc.read_h5ad(data_path)
+    n_cells_total = int(adata.n_obs)
+    sketch_used = False
+    if adata.n_obs > max_cells:
+        rng = np.random.default_rng(seed)
+        if "batch" in adata.obs.columns:
+            batches = adata.obs["batch"].astype(str)
+            keep = []
+            per_batch = max(1, max_cells // max(1, int(batches.nunique())))
+            for batch in sorted(batches.unique()):
+                idx = np.flatnonzero((batches == batch).to_numpy())
+                if len(idx) > per_batch:
+                    idx = rng.choice(idx, size=per_batch, replace=False)
+                keep.extend(idx.tolist())
+            if len(keep) > max_cells:
+                keep = rng.choice(np.array(keep), size=max_cells,
+                                  replace=False).tolist()
+            keep = np.array(sorted(keep), dtype=int)
+        else:
+            keep = np.sort(rng.choice(adata.n_obs, size=max_cells,
+                                      replace=False))
+        adata = adata[keep, :].copy()
+        sketch_used = True
 
     # If PCA is missing (e.g. caller is at qc_filtered.h5ad stage),
     # do the preprocessing in-memory. Mirrors rna_clustering.py so the
@@ -59,7 +111,7 @@ def rna_advise_resolution(params: dict) -> dict:
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         if adata.raw is None:
-            adata.raw = adata
+            adata.raw = adata.copy()
         sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
         sc.pp.scale(adata, max_value=10)
         sc.tl.pca(adata, svd_solver="arpack", n_comps=n_pcs,
@@ -125,11 +177,20 @@ def rna_advise_resolution(params: dict) -> dict:
     if "_advise_leiden" in adata.obs.columns:
         adata.obs.drop(columns="_advise_leiden", inplace=True)
 
-    return {
-        "status":     "success",
-        "rep_used":   rep,
-        "candidates": candidates,
+    result = {
+        "status":        "success",
+        "rep_used":      rep,
+        "candidates":    candidates,
+        "sketch_used":   sketch_used,
+        "n_cells_total": n_cells_total,
+        "n_cells_used":  int(adata.n_obs),
     }
+    try:
+        with open(cache_path, "w") as f:
+            json.dump(result, f, indent=2)
+    except Exception:
+        pass
+    return result
 
 
 if __name__ == "__main__":

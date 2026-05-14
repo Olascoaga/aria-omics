@@ -242,3 +242,162 @@ def test_rna_qc_uses_existing_h5ad_obs_metrics_for_processed_input(tmp_path, mon
     assert result["n_cells_after"] == n_cells
     assert result["scrublet"]["ran"] is False
     assert any("existing h5ad obs QC metrics" in w for w in result["warnings"])
+
+
+def test_clustering_cache_requires_matching_parameters():
+    from aria.scripts.rna_clustering import _cache_matches, _cache_params
+
+    params = {
+        "data_path": "/tmp/qc.h5ad",
+        "resolution": 0.4,
+        "n_neighbors": 15,
+        "max_cells": 100_000,
+        "seed": 0,
+    }
+    expected = _cache_params(params)
+
+    assert _cache_matches(
+        {"cache_version": 3, "cache_params": expected},
+        expected,
+    )
+    stale = {**expected, "resolution": 0.8}
+    assert not _cache_matches(
+        {"cache_version": 3, "cache_params": stale},
+        expected,
+    )
+    assert not _cache_matches(
+        {"cache_version": 2, "cache_params": expected},
+        expected,
+    )
+
+
+def test_integration_cache_requires_matching_parameters():
+    from aria.scripts.rna_integration import _cache_matches, _cache_params
+
+    params = {
+        "data_path": "/tmp/qc.h5ad",
+        "batch_col": "donor_id",
+        "max_cells": 250_000,
+        "seed": 0,
+    }
+    expected = _cache_params(params)
+
+    assert _cache_matches(
+        {"cache_version": 2, "cache_params": expected},
+        expected,
+    )
+    stale = {**expected, "batch_col": "sample_id"}
+    assert not _cache_matches(
+        {"cache_version": 2, "cache_params": stale},
+        expected,
+    )
+    assert not _cache_matches(
+        {"cache_version": 1, "cache_params": expected},
+        expected,
+    )
+
+
+def test_qc_cache_requires_matching_parameters():
+    from aria.scripts.rna_qc import _cache_matches, _cache_params
+
+    params = {
+        "data_path": "/tmp/raw.h5ad",
+        "organism": "Homo sapiens",
+        "min_genes": 200,
+        "run_scrublet": False,
+        "biological_context": {"user_question": "compare stressed cells"},
+    }
+    expected = _cache_params(params)
+
+    assert _cache_matches(
+        {"cache_version": 2, "cache_params": expected},
+        expected,
+    )
+    stale = {**expected, "min_genes": 500}
+    assert not _cache_matches(
+        {"cache_version": 2, "cache_params": stale},
+        expected,
+    )
+
+
+def test_concat_cache_requires_matching_manifest():
+    from aria.scripts.rna_concat import _cache_matches, _cache_params
+
+    params = {
+        "samples": [
+            {"path": "/tmp/a.h5ad", "sample_id": "a", "condition": "ctrl"},
+            {"path": "/tmp/b.h5ad", "sample_id": "b", "condition": "treated"},
+        ],
+        "join": "inner",
+    }
+    expected = _cache_params(params)
+
+    assert _cache_matches(
+        {"cache_version": 2, "cache_params": expected},
+        expected,
+    )
+    stale = _cache_params({
+        **params,
+        "samples": [
+            {"path": "/tmp/a.h5ad", "sample_id": "a", "condition": "ctrl"},
+            {"path": "/tmp/b.h5ad", "sample_id": "b", "condition": "ctrl"},
+        ],
+    })
+    assert not _cache_matches(
+        {"cache_version": 2, "cache_params": stale},
+        expected,
+    )
+
+
+def test_marker_fallback_annotation_is_explicit_and_conservative():
+    from aria.agents.scrna_agent import scRNAAgent
+
+    labels = scRNAAgent._marker_based_annotation({
+        "0": ["MBP", "PLP1", "MOG", "ACTB"],
+        "1": ["GENE_A", "GENE_B"],
+    })
+
+    assert labels["0"]["cell_type"] == "Oligodendrocyte"
+    assert labels["0"]["annotation_source"] == "marker_fallback"
+    assert labels["0"]["confidence"] == "medium"
+    assert labels["1"]["cell_type"] == "Unresolved cluster 1"
+    assert labels["1"]["confidence"] == "low"
+
+
+def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.scripts.rna_apply_cluster_labels import rna_apply_cluster_labels
+
+    adata = ad.AnnData(
+        X=np.ones((4, 3), dtype=np.float32),
+        obs=pd.DataFrame(
+            {"leiden": ["0", "0", "1", "1"]},
+            index=[f"cell_{i}" for i in range(4)],
+        ),
+        var=pd.DataFrame(index=[f"gene_{i}" for i in range(3)]),
+    )
+    input_path = tmp_path / "clustered.h5ad"
+    adata.write_h5ad(input_path)
+
+    result = rna_apply_cluster_labels({
+        "data_path": str(input_path),
+        "labels": {
+            "0": {"cell_type": "Oligodendrocyte"},
+            "1": {"cell_type": "Microglia"},
+        },
+        "label_col": "cell_type_marker",
+        "output_dir": str(tmp_path / "labels"),
+    })
+
+    assert result["status"] == "success"
+    assert result["label_col"] == "cell_type_marker"
+    labeled = ad.read_h5ad(result["output_path"])
+    assert list(labeled.obs["cell_type_marker"]) == [
+        "Oligodendrocyte",
+        "Oligodendrocyte",
+        "Microglia",
+        "Microglia",
+    ]

@@ -75,6 +75,31 @@ def _label_cell_type(value) -> str:
     return str(value) if value else ""
 
 
+def _annotation_state(findings: dict) -> dict:
+    ct_block = findings.get("cell_types") or {}
+    labels = [
+        _label_cell_type(v)
+        for v in (ct_block.get("cell_types", {}) or {}).values()
+    ]
+    labels = [x for x in labels if x]
+    invalid = {"annotation_failed", "failed", "unknown", "nan", "none"}
+    valid = [x for x in labels if x.strip().lower() not in invalid]
+    source = "unknown"
+    for v in (ct_block.get("cell_types", {}) or {}).values():
+        if isinstance(v, dict) and v.get("annotation_source"):
+            source = str(v.get("annotation_source"))
+            break
+    label_col = ct_block.get("label_col")
+    return {
+        "has_valid": bool(valid),
+        "labels": valid,
+        "n_unique": len(set(valid)),
+        "source": source,
+        "label_col": label_col,
+        "is_marker_fallback": source == "marker_fallback",
+    }
+
+
 def _top_de_blocks(pb: dict, limit: int = 5) -> list[tuple[str, str, dict]]:
     rows = []
     for group, info in (pb.get("per_group", {}) or {}).items():
@@ -127,6 +152,12 @@ def summarize_scrna_text(findings: dict) -> str:
                 f"(Δ={integ.get('batch_correction_delta', 0):+.3f}; "
                 f"lower silhouette indicates better mixing)."
             )
+    elif integ.get("status") == "skipped":
+        lines.append(
+            f"Batch correction was not applied: {integ.get('reason', 'skipped')}. "
+            "Interpret sample/batch-colored UMAPs as diagnostic context for "
+            "residual integration structure."
+        )
 
     clu = findings.get("clustering") or {}
     if clu.get("n_clusters"):
@@ -138,12 +169,22 @@ def summarize_scrna_text(findings: dict) -> str:
 
     ct = (findings.get("cell_types") or {}).get("cell_types", {}) or {}
     if ct:
-        unique = sorted({_label_cell_type(v) for v in ct.values()
-                         if _label_cell_type(v)})
+        ann = _annotation_state(findings)
+        unique = sorted(set(ann["labels"]))
         if unique:
+            qualifier = (
+                "conservative marker-based " if ann["is_marker_fallback"] else ""
+            )
             lines.append(
-                f"Cell-type annotation labelled {len(unique)} unique types "
+                f"Cell-type annotation produced {len(unique)} "
+                f"{qualifier}labels "
                 f"(top: {', '.join(unique[:5])}{'…' if len(unique) > 5 else ''})."
+            )
+        else:
+            lines.append(
+                "Cell-type annotation did not produce usable biological labels; "
+                "downstream sections should be interpreted at Leiden-cluster "
+                "resolution."
             )
 
     pb = findings.get("pseudobulk_de") or {}
@@ -286,6 +327,8 @@ def build_scrna_integrated_interpretation(findings: dict,
     pwp = findings.get("pseudobulk_pathways") or {}
     ccc = findings.get("cell_communication") or {}
     traj = findings.get("trajectory") or {}
+    ann = _annotation_state(findings)
+    resolution_word = "cell-type" if ann["has_valid"] else "cluster"
 
     question = (intent.get("summary")
                 or "the submitted single-cell RNA-seq question")
@@ -293,7 +336,7 @@ def build_scrna_integrated_interpretation(findings: dict,
         parts.append(
             f"Integrated interpretation: ARIA had enough retained cells "
             f"({_fmt_int(qc.get('n_cells_after'))}) to address {question} "
-            f"at cell-type resolution, with the main inferential weight "
+            f"at {resolution_word} resolution, with the main inferential weight "
             f"coming from donor-level pseudobulk contrasts rather than "
             f"cell-level tests."
         )
@@ -335,14 +378,21 @@ def build_scrna_integrated_interpretation(findings: dict,
         top_pairs = ccc.get("top_pairs", [])[:3]
         pair_txt = f" Top ranked non-autocrine pairs were {', '.join(top_pairs)}." \
                    if top_pairs else ""
+        unit = "cell types" if ann["has_valid"] else "Leiden clusters"
         parts.append(
             f"LIANA added a communication layer with "
             f"{_fmt_int(ccc.get('n_interactions', 0))} ligand-receptor "
             f"interactions across {_fmt_int(ccc.get('n_cell_types', 0))} "
-            f"cell types after excluding "
+            f"{unit} after excluding "
             f"{_fmt_int(ccc.get('n_autocrine_dropped', 0))} autocrine pairs."
             f"{pair_txt}"
         )
+        if ann["is_marker_fallback"]:
+            parts.append(
+                "Because CellTypist was unavailable, communication labels are "
+                "marker-panel annotations and should be manually curated before "
+                "being treated as definitive cell identities."
+            )
 
     if traj.get("status") in ("done", "success"):
         paga = traj.get("paga", {}) or {}
@@ -358,6 +408,12 @@ def build_scrna_integrated_interpretation(findings: dict,
                 " DPT pseudotime was computed, but it should be interpreted "
                 "as an ordering on the observed manifold, not as proof of "
                 "active differentiation without velocity or time-course data."
+            )
+        if ann["is_marker_fallback"]:
+            traj_txt += (
+                " Group names come from conservative marker-panel labels, so "
+                "the trajectory section should be read as a hypothesis for "
+                "manual curation."
             )
         parts.append(traj_txt)
 
@@ -1149,6 +1205,25 @@ def build_scrna_html_section(findings: dict,
     """
     parts: list[str] = []
     figs = findings.get("figures") or {}
+    ann = _annotation_state(findings)
+    label_unit = "cell type" if ann["has_valid"] else "cluster"
+    if ann["is_marker_fallback"]:
+        parts.append(
+            '<div class="warning">'
+            'Cell labels in this report use conservative marker-panel '
+            'annotation because CellTypist did not complete. Treat UMAP, '
+            'trajectory, and communication labels as curation targets, not '
+            'final cell identities.'
+            '</div>'
+        )
+    elif not ann["has_valid"]:
+        parts.append(
+            '<div class="warning">'
+            'Cell-type annotation did not produce usable biological labels. '
+            'Embedding, trajectory, and communication results are reported at '
+            'Leiden-cluster resolution.'
+            '</div>'
+        )
 
     # 1. UMAP figures ─────────────────────────────────────────────────────
     # Exclude trajectory-specific UMAPs (e.g. dpt_pseudotime) — those are
@@ -1165,7 +1240,15 @@ def build_scrna_html_section(findings: dict,
             uri = _embed_png(path)
             if not uri:
                 continue
-            caption = html.escape(key.replace("umap_", "UMAP — "))
+            pretty = key.replace("umap_", "")
+            pretty = {
+                "cell_type_marker": "marker-based cell label",
+                "cell_type_celltypist": "CellTypist cell label",
+                "leiden": "Leiden cluster",
+                "batch": "batch",
+                "sample_id": "sample",
+            }.get(pretty, pretty)
+            caption = html.escape(f"UMAP — {pretty}")
             parts.append(
                 f'<figure style="flex:1 1 320px;min-width:300px;max-width:480px">'
                 f'<img src="{uri}" alt="{caption}">'
@@ -1179,7 +1262,7 @@ def build_scrna_html_section(findings: dict,
     if de_bar:
         uri = _embed_png(de_bar)
         if uri:
-            parts.append('<h4>Pseudobulk DE — counts per cell type</h4>')
+            parts.append(f'<h4>Pseudobulk DE — counts per {label_unit}</h4>')
             parts.append(
                 f'<figure><img src="{uri}" '
                 f'alt="Per cell-type DE bar"></figure>'
@@ -1188,11 +1271,11 @@ def build_scrna_html_section(findings: dict,
     # 3. Pseudobulk DE table ──────────────────────────────────────────────
     table_rows = extract_pseudobulk_de_table(findings)
     if table_rows:
-        parts.append('<h4>DE summary by (cell type × comparison)</h4>')
+        parts.append(f'<h4>DE summary by ({label_unit} × comparison)</h4>')
         parts.append(
             '<table style="width:100%;font-size:0.85em">'
             '<thead><tr>'
-            '<th>Cell type</th>'
+                f'<th>{html.escape(label_unit.title())}</th>'
             '<th>n<sub>pseudo</sub></th>'
             '<th>Comparison</th>'
             '<th>Sig.</th>'
@@ -1207,7 +1290,14 @@ def build_scrna_html_section(findings: dict,
     traj = findings.get("trajectory") or {}
     if traj.get("status") in ("done", "success"):
         parts.append('<h4 style="margin-top:1.4rem">'
-                     'Trajectory — PAGA + DPT</h4>')
+                     f'Trajectory — PAGA + DPT by {label_unit}</h4>')
+        parts.append(
+            '<p style="color:var(--muted);font-size:0.88em">'
+            'This section reports graph connectivity and DPT ordering for '
+            f'{html.escape(label_unit)} groups. It is an exploratory manifold '
+            'summary, not causal evidence of differentiation by itself.'
+            '</p>'
+        )
 
         # PAGA + DPT-coloured UMAP figures, side by side
         traj_figs = []
@@ -1264,7 +1354,8 @@ def build_scrna_html_section(findings: dict,
             pt = traj.get("pseudotime", {}) or {}
             root_str = html.escape(str(pt.get("root_used", "auto")))
             parts.append(
-                f'<h4 style="margin-top:1.2rem">DPT pseudotime by group '
+                f'<h4 style="margin-top:1.2rem">DPT pseudotime by '
+                f'{html.escape(label_unit)} group '
                 f'(root: {root_str})</h4>'
                 '<table style="width:100%;font-size:0.88em">'
                 '<thead><tr><th>Rank</th><th>Group</th>'
@@ -1277,7 +1368,15 @@ def build_scrna_html_section(findings: dict,
     ccc = findings.get("cell_communication") or {}
     if ccc.get("status") in ("done", "success"):
         parts.append('<h4 style="margin-top:1.4rem">'
-                     'Cell-cell communication</h4>')
+                     f'Cell-cell communication by {label_unit}</h4>')
+        parts.append(
+            '<p style="color:var(--muted);font-size:0.88em">'
+            'Ligand-receptor scores are summarized between observed '
+            f'{html.escape(label_unit)} groups. These results require '
+            'manual review of sender and receiver labels before biological '
+            'interpretation.'
+            '</p>'
+        )
 
         ccc_figs = []
         for fkey, caption in (
@@ -1312,8 +1411,9 @@ def build_scrna_html_section(findings: dict,
                 f'Top L-R interactions  '
                 f'<span style="color:var(--muted);font-weight:400;'
                 f'font-size:0.85em">'
-                f'({method} · {n_int} interactions across {n_ct} cell '
-                f'types · {n_auto} autocrine pairs excluded)</span></h4>'
+                f'({method} · {n_int} interactions across {n_ct} '
+                f'{html.escape(label_unit)} groups · {n_auto} autocrine '
+                f'pairs excluded)</span></h4>'
                 '<table style="width:100%;font-size:0.85em">'
                 '<thead><tr><th>Sender</th><th>Receiver</th>'
                 '<th>Ligand</th><th>Receptor</th>'
@@ -1326,7 +1426,7 @@ def build_scrna_html_section(findings: dict,
     if pw_figs:
         parts.append(
             '<h4 style="margin-top:1.4rem">'
-            'Pathway enrichment — top cell types</h4>'
+            f'Pathway enrichment — top {label_unit} groups</h4>'
         )
         # Render up to N blocks, two-column grid
         n = 0
@@ -1423,10 +1523,13 @@ def generate_figures(findings: dict,
     if h5ad_path and env_manager is not None:
         if umap_color_keys is None:
             keys: list = []
+            ann = _annotation_state(findings)
+            if ann.get("label_col"):
+                keys.append(ann["label_col"])
             pb = findings.get("pseudobulk_de") or {}
-            if pb.get("groupby"):
+            if pb.get("groupby") and pb.get("groupby") not in keys:
                 keys.append(pb["groupby"])
-            if pb.get("condition_col"):
+            if pb.get("condition_col") and pb.get("condition_col") not in keys:
                 keys.append(pb["condition_col"])
             if not keys:
                 # Standard mode: pick a sensible set in priority order. The
@@ -1436,6 +1539,15 @@ def generate_figures(findings: dict,
                 for candidate in (
                     "cell_type_celltypist",
                     ct.get("label_col"),
+                    "leiden",
+                    findings.get("integration", {}).get("batch_col"),
+                    "batch",
+                    "sample_id",
+                ):
+                    if candidate and candidate not in keys:
+                        keys.append(candidate)
+            else:
+                for candidate in (
                     "leiden",
                     findings.get("integration", {}).get("batch_col"),
                     "batch",

@@ -156,11 +156,20 @@ Evening handoff, 2026-05-12:
   preserves variables already exported in the terminal, and can be redirected
   with `ARIA_ENV_FILE`.
 - Current working tree intentionally has uncommitted v4.3.12-dev changes in:
-  `ARIA_CONTEXT.md`, `CLAUDE.md`, `aria/agents/data_audit_agent.py`,
-  `aria/agents/design_agent.py`, `aria/agents/narrative_agent.py`,
+  `README.md`, `ARIA_CONTEXT.md`, `CLAUDE.md`,
   `aria/agents/_narrative_scrna.py`, `aria/agents/scrna_agent.py`,
-  `aria/scripts/rna_qc.py`, `aria/utils/env_loader.py`,
-  `tests/test_narrative_agent.py`, and `tests/test_pytest_smoke.py`.
+  `aria/llm/parameter_advisor.py`, `aria/scripts/rna_advise_resolution.py`,
+  `aria/scripts/rna_celltypist.py`, `aria/scripts/rna_clustering.py`,
+  `aria/scripts/rna_concat.py`, `aria/scripts/rna_integration.py`,
+  `aria/scripts/rna_qc.py`, `aria/scripts/rna_apply_cluster_labels.py`, and
+  `tests/test_pytest_smoke.py`.
+- Large-dataset scRNA hardening now guards resume/cache behavior:
+  `rna_qc.py`, `rna_concat.py`, `rna_clustering.py`, and `rna_integration.py`
+  only reuse cached summaries when parameter or manifest signatures match;
+  stale legacy caches rerun. Leiden advice and clustering expose sketch
+  metadata when they score/use only a subset of cells. CellTypist failures can
+  fall back to explicit marker-panel labels marked as `marker_fallback`, so
+  reports warn that identities need manual curation.
 - Pre-existing untracked files remain untouched: `audit.txt` and
   `pathways_per_cluster.csv`.
 

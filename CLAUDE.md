@@ -347,7 +347,7 @@ Current expected result:
 
 - compileall: no output, exit 0
 - bulk RNA: 30 passed / 0 failed
-- pytest: 5 passed
+- pytest: 14 passed
 
 Known non-fatal warnings in this environment:
 
@@ -388,6 +388,21 @@ for RNA stack installation and possibly a small fixture that runs with real
 The code now has a specific repair for `.h5ad.obs` experimental design metadata
 feeding pseudobulk DE. Still needs the real hippocampus TUI rerun and cleaner
 pytest coverage for report shape normalization.
+
+Current v4.3.12 hardening also includes large-dataset scRNA guards:
+
+- QC, concat, Harmony integration, Leiden resolution advice, and clustering can
+  resume from file-backed summaries.
+- Resume for QC, concat, clustering, and Harmony is valid only when the cached
+  summary has matching parameter/manifest signatures; legacy or mismatched
+  caches are rerun.
+- Harmony is skipped above a configurable cell limit to avoid OOM and the skip
+  reason is propagated to findings/reports.
+- Leiden resolution advice and clustering use a deterministic sketch when cell
+  counts exceed the configured limit, and reports flag sketch-based results.
+- If CellTypist cannot produce usable labels, ARIA applies conservative
+  marker-panel labels where possible and marks them as `marker_fallback` so the
+  report treats them as curation targets, not definitive identities.
 
 ### Chromatin/scATAC
 

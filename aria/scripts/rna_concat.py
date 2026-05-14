@@ -40,14 +40,33 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _cache_params(params: dict) -> dict:
+    samples = []
+    for sample in params.get("samples") or []:
+        samples.append({
+            k: str(v)
+            for k, v in sorted(sample.items())
+        })
+    return {
+        "samples": samples,
+        "join": str(params.get("join", "inner")),
+    }
+
+
+def _cache_matches(cached: dict, expected: dict) -> bool:
+    return cached.get("cache_version") == 2 and cached.get("cache_params") == expected
+
+
 def rna_concat(params: dict) -> dict:
     import anndata as ad
     import scanpy as sc
+    import json
     from pathlib import Path
 
     samples    = params.get("samples") or []
     output_dir = params.get("output_dir")
     join       = params.get("join", "inner")
+    cache_params = _cache_params(params)
 
     if len(samples) < 2:
         return {
@@ -56,6 +75,31 @@ def rna_concat(params: dict) -> dict:
             "details":    (f"rna_concat needs at least 2 samples; "
                            f"received {len(samples)}."),
         }
+
+    out_dir = Path(output_dir) if output_dir else Path(samples[0]["path"]).parent
+    out_path = out_dir / "concatenated.h5ad"
+    summary_path = out_path.with_suffix(".summary.json")
+    input_paths = [Path(s.get("path", "")) for s in samples if s.get("path")]
+    if (out_path.exists() and input_paths and
+            all(p.exists() for p in input_paths) and
+            out_path.stat().st_mtime >= max(p.stat().st_mtime for p in input_paths)):
+        try:
+            if summary_path.exists():
+                with open(summary_path) as f:
+                    cached = json.load(f)
+                if not _cache_matches(cached, cache_params):
+                    raise ValueError("stale concat cache")
+                cached["resumed"] = True
+                cached["warnings"] = (
+                    cached.get("warnings", []) +
+                    ["[resume] rna_concat skipped (valid concatenated.h5ad exists)"]
+                )
+                return cached
+            # Legacy outputs without signed summaries are rerun to avoid stale
+            # sample metadata or join settings leaking into downstream design.
+            pass
+        except Exception:
+            pass
 
     # ── Load each input and stamp provenance ─────────────────────────────
     adatas      = []
@@ -118,22 +162,28 @@ def rna_concat(params: dict) -> dict:
         combined.raw = combined.copy()
 
     # ── Write ────────────────────────────────────────────────────────────
-    out_dir = Path(output_dir) if output_dir else Path(samples[0]["path"]).parent
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = str(out_dir / "concatenated.h5ad")
-    combined.write_h5ad(out_path)
+    combined.write_h5ad(str(out_path))
 
-    return {
+    result = {
         "status":          "success",
         "n_samples":       len(samples),
         "n_cells_total":   int(combined.n_obs),
         "n_genes_shared":  int(combined.n_vars),
         "per_sample":      per_sample,
         "extra_obs_keys":  sorted(extra_keys),
-        "output_path":     out_path,
+        "output_path":     str(out_path),
         "batch_col":       "batch",
         "join":            join,
+        "cache_version":   2,
+        "cache_params":    cache_params,
     }
+    try:
+        with open(summary_path, "w") as f:
+            json.dump(result, f, indent=2)
+    except Exception:
+        pass
+    return result
 
 
 if __name__ == "__main__":

@@ -71,8 +71,11 @@ _MOUSE_MODELS = {
 
 
 def rna_celltypist(params: dict) -> dict:
+    import os
+    os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/aria_numba_cache")
     import scanpy as sc
     import pandas as pd
+    import numpy as np
     from pathlib import Path
 
     data_path       = params["data_path"]
@@ -82,6 +85,7 @@ def rna_celltypist(params: dict) -> dict:
     cluster_col     = params.get("cluster_col", "leiden")
     majority_voting = bool(params.get("majority_voting", True))
     output_dir      = params.get("output_dir", str(Path(data_path).parent))
+    out_dir         = Path(output_dir)
 
     # Resolve model
     if model_explicit:
@@ -115,13 +119,51 @@ def rna_celltypist(params: dict) -> dict:
 
     adata = sc.read_h5ad(data_path)
 
-    # CellTypist expects log1p(CPM normalized to 10k). rna_clustering.py
-    # leaves .X in exactly that shape, but if a caller hands us something
-    # else (e.g. raw counts), normalize first into a temp copy so we don't
-    # mutate the input file silently.
-    if adata.X.max() > 50:  # heuristic: log1p(1e4) max is ~9.2
+    def _sample_matrix(a):
+        n = min(int(a.n_obs), 2000)
+        if n <= 0:
+            return a.X
+        idx = np.linspace(0, int(a.n_obs) - 1, n, dtype=int)
+        return a.X[idx, :]
+
+    def _looks_lognorm_10k(a) -> bool:
+        try:
+            x = _sample_matrix(a)
+            if hasattr(x, "toarray"):
+                x = x.toarray()
+            if np.nanmin(x) < -1e-8 or np.nanmax(x) > 30:
+                return False
+            sums = np.expm1(x).sum(axis=1)
+            sums = sums[np.isfinite(sums) & (sums > 0)]
+            if len(sums) == 0:
+                return False
+            med = float(np.median(sums))
+            return 7000 <= med <= 13000
+        except Exception:
+            return False
+
+    # CellTypist validates both .X and .raw.X. Clustering leaves .X scaled
+    # after PCA, so use a clean log1p-normalized AnnData copy and drop .raw
+    # before annotation to avoid validating stale scaled/raw matrices.
+    if adata.raw is not None:
+        raw_adata = adata.raw.to_adata()
+        raw_adata.obs = adata.obs.copy()
+        if _looks_lognorm_10k(raw_adata):
+            adata = raw_adata
+
+    if not _looks_lognorm_10k(adata):
+        if adata.X.min() < 0:
+            return {
+                "status": "error",
+                "error_type": "InvalidExpressionMatrix",
+                "details": (
+                    "Expression matrix has negative/scaled values and no "
+                    "valid log1p-normalized raw matrix for CellTypist."
+                ),
+            }
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
+    adata.raw = None
 
     # Predict
     pred = celltypist.annotate(
@@ -133,11 +175,11 @@ def rna_celltypist(params: dict) -> dict:
     pred_df = pred.predicted_labels.copy()  # cells × {predicted_labels, ...}
 
     # Write per-cell labels back into adata.obs
-    label_col = (
+    prediction_label_col = (
         "majority_voting" if "majority_voting" in pred_df.columns
         else "predicted_labels"
     )
-    adata.obs["cell_type_celltypist"] = pred_df[label_col].astype(str).values
+    adata.obs["cell_type_celltypist"] = pred_df[prediction_label_col].astype(str).values
 
     # Aggregate to per-cluster summary
     per_cluster: dict = {}
@@ -163,16 +205,18 @@ def rna_celltypist(params: dict) -> dict:
             }
 
     # Persist outputs
-    pred_csv = str(Path(output_dir) / "celltypist_predictions.csv")
+    out_dir.mkdir(parents=True, exist_ok=True)
+    pred_csv = str(out_dir / "celltypist_predictions.csv")
     pred_df.to_csv(pred_csv, index=True)
 
-    annotated_path = str(Path(output_dir) / "annotated.h5ad")
+    annotated_path = str(out_dir / "annotated.h5ad")
     adata.write_h5ad(annotated_path)
 
     return {
         "status":           "success",
         "model_used":       model_name,
-        "label_col":        label_col,
+        "label_col":        "cell_type_celltypist",
+        "prediction_label_col": prediction_label_col,
         "n_cells":          int(adata.n_obs),
         "n_unique_labels":  int(adata.obs["cell_type_celltypist"].nunique()),
         "per_cluster":      per_cluster,

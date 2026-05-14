@@ -416,6 +416,14 @@ class scRNAAgent(BaseAgent):
             )
         elif result.get("status") == "skipped":
             log.info(f"Integration skipped: {result.get('reason', '?')}")
+            if result.get("n_cells"):
+                self.publish_finding(
+                    experiment_id,
+                    {"summary": ("Harmony batch correction skipped for "
+                                 f"{result.get('n_cells')} cells: "
+                                 f"{result.get('reason', '')}")},
+                    Confidence.MEDIUM,
+                )
         else:
             log.warning(f"Integration failed: "
                         f"{result.get('error_type', '?')} — "
@@ -452,19 +460,26 @@ class scRNAAgent(BaseAgent):
             params={
                 "data_path":  input_h5ad,
                 "resolution": float(decision.chosen_value),
+                "max_cells":  100_000,
             },
         )
 
         if result.get("status") == "success":
             n_clusters = result.get("n_clusters", 0)
+            sketch_note = ""
+            if result.get("sketch_used"):
+                sketch_note = (f" on a {result.get('n_cells_used')} cell "
+                               f"sketch from {result.get('n_cells_total')} "
+                               "QC-passed cells")
             self.publish_finding(
                 experiment_id,
                 {"summary": f"{n_clusters} clusters at "
                             f"resolution={decision.chosen_value} "
-                            f"(rep={result.get('rep_used', 'X_pca')})",
+                            f"(rep={result.get('rep_used', 'X_pca')})"
+                            f"{sketch_note}",
                  "resolution":    decision.chosen_value,
                  "cluster_sizes": result.get("cluster_sizes", {})},
-                Confidence.HIGH,
+                Confidence.MEDIUM if result.get("sketch_used") else Confidence.HIGH,
             )
         else:
             log.warning(f"Clustering failed: "
@@ -608,7 +623,10 @@ Rules:
 
         if not cell_types:
             # Fall back to raw CellTypist labels if we have them; otherwise mark
-            # as annotation_failed so the report flags it honestly.
+            # clusters conservatively from canonical marker panels. The marker
+            # fallback is intentionally low/medium confidence and avoids the
+            # unhelpful all-"annotation_failed" state that breaks downstream
+            # UMAP, trajectory, and cell-communication labels.
             if celltypist_result.get("status") == "success":
                 cell_types = {
                     cl: {
@@ -625,10 +643,7 @@ Rules:
                     for cl, info in celltypist_result.get("per_cluster", {}).items()
                 }
             else:
-                cell_types = {
-                    k: {"cell_type": "annotation_failed", "confidence": "low"}
-                    for k in markers_for_prompt
-                }
+                cell_types = self._marker_based_annotation(markers_for_prompt)
 
         # Confidence summary for the bus message.
         agree_count = sum(
@@ -661,14 +676,85 @@ Rules:
                 agree_count == len(cell_types)
             ) else Confidence.MEDIUM,
         )
+        annotated_h5ad = celltypist_result.get("output_path")
+        label_col = celltypist_result.get("label_col")
+        if not annotated_h5ad and cell_types:
+            applied = self.env.run_in_stack(
+                stack="rna",
+                script_path="aria/scripts/rna_apply_cluster_labels.py",
+                params={
+                    "data_path": clustered_h5ad,
+                    "labels": cell_types,
+                    "cluster_col": "leiden",
+                    "label_col": "cell_type_marker",
+                },
+            )
+            if applied.get("status") == "success":
+                annotated_h5ad = applied.get("output_path")
+                label_col = applied.get("label_col", "cell_type_marker")
+
         return {
             "cell_types":     cell_types,
             "markers_used":   markers_for_prompt,
             "n_clusters":     len(markers_for_prompt),
             "celltypist":     celltypist_result,
             "tissue_hint":    tissue_hint,
-            "annotated_h5ad": celltypist_result.get("output_path"),
+            "label_col":      label_col,
+            "annotated_h5ad": annotated_h5ad,
         }
+
+    @staticmethod
+    def _marker_based_annotation(markers_by_cluster: dict) -> dict:
+        panels = {
+            "OPC": {"PDGFRA", "CSPG4", "VCAN", "OLIG1", "OLIG2", "SOX10"},
+            "Oligodendrocyte": {"MBP", "PLP1", "MOG", "MOBP", "MAG", "TF"},
+            "Microglia": {"P2RY12", "CX3CR1", "AIF1", "TYROBP", "C1QA",
+                          "C1QB", "CSF1R", "AOAH", "HLA-A", "B2M"},
+            "Astrocyte": {"AQP4", "GFAP", "ALDH1L1", "SLC1A3", "SLC1A2",
+                          "CLU", "APOE"},
+            "Excitatory neuron": {"SLC17A7", "SLC17A6", "CAMK2A", "SATB2",
+                                  "RBFOX3", "SNAP25", "SYT1"},
+            "Inhibitory neuron": {"GAD1", "GAD2", "SLC6A1", "DLX1", "DLX2",
+                                  "RBFOX3", "SNAP25"},
+            "Endothelial": {"CLDN5", "FLT1", "PECAM1", "VWF", "KDR"},
+            "Pericyte / vascular smooth muscle": {"PDGFRB", "RGS5", "ACTA2",
+                                                   "TAGLN", "MYH11"},
+            "Ependymal": {"FOXJ1", "TTR", "PIFO", "DNAH5"},
+        }
+        out = {}
+        for cluster, markers in markers_by_cluster.items():
+            marker_set = {str(g).upper() for g in (markers or [])[:30]}
+            hits = []
+            for label, genes in panels.items():
+                overlap = sorted(marker_set & genes)
+                if overlap:
+                    hits.append((label, overlap))
+            hits.sort(key=lambda x: len(x[1]), reverse=True)
+            if hits:
+                label, overlap = hits[0]
+                conf = "medium" if len(overlap) >= 2 else "low"
+                out[str(cluster)] = {
+                    "cell_type": label,
+                    "confidence": conf,
+                    "key_markers": overlap[:5],
+                    "rationale": (
+                        "Conservative marker-panel fallback; database-backed "
+                        f"annotation unavailable. Matched: {', '.join(overlap[:5])}."
+                    ),
+                    "annotation_source": "marker_fallback",
+                }
+            else:
+                out[str(cluster)] = {
+                    "cell_type": f"Unresolved cluster {cluster}",
+                    "confidence": "low",
+                    "key_markers": list(markers or [])[:5],
+                    "rationale": (
+                        "No canonical brain/glia marker panel matched the top "
+                        "cluster markers."
+                    ),
+                    "annotation_source": "marker_fallback",
+                }
+        return out
 
     @staticmethod
     def _parse_annotation_json(raw: str) -> dict:
@@ -957,11 +1043,15 @@ Rules:
 
         # 2. Choose groupby column: CellTypist labels > leiden
         cell_type_col = pb_cfg.get("groupby_col")
+        if (cell_type_col == "cell_type_celltypist"
+                and (annotation or {}).get("celltypist", {}).get("status") != "success"
+                and (annotation or {}).get("label_col")):
+            cell_type_col = (annotation or {}).get("label_col")
         if not cell_type_col:
             cell_type_col = (
                 "cell_type_celltypist"
                 if (annotation or {}).get("celltypist", {}).get("status") == "success"
-                else "leiden"
+                else (annotation or {}).get("label_col") or "leiden"
             )
         covariates = list(pb_cfg.get("covariates") or [])
         if not covariates and batch_cov:
@@ -1097,7 +1187,7 @@ Rules:
         cell_type_col = (
             "cell_type_celltypist"
             if annotation.get("celltypist", {}).get("status") == "success"
-            else "leiden"
+            else annotation.get("label_col") or "leiden"
         )
         result = self.env.run_in_stack(
             stack="rna",
@@ -1150,7 +1240,7 @@ Rules:
         cell_type_col = (
             "cell_type_celltypist"
             if (annotation or {}).get("celltypist", {}).get("status") == "success"
-            else "leiden"
+            else (annotation or {}).get("label_col") or "leiden"
         )
         result = self.env.run_in_stack(
             stack="rna",

@@ -261,6 +261,13 @@ class ParameterAdvisor:
             ]
 
         candidates: list[ParameterCandidate] = []
+        common_flags = []
+        if result.get("sketch_used"):
+            common_flags.append(
+                "resolution metrics computed on "
+                f"{result.get('n_cells_used')} of "
+                f"{result.get('n_cells_total')} cells"
+            )
         for entry in result.get("candidates", []):
             metrics = {
                 "n_clusters":           entry.get("n_clusters", 0),
@@ -271,6 +278,7 @@ class ParameterAdvisor:
                 "max_cluster_size":    entry.get("max_cluster_size", 0),
             }
             flags = self._flag_leiden_issues(entry["resolution"], metrics)
+            flags.extend(common_flags)
             score = self._score_leiden(metrics, biological_context)
             candidates.append(ParameterCandidate(
                 value=entry["resolution"],

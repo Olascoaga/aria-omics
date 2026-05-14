@@ -8,6 +8,7 @@ Input params:
     data_path:    str   — path to preprocessed .h5ad (PCA already computed)
     batch_col:    str   — obs column with batch/sample labels (default: "batch")
     output_dir:   str   (optional) — where to write integrated.h5ad
+    max_cells:    int   (optional) — skip Harmony above this size
 
 Output:
     {
@@ -28,15 +29,70 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _cache_params(params: dict) -> dict:
+    return {
+        "batch_col": str(params.get("batch_col", "batch")),
+        "seed": int(params.get("seed", 0)),
+        "max_cells": int(params.get("max_cells", 250_000)),
+    }
+
+
+def _cache_matches(cached: dict, expected: dict) -> bool:
+    return cached.get("cache_version") == 2 and cached.get("cache_params") == expected
+
+
 def rna_integration(params: dict) -> dict:
     import scanpy as sc
     import numpy as np
+    import json
     from pathlib import Path
 
     data_path  = params["data_path"]
     batch_col  = params.get("batch_col", "batch")
     output_dir = params.get("output_dir", str(Path(data_path).parent))
     seed       = int(params.get("seed", 0))
+    max_cells  = int(params.get("max_cells", 250_000))
+    cache_params = _cache_params(params)
+
+    output_path = Path(output_dir) / "integrated.h5ad"
+    summary_path = output_path.with_suffix(".summary.json")
+    skip_summary_path = Path(output_dir) / "integration_skipped.summary.json"
+    input_path = Path(data_path)
+    if (skip_summary_path.exists() and input_path.exists() and
+            skip_summary_path.stat().st_mtime >= input_path.stat().st_mtime):
+        try:
+            with open(skip_summary_path) as f:
+                cached = json.load(f)
+            if not _cache_matches(cached, cache_params):
+                raise ValueError("stale integration skip cache")
+            cached["resumed"] = True
+            cached["warnings"] = (
+                cached.get("warnings", []) +
+                ["[resume] Harmony skip decision loaded from cache"]
+            )
+            return cached
+        except Exception:
+            pass
+
+    if (output_path.exists() and
+            output_path.stat().st_mtime >= input_path.stat().st_mtime):
+        try:
+            if summary_path.exists():
+                with open(summary_path) as f:
+                    cached = json.load(f)
+                if not _cache_matches(cached, cache_params):
+                    raise ValueError("stale integration cache")
+                cached["resumed"] = True
+                cached["warnings"] = (
+                    cached.get("warnings", []) +
+                    ["[resume] Harmony skipped (valid integrated.h5ad exists)"]
+                )
+                return cached
+            # Legacy cached h5ads lack the exact parameter signature; rerun
+            # rather than reusing a result for a different batch column/limit.
+            pass
+        except Exception:
+            pass
 
     adata = sc.read_h5ad(data_path)
 
@@ -49,13 +105,32 @@ def rna_integration(params: dict) -> dict:
         return {"status": "skipped",
                 "reason":  "only one batch — no integration needed"}
 
+    if adata.n_obs > max_cells:
+        result = {
+            "status":   "skipped",
+            "reason":   (f"dataset has {adata.n_obs} cells; Harmony is skipped "
+                         f"above max_cells={max_cells} to avoid OOM"),
+            "n_cells":  int(adata.n_obs),
+            "n_batches": n_batches,
+            "batch_col": batch_col,
+            "output_path": data_path,
+            "cache_version": 2,
+            "cache_params": cache_params,
+        }
+        try:
+            with open(skip_summary_path, "w") as f:
+                json.dump(result, f, indent=2)
+        except Exception:
+            pass
+        return result
+
     # Ensure PCA is present. Preserve raw before HVG subsetting so downstream
     # DE / pathway / cell-comm can still address non-HVG genes.
     if "X_pca" not in adata.obsm:
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         if adata.raw is None:
-            adata.raw = adata
+            adata.raw = adata.copy()
         sc.pp.highly_variable_genes(adata, n_top_genes=3000, subset=True)
         sc.pp.scale(adata, max_value=10)
         sc.tl.pca(adata, svd_solver="arpack", n_comps=50, random_state=seed)
@@ -107,10 +182,9 @@ def rna_integration(params: dict) -> dict:
                     random_state=seed)
     sc.tl.umap(adata, random_state=seed)
 
-    output_path = str(Path(output_dir) / "integrated.h5ad")
-    adata.write_h5ad(output_path)
+    adata.write_h5ad(str(output_path))
 
-    return {
+    result = {
         "status":                 "success",
         "method":                 "harmony",
         "n_batches":              n_batches,
@@ -119,8 +193,16 @@ def rna_integration(params: dict) -> dict:
         "silhouette_after":       round(sil_after, 4),
         "batch_correction_delta": round(sil_before - sil_after, 4),
         "rep_used":               rep,
-        "output_path":            output_path,
+        "output_path":            str(output_path),
+        "cache_version":          2,
+        "cache_params":           cache_params,
     }
+    try:
+        with open(summary_path, "w") as f:
+            json.dump(result, f, indent=2)
+    except Exception:
+        pass
+    return result
 
 
 if __name__ == "__main__":

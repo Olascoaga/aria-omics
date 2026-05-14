@@ -60,6 +60,29 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _cache_params(params: dict) -> dict:
+    bio_ctx = params.get("biological_context") or {}
+    return {
+        "organism": str(params.get("organism", "Homo sapiens")),
+        "mt_threshold": (
+            None if "mt_threshold" not in params
+            else float(params.get("mt_threshold"))
+        ),
+        "min_genes": int(params.get("min_genes", 200)),
+        "min_cells": int(params.get("min_cells", 3)),
+        "initial_min_genes": int(params.get("initial_min_genes", 200)),
+        "initial_min_cells": int(params.get("initial_min_cells", 3)),
+        "run_scrublet": bool(params.get("run_scrublet", True)),
+        "expected_doublet_rate": float(params.get("expected_doublet_rate", 0.06)),
+        "sample_id": None if params.get("sample_id") is None else str(params.get("sample_id")),
+        "user_question": str(bio_ctx.get("user_question", "")),
+    }
+
+
+def _cache_matches(cached: dict, expected: dict) -> bool:
+    return cached.get("cache_version") == 2 and cached.get("cache_params") == expected
+
+
 def rna_qc(params: dict) -> dict:
     import numpy as np
     import scanpy as sc
@@ -75,6 +98,7 @@ def rna_qc(params: dict) -> dict:
     # collisions when multiple inputs share an output directory).
     sample_id             = params.get("sample_id")
     output_dir            = params.get("output_dir")
+    cache_params          = _cache_params(params)
 
     # ── Load data ─────────────────────────────────────────────────────────
     path = Path(data_path)
@@ -86,6 +110,34 @@ def rna_qc(params: dict) -> dict:
             "error_type": "FileNotFound",
             "details":    f"Path does not exist: {data_path}",
         }
+
+    out_dir  = Path(output_dir) if output_dir else Path(data_path).parent
+    out_name = (f"qc_filtered_{sample_id}.h5ad"
+                if sample_id else "qc_filtered.h5ad")
+    output_path = out_dir / out_name
+    summary_path = output_path.with_suffix(".summary.json")
+
+    if output_path.exists() and output_path.stat().st_mtime >= path.stat().st_mtime:
+        try:
+            if summary_path.exists():
+                import json
+                with open(summary_path) as f:
+                    cached = json.load(f)
+                if not _cache_matches(cached, cache_params):
+                    raise ValueError("stale QC cache")
+                cached["resumed"] = True
+                cached["warnings"] = (
+                    cached.get("warnings", []) +
+                    [f"[resume] scRNA QC skipped for {sample_id or path.stem} "
+                     f"(valid filtered h5ad exists)"]
+                )
+                return cached
+
+            # Legacy filtered h5ads without signed summaries are rerun so
+            # threshold changes cannot silently reuse stale QC decisions.
+            pass
+        except Exception:
+            pass
     
     if path.suffix == ".h5ad":
         adata = sc.read_h5ad(str(path))
@@ -381,14 +433,10 @@ def rna_qc(params: dict) -> dict:
         )
 
     # ── Save filtered data ────────────────────────────────────────────────
-    out_dir  = Path(output_dir) if output_dir else Path(data_path).parent
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_name = (f"qc_filtered_{sample_id}.h5ad"
-                if sample_id else "qc_filtered.h5ad")
-    output_path = str(out_dir / out_name)
-    adata.write_h5ad(output_path)
+    adata.write_h5ad(str(output_path))
 
-    return {
+    result = {
         "status":            "success",
         "sample_id":         sample_id,
         "n_cells_before":    int(n_cells_before),
@@ -401,12 +449,21 @@ def rna_qc(params: dict) -> dict:
         "stress_context":    bool(is_stress_context),
         "scrublet":          scrublet_report,
         "warnings":          warnings_list,
-        "output_path":       output_path,
+        "output_path":       str(output_path),
         "mt_stats": {
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
+        "cache_version": 2,
+        "cache_params": cache_params,
     }
+    try:
+        import json
+        with open(summary_path, "w") as f:
+            json.dump(result, f, indent=2)
+    except Exception:
+        pass
+    return result
 
 
 if __name__ == "__main__":

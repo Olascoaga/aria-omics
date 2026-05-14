@@ -22,6 +22,7 @@ Input params:
     n_hvg:        int   (optional) — highly variable genes (default: 3000)
     n_pcs:        int   (optional) — PCA components (default: 40)
     n_neighbors:  int   (optional) — kNN neighbors (default: 15)
+    max_cells:    int   (optional) — sketch size for very large datasets
     seed:         int   (optional) — random_state (default: 0)
 
 Output:
@@ -43,8 +44,25 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _cache_params(params: dict) -> dict:
+    return {
+        "resolution": float(params["resolution"]),
+        "n_hvg": int(params.get("n_hvg", 3000)),
+        "n_pcs": int(params.get("n_pcs", 40)),
+        "n_neighbors": int(params.get("n_neighbors", 15)),
+        "max_cells": int(params.get("max_cells", 100_000)),
+        "seed": int(params.get("seed", 0)),
+    }
+
+
+def _cache_matches(cached: dict, expected: dict) -> bool:
+    return cached.get("cache_version") == 3 and cached.get("cache_params") == expected
+
+
 def rna_clustering(params: dict) -> dict:
     import scanpy as sc
+    import numpy as np
+    import json
     from pathlib import Path
 
     data_path   = params["data_path"]
@@ -52,9 +70,60 @@ def rna_clustering(params: dict) -> dict:
     n_hvg       = int(params.get("n_hvg", 3000))
     n_pcs       = int(params.get("n_pcs", 40))
     n_neighbors = int(params.get("n_neighbors", 15))
+    max_cells   = int(params.get("max_cells", 100_000))
     seed        = int(params.get("seed", 0))
+    cache_params = _cache_params(params)
+
+    input_path = Path(data_path)
+    output_name = "clustered_sketch.h5ad"
+    full_output = input_path.parent / "clustered.h5ad"
+    sketch_output = input_path.parent / output_name
+    for existing in (sketch_output, full_output):
+        summary_path = existing.with_suffix(".summary.json")
+        if existing.exists() and existing.stat().st_mtime >= input_path.stat().st_mtime:
+            try:
+                if summary_path.exists():
+                    with open(summary_path) as f:
+                        cached = json.load(f)
+                    if not _cache_matches(cached, cache_params):
+                        continue
+                    cached["resumed"] = True
+                    cached["warnings"] = (
+                        cached.get("warnings", []) +
+                        [f"[resume] clustering skipped "
+                         f"(valid {existing.name} exists)"]
+                    )
+                    return cached
+                # Legacy cached h5ads lack the exact parameter signature; rerun
+                # them instead of risking a stale resolution/sketch result.
+                continue
+            except Exception:
+                pass
 
     adata = sc.read_h5ad(data_path)
+    n_cells_total = int(adata.n_obs)
+    sketch_used = False
+
+    if adata.n_obs > max_cells:
+        rng = np.random.default_rng(seed)
+        if "batch" in adata.obs.columns:
+            batches = adata.obs["batch"].astype(str)
+            keep = []
+            per_batch = max(1, max_cells // max(1, int(batches.nunique())))
+            for batch in sorted(batches.unique()):
+                idx = np.flatnonzero((batches == batch).to_numpy())
+                if len(idx) > per_batch:
+                    idx = rng.choice(idx, size=per_batch, replace=False)
+                keep.extend(idx.tolist())
+            if len(keep) > max_cells:
+                keep = rng.choice(np.array(keep), size=max_cells,
+                                  replace=False).tolist()
+            keep = np.array(sorted(keep), dtype=int)
+        else:
+            keep = np.sort(rng.choice(adata.n_obs, size=max_cells,
+                                      replace=False))
+        adata = adata[keep, :].copy()
+        sketch_used = True
 
     preprocessing_skipped = "X_pca" in adata.obsm
 
@@ -65,7 +134,7 @@ def rna_clustering(params: dict) -> dict:
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         if adata.raw is None:
-            adata.raw = adata
+            adata.raw = adata.copy()
         sc.pp.highly_variable_genes(adata, n_top_genes=n_hvg, subset=True)
         sc.pp.scale(adata, max_value=10)
         sc.tl.pca(adata, svd_solver="arpack", n_comps=n_pcs,
@@ -107,19 +176,32 @@ def rna_clustering(params: dict) -> dict:
         except Exception:
             top_markers[str(cluster)] = []
 
-    output_path = str(Path(data_path).parent / "clustered.h5ad")
-    adata.write_h5ad(output_path)
+    output_name = "clustered_sketch.h5ad" if sketch_used else "clustered.h5ad"
+    output_path = Path(data_path).parent / output_name
+    adata.uns["aria_n_cells_total"] = n_cells_total
+    adata.write_h5ad(str(output_path))
 
-    return {
+    result = {
         "status":                "success",
         "n_clusters":            n_clusters,
         "cluster_sizes":         cluster_sizes,
         "top_markers":           top_markers,
         "rep_used":              rep,
-        "output_path":           output_path,
+        "output_path":           str(output_path),
         "resolution":            resolution,
         "preprocessing_skipped": preprocessing_skipped,
+        "sketch_used":           sketch_used,
+        "n_cells_total":         n_cells_total,
+        "n_cells_used":          int(adata.n_obs),
+        "cache_version":         3,
+        "cache_params":          cache_params,
     }
+    try:
+        with open(output_path.with_suffix(".summary.json"), "w") as f:
+            json.dump(result, f, indent=2)
+    except Exception:
+        pass
+    return result
 
 
 if __name__ == "__main__":
