@@ -24,6 +24,11 @@ Input params:
     n_neighbors:  int   (optional) — kNN neighbors (default: 15)
     max_cells:    int   (optional) — sketch size for very large datasets
     seed:         int   (optional) — random_state (default: 0)
+    cluster_col:  str   (optional) — if set AND present in obs with >=2 levels,
+                                       Leiden is skipped and the existing column
+                                       is used as the grouping for marker
+                                       discovery and downstream tools. Sketch is
+                                       stratified by this column.
 
 Output:
     {
@@ -52,11 +57,12 @@ def _cache_params(params: dict) -> dict:
         "n_neighbors": int(params.get("n_neighbors", 15)),
         "max_cells": int(params.get("max_cells", 100_000)),
         "seed": int(params.get("seed", 0)),
+        "cluster_col": params.get("cluster_col") or "",
     }
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 3 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 4 and cached.get("cache_params") == expected
 
 
 def rna_clustering(params: dict) -> dict:
@@ -72,6 +78,7 @@ def rna_clustering(params: dict) -> dict:
     n_neighbors = int(params.get("n_neighbors", 15))
     max_cells   = int(params.get("max_cells", 100_000))
     seed        = int(params.get("seed", 0))
+    cluster_col = (params.get("cluster_col") or "").strip() or None
     cache_params = _cache_params(params)
 
     input_path = Path(data_path)
@@ -104,16 +111,78 @@ def rna_clustering(params: dict) -> dict:
     n_cells_total = int(adata.n_obs)
     sketch_used = False
 
+    use_predef_clusters = bool(
+        cluster_col and cluster_col in adata.obs.columns
+        and adata.obs[cluster_col].astype(str).nunique() >= 2
+    )
+
+    if use_predef_clusters:
+        groupby = cluster_col
+        labels = adata.obs[groupby].astype(str)
+        labels = labels.where(labels.str.lower().ne("nan"), "Unassigned")
+        labels = labels.where(labels.str.len() > 0, "Unassigned")
+        adata.obs[groupby] = labels
+
+        cluster_sizes = {
+            str(c): int((adata.obs[groupby] == c).sum())
+            for c in adata.obs[groupby].unique()
+        }
+        top_markers = {str(c): [] for c in adata.obs[groupby].unique()}
+        output_path = Path(data_path).parent / "clustered.h5ad"
+        adata.uns["aria_n_cells_total"] = n_cells_total
+        adata.write_h5ad(str(output_path))
+        rep = (
+            "X_pca_harmony" if "X_pca_harmony" in adata.obsm
+            else "X_pca" if "X_pca" in adata.obsm
+            else "none"
+        )
+        result = {
+            "status":                "success",
+            "n_clusters":            int(adata.obs[groupby].nunique()),
+            "cluster_sizes":         cluster_sizes,
+            "top_markers":           top_markers,
+            "rep_used":              rep,
+            "output_path":           str(output_path),
+            "resolution":            resolution,
+            "preprocessing_skipped": True,
+            "sketch_used":           False,
+            "n_cells_total":         n_cells_total,
+            "n_cells_used":          int(adata.n_obs),
+            "groupby":               groupby,
+            "predef_clusters":       True,
+            "cache_version":         4,
+            "cache_params":          cache_params,
+            "warnings": [
+                f"Leiden clustering skipped; using existing obs['{groupby}'] "
+                "as the grouping. Marker genes were not recomputed in this "
+                "fast path."
+            ],
+        }
+        try:
+            with open(output_path.with_suffix(".summary.json"), "w") as f:
+                json.dump(result, f, indent=2)
+        except Exception:
+            pass
+        return result
+
     if adata.n_obs > max_cells:
         rng = np.random.default_rng(seed)
-        if "batch" in adata.obs.columns:
-            batches = adata.obs["batch"].astype(str)
+        # Stratify by cluster_col when available so rare cell types survive
+        # the sketch; fall back to batch, then uniform random.
+        if use_predef_clusters:
+            strat = adata.obs[cluster_col].astype(str)
+        elif "batch" in adata.obs.columns:
+            strat = adata.obs["batch"].astype(str)
+        else:
+            strat = None
+
+        if strat is not None:
             keep = []
-            per_batch = max(1, max_cells // max(1, int(batches.nunique())))
-            for batch in sorted(batches.unique()):
-                idx = np.flatnonzero((batches == batch).to_numpy())
-                if len(idx) > per_batch:
-                    idx = rng.choice(idx, size=per_batch, replace=False)
+            per_level = max(1, max_cells // max(1, int(strat.nunique())))
+            for level in sorted(strat.unique()):
+                idx = np.flatnonzero((strat == level).to_numpy())
+                if len(idx) > per_level:
+                    idx = rng.choice(idx, size=per_level, replace=False)
                 keep.extend(idx.tolist())
             if len(keep) > max_cells:
                 keep = rng.choice(np.array(keep), size=max_cells,
@@ -150,30 +219,53 @@ def rna_clustering(params: dict) -> dict:
     if "X_umap" not in adata.obsm:
         sc.tl.umap(adata, random_state=seed)
 
-    sc.tl.leiden(
-        adata, resolution=resolution,
-        flavor="igraph", n_iterations=2, directed=False,
-        random_state=seed,
-    )
+    # Grouping for marker discovery: prefer a pre-existing obs label column
+    # (provided by the caller) over recomputing Leiden. This keeps user-
+    # supplied cell-type annotations as the canonical grouping when present.
+    if use_predef_clusters:
+        groupby = cluster_col
+        adata.obs[groupby] = adata.obs[groupby].astype(str)
+        # Drop NaN/empty levels so rank_genes_groups does not choke.
+        mask = adata.obs[groupby].notna() & (adata.obs[groupby] != "nan")
+        if mask.sum() < adata.n_obs:
+            adata = adata[mask.values, :].copy()
+    else:
+        sc.tl.leiden(
+            adata, resolution=resolution,
+            flavor="igraph", n_iterations=2, directed=False,
+            random_state=seed,
+        )
+        groupby = "leiden"
 
     # Marker genes per cluster — use raw counts if available so Wilcoxon
-    # operates on the full feature set, not just HVGs.
+    # operates on the full feature set, not just HVGs. When the input has a
+    # scaled X with no usable raw counts (Seurat-exported h5ads), Wilcoxon
+    # on the scaled matrix still produces a valid ranking; we mark the
+    # warning so downstream knows.
     use_raw = adata.raw is not None
-    sc.tl.rank_genes_groups(
-        adata, groupby="leiden", method="wilcoxon", use_raw=use_raw,
-    )
+    marker_warning = None
+    try:
+        sc.tl.rank_genes_groups(
+            adata, groupby=groupby, method="wilcoxon", use_raw=use_raw,
+        )
+    except Exception as e:
+        marker_warning = f"rank_genes_groups failed on groupby='{groupby}': {e}"
 
-    n_clusters    = int(adata.obs["leiden"].nunique())
+    n_clusters    = int(adata.obs[groupby].nunique())
     cluster_sizes = {
-        str(c): int((adata.obs["leiden"] == c).sum())
-        for c in adata.obs["leiden"].unique()
+        str(c): int((adata.obs[groupby] == c).sum())
+        for c in adata.obs[groupby].unique()
     }
     top_markers = {}
-    for cluster in adata.obs["leiden"].unique():
-        try:
-            genes = list(adata.uns["rank_genes_groups"]["names"][str(cluster)][:10])
-            top_markers[str(cluster)] = [g for g in genes if g and str(g) != "nan"]
-        except Exception:
+    if marker_warning is None:
+        for cluster in adata.obs[groupby].unique():
+            try:
+                genes = list(adata.uns["rank_genes_groups"]["names"][str(cluster)][:10])
+                top_markers[str(cluster)] = [g for g in genes if g and str(g) != "nan"]
+            except Exception:
+                top_markers[str(cluster)] = []
+    else:
+        for cluster in adata.obs[groupby].unique():
             top_markers[str(cluster)] = []
 
     output_name = "clustered_sketch.h5ad" if sketch_used else "clustered.h5ad"
@@ -193,9 +285,13 @@ def rna_clustering(params: dict) -> dict:
         "sketch_used":           sketch_used,
         "n_cells_total":         n_cells_total,
         "n_cells_used":          int(adata.n_obs),
-        "cache_version":         3,
+        "groupby":               groupby,
+        "predef_clusters":       use_predef_clusters,
+        "cache_version":         4,
         "cache_params":          cache_params,
     }
+    if marker_warning:
+        result["warnings"] = [marker_warning]
     try:
         with open(output_path.with_suffix(".summary.json"), "w") as f:
             json.dump(result, f, indent=2)

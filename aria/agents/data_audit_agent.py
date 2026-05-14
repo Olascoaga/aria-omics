@@ -184,6 +184,10 @@ class DataAuditAgent(BaseAgent):
                         if fpath in unknown:
                             unknown.remove(fpath)
 
+        classified, ignored_intermediates = self._filter_aria_intermediate_outputs(
+            classified
+        )
+
         # 2c. Preprocessed h5ad files often already contain the experimental
         # design in obs. Inspect it before DesignAgent so user checkpoints are
         # seeded from data, not filename guesses.
@@ -203,6 +207,12 @@ class DataAuditAgent(BaseAgent):
 
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
+        if ignored_intermediates:
+            warnings.append(
+                "Ignored ARIA intermediate h5ad output(s) during data audit: "
+                + ", ".join(Path(p).name for p in ignored_intermediates[:5])
+                + ("..." if len(ignored_intermediates) > 5 else "")
+            )
         warnings.extend(h5ad_design.get("warnings", []))
 
         # 5. Build ExperimentContext
@@ -307,6 +317,57 @@ class DataAuditAgent(BaseAgent):
                 classified.setdefault("unknown", []).append(str(f))
         
         return classified
+
+    @staticmethod
+    def _is_aria_intermediate_h5ad(path: str) -> bool:
+        p = Path(path)
+        if p.suffix.lower() != ".h5ad":
+            return False
+        stem = p.stem
+        if stem.startswith("qc_filtered_"):
+            return True
+        return stem in {
+            "qc_filtered",
+            "concatenated",
+            "integrated",
+            "annotated",
+            "annotated_marker",
+            "clustered",
+            "clustered_sketch",
+            "trajectory",
+            "with_condition",
+        }
+
+    def _filter_aria_intermediate_outputs(
+        self, classified: dict[str, list[str]]
+    ) -> tuple[dict[str, list[str]], list[str]]:
+        """
+        Remove ARIA-generated h5ad intermediates from modality inputs when
+        source h5ads are present in the same audit. This prevents raw-data
+        directories from being misread as multi-sample experiments because a
+        previous failed/partial run left `qc_filtered.h5ad` or `clustered.h5ad`
+        next to the real input.
+        """
+        ignored: list[str] = []
+        filtered: dict[str, list[str]] = {}
+        for modality, files in classified.items():
+            if modality != "scRNA":
+                filtered[modality] = files
+                continue
+
+            intermediates = [
+                f for f in files if self._is_aria_intermediate_h5ad(f)
+            ]
+            sources = [
+                f for f in files if not self._is_aria_intermediate_h5ad(f)
+            ]
+            if sources and intermediates:
+                filtered[modality] = sources
+                ignored.extend(intermediates)
+            else:
+                filtered[modality] = files
+
+        return filtered, ignored
 
     def _infer_genome_organism(self, files: list[Path],
                                 data_dir: Path,

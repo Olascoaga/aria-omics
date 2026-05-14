@@ -21,6 +21,7 @@ conda-env isolation that the rest of ARIA relies on.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import re
@@ -117,30 +118,51 @@ class scRNAAgent(BaseAgent):
                 current_h5ad = integration_result["output_path"]
 
         # 3. Clustering with ParameterAdvisor (CP3) ───────────────────────
+        # If DataAuditAgent inferred a usable cell-type column from h5ad obs
+        # (Seurat-exported h5ads with `subclass`, `cell_type`, etc.), reuse it
+        # as the cluster grouping and skip Leiden entirely. This preserves the
+        # user's existing annotation and avoids re-clustering work that
+        # depends on a clean log-normalised X — which Seurat-scaled inputs do
+        # not provide.
+        predef_celltype_col = self._predefined_celltype_col(current_h5ad,
+                                                            exp_ctx)
         self.publish_status(experiment_id, "Clustering...", 0.50)
         cluster_result, cluster_decision = self._run_clustering(
-            experiment_id, current_h5ad, intent
+            experiment_id, current_h5ad, intent,
+            cluster_col=predef_celltype_col,
         )
         findings["clustering"] = cluster_result
         findings["clustering_decision"] = {
             "resolution":    cluster_decision.chosen_value,
             "justification": cluster_decision.justification,
             "n_clusters":    cluster_result.get("n_clusters", 0),
+            "groupby":       cluster_result.get("groupby", "leiden"),
+            "predef_clusters": cluster_result.get("predef_clusters", False),
         }
         if cluster_result.get("status") != "success":
             return {"status": "failed", "reason": "clustering_failed",
                     "findings": findings}
         current_h5ad = cluster_result["output_path"]
 
-        # 4. Annotation: CellTypist (code-guarantee) → LLM reinterprets ──
+        # 4. Annotation ───────────────────────────────────────────────────
+        # When clustering used a pre-existing cell-type col, the annotation
+        # IS that column — we skip CellTypist and synthesise the findings.
         self.publish_status(experiment_id, "Annotating cell types...", 0.65)
-        annotation = self._annotate_cell_types(
-            experiment_id,
-            clustered_h5ad=current_h5ad,
-            top_markers=cluster_result.get("top_markers", {}),
-            exp_ctx=exp_ctx,
-            intent=intent,
-        )
+        if cluster_result.get("predef_clusters"):
+            annotation = self._annotation_from_obs(
+                experiment_id, current_h5ad,
+                cell_type_col=cluster_result.get("groupby"),
+                cluster_sizes=cluster_result.get("cluster_sizes", {}),
+                top_markers=cluster_result.get("top_markers", {}),
+            )
+        else:
+            annotation = self._annotate_cell_types(
+                experiment_id,
+                clustered_h5ad=current_h5ad,
+                top_markers=cluster_result.get("top_markers", {}),
+                exp_ctx=exp_ctx,
+                intent=intent,
+            )
         findings["cell_types"] = annotation
         # If CellTypist annotated successfully, downstream scripts can use
         # the cell_type_celltypist column on the new annotated.h5ad.
@@ -153,7 +175,8 @@ class scRNAAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Differential expression per cluster...", 0.75)
             de_result = self._differential_expression(
-                experiment_id, current_h5ad, intent, exp_ctx
+                experiment_id, current_h5ad, intent, exp_ctx,
+                groupby=cluster_result.get("groupby", "leiden")
             )
             findings["differential_expression"] = de_result
 
@@ -209,12 +232,31 @@ class scRNAAgent(BaseAgent):
 
     # ── QC ────────────────────────────────────────────────────────────────
 
+    # ARIA's own intermediate outputs that should NEVER be promoted to a
+    # sample_id — passing one of these back into rna_qc would create files
+    # like `qc_filtered_annotated.h5ad` or `qc_filtered_qc_filtered.h5ad`.
+    _ARIA_INTERMEDIATE_STEMS = {
+        "qc_filtered",
+        "concatenated",
+        "integrated",
+        "annotated",
+        "clustered",
+        "clustered_sketch",
+        "trajectory",
+        "with_condition",
+    }
+
     @staticmethod
     def _sample_id_from_path(path: str) -> str:
         """
         Derive a stable per-sample label from a 10x .h5 / MEX / .h5ad path.
         Strips well-known 10x suffixes so accessions stay readable
         (e.g. GSE278576_hc11_raw_feature_bc_matrix.h5 → GSE278576_hc11).
+
+        Also strips a leading `qc_filtered_` and rejects ARIA intermediate
+        stems so a user who accidentally re-feeds a workspace output (e.g.
+        `clustered.h5ad`) does not produce recursive `qc_filtered_clustered`
+        artefacts.
         """
         stem = Path(path).stem
         for suffix in ("_raw_feature_bc_matrix",
@@ -224,6 +266,14 @@ class scRNAAgent(BaseAgent):
             if stem.endswith(suffix):
                 stem = stem[: -len(suffix)]
                 break
+        if stem.startswith("qc_filtered_"):
+            stem = stem[len("qc_filtered_"):]
+        if stem in scRNAAgent._ARIA_INTERMEDIATE_STEMS:
+            # Fall back to a hash of the full path so reruns over the same
+            # intermediate stay stable but never collide with the canonical
+            # intermediate name.
+            digest = hashlib.sha1(str(path).encode()).hexdigest()[:8]
+            stem = f"sample_{digest}"
         return stem or "sample"
 
     def _run_qc(self, experiment_id: str, files: list,
@@ -433,35 +483,62 @@ class scRNAAgent(BaseAgent):
     # ── Clustering ────────────────────────────────────────────────────────
 
     def _run_clustering(self, experiment_id: str,
-                         input_h5ad: str, intent: dict) -> tuple[dict, "ParameterDecision"]:
+                         input_h5ad: str, intent: dict,
+                         cluster_col: str | None = None
+                         ) -> tuple[dict, "ParameterDecision"]:
         # ParameterAdvisor evaluates candidates in aria-rna-env via subprocess.
-        decision = self.advisor.advise_leiden_resolution(
-            data_path=input_h5ad,
-            experiment_id=experiment_id,
-            biological_context=intent,
-        )
+        # When the caller passes a pre-existing cluster_col, ARIA skips Leiden
+        # entirely; we still surface a decision record so the report can show
+        # provenance.
+        if cluster_col:
+            from aria.llm.parameter_advisor import ParameterDecision
+            decision = ParameterDecision(
+                decision_id=f"clustering_{experiment_id}",
+                experiment_id=experiment_id,
+                analysis_type="cell_type_grouping",
+                parameter_name="cluster_col",
+                candidates=[],
+                chosen_value=cluster_col,
+                chosen_by="input_obs",
+                biological_context=intent or {},
+                justification=(
+                    f"Using pre-existing obs column '{cluster_col}' as cluster "
+                    "grouping (skipping Leiden)."
+                ),
+                warnings=[],
+            )
+        else:
+            decision = self.advisor.advise_leiden_resolution(
+                data_path=input_h5ad,
+                experiment_id=experiment_id,
+                biological_context=intent,
+            )
 
-        self.publish_escalation(
-            experiment_id=experiment_id,
-            checkpoint=3,
-            question=self.advisor.format_for_checkpoint(decision),
-            options=[
-                f"Use recommended (resolution={decision.chosen_value})",
-                "Enter custom resolution",
-                "Skip clustering",
-            ],
-            context={"decision": decision.decision_id},
-        )
+            self.publish_escalation(
+                experiment_id=experiment_id,
+                checkpoint=3,
+                question=self.advisor.format_for_checkpoint(decision),
+                options=[
+                    f"Use recommended (resolution={decision.chosen_value})",
+                    "Enter custom resolution",
+                    "Skip clustering",
+                ],
+                context={"decision": decision.decision_id},
+            )
 
-        # Run clustering with the chosen resolution.
+        # Run clustering with the chosen resolution (or skip Leiden when a
+        # pre-existing cluster_col is provided — rna_clustering accepts it).
+        params = {
+            "data_path":  input_h5ad,
+            "resolution": float(decision.chosen_value) if not cluster_col else 0.5,
+            "max_cells":  100_000,
+        }
+        if cluster_col:
+            params["cluster_col"] = cluster_col
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_clustering.py",
-            params={
-                "data_path":  input_h5ad,
-                "resolution": float(decision.chosen_value),
-                "max_cells":  100_000,
-            },
+            params=params,
         )
 
         if result.get("status") == "success":
@@ -471,14 +548,24 @@ class scRNAAgent(BaseAgent):
                 sketch_note = (f" on a {result.get('n_cells_used')} cell "
                                f"sketch from {result.get('n_cells_total')} "
                                "QC-passed cells")
+            if result.get("predef_clusters"):
+                summary = (
+                    f"{n_clusters} groups from obs['{result.get('groupby')}'] "
+                    "(Leiden skipped; existing annotation reused)"
+                )
+            else:
+                summary = (
+                    f"{n_clusters} clusters at "
+                    f"resolution={decision.chosen_value} "
+                    f"(rep={result.get('rep_used', 'X_pca')})"
+                    f"{sketch_note}"
+                )
             self.publish_finding(
                 experiment_id,
-                {"summary": f"{n_clusters} clusters at "
-                            f"resolution={decision.chosen_value} "
-                            f"(rep={result.get('rep_used', 'X_pca')})"
-                            f"{sketch_note}",
+                {"summary": summary,
                  "resolution":    decision.chosen_value,
-                 "cluster_sizes": result.get("cluster_sizes", {})},
+                 "cluster_sizes": result.get("cluster_sizes", {}),
+                 "groupby":       result.get("groupby", "leiden")},
                 Confidence.MEDIUM if result.get("sketch_used") else Confidence.HIGH,
             )
         else:
@@ -517,6 +604,96 @@ class scRNAAgent(BaseAgent):
                 return hint
         return "immune"  # CellTypist default — Immune_All_Low covers PBMC well
 
+    def _predefined_celltype_col(self, h5ad_path: str,
+                                  exp_ctx: dict) -> str | None:
+        """
+        Return a cell-type column name to reuse from obs, or None.
+
+        DataAuditAgent populates exp_ctx['design']['pseudobulk']['groupby_col']
+        when the input h5ad shipped with usable cell-type annotation (Seurat
+        `subclass`, `cell_type_celltypist`, etc.). We trust that audit decision
+        but also verify the column survives the current pipeline state (post-
+        QC, post-concat) before promoting it to the canonical grouping.
+        """
+        design = (exp_ctx or {}).get("design", {}) or {}
+        pb_cfg = design.get("pseudobulk", {}) or {}
+        col = pb_cfg.get("groupby_col")
+        if not col:
+            inferred = (exp_ctx or {}).get("inferred_design", {}) or {}
+            col = inferred.get("groupby_col")
+        if not col or col == "leiden":
+            return None
+        # Verify the column survives in the working h5ad.
+        try:
+            import anndata as ad
+            adata = ad.read_h5ad(h5ad_path, backed="r")
+            try:
+                if col not in adata.obs.columns:
+                    return None
+                vals = adata.obs[col].astype(str)
+                levels = [v for v in vals.unique() if v and v.lower() != "nan"]
+                if len(levels) < 2:
+                    return None
+            finally:
+                backing = getattr(adata, "file", None)
+                if backing is not None:
+                    backing.close()
+        except Exception as e:
+            log.debug(f"Predefined celltype check failed for {col}: {e}")
+            return None
+        return col
+
+    def _annotation_from_obs(self, experiment_id: str,
+                              clustered_h5ad: str,
+                              cell_type_col: str,
+                              cluster_sizes: dict,
+                              top_markers: dict) -> dict:
+        """
+        Build a findings.cell_types payload from a pre-existing obs column,
+        bypassing CellTypist and the LLM reinterpretation. Each unique label
+        becomes one entry whose `cluster_id` is the label itself (downstream
+        groupby is the same column, so cluster IDs and labels coincide).
+        """
+        cell_types: dict = {}
+        for label, n in cluster_sizes.items():
+            cell_types[str(label)] = {
+                "cell_type":         str(label),
+                "celltypist_label":  None,
+                "agrees_with_celltypist": None,
+                "confidence":        "high",
+                "rationale":         (
+                    "Pre-existing annotation from input obs column "
+                    f"'{cell_type_col}'. ARIA reused the user-supplied "
+                    "labels and did not re-cluster or re-annotate."
+                ),
+                "key_markers":       top_markers.get(str(label), [])[:5],
+                "n_cells":           int(n),
+                "annotation_source": "input_obs",
+            }
+
+        labels_preview = [v["cell_type"] for v in list(cell_types.values())[:5]]
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Reused {len(cell_types)} cell types from input "
+                f"obs['{cell_type_col}']: {labels_preview}"
+             ),
+             "cell_types":   cell_types,
+             "celltypist":   {"ran": False, "reason": "predefined_obs"},
+             "markers_used": {k: v[:5] for k, v in (top_markers or {}).items()}},
+            Confidence.HIGH,
+        )
+        return {
+            "cell_types":        cell_types,
+            "markers_used":      top_markers or {},
+            "n_clusters":        len(cell_types),
+            "celltypist":        {"ran": False, "reason": "predefined_obs"},
+            "tissue_hint":       None,
+            "label_col":         cell_type_col,
+            "annotated_h5ad":    clustered_h5ad,
+            "annotation_source": "input_obs",
+        }
+
     def _annotate_cell_types(self, experiment_id: str,
                               clustered_h5ad: str,
                               top_markers: dict,
@@ -544,6 +721,57 @@ class scRNAAgent(BaseAgent):
             str(k): [g for g in (v or [])[:20] if g and str(g) != "nan"]
             for k, v in top_markers.items()
         }
+
+        # ── Hard stop: when CellTypist rejects the matrix because it is
+        # scaled (Seurat-style export with no recoverable log1p-CPM and no
+        # pre-existing cell-type labels in obs), do NOT fall back to LLM-only
+        # annotation on noisy markers. Surface the failure as an explicit
+        # warning so the report does not silently report `annotation_failed`.
+        unrecoverable = (
+            celltypist_result.get("status") == "error"
+            and celltypist_result.get("error_type") in {
+                "InvalidExpressionMatrix",
+                "NoUsableCountsOrLogNorm",
+            }
+        )
+        if unrecoverable:
+            reason = celltypist_result.get("details", "")[:300]
+            log.warning(
+                f"CellTypist rejected matrix: {celltypist_result.get('error_type')}. "
+                "ARIA will not synthesise cell-type labels from noisy markers."
+            )
+            self.publish_finding(
+                experiment_id,
+                {"summary": (
+                    "Cell-type annotation skipped: input expression matrix is "
+                    "scaled/normalised in a way CellTypist cannot validate, "
+                    "and no recoverable log1p-CPM or counts were found. "
+                    "Provide raw counts or include cell-type labels in obs."
+                 ),
+                 "cell_types":   {},
+                 "celltypist":   {
+                     "ran":         False,
+                     "error_type":  celltypist_result.get("error_type"),
+                     "details":     reason,
+                     "tissue_hint": tissue_hint,
+                 },
+                 "markers_used": {k: v[:5] for k, v in markers_for_prompt.items()}},
+                Confidence.LOW,
+            )
+            return {
+                "cell_types":     {},
+                "markers_used":   markers_for_prompt,
+                "n_clusters":     len(markers_for_prompt),
+                "celltypist":     celltypist_result,
+                "tissue_hint":    tissue_hint,
+                "label_col":      None,
+                "annotated_h5ad": None,
+                "annotation_source": "unrecoverable_matrix",
+                "warnings":       [
+                    f"Cell-type annotation unavailable: "
+                    f"{celltypist_result.get('error_type')}. {reason}"
+                ],
+            }
 
         # ── Layer 2: LLM reinterprets CellTypist results in biological
         #            context — does NOT invent labels from markers alone ──
@@ -784,7 +1012,8 @@ Rules:
 
     def _differential_expression(self, experiment_id: str,
                                    clustered_h5ad: str,
-                                   intent: dict, exp_ctx: dict) -> dict:
+                                   intent: dict, exp_ctx: dict,
+                                   groupby: str = "leiden") -> dict:
         # Respect user-confirmed thresholds from CP3 (Strict/Standard/etc.).
         padj_max = float(exp_ctx.get("global_padj", 0.05))
         lfc_min  = float(exp_ctx.get("global_lfc", 0.5))
@@ -794,7 +1023,7 @@ Rules:
             script_path="aria/scripts/rna_de_per_cluster.py",
             params={
                 "data_path": clustered_h5ad,
-                "groupby":   "leiden",
+                "groupby":   groupby,
                 "padj_max":  padj_max,
                 "lfc_min":   lfc_min,
                 "top_n":     20,
@@ -1053,6 +1282,14 @@ Rules:
                 if (annotation or {}).get("celltypist", {}).get("status") == "success"
                 else (annotation or {}).get("label_col") or "leiden"
             )
+
+        # Hard skip: when annotation failed for an unrecoverable matrix and
+        # we would be left grouping by numeric Leiden IDs, pseudobulk between
+        # conditions is not interpretable. Bail with a clear reason instead.
+        if cell_type_col == "leiden" and (annotation or {}).get(
+                "annotation_source") == "unrecoverable_matrix":
+            return {"status": "skipped",
+                    "reason": "no_celltype_groupby_after_annotation_failure"}
         covariates = list(pb_cfg.get("covariates") or [])
         if not covariates and batch_cov:
             covariates = [batch_cov]

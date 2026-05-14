@@ -153,6 +153,21 @@ def rna_qc(params: dict) -> dict:
                           f"Supported: .h5ad, .h5, MEX directory.",
         }
 
+    if adata.n_obs == 0 or adata.n_vars == 0:
+        return {
+            "status":     "error",
+            "error_type": "EmptyAnnData",
+            "details":    (
+                f"Input contains no cells or genes: {adata.n_obs} cells x "
+                f"{adata.n_vars} genes. This is often a stale ARIA "
+                "intermediate such as qc_filtered.h5ad from a failed run."
+            ),
+            "n_cells_before": int(adata.n_obs),
+            "n_cells_after":  0,
+            "n_genes_before": int(adata.n_vars),
+            "n_genes_after":  0,
+        }
+
     # CellRanger 10x matrices commonly contain duplicate gene symbols (multiple
     # Ensembl IDs collapsing to the same HGNC name). Without dedup, downstream
     # HVG/PCA/Scanpy ops emit warnings and can produce non-deterministic var

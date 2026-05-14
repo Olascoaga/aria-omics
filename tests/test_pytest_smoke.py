@@ -139,6 +139,37 @@ def test_h5ad_obs_design_inference(tmp_path):
     assert inferred["pseudobulk"]["from_obs"] is True
 
 
+def test_data_audit_ignores_stale_aria_h5ad_intermediates():
+    from aria.agents.data_audit_agent import DataAuditAgent
+
+    agent = DataAuditAgent.__new__(DataAuditAgent)
+    classified = {
+        "scRNA": [
+            "/data/GSE278576_hippocampus_RNA.h5ad",
+            "/data/qc_filtered.h5ad",
+            "/data/clustered.h5ad",
+        ],
+        "unknown": ["/data/notes.txt"],
+    }
+
+    filtered, ignored = agent._filter_aria_intermediate_outputs(classified)
+
+    assert filtered["scRNA"] == ["/data/GSE278576_hippocampus_RNA.h5ad"]
+    assert ignored == ["/data/qc_filtered.h5ad", "/data/clustered.h5ad"]
+
+
+def test_data_audit_keeps_intermediate_if_it_is_the_only_scrna_input():
+    from aria.agents.data_audit_agent import DataAuditAgent
+
+    agent = DataAuditAgent.__new__(DataAuditAgent)
+    classified = {"scRNA": ["/data/qc_filtered.h5ad"]}
+
+    filtered, ignored = agent._filter_aria_intermediate_outputs(classified)
+
+    assert filtered["scRNA"] == ["/data/qc_filtered.h5ad"]
+    assert ignored == []
+
+
 def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
@@ -244,6 +275,33 @@ def test_rna_qc_uses_existing_h5ad_obs_metrics_for_processed_input(tmp_path, mon
     assert any("existing h5ad obs QC metrics" in w for w in result["warnings"])
 
 
+def test_rna_qc_empty_h5ad_returns_structured_error(tmp_path, monkeypatch):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    monkeypatch.setenv("NUMBA_CACHE_DIR", str(tmp_path / "numba-cache"))
+
+    from aria.scripts.rna_qc import rna_qc
+
+    empty = ad.AnnData(
+        X=np.empty((0, 0), dtype=np.float32),
+        obs=pd.DataFrame(index=[]),
+        var=pd.DataFrame(index=[]),
+    )
+    input_path = tmp_path / "qc_filtered.h5ad"
+    empty.write_h5ad(input_path)
+
+    result = rna_qc({
+        "data_path": str(input_path),
+        "organism": "Homo sapiens",
+        "output_dir": str(tmp_path),
+    })
+
+    assert result["status"] == "error"
+    assert result["error_type"] == "EmptyAnnData"
+    assert result["n_cells_after"] == 0
+
+
 def test_clustering_cache_requires_matching_parameters():
     from aria.scripts.rna_clustering import _cache_matches, _cache_params
 
@@ -257,16 +315,16 @@ def test_clustering_cache_requires_matching_parameters():
     expected = _cache_params(params)
 
     assert _cache_matches(
-        {"cache_version": 3, "cache_params": expected},
+        {"cache_version": 4, "cache_params": expected},
         expected,
     )
     stale = {**expected, "resolution": 0.8}
     assert not _cache_matches(
-        {"cache_version": 3, "cache_params": stale},
+        {"cache_version": 4, "cache_params": stale},
         expected,
     )
     assert not _cache_matches(
-        {"cache_version": 2, "cache_params": expected},
+        {"cache_version": 3, "cache_params": expected},
         expected,
     )
 
@@ -362,6 +420,200 @@ def test_marker_fallback_annotation_is_explicit_and_conservative():
     assert labels["0"]["confidence"] == "medium"
     assert labels["1"]["cell_type"] == "Unresolved cluster 1"
     assert labels["1"]["confidence"] == "low"
+
+
+def test_sample_id_strips_intermediate_stems_to_avoid_recursive_naming():
+    from aria.agents.scrna_agent import scRNAAgent
+
+    # Real 10x stems pass through cleanly.
+    assert (
+        scRNAAgent._sample_id_from_path(
+            "/tmp/GSE278576_hc11_raw_feature_bc_matrix.h5"
+        )
+        == "GSE278576_hc11"
+    )
+
+    # `qc_filtered_<name>` prefix is stripped to avoid double-prefixing.
+    assert (
+        scRNAAgent._sample_id_from_path(
+            "/tmp/scrna_multi/qc_filtered_GSE278576_hc11.h5ad"
+        )
+        == "GSE278576_hc11"
+    )
+
+    # ARIA intermediate stems (annotated, clustered, qc_filtered, ...) fall
+    # back to a hash-based id so we never produce qc_filtered_annotated.h5ad
+    # or qc_filtered_qc_filtered.h5ad on accidental re-feed.
+    for stem in ("annotated", "clustered", "qc_filtered", "trajectory",
+                 "concatenated", "integrated", "with_condition"):
+        sid = scRNAAgent._sample_id_from_path(f"/tmp/scrna_multi/{stem}.h5ad")
+        assert sid.startswith("sample_"), sid
+        assert stem not in sid
+
+
+def test_predefined_celltype_col_picks_subclass_from_obs(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    obs = pd.DataFrame(
+        {"subclass": ["OPC", "OPC", "Astro", "Astro", "Micro", "Micro"]},
+        index=[f"c_{i}" for i in range(6)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((6, 3), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=[f"g_{i}" for i in range(3)]),
+    )
+    h5ad_path = tmp_path / "annotated.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    exp_ctx = {
+        "design": {"pseudobulk": {"groupby_col": "subclass"}},
+    }
+    picked = agent._predefined_celltype_col(str(h5ad_path), exp_ctx)
+    assert picked == "subclass"
+
+    # Should reject when the obs column is missing in the working h5ad.
+    exp_ctx_missing = {
+        "design": {"pseudobulk": {"groupby_col": "celltype_missing"}},
+    }
+    assert agent._predefined_celltype_col(str(h5ad_path), exp_ctx_missing) is None
+
+    # Should reject "leiden" as a non-informative fallback marker.
+    exp_ctx_leiden = {"design": {"pseudobulk": {"groupby_col": "leiden"}}}
+    assert agent._predefined_celltype_col(str(h5ad_path), exp_ctx_leiden) is None
+
+
+def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "annotated.h5ad"
+    h5ad_path.write_text("placeholder")
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            raise AssertionError(
+                f"no subprocess should run; got {kwargs.get('script_path')}"
+            )
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent.publish_finding = lambda *args, **kwargs: None
+
+    annotation = agent._annotation_from_obs(
+        "exp",
+        str(h5ad_path),
+        cell_type_col="subclass",
+        cluster_sizes={"OPC": 100, "Astro": 80, "Micro": 50},
+        top_markers={"OPC": ["PDGFRA"], "Astro": ["AQP4"], "Micro": ["P2RY12"]},
+    )
+
+    assert annotation["label_col"] == "subclass"
+    assert annotation["annotation_source"] == "input_obs"
+    assert annotation["celltypist"]["ran"] is False
+    assert set(annotation["cell_types"]) == {"OPC", "Astro", "Micro"}
+    for entry in annotation["cell_types"].values():
+        assert entry["annotation_source"] == "input_obs"
+
+
+def test_scrna_pseudobulk_skips_when_annotation_unrecoverable(tmp_path):
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "clustered.h5ad"
+    h5ad_path.write_text("placeholder")
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            raise AssertionError("pseudobulk dispatch should be skipped")
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent.publish_finding = lambda *args, **kwargs: None
+
+    annotation = {
+        "annotation_source": "unrecoverable_matrix",
+        "label_col": None,
+        "celltypist": {"ran": False, "error_type": "InvalidExpressionMatrix"},
+    }
+    result = agent._run_pseudobulk(
+        "exp",
+        str(h5ad_path),
+        {
+            "organism": "Homo sapiens",
+            "design": {
+                "groups": {"young": ["y1", "y2"], "old": ["o1", "o2"]},
+                "main_factor": "age_group",
+                "pseudobulk": {
+                    "from_obs": True,
+                    "condition_col": "age_group",
+                    "replicate_col": "donor_id",
+                    "groupby_col": None,
+                    "covariates": [],
+                    "comparisons": [["old", "young"]],
+                },
+            },
+        },
+        {"summary": "young vs old"},
+        annotation,
+    )
+    assert result["status"] == "skipped"
+    assert "annotation" in result["reason"]
+
+
+def test_clustering_skip_leiden_when_cluster_col_provided():
+    from aria.scripts.rna_clustering import _cache_params
+
+    expected = _cache_params({
+        "data_path": "/tmp/qc.h5ad",
+        "resolution": 0.4,
+        "cluster_col": "subclass",
+    })
+    assert expected["cluster_col"] == "subclass"
+
+    expected_default = _cache_params({
+        "data_path": "/tmp/qc.h5ad",
+        "resolution": 0.4,
+    })
+    assert expected_default["cluster_col"] == ""
+
+
+def test_clustering_predefined_groupby_keeps_all_cells(tmp_path, monkeypatch):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    monkeypatch.setenv("NUMBA_CACHE_DIR", str(tmp_path / "numba-cache"))
+
+    from aria.scripts.rna_clustering import rna_clustering
+
+    n_cells = 12
+    adata = ad.AnnData(
+        X=np.random.default_rng(1).normal(size=(n_cells, 5)),
+        obs=pd.DataFrame(
+            {"subclass": ["OPC"] * 4 + ["Astro"] * 4 + ["Micro"] * 4},
+            index=[f"cell_{i}" for i in range(n_cells)],
+        ),
+        var=pd.DataFrame(index=[f"gene_{i}" for i in range(5)]),
+    )
+    input_path = tmp_path / "processed.h5ad"
+    adata.write_h5ad(input_path)
+
+    result = rna_clustering({
+        "data_path": str(input_path),
+        "resolution": 0.5,
+        "cluster_col": "subclass",
+        "max_cells": 5,
+    })
+
+    assert result["status"] == "success"
+    assert result["predef_clusters"] is True
+    assert result["sketch_used"] is False
+    assert result["n_cells_used"] == n_cells
+    assert result["groupby"] == "subclass"
+    assert result["cluster_sizes"] == {"OPC": 4, "Astro": 4, "Micro": 4}
 
 
 def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
