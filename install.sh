@@ -42,7 +42,7 @@ cat << 'EOF'
 EOF
 echo -e "${RST}"
 echo -e "${CYN}  Agentic Research Intelligence for -omics Analysis${RST}"
-echo -e "${BLD}  Installer v4.3.11 -- Ubuntu / WSL2${RST}"
+echo -e "${BLD}  Installer v4.3.12 -- Ubuntu / WSL2${RST}"
 echo ""
 echo -e "  This script will install ARIA and all its dependencies."
 echo -e "  Estimated time: ${BLD}10-20 minutes${RST} (depends on connection speed)"

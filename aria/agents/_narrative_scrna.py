@@ -208,6 +208,20 @@ def summarize_scrna_text(findings: dict) -> str:
                 "resolution."
             )
 
+    de = findings.get("differential_expression") or {}
+    de_status = de.get("status")
+    if de_status and de_status != "success":
+        error_type = de.get("error_type") or "Error"
+        details = (de.get("details") or "").strip()
+        details_clause = f": {details[:160]}" if details else ""
+        lines.append(
+            f"Per-cluster marker discovery (Wilcoxon) did not complete "
+            f"({error_type}{details_clause}). Cluster-marker TSV is "
+            "unavailable for this run; cell-type identities and "
+            "between-condition results below come from independent paths "
+            "(input obs labels and/or pseudobulk DE) and remain valid."
+        )
+
     pb = findings.get("pseudobulk_de") or {}
     if pb:
         n_groups = pb.get("n_groups", 0)

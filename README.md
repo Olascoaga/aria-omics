@@ -413,8 +413,11 @@ v4.3.11  done     Production hardening — bulk RNA regression fixed, pytest
                   wrapper added, mocks require explicit dev opt-in
 v4.3.12  done     Stability closeout — h5ad obs design inference,
                   processed-h5ad QC, grounded scRNA narrative, scRNA TSV
-                  supplements, large-dataset resume/cache guards, atlas-scale
-                  pseudobulk report review
+                  supplements, large-dataset resume/cache guards. Reuses
+                  pre-existing obs cell-type annotation when present
+                  (skips Leiden/CellTypist), hard-stops on unrecoverable
+                  scaled matrices, and surfaces per-cluster DE timeouts as
+                  visible warnings on atlas-scale inputs.
 v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module

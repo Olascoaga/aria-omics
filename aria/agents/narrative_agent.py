@@ -317,6 +317,15 @@ power for small-effect genes."
                 f"ARIA produced MEDIUM-confidence scRNA results: {qc_clause}."
             )
 
+        de = sc_f.get("differential_expression") or {}
+        de_status = de.get("status")
+        if de_status and de_status != "success":
+            parts.append(
+                f"Per-cluster marker discovery did not complete "
+                f"({de.get('error_type', 'Error')}); pseudobulk DE "
+                f"below is the primary differential-expression signal."
+            )
+
         if pb:
             per_group = pb.get("per_group", {}) or {}
             n_success = sum(

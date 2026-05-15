@@ -660,6 +660,36 @@ def test_scrna_narrative_reports_predefined_groupby_not_leiden():
     assert "skipped Leiden clustering" in methods
 
 
+def test_scrna_narrative_surfaces_de_per_cluster_failure():
+    from aria.agents import _narrative_scrna
+
+    findings = {
+        "clustering": {
+            "n_clusters": 18,
+            "groupby": "subclass",
+            "predef_clusters": True,
+        },
+        "differential_expression": {
+            "status": "error",
+            "error_type": "Timeout",
+            "details": "Execution exceeded 3600s limit.",
+        },
+        "pseudobulk_de": {
+            "groupby": "subclass",
+            "n_groups": 18,
+            "thresholds": {"padj_max": 0.05, "lfc_min": 0.5},
+            "per_group": {},
+        },
+    }
+
+    summary = _narrative_scrna.summarize_scrna_text(findings)
+    assert "Per-cluster marker discovery" in summary
+    assert "Timeout" in summary
+    assert "Execution exceeded 3600s limit" in summary
+    # The downstream pseudobulk path is preserved as the valid signal.
+    assert "pseudobulk" in summary.lower()
+
+
 def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
