@@ -53,7 +53,7 @@ def hic_inspect(params: dict) -> dict:
     sorted_res = sorted(all_resolutions)
 
     # Estimate RAM for each resolution (human genome)
-    from aria.agents.genome_arch_agent import RAM_ESTIMATES_GB
+    from aria.utils.hic_constants import RAM_ESTIMATES_GB
     estimates = {r: RAM_ESTIMATES_GB.get(r, 100.0) for r in sorted_res}
 
     return {

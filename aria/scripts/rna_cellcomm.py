@@ -158,8 +158,12 @@ def rna_cellcomm(params: dict) -> dict:
             })
         method = f"liana_rank_aggregate ({chosen_rank})"
 
-    except (ImportError, Exception):
+    except ImportError:
         # ── Fallback: curated mean-expression scoring ─────────────────────
+        # LIANA is optional; if it is not installed we still produce a
+        # transparent, real-data scoring rather than failing the whole
+        # report. Non-ImportError failures (data shape, NaN ranks, etc.)
+        # must propagate so the user sees a structured error.
         lr_pairs = _LR_PAIRS_HUMAN
         if "musculus" in organism:
             lr_pairs = [(l.capitalize(), r.capitalize()) for l, r in lr_pairs]

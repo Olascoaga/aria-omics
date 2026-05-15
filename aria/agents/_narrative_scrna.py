@@ -254,8 +254,11 @@ def summarize_scrna_text(findings: dict) -> str:
             if c.get("status") == "success" and c.get("n_significant", 0) > 0
         )
         thr = pb.get("thresholds", {}) or {}
+        cond_col = pb.get("condition_col") or "condition"
+        cond_label = cond_col.replace("_", " ").strip()
+        cond_label = cond_label[:1].upper() + cond_label[1:] if cond_label else "Condition"
         lines.append(
-            f"Age-associated expression programs: pseudobulk DE "
+            f"{cond_label}-associated expression programs: pseudobulk DE "
             f"(DESeq2 on pseudosamples) ran across {n_groups} "
             f"{_group_label(pb.get('groupby'), n_groups)} and "
             f"{n_success} analyzable "

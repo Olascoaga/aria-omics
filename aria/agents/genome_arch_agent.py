@@ -100,16 +100,10 @@ RESOLUTION and MEMORY:
 
 
 # ── RAM estimation table ──────────────────────────────────────────────────────
-# Approximate RAM requirements for human genome (hg38) full-genome analysis
-# Scale down ~10x for mouse, ~50x for drosophila
-RAM_ESTIMATES_GB = {
-    1_000_000: 0.05,    # 1Mb
-    500_000:   0.2,     # 500kb
-    100_000:   1.0,     # 100kb
-    40_000:    8.0,     # 40kb
-    10_000:    100.0,   # 10kb
-    5_000:     400.0,   # 5kb
-}
+# The actual table now lives in aria.utils.hic_constants so that
+# subprocess-only scripts (e.g. hic_inspect.py) can read it without
+# importing from aria.agents.
+from aria.utils.hic_constants import RAM_ESTIMATES_GB
 
 GENOME_SCALE = {
     "Homo sapiens":            1.0,

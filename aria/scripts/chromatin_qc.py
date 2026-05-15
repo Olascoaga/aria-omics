@@ -40,7 +40,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import run_script
+from aria.scripts._base import run_script, mocks_allowed
 
 
 def chromatin_qc(params: dict) -> dict:
@@ -52,6 +52,7 @@ def chromatin_qc(params: dict) -> dict:
     genome      = params.get("genome", "hg38")
     organism    = params.get("organism", "Homo sapiens")
     assay_class = params.get("assay_class", "tf")
+    allow_mocks = mocks_allowed(params)
 
     warnings = []
 
@@ -66,10 +67,10 @@ def chromatin_qc(params: dict) -> dict:
 
     # ── Dispatch to modality-specific QC ─────────────────────────────────
     if data_type == "scATAC":
-        return _scatac_qc(valid_files, genome, organism, warnings)
+        return _scatac_qc(valid_files, genome, organism, warnings, allow_mocks)
     elif data_type in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         return _bulk_chromatin_qc(
-            valid_files, data_type, genome, assay_class, warnings
+            valid_files, data_type, genome, assay_class, warnings, allow_mocks
         )
     else:
         return {
@@ -80,7 +81,8 @@ def chromatin_qc(params: dict) -> dict:
 
 
 def _scatac_qc(files: list, genome: str,
-               organism: str, warnings: list) -> dict:
+               organism: str, warnings: list,
+               allow_mocks: bool = False) -> dict:
     """QC for single-cell ATAC-seq using episcanpy or muon."""
     try:
         import muon as mu
@@ -177,13 +179,24 @@ def _scatac_qc(files: list, genome: str,
         }
 
     except ImportError as e:
-        # Fall back to basic stats if muon/episcanpy not available
+        if not allow_mocks:
+            return {
+                "status":     "error",
+                "error_type": "MissingDependency",
+                "details":    (
+                    f"scATAC QC requires muon and episcanpy "
+                    f"(aria-chromatin-env). Install the chromatin stack or "
+                    f"pass allow_mock=true. Underlying ImportError: {e}"
+                ),
+            }
+        # Dev/test only: fall back to basic stats with explicit gating.
         return _basic_chromatin_qc(files, "scATAC", warnings, str(e))
 
 
 def _bulk_chromatin_qc(files: list, data_type: str,
                         genome: str, assay_class: str,
-                        warnings: list) -> dict:
+                        warnings: list,
+                        allow_mocks: bool = False) -> dict:
     """QC for bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG using BAM files."""
     try:
         import pysam
@@ -269,6 +282,16 @@ def _bulk_chromatin_qc(files: list, data_type: str,
         }
 
     except ImportError as e:
+        if not allow_mocks:
+            return {
+                "status":     "error",
+                "error_type": "MissingDependency",
+                "details":    (
+                    f"{data_type} QC requires pysam + numpy "
+                    f"(aria-chromatin-env). Install the chromatin stack or "
+                    f"pass allow_mock=true. Underlying ImportError: {e}"
+                ),
+            }
         return _basic_chromatin_qc(files, data_type, warnings, str(e))
 
 
