@@ -676,7 +676,41 @@ def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
         {"summary": "oligodendrocyte aging"},
     )
 
-    assert focus == {"Oligo"}
+    assert focus == set()
+
+
+def test_scrna_cell_focus_uses_only_explicit_focus_clause(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    obs = pd.DataFrame(
+        {"subclass": ["Astro", "Oligo", "OPC"] * 2},
+        index=[f"c_{i}" for i in range(6)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((6, 2), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=["g1", "g2"]),
+    )
+    h5ad_path = tmp_path / "astro_focus.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    focus = scRNAAgent._infer_cell_focus_values(
+        [str(h5ad_path)],
+        "subclass",
+        {
+            "user_question": (
+                "Focus only on astrocytes. Do not run oligodendrocyte "
+                "trajectory analysis."
+            )
+        },
+        {"summary": "astrocyte aging and oligodendrocyte trajectory not needed"},
+    )
+
+    assert focus == {"Astro"}
 
 
 def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
@@ -751,6 +785,8 @@ def test_orchestrator_plan_summary_includes_design_intelligence():
     assert "Design Intelligence" in summary
     assert "Microglia pseudobulk DE" in summary
     assert "RNA velocity is not supported" in summary
+    assert "recommended analyses" in summary
+    assert "optional supported analyses" in summary
 
 
 def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):

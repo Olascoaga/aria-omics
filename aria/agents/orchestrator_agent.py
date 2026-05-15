@@ -221,7 +221,12 @@ class OrchestratorAgent(BaseAgent):
                     experiment_id=experiment_id,
                     checkpoint=2,
                     question=self._format_plan_summary(plan),
-                    options=["Confirm and run", "Modify plan", "Cancel"],
+                    options=[
+                        "Run recommended plan only",
+                        "Run recommended + optional supported analyses",
+                        "Modify plan",
+                        "Cancel",
+                    ],
                     context={"plan": plan, "exp_context": exp_context},
                 )
                 return {"status": "plan_ready", "plan": plan}
@@ -300,13 +305,22 @@ class OrchestratorAgent(BaseAgent):
             )
             return {"status": "modifying_plan"}
 
+        if "optional" in decision.lower():
+            exp_context["design_intelligence_selection"] = "recommended_plus_optional"
+            exp_context["run_optional_supported"] = True
+            rationale_suffix = " User requested optional supported analyses too."
+        else:
+            exp_context["design_intelligence_selection"] = "recommended_only"
+            exp_context["run_optional_supported"] = False
+            rationale_suffix = " Optional supported analyses were not added."
+
         self.memory.store_decision(
             decision_id=str(uuid.uuid4())[:8],
             wing_id=experiment_id,
             checkpoint=2,
             question="Analysis plan confirmed",
             decision=decision,
-            rationale="User approved analysis plan directly.",
+            rationale="User approved analysis plan directly." + rationale_suffix,
             made_by="user",
         )
 
@@ -727,6 +741,9 @@ Design the analysis pipeline. Return JSON:
         lines.append(
             f"\n  Complexity: {plan.get('estimated_complexity', '?')}"
             f"\n  {plan.get('rationale', '')}"
+            "\n\nChoose option 1 to run only recommended analyses, or option 2 "
+            "to add optional supported analyses. Unsupported/not-recommended "
+            "items will not run unless the plan is modified explicitly."
             f"\nProceed with this plan?"
         )
         return "\n".join(lines)

@@ -235,7 +235,8 @@ class scRNAAgent(BaseAgent):
                 )
 
         # 6. Trajectory (developmental / time-course intent) ──────────────
-        if (self._needs_trajectory(intent)
+        if ((self._needs_trajectory(intent)
+                or self._design_intelligence_optional_selected(exp_ctx, "PAGA"))
                 and not self._design_intelligence_blocks(exp_ctx, "PAGA/DPT")):
             self.publish_status(experiment_id,
                                 "Trajectory analysis (PAGA + DPT)...", 0.85)
@@ -244,7 +245,8 @@ class scRNAAgent(BaseAgent):
             )
 
         # 7. Cell-cell communication (tissue / signaling intent) ──────────
-        if (self._needs_cell_communication(intent)
+        if ((self._needs_cell_communication(intent)
+                or self._design_intelligence_optional_selected(exp_ctx, "LIANA"))
                 and not self._design_intelligence_blocks(exp_ctx, "LIANA")):
             self.publish_status(experiment_id,
                                 "Cell-cell communication (LIANA)...", 0.92)
@@ -284,7 +286,11 @@ class scRNAAgent(BaseAgent):
         "microglia": {"Microglia"},
         "astrocyte": {"Astro"},
         "astrocytes": {"Astro"},
+        "astrocito": {"Astro"},
+        "astrocitos": {"Astro"},
         "microglía": {"Microglia"},
+        "oligodendrocito": {"Oligo"},
+        "oligodendrocitos": {"Oligo"},
     }
 
     def _prepare_focused_h5ads(self, experiment_id: str, files: list,
@@ -411,12 +417,9 @@ class scRNAAgent(BaseAgent):
         available = cls._available_groupby_values(files, groupby)
         if not available:
             return set()
-        text = " ".join(filter(None, [
-            intent.get("summary", ""),
-            intent.get("user_question", ""),
-            exp_ctx.get("user_question", ""),
-            " ".join(intent.get("biological_entities", []) or []),
-        ])).lower()
+        text = cls._cell_focus_text(exp_ctx, intent)
+        if not text:
+            return set()
         focus: set[str] = set()
         for value in available:
             if re.search(rf"\b{re.escape(value.lower())}\b", text):
@@ -425,6 +428,29 @@ class scRNAAgent(BaseAgent):
             if re.search(rf"\b{re.escape(token)}\b", text):
                 focus.update(v for v in values if v in available)
         return focus if 0 < len(focus) < len(available) else set()
+
+    @staticmethod
+    def _cell_focus_text(exp_ctx: dict, intent: dict) -> str:
+        raw = str((exp_ctx or {}).get("user_question", "") or "")
+        if not raw:
+            raw = str((intent or {}).get("user_question", "") or "")
+        if not raw:
+            raw = str((intent or {}).get("summary", "") or "")
+        clauses = [
+            c.strip() for c in re.split(r"[\n.;]+", raw)
+            if c and c.strip()
+        ]
+        focus_markers = (
+            "focus", "focused", "focusing", "restrict", "restricted",
+            "subset", "only", "exclusively", "obs[", "==",
+            "solo", "sólo", "unicamente", "únicamente", "enfoc",
+            "centr", "limita", "limitar",
+        )
+        selected = [
+            c for c in clauses
+            if any(marker in c.lower() for marker in focus_markers)
+        ]
+        return " ".join(selected).lower()
 
     @staticmethod
     def _available_groupby_values(files: list, groupby: str) -> set[str]:
@@ -1791,3 +1817,12 @@ Rules:
         token_l = token.lower()
         return any(token_l in str(item).lower()
                    for item in di.get("unsupported", []) or [])
+
+    @staticmethod
+    def _design_intelligence_optional_selected(exp_ctx: dict, token: str) -> bool:
+        if not (exp_ctx or {}).get("run_optional_supported"):
+            return False
+        di = (exp_ctx or {}).get("design_intelligence", {}) or {}
+        token_l = token.lower()
+        return any(token_l in str(item).lower()
+                   for item in di.get("optional", []) or [])

@@ -228,11 +228,9 @@ class DesignIntelligence:
     def _infer_focus(self, intent: dict, exp_context: dict, available: list[str]) -> list[str]:
         if not available:
             return []
-        text = " ".join([
-            str(intent.get("summary", "")),
-            " ".join(intent.get("biological_entities", []) or []),
-            str(exp_context.get("user_question", "")),
-        ]).lower()
+        text = self._cell_focus_text(exp_context, intent)
+        if not text:
+            return []
         aliases = {
             "microglia": {"Microglia"},
             "microglía": {"Microglia"},
@@ -242,6 +240,12 @@ class DesignIntelligence:
             "oligodendrocyte": {"Oligo"},
             "oligodendrocytes": {"Oligo"},
             "oligodendroglial": {"OPC", "Oligo"},
+            "oligodendrocito": {"Oligo"},
+            "oligodendrocitos": {"Oligo"},
+            "astrocyte": {"Astro"},
+            "astrocytes": {"Astro"},
+            "astrocito": {"Astro"},
+            "astrocitos": {"Astro"},
         }
         focus = set()
         for value in available:
@@ -251,6 +255,29 @@ class DesignIntelligence:
             if re.search(rf"\b{re.escape(token)}\b", text):
                 focus.update(v for v in values if v in available)
         return sorted(focus) if 0 < len(focus) < len(available) else []
+
+    @staticmethod
+    def _cell_focus_text(exp_context: dict, intent: dict) -> str:
+        raw = str((exp_context or {}).get("user_question", "") or "")
+        if not raw:
+            raw = str((intent or {}).get("user_question", "") or "")
+        if not raw:
+            raw = str((intent or {}).get("summary", "") or "")
+        clauses = [
+            c.strip() for c in re.split(r"[\n.;]+", raw)
+            if c and c.strip()
+        ]
+        focus_markers = (
+            "focus", "focused", "focusing", "restrict", "restricted",
+            "subset", "only", "exclusively", "obs[", "==",
+            "solo", "sólo", "unicamente", "únicamente", "enfoc",
+            "centr", "limita", "limitar",
+        )
+        selected = [
+            c for c in clauses
+            if any(marker in c.lower() for marker in focus_markers)
+        ]
+        return " ".join(selected).lower()
 
     @staticmethod
     def _inspect_h5ad(files: list[str]) -> dict:
