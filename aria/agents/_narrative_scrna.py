@@ -268,12 +268,26 @@ def summarize_scrna_text(findings: dict) -> str:
             f"at padj < {thr.get('padj_max', 0.05)} and "
             f"|log2FC| > {thr.get('lfc_min', 0.5)}."
         )
+        n_low_power = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success" and c.get("low_power_warning")
+        )
+        if n_low_power:
+            lines.append(
+                f"Caveat: {n_low_power} of {n_success} analyzable blocks ran "
+                f"with n<=2 replicates on at least one side. Dispersion is "
+                f"poorly estimated, effect-size estimates are noisy, and FDR "
+                f"is unreliable for those blocks. Interpret with caution and "
+                f"prefer n>=3 designs where possible."
+            )
         top = _top_de_blocks(pb, limit=5)
         if top:
             desc = []
             for group, comp_key, comp in top:
+                tag = " [low power]" if comp.get("low_power_warning") else ""
                 desc.append(
-                    f"{group} {comp_key}: "
+                    f"{group} {comp_key}{tag}: "
                     f"{_fmt_int(comp.get('n_significant', 0))} DE genes "
                     f"({_fmt_int(comp.get('n_up', 0))} up, "
                     f"{_fmt_int(comp.get('n_down', 0))} down)"

@@ -274,7 +274,11 @@ try:
         counts_path = Path(tmpdir) / "counts.tsv"
         counts_df.to_csv(str(counts_path), sep="\t")
 
-        # v3 API: use contrasts (list) instead of comparison (dict)
+        # v3 API: use contrasts (list) instead of comparison (dict).
+        # Synthetic counts trigger aggressive outlier detection that prunes
+        # both groups down to n=2; allow that path with min_replicates=2
+        # so the E2E shape still validates and we now also exercise the
+        # low_power_warning surface introduced in T1.3.
         result = bulk_rna_de({
             "files":         [str(counts_path)],
             "design_factor": "condition",
@@ -287,6 +291,7 @@ try:
             "run_pathways":  True,
             "padj_threshold": 0.05,
             "lfc_threshold": 1.0,
+            "min_replicates_per_condition": 2,
             "allow_mock":    True,
         })
 
@@ -341,6 +346,7 @@ try:
             "output_dir":    tmpdir,
             "run_pathways":  False,   # skip to avoid gseapy HTTP dependency
             "lfc_threshold": 0.58,    # TF threshold
+            "min_replicates_per_condition": 2,
             "allow_mock":    True,
         })
 
@@ -393,6 +399,7 @@ try:
             "output_dir":    tmpdir,
             "run_pathways":  False,
             "lfc_threshold": 0.58,
+            "min_replicates_per_condition": 2,
             "allow_mock":    True,
         })
 
@@ -430,6 +437,7 @@ try:
             "organism":      "Homo sapiens",
             "output_dir":    tmpdir,
             "run_pathways":  False,
+            "min_replicates_per_condition": 2,
             "allow_mock":    True,
         })
 

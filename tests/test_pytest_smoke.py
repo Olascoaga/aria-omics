@@ -1141,3 +1141,199 @@ def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
         "Microglia",
         "Microglia",
     ]
+
+
+# ── T1.3: low-power warning at n=2 ────────────────────────────────────────────
+
+def test_pseudobulk_low_power_warning_at_n2(tmp_path):
+    """T1.3 — pseudobulk DE with exactly 2 replicates per condition must
+    surface low_power_warning on every analyzable block. The DE itself
+    still runs when the caller explicitly passes
+    min_replicates_per_condition=2; the warning is what changes."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+
+    rng = np.random.default_rng(0)
+    n_cells_per_block = 30
+    rows = []
+    for cond in ("ctrl", "treat"):
+        for rep_i in range(1, 3):  # n=2 replicates per condition
+            for ct in ("A", "B"):
+                for _ in range(n_cells_per_block):
+                    rows.append({
+                        "condition":  cond,
+                        "donor":      f"{cond}_{rep_i}",
+                        "cell_type":  ct,
+                    })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    n_genes = 60
+    X = rng.negative_binomial(20, 0.5, (len(obs), n_genes)).astype(np.float32)
+    mask = (obs["condition"] == "treat") & (obs["cell_type"] == "A")
+    X[mask.to_numpy(), :10] *= 5
+    adata = ad.AnnData(
+        X=X,
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i:04d}" for i in range(n_genes)]),
+    )
+    input_path = tmp_path / "pb.h5ad"
+    adata.write_h5ad(input_path)
+
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+    result = rna_pseudobulk_de({
+        "data_path":                     str(input_path),
+        "groupby":                       "cell_type",
+        "condition_col":                 "condition",
+        "replicate_col":                 "donor",
+        "comparisons":                   [["treat", "ctrl"]],
+        "output_dir":                    str(tmp_path / "out"),
+        "min_replicates_per_condition":  2,
+        "min_cells_per_pseudosample":    5,
+        "padj_max":                      0.5,
+        "lfc_min":                       0.0,
+    })
+
+    assert result["status"] == "success", result
+    per_group = result["per_group"]
+    assert per_group, "Expected per_group entries"
+
+    any_success = False
+    for group, group_info in per_group.items():
+        for comp_key, comp in (group_info.get("per_comparison") or {}).items():
+            if comp.get("status") != "success":
+                continue
+            any_success = True
+            assert comp.get("low_power_warning") is True, (
+                f"{group} {comp_key} should be flagged low_power; got {comp}"
+            )
+            assert "n=" in (comp.get("low_power_reason") or "")
+            assert comp["n_replicates"] == {"test": 2, "ref": 2}
+
+    assert any_success, "Expected at least one successful per_comparison block"
+
+
+def test_pseudobulk_default_min_replicates_is_three(tmp_path):
+    """T1.3 — the script's default min_replicates_per_condition is now 3.
+    A run that omits the param and has only 2 replicates per condition
+    must skip the comparison with a clear reason."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+
+    rng = np.random.default_rng(1)
+    rows = []
+    for cond in ("ctrl", "treat"):
+        for rep_i in range(1, 3):
+            for _ in range(30):
+                rows.append({"condition": cond,
+                             "donor":     f"{cond}_{rep_i}",
+                             "cell_type": "A"})
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    X = rng.negative_binomial(20, 0.5, (len(obs), 40)).astype(np.float32)
+    adata = ad.AnnData(
+        X=X,
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i:04d}" for i in range(40)]),
+    )
+    input_path = tmp_path / "pb.h5ad"
+    adata.write_h5ad(input_path)
+
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+    result = rna_pseudobulk_de({
+        "data_path":     str(input_path),
+        "groupby":       "cell_type",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons":   [["treat", "ctrl"]],
+        "output_dir":    str(tmp_path / "out"),
+        # min_replicates_per_condition NOT set — default must be 3
+    })
+    assert result["status"] == "success"
+    # With default min_replicates=3 and only n=2 per condition, the group
+    # is skipped wholesale before per_comparison even runs (the script
+    # gates on len(pseudosamples) < 2 * min_replicates_per_condition).
+    skipped_any = False
+    for group_info in result["per_group"].values():
+        group_status = group_info.get("status")
+        if group_status == "skipped":
+            skipped_any = True
+            assert "pseudosamples" in group_info.get("reason", "") \
+                or "replicates" in group_info.get("reason", "")
+            continue
+        for comp in (group_info.get("per_comparison") or {}).values():
+            if comp.get("status") == "skipped":
+                skipped_any = True
+                assert "not enough replicates" in comp.get("reason", "")
+    assert skipped_any, (
+        "Default min_replicates=3 must reject n=2 designs somewhere: "
+        f"{result['per_group']}"
+    )
+
+
+def test_design_intelligence_downgrades_pseudobulk_at_n2():
+    """T1.3 — Design Intelligence must move pseudobulk DE from
+    'recommended' to 'optional' (with a caveat) when any group has
+    fewer than three biological replicates."""
+    from aria.agents.design_intelligence import DesignIntelligence
+
+    di = DesignIntelligence()
+
+    exp_context_n3 = {
+        "design": {
+            "main_factor": "condition",
+            "groups": {"ctrl": ["c1", "c2", "c3"], "treat": ["t1", "t2", "t3"]},
+            "pseudobulk": {
+                "condition_col": "condition",
+                "replicate_col": "donor",
+                "groupby_col":   "cell_type",
+            },
+        },
+        "modalities": {"scRNA": []},
+    }
+    exp_context_n2 = {
+        "design": {
+            "main_factor": "condition",
+            "groups": {"ctrl": ["c1", "c2"], "treat": ["t1", "t2"]},
+            "pseudobulk": {
+                "condition_col": "condition",
+                "replicate_col": "donor",
+                "groupby_col":   "cell_type",
+            },
+        },
+        "modalities": {"scRNA": []},
+    }
+
+    profile_n3 = di._scrna_profile(exp_context_n3, {})
+    profile_n2 = di._scrna_profile(exp_context_n2, {})
+
+    rec_n3 = " ".join(profile_n3["recommended"])
+    assert "pseudobulk DE" in rec_n3, rec_n3
+
+    rec_n2 = " ".join(profile_n2["recommended"])
+    opt_n2 = " ".join(profile_n2["optional"])
+    warn_n2 = " ".join(profile_n2["warnings"])
+    assert "pseudobulk DE" not in rec_n2, (
+        "Pseudobulk DE must not be 'recommended' at n=2: " + rec_n2
+    )
+    assert "low-power caveat" in opt_n2, opt_n2
+    assert "n=2" in warn_n2 or "replicates" in warn_n2, warn_n2
+
+
+def test_design_intelligence_downgrades_bulk_at_n2():
+    """T1.3 — same downgrade rule applies to bulk RNA DE."""
+    from aria.agents.design_intelligence import DesignIntelligence
+
+    di = DesignIntelligence()
+    ctx = {"design": {"groups": {"ctrl": ["c1", "c2"], "treat": ["t1", "t2"]}}}
+    profile = di._bulk_rna_profile("bulk_RNA", ctx, {})
+
+    rec = " ".join(profile["recommended"])
+    opt = " ".join(profile["optional"])
+    warn = " ".join(profile["warnings"])
+    assert "DESeq2 differential expression with biological replicates" not in rec
+    assert "low-power caveat" in opt, opt
+    assert "n=2" in warn or "replicates" in warn, warn

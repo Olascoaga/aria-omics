@@ -915,13 +915,16 @@ for small-effect genes."
 
             if len(contrasts) == 1:
                 c = contrasts[0]
+                lp_tag = " [LOW POWER]" if c.get("low_power_warning") else ""
                 parts.append(
-                    f"Differential expression ({c.get('name', '?')}, "
+                    f"Differential expression ({c.get('name', '?')}{lp_tag}, "
                     f"DESeq2, {padj_str}): "
                     f"{c.get('n_significant', 0)} significant genes "
                     f"({c.get('n_upregulated', 0)} upregulated, "
                     f"{c.get('n_downregulated', 0)} downregulated)."
                 )
+                if c.get("low_power_warning") and c.get("low_power_reason"):
+                    parts.append(f"Caveat: {c['low_power_reason']}")
             else:
                 parts.append(
                     f"Differential expression was performed across "
@@ -930,11 +933,22 @@ for small-effect genes."
                 for c in contrasts:
                     if c.get("status") != "success":
                         continue
+                    lp_tag = " [LOW POWER]" if c.get("low_power_warning") else ""
                     parts.append(
-                        f"  • {c.get('name', '?')}: "
+                        f"  • {c.get('name', '?')}{lp_tag}: "
                         f"{c.get('n_significant', 0)} DE genes "
                         f"({c.get('n_upregulated', 0)} up, "
                         f"{c.get('n_downregulated', 0)} down)."
+                    )
+                n_low_power = sum(
+                    1 for c in contrasts if c.get("low_power_warning")
+                )
+                if n_low_power:
+                    parts.append(
+                        f"Caveat: {n_low_power} of {n_ok} contrasts ran with "
+                        f"n<=2 replicates on at least one side. Dispersion is "
+                        f"poorly estimated and FDR is unreliable for those "
+                        f"contrasts. Interpret with caution."
                     )
 
             # Cross-contrast overlap (uses FULL DE list now, not top 30)

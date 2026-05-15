@@ -99,6 +99,7 @@ def bulk_rna_de(params: dict) -> dict:
     run_pathways   = bool(params.get("run_pathways", True))
     padj_thr       = float(params.get("padj_threshold", 0.05))
     lfc_thr        = float(params.get("lfc_threshold", 1.0))
+    min_reps       = int(params.get("min_replicates_per_condition", 3))
     allow_mock     = mocks_allowed(params)
     warnings       = []
 
@@ -222,7 +223,9 @@ def bulk_rna_de(params: dict) -> dict:
         # Run DE for this contrast
         de_result, de_warn = _run_deseq2(
             counts_filt, metadata, design_factor,
-            num, den, padj_thr, lfc_thr, allow_mock=allow_mock
+            num, den, padj_thr, lfc_thr,
+            allow_mock=allow_mock,
+            min_replicates_per_condition=min_reps,
         )
 
         if de_result.get("status") == "error":
@@ -358,23 +361,26 @@ def bulk_rna_de(params: dict) -> dict:
                             else list(all_sig)
 
         contrast_results.append({
-            "name":           name,
-            "numerator":      num,
-            "denominator":    den,
-            "status":         "success",
-            "n_genes_tested": int(counts_filt.shape[0]),
-            "n_significant":  int(de_result.get("n_sig", 0)),
-            "n_upregulated":  int(de_result.get("n_up", 0)),
-            "n_downregulated":int(de_result.get("n_down", 0)),
-            "top_genes":      top_genes,
+            "name":              name,
+            "numerator":         num,
+            "denominator":       den,
+            "status":            "success",
+            "n_genes_tested":    int(counts_filt.shape[0]),
+            "n_significant":     int(de_result.get("n_sig", 0)),
+            "n_upregulated":     int(de_result.get("n_up", 0)),
+            "n_downregulated":   int(de_result.get("n_down", 0)),
+            "n_replicates":      de_result.get("n_replicates"),
+            "low_power_warning": bool(de_result.get("low_power_warning", False)),
+            "low_power_reason":  de_result.get("low_power_reason"),
+            "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
-            "all_sig_genes":  all_sig_symbols,
-            "pathways":       pathways,
-            "plots":          plots,
-            "contrast_dir":   str(contrast_dir),
-            "figures_dir":    str(figures_dir),
-            "tables_dir":     str(tables_dir),
+            "all_sig_genes":     all_sig_symbols,
+            "pathways":          pathways,
+            "plots":             plots,
+            "contrast_dir":      str(contrast_dir),
+            "figures_dir":       str(figures_dir),
+            "tables_dir":        str(tables_dir),
         })
 
     if not contrast_results:
@@ -1414,10 +1420,16 @@ def _prune_outliers_for_design(outliers: list, metadata,
 def _run_deseq2(counts, metadata, design_factor: str,
                 numerator: str, denominator: str,
                 padj_thr: float, lfc_thr: float,
-                allow_mock: bool = False) -> tuple:
+                allow_mock: bool = False,
+                min_replicates_per_condition: int = 3) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
+
+    min_replicates_per_condition: production floor. Default 3. n=2 is
+    permitted only when the caller explicitly lowers this (e.g. for
+    pilot/legacy datasets); the resulting block is flagged with
+    low_power_warning in the return dict.
     """
     import pandas as pd
     warnings = []
@@ -1427,13 +1439,19 @@ def _run_deseq2(counts, metadata, design_factor: str,
     meta_sub  = metadata[mask].copy()
     counts_sub = counts[meta_sub.index].copy()
 
-    if meta_sub.shape[0] < 4:
+    group_sizes = meta_sub[design_factor].value_counts().to_dict()
+    n_num = int(group_sizes.get(numerator, 0))
+    n_den = int(group_sizes.get(denominator, 0))
+
+    if n_num < min_replicates_per_condition or n_den < min_replicates_per_condition:
         return {
             "status":     "error",
             "error_type": "InsufficientReplicates",
             "details":    (
-                f"DESeq2 requires at least 2 replicates per group. "
-                f"Found {meta_sub[design_factor].value_counts().to_dict()}"
+                f"DESeq2 requires at least {min_replicates_per_condition} "
+                f"replicates per group. Found {group_sizes}. Lower "
+                f"min_replicates_per_condition explicitly (e.g. to 2) to run "
+                f"with a low_power_warning instead."
             ),
         }, warnings
 
@@ -1489,15 +1507,28 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 f"Consider relaxing thresholds or checking data quality."
             )
 
+        low_power = (n_num <= 2 or n_den <= 2)
+        low_power_reason = (
+            f"n={n_num} ({numerator}) vs n={n_den} ({denominator}): "
+            f"dispersion estimation is unreliable with fewer than three "
+            f"replicates per group. DESeq2 produced results, but effect-size "
+            f"estimates and FDR are noisy. Interpret with caution."
+        ) if low_power else None
+        if low_power:
+            warnings.append(low_power_reason)
+
         return {
-            "status":    "success",
-            "results":   results_df,
-            "n_sig":     len(sig),
-            "n_up":      len(up_genes),
-            "n_down":    len(down_genes),
-            "sig_genes": list(sig.index),
-            "up_genes":  up_genes,
-            "down_genes": down_genes,
+            "status":            "success",
+            "results":           results_df,
+            "n_sig":             len(sig),
+            "n_up":              len(up_genes),
+            "n_down":            len(down_genes),
+            "sig_genes":         list(sig.index),
+            "up_genes":          up_genes,
+            "down_genes":        down_genes,
+            "n_replicates":      {"test": n_num, "ref": n_den},
+            "low_power_warning": low_power,
+            "low_power_reason":  low_power_reason,
         }, warnings
 
     except ImportError:

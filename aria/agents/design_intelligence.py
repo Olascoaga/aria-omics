@@ -77,12 +77,25 @@ class DesignIntelligence:
         unsupported = []
         warnings = []
 
-        if condition and replicate and self._has_replicates(groups, min_reps=2):
+        if condition and replicate and self._has_replicates(groups, min_reps=3):
             recommended.append(
                 f"Donor/sample-level pseudobulk DE: condition={condition}, "
                 f"replicate={replicate}, groupby={groupby or 'cell group'}."
             )
             optional.append("Pathway/ORA enrichment on significant pseudobulk DE genes.")
+        elif condition and replicate and self._has_replicates(groups, min_reps=2):
+            optional.append(
+                f"Pseudobulk DE with low-power caveat: condition={condition}, "
+                f"replicate={replicate}, groupby={groupby or 'cell group'}. "
+                f"At least one group has n=2 replicates; dispersion estimation "
+                f"is noisy and effect sizes will be unstable. Results will be "
+                f"produced with a low_power_warning flag."
+            )
+            warnings.append(
+                "Pseudobulk DE proceeds with n=2 replicates in at least one "
+                "group. Three or more replicates per group is strongly "
+                "preferred; reviewers will flag n=2 designs."
+            )
         else:
             unsupported.append(
                 "Between-condition scRNA DE is not supported without a condition "
@@ -151,8 +164,20 @@ class DesignIntelligence:
         recommended = []
         unsupported = []
         optional = ["PCA/sample-distance QC and pathway enrichment after DE."]
-        if self._has_replicates(groups, min_reps=2):
+        warnings = []
+        if self._has_replicates(groups, min_reps=3):
             recommended.append("Bulk RNA DESeq2 differential expression with biological replicates.")
+        elif self._has_replicates(groups, min_reps=2):
+            optional.append(
+                "Bulk RNA DESeq2 differential expression with low-power "
+                "caveat. At least one group has n=2 replicates; dispersion is "
+                "poorly estimated. Results will carry a low_power_warning flag."
+            )
+            warnings.append(
+                "Bulk RNA DE proceeds with n=2 replicates in at least one "
+                "group. Three or more replicates per group is strongly "
+                "preferred."
+            )
         else:
             unsupported.append("Bulk RNA differential expression needs at least two replicates per condition.")
         if modality == "bulk_RNA_raw":
@@ -162,7 +187,7 @@ class DesignIntelligence:
             "recommended": recommended,
             "optional": optional,
             "unsupported": unsupported,
-            "warnings": [],
+            "warnings": warnings,
         }
 
     def _chromatin_profile(self, modality: str, exp_context: dict, intent: dict) -> dict:

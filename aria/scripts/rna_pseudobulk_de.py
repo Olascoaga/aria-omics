@@ -30,7 +30,7 @@ Input params:
     min_cells_per_pseudosample: int (default 10) — drop (replicate × group)
                               combinations smaller than this; their counts
                               are too noisy to be useful.
-    min_replicates_per_condition: int (default 2) — DESeq2 floor; groups
+    min_replicates_per_condition: int (default 3) — DESeq2 floor; groups
                               that don't have ≥ min replicates in BOTH
                               levels of a comparison are reported as skipped.
     use_raw:          bool (default True) — use adata.raw.X for counts.
@@ -86,7 +86,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     comparisons                   = params["comparisons"]
     covariates                    = params.get("covariates") or []
     min_cells_per_pseudosample    = int(params.get("min_cells_per_pseudosample", 10))
-    min_replicates_per_condition  = int(params.get("min_replicates_per_condition", 2))
+    min_replicates_per_condition  = int(params.get("min_replicates_per_condition", 3))
     use_raw                       = bool(params.get("use_raw", True))
     # Many published h5ads (especially Seurat exports) store log-normalized
     # values in raw.X rather than counts. When True we reverse NormalizeData
@@ -345,13 +345,27 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 for g, row in sig.iterrows()
             ]
 
+            # Low-power flag: even after passing min_replicates_per_condition,
+            # n<=2 on either side leaves dispersion estimation noisy. The DE
+            # ran, but downstream narrative must caveat the result.
+            low_power = (n_test <= 2 or n_ref <= 2)
+            low_power_reason = (
+                f"n={n_test} vs n={n_ref}: dispersion estimation is unreliable "
+                f"with fewer than three replicates per group. DESeq2 produced "
+                f"results, but effect-size estimates and FDR are noisy. "
+                f"Interpret with caution."
+            ) if low_power else None
+
             per_group_entry["per_comparison"][comp_key] = {
-                "status":        "success",
-                "n_significant": int(len(sig)),
-                "n_up":          int((sig["log2FoldChange"] > 0).sum()),
-                "n_down":        int((sig["log2FoldChange"] < 0).sum()),
-                "top_genes":     top_records,
-                "all_sig":       all_records,
+                "status":            "success",
+                "n_significant":     int(len(sig)),
+                "n_up":               int((sig["log2FoldChange"] > 0).sum()),
+                "n_down":             int((sig["log2FoldChange"] < 0).sum()),
+                "n_replicates":       {"test": n_test, "ref": n_ref},
+                "low_power_warning":  low_power,
+                "low_power_reason":   low_power_reason,
+                "top_genes":          top_records,
+                "all_sig":            all_records,
             }
 
             # CSV rows
