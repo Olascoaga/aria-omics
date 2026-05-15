@@ -43,6 +43,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from aria.utils.provenance import collect_provenance
+
 from aria import __version__ as ARIA_VERSION
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence, MessageType
@@ -760,6 +762,21 @@ for small-effect genes."
                         f"factor perturbation, where direct target genes "
                         f"typically show modest effect sizes."
                     )
+                powers = [
+                    c.get("power_estimate_at_lfc_min")
+                    for c in contrasts
+                    if c.get("status") == "success"
+                    and isinstance(c.get("power_estimate_at_lfc_min"), (int, float))
+                ]
+                if powers:
+                    lines.append(
+                        f"Approximate power to detect |log2FC| > {lfc_thr} "
+                        f"at adjusted alpha {padj_thr_used} ranged from "
+                        f"{min(powers):.0%} to {max(powers):.0%} across "
+                        f"contrasts, using a negative-binomial Wald "
+                        f"approximation from replicate count, mean expression, "
+                        f"and dispersion."
+                    )
 
             # Pathway enrichment methods
             has_pathways = any(
@@ -767,11 +784,25 @@ for small-effect genes."
                 if c.get("status") == "success"
             )
             if has_pathways:
+                bg_sizes = [
+                    ((c.get("pathway_background") or {}).get("background_size"))
+                    for c in contrasts
+                    if (c.get("pathway_background") or {}).get("background_size")
+                ]
+                bg_clause = (
+                    f" ORA used the dataset-expressed background "
+                    f"({min(bg_sizes)}-{max(bg_sizes)} genes across contrasts) "
+                    f"instead of Enrichr's default universe."
+                    if bg_sizes else
+                    " ORA used Enrichr's default universe because no "
+                    "dataset-expressed background was available."
+                )
                 lines.append(
                     f"Over-representation analysis was performed with "
                     f"gseapy (Enrichr endpoint) against GO Biological "
                     f"Process, KEGG, and Reactome gene sets. "
                     f"Significance was defined as adjusted p-value < 0.05."
+                    f"{bg_clause}"
                 )
 
         # Single-cell RNA methods (delegated to _narrative_scrna for full
@@ -1201,10 +1232,23 @@ for small-effect genes."
         with figures/ + tables/ subdirs. Idempotent: call once early in
         run() so figure subprocesses have a stable target.
         """
-        ts        = datetime.now().strftime("%Y%m%d_%H%M%S")
+        reproducible = bool((exp_ctx or {}).get("reproducible_mode"))
+        ts        = (
+            "reproducible"
+            if reproducible else
+            datetime.now().strftime("%Y%m%d_%H%M%S")
+        )
         slug      = self._build_slug(intent, exp_ctx)
-        suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
-                      else experiment_id)
+        if reproducible:
+            first_hash = ""
+            for rec in (exp_ctx or {}).get("input_files", []) or []:
+                if rec.get("sha256") and rec.get("sha256") != "unavailable":
+                    first_hash = str(rec["sha256"])[:12]
+                    break
+            suffix = first_hash or "nohash"
+        else:
+            suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
+                          else experiment_id)
         report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
                         else f"aria_{ts}_{suffix}")
         report_dir = self.reports_dir / report_name
@@ -1264,7 +1308,12 @@ for small-effect genes."
         question = intent.get("summary",
                                exp_ctx.get("user_question", ""))
         agent_results = agent_results or {}
-        date_str = datetime.now().strftime("%B %d, %Y")
+        reproducible = bool(exp_ctx.get("reproducible_mode"))
+        date_str = (
+            "&lt;timestamp redacted for byte-identity&gt;"
+            if reproducible else
+            datetime.now().strftime("%B %d, %Y")
+        )
         exp_short = experiment_id[:8]
 
         # Build/stage report artifacts before composing section HTML. scRNA
@@ -1286,6 +1335,15 @@ for small-effect genes."
             findings_sections.get("conflicts", "No conflicts detected.")
         )
         methods_html = self._plain_text_to_html(methods)
+        provenance = exp_ctx.get("provenance") or collect_provenance()
+        if reproducible:
+            provenance = dict(provenance)
+            provenance["timestamp_utc"] = "<timestamp redacted for byte-identity>"
+        provenance_html = self._build_provenance_section(
+            provenance=provenance,
+            input_files=exp_ctx.get("input_files", []),
+            agent_results=agent_results,
+        )
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -1467,6 +1525,9 @@ for small-effect genes."
   <p><em>{_html.escape(str(question))}</em></p>
 </div>
 
+<h2>Provenance</h2>
+{provenance_html}
+
 <h2>Executive Summary</h2>
 <div class="card">
   <p>{self._plain_text_to_html(executive_summary)}</p>
@@ -1537,8 +1598,162 @@ for small-effect genes."
         #         └── ...
         report_path = report_dir / "report.html"
         report_path.write_text(html, encoding="utf-8")
+        methodology_path = report_dir / "methodology.json"
+        methodology_path.write_text(
+            json.dumps(
+                self._build_methodology_json(
+                    provenance=provenance,
+                    exp_ctx=exp_ctx,
+                    agent_results=agent_results,
+                    decisions=decisions,
+                ),
+                indent=2,
+                sort_keys=True,
+                default=str,
+            ),
+            encoding="utf-8",
+        )
+        if reproducible:
+            self._write_memory_snapshot(report_dir)
         log.info(f"Report written to {report_path}")
         return report_path
+
+    def _write_memory_snapshot(self, report_dir: Path) -> None:
+        try:
+            import shutil
+            db_path = getattr(self.memory, "db_path", "")
+            if db_path and db_path != ":memory:" and Path(db_path).exists():
+                shutil.copy2(db_path, report_dir / "memory_snapshot.sqlite")
+            else:
+                (report_dir / "memory_snapshot.sqlite").write_bytes(b"")
+        except Exception as exc:
+            log.warning(f"Could not write memory snapshot: {exc}")
+
+    def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
+                                agent_results: dict, decisions: list) -> dict:
+        thresholds = {}
+        bulk = (agent_results or {}).get("bulk_rna_agent", {})
+        bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
+        if isinstance(bulk_findings, dict):
+            if bulk_findings.get("padj_threshold") is not None:
+                thresholds["bulk_padj"] = bulk_findings.get("padj_threshold")
+            if bulk_findings.get("lfc_threshold") is not None:
+                thresholds["bulk_lfc_min"] = bulk_findings.get("lfc_threshold")
+        sc = (agent_results or {}).get("scrna_agent", {})
+        try:
+            from aria.agents import _narrative_scrna
+            sc_f = _narrative_scrna.unwrap_scrna_findings(sc)
+            pb = sc_f.get("pseudobulk_de") or {}
+            thresholds["scrna_pseudobulk"] = pb.get("thresholds", {})
+            thresholds["scrna_multiple_testing"] = pb.get("multiple_testing", {})
+        except Exception:
+            pass
+        tools = {}
+        try:
+            from importlib.metadata import version, PackageNotFoundError
+            for pkg in ("scanpy", "anndata", "pydeseq2", "gseapy", "numpy", "pandas"):
+                try:
+                    tools[pkg] = version(pkg)
+                except PackageNotFoundError:
+                    tools[pkg] = "not installed"
+        except Exception:
+            tools = {}
+        return {
+            "provenance": provenance,
+            "design": exp_ctx.get("design", {}),
+            "design_intelligence": exp_ctx.get("design_intelligence", {}),
+            "thresholds": thresholds,
+            "seeds": {
+                "global": 0,
+                "scanpy": 0,
+                "harmony": 0,
+            },
+            "tools": tools,
+            "decisions": decisions or [],
+        }
+
+    def _build_provenance_section(self, provenance: dict,
+                                  input_files: list,
+                                  agent_results: dict) -> str:
+        rows = []
+        for key in [
+            "aria_version", "git_sha", "git_dirty", "python_version",
+            "platform", "conda_env", "timestamp_utc",
+        ]:
+            rows.append(
+                "<tr>"
+                f"<td>{_html.escape(key)}</td>"
+                f"<td><code>{_html.escape(str(provenance.get(key, '')))}</code></td>"
+                "</tr>"
+            )
+        input_rows = []
+        for rec in input_files or []:
+            input_rows.append(
+                "<tr>"
+                f"<td>{_html.escape(str(rec.get('modality', '')))}</td>"
+                f"<td><code>{_html.escape(str(rec.get('path', '')))}</code></td>"
+                f"<td>{_html.escape(str(rec.get('size_bytes', '')))}</td>"
+                f"<td><code>{_html.escape(str(rec.get('sha256', '')))}</code></td>"
+                "</tr>"
+            )
+        if not input_rows:
+            input_rows.append(
+                "<tr><td colspan='4'><em>No input hashes recorded.</em></td></tr>"
+            )
+        param_rows = []
+        for agent, result in (agent_results or {}).items():
+            if isinstance(result, dict) and result.get("params_sha256"):
+                param_rows.append(
+                    "<tr>"
+                    f"<td>{_html.escape(str(agent))}</td>"
+                    f"<td><code>{_html.escape(str(result.get('params_sha256')))}</code></td>"
+                    "</tr>"
+                )
+        if not param_rows:
+            param_rows.append(
+                "<tr><td colspan='2'><em>No per-stage parameter hashes recorded.</em></td></tr>"
+            )
+        return (
+            "<div class='card'>"
+            "<h3>Runtime</h3>"
+            "<table><tr><th>Field</th><th>Value</th></tr>"
+            + "".join(rows)
+            + "</table>"
+            + "<h3>Inputs</h3>"
+            + "<table><tr><th>Modality</th><th>Path</th><th>Bytes</th><th>SHA-256</th></tr>"
+            + "".join(input_rows)
+            + "</table>"
+            + "<h3>Stage Parameter Hashes</h3>"
+            + "<table><tr><th>Stage</th><th>params_sha256</th></tr>"
+            + "".join(param_rows)
+            + "</table>"
+            + "<h3>Conda Lockfiles</h3>"
+            + self._build_lockfile_section()
+            + "</div>"
+        )
+
+    @staticmethod
+    def _build_lockfile_section() -> str:
+        root = Path(__file__).resolve().parents[2]
+        env_dir = root / "envs"
+        lockfiles = sorted(env_dir.glob("*.linux-64.lock"))
+        if not lockfiles:
+            return (
+                "<div class='warning'>No conda lockfiles found in "
+                "<code>envs/*.linux-64.lock</code>. Run "
+                "<code>scripts/generate_locks.sh</code> before tagging v4.4.</div>"
+            )
+        blocks = []
+        for lock in lockfiles:
+            try:
+                text = lock.read_text(encoding="utf-8")[:20000]
+            except Exception as exc:
+                text = f"Could not read lockfile: {exc}"
+            blocks.append(
+                f"<details><summary>{_html.escape(lock.name)}</summary>"
+                f"<pre>{_html.escape(text)}</pre></details>"
+            )
+        return "".join(blocks)
 
     @staticmethod
     def _build_slug(intent: dict, exp_ctx: dict) -> str:

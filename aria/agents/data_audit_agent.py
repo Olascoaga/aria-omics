@@ -31,6 +31,7 @@ from typing import Optional
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence, CavemanMode
 from aria.memory.memory import ARIAMemory
+from aria.utils.provenance import hash_file
 
 
 # ── File signature patterns ──────────────────────────────────────────────────
@@ -153,6 +154,7 @@ class DataAuditAgent(BaseAgent):
         data_dir      = Path(context["data_dir"])
         user_question = context.get("user_question", "")
         geo_metadata  = context.get("geo_metadata")
+        reproducible_mode = bool(context.get("reproducible_mode"))
 
         self.publish_status(experiment_id,
             f"Scanning {data_dir}...", progress=0.0)
@@ -228,6 +230,9 @@ class DataAuditAgent(BaseAgent):
             experiment_id, data_dir, classified,
             genome, organism, warnings, user_question
         )
+        exp_context["reproducible_mode"] = reproducible_mode
+        if context.get("provenance"):
+            exp_context["provenance"] = context["provenance"]
 
         # Propagate GEO metadata into exp_context so downstream agents can use it
         if geo_metadata:
@@ -681,12 +686,31 @@ class DataAuditAgent(BaseAgent):
         # FASTQs or pre-quantified counts. OrchestratorAgent._dispatch_agents
         # is the right place to merge them before routing to BulkRNAAgent.
         modalities = {k: v for k, v in classified.items() if k != "unknown"}
+        input_files = []
+        for modality, files in modalities.items():
+            for path in files:
+                try:
+                    p = Path(path)
+                    input_files.append({
+                        "modality": modality,
+                        "path": str(p),
+                        "size_bytes": int(p.stat().st_size),
+                        "sha256": hash_file(p),
+                    })
+                except Exception:
+                    input_files.append({
+                        "modality": modality,
+                        "path": str(path),
+                        "size_bytes": None,
+                        "sha256": "unavailable",
+                    })
 
         return {
             "experiment_id":  experiment_id,
             "data_dir":       str(data_dir),
             "user_question":  user_question,
             "modalities":     modalities,
+            "input_files":    input_files,
             "unknown_files":  classified.get("unknown", []),
             "genome":         genome,
             "organism":       organism,

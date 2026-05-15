@@ -245,6 +245,12 @@ def bulk_rna_de(params: dict) -> dict:
         # Load gene symbol map (used both for pathway enrichment and
         # for annotating top_genes with HGNC symbols)
         symbol_map = _load_symbol_map(files, warnings)
+        background_symbols = _to_symbols(list(counts_filt.index), symbol_map) \
+            if symbol_map else [str(g) for g in counts_filt.index]
+        background_symbols = sorted({
+            str(g) for g in background_symbols
+            if g and str(g).lower() != "nan"
+        })
 
         # Pathway enrichment per contrast
         pathways = {}
@@ -256,6 +262,7 @@ def bulk_rna_de(params: dict) -> dict:
                 organism=organism,
                 output_dir=output_dir,
                 symbol_map=symbol_map,
+                background_genes=background_symbols,
                 allow_mock=allow_mock,
             )
             warnings.extend([f"[{name}] {w}" for w in pw_warn])
@@ -372,11 +379,18 @@ def bulk_rna_de(params: dict) -> dict:
             "n_replicates":      de_result.get("n_replicates"),
             "low_power_warning": bool(de_result.get("low_power_warning", False)),
             "low_power_reason":  de_result.get("low_power_reason"),
+            "dispersion_estimate": de_result.get("dispersion_estimate"),
+            "mean_expression_estimate": de_result.get("mean_expression_estimate"),
+            "power_estimate_at_lfc_min": de_result.get("power_estimate_at_lfc_min"),
             "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
             "all_sig_genes":     all_sig_symbols,
             "pathways":          pathways,
+            "pathway_background": {
+                "background_size": len(background_symbols),
+                "background_source": "dataset_expressed_genes",
+            },
             "plots":             plots,
             "contrast_dir":      str(contrast_dir),
             "figures_dir":       str(figures_dir),
@@ -442,8 +456,8 @@ def bulk_rna_de(params: dict) -> dict:
                 "step":           "Pathway enrichment (ORA)",
                 "input":          "DE gene symbols",
                 "normalization":  "Enrichr Fisher's exact test",
-                "gene_filter":    "padj<0.05 and |log2FC|>threshold",
-                "justification":  "Standard over-representation for discrete gene lists; thresholds are user-configurable.",
+                "gene_filter":    "padj<0.05 and |log2FC|>threshold; ORA universe = genes retained after expression filtering",
+                "justification":  "Standard over-representation for discrete gene lists using the dataset-expressed background rather than Enrichr's default all-database universe.",
             },
             {
                 "step":           "GSEA (pre-ranked)",
@@ -1458,8 +1472,27 @@ def _run_deseq2(counts, metadata, design_factor: str,
     try:
         from pydeseq2.dds import DeseqDataSet
         from pydeseq2.ds import DeseqStats
+        from aria.utils.power_estimation import bulk_power_estimate
         import warnings as w
         w.filterwarnings("ignore")
+
+        means = counts_sub.mean(axis=1).astype(float)
+        variances = counts_sub.var(axis=1, ddof=1).astype(float)
+        disp = ((variances - means) / (means ** 2)).replace(
+            [float("inf"), float("-inf")], float("nan")
+        )
+        disp = disp.dropna()
+        dispersion_estimate = float(disp[disp > 0].median()) \
+            if (disp > 0).any() else 0.1
+        mean_expression = float(means[means > 0].median()) \
+            if (means > 0).any() else 1.0
+        power_estimate = bulk_power_estimate(
+            n_per_group=(n_num, n_den),
+            mean_expression=mean_expression,
+            dispersion=dispersion_estimate,
+            target_log2fc=lfc_thr,
+            alpha=padj_thr,
+        )
 
         # pydeseq2 expects samples × genes. The public API changed from
         # design_factors=... to design="~ factor"; support both.
@@ -1529,6 +1562,9 @@ def _run_deseq2(counts, metadata, design_factor: str,
             "n_replicates":      {"test": n_num, "ref": n_den},
             "low_power_warning": low_power,
             "low_power_reason":  low_power_reason,
+            "dispersion_estimate": dispersion_estimate,
+            "mean_expression_estimate": mean_expression,
+            "power_estimate_at_lfc_min": power_estimate,
         }, warnings
 
     except ImportError:
@@ -1875,6 +1911,7 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                               down_genes: list, organism: str,
                               output_dir: str,
                               symbol_map: dict = None,
+                              background_genes: list | None = None,
                               allow_mock: bool = False) -> tuple:
     """
     Run pathway enrichment via gseapy.
@@ -1894,6 +1931,15 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
     sig_symbols  = _to_symbols(sig_genes,  symbol_map or {})
     up_symbols   = _to_symbols(up_genes,   symbol_map or {})
     down_symbols = _to_symbols(down_genes, symbol_map or {})
+    background_symbols = sorted({
+        str(g) for g in (background_genes or [])
+        if g and str(g).lower() != "nan"
+    })
+    background_set = set(background_symbols)
+    if background_set:
+        sig_symbols = [g for g in sig_symbols if g in background_set]
+        up_symbols = [g for g in up_symbols if g in background_set]
+        down_symbols = [g for g in down_symbols if g in background_set]
 
     if symbol_map and len(sig_symbols) < len(sig_genes) * 0.3:
         warnings.append(
@@ -1920,13 +1966,22 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                 _time.sleep(8)
 
             try:
-                enr = gp.enrichr(
-                    gene_list=sig_symbols[:500],
-                    gene_sets=db_name,
-                    organism=_gseapy_organism(organism),
-                    outdir=None,
-                    verbose=False,
-                )
+                enrichr_kwargs = {
+                    "gene_list": sig_symbols[:500],
+                    "gene_sets": db_name,
+                    "organism": _gseapy_organism(organism),
+                    "outdir": None,
+                    "verbose": False,
+                }
+                if background_symbols:
+                    enrichr_kwargs["background"] = background_symbols
+                try:
+                    enr = gp.enrichr(**enrichr_kwargs)
+                except TypeError as exc:
+                    if "background" not in str(exc):
+                        raise
+                    enrichr_kwargs.pop("background", None)
+                    enr = gp.enrichr(**enrichr_kwargs)
                 results = enr.results
 
                 if results is not None and not results.empty:
@@ -1985,15 +2040,24 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
             import gseapy as gp
             for direction, genes in [("up", up_symbols[:200]),
                                       ("down", down_symbols[:200])]:
-                enr = gp.enrichr(
-                    gene_list=genes,
-                    gene_sets="KEGG_2021_Human"
-                              if "sapiens" in organism.lower()
-                              else "KEGG_2019_Mouse",
-                    organism=_gseapy_organism(organism),
-                    outdir=None,
-                    verbose=False,
-                )
+                enrichr_kwargs = {
+                    "gene_list": genes,
+                    "gene_sets": "KEGG_2021_Human"
+                                 if "sapiens" in organism.lower()
+                                 else "KEGG_2019_Mouse",
+                    "organism": _gseapy_organism(organism),
+                    "outdir": None,
+                    "verbose": False,
+                }
+                if background_symbols:
+                    enrichr_kwargs["background"] = background_symbols
+                try:
+                    enr = gp.enrichr(**enrichr_kwargs)
+                except TypeError as exc:
+                    if "background" not in str(exc):
+                        raise
+                    enrichr_kwargs.pop("background", None)
+                    enr = gp.enrichr(**enrichr_kwargs)
                 if enr.results is not None and not enr.results.empty:
                     sig_pw = enr.results[
                         enr.results["Adjusted P-value"] < 0.1

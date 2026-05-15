@@ -25,6 +25,7 @@ import subprocess
 import uuid
 from pathlib import Path
 from typing import Any
+from aria.utils.provenance import hash_params
 
 shutil_rmtree = shutil.rmtree
 
@@ -153,6 +154,7 @@ class EnvironmentManager:
         run_id      = str(uuid.uuid4())[:8]
         input_file  = self.workspace / f"input_{run_id}.json"
         output_file = self.workspace / f"output_{run_id}.json"
+        params_sha256 = hash_params(params)
         max_time    = max(timeout or self.TIMEOUTS.get(stack, 3600), 120)  # min 2 min
 
         result: dict = {"status": "error"}
@@ -161,6 +163,9 @@ class EnvironmentManager:
             # 1. Write parameters to input file
             with open(input_file, "w") as f:
                 json.dump(params, f)
+            (self.workspace / f"params_{run_id}.sha256").write_text(
+                params_sha256 + "\n"
+            )
 
             # 2. Build command — resolve script path against package root
             # (CWD-based resolution caused duplicate path bugs like
@@ -227,6 +232,7 @@ class EnvironmentManager:
 
             with open(output_file, "r") as f:
                 result = json.load(f)
+            result.setdefault("params_sha256", params_sha256)
 
             succeeded = (result.get("status") == "success")
             return result
@@ -258,8 +264,15 @@ class EnvironmentManager:
                             f.unlink()
                         except OSError:
                             pass
+                sha_file = self.workspace / f"params_{run_id}.sha256"
+                if sha_file.exists():
+                    try:
+                        sha_file.unlink()
+                    except OSError:
+                        pass
             else:
                 # Failure: preserve input + output for postmortem.
+                result.setdefault("params_sha256", params_sha256)
                 self._archive_failed_run(run_id, stack, input_file, output_file, result)
 
     def _archive_failed_run(self, run_id: str, stack: str,
@@ -280,6 +293,9 @@ class EnvironmentManager:
                 output_file.replace(run_dir / "output.json")
             # Drop the error summary next to the JSON for easy triage.
             (run_dir / "error.json").write_text(json.dumps(result, indent=2))
+            sha_file = self.workspace / f"params_{run_id}.sha256"
+            if sha_file.exists():
+                sha_file.replace(run_dir / "params.sha256")
         except Exception as e:
             log.warning(f"Could not archive failed run {run_id}: {e}")
             return

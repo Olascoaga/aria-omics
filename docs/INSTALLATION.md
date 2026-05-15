@@ -205,6 +205,20 @@ conda activate aria-env
 
 The prompt will change from `(base)` to `(aria-env)`.
 
+### 5.1.1 Optional: generate publication lockfiles
+
+For publication-grade reproducibility, generate explicit conda lockfiles
+after installation and before sharing or tagging a report:
+
+```bash
+cd ~/aria-omics
+scripts/generate_locks.sh
+```
+
+ARIA reports embed `envs/*.linux-64.lock` files when they are present. If
+they are missing, the report's Provenance section shows a visible warning
+instead of silently omitting dependency lock information.
+
 ### 5.2 Run the end-to-end test
 
 ```bash

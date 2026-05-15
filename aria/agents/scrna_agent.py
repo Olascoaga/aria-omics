@@ -210,7 +210,7 @@ class scRNAAgent(BaseAgent):
                 self.publish_status(experiment_id,
                                     "Pathway enrichment per cluster...", 0.82)
                 findings["pathways"] = self._run_pathway_per_cluster(
-                    experiment_id, de_result, exp_ctx
+                    experiment_id, de_result, exp_ctx, data_path=current_h5ad
                 )
 
         # 5c. Pseudobulk DE between conditions ────────────────────────────
@@ -1329,7 +1329,8 @@ Rules:
     # ── Pathway enrichment per cluster (ORA) ─────────────────────────────
 
     def _run_pathway_per_cluster(self, experiment_id: str,
-                                   de_result: dict, exp_ctx: dict) -> dict:
+                                   de_result: dict, exp_ctx: dict,
+                                   data_path: str | None = None) -> dict:
         """
         Run ORA per Leiden cluster against GO_BP / KEGG / Reactome via the
         rna_pathway_per_cluster.py subprocess. Anchors cell-type biology in
@@ -1339,6 +1340,7 @@ Rules:
         de_by_cluster = de_result.get("de_genes_by_cluster", {})
         if not de_by_cluster:
             return {"status": "skipped", "reason": "no DE genes to enrich"}
+        background_genes = self._expressed_gene_background(data_path)
 
         result = self.env.run_in_stack(
             stack="rna",
@@ -1347,6 +1349,7 @@ Rules:
                 "de_genes_by_cluster":   de_by_cluster,
                 "organism":              exp_ctx.get("organism", "Homo sapiens"),
                 "top_genes_per_cluster": 200,
+                "background_genes":       background_genes,
                 "padj_db_max":           0.05,
             },
             # Pathway enrichment hits Enrichr with rate limits; for a 10-cluster
@@ -1391,6 +1394,31 @@ Rules:
         )
         return result
 
+    @staticmethod
+    def _expressed_gene_background(data_path: str | None) -> list[str]:
+        """Return genes detected at least once in the retained h5ad."""
+        if not data_path:
+            return []
+        try:
+            import numpy as np
+            import anndata as ad
+            from scipy import sparse
+            adata = ad.read_h5ad(data_path)
+            if adata.raw is not None:
+                mat = adata.raw.X
+                genes = list(adata.raw.var_names)
+            else:
+                mat = adata.X
+                genes = list(adata.var_names)
+            if sparse.issparse(mat):
+                mask = np.asarray((mat > 0).sum(axis=0)).ravel() > 0
+            else:
+                mask = (np.asarray(mat) > 0).sum(axis=0) > 0
+            return [str(g) for g, keep in zip(genes, mask) if keep]
+        except Exception as exc:
+            log.debug(f"Could not compute expressed-gene background: {exc}")
+            return []
+
     # ── Pseudobulk DE between conditions ─────────────────────────────────
 
     PSEUDOBULK_KEYWORDS = (
@@ -1410,12 +1438,16 @@ Rules:
 
     def _needs_pseudobulk(self, intent: dict, exp_ctx: dict) -> bool:
         """
-        True when DesignAgent identified ≥2 biological groups (the
+        True when DesignAgent identified enough biological groups (the
         prerequisite for any between-condition DE) AND the user's intent
         carries comparison semantics. Conservative: returns False if either
         side is missing — we never run a between-condition test against a
         single group, and we don't surprise the user with extra compute
         when the question is purely descriptive (cell-type characterisation).
+
+        v4.4 publication-readiness rule: n>=3 per group is recommended.
+        n=2 remains supported with a low-power warning, but only when CP2
+        selected optional supported analyses.
         """
         design = (exp_ctx or {}).get("design", {}) or {}
         groups = design.get("groups", {}) or {}
@@ -1427,9 +1459,14 @@ Rules:
         if len(groups) < 2:
             if not has_obs_design:
                 return False
-        # Need ≥2 samples per group (pseudobulk requires biological reps)
-        if groups and not all(len(s) >= 2 for s in groups.values()):
-            return False
+        if groups:
+            if all(len(s or []) >= 3 for s in groups.values()):
+                pass
+            elif all(len(s or []) >= 2 for s in groups.values()):
+                if not (exp_ctx or {}).get("run_optional_supported"):
+                    return False
+            else:
+                return False
         text = (
             (intent.get("summary", "") or "") + " "
             + " ".join(intent.get("biological_entities", []) or [])
@@ -1599,6 +1636,16 @@ Rules:
                 made_by="scrna_agent",
             )
 
+        group_sizes = [
+            len(samples or []) for samples in (groups or {}).values()
+        ]
+        low_power_optional = (
+            bool(group_sizes)
+            and min(group_sizes) == 2
+            and bool((exp_ctx or {}).get("run_optional_supported"))
+        )
+        min_replicates = 2 if low_power_optional else 3
+
         # 3. Run pseudobulk DE
         pb = self.env.run_in_stack(
             stack="rna",
@@ -1612,7 +1659,7 @@ Rules:
                 "covariates":    covariates,
                 "composition_covariate": da_significant,
                 "min_cells_per_pseudosample":   10,
-                "min_replicates_per_condition": 2,
+                "min_replicates_per_condition": min_replicates,
                 "padj_max":      0.05,
                 "lfc_min":       0.5,
                 "top_n":         50,
@@ -1648,6 +1695,7 @@ Rules:
                     "organism":              exp_ctx.get("organism",
                                                           "Homo sapiens"),
                     "top_genes_per_cluster": 200,
+                    "background_genes":       pb.get("background_genes", []),
                     "padj_db_max":           0.05,
                     "output_dir":            str(workspace),
                 },
@@ -1656,6 +1704,8 @@ Rules:
                 pw_findings = {
                     "organism":    pw.get("organism"),
                     "databases":   pw.get("databases", {}),
+                    "background_size": pw.get("background_size"),
+                    "background_source": pw.get("background_source"),
                     "per_cluster": pw.get("per_cluster", {}),
                 }
 
@@ -1667,6 +1717,9 @@ Rules:
             "covariates":    pb.get("covariates", []),
             "from_obs":      use_obs_design,
             "thresholds":    pb.get("thresholds", {}),
+            "multiple_testing": pb.get("multiple_testing", {}),
+            "background_size": pb.get("background_size"),
+            "background_source": pb.get("background_source"),
             "n_groups":      pb.get("n_groups"),
             "per_group":     pb.get("per_group", {}),
         }

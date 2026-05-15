@@ -288,10 +288,17 @@ def summarize_scrna_text(findings: dict) -> str:
             for c in (g.get("per_comparison", {}) or {}).values()
             if c.get("status") == "skipped"
         )
-        n_with_de = sum(
+        n_with_de_local = sum(
             1 for g in per_group.values()
             for c in (g.get("per_comparison", {}) or {}).values()
-            if c.get("status") == "success" and c.get("n_significant", 0) > 0
+            if c.get("status") == "success"
+            and c.get("n_significant_local", c.get("n_significant", 0)) > 0
+        )
+        n_with_de_global = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success"
+            and c.get("n_significant_global", c.get("n_significant", 0)) > 0
         )
         n_corrected = sum(
             1 for g in per_group.values()
@@ -299,6 +306,8 @@ def summarize_scrna_text(findings: dict) -> str:
             if c.get("status") == "success" and c.get("corrected_for_composition")
         )
         thr = pb.get("thresholds", {}) or {}
+        mt = pb.get("multiple_testing", {}) or {}
+        n_tests_global = mt.get("n_tests_global")
         cond_col = pb.get("condition_col") or "condition"
         cond_label = cond_col.replace("_", " ").strip()
         cond_label = cond_label[:1].upper() + cond_label[1:] if cond_label else "Condition"
@@ -319,8 +328,11 @@ def summarize_scrna_text(findings: dict) -> str:
             f"{n_success} analyzable "
             f"group x comparison blocks"
             f"{f' ({n_skipped} skipped for replicate support)' if n_skipped else ''}. "
-            f"{n_with_de} blocks yielded significant DE "
-            f"at padj < {thr.get('padj_max', 0.05)} and "
+            f"{n_with_de_local} blocks yielded locally significant DE and "
+            f"{n_with_de_global} blocks remained significant after global "
+            f"BH correction"
+            f"{f' across {_fmt_int(n_tests_global)} gene-block tests' if n_tests_global else ''} "
+            f"at FDR < {thr.get('padj_max', 0.05)} and "
             f"|log2FC| > {thr.get('lfc_min', 0.5)}."
             f"{composition_clause}"
         )
@@ -344,9 +356,11 @@ def summarize_scrna_text(findings: dict) -> str:
                 tag = " [low power]" if comp.get("low_power_warning") else ""
                 desc.append(
                     f"{group} {comp_key}{tag}: "
-                    f"{_fmt_int(comp.get('n_significant', 0))} DE genes "
-                    f"({_fmt_int(comp.get('n_up', 0))} up, "
-                    f"{_fmt_int(comp.get('n_down', 0))} down)"
+                    f"{_fmt_int(comp.get('n_significant_global', comp.get('n_significant', 0)))} "
+                    f"global-FDR DE genes "
+                    f"({_fmt_int(comp.get('n_up_global', comp.get('n_up', 0)))} up, "
+                    f"{_fmt_int(comp.get('n_down_global', comp.get('n_down', 0)))} down; "
+                    f"{_fmt_int(comp.get('n_significant_local', comp.get('n_significant', 0)))} local)"
                 )
             lines.append("Largest DE blocks: " + "; ".join(desc) + ".")
 
@@ -357,10 +371,16 @@ def summarize_scrna_text(findings: dict) -> str:
             1 for b in pwp["per_cluster"].values()
             if b.get("n_significant", 0) > 0
         )
+        bg_summary = (
+            f" using {_fmt_int(pwp.get('background_size'))} "
+            f"dataset-expressed genes as background"
+            if pwp.get("background_size") else ""
+        )
         lines.append(
             f"Pathway over-representation (Enrichr) on top-200 DE genes per "
             f"(group × comparison): {n_sig_blocks}/{n_blocks} blocks "
-            f"with significant enrichment."
+            f"with significant enrichment"
+            f"{bg_summary}."
         )
         examples = []
         for block_key, block in _top_pathway_blocks(pwp, limit=3):
@@ -630,6 +650,24 @@ def build_scrna_methods(findings: dict) -> str:
     pb = findings.get("pseudobulk_de") or {}
     if pb:
         thr = pb.get("thresholds", {}) or {}
+        mt = pb.get("multiple_testing", {}) or {}
+        n_tests_clause = (
+            f" (n={mt.get('n_tests_global')})"
+            if mt.get("n_tests_global") else ""
+        )
+        powers = [
+            c.get("power_estimate_at_lfc_min")
+            for g in (pb.get("per_group", {}) or {}).values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success"
+            and isinstance(c.get("power_estimate_at_lfc_min"), (int, float))
+        ]
+        power_clause = (
+            f" Approximate power to detect |log2FC|>{thr.get('lfc_min', 0.5)} "
+            f"ranged from {min(powers):.0%} to {max(powers):.0%} across "
+            f"analyzable blocks."
+            if powers else ""
+        )
         cov = ", ".join(pb.get("covariates", []) or []) or "none"
         lines.append(
             f"Between-condition differential expression was performed by "
@@ -642,10 +680,16 @@ def build_scrna_methods(findings: dict) -> str:
             f"{thr.get('min_cells_per_pseudosample', 10)} cells were dropped; "
             f"groups requiring ≥ "
             f"{thr.get('min_replicates_per_condition', 2)} replicates per "
-            f"condition. Significance: padj &lt; {thr.get('padj_max', 0.05)}, "
+            f"condition. Local BH correction was computed within each "
+            f"cell-type × comparison block; global BH correction was computed "
+            f"across all gene × block tests"
+            f"{n_tests_clause}. "
+            f"Significance for narrative summaries and ORA input used "
+            f"padj_global &lt; {thr.get('padj_max', 0.05)} and "
             f"|log2FC| &gt; {thr.get('lfc_min', 0.5)}. "
             f"For Seurat-derived h5ads with log-normalised raw.X, counts were "
             f"recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."
+            f"{power_clause}"
         )
 
     pwp = findings.get("pseudobulk_pathways") or {}
@@ -653,10 +697,18 @@ def build_scrna_methods(findings: dict) -> str:
         dbs = list((pwp.get("databases") or {}).keys()) or [
             "GO_BP", "KEGG", "Reactome"
         ]
+        bg_clause = (
+            f" The ORA background was {pwp.get('background_size')} genes "
+            f"detected in the analyzed dataset."
+            if pwp.get("background_size") else
+            " The ORA background was Enrichr's default universe because no "
+            "dataset-expressed background was available."
+        )
         lines.append(
             f"Over-representation analysis (gseapy / Enrichr endpoint) was "
             f"run on the top-200 DE genes per (group × comparison) against "
             f"{', '.join(dbs)}. Significance: adjusted p &lt; 0.05."
+            f"{bg_clause}"
         )
 
     ccc = findings.get("cell_communication") or {}
@@ -767,9 +819,10 @@ def extract_pseudobulk_de_table(findings: dict,
                 continue
             if comp.get("status") != "success":
                 continue
-            n_sig = comp.get("n_significant", 0)
-            n_up   = comp.get("n_up", 0)
-            n_down = comp.get("n_down", 0)
+            n_sig = comp.get("n_significant_global", comp.get("n_significant", 0))
+            n_sig_local = comp.get("n_significant_local", n_sig)
+            n_up   = comp.get("n_up_global", comp.get("n_up", 0))
+            n_down = comp.get("n_down_global", comp.get("n_down", 0))
             top_genes = comp.get("top_genes", []) or []
             up_tops = [g["gene"] for g in top_genes
                        if g.get("log2fc", 0) > 0][:top_genes_per_row]
@@ -780,7 +833,9 @@ def extract_pseudobulk_de_table(findings: dict,
                 f"<td><strong>{html.escape(str(group))}</strong></td>"
                 f"<td>{n_ps}</td>"
                 f"<td>{html.escape(str(comp_key))}</td>"
-                f"<td><strong>{n_sig}</strong></td>"
+                f"<td><strong>{n_sig}</strong> "
+                f"<span style='color:var(--muted);font-size:0.85em'>"
+                f"global / {n_sig_local} local</span></td>"
                 f"<td style='color:var(--red)'>{n_up} ↑ "
                 f"<span style='color:var(--muted);font-size:0.85em'>"
                 f"{html.escape(', '.join(up_tops))}</span></td>"
@@ -1165,8 +1220,22 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
                 "status": comp.get("status"),
                 "n_pseudosamples": n_ps,
                 "n_significant": comp.get("n_significant", 0),
+                "n_significant_local": comp.get(
+                    "n_significant_local", comp.get("n_significant", 0)
+                ),
+                "n_significant_global": comp.get(
+                    "n_significant_global", comp.get("n_significant", 0)
+                ),
                 "n_up": comp.get("n_up", 0),
+                "n_up_local": comp.get("n_up_local", comp.get("n_up", 0)),
+                "n_up_global": comp.get("n_up_global", comp.get("n_up", 0)),
                 "n_down": comp.get("n_down", 0),
+                "n_down_local": comp.get(
+                    "n_down_local", comp.get("n_down", 0)
+                ),
+                "n_down_global": comp.get(
+                    "n_down_global", comp.get("n_down", 0)
+                ),
                 "reason": comp.get("reason", ""),
             })
             records = comp.get("all_sig") or comp.get("top_genes") or []
@@ -1179,6 +1248,9 @@ def export_supplementary_tables(findings: dict, output_dir: Path) -> dict:
                     "gene": rec.get("gene"),
                     "log2fc": rec.get("log2fc"),
                     "padj": rec.get("padj"),
+                    "padj_local": rec.get("padj_local"),
+                    "padj_global": rec.get("padj_global"),
+                    "pvalue": rec.get("pvalue"),
                 }
                 for key, val in rec.items():
                     if key not in row:

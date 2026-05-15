@@ -383,6 +383,16 @@ ARIA_DEV_PROVIDER=gemini   # free tier — or "ollama" for local GPU
 | `aria-hic-env` | cooler, cooltools, hic-straw, pairtools, chromosight |
 | `aria-integration-env` | MOFA+, scGLUE, SCENIC+, decoupler, muon |
 
+For publication or archival runs, generate explicit Linux lockfiles before
+tagging or sharing a report:
+
+```bash
+scripts/generate_locks.sh
+```
+
+Reports embed `envs/*.linux-64.lock` when present and show a visible warning
+when lockfiles are missing.
+
 ---
 
 ## Roadmap

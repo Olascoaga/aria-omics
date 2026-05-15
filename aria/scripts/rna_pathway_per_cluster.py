@@ -11,6 +11,9 @@ Input params:
     organism:            str — "Homo sapiens" | "Mus musculus" | ...
     top_genes_per_cluster: int (optional) — max genes submitted per cluster
                                               (default: 200)
+    background_genes:     list[str] (optional) — expressed/detectable genes
+                          in the analyzed dataset. Used as the ORA universe
+                          instead of Enrichr's default all-database universe.
     padj_db_max:         float (optional) — filter Enrichr hits (default: 0.05)
     output_dir:          str (optional) — CSV destination
 
@@ -84,6 +87,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
     de_by_cluster        = params.get("de_genes_by_cluster") or {}
     organism             = params.get("organism", "Homo sapiens")
     top_n                = int(params.get("top_genes_per_cluster", 200))
+    background_genes_in  = params.get("background_genes") or []
     padj_db_max          = float(params.get("padj_db_max", 0.05))
     output_dir           = params.get("output_dir") or "."
 
@@ -102,6 +106,16 @@ def rna_pathway_per_cluster(params: dict) -> dict:
 
     gene_sets   = _get_gene_sets(organism)
     enrichr_org = _gseapy_organism(organism)
+    background_genes = sorted({
+        str(g) for g in background_genes_in
+        if g and str(g).lower() != "nan"
+    })
+    background_set = set(background_genes)
+    background_source = (
+        "dataset_expressed_genes"
+        if background_genes else
+        "enrichr_default_universe"
+    )
     per_cluster: dict = {}
     csv_rows:    list = []
 
@@ -115,6 +129,8 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                 "n_input_genes": 0,
                 "results":       {},
                 "n_significant": 0,
+                "background_size": len(background_genes),
+                "background_source": background_source,
             }
             continue
 
@@ -131,11 +147,15 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             for r in sorted_records[:top_n]
             if r.get("gene") and str(r["gene"]) not in ("nan", "")
         ]
+        if background_set:
+            symbols = [g for g in symbols if g in background_set]
         if not symbols:
             per_cluster[cluster_id] = {
                 "n_input_genes": 0,
                 "results":       {},
                 "n_significant": 0,
+                "background_size": len(background_genes),
+                "background_source": background_source,
             }
             continue
 
@@ -146,13 +166,22 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                 time.sleep(8)
             first_call = False
             try:
-                enr = gp.enrichr(
-                    gene_list=symbols,
-                    gene_sets=db_name,
-                    organism=enrichr_org,
-                    outdir=None,
-                    verbose=False,
-                )
+                enrichr_kwargs = {
+                    "gene_list": symbols,
+                    "gene_sets": db_name,
+                    "organism": enrichr_org,
+                    "outdir": None,
+                    "verbose": False,
+                }
+                if background_genes:
+                    enrichr_kwargs["background"] = background_genes
+                try:
+                    enr = gp.enrichr(**enrichr_kwargs)
+                except TypeError as exc:
+                    if "background" not in str(exc):
+                        raise
+                    enrichr_kwargs.pop("background", None)
+                    enr = gp.enrichr(**enrichr_kwargs)
                 if enr.results is None or enr.results.empty:
                     cluster_results[db_label] = []
                     continue
@@ -189,6 +218,8 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             "n_input_genes": len(symbols),
             "results":       cluster_results,
             "n_significant": cluster_n_sig,
+            "background_size": len(background_genes),
+            "background_source": background_source,
         }
 
     csv_path = None
@@ -202,6 +233,8 @@ def rna_pathway_per_cluster(params: dict) -> dict:
         "status":       "success",
         "organism":     organism,
         "databases":    gene_sets,
+        "background_size": len(background_genes),
+        "background_source": background_source,
         "per_cluster":  per_cluster,
         "output_csv":   csv_path,
     }

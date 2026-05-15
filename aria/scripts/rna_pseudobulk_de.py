@@ -69,6 +69,33 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _bh_correct(pvals):
+    """Benjamini-Hochberg correction without statsmodels."""
+    import numpy as np
+    pvals = np.asarray(pvals, dtype=float)
+    n = len(pvals)
+    if n == 0:
+        return pvals
+    order = np.argsort(pvals)
+    ranked = pvals[order]
+    adj = ranked * n / (np.arange(n) + 1)
+    adj = np.minimum.accumulate(adj[::-1])[::-1]
+    adj = np.clip(adj, 0, 1)
+    out = np.empty(n, dtype=float)
+    out[order] = adj
+    return out
+
+
+def _global_bh(pvals):
+    """Return BH-adjusted p-values for one global family of tests."""
+    try:
+        from statsmodels.stats.multitest import multipletests
+        _, padj, _, _ = multipletests(pvals, method="fdr_bh")
+        return padj
+    except Exception:
+        return _bh_correct(pvals)
+
+
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
     _w.filterwarnings("ignore")
@@ -78,6 +105,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     import scanpy as sc
     from pathlib import Path
     from scipy import sparse
+    from aria.utils.power_estimation import pseudobulk_power_estimate
 
     data_path                     = params["data_path"]
     groupby                       = params["groupby"]
@@ -153,6 +181,17 @@ def rna_pseudobulk_de(params: dict) -> dict:
         counts     = adata.X
         gene_names = list(adata.var_names)
 
+    try:
+        if sparse.issparse(counts):
+            expressed_mask = np.asarray((counts > 0).sum(axis=0)).ravel() > 0
+        else:
+            expressed_mask = (np.asarray(counts) > 0).sum(axis=0) > 0
+        background_genes = [
+            str(g) for g, keep in zip(gene_names, expressed_mask) if keep
+        ]
+    except Exception:
+        background_genes = list(map(str, gene_names))
+
     integerlike, max_val = _looks_integerlike(counts)
     needs_recovery       = False
     if not integerlike:
@@ -216,6 +255,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     groups = sorted(obs[groupby].unique())
     per_group: dict = {}
     csv_rows: list = []
+    successful_blocks: list = []
 
     for group in groups:
         cells_in_group = obs[obs[groupby] == group].index
@@ -336,6 +376,23 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     design_factors = design_factors + [COMPOSITION_COL]
                     block_corrected_for_composition = True
             try:
+                means = counts_sub.mean(axis=1).astype(float)
+                variances = counts_sub.var(axis=1, ddof=1).astype(float)
+                disp = ((variances - means) / (means ** 2)).replace(
+                    [np.inf, -np.inf], np.nan
+                )
+                dispersion_estimate = float(
+                    np.nanmedian(np.clip(disp.dropna(), 1e-8, None))
+                ) if len(disp.dropna()) else 0.1
+                mean_expression = float(np.nanmedian(means[means > 0])) \
+                    if (means > 0).any() else 1.0
+                power_estimate = pseudobulk_power_estimate(
+                    n_per_group=(n_test, n_ref),
+                    dispersion_estimate=dispersion_estimate,
+                    target_log2fc=lfc_min,
+                    alpha=padj_max,
+                    mean_expression=mean_expression,
+                )
                 dds = DeseqDataSet(
                     counts        = counts_sub.T,    # samples × genes
                     metadata      = meta_sub,
@@ -348,7 +405,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     contrast=[condition_col, test_lvl, ref_lvl],
                 )
                 stat_res.summary()
-                res = stat_res.results_df.dropna(subset=["padj"])
+                res = stat_res.results_df.dropna(subset=["pvalue"]).copy()
+                res["padj_local"] = res.get("padj")
             except Exception as e:
                 per_group_entry["per_comparison"][comp_key] = {
                     "status":     "error",
@@ -356,24 +414,6 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "details":    str(e)[:200],
                 }
                 continue
-
-            sig = res[(res["padj"] < padj_max)
-                       & (res["log2FoldChange"].abs() > lfc_min)]
-            sig = sig.sort_values("padj")
-
-            top_records = [
-                {"gene":    str(g),
-                 "log2fc":  round(float(row["log2FoldChange"]), 3),
-                 "padj":    float(row["padj"]),
-                 "basemean": round(float(row["baseMean"]), 1)}
-                for g, row in sig.head(top_n).iterrows()
-            ]
-            all_records = [
-                {"gene":    str(g),
-                 "log2fc":  round(float(row["log2FoldChange"]), 3),
-                 "padj":    float(row["padj"])}
-                for g, row in sig.iterrows()
-            ]
 
             # Low-power flag: even after passing min_replicates_per_condition,
             # n<=2 on either side leaves dispersion estimation noisy. The DE
@@ -388,28 +428,110 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
             per_group_entry["per_comparison"][comp_key] = {
                 "status":                    "success",
-                "n_significant":             int(len(sig)),
-                "n_up":                      int((sig["log2FoldChange"] > 0).sum()),
-                "n_down":                    int((sig["log2FoldChange"] < 0).sum()),
+                "n_significant":             0,
+                "n_significant_local":       0,
+                "n_significant_global":      0,
+                "n_up":                      0,
+                "n_up_local":                0,
+                "n_up_global":               0,
+                "n_down":                    0,
+                "n_down_local":              0,
+                "n_down_global":             0,
                 "n_replicates":              {"test": n_test, "ref": n_ref},
                 "low_power_warning":         low_power,
                 "low_power_reason":          low_power_reason,
+                "dispersion_estimate":        dispersion_estimate,
+                "mean_expression_estimate":   mean_expression,
+                "power_estimate_at_lfc_min":  power_estimate,
                 "corrected_for_composition": block_corrected_for_composition,
-                "top_genes":                 top_records,
-                "all_sig":                   all_records,
+                "top_genes":                 [],
+                "all_sig":                   [],
             }
-
-            # CSV rows
-            for r in all_records:
-                csv_rows.append({
-                    "group":       group,
-                    "comparison":  comp_key,
-                    "gene":        r["gene"],
-                    "log2fc":      r["log2fc"],
-                    "padj":        r["padj"],
-                })
+            successful_blocks.append({
+                "group":      group,
+                "comparison": comp_key,
+                "results":    res,
+            })
 
         per_group[group] = per_group_entry
+
+    # ── Global FDR across every gene × group × comparison test ───────────
+    global_pvals = []
+    for block in successful_blocks:
+        res = block["results"]
+        pvals = res["pvalue"].astype(float)
+        valid = pvals.notna() & np.isfinite(pvals)
+        block["valid_mask"] = valid
+        global_pvals.extend(pvals[valid].tolist())
+
+    n_tests_global = int(len(global_pvals))
+    if n_tests_global:
+        padj_global = _global_bh(global_pvals)
+        cursor = 0
+        for block in successful_blocks:
+            res = block["results"]
+            valid = block["valid_mask"]
+            n_valid = int(valid.sum())
+            res["padj_global"] = np.nan
+            if n_valid:
+                res.loc[valid, "padj_global"] = padj_global[cursor:cursor + n_valid]
+                cursor += n_valid
+
+            comp = per_group[block["group"]]["per_comparison"][block["comparison"]]
+            sig_local = res[
+                (res["padj_local"] < padj_max)
+                & (res["log2FoldChange"].abs() > lfc_min)
+            ].sort_values("padj_local")
+            sig_global = res[
+                (res["padj_global"] < padj_max)
+                & (res["log2FoldChange"].abs() > lfc_min)
+            ].sort_values("padj_global")
+
+            top_records = [
+                {"gene":        str(g),
+                 "log2fc":      round(float(row["log2FoldChange"]), 3),
+                 "pvalue":      float(row["pvalue"]),
+                 "padj":        float(row["padj_global"]),
+                 "padj_local":  float(row["padj_local"]),
+                 "padj_global": float(row["padj_global"]),
+                 "basemean":    round(float(row["baseMean"]), 1)}
+                for g, row in sig_global.head(top_n).iterrows()
+            ]
+            all_records = [
+                {"gene":        str(g),
+                 "log2fc":      round(float(row["log2FoldChange"]), 3),
+                 "pvalue":      float(row["pvalue"]),
+                 "padj":        float(row["padj_global"]),
+                 "padj_local":  float(row["padj_local"]),
+                 "padj_global": float(row["padj_global"])}
+                for g, row in sig_global.iterrows()
+            ]
+
+            comp.update({
+                "n_significant":        int(len(sig_global)),
+                "n_significant_local":  int(len(sig_local)),
+                "n_significant_global": int(len(sig_global)),
+                "n_up":                 int((sig_global["log2FoldChange"] > 0).sum()),
+                "n_up_local":           int((sig_local["log2FoldChange"] > 0).sum()),
+                "n_up_global":          int((sig_global["log2FoldChange"] > 0).sum()),
+                "n_down":               int((sig_global["log2FoldChange"] < 0).sum()),
+                "n_down_local":         int((sig_local["log2FoldChange"] < 0).sum()),
+                "n_down_global":        int((sig_global["log2FoldChange"] < 0).sum()),
+                "top_genes":            top_records,
+                "all_sig":              all_records,
+            })
+
+            for r in all_records:
+                csv_rows.append({
+                    "group":       block["group"],
+                    "comparison":  block["comparison"],
+                    "gene":        r["gene"],
+                    "log2fc":      r["log2fc"],
+                    "pvalue":      r["pvalue"],
+                    "padj":        r["padj"],
+                    "padj_local":  r["padj_local"],
+                    "padj_global": r["padj_global"],
+                })
 
     # ── Write CSV ─────────────────────────────────────────────────────────
     out_dir = Path(output_dir) if output_dir else Path(data_path).parent
@@ -419,7 +541,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
         pd.DataFrame(csv_rows).to_csv(csv_path, index=False)
     else:
         # Empty marker file so callers don't trip on a missing path
-        pd.DataFrame(columns=["group", "comparison", "gene", "log2fc", "padj"]) \
+        pd.DataFrame(columns=[
+            "group", "comparison", "gene", "log2fc", "pvalue",
+            "padj", "padj_local", "padj_global",
+        ]) \
           .to_csv(csv_path, index=False)
 
     return {
@@ -430,6 +555,14 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "replicate_col":                   replicate_col,
         "covariates":                      covariates,
         "composition_covariate_requested": composition_covariate,
+        "background_genes": background_genes,
+        "background_size":  len(background_genes),
+        "background_source": "dataset_expressed_genes",
+        "multiple_testing": {
+            "local_method":   "BH",
+            "global_method":  "BH",
+            "n_tests_global": n_tests_global,
+        },
         "thresholds":     {"padj_max": padj_max, "lfc_min": lfc_min,
                            "min_cells_per_pseudosample": min_cells_per_pseudosample,
                            "min_replicates_per_condition": min_replicates_per_condition},

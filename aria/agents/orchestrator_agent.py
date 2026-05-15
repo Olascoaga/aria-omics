@@ -29,6 +29,7 @@ from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Message, MessageType, Confidence, bus
 from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
+from aria.utils.provenance import collect_provenance
 
 log = logging.getLogger("aria.orchestrator")
 
@@ -142,6 +143,7 @@ class OrchestratorAgent(BaseAgent):
 
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
         intent = self._parse_question(context["user_question"])
+        context["provenance"] = collect_provenance()
 
         self._experiment_plans[experiment_id] = {
             "user_question": context["user_question"],

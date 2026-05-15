@@ -779,6 +779,7 @@ def _print_final_summary(experiment_id: str):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    reproducible_mode = "--reproducible" in sys.argv[1:]
     memory       = ARIAMemory()
     orchestrator = OrchestratorAgent(memory)
 
@@ -847,7 +848,11 @@ def main():
         console.print(f"\n  [{C['muted']}]Cancelled.[/]\n")
         return
 
-    ctx: dict = {"data_dir": str(data_dir), "user_question": question}
+    ctx: dict = {
+        "data_dir": str(data_dir),
+        "user_question": question,
+        "reproducible_mode": reproducible_mode,
+    }
     if geo_meta:
         ctx["geo_metadata"] = geo_meta
 
