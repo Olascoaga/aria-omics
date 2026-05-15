@@ -24,6 +24,7 @@ cache/
 # ARIA — artefactos locales de análisis
 audit.txt
 pathways_per_cluster.csv
+Memoria/
 
 # Jupyter
 .ipynb_checkpoints/

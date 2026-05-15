@@ -12,6 +12,7 @@ roadmap modules.
 - [Installation Guide](INSTALLATION.md)
 - [Validation Status](validation_status.md)
 - [v4.3.12 Release Notes](release_notes_v4.3.12.md)
+- [Operational Memory](../memory/START_HERE.md)
 
 ## Production-Like Validated Workflows
 
