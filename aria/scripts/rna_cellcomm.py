@@ -108,8 +108,11 @@ def rna_cellcomm(params: dict) -> dict:
         # magnitude_rank as NaN when the aggregate doesn't include any
         # magnitude-scoring method, so we fall back to specificity_rank
         # (RRA-aggregated p-value rank, lower = more specific).
+        # Prefer specificity_rank for rank_aggregate. magnitude_rank can be
+        # present but all-NaN, and in some LIANA versions it is less useful
+        # for aggregate outputs. All rank metrics are lower-is-better.
         rank_cols = [
-            c for c in ("magnitude_rank", "specificity_rank", "lrscore")
+            c for c in ("specificity_rank", "magnitude_rank", "lrscore")
             if c in liana_df.columns
         ]
         chosen_rank = None
@@ -129,7 +132,8 @@ def rna_cellcomm(params: dict) -> dict:
                   .dropna(subset=[chosen_rank])
                   .sort_values(chosen_rank, ascending=ascending)
                   .head(50))
-        for _, row in ranked.iterrows():
+        for rank_idx, (_, row) in enumerate(ranked.iterrows(), start=1):
+            raw_score = float(row.get(chosen_rank, 0))
             interactions.append({
                 "source":   str(row.get("source", "")),
                 "target":   str(row.get("target", "")),
@@ -137,8 +141,12 @@ def rna_cellcomm(params: dict) -> dict:
                                          row.get("ligand", ""))),
                 "receptor": str(row.get("receptor_complex",
                                          row.get("receptor", ""))),
-                "score":    round(float(row.get(chosen_rank, 0)), 4),
+                "score":    raw_score,
+                "rank":     rank_idx,
                 "rank_metric": chosen_rank,
+                "score_direction": (
+                    "lower is better" if ascending else "higher is better"
+                ),
                 "cellphone_pval": float(row.get("cellphone_pvals"))
                                    if "cellphone_pvals" in row else None,
             })

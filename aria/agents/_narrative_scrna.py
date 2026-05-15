@@ -66,6 +66,18 @@ def _fmt_int(value) -> str:
         return str(value)
 
 
+def _fmt_stat(value) -> str:
+    """Compact numeric display that preserves very small nonzero values."""
+    if not isinstance(value, (int, float)):
+        return str(value)
+    if value == 0:
+        return "0"
+    value = float(value)
+    if abs(value) < 1e-3:
+        return f"{value:.2e}"
+    return f"{value:.4g}"
+
+
 def _group_label(groupby: str | None, n: int | None = None) -> str:
     """Human-readable label for an obs grouping column."""
     if not groupby:
@@ -816,7 +828,7 @@ def render_cellcomm_heatmap(findings: dict,
 def render_cellcomm_top_pairs_bar(findings: dict,
                                     output_path: Path,
                                     top_n: int = 15) -> Optional[str]:
-    """Horizontal barplot of top-N L-R interactions by score."""
+    """Horizontal barplot of top-N L-R interactions by rank/score."""
     ccc = findings.get("cell_communication") or {}
     top = ccc.get("top_interactions") or []
     if not top:
@@ -827,14 +839,14 @@ def render_cellcomm_top_pairs_bar(findings: dict,
     import matplotlib.pyplot as plt
     import numpy as np
 
-    # Ranks: lower = better for spec/mag. We invert so the best ranks
-    # appear with the LONGEST bars (visually more prominent).
+    # Ranks: lower = better for spec/mag. Prefer explicit rank order when
+    # present so tied/underflowed LIANA scores do not render as all-zero bars.
     rows = []
     for ia in top[:top_n]:
         label = (f"{ia.get('source', '?')[:18]} → "
                  f"{ia.get('target', '?')[:18]}  "
                  f"({ia.get('ligand', '?')}-{ia.get('receptor', '?')})")
-        rows.append((label, float(ia.get("score", 0))))
+        rows.append((label, float(ia.get("rank", ia.get("score", 0)))))
     if not rows:
         return None
     labels = [r[0] for r in rows]
@@ -886,13 +898,23 @@ def extract_cellcomm_table(findings: dict, top_n: int = 20) -> str:
         lig = html.escape(str(ia.get("ligand", "")))
         rec = html.escape(str(ia.get("receptor", "")))
         score = ia.get("score", "?")
+        rank = ia.get("rank")
+        metric = ia.get("rank_metric") or (
+            (ccc.get("method", "").split("(")[-1].rstrip(")").strip())
+            if ccc.get("method") else ""
+        )
         pval = ia.get("cellphone_pval")
-        pval_str = (f"<code>{pval:.4g}</code>"
+        pval_str = (f"<code>{_fmt_stat(pval)}</code>"
                     if isinstance(pval, (int, float)) else "—")
+        rank_str = f"#{int(rank)}" if isinstance(rank, (int, float)) else "—"
+        score_str = _fmt_stat(score)
+        metric_str = html.escape(str(metric or "score"))
         rows.append(
             f"<tr><td>{src}</td><td>{tgt}</td>"
             f"<td><strong>{lig}</strong></td><td>{rec}</td>"
-            f"<td><code>{score}</code></td><td>{pval_str}</td></tr>"
+            f"<td>{rank_str}</td><td><code>{score_str}</code><br>"
+            f"<span style='color:var(--muted);font-size:0.82em'>"
+            f"{metric_str}</span></td><td>{pval_str}</td></tr>"
         )
     return "\n".join(rows)
 
@@ -1464,7 +1486,8 @@ def build_scrna_html_section(findings: dict,
                 '<table style="width:100%;font-size:0.85em">'
                 '<thead><tr><th>Sender</th><th>Receiver</th>'
                 '<th>Ligand</th><th>Receptor</th>'
-                '<th>Score</th><th>CellPhone p</th></tr></thead>'
+                '<th>Rank</th><th>Metric value</th><th>CellPhone p</th>'
+                '</tr></thead>'
                 f'<tbody>{cc_rows}</tbody></table>'
             )
 
