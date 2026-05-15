@@ -16,6 +16,8 @@ venv/
 .aria/
 ARIA_CONTEXT.md
 CLAUDE.md
+AGENTS.md
+memory/
 *.db
 data/
 aria-data/
