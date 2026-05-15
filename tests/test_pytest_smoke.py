@@ -580,6 +580,76 @@ def test_predefined_celltype_col_picks_subclass_from_obs(tmp_path):
     assert agent._predefined_celltype_col(str(h5ad_path), exp_ctx_leiden) is None
 
 
+def test_scrna_infers_and_materializes_cell_focus(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    obs = pd.DataFrame(
+        {"subclass": ["OPC"] * 3 + ["Oligo"] * 4 + ["Astro"] * 5},
+        index=[f"c_{i}" for i in range(12)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((12, 3), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=[f"g_{i}" for i in range(3)]),
+    )
+    h5ad_path = tmp_path / "hippo.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.publish_finding = lambda *args, **kwargs: None
+    exp_ctx = {
+        "user_question": "focus on oligodendrocyte trajectories from OPCs",
+        "design": {"pseudobulk": {"groupby_col": "subclass"}},
+    }
+    focus = agent._prepare_focused_h5ads(
+        "exp-focus",
+        [str(h5ad_path)],
+        exp_ctx,
+        {"summary": "OPC to oligodendrocyte lineage"},
+    )
+
+    assert focus["status"] == "success"
+    assert focus["values"] == ["OPC", "Oligo"]
+    assert focus["n_cells_before"] == 12
+    assert focus["n_cells_after"] == 7
+    focused = ad.read_h5ad(focus["files"][0])
+    assert set(focused.obs["subclass"].astype(str)) == {"OPC", "Oligo"}
+    assert focused.n_obs == 7
+
+
+def test_scrna_cell_focus_skips_when_all_groups_requested(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    obs = pd.DataFrame(
+        {"subclass": ["OPC", "Oligo", "Astro"] * 2},
+        index=[f"c_{i}" for i in range(6)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((6, 2), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=["g1", "g2"]),
+    )
+    h5ad_path = tmp_path / "all_groups.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    focus = scRNAAgent._infer_cell_focus_values(
+        [str(h5ad_path)],
+        "subclass",
+        {"user_question": "compare OPC Oligo and Astro"},
+        {"summary": ""},
+    )
+
+    assert focus == set()
+
+
 def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 

@@ -89,6 +89,15 @@ class scRNAAgent(BaseAgent):
         self.publish_status(experiment_id, "scRNAAgent starting...", 0.0)
         findings: dict = {}
 
+        focus = self._prepare_focused_h5ads(experiment_id, files, exp_ctx, intent)
+        if focus.get("status") == "success":
+            files = focus.get("files", files)
+            findings["cell_focus"] = focus
+        elif focus.get("status") == "error":
+            findings["cell_focus"] = focus
+            return {"status": "failed", "reason": "cell_focus_failed",
+                    "findings": findings}
+
         # 1. QC ───────────────────────────────────────────────────────────
         qc = self._run_qc(experiment_id, files, exp_ctx, intent)
         findings["qc"] = qc
@@ -245,6 +254,182 @@ class scRNAAgent(BaseAgent):
         "trajectory",
         "with_condition",
     }
+
+    _FOCUS_ALIASES = {
+        "oligodendrocyte": {"Oligo"},
+        "oligodendrocytes": {"Oligo"},
+        "oligodendroglial": {"OPC", "Oligo"},
+        "oligodendroglia": {"OPC", "Oligo"},
+        "oligo": {"Oligo"},
+        "oligos": {"Oligo"},
+        "opc": {"OPC"},
+        "opcs": {"OPC"},
+        "microglia": {"Microglia"},
+        "astrocyte": {"Astro"},
+        "astrocytes": {"Astro"},
+        "neuron": {"CA1", "CA2-CA3", "DG", "SUB"},
+        "neurons": {"CA1", "CA2-CA3", "DG", "SUB"},
+    }
+
+    def _prepare_focused_h5ads(self, experiment_id: str, files: list,
+                               exp_ctx: dict, intent: dict) -> dict:
+        """
+        If the user asks to focus on specific obs cell types, materialize a
+        focused h5ad before QC so every downstream stage avoids unrelated cells.
+        """
+        groupby = self._design_groupby_col(exp_ctx)
+        if not groupby:
+            return {"status": "skipped", "reason": "no_groupby_column"}
+        focus_values = self._infer_cell_focus_values(files, groupby, exp_ctx, intent)
+        if not focus_values:
+            return {"status": "skipped", "reason": "no_cell_focus_requested"}
+
+        focused_files = []
+        summaries = []
+        workspace = self._scrna_focus_workspace()
+
+        try:
+            import anndata as ad
+        except ImportError:
+            return {
+                "status": "error",
+                "error_type": "MissingDependency",
+                "details": "anndata is required to subset focused h5ad inputs.",
+            }
+
+        for path in files:
+            if not str(path).lower().endswith(".h5ad"):
+                focused_files.append(path)
+                continue
+            try:
+                adata = ad.read_h5ad(path)
+            except Exception as e:
+                return {
+                    "status": "error",
+                    "error_type": "FocusReadFailed",
+                    "details": f"{Path(path).name}: {e}",
+                }
+            if groupby not in adata.obs:
+                focused_files.append(path)
+                continue
+
+            labels = adata.obs[groupby].astype(str)
+            keep = labels.isin(focus_values).to_numpy()
+            n_before = int(adata.n_obs)
+            n_after = int(keep.sum())
+            if n_after == 0:
+                return {
+                    "status": "error",
+                    "error_type": "EmptyCellFocus",
+                    "details": (
+                        f"No cells matched {groupby} in {sorted(focus_values)} "
+                        f"for {Path(path).name}."
+                    ),
+                }
+            if n_after == n_before:
+                focused_files.append(path)
+            else:
+                out_path = workspace / f"focused_{Path(path).stem}_{uuid.uuid4().hex[:8]}.h5ad"
+                adata[keep].copy().write_h5ad(out_path)
+                focused_files.append(str(out_path))
+            summaries.append({
+                "input_path": str(path),
+                "groupby": groupby,
+                "values": sorted(focus_values),
+                "n_cells_before": n_before,
+                "n_cells_after": n_after,
+            })
+
+        if not summaries:
+            return {"status": "skipped", "reason": "no_h5ad_inputs"}
+
+        total_before = sum(s["n_cells_before"] for s in summaries)
+        total_after = sum(s["n_cells_after"] for s in summaries)
+        label = ", ".join(sorted(focus_values))
+        self.publish_finding(
+            experiment_id,
+            {"summary": (
+                f"Focused scRNA input on obs['{groupby}'] in {{{label}}}: "
+                f"{total_before} → {total_after} cells before QC."
+            ),
+             "cell_focus": summaries},
+            Confidence.HIGH,
+        )
+        return {
+            "status": "success",
+            "files": focused_files,
+            "groupby": groupby,
+            "values": sorted(focus_values),
+            "n_cells_before": total_before,
+            "n_cells_after": total_after,
+            "per_file": summaries,
+        }
+
+    @staticmethod
+    def _scrna_focus_workspace() -> Path:
+        workspace = Path("~/.aria/workspace/scrna_focus").expanduser()
+        try:
+            workspace.mkdir(parents=True, exist_ok=True)
+            return workspace
+        except OSError:
+            fallback = Path("/tmp/aria_workspace/scrna_focus")
+            fallback.mkdir(parents=True, exist_ok=True)
+            return fallback
+
+    @staticmethod
+    def _design_groupby_col(exp_ctx: dict) -> str | None:
+        design = (exp_ctx or {}).get("design", {}) or {}
+        pb_cfg = design.get("pseudobulk", {}) or {}
+        col = pb_cfg.get("groupby_col")
+        if not col:
+            inferred = (exp_ctx or {}).get("inferred_design", {}) or {}
+            col = inferred.get("groupby_col")
+        return col if col and col != "leiden" else None
+
+    @classmethod
+    def _infer_cell_focus_values(cls, files: list, groupby: str,
+                                 exp_ctx: dict, intent: dict) -> set[str]:
+        available = cls._available_groupby_values(files, groupby)
+        if not available:
+            return set()
+        text = " ".join(filter(None, [
+            intent.get("summary", ""),
+            intent.get("user_question", ""),
+            exp_ctx.get("user_question", ""),
+            " ".join(intent.get("biological_entities", []) or []),
+        ])).lower()
+        focus: set[str] = set()
+        for value in available:
+            if re.search(rf"\b{re.escape(value.lower())}\b", text):
+                focus.add(value)
+        for token, values in cls._FOCUS_ALIASES.items():
+            if re.search(rf"\b{re.escape(token)}\b", text):
+                focus.update(v for v in values if v in available)
+        return focus if 0 < len(focus) < len(available) else set()
+
+    @staticmethod
+    def _available_groupby_values(files: list, groupby: str) -> set[str]:
+        values: set[str] = set()
+        try:
+            import anndata as ad
+        except ImportError:
+            return values
+        for path in files[:3]:
+            if not str(path).lower().endswith(".h5ad"):
+                continue
+            try:
+                adata = ad.read_h5ad(path, backed="r")
+                if groupby in adata.obs:
+                    values.update(
+                        str(v) for v in adata.obs[groupby].dropna().unique()
+                        if str(v) and str(v).lower() != "nan"
+                    )
+                backing_file = getattr(adata, "file", None)
+                if backing_file is not None:
+                    backing_file.close()
+            except Exception:
+                continue
+        return values
 
     @staticmethod
     def _sample_id_from_path(path: str) -> str:
