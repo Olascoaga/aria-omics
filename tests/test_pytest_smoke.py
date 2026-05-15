@@ -136,7 +136,58 @@ def test_h5ad_obs_design_inference(tmp_path):
         "old": ["o1", "o2"],
         "young": ["y1", "y2"],
     }
+    assert inferred["covariates"] == ["Gender"]
     assert inferred["pseudobulk"]["from_obs"] is True
+
+    summary = agent._build_checkpoint_summary(
+        {"scRNA": [str(h5ad_path)]}, "unknown", "unknown", [],
+        inferred_design=inferred,
+    )
+    assert "covariates: Gender" in summary
+
+
+def test_data_audit_infers_hg38_from_homo_sapiens_question(tmp_path):
+    from aria.agents.data_audit_agent import DataAuditAgent
+
+    agent = DataAuditAgent.__new__(DataAuditAgent)
+    genome, organism = agent._infer_genome_organism(
+        [], tmp_path, "Compare aging signatures in Homo sapiens hippocampus"
+    )
+
+    assert genome == "hg38"
+    assert organism == "Homo sapiens"
+
+
+def test_tui_drains_pasted_multiline_question(monkeypatch):
+    from aria import tui
+
+    class FakeStdin:
+        def __init__(self, lines):
+            self.lines = list(lines)
+
+        def isatty(self):
+            return True
+
+        def readline(self):
+            return self.lines.pop(0) if self.lines else ""
+
+    fake_stdin = FakeStdin([
+        "second line\n",
+        "\n",
+        "third line\n",
+    ])
+
+    def fake_select(reads, writes, errors, timeout):
+        return (reads, writes, errors) if fake_stdin.lines else ([], [], [])
+
+    monkeypatch.setattr(sys, "stdin", fake_stdin)
+    monkeypatch.setattr(tui.select, "select", fake_select)
+
+    assert tui._read_pasted_stdin_lines() == [
+        "second line",
+        "",
+        "third line",
+    ]
 
 
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():

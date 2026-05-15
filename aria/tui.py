@@ -31,6 +31,7 @@ import sys
 import uuid
 import time
 import threading
+import select
 from pathlib import Path
 
 from rich.console import Console
@@ -138,7 +139,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v4.3.12"
+VERSION = "v4.3.13"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────
@@ -386,10 +387,41 @@ def ask_biological_question() -> str:
         f"  [{C['dim']}]  * What TFs are differentially active in condition A vs B?[/]\n"
         f"  [{C['dim']}]  * Which genes show coordinated RNA and chromatin changes?[/]\n"
         f"  [{C['dim']}]  * What cell types are present and how do they differ?[/]\n"
+        f"  [{C['dim']}]Long pasted prompts are captured as one question.[/]\n"
     )
-    return Prompt.ask(
-        f"\n  [bold {C['cyan']}]Your question[/]", console=console
-    )
+    first_line = console.input(f"\n  [bold {C['cyan']}]Your question[/]: ")
+    lines = [first_line.rstrip("\n")]
+    lines.extend(_read_pasted_stdin_lines())
+    return "\n".join(line.rstrip("\n") for line in lines).strip()
+
+
+def _read_pasted_stdin_lines(timeout: float = 0.08) -> list[str]:
+    """
+    Capture lines already queued by a terminal paste.
+
+    Rich Prompt.ask reads a single line, which lets the rest of a pasted
+    multi-line question leak into the following yes/no and checkpoint prompts.
+    This helper drains only immediately available stdin lines; normal typed
+    follow-up answers are left alone because they are not queued yet.
+    """
+    if not sys.stdin.isatty():
+        return []
+
+    lines: list[str] = []
+    wait = timeout
+    while True:
+        try:
+            ready, _, _ = select.select([sys.stdin], [], [], wait)
+        except (OSError, ValueError):
+            break
+        if not ready:
+            break
+        line = sys.stdin.readline()
+        if line == "":
+            break
+        lines.append(line.rstrip("\n"))
+        wait = 0.01
+    return lines
 
 
 def show_existing_experiments(memory: ARIAMemory):

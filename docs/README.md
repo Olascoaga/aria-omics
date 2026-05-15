@@ -11,6 +11,7 @@ roadmap modules.
 - [Reporting and Outputs](architecture/reporting_and_outputs.md)
 - [Installation Guide](INSTALLATION.md)
 - [Validation Status](validation_status.md)
+- [v4.3.13 Release Notes](release_notes_v4.3.13.md)
 - [v4.3.12 Release Notes](release_notes_v4.3.12.md)
 
 ## Production-Like Validated Workflows

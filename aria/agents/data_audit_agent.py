@@ -108,7 +108,7 @@ SIGNATURES = {
 }
 
 GENOME_HINTS = {
-    "hg38": ["hg38", "GRCh38", "human"],
+    "hg38": ["hg38", "GRCh38", "human", "homo sapiens"],
     "hg19": ["hg19", "GRCh37"],
     "mm10": ["mm10", "GRCm38", "mouse"],
     "mm39": ["mm39", "GRCm39"],
@@ -682,6 +682,11 @@ class DataAuditAgent(BaseAgent):
                 lines.append(
                     f"     • cell type/groupby: {inferred_design.get('groupby_col')}"
                 )
+            covariates = inferred_design.get("covariates") or []
+            lines.append(
+                "     • covariates: "
+                + (", ".join(map(str, covariates)) if covariates else "none")
+            )
             groups = inferred_design.get("groups", {})
             if groups:
                 compact = ", ".join(f"{g}={len(v)} reps" for g, v in groups.items())
