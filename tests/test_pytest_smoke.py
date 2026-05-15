@@ -158,7 +158,34 @@ def test_data_audit_infers_hg38_from_homo_sapiens_question(tmp_path):
     assert organism == "Homo sapiens"
 
 
-def test_tui_drains_pasted_multiline_question(monkeypatch):
+def test_data_audit_infers_human_h5ad_from_gene_symbols(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.data_audit_agent import DataAuditAgent
+
+    genes = [
+        "SAMD11", "ISG15", "TMEM88B", "PRDM16", "MEGF6", "C1QA",
+        "C1QB", "C1QC", "NCMAP", "C1orf141",
+    ]
+    adata = ad.AnnData(
+        X=np.ones((4, len(genes)), dtype=np.float32),
+        obs=pd.DataFrame(index=[f"cell_{i}" for i in range(4)]),
+        var=pd.DataFrame(index=genes),
+    )
+    h5ad_path = tmp_path / "hippocampus_RNA.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    genome, organism = DataAuditAgent._infer_h5ad_genome_organism(
+        [str(h5ad_path)]
+    )
+
+    assert genome == "hg38"
+    assert organism == "Homo sapiens"
+
+
+def test_tui_drains_stale_pasted_lines(monkeypatch):
     from aria import tui
 
     class FakeStdin:
@@ -188,6 +215,20 @@ def test_tui_drains_pasted_multiline_question(monkeypatch):
         "",
         "third line",
     ]
+
+
+def test_tui_multiline_question_uses_end_sentinel(monkeypatch):
+    from aria import tui
+
+    answers = iter([
+        "first line",
+        "",
+        "third line",
+        "END",
+    ])
+    monkeypatch.setattr(tui.console, "input", lambda prompt: next(answers))
+
+    assert tui._read_multiline_question() == "first line\n\nthird line"
 
 
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():

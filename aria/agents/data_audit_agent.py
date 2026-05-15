@@ -204,6 +204,14 @@ class DataAuditAgent(BaseAgent):
             genome, organism = self._infer_genome_organism(
                 all_files, data_dir, user_question
             )
+            if genome == "unknown" or organism == "unknown":
+                h5ad_genome, h5ad_organism = self._infer_h5ad_genome_organism(
+                    classified.get("scRNA", [])
+                )
+                if genome == "unknown" and h5ad_genome != "unknown":
+                    genome = h5ad_genome
+                if organism == "unknown" and h5ad_organism != "unknown":
+                    organism = h5ad_organism
 
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
@@ -405,6 +413,49 @@ class DataAuditAgent(BaseAgent):
             organism = genome_to_org.get(genome, "unknown")
 
         return genome, organism
+
+    @staticmethod
+    def _infer_h5ad_genome_organism(files: list[str]) -> tuple[str, str]:
+        """Infer organism from h5ad feature names when metadata is absent."""
+        h5ads = [f for f in files if str(f).lower().endswith(".h5ad")]
+        if not h5ads:
+            return "unknown", "unknown"
+
+        try:
+            import anndata as ad
+        except ImportError:
+            return "unknown", "unknown"
+
+        human_markers = {
+            "SAMD11", "ISG15", "TMEM88B", "PRDM16", "MEGF6", "C1QA",
+            "C1QB", "C1QC", "NCMAP", "C1orf141", "TNFRSF1B", "PIK3CD",
+        }
+        mouse_patterns = ("Gm", "Rik")
+        for path in h5ads[:2]:
+            try:
+                adata = ad.read_h5ad(path, backed="r")
+                genes = [str(g) for g in list(adata.var_names[:3000])]
+                backing_file = getattr(adata, "file", None)
+                if backing_file is not None:
+                    backing_file.close()
+            except Exception:
+                continue
+
+            human_score = sum(g in human_markers for g in genes)
+            human_score += sum(
+                1 for g in genes
+                if re.match(r"^C\d+orf\d+", g) or re.match(r"^LINC\d+", g)
+            )
+            mouse_score = sum(
+                1 for g in genes
+                if any(g.startswith(prefix) for prefix in mouse_patterns)
+            )
+            mouse_score += sum(1 for g in genes if re.match(r"^[A-Z][a-z]+$", g))
+
+            if human_score >= 5 and mouse_score == 0:
+                return "hg38", "Homo sapiens"
+
+        return "unknown", "unknown"
 
     def _validate_design(self, classified: dict[str, list]) -> list[str]:
         """Check for common experimental design issues."""

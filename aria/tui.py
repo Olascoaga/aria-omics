@@ -139,7 +139,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v4.3.13"
+VERSION = "v4.3.14"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────
@@ -199,6 +199,7 @@ def print_checkpoint(number, title: str,
     console.print()
 
     while True:
+        _discard_queued_stdin_lines()
         choice = Prompt.ask(
             f"  [bold {C['cyan']}]Enter choice[/]",
             choices=[str(i) for i in range(1, len(options) + 1)],
@@ -387,12 +388,25 @@ def ask_biological_question() -> str:
         f"  [{C['dim']}]  * What TFs are differentially active in condition A vs B?[/]\n"
         f"  [{C['dim']}]  * Which genes show coordinated RNA and chromatin changes?[/]\n"
         f"  [{C['dim']}]  * What cell types are present and how do they differ?[/]\n"
-        f"  [{C['dim']}]Long pasted prompts are captured as one question.[/]\n"
+        f"  [{C['dim']}]Paste long prompts freely. Finish with a line containing only END.[/]\n"
     )
-    first_line = console.input(f"\n  [bold {C['cyan']}]Your question[/]: ")
-    lines = [first_line.rstrip("\n")]
-    lines.extend(_read_pasted_stdin_lines())
-    return "\n".join(line.rstrip("\n") for line in lines).strip()
+    return _read_multiline_question()
+
+
+def _read_multiline_question() -> str:
+    lines: list[str] = []
+    while True:
+        prompt = (
+            f"\n  [bold {C['cyan']}]Your question[/] "
+            f"[{C['dim']}](END to finish)[/]: "
+            if not lines else
+            f"  [{C['dim']}]...[/] "
+        )
+        line = console.input(prompt)
+        if line.strip() == "END":
+            break
+        lines.append(line.rstrip("\n"))
+    return "\n".join(lines).strip()
 
 
 def _read_pasted_stdin_lines(timeout: float = 0.08) -> list[str]:
@@ -422,6 +436,11 @@ def _read_pasted_stdin_lines(timeout: float = 0.08) -> list[str]:
         lines.append(line.rstrip("\n"))
         wait = 0.01
     return lines
+
+
+def _discard_queued_stdin_lines(timeout: float = 0.02) -> None:
+    """Drop stale pasted input before yes/no or checkpoint prompts."""
+    _read_pasted_stdin_lines(timeout=timeout)
 
 
 def show_existing_experiments(memory: ARIAMemory):
@@ -820,6 +839,7 @@ def main():
     ))
     console.print()
 
+    _discard_queued_stdin_lines()
     if not Confirm.ask(
         f"  [bold {C['cyan']}]Launch ARIA?[/]",
         default=True, console=console

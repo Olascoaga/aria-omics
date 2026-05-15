@@ -1,6 +1,8 @@
 # ARIA v4.3.13 Release Notes
 
-`v4.3.13` is a pre-v4.4 maintenance patch for the terminal interface and
+`v4.3.13` is superseded by `v4.3.14`.
+
+`v4.3.13` was a pre-v4.4 maintenance patch for the terminal interface and
 scRNA design checkpoint visibility.
 
 ## Fixes
