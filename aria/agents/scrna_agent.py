@@ -235,7 +235,8 @@ class scRNAAgent(BaseAgent):
                 )
 
         # 6. Trajectory (developmental / time-course intent) ──────────────
-        if self._needs_trajectory(intent):
+        if (self._needs_trajectory(intent)
+                and not self._design_intelligence_blocks(exp_ctx, "PAGA/DPT")):
             self.publish_status(experiment_id,
                                 "Trajectory analysis (PAGA + DPT)...", 0.85)
             findings["trajectory"] = self._run_trajectory(
@@ -243,7 +244,8 @@ class scRNAAgent(BaseAgent):
             )
 
         # 7. Cell-cell communication (tissue / signaling intent) ──────────
-        if self._needs_cell_communication(intent):
+        if (self._needs_cell_communication(intent)
+                and not self._design_intelligence_blocks(exp_ctx, "LIANA")):
             self.publish_status(experiment_id,
                                 "Cell-cell communication (LIANA)...", 0.92)
             findings["cell_communication"] = self._run_cell_communication(
@@ -1782,3 +1784,10 @@ Rules:
             )
         except Exception as e:
             log.warning(f"scRNA decision logging failed: {e}")
+
+    @staticmethod
+    def _design_intelligence_blocks(exp_ctx: dict, token: str) -> bool:
+        di = (exp_ctx or {}).get("design_intelligence", {}) or {}
+        token_l = token.lower()
+        return any(token_l in str(item).lower()
+                   for item in di.get("unsupported", []) or [])

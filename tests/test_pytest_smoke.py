@@ -679,6 +679,80 @@ def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
     assert focus == {"Oligo"}
 
 
+def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.design_intelligence import DesignIntelligence
+
+    obs = pd.DataFrame(
+        {
+            "subclass": ["Microglia"] * 6 + ["Oligo"] * 6,
+            "age_group": ["20-39"] * 3 + ["80-100"] * 3
+                         + ["20-39"] * 3 + ["80-100"] * 3,
+            "orig.ident": ["y1", "y2", "y3", "o1", "o2", "o3"] * 2,
+            "Gender": ["F", "M", "F", "M", "F", "M"] * 2,
+            "nCount_RNA": [1000] * 12,
+        },
+        index=[f"c_{i}" for i in range(12)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((12, 3), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=["APOE", "TREM2", "C1QA"]),
+    )
+    h5ad_path = tmp_path / "microglia.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    exp_ctx = {
+        "modalities": {"scRNA": [str(h5ad_path)]},
+        "user_question": "focus only on microglia aging signatures",
+        "design": {
+            "groups": {"20-39": ["y1", "y2", "y3"],
+                       "80-100": ["o1", "o2", "o3"]},
+            "pseudobulk": {
+                "condition_col": "age_group",
+                "replicate_col": "orig.ident",
+                "groupby_col": "subclass",
+                "covariates": ["Gender"],
+            },
+        },
+    }
+
+    di = DesignIntelligence().evaluate(
+        exp_ctx, {"summary": "microglia aging and ligand receptor signaling"}
+    )
+
+    assert di["status"] == "success"
+    assert any("pseudobulk" in item.lower() for item in di["recommended"])
+    assert any("Microglia" in item for item in di["recommended"])
+    assert any("LIANA" in item for item in di["unsupported"])
+    assert any("RNA velocity" in item for item in di["unsupported"])
+
+
+def test_orchestrator_plan_summary_includes_design_intelligence():
+    from aria.agents.orchestrator_agent import OrchestratorAgent
+
+    orch = OrchestratorAgent.__new__(OrchestratorAgent)
+    summary = orch._format_plan_summary({
+        "steps": [{"order": 1, "agent": "scrna_agent",
+                   "analysis": "Analyze scRNA"}],
+        "estimated_complexity": "low",
+        "rationale": "test",
+        "design_intelligence": {
+            "recommended": ["Microglia pseudobulk DE"],
+            "optional": ["Pathway enrichment"],
+            "unsupported": ["RNA velocity is not supported"],
+            "warnings": [],
+        },
+    })
+
+    assert "Design Intelligence" in summary
+    assert "Microglia pseudobulk DE" in summary
+    assert "RNA velocity is not supported" in summary
+
+
 def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 

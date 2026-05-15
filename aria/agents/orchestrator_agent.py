@@ -188,10 +188,29 @@ class OrchestratorAgent(BaseAgent):
                 exp_context["organism"] = design["organism"]
                 exp_context["genome"]   = design["genome"]
                 exp_context["design"]   = design
+                design_intelligence = self._run_design_intelligence(
+                    exp_context,
+                    self._experiment_plans.get(experiment_id, {}).get("intent", {}),
+                )
+                exp_context["design_intelligence"] = design_intelligence
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id}_design_intelligence",
+                    wing_id=experiment_id,
+                    checkpoint="2.pre",
+                    question="Design Intelligence assessment",
+                    decision=design_intelligence.get("summary", "completed"),
+                    rationale=(
+                        "ARIA evaluated modality feasibility, recommended "
+                        "analyses, optional analyses, unsupported analyses, "
+                        "covariates, and design limitations before compute."
+                    ),
+                    made_by="design_intelligence",
+                )
                 self._experiment_plans[experiment_id]["exp_context"] = exp_context
                 self._active_design_agent = None
 
                 plan = self._design_analysis_plan(experiment_id, exp_context)
+                plan["design_intelligence"] = design_intelligence
                 # Annotate plan with resolved thresholds — single source of truth
                 # so the preview and the actual run always agree.
                 intent = self._experiment_plans.get(experiment_id, {}).get("intent", {})
@@ -643,6 +662,20 @@ Design the analysis pipeline. Return JSON:
         self._experiment_plans[experiment_id]["plan"] = plan
         return plan
 
+    def _run_design_intelligence(self, exp_context: dict, intent: dict) -> dict:
+        try:
+            from aria.agents.design_intelligence import DesignIntelligence
+            return DesignIntelligence().evaluate(exp_context, intent)
+        except Exception as e:
+            log.warning(f"Design intelligence failed: {e}", exc_info=True)
+            return {
+                "status": "error",
+                "recommended": [],
+                "optional": [],
+                "unsupported": [],
+                "warnings": [f"Design intelligence unavailable: {e}"],
+            }
+
     def _fallback_plan(self, exp_context: dict) -> dict:
         """Generate a minimal plan if LLM fails."""
         modalities = exp_context.get("modalities", {})
@@ -684,6 +717,13 @@ Design the analysis pipeline. Return JSON:
             lines.append(f"\n  DE thresholds: padj < {padj}, |log2FC| > {lfc}")
         if plan.get("integration_needed"):
             lines.append(f"\n  Integration: {plan.get('integration_type', 'TBD')}")
+        try:
+            from aria.agents.design_intelligence import format_design_intelligence
+            di_block = format_design_intelligence(plan.get("design_intelligence", {}))
+            if di_block:
+                lines.append(di_block)
+        except Exception:
+            pass
         lines.append(
             f"\n  Complexity: {plan.get('estimated_complexity', '?')}"
             f"\n  {plan.get('rationale', '')}"
