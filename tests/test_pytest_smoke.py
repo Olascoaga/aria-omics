@@ -273,6 +273,23 @@ def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
         def run_in_stack(self, **kwargs):
             calls.append(kwargs)
             script = kwargs["script_path"]
+            if script.endswith("rna_diff_abundance.py"):
+                # T1.1 wire-up: agent runs DA before pseudobulk. Return a
+                # benign 'no significant shift' result so composition
+                # covariate defaults to OFF for this test.
+                return {
+                    "status": "success",
+                    "method": "poisson_offset_glm",
+                    "groupby": kwargs["params"]["groupby"],
+                    "condition_col": kwargs["params"]["condition_col"],
+                    "replicate_col": kwargs["params"]["replicate_col"],
+                    "covariates": kwargs["params"].get("covariates", []),
+                    "significance_alpha": 0.10,
+                    "any_significant": False,
+                    "per_comparison": {},
+                    "n_replicates_per_group": {},
+                    "warnings": [],
+                }
             if script.endswith("rna_pseudobulk_de.py"):
                 params = kwargs["params"]
                 return {
@@ -317,12 +334,18 @@ def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
     )
 
     assert result["status"] == "success"
-    params = calls[0]["params"]
+    # Last call is the pseudobulk; first call is the DA pre-pass.
+    pb_call = next(
+        c for c in calls if c["script_path"].endswith("rna_pseudobulk_de.py")
+    )
+    params = pb_call["params"]
     assert params["data_path"] == str(h5ad_path)
     assert params["condition_col"] == "age_group"
     assert params["replicate_col"] == "donor_id"
     assert params["groupby"] == "subclass"
     assert params["covariates"] == ["Gender"]
+    # With DA returning any_significant=False, composition covariate is OFF.
+    assert params["composition_covariate"] is False
 
 
 def test_rna_qc_uses_existing_h5ad_obs_metrics_for_processed_input(tmp_path, monkeypatch):
@@ -1337,3 +1360,275 @@ def test_design_intelligence_downgrades_bulk_at_n2():
     assert "DESeq2 differential expression with biological replicates" not in rec
     assert "low-power caveat" in opt, opt
     assert "n=2" in warn or "replicates" in warn, warn
+
+
+# ── T1.1: differential abundance + composition correction ─────────────────────
+
+def test_diff_abundance_detects_2x_shift(tmp_path):
+    """T1.1 — when a cell type's abundance doubles in one condition, the
+    Poisson-offset GLM (or Fisher-exact fallback) must flag it as
+    significant and assign direction='up'."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    rng = np.random.default_rng(42)
+    rows = []
+    # 4 replicates per condition × 3 cell types. Cell type "B" doubles in
+    # condition "treat": 50 -> 100 cells. Types A and C stay flat.
+    base_counts = {"A": 100, "B": 50, "C": 80}
+    for cond in ("ctrl", "treat"):
+        for rep_i in range(1, 5):
+            for ct in ("A", "B", "C"):
+                n = base_counts[ct]
+                if ct == "B" and cond == "treat":
+                    n = base_counts[ct] * 2
+                # Small per-replicate jitter so the GLM has variance to fit.
+                jitter = int(rng.normal(0, max(1, n * 0.05)))
+                for _ in range(max(1, n + jitter)):
+                    rows.append({
+                        "condition": cond,
+                        "donor":     f"{cond}_{rep_i}",
+                        "cell_type": ct,
+                    })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    X = np.zeros((len(obs), 5), dtype=np.float32)
+    adata = ad.AnnData(
+        X=X,
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i}" for i in range(5)]),
+    )
+    h5ad_path = tmp_path / "da.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    from aria.scripts.rna_diff_abundance import rna_diff_abundance
+    result = rna_diff_abundance({
+        "data_path":     str(h5ad_path),
+        "groupby":       "cell_type",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons":   [["treat", "ctrl"]],
+        "output_dir":    str(tmp_path / "out"),
+    })
+
+    assert result["status"] == "success", result
+    assert result["any_significant"] is True
+    comp = result["per_comparison"]["treat_vs_ctrl"]
+    assert comp["status"] == "success"
+    # B doubled in absolute terms in treat -> significantly UP in proportion.
+    b_row = next(r for r in comp["per_cell_type"] if r["name"] == "B")
+    assert b_row["significant"] is True, b_row
+    assert b_row["direction"] == "up", b_row
+    assert b_row["log2_fold_change"] > 0.5, b_row
+    # A and C are flat in ABSOLUTE counts, but because B doubled the total
+    # number of cells grew, so A and C drop in PROPORTION. That is the
+    # whole point of composition analysis and the GLM correctly flags it
+    # as a downward shift. The narrative makes this visible.
+    a_row = next(r for r in comp["per_cell_type"] if r["name"] == "A")
+    c_row = next(r for r in comp["per_cell_type"] if r["name"] == "C")
+    assert a_row["log2_fold_change"] < 0, a_row
+    assert c_row["log2_fold_change"] < 0, c_row
+
+
+def test_diff_abundance_no_signal_returns_none_significant(tmp_path):
+    """T1.1 — flat data must yield no significant shifts and the agent's
+    decision logic relies on this to keep composition_covariate OFF."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    rng = np.random.default_rng(0)
+    rows = []
+    for cond in ("ctrl", "treat"):
+        for rep_i in range(1, 5):
+            for ct in ("A", "B"):
+                # ~80 cells of each type in each replicate, identical between
+                # conditions modulo small jitter.
+                n = 80 + int(rng.normal(0, 3))
+                for _ in range(max(1, n)):
+                    rows.append({
+                        "condition": cond,
+                        "donor":     f"{cond}_{rep_i}",
+                        "cell_type": ct,
+                    })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    adata = ad.AnnData(
+        X=np.zeros((len(obs), 3), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i}" for i in range(3)]),
+    )
+    h5ad_path = tmp_path / "da_flat.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    from aria.scripts.rna_diff_abundance import rna_diff_abundance
+    result = rna_diff_abundance({
+        "data_path":     str(h5ad_path),
+        "groupby":       "cell_type",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons":   [["treat", "ctrl"]],
+        "output_dir":    str(tmp_path / "out"),
+    })
+    assert result["status"] == "success"
+    assert result["any_significant"] is False
+    comp = result["per_comparison"]["treat_vs_ctrl"]
+    assert comp["n_significant"] == 0
+
+
+def test_pseudobulk_de_passes_composition_covariate_when_da_significant(tmp_path):
+    """T1.1 — scrna_agent._run_pseudobulk must pass
+    composition_covariate=True to rna_pseudobulk_de whenever the DA
+    pre-pass returns any_significant=True."""
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "annotated.h5ad"
+    h5ad_path.write_text("placeholder")
+    calls = []
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            calls.append(kwargs)
+            script = kwargs["script_path"]
+            if script.endswith("rna_diff_abundance.py"):
+                return {
+                    "status": "success",
+                    "method": "poisson_offset_glm",
+                    "groupby": kwargs["params"]["groupby"],
+                    "condition_col": kwargs["params"]["condition_col"],
+                    "replicate_col": kwargs["params"]["replicate_col"],
+                    "covariates": kwargs["params"].get("covariates", []),
+                    "significance_alpha": 0.10,
+                    "any_significant": True,
+                    "per_comparison": {
+                        "old_vs_young": {
+                            "status": "success",
+                            "n_significant": 1,
+                            "n_replicates": {"test": 2, "ref": 2},
+                            "per_cell_type": [{
+                                "name": "Microglia",
+                                "n_test": 200, "n_ref": 100,
+                                "prop_test": 0.2, "prop_ref": 0.1,
+                                "log2_fold_change": 1.0,
+                                "pval": 0.001, "padj": 0.003,
+                                "direction": "up", "significant": True,
+                            }],
+                        }
+                    },
+                    "n_replicates_per_group": {"old": 2, "young": 2},
+                    "warnings": [],
+                }
+            if script.endswith("rna_pseudobulk_de.py"):
+                return {
+                    "status": "success",
+                    "groupby": kwargs["params"]["groupby"],
+                    "condition_col": kwargs["params"]["condition_col"],
+                    "replicate_col": kwargs["params"]["replicate_col"],
+                    "covariates": kwargs["params"]["covariates"],
+                    "thresholds": {},
+                    "n_groups": 0,
+                    "per_group": {},
+                }
+            raise AssertionError(f"unexpected script: {script}")
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent.publish_finding = lambda *args, **kwargs: None
+    agent._inject_condition_obs = lambda *args, **kwargs: (_ for _ in ()).throw(
+        AssertionError("condition injection should be skipped")
+    )
+
+    result = agent._run_pseudobulk(
+        "exp",
+        str(h5ad_path),
+        {
+            "organism": "Homo sapiens",
+            "design": {
+                "groups": {"old": ["o1", "o2"], "young": ["y1", "y2"]},
+                "main_factor": "age_group",
+                "pseudobulk": {
+                    "from_obs": True,
+                    "condition_col": "age_group",
+                    "replicate_col": "donor_id",
+                    "groupby_col": "subclass",
+                    "comparisons": [["old", "young"]],
+                },
+            },
+        },
+        {"summary": "compare old vs young"},
+        {},
+    )
+
+    assert result["status"] == "success"
+    pb_call = next(
+        c for c in calls if c["script_path"].endswith("rna_pseudobulk_de.py")
+    )
+    assert pb_call["params"]["composition_covariate"] is True, (
+        "DA flagged a significant shift; pseudobulk MUST receive "
+        "composition_covariate=True"
+    )
+    # Findings must surface the differential_abundance block back to the agent.
+    assert result.get("differential_abundance") is not None
+    assert result["differential_abundance"]["any_significant"] is True
+
+
+def test_pseudobulk_composition_covariate_flag_propagates_into_blocks(tmp_path):
+    """T1.1 — when called with composition_covariate=True and the
+    covariate actually varies across pseudosamples, each successful
+    per_comparison block must carry corrected_for_composition=True."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+
+    rng = np.random.default_rng(11)
+    # 3 donors per condition, 2 cell types. We give donors very different
+    # totals so the composition log-ratio varies across pseudosamples.
+    donor_totals = {
+        "ctrl_1": (40, 200), "ctrl_2": (30, 250), "ctrl_3": (50, 220),
+        "treat_1": (90, 220), "treat_2": (110, 200), "treat_3": (100, 180),
+    }
+    rows = []
+    for donor, (n_a, n_b) in donor_totals.items():
+        cond = "treat" if donor.startswith("treat") else "ctrl"
+        for _ in range(n_a):
+            rows.append({"condition": cond, "donor": donor, "cell_type": "A"})
+        for _ in range(n_b):
+            rows.append({"condition": cond, "donor": donor, "cell_type": "B"})
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    n_genes = 40
+    X = rng.negative_binomial(20, 0.5, (len(obs), n_genes)).astype(np.float32)
+    adata = ad.AnnData(
+        X=X,
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i:04d}" for i in range(n_genes)]),
+    )
+    h5ad_path = tmp_path / "pb_comp.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+    result = rna_pseudobulk_de({
+        "data_path":     str(h5ad_path),
+        "groupby":       "cell_type",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons":   [["treat", "ctrl"]],
+        "output_dir":    str(tmp_path / "out"),
+        "composition_covariate": True,
+        "min_cells_per_pseudosample": 5,
+        "padj_max":      0.5,
+        "lfc_min":       0.0,
+    })
+
+    assert result["status"] == "success"
+    assert result["composition_covariate_requested"] is True
+    found_corrected = False
+    for group_info in result["per_group"].values():
+        for comp in (group_info.get("per_comparison") or {}).values():
+            if comp.get("status") != "success":
+                continue
+            assert comp["corrected_for_composition"] is True, comp
+            found_corrected = True
+    assert found_corrected, "Expected at least one composition-corrected block"

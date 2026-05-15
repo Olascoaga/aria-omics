@@ -88,6 +88,14 @@ def rna_pseudobulk_de(params: dict) -> dict:
     min_cells_per_pseudosample    = int(params.get("min_cells_per_pseudosample", 10))
     min_replicates_per_condition  = int(params.get("min_replicates_per_condition", 3))
     use_raw                       = bool(params.get("use_raw", True))
+    # T1.1: when True, add log(n_cells_in_group / n_cells_in_replicate) as a
+    # continuous covariate in the DESeq2 design. The scrna_agent flips this
+    # on whenever rna_diff_abundance flagged any cell type as significantly
+    # shifting at the user-configured alpha (default 0.10). Per-block result
+    # carries corrected_for_composition: True so the narrative can describe
+    # it honestly.
+    composition_covariate         = bool(params.get("composition_covariate", False))
+    COMPOSITION_COL               = "_aria_composition_log_ratio"
     # Many published h5ads (especially Seurat exports) store log-normalized
     # values in raw.X rather than counts. When True we reverse NormalizeData
     # (counts = round(expm1(x) * lib_size / scale_factor)) using the
@@ -200,6 +208,11 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
     is_sparse = sparse.issparse(counts)
 
+    # T1.1: pre-compute total cells per replicate ACROSS ALL cell types so
+    # each per-group loop iteration can compute the composition log-ratio
+    # without re-scanning obs.
+    total_cells_per_rep = obs.groupby(replicate_col).size().to_dict()
+
     groups = sorted(obs[groupby].unique())
     per_group: dict = {}
     csv_rows: list = []
@@ -251,8 +264,17 @@ def rna_pseudobulk_de(params: dict) -> dict:
             rep_to_n[rep]    = n
             # Use the first cell's metadata for the replicate (constant by definition)
             row              = group_obs[mask].iloc[0]
-            rep_to_meta[rep] = {condition_col: row[condition_col],
-                                **{cv: row[cv] for cv in covariates}}
+            meta_entry = {condition_col: row[condition_col],
+                          **{cv: row[cv] for cv in covariates}}
+            if composition_covariate:
+                # log( (cells_of_this_type_in_donor + 1) / (total_cells_in_donor + 1) ).
+                # Smoothing keeps the value finite when n is tiny.
+                total_for_rep = int(total_cells_per_rep.get(rep, n))
+                import math as _math
+                meta_entry[COMPOSITION_COL] = float(
+                    _math.log((n + 1.0) / (total_for_rep + 1.0))
+                )
+            rep_to_meta[rep] = meta_entry
 
         if len(rep_to_sum) < 2 * min_replicates_per_condition:
             per_group[group] = {"n_pseudosamples": len(rep_to_sum),
@@ -305,6 +327,14 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 continue
 
             design_factors = [condition_col] + (covariates or [])
+            block_corrected_for_composition = False
+            if composition_covariate and COMPOSITION_COL in meta_sub.columns:
+                # Only add the covariate if it actually varies across the
+                # pseudosamples in this comparison (DESeq2 errors on a
+                # constant factor).
+                if meta_sub[COMPOSITION_COL].nunique() > 1:
+                    design_factors = design_factors + [COMPOSITION_COL]
+                    block_corrected_for_composition = True
             try:
                 dds = DeseqDataSet(
                     counts        = counts_sub.T,    # samples × genes
@@ -357,15 +387,16 @@ def rna_pseudobulk_de(params: dict) -> dict:
             ) if low_power else None
 
             per_group_entry["per_comparison"][comp_key] = {
-                "status":            "success",
-                "n_significant":     int(len(sig)),
-                "n_up":               int((sig["log2FoldChange"] > 0).sum()),
-                "n_down":             int((sig["log2FoldChange"] < 0).sum()),
-                "n_replicates":       {"test": n_test, "ref": n_ref},
-                "low_power_warning":  low_power,
-                "low_power_reason":   low_power_reason,
-                "top_genes":          top_records,
-                "all_sig":            all_records,
+                "status":                    "success",
+                "n_significant":             int(len(sig)),
+                "n_up":                      int((sig["log2FoldChange"] > 0).sum()),
+                "n_down":                    int((sig["log2FoldChange"] < 0).sum()),
+                "n_replicates":              {"test": n_test, "ref": n_ref},
+                "low_power_warning":         low_power,
+                "low_power_reason":          low_power_reason,
+                "corrected_for_composition": block_corrected_for_composition,
+                "top_genes":                 top_records,
+                "all_sig":                   all_records,
             }
 
             # CSV rows
@@ -392,12 +423,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
           .to_csv(csv_path, index=False)
 
     return {
-        "status":         "success",
-        "n_groups":       len(per_group),
-        "groupby":        groupby,
-        "condition_col":  condition_col,
-        "replicate_col":  replicate_col,
-        "covariates":     covariates,
+        "status":                          "success",
+        "n_groups":                        len(per_group),
+        "groupby":                         groupby,
+        "condition_col":                   condition_col,
+        "replicate_col":                   replicate_col,
+        "covariates":                      covariates,
+        "composition_covariate_requested": composition_covariate,
         "thresholds":     {"padj_max": padj_max, "lfc_min": lfc_min,
                            "min_cells_per_pseudosample": min_cells_per_pseudosample,
                            "min_replicates_per_condition": min_replicates_per_condition},

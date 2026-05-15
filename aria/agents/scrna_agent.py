@@ -226,6 +226,9 @@ class scRNAAgent(BaseAgent):
             )
             if pb_result.get("status") == "success":
                 findings["pseudobulk_de"] = pb_result.get("pseudobulk_de")
+                da = pb_result.get("differential_abundance")
+                if da:
+                    findings["differential_abundance"] = da
                 pwp = pb_result.get("pseudobulk_pathways")
                 if pwp:
                     findings["pseudobulk_pathways"] = pwp
@@ -1551,6 +1554,51 @@ Rules:
             made_by="scrna_agent",
         )
 
+        # 2b. (T1.1) Differential abundance BEFORE pseudobulk DE.
+        # Two purposes: (a) report shifts in cell-type proportions as a
+        # primary observation; (b) decide whether the pseudobulk design
+        # should include a composition covariate to control for those
+        # shifts when comparing within-cell-type expression.
+        da_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_diff_abundance.py",
+            params={
+                "data_path":          str(pb_input),
+                "groupby":            cell_type_col,
+                "condition_col":      factor,
+                "replicate_col":      replicate_col,
+                "comparisons":        comparisons,
+                "covariates":         covariates,
+                "significance_alpha": 0.10,
+                "output_dir":         str(workspace),
+            },
+        )
+        da_significant = bool(
+            da_result.get("status") == "success"
+            and da_result.get("any_significant")
+        )
+        if da_result.get("status") == "success":
+            self._log_decision(
+                experiment_id,
+                checkpoint="scRNA",
+                question="Compositional shift before pseudobulk DE",
+                decision=(
+                    "composition_covariate=ON"
+                    if da_significant else "composition_covariate=OFF"
+                ),
+                rationale=(
+                    f"rna_diff_abundance flagged at least one cell type as "
+                    f"significantly shifting (alpha=0.10); adding "
+                    f"log(cells_in_group/total_cells) as a covariate in the "
+                    f"DESeq2 design so per-cell-type DE is not confounded by "
+                    f"mixture changes."
+                    if da_significant else
+                    "No cell type shifted significantly (alpha=0.10); the "
+                    "DESeq2 design stays free of a composition covariate."
+                ),
+                made_by="scrna_agent",
+            )
+
         # 3. Run pseudobulk DE
         pb = self.env.run_in_stack(
             stack="rna",
@@ -1562,6 +1610,7 @@ Rules:
                 "replicate_col": replicate_col,
                 "comparisons":   comparisons,
                 "covariates":    covariates,
+                "composition_covariate": da_significant,
                 "min_cells_per_pseudosample":   10,
                 "min_replicates_per_condition": 2,
                 "padj_max":      0.05,
@@ -1641,10 +1690,33 @@ Rules:
             Confidence.HIGH if n_with_de > 0 else Confidence.INSUFFICIENT,
         )
 
+        da_payload = None
+        if da_result.get("status") == "success":
+            da_payload = {
+                "method":                 da_result.get("method"),
+                "groupby":                da_result.get("groupby"),
+                "condition_col":          da_result.get("condition_col"),
+                "replicate_col":          da_result.get("replicate_col"),
+                "covariates":             da_result.get("covariates", []),
+                "significance_alpha":     da_result.get("significance_alpha"),
+                "any_significant":        da_result.get("any_significant"),
+                "n_replicates_per_group": da_result.get("n_replicates_per_group"),
+                "per_comparison":         da_result.get("per_comparison", {}),
+                "output_path":            da_result.get("output_path"),
+                "warnings":               da_result.get("warnings", []),
+            }
+        elif da_result.get("status"):
+            da_payload = {
+                "status":     da_result.get("status"),
+                "error_type": da_result.get("error_type"),
+                "details":    (da_result.get("details") or "")[:300],
+            }
+
         return {
-            "status":               "success",
-            "pseudobulk_de":        pb_payload,
-            "pseudobulk_pathways":  pw_findings,
+            "status":                 "success",
+            "differential_abundance": da_payload,
+            "pseudobulk_de":          pb_payload,
+            "pseudobulk_pathways":    pw_findings,
         }
 
     @staticmethod

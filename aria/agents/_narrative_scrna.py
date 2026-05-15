@@ -234,6 +234,46 @@ def summarize_scrna_text(findings: dict) -> str:
             "(input obs labels and/or pseudobulk DE) and remain valid."
         )
 
+    # T1.1: Cell-type abundance (differential abundance) goes BEFORE
+    # pseudobulk DE because composition shifts confound within-cell-type
+    # contrasts. The pseudobulk DE header below also reports whether each
+    # block was composition-corrected.
+    da = findings.get("differential_abundance") or {}
+    if da and da.get("per_comparison") is not None:
+        method = da.get("method") or "unknown"
+        alpha = da.get("significance_alpha", 0.10)
+        for comp_key, comp_info in (da.get("per_comparison") or {}).items():
+            if comp_info.get("status") != "success":
+                lines.append(
+                    f"Cell-type abundance ({comp_key}): not computed "
+                    f"({comp_info.get('reason', 'unknown')})."
+                )
+                continue
+            rows = comp_info.get("per_cell_type", []) or []
+            n_sig = comp_info.get("n_significant", 0)
+            n_reps = comp_info.get("n_replicates", {})
+            lines.append(
+                f"Cell-type abundance ({comp_key}): {method} on "
+                f"{len(rows)} cell types, n={n_reps.get('test', '?')} vs "
+                f"n={n_reps.get('ref', '?')} replicates. "
+                f"{n_sig} cell type(s) shift significantly at padj < {alpha}."
+            )
+            if n_sig:
+                top_shifts = [r for r in rows if r.get("significant")]
+                top_shifts = sorted(
+                    top_shifts,
+                    key=lambda r: abs(r.get("log2_fold_change", 0.0)),
+                    reverse=True,
+                )[:5]
+                desc = [
+                    f"{r['name']} ({r['direction']}, "
+                    f"log2FC={r['log2_fold_change']:.2f}, "
+                    f"padj={r['padj']:.2g})"
+                    for r in top_shifts
+                ]
+                if desc:
+                    lines.append("Largest abundance shifts: " + "; ".join(desc) + ".")
+
     pb = findings.get("pseudobulk_de") or {}
     if pb:
         n_groups = pb.get("n_groups", 0)
@@ -253,10 +293,25 @@ def summarize_scrna_text(findings: dict) -> str:
             for c in (g.get("per_comparison", {}) or {}).values()
             if c.get("status") == "success" and c.get("n_significant", 0) > 0
         )
+        n_corrected = sum(
+            1 for g in per_group.values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success" and c.get("corrected_for_composition")
+        )
         thr = pb.get("thresholds", {}) or {}
         cond_col = pb.get("condition_col") or "condition"
         cond_label = cond_col.replace("_", " ").strip()
         cond_label = cond_label[:1].upper() + cond_label[1:] if cond_label else "Condition"
+        composition_clause = (
+            f" {n_corrected}/{n_success} blocks were composition-corrected "
+            f"(a continuous log-proportion covariate was added to the "
+            f"DESeq2 design because rna_diff_abundance flagged significant "
+            f"shifts)."
+            if n_corrected else
+            (" No block used a composition covariate "
+             "(rna_diff_abundance found no significant shifts).")
+            if da else ""
+        )
         lines.append(
             f"{cond_label}-associated expression programs: pseudobulk DE "
             f"(DESeq2 on pseudosamples) ran across {n_groups} "
@@ -267,6 +322,7 @@ def summarize_scrna_text(findings: dict) -> str:
             f"{n_with_de} blocks yielded significant DE "
             f"at padj < {thr.get('padj_max', 0.05)} and "
             f"|log2FC| > {thr.get('lfc_min', 0.5)}."
+            f"{composition_clause}"
         )
         n_low_power = sum(
             1 for g in per_group.values()
