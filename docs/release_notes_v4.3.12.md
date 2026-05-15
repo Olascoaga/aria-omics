@@ -42,6 +42,28 @@ The reviewed GSE278576 hippocampus rerun used a processed 40-donor `.h5ad`:
   lineage claims.
 - Reused input annotations are reported as reused `obs` groupings, not as newly
   inferred Leiden clusters.
+- Partial analysis failures are surfaced explicitly in the report. On
+  atlas-scale scRNA inputs, per-cluster Wilcoxon marker discovery may time out;
+  this is reported as unavailable rather than silently omitted.
+- Bulk RNA integrated interpretations must avoid unsupported causal language.
+  Differential expression and pathway enrichment can support hypotheses, but
+  not direct transcriptional causality without orthogonal validation.
+- Narrative guardrails must be dataset-agnostic. No gene, perturbation, or
+  validation dataset should be hardcoded into runtime prompts or report
+  post-processing.
+
+## Final 4.3 Closeout Hotfixes
+
+After the initial `v4.3.12` tag, two report-fidelity hotfixes closed the 4.3
+branch:
+
+- `805e0b2` / `v4.3.12.post1`: fixed report version display, escaped Methods
+  and decisions HTML, rendered raw error dictionaries as human-readable
+  messages, clarified LIANA rank metrics, and added a generic anti-causality
+  guardrail for bulk RNA interpretation.
+- `d3de169`: removed dataset-specific narrative guardrails and prompt examples
+  from runtime code. The report fidelity rules are now generic and no longer
+  reference any particular gene, perturbation, or validation experiment.
 
 ## Repository Hygiene
 
@@ -56,6 +78,6 @@ The reviewed GSE278576 hippocampus rerun used a processed 40-donor `.h5ad`:
 Release closeout validation:
 
 - `python -m compileall -q aria`
-- `python -m pytest -q`
-- `python tests/test_narrative_agent.py`
-
+- `python -m pytest -q` -> 29 passed after final closeout
+- `python tests/test_narrative_agent.py` -> 23 passed
+- `python tests/test_bulk_rna.py` -> 30 passed
