@@ -241,12 +241,12 @@ FORBIDDEN phrases: "comprehensive analysis", "robust evidence",
 "foundational", "provides insights", "reveals important",
 "this study", "elucidate", "leverage". Use plain scientific English.
 
-Example good tone: "Bulk RNA-seq comparing BMAL1 KO vs wildtype H9 cells
-(3v3 replicates) identified 2,232 DE genes with high confidence. Top
-hits IGFBP5 and COL3A1 suggest ECM remodeling as a primary BMAL1 target.
-Pathway enrichment converges on p53 signaling across both contrasts —
-a novel observation warranting follow-up. Sample size (n=3/group) limits
-power for small-effect genes."
+Example good tone: "Bulk RNA-seq comparing treatment vs control
+(3v3 replicates) identified 2,232 DE genes with medium confidence.
+Top genes and pathway enrichment suggest a coherent state shift, but
+the result should be treated as differential-expression evidence rather
+than proof of direct regulation. Sample size (n=3/group) limits power
+for small-effect genes."
 """
         try:
             return self.llm.complete(
@@ -1531,8 +1531,8 @@ power for small-effect genes."
         """
         Build a short URL-safe slug from biological entities or the question.
         Examples:
-          {entities: ['BMAL1', 'REV-ERBa']} → "bmal1_reverba"
-          {summary: "Effect of TNF on macrophages"} → "tnf_macrophages"
+          {entities: ['GeneA', 'GeneB']} -> "genea_geneb"
+          {summary: "Effect of treatment on cells"} -> "effect_treatment_cells"
         """
         import re as _re
         # Prefer biological entities (most specific)
@@ -2150,18 +2150,18 @@ power for small-effect genes."
     def _guard_bulk_interpretation(text: str) -> str:
         """Downgrade unsupported causal/mechanistic wording in bulk reports."""
         replacements = {
-            r"\bacts as a broader transcriptional repressor\b":
-                "shows a broader differential-expression footprint",
+            r"\bacts as an? ([a-z -]+)\b":
+                r"is consistent with a \1-associated expression pattern",
             r"\bsuppressing\b":
                 "associated with lower expression of",
-            r"\bposition circadian regulators as hierarchical gatekeepers\b":
-                "support the hypothesis that circadian regulators influence",
+            r"\bposition ([^.]+?) as hierarchical gatekeepers\b":
+                r"support the hypothesis that \1 influence",
             r"\bhierarchical gatekeepers\b":
                 "candidate upstream modulators",
-            r"\bBMAL1 enforces pluripotency\b":
-                "BMAL1 loss is associated with pluripotency-related changes",
-            r"\bREV-?ERB acts\b":
-                "REV-ERB perturbation is consistent with",
+            r"\b([A-Za-z0-9_.-]+) enforces ([A-Za-z0-9_ -]+)\b":
+                r"\1 perturbation is associated with \2-related changes",
+            r"\b([A-Za-z0-9_.-]+) drives ([A-Za-z0-9_ -]+)\b":
+                r"\1 perturbation is associated with \2",
         }
         guarded = text
         for pattern, repl in replacements.items():

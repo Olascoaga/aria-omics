@@ -459,7 +459,7 @@ class SetupAgent(BaseAgent):
         # Fallback heuristics
         if any(k in text for k in ["human", "homo", "patient", "clinical"]):
             return "hg38"
-        if any(k in text for k in ["mouse", "murine", "mus", "bmal", "circadian"]):
+        if any(k in text for k in ["mouse", "murine", "mus musculus"]):
             return "mm39"
         if any(k in text for k in ["rat", "rattus"]):
             return "rn7"

@@ -746,14 +746,14 @@ def test_bulk_interpretation_guard_downgrades_causal_language():
     from aria.agents.narrative_agent import NarrativeAgent
 
     guarded = NarrativeAgent._guard_bulk_interpretation(
-        "REVERB acts as a broader transcriptional repressor. "
-        "These data position circadian regulators as hierarchical "
-        "gatekeepers. BMAL1 enforces pluripotency."
+        "GeneA acts as a broad upstream regulator. "
+        "These data position pathway regulators as hierarchical "
+        "gatekeepers. GeneB enforces cell identity."
     )
 
-    assert "broader transcriptional repressor" not in guarded
+    assert "acts as a broad upstream regulator" not in guarded
     assert "hierarchical gatekeepers" not in guarded
-    assert "BMAL1 enforces pluripotency" not in guarded
+    assert "GeneB enforces cell identity" not in guarded
     assert "not direct evidence of transcriptional causality" in guarded
 
 

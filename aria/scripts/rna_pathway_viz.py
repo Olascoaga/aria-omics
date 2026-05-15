@@ -41,7 +41,7 @@ def make_ora_dotplot(pathways_list: list,
         pathways_list: list of dicts with keys: term, padj, overlap, odds_ratio,
                        combined_score, genes
         db_name:       database label (e.g. "GO_BP", "KEGG", "Reactome")
-        contrast_name: e.g. "BMAL1 vs WT"
+        contrast_name: e.g. "treated vs control"
         output_path:   where to write PNG
         top_n:         max pathways to plot (default 15)
 
@@ -186,7 +186,7 @@ def make_gsea_running_sums(de_results_df,
         de_results_df: DESeq2 results DataFrame (index = gene_id,
                        must have columns log2FoldChange and padj)
         symbol_map:    {ensembl_id (no version): hgnc_symbol}
-        contrast_name: e.g. "BMAL1 vs WT"
+        contrast_name: e.g. "treated vs control"
         output_dir:    figures dir for this contrast
         gene_set_library: blitzgsea library name
         organism:      "human" or "mouse" (matches gseapy convention)

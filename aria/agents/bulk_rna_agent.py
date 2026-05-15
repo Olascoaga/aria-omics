@@ -275,7 +275,7 @@ class BulkRNAAgent(BaseAgent):
                 "denominator": control,
                 "name":        f"{grp} vs {control}",
             })
-        # All pairwise among non-control groups (e.g. BMAL1_KO vs REV-ERBa_KO)
+        # All pairwise among non-control groups.
         for i in range(len(non_ctrl)):
             for j in range(i + 1, len(non_ctrl)):
                 contrasts.append({
@@ -328,7 +328,7 @@ class BulkRNAAgent(BaseAgent):
                  "name": self._humanize_contrast(l, control, entity_to_label)}
                 for l in non_ctrl
             ]
-            # All pairwise among non-control groups (e.g. BMAL1_KO vs REV-ERBa_KO)
+            # All pairwise among non-control groups.
             for i in range(len(non_ctrl)):
                 for j in range(i + 1, len(non_ctrl)):
                     contrasts.append({
@@ -374,7 +374,13 @@ class BulkRNAAgent(BaseAgent):
         except Exception: return mapping
 
     def _llm_match_labels(self, entities: list, group_names: list, intent: dict) -> dict:
-        prompt = f"Entities: {entities}\nQuestion: {intent.get('summary', '')}\nLabels: {group_names}\nMatch entities to labels. Return JSON like: {{\"BMAL1\": \"B\", \"wildtype\": \"WT\"}}"
+        prompt = (
+            f"Entities: {entities}\n"
+            f"Question: {intent.get('summary', '')}\n"
+            f"Labels: {group_names}\n"
+            "Match biological names to data labels. Return only JSON, "
+            "for example: {\"entity_name\": \"label_name\"}."
+        )
         result = self.think_structured(prompt, "Match biological names to data labels.", "Return JSON mapping entity to label.")
         return {k: v for k, v in result.items() if v in group_names and isinstance(v, str)} if isinstance(result, dict) else {}
 
