@@ -379,8 +379,7 @@ def build_scrna_integrated_interpretation(findings: dict,
     ann = _annotation_state(findings)
     resolution_word = "cell-type" if ann["has_valid"] else "cluster"
 
-    question = (intent.get("summary")
-                or "the submitted single-cell RNA-seq question")
+    question = _concise_question(intent)
     if qc.get("n_cells_after"):
         parts.append(
             f"Integrated interpretation: ARIA had enough retained cells "
@@ -469,6 +468,25 @@ def build_scrna_integrated_interpretation(findings: dict,
     if not parts:
         return ""
     return "\n".join(parts)
+
+
+def _concise_question(intent: Optional[dict]) -> str:
+    raw = str((intent or {}).get("summary") or "").strip()
+    if not raw:
+        return "the submitted single-cell RNA-seq question"
+    cut_markers = [
+        "\n", " Use ", " Reuse ", " Run all ", " Do not ", " Interpret ",
+        " 1.", " 2.", " 3.",
+    ]
+    end = len(raw)
+    for marker in cut_markers:
+        idx = raw.find(marker)
+        if idx > 0:
+            end = min(end, idx)
+    concise = raw[:end].strip(" .")
+    if len(concise) > 180:
+        concise = concise[:177].rsplit(" ", 1)[0].rstrip(" .,") + "..."
+    return concise or "the submitted single-cell RNA-seq question"
 
 
 # ── Methods block ─────────────────────────────────────────────────────────
@@ -905,7 +923,7 @@ def extract_cellcomm_table(findings: dict, top_n: int = 20) -> str:
         )
         pval = ia.get("cellphone_pval")
         pval_str = (f"<code>{_fmt_stat(pval)}</code>"
-                    if isinstance(pval, (int, float)) else "—")
+                    if isinstance(pval, (int, float)) and pval > 0 else "—")
         rank_str = f"#{int(rank)}" if isinstance(rank, (int, float)) else "—"
         score_str = _fmt_stat(score)
         metric_str = html.escape(str(metric or "score"))

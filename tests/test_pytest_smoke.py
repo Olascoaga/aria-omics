@@ -650,6 +650,35 @@ def test_scrna_cell_focus_skips_when_all_groups_requested(tmp_path):
     assert focus == set()
 
 
+def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    obs = pd.DataFrame(
+        {"subclass": ["OPC", "Oligo", "CA1", "DG"] * 2},
+        index=[f"c_{i}" for i in range(8)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((8, 2), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=["g1", "g2"]),
+    )
+    h5ad_path = tmp_path / "hippo_neurons.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    focus = scRNAAgent._infer_cell_focus_values(
+        [str(h5ad_path)],
+        "subclass",
+        {"user_question": "hippocampus neurons and oligodendrocytes"},
+        {"summary": "oligodendrocyte aging"},
+    )
+
+    assert focus == {"Oligo"}
+
+
 def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
@@ -876,6 +905,32 @@ def test_cellcomm_table_labels_rank_metric_not_generic_score():
     assert "#1" in rows
     assert "specificity_rank" in rows
     assert "<td><code>0.0</code></td>" not in rows
+    assert "<td>—</td>" in rows
+
+
+def test_integrated_interpretation_sanitizes_long_prompt():
+    from aria.agents import _narrative_scrna
+
+    findings = {
+        "qc": {"n_cells_after": 1000},
+        "cell_types": {"annotation_source": "input_obs"},
+        "pseudobulk_de": {"per_group": {}},
+    }
+    intent = {
+        "summary": (
+            "Compare aging signatures in hippocampus snRNA-seq. Use age_group "
+            "20-39 as young.\n\nRun all applicable single-cell analyses. "
+            "Do not run ATAC."
+        )
+    }
+
+    text = _narrative_scrna.build_scrna_integrated_interpretation(
+        findings, intent
+    )
+
+    assert "Compare aging signatures in hippocampus snRNA-seq" in text
+    assert "Run all applicable" not in text
+    assert "Do not run ATAC" not in text
 
 
 def test_narrative_html_escapes_methods_and_uses_package_version(tmp_path):

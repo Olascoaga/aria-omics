@@ -134,6 +134,13 @@ def rna_cellcomm(params: dict) -> dict:
                   .head(50))
         for rank_idx, (_, row) in enumerate(ranked.iterrows(), start=1):
             raw_score = float(row.get(chosen_rank, 0))
+            raw_pval = row.get("cellphone_pvals") if "cellphone_pvals" in row else None
+            try:
+                pval = float(raw_pval) if raw_pval is not None else None
+                if pval <= 0:
+                    pval = None
+            except Exception:
+                pval = None
             interactions.append({
                 "source":   str(row.get("source", "")),
                 "target":   str(row.get("target", "")),
@@ -147,8 +154,7 @@ def rna_cellcomm(params: dict) -> dict:
                 "score_direction": (
                     "lower is better" if ascending else "higher is better"
                 ),
-                "cellphone_pval": float(row.get("cellphone_pvals"))
-                                   if "cellphone_pvals" in row else None,
+                "cellphone_pval": pval,
             })
         method = f"liana_rank_aggregate ({chosen_rank})"
 

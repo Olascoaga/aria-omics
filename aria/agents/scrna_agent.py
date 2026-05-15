@@ -93,6 +93,21 @@ class scRNAAgent(BaseAgent):
         if focus.get("status") == "success":
             files = focus.get("files", files)
             findings["cell_focus"] = focus
+            self._log_decision(
+                experiment_id,
+                checkpoint="scRNA",
+                question="Focused scRNA input",
+                decision=(
+                    f"{focus.get('groupby')} in "
+                    f"{', '.join(focus.get('values', []))}"
+                ),
+                rationale=(
+                    f"User requested a focused cell population; subsetting "
+                    f"before QC reduced input cells from "
+                    f"{focus.get('n_cells_before')} to {focus.get('n_cells_after')}."
+                ),
+                made_by="scrna_agent",
+            )
         elif focus.get("status") == "error":
             findings["cell_focus"] = focus
             return {"status": "failed", "reason": "cell_focus_failed",
@@ -267,8 +282,7 @@ class scRNAAgent(BaseAgent):
         "microglia": {"Microglia"},
         "astrocyte": {"Astro"},
         "astrocytes": {"Astro"},
-        "neuron": {"CA1", "CA2-CA3", "DG", "SUB"},
-        "neurons": {"CA1", "CA2-CA3", "DG", "SUB"},
+        "microglía": {"Microglia"},
     }
 
     def _prepare_focused_h5ads(self, experiment_id: str, files: list,
@@ -370,6 +384,9 @@ class scRNAAgent(BaseAgent):
         workspace = Path("~/.aria/workspace/scrna_focus").expanduser()
         try:
             workspace.mkdir(parents=True, exist_ok=True)
+            probe = workspace / ".write_test"
+            probe.write_text("ok")
+            probe.unlink(missing_ok=True)
             return workspace
         except OSError:
             fallback = Path("/tmp/aria_workspace/scrna_focus")
@@ -691,6 +708,17 @@ class scRNAAgent(BaseAgent):
                     "grouping (skipping Leiden)."
                 ),
                 warnings=[],
+            )
+            self._log_decision(
+                experiment_id,
+                checkpoint="scRNA",
+                question="Cell grouping",
+                decision=f"reuse obs['{cluster_col}']; skip Leiden",
+                rationale=(
+                    "A trusted h5ad obs cell-type column was available, so "
+                    "ARIA reused it instead of reclustering or inventing labels."
+                ),
+                made_by="scrna_agent",
             )
         else:
             decision = self.advisor.advise_leiden_resolution(
@@ -1479,6 +1507,22 @@ Rules:
         if not covariates and batch_cov:
             covariates = [batch_cov]
 
+        self._log_decision(
+            experiment_id,
+            checkpoint="scRNA",
+            question="Pseudobulk design",
+            decision=(
+                f"groupby={cell_type_col}; condition={factor}; "
+                f"replicate={replicate_col}; covariates="
+                f"{', '.join(covariates) if covariates else 'none'}"
+            ),
+            rationale=(
+                "Single-cell condition contrasts use donor/sample-level "
+                "pseudobulk rather than treating cells as independent replicates."
+            ),
+            made_by="scrna_agent",
+        )
+
         # 3. Run pseudobulk DE
         pb = self.env.run_in_stack(
             stack="rna",
@@ -1611,6 +1655,17 @@ Rules:
             if annotation.get("celltypist", {}).get("status") == "success"
             else annotation.get("label_col") or "leiden"
         )
+        self._log_decision(
+            experiment_id,
+            checkpoint="scRNA",
+            question="Trajectory grouping",
+            decision=f"PAGA/DPT grouped by {cell_type_col}",
+            rationale=(
+                "Trajectory analysis uses the same trusted cell grouping used "
+                "for annotation and reporting."
+            ),
+            made_by="scrna_agent",
+        )
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_trajectory.py",
@@ -1664,6 +1719,17 @@ Rules:
             if (annotation or {}).get("celltypist", {}).get("status") == "success"
             else (annotation or {}).get("label_col") or "leiden"
         )
+        self._log_decision(
+            experiment_id,
+            checkpoint="scRNA",
+            question="Cell-cell communication grouping",
+            decision=f"LIANA grouped by {cell_type_col}; n_perms=100",
+            rationale=(
+                "Ligand-receptor analysis requires annotated sender and "
+                "receiver groups; ARIA reused the trusted grouping column."
+            ),
+            made_by="scrna_agent",
+        )
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_cellcomm.py",
@@ -1697,3 +1763,22 @@ Rules:
 
     def receive(self, message):
         pass
+
+    def _log_decision(self, experiment_id: str, checkpoint: str,
+                      question: str, decision: str, rationale: str,
+                      made_by: str = "scrna_agent") -> None:
+        try:
+            digest = hashlib.sha1(
+                f"{checkpoint}|{question}|{decision}".encode()
+            ).hexdigest()[:10]
+            self.memory.store_decision(
+                decision_id=f"{experiment_id}_scrna_{digest}",
+                wing_id=experiment_id,
+                checkpoint=checkpoint,
+                question=question,
+                decision=decision,
+                rationale=rationale,
+                made_by=made_by,
+            )
+        except Exception as e:
+            log.warning(f"scRNA decision logging failed: {e}")

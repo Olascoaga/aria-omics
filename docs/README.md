@@ -11,6 +11,7 @@ roadmap modules.
 - [Reporting and Outputs](architecture/reporting_and_outputs.md)
 - [Installation Guide](INSTALLATION.md)
 - [Validation Status](validation_status.md)
+- [v4.3.16 Release Notes](release_notes_v4.3.16.md)
 - [v4.3.15 Release Notes](release_notes_v4.3.15.md)
 - [v4.3.14 Release Notes](release_notes_v4.3.14.md)
 - [v4.3.13 Release Notes](release_notes_v4.3.13.md)
