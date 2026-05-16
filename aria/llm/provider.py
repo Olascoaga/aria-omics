@@ -22,6 +22,7 @@ import json
 import os
 import time
 import logging
+from datetime import datetime, timezone
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -32,6 +33,7 @@ from litellm import completion
 
 from aria.llm.context_manager import ContextManager, ModelProfile
 from aria.utils.env_loader import load_aria_env
+from aria.utils.provenance import record_llm_usage
 
 log = logging.getLogger("aria.llm")
 
@@ -212,6 +214,16 @@ class LLMProvider:
             cached = self._cache_get(cache_key)
             if cached is not None:
                 log.debug(f"LLM cache hit: {cfg.model} key={cache_key[:8]}")
+                record_llm_usage({
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "provider": cfg.provider,
+                    "model": cfg.model,
+                    "cache_hit": True,
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "estimated_cost_usd": 0.0,
+                })
                 return cached
 
         # Get or build ContextManager for this model
@@ -252,6 +264,27 @@ class LLMProvider:
 
         response = completion(**kwargs)
         text = response.choices[0].message.content
+        usage = getattr(response, "usage", None)
+        prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
+        completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
+        total_tokens = int(
+            getattr(usage, "total_tokens", 0)
+            or (prompt_tokens + completion_tokens)
+        )
+        try:
+            cost = float(litellm.completion_cost(completion_response=response) or 0.0)
+        except Exception:
+            cost = 0.0
+        record_llm_usage({
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "provider": cfg.provider,
+            "model": cfg.model,
+            "cache_hit": False,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "estimated_cost_usd": cost,
+        })
         if cache_key is not None and text:
             self._cache_put(cache_key, text)
         return text

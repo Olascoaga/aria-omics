@@ -329,7 +329,7 @@ def summarize_scrna_text(findings: dict) -> str:
             f"group x comparison blocks"
             f"{f' ({n_skipped} skipped for replicate support)' if n_skipped else ''}. "
             f"{n_with_de_local} blocks yielded locally significant DE and "
-            f"{n_with_de_global} blocks remained significant after global "
+            f"{n_with_de_global} blocks were significant under pooled global "
             f"BH correction"
             f"{f' across {_fmt_int(n_tests_global)} gene-block tests' if n_tests_global else ''} "
             f"at FDR < {thr.get('padj_max', 0.05)} and "

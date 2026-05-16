@@ -25,6 +25,7 @@ dependencies:
 
   # ── Signal tracks ────────────────────────────────────────────────────
   - pyBigWig>=0.3.18
+  - idr>=2.0.4
 
   # ── Peak calling ─────────────────────────────────────────────────────
   # MACS3 is sensitive to its Cython compilation version.
@@ -45,6 +46,3 @@ dependencies:
 
     # TF footprinting
     - pyatac>=0.1
-
-    # IDR for ChIP/CUT&RUN replicates
-    - idr>=2.0.4

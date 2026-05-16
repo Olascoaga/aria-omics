@@ -43,7 +43,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from aria.utils.provenance import collect_provenance
+from aria.utils.provenance import collect_llm_usage, collect_provenance
 
 from aria import __version__ as ARIA_VERSION
 from aria.agents.base_agent import BaseAgent
@@ -1336,6 +1336,7 @@ for small-effect genes."
         )
         methods_html = self._plain_text_to_html(methods)
         provenance = exp_ctx.get("provenance") or collect_provenance()
+        llm_usage_since = provenance.get("timestamp_utc")
         if reproducible:
             provenance = dict(provenance)
             provenance["timestamp_utc"] = "<timestamp redacted for byte-identity>"
@@ -1343,6 +1344,7 @@ for small-effect genes."
             provenance=provenance,
             input_files=exp_ctx.get("input_files", []),
             agent_results=agent_results,
+            llm_usage=collect_llm_usage(llm_usage_since),
         )
 
         html = f"""<!DOCTYPE html>
@@ -1674,7 +1676,8 @@ for small-effect genes."
 
     def _build_provenance_section(self, provenance: dict,
                                   input_files: list,
-                                  agent_results: dict) -> str:
+                                  agent_results: dict,
+                                  llm_usage: dict | None = None) -> str:
         rows = []
         for key in [
             "aria_version", "git_sha", "git_dirty", "python_version",
@@ -1701,17 +1704,28 @@ for small-effect genes."
                 "<tr><td colspan='4'><em>No input hashes recorded.</em></td></tr>"
             )
         param_rows = []
-        for agent, result in (agent_results or {}).items():
-            if isinstance(result, dict) and result.get("params_sha256"):
-                param_rows.append(
-                    "<tr>"
-                    f"<td>{_html.escape(str(agent))}</td>"
-                    f"<td><code>{_html.escape(str(result.get('params_sha256')))}</code></td>"
-                    "</tr>"
-                )
+        for label, digest in self._collect_param_hashes(agent_results):
+            param_rows.append(
+                "<tr>"
+                f"<td>{_html.escape(str(label))}</td>"
+                f"<td><code>{_html.escape(str(digest))}</code></td>"
+                "</tr>"
+            )
         if not param_rows:
             param_rows.append(
                 "<tr><td colspan='2'><em>No per-stage parameter hashes recorded.</em></td></tr>"
+            )
+        llm_usage = llm_usage or {}
+        llm_rows = []
+        for key in (
+            "calls", "cache_hits", "prompt_tokens", "completion_tokens",
+            "total_tokens", "estimated_cost_usd",
+        ):
+            llm_rows.append(
+                "<tr>"
+                f"<td>{_html.escape(key)}</td>"
+                f"<td><code>{_html.escape(str(llm_usage.get(key, 0)))}</code></td>"
+                "</tr>"
             )
         return (
             "<div class='card'>"
@@ -1727,10 +1741,40 @@ for small-effect genes."
             + "<table><tr><th>Stage</th><th>params_sha256</th></tr>"
             + "".join(param_rows)
             + "</table>"
+            + "<h3>LLM Usage</h3>"
+            + "<table><tr><th>Field</th><th>Value</th></tr>"
+            + "".join(llm_rows)
+            + "</table>"
             + "<h3>Conda Lockfiles</h3>"
             + self._build_lockfile_section()
             + "</div>"
         )
+
+    @staticmethod
+    def _collect_param_hashes(obj, prefix: str = "") -> list[tuple[str, str]]:
+        rows: list[tuple[str, str]] = []
+        if isinstance(obj, dict):
+            digest = obj.get("params_sha256")
+            if digest:
+                rows.append((prefix or "root", str(digest)))
+            for key, val in obj.items():
+                if key == "params_sha256":
+                    continue
+                child_prefix = f"{prefix}.{key}" if prefix else str(key)
+                rows.extend(NarrativeAgent._collect_param_hashes(val, child_prefix))
+        elif isinstance(obj, list):
+            for idx, val in enumerate(obj):
+                rows.extend(
+                    NarrativeAgent._collect_param_hashes(val, f"{prefix}[{idx}]")
+                )
+        seen = set()
+        unique = []
+        for label, digest in rows:
+            pair = (label, digest)
+            if pair not in seen:
+                seen.add(pair)
+                unique.append(pair)
+        return unique
 
     @staticmethod
     def _build_lockfile_section() -> str:

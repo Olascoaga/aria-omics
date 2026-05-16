@@ -1706,6 +1706,7 @@ Rules:
                     "databases":   pw.get("databases", {}),
                     "background_size": pw.get("background_size"),
                     "background_source": pw.get("background_source"),
+                    "params_sha256": pw.get("params_sha256"),
                     "per_cluster": pw.get("per_cluster", {}),
                 }
 
@@ -1720,6 +1721,8 @@ Rules:
             "multiple_testing": pb.get("multiple_testing", {}),
             "background_size": pb.get("background_size"),
             "background_source": pb.get("background_source"),
+            "params_sha256": pb.get("params_sha256"),
+            "differential_abundance_params_sha256": da_result.get("params_sha256"),
             "n_groups":      pb.get("n_groups"),
             "per_group":     pb.get("per_group", {}),
         }
@@ -1756,6 +1759,7 @@ Rules:
                 "n_replicates_per_group": da_result.get("n_replicates_per_group"),
                 "per_comparison":         da_result.get("per_comparison", {}),
                 "output_path":            da_result.get("output_path"),
+                "params_sha256":          da_result.get("params_sha256"),
                 "warnings":               da_result.get("warnings", []),
             }
         elif da_result.get("status"):

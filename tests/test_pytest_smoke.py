@@ -1854,6 +1854,70 @@ def test_methodology_json_emitted_with_required_keys(tmp_path):
         assert key in data
 
 
+def test_provenance_collects_nested_params_hashes():
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    rows = NarrativeAgent._collect_param_hashes({
+        "scrna_agent": {
+            "findings": {
+                "pseudobulk_de": {"params_sha256": "abc"},
+                "pseudobulk_pathways": {"params_sha256": "def"},
+            }
+        }
+    })
+
+    assert ("scrna_agent.findings.pseudobulk_de", "abc") in rows
+    assert ("scrna_agent.findings.pseudobulk_pathways", "def") in rows
+
+
+def test_provenance_section_renders_llm_usage():
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    agent = NarrativeAgent.__new__(NarrativeAgent)
+    html = agent._build_provenance_section(
+        provenance={
+            "aria_version": "test",
+            "git_sha": "abc",
+            "git_dirty": False,
+            "python_version": "py",
+            "platform": "linux",
+            "conda_env": "",
+            "timestamp_utc": "now",
+        },
+        input_files=[],
+        agent_results={},
+        llm_usage={
+            "calls": 2,
+            "cache_hits": 1,
+            "prompt_tokens": 10,
+            "completion_tokens": 5,
+            "total_tokens": 15,
+            "estimated_cost_usd": 0.001,
+        },
+    )
+
+    assert "LLM Usage" in html
+    assert "total_tokens" in html
+    assert "0.001" in html
+
+
+def test_collect_llm_usage_invalid_since_returns_empty(monkeypatch, tmp_path):
+    from aria.utils import provenance
+
+    usage_log = tmp_path / "usage.jsonl"
+    usage_log.write_text(
+        '{"timestamp_utc":"2026-01-01T00:00:00+00:00","model":"m",'
+        '"prompt_tokens":10,"completion_tokens":1,"total_tokens":11,'
+        '"estimated_cost_usd":0.1}\n'
+    )
+    monkeypatch.setattr(provenance, "USAGE_LOG", usage_log)
+
+    usage = provenance.collect_llm_usage("<timestamp redacted for byte-identity>")
+
+    assert usage["calls"] == 0
+    assert usage["total_tokens"] == 0
+
+
 def test_reproducible_mode_writes_memory_snapshot(tmp_path):
     from aria.agents.narrative_agent import NarrativeAgent
 
