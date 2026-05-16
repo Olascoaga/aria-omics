@@ -1653,16 +1653,9 @@ for small-effect genes."
             thresholds["scrna_multiple_testing"] = pb.get("multiple_testing", {})
         except Exception:
             pass
-        tools = {}
-        try:
-            from importlib.metadata import version, PackageNotFoundError
-            for pkg in ("scanpy", "anndata", "pydeseq2", "gseapy", "numpy", "pandas"):
-                try:
-                    tools[pkg] = version(pkg)
-                except PackageNotFoundError:
-                    tools[pkg] = "not installed"
-        except Exception:
-            tools = {}
+        tools = self._collect_tool_versions(
+            ("scanpy", "anndata", "pydeseq2", "gseapy", "numpy", "pandas")
+        )
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
@@ -1680,6 +1673,81 @@ for small-effect genes."
             ),
             "decisions": decisions or [],
         }
+
+    @staticmethod
+    def _collect_tool_versions(packages: tuple[str, ...]) -> dict:
+        tools = {}
+        try:
+            from importlib.metadata import version, PackageNotFoundError
+            for pkg in packages:
+                try:
+                    tools[pkg] = version(pkg)
+                except PackageNotFoundError:
+                    tools[pkg] = "not installed"
+        except Exception:
+            tools = {pkg: "not installed" for pkg in packages}
+
+        locked = NarrativeAgent._tool_versions_from_lockfiles(packages)
+        for pkg, locked_version in locked.items():
+            if tools.get(pkg) in (None, "not installed"):
+                tools[pkg] = locked_version
+            elif tools[pkg] != locked_version:
+                tools[f"{pkg}_lock"] = locked_version
+        return tools
+
+    @staticmethod
+    def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
+        root = Path(__file__).resolve().parents[2]
+        package_set = {p.lower(): p for p in packages}
+        versions = {}
+        pip_locks = sorted((root / "envs").glob("*.pip.lock"))
+        for lock in pip_locks:
+            try:
+                for line in lock.read_text(encoding="utf-8").splitlines():
+                    stripped = line.strip()
+                    if not stripped or stripped.startswith("#"):
+                        continue
+                    if "==" in stripped:
+                        name, ver = stripped.split("==", 1)
+                    else:
+                        continue
+                    canonical = package_set.get(name.strip().lower())
+                    if canonical and canonical not in versions:
+                        versions[canonical] = ver.strip()
+            except Exception:
+                continue
+
+        conda_locks = sorted((root / "envs").glob("*.linux-64.lock"))
+        for lock in conda_locks:
+            try:
+                for line in lock.read_text(encoding="utf-8").splitlines():
+                    stripped = line.strip()
+                    if not stripped or stripped.startswith("#") or stripped == "@EXPLICIT":
+                        continue
+                    parsed = NarrativeAgent._package_version_from_conda_url(
+                        stripped, package_set
+                    )
+                    if parsed:
+                        canonical, ver = parsed
+                        versions.setdefault(canonical, ver)
+            except Exception:
+                continue
+        return versions
+
+    @staticmethod
+    def _package_version_from_conda_url(
+        url: str, package_set: dict[str, str]
+    ) -> tuple[str, str] | None:
+        import re
+        filename = url.rsplit("/", 1)[-1]
+        filename = re.sub(r"\.(conda|tar\.bz2)$", "", filename)
+        for lower_name, canonical in package_set.items():
+            prefix = f"{lower_name}-"
+            if filename.lower().startswith(prefix):
+                rest = filename[len(prefix):]
+                version = rest.split("-", 1)[0]
+                return canonical, version
+        return None
 
     def _build_provenance_section(self, provenance: dict,
                                   input_files: list,

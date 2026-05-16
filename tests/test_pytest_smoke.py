@@ -2065,6 +2065,37 @@ def test_methodology_json_persists_llm_usage():
     assert data["llm_usage"]["total_tokens"] == 123
 
 
+def test_tool_versions_fall_back_to_lockfiles(monkeypatch):
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    monkeypatch.setattr(
+        NarrativeAgent,
+        "_tool_versions_from_lockfiles",
+        lambda packages: {
+            "pydeseq2": "0.5.4",
+            "gseapy": "1.1.13",
+            "anndata": "0.12.10",
+        },
+    )
+
+    tools = NarrativeAgent._collect_tool_versions(("pydeseq2", "gseapy", "anndata"))
+
+    assert tools["pydeseq2"] == "0.5.4"
+    assert tools["gseapy"] == "1.1.13"
+    assert tools["anndata"] != "not installed"
+
+
+def test_conda_lock_url_version_parser():
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    parsed = NarrativeAgent._package_version_from_conda_url(
+        "https://conda.anaconda.org/conda-forge/noarch/anndata-0.12.10-pyhd8ed1ab_0.conda",
+        {"anndata": "anndata"},
+    )
+
+    assert parsed == ("anndata", "0.12.10")
+
+
 def test_h5ad_obs_inference_pbmc_ifn_beta_dataset(tmp_path):
     """Generalization regression — the public Kang et al. PBMC IFN-β
     dataset (8 donors, stim/ctrl) used to fall through obs inference

@@ -139,7 +139,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v4.3.19"
+VERSION = "v4.4.0"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────
