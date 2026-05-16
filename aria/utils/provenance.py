@@ -8,7 +8,7 @@ import os
 import platform
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -79,7 +79,9 @@ def record_llm_usage(event: dict) -> None:
         pass
 
 
-def collect_llm_usage(since_utc: str | None = None) -> dict[str, Any]:
+def collect_llm_usage(
+    since_utc: str | None = None, grace_seconds: int = 5
+) -> dict[str, Any]:
     """Summarize LLM token/cost events since an ISO UTC timestamp."""
     totals = {
         "calls": 0,
@@ -94,6 +96,8 @@ def collect_llm_usage(since_utc: str | None = None) -> dict[str, Any]:
     if since_utc:
         try:
             since = datetime.fromisoformat(str(since_utc).replace("Z", "+00:00"))
+            if grace_seconds:
+                since = since - timedelta(seconds=max(0, int(grace_seconds)))
         except Exception:
             return totals
     if not USAGE_LOG.exists():

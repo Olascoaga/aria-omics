@@ -1337,6 +1337,7 @@ for small-effect genes."
         methods_html = self._plain_text_to_html(methods)
         provenance = exp_ctx.get("provenance") or collect_provenance()
         llm_usage_since = provenance.get("timestamp_utc")
+        llm_usage = collect_llm_usage(llm_usage_since)
         if reproducible:
             provenance = dict(provenance)
             provenance["timestamp_utc"] = "<timestamp redacted for byte-identity>"
@@ -1344,7 +1345,7 @@ for small-effect genes."
             provenance=provenance,
             input_files=exp_ctx.get("input_files", []),
             agent_results=agent_results,
-            llm_usage=collect_llm_usage(llm_usage_since),
+            llm_usage=llm_usage,
         )
 
         html = f"""<!DOCTYPE html>
@@ -1608,6 +1609,7 @@ for small-effect genes."
                     exp_ctx=exp_ctx,
                     agent_results=agent_results,
                     decisions=decisions,
+                    llm_usage=llm_usage,
                 ),
                 indent=2,
                 sort_keys=True,
@@ -1632,7 +1634,8 @@ for small-effect genes."
             log.warning(f"Could not write memory snapshot: {exc}")
 
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
-                                agent_results: dict, decisions: list) -> dict:
+                                agent_results: dict, decisions: list,
+                                llm_usage: dict | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -1672,6 +1675,9 @@ for small-effect genes."
                 "harmony": 0,
             },
             "tools": tools,
+            "llm_usage": llm_usage or collect_llm_usage(
+                provenance.get("timestamp_utc")
+            ),
             "decisions": decisions or [],
         }
 

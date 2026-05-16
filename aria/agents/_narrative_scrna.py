@@ -613,6 +613,7 @@ def build_scrna_methods(findings: dict) -> str:
     clu = findings.get("clustering") or {}
     cdec = findings.get("clustering_decision") or {}
     if clu.get("n_clusters"):
+        embedding_label = findings.get("embedding_label") or "UMAP"
         # scrna_agent emits {resolution, justification, n_clusters} —
         # earlier code looked for {recommended, n_candidates} which never
         # existed, so Methods printed "resolution=? across ? candidates".
@@ -627,7 +628,7 @@ def build_scrna_methods(findings: dict) -> str:
             groupby = clu.get("groupby") or cdec.get("groupby") or "input annotation"
             lines.append(
                 f"Dimensionality reduction used PCA (50 components) followed "
-                f"by k-NN graph construction (k=15) and UMAP visualisation. "
+                f"by k-NN graph construction (k=15) and {embedding_label} visualisation. "
                 f"ARIA reused pre-existing obs['{groupby}'] labels as "
                 f"{_group_label(groupby)} and skipped Leiden clustering, "
                 f"yielding {clu['n_clusters']} groups."
@@ -635,7 +636,7 @@ def build_scrna_methods(findings: dict) -> str:
         else:
             lines.append(
                 f"Dimensionality reduction used PCA (50 components) followed by "
-                f"k-NN graph construction (k=15) and UMAP visualisation. "
+                f"k-NN graph construction (k=15) and {embedding_label} visualisation. "
                 f"Leiden clustering at resolution={res if res is not None else '?'}"
                 f"{cand_str} yielded {clu['n_clusters']} clusters."
             )
@@ -1482,6 +1483,7 @@ def build_scrna_html_section(findings: dict,
         if k.startswith("umap_") and k != "umap_dpt_pseudotime"
     }
     if umaps:
+        embedding_label = findings.get("embedding_label") or "UMAP"
         parts.append('<h4 style="margin-top:1rem">Embedding</h4>')
         parts.append('<div style="display:flex;flex-wrap:wrap;gap:1rem">')
         for key, path in sorted(umaps.items()):
@@ -1496,7 +1498,7 @@ def build_scrna_html_section(findings: dict,
                 "batch": "batch",
                 "sample_id": "sample",
             }.get(pretty, pretty)
-            caption = html.escape(f"UMAP — {pretty}")
+            caption = html.escape(f"{embedding_label} — {pretty}")
             parts.append(
                 f'<figure style="flex:1 1 320px;min-width:300px;max-width:480px">'
                 f'<img src="{uri}" alt="{caption}">'
@@ -1817,6 +1819,12 @@ def generate_figures(findings: dict,
                     },
                 )
                 if res.get("status") == "success":
+                    if res.get("embedding_label"):
+                        findings["embedding_label"] = res.get("embedding_label")
+                    if res.get("embedding_key"):
+                        findings["embedding_key"] = res.get("embedding_key")
+                    if res.get("embedding_was_computed"):
+                        findings["embedding_was_computed"] = True
                     for key, path in (res.get("figures") or {}).items():
                         figs[f"umap_{key}"] = path
                 else:

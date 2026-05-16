@@ -188,6 +188,55 @@ def test_data_audit_infers_hg38_from_homo_sapiens_question(tmp_path):
     assert organism == "Homo sapiens"
 
 
+def test_umap_figure_falls_back_to_tsne(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    from aria.scripts.rna_figure_umap import make_umap_figures
+
+    adata = ad.AnnData(
+        X=np.ones((6, 3), dtype=np.float32),
+        obs=pd.DataFrame(
+            {"cluster": ["A", "A", "B", "B", "C", "C"]},
+            index=[f"cell_{i}" for i in range(6)],
+        ),
+        var=pd.DataFrame(index=[f"GENE_{i}" for i in range(3)]),
+    )
+    adata.obsm["X_tsne"] = np.column_stack([
+        np.arange(6, dtype=float),
+        np.arange(6, dtype=float) * 0.5,
+    ])
+    h5ad_path = tmp_path / "tsne_only.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    result = make_umap_figures({
+        "h5ad_path": str(h5ad_path),
+        "color_by": ["cluster"],
+        "output_dir": str(tmp_path / "figs"),
+    })
+
+    assert result["status"] == "success", result
+    assert result["embedding_key"] == "X_tsne"
+    assert result["embedding_label"] == "t-SNE"
+    assert Path(result["figures"]["cluster"]).name.startswith("tsne_")
+    assert Path(result["figures"]["cluster"]).exists()
+
+
+def test_pick_embedding_prefers_any_2d_x_embedding():
+    import numpy as np
+    from aria.scripts.rna_figure_umap import _pick_embedding
+
+    class FakeAdata:
+        obsm = {
+            "X_bad": np.ones((4, 3)),
+            "X_force": np.ones((4, 2)),
+        }
+
+    assert _pick_embedding(FakeAdata(), None) == "X_bad"
+    assert _pick_embedding(FakeAdata(), "X_force") == "X_force"
+
+
 def test_data_audit_infers_human_h5ad_from_gene_symbols(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
@@ -1991,12 +2040,29 @@ def test_methodology_json_emitted_with_required_keys(tmp_path):
     data = json.loads(methodology.read_text())
     for key in {
         "provenance", "inputs", "design", "design_intelligence",
-        "thresholds", "seeds", "tools", "decisions",
+        "thresholds", "seeds", "tools", "llm_usage", "decisions",
     }:
         assert key in data
     # With no input_files in exp_ctx the inputs list must still exist
     # (empty array, never missing) so peer-reviewable JSON is shape-stable.
     assert isinstance(data["inputs"], list)
+    assert isinstance(data["llm_usage"], dict)
+
+
+def test_methodology_json_persists_llm_usage():
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    agent = NarrativeAgent.__new__(NarrativeAgent)
+    data = agent._build_methodology_json(
+        provenance={"timestamp_utc": "2026-01-01T00:00:00+00:00"},
+        exp_ctx={},
+        agent_results={},
+        decisions=[],
+        llm_usage={"calls": 3, "total_tokens": 123},
+    )
+
+    assert data["llm_usage"]["calls"] == 3
+    assert data["llm_usage"]["total_tokens"] == 123
 
 
 def test_h5ad_obs_inference_pbmc_ifn_beta_dataset(tmp_path):
@@ -2231,6 +2297,23 @@ def test_collect_llm_usage_invalid_since_returns_empty(monkeypatch, tmp_path):
 
     assert usage["calls"] == 0
     assert usage["total_tokens"] == 0
+
+
+def test_collect_llm_usage_includes_grace_window(monkeypatch, tmp_path):
+    from aria.utils import provenance
+
+    usage_log = tmp_path / "usage.jsonl"
+    usage_log.write_text(
+        '{"timestamp_utc":"2026-01-01T00:00:04+00:00","model":"m",'
+        '"prompt_tokens":10,"completion_tokens":1,"total_tokens":11,'
+        '"estimated_cost_usd":0.1}\n'
+    )
+    monkeypatch.setattr(provenance, "USAGE_LOG", usage_log)
+
+    usage = provenance.collect_llm_usage("2026-01-01T00:00:05+00:00")
+
+    assert usage["calls"] == 1
+    assert usage["total_tokens"] == 11
 
 
 def test_reproducible_mode_writes_memory_snapshot(tmp_path):
