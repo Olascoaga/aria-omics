@@ -538,7 +538,15 @@ class DataAuditAgent(BaseAgent):
 
         obs_all = pd.concat(frames, axis=0, join="outer", sort=False)
         condition_col = self._pick_h5ad_condition_col(obs_all, user_question)
-        replicate_col = self._pick_h5ad_replicate_col(obs_all)
+        # A replicate column must distinguish biological replicates within a
+        # condition. The condition column itself trivially passes the laxer
+        # replicate check (n=2 levels), and so does any duplicate of it
+        # (e.g. Seurat's `orig.ident` often equals the condition label in
+        # published h5ads). Forbid both so we never report the condition
+        # column back as its own replicate.
+        replicate_col = self._pick_h5ad_replicate_col(
+            obs_all, exclude=[condition_col] if condition_col else None
+        )
         groupby_col = self._pick_h5ad_groupby_col(obs_all)
         covariates = self._pick_h5ad_covariates(obs_all, condition_col, replicate_col)
 
@@ -611,37 +619,76 @@ class DataAuditAgent(BaseAgent):
 
     @staticmethod
     def _pick_h5ad_condition_col(obs, user_question: str = "") -> str | None:
+        # Generic experimental-design vocabulary. NOT dataset-specific terms
+        # (no gene names, no disease names, no perturbation names): these are
+        # patterns that appear across stimulation, perturbation, treatment,
+        # genotype, disease, and age-group studies.
         priority = [
-            "age_group", "age_bin", "condition", "treatment", "diagnosis",
-            "disease", "group", "genotype", "phenotype", "status",
+            "age_group", "age_bin", "condition", "treatment", "stim",
+            "stimulation", "stim_status", "state", "perturbation",
+            "perturb", "intervention", "diagnosis", "disease", "group",
+            "genotype", "phenotype", "status", "label", "experimental_group",
         ]
+        sustring_keys = (
+            "age", "condition", "treatment", "stim", "perturb",
+            "intervention", "state", "diagnos", "disease", "group",
+            "genotype", "phenotype",
+        )
         q = (user_question or "").lower()
-        if any(k in q for k in ("age", "aging", "young", "old")):
+        # User question can bias the priority order. Keep the bias generic:
+        # we look at the verb the question uses ("vs", "compare", "between",
+        # "stimulation", "treatment", "perturbation", "aging") and bring the
+        # matching family of column names to the front. We do NOT inject
+        # disease- or molecule-specific tokens (no "interferon", no "APOE").
+        if any(k in q for k in ("aging", "age group", " age ", "young", "old")):
             priority = ["age_group", "age_bin", "age", *priority]
-        for col in priority:
-            if col in obs.columns and _usable_design_col(obs[col]):
-                return col
+        if any(k in q for k in ("stimulat", "stim", "vehicle", "perturb",
+                                 "agonist", "antagonist", "ifn ", "ifn-",
+                                 "ligand")):
+            priority = ["stim", "stimulation", "stim_status", "state",
+                        "perturbation", "perturb", *priority]
+        if any(k in q for k in ("treat", "treatment", "drug", "dose",
+                                 "compound", "vehicle vs")):
+            priority = ["treatment", "condition", *priority]
+        # Build a case-insensitive lookup once.
+        col_by_lower = {str(c).lower(): str(c) for c in obs.columns}
+        seen = set()
+        for key in priority:
+            actual = col_by_lower.get(key.lower())
+            if actual and actual not in seen \
+                    and _usable_design_col(obs[actual]):
+                return actual
+            seen.add(actual)
         candidates = []
         for col in obs.columns:
             name = str(col).lower()
-            if any(k in name for k in ("age", "condition", "treatment", "diagnos",
-                                       "disease", "group", "genotype")) \
+            if any(k in name for k in sustring_keys) \
                     and _usable_design_col(obs[col]):
                 candidates.append(str(col))
         return candidates[0] if candidates else None
 
     @staticmethod
-    def _pick_h5ad_replicate_col(obs) -> str | None:
+    def _pick_h5ad_replicate_col(obs, exclude: list[str] | None = None) -> str | None:
+        # orig.ident is Seurat's default; orig_ident (with underscore) is
+        # what scanpy emits after round-tripping. Both need to match.
         priority = [
-            "sample_id", "orig.ident", "donor_id", "donor", "subject_id",
-            "subject", "individual", "sample", "batch",
+            "sample_id", "orig.ident", "orig_ident", "donor_id", "donor",
+            "subject_id", "subject", "individual", "patient_id", "patient",
+            "sample", "batch", "library_id", "library",
         ]
-        for col in priority:
-            if col in obs.columns and _usable_replicate_col(obs[col]):
-                return col
+        blocked = {c for c in (exclude or []) if c}
+        col_by_lower = {str(c).lower(): str(c) for c in obs.columns
+                        if str(c) not in blocked}
+        for key in priority:
+            actual = col_by_lower.get(key.lower())
+            if actual and _usable_replicate_col(obs[actual]):
+                return actual
         for col in obs.columns:
+            if str(col) in blocked:
+                continue
             name = str(col).lower()
-            if any(k in name for k in ("donor", "subject", "sample", "individual")) \
+            if any(k in name for k in ("donor", "subject", "sample",
+                                       "individual", "patient", "library")) \
                     and _usable_replicate_col(obs[col]):
                 return str(col)
         return None
@@ -650,11 +697,14 @@ class DataAuditAgent(BaseAgent):
     def _pick_h5ad_groupby_col(obs) -> str | None:
         priority = [
             "cell_type_celltypist", "cell_type", "celltype", "subclass",
-            "class", "annotation", "predicted_labels", "leiden",
+            "class", "annotation", "predicted_labels", "cluster",
+            "cluster_label", "clusters", "leiden", "louvain",
         ]
-        for col in priority:
-            if col in obs.columns and _usable_groupby_col(obs[col]):
-                return col
+        col_by_lower = {str(c).lower(): str(c) for c in obs.columns}
+        for key in priority:
+            actual = col_by_lower.get(key.lower())
+            if actual and _usable_groupby_col(obs[actual]):
+                return actual
         return None
 
     @staticmethod
@@ -788,11 +838,17 @@ def _usable_design_col(series, min_levels: int = 2, max_levels: int = 12) -> boo
 
 
 def _usable_replicate_col(series) -> bool:
+    # A replicate column distinguishes biological replicates within
+    # conditions. n_levels == 2 is almost always the condition column itself
+    # (e.g. Seurat's `orig.ident` mirroring stim/ctrl). Require at least 3
+    # distinct levels so the inference does not silently report the
+    # condition column as its own replicate. A real n=2 vs n=2 experiment
+    # will still have 4 donor IDs in the replicate column.
     vals = series.dropna().astype(str)
     if vals.empty:
         return False
     n_levels = vals.nunique()
-    return 2 <= n_levels <= max(200, len(vals) // 20)
+    return 3 <= n_levels <= max(200, len(vals) // 20)
 
 
 def _usable_groupby_col(series) -> bool:

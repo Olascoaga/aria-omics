@@ -201,8 +201,8 @@ class DesignAgent(BaseAgent):
         else:
             # Free-text manual assignment, fed back via the TUI's "Other —"
             # path. Accepted formats:
-            #   "young=hc1153,hc1265; old=hc11,hc77"
-            #   "young: hc1153 hc1265 | old: hc11 hc77"
+            #   "treated=s1,s2,s3; control=s4,s5,s6"
+            #   "treated: s1 s2 s3 | control: s4 s5 s6"
             # Sample matching is substring-based against parsed stems so the
             # user does not have to type the full 10x suffix.
             parsed = self._parse_manual_groups(choice)
@@ -229,9 +229,9 @@ class DesignAgent(BaseAgent):
         """
         Parse a free-text manual group assignment from the user. Supports
         common shapes:
-          - "young=hc1153,hc1265; old=hc11,hc77"
-          - "young: hc1153 hc1265 | old: hc11 hc77"
-          - JSON: {"young": ["hc1153","hc1265"], "old": ["hc11","hc77"]}
+          - "treated=s1,s2,s3; control=s4,s5,s6"
+          - "treated: s1 s2 s3 | control: s4 s5 s6"
+          - JSON: {"treated": ["s1","s2","s3"], "control": ["s4","s5","s6"]}
         Returns {} if nothing usable could be parsed (caller decides what to
         do with that — we never silently invent groups).
         """
@@ -405,9 +405,12 @@ class DesignAgent(BaseAgent):
             f"\n\nConfidence: {self._proposed_groups.get('confidence', '?')}\n"
             f"Reasoning: {self._proposed_groups.get('reasoning', 'none')}\n\n"
             "Is this correct?\n\n"
-            "If filenames carry no comparison signal (donor barcodes etc.) "
-            "pick the manual option below and type the mapping like:\n"
-            "  young=hc1153,hc1265; old=hc11,hc77"
+            "If filenames carry no comparison signal (donor barcodes, "
+            "single-file h5ad without condition encoding, etc.) pick the "
+            "manual option below and type the mapping as "
+            "<group>=<sample1>,<sample2>;<group2>=<sample3>,<sample4>. "
+            "For example, two conditions with three replicates each:\n"
+            "  treated=s1,s2,s3; control=s4,s5,s6"
         )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
@@ -416,7 +419,7 @@ class DesignAgent(BaseAgent):
             options=[
                 "Yes — confirm groups",
                 "Re‑infer groups",
-                "Other — manually assign groups (e.g. young=hc1153,hc1265; old=hc11,hc77)",
+                "Other — manually assign groups (e.g. treated=s1,s2,s3; control=s4,s5,s6)",
                 "Cancel experiment",
             ],
             context={"proposed_groups": groups},
@@ -473,9 +476,9 @@ class DesignAgent(BaseAgent):
                 )
                 raw = self.think(prompt, system=DESIGN_SYSTEM,
                                  tier=TaskTier.LIGHT, max_tokens=15)
-                factor_guess = raw.strip().lower()
+                factor_guess = self._sanitize_factor_guess(raw)
             except Exception:
-                pass
+                factor_guess = "condition"
 
         question = (
             f"Main experimental factor: proposed '{factor_guess}'\n\n"
@@ -485,6 +488,7 @@ class DesignAgent(BaseAgent):
             "genotype",
             "treatment",
             "condition",
+            "stimulation",
             "time",
             "Cancel",
         ]
@@ -497,6 +501,41 @@ class DesignAgent(BaseAgent):
             options=options,
         )
         self._pending_escalation_id = msg.id
+
+    @staticmethod
+    def _sanitize_factor_guess(raw: str) -> str:
+        """
+        Reduce a free-text LLM reply to a single short identifier suitable for
+        a factor name. Rejects anything that looks like a sentence, contains
+        whitespace, punctuation, or runs over a sensible length cap. Returns
+        'condition' as a neutral fallback when nothing safe can be salvaged.
+
+        The bug this guards against: when obs inference fails and the LLM
+        free-texts something like "need file names to identify groups" or
+        "paste your matrix file", the previous code passed the whole reply
+        as a CP 2.3 option. Now the menu only ever sees a column-like token.
+        """
+        if not raw or not isinstance(raw, str):
+            return "condition"
+        token = raw.strip()
+        # Strip simple quoting and trailing punctuation
+        token = token.strip("'\"`.;:,!?()[]{}")
+        # Factor names are short identifiers. A multi-word reply (any
+        # internal whitespace) is the LLM emitting a sentence, not a
+        # column name, so abort instead of taking the first word.
+        if not token or any(c.isspace() for c in token):
+            return "condition"
+        token = token.lower()
+        # Must be a plausible identifier: letters/digits/underscore/dash,
+        # 1-40 chars, starts with a letter.
+        import re as _re
+        if not _re.match(r"^[a-z][a-z0-9_\-]{0,39}$", token):
+            return "condition"
+        # Reject common imperative verbs that the LLM emits when confused
+        if token in {"need", "paste", "please", "provide", "give", "type",
+                     "enter", "specify", "choose", "select"}:
+            return "condition"
+        return token
 
     def _publish_batch_checkpoint(self):
         # Detect batch keywords
@@ -621,9 +660,10 @@ class DesignAgent(BaseAgent):
     def _propose_groups(self, parsed: list[dict], intent: dict) -> dict:
         stems = [p["stem"] for p in parsed]
         # The user's biological question often names the comparison (e.g.
-        # "young vs old", "WT vs KO"). Surface it to the LLM — without it the
-        # model can only pattern-match on filenames, which fails when sample
-        # IDs are opaque (donor barcodes hc11/hc77/...).
+        # "treated vs control", "WT vs KO", "stim vs ctrl"). Surface it to
+        # the LLM — without it the model can only pattern-match on
+        # filenames, which fails when sample IDs are opaque (donor barcodes,
+        # internal accession IDs, or single-file h5ad inputs).
         intent_block = ""
         question = (intent or {}).get("question") or (intent or {}).get("text")
         comparison = (intent or {}).get("comparison")

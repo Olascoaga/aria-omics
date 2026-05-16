@@ -1857,6 +1857,136 @@ def test_methodology_json_emitted_with_required_keys(tmp_path):
     assert isinstance(data["inputs"], list)
 
 
+def test_h5ad_obs_inference_pbmc_ifn_beta_dataset(tmp_path):
+    """Generalization regression — the public Kang et al. PBMC IFN-β
+    dataset (8 donors, stim/ctrl) used to fall through obs inference
+    because:
+      - the condition column is called `stim` (not `condition` /
+        `treatment`)
+      - the replicate column is `Donor` (capitalized; the priority
+        list only had lowercase `donor`)
+      - the groupby column is `cluster` (the priority list did not
+        include cluster names)
+    All three are common scRNA conventions, not dataset-specific
+    quirks. The widened vocabulary + case-insensitive lookup must
+    detect all three and produce a usable design WITHOUT any
+    hippocampus-flavored guardrails.
+    """
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    rng = np.random.default_rng(7)
+    rows = []
+    donors = [f"SNG-{1000 + i}" for i in range(8)]
+    clusters = ["CD14 Mono", "CD4 T", "CD8 T", "B", "NK"]
+    for donor in donors:
+        for cond in ("CTRL", "STIM"):
+            for ct in clusters:
+                for _ in range(20):
+                    rows.append({
+                        "stim": cond,
+                        "Donor": donor,
+                        "cluster": ct,
+                        "orig_ident": cond,
+                    })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    adata = ad.AnnData(
+        X=np.zeros((len(obs), 5), dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i}" for i in range(5)]),
+    )
+    h5ad_path = tmp_path / "pbmc.h5ad"
+    adata.write_h5ad(h5ad_path)
+
+    from aria.agents.data_audit_agent import DataAuditAgent
+    agent = DataAuditAgent.__new__(DataAuditAgent)
+    result = agent._infer_h5ad_design(
+        [str(h5ad_path)],
+        user_question=(
+            "Compare the transcriptional response to interferon-beta "
+            "stimulation versus control in human PBMCs across 8 donors."
+        ),
+    )
+
+    assert result.get("condition_col") == "stim", result
+    assert result.get("replicate_col") == "Donor", result
+    assert result.get("groupby_col") == "cluster", result
+    groups = result.get("groups", {})
+    assert set(groups.keys()) == {"CTRL", "STIM"}, groups
+    assert all(len(donors) == 8 for donors in groups.values())
+
+
+def test_sanitize_factor_guess_rejects_llm_instructions():
+    """When the LLM hallucinates a sentence as a 'factor name', the CP
+    2.3 menu must NOT show it as a clickable option. The regression
+    that motivated this guard came from a real PBMC run where the
+    menu showed
+       [1] need file names to identify groups. paste your rna-seq file
+    as if it were a valid factor.
+    """
+    from aria.agents.design_agent import DesignAgent
+
+    bad = [
+        "need file names to identify groups. paste your rna-seq file",
+        "please provide the obs column",
+        "type the donor variable",
+        "",
+        None,
+        "a sentence with multiple words",
+        "1numeric_start",
+    ]
+    for b in bad:
+        out = DesignAgent._sanitize_factor_guess(b)
+        assert out == "condition", (b, out)
+
+    good = {
+        "condition": "condition",
+        "treatment": "treatment",
+        "stim": "stim",
+        "Genotype": "genotype",
+        "perturbation": "perturbation",
+        "age_group": "age_group",
+        "drug-dose": "drug-dose",
+        # Trailing punctuation gets stripped — this is the friendly path
+        # for typos like "treatment." or "treatment!", not an LLM hallucination.
+        "factor_with_punctuation!": "factor_with_punctuation",
+        "treatment.": "treatment",
+    }
+    for raw, expected in good.items():
+        assert DesignAgent._sanitize_factor_guess(raw) == expected, raw
+
+
+def test_h5ad_inference_is_case_insensitive_for_replicate_col(tmp_path):
+    """Regression: a column called `Donor` (capitalized) used to miss
+    the replicate priority list because matching was case-sensitive.
+    Any common-case spelling must resolve."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    for replicate_col_name in ("Donor", "DONOR_ID", "Subject", "PATIENT"):
+        obs = pd.DataFrame({
+            replicate_col_name: [f"r{i % 3}" for i in range(60)],
+            "condition": ["A" if i % 2 == 0 else "B" for i in range(60)],
+        })
+        obs.index = [f"c{i}" for i in range(60)]
+        adata = ad.AnnData(
+            X=np.zeros((60, 3), dtype=np.float32),
+            obs=obs,
+            var=pd.DataFrame(index=["g1", "g2", "g3"]),
+        )
+        p = tmp_path / f"{replicate_col_name}.h5ad"
+        adata.write_h5ad(p)
+        from aria.agents.data_audit_agent import DataAuditAgent
+        agent = DataAuditAgent.__new__(DataAuditAgent)
+        result = agent._infer_h5ad_design([str(p)])
+        assert result.get("replicate_col") == replicate_col_name, (
+            replicate_col_name, result
+        )
+
+
 def test_methodology_json_persists_input_hashes(tmp_path):
     """v4.4 closeout — methodology.json (the report's Table S1) must
     persist the SHA-256 hashes of every input file recorded by

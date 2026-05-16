@@ -210,7 +210,8 @@ def print_checkpoint(number, title: str,
         if selected.lower().startswith("other"):
             console.print(
                 f"\n  [{C['muted']}]Type the value "
-                f"(e.g. Gallus gallus (galGal6)):[/]"
+                f"(free text, e.g. species \"Genus species (assembly)\" or "
+                f"a custom group mapping):[/]"
             )
             custom = Prompt.ask(
                 f"  [bold {C['cyan']}]Value[/]",
