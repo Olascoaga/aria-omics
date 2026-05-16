@@ -1662,6 +1662,7 @@ for small-effect genes."
             tools = {}
         return {
             "provenance": provenance,
+            "inputs": exp_ctx.get("input_files", []),
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,
@@ -1780,8 +1781,13 @@ for small-effect genes."
     def _build_lockfile_section() -> str:
         root = Path(__file__).resolve().parents[2]
         env_dir = root / "envs"
+        # Pair every conda lockfile with its sibling pip lock (if present).
+        # `conda create --name X --file <env>.linux-64.lock` reproduces the
+        # conda side byte-by-byte; `pip install -r <env>.pip.lock` covers
+        # the pip side. Both are needed for full peer-reviewable reproduction.
         lockfiles = sorted(env_dir.glob("*.linux-64.lock"))
-        if not lockfiles:
+        pip_locks = sorted(env_dir.glob("*.pip.lock"))
+        if not lockfiles and not pip_locks:
             return (
                 "<div class='warning'>No conda lockfiles found in "
                 "<code>envs/*.linux-64.lock</code>. Run "
@@ -1797,6 +1803,25 @@ for small-effect genes."
                 f"<details><summary>{_html.escape(lock.name)}</summary>"
                 f"<pre>{_html.escape(text)}</pre></details>"
             )
+        for pip_lock in pip_locks:
+            try:
+                text = pip_lock.read_text(encoding="utf-8")[:20000]
+            except Exception as exc:
+                text = f"Could not read pip lockfile: {exc}"
+            blocks.append(
+                f"<details><summary>{_html.escape(pip_lock.name)} "
+                f"(pip side; use after the conda lock)</summary>"
+                f"<pre>{_html.escape(text)}</pre></details>"
+            )
+        # If a conda lock has no sibling pip lock, note that pip was empty
+        # (rather than missing) so a reviewer doesn't suspect omission.
+        for lock in lockfiles:
+            sibling_pip = env_dir / lock.name.replace(".linux-64.lock", ".pip.lock")
+            if not sibling_pip.exists():
+                blocks.append(
+                    f"<div><em>{_html.escape(lock.stem)}: no pip packages "
+                    f"in env (pip lock not emitted).</em></div>"
+                )
         return "".join(blocks)
 
     @staticmethod

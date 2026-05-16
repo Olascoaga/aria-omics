@@ -1848,10 +1848,53 @@ def test_methodology_json_emitted_with_required_keys(tmp_path):
     assert methodology.exists()
     data = json.loads(methodology.read_text())
     for key in {
-        "provenance", "design", "design_intelligence", "thresholds",
-        "seeds", "tools", "decisions",
+        "provenance", "inputs", "design", "design_intelligence",
+        "thresholds", "seeds", "tools", "decisions",
     }:
         assert key in data
+    # With no input_files in exp_ctx the inputs list must still exist
+    # (empty array, never missing) so peer-reviewable JSON is shape-stable.
+    assert isinstance(data["inputs"], list)
+
+
+def test_methodology_json_persists_input_hashes(tmp_path):
+    """v4.4 closeout — methodology.json (the report's Table S1) must
+    persist the SHA-256 hashes of every input file recorded by
+    DataAuditAgent, not only render them in HTML. A peer reviewer who
+    receives only the JSON has to be able to verify dataset identity."""
+    from aria.agents.narrative_agent import NarrativeAgent
+
+    agent = NarrativeAgent.__new__(NarrativeAgent)
+    agent.reports_dir = tmp_path
+    agent.memory = type("M", (), {"db_path": ":memory:"})()
+    expected_inputs = [
+        {
+            "modality": "scRNA",
+            "path": "/fake/path/dataset.h5ad",
+            "size_bytes": 2_212_060_050,
+            "sha256": "00489a4984583406ab30e4f1a3fb83512cac70884054e1d7c1e6e7c383687c9e",
+        }
+    ]
+    report = agent._render_html_report(
+        experiment_id="exp_inputs",
+        exp_ctx={
+            "organism": "Homo sapiens",
+            "genome": "hg38",
+            "input_files": expected_inputs,
+        },
+        intent={"summary": "test"},
+        executive_summary="ok",
+        findings_sections={"conflicts": "none"},
+        grouped_findings={
+            "high": [], "medium": [], "low": [], "insufficient": []
+        },
+        methods="methods",
+        decisions=[],
+        agent_results={},
+        report_dir=tmp_path / "report_inputs",
+    )
+    data = json.loads((report.parent / "methodology.json").read_text())
+    assert data["inputs"] == expected_inputs
 
 
 def test_provenance_collects_nested_params_hashes():
