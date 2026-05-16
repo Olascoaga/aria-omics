@@ -120,23 +120,34 @@ def rna_diff_abundance(params: dict) -> dict:
     obs[condition_col] = obs[condition_col].astype(str)
     obs[replicate_col] = obs[replicate_col].astype(str)
 
-    # (rep, cell_type) -> count
-    pivot = (obs.groupby([replicate_col, groupby])
+    rep_condition_counts = obs.groupby(replicate_col)[condition_col].nunique()
+    paired_design = bool((rep_condition_counts > 1).any())
+    if paired_design:
+        obs["_aria_pseudosample_key"] = (
+            obs[replicate_col].astype(str)
+            + "__"
+            + obs[condition_col].astype(str)
+        )
+    else:
+        obs["_aria_pseudosample_key"] = obs[replicate_col].astype(str)
+
+    # (pseudosample, cell_type) -> count
+    pivot = (obs.groupby(["_aria_pseudosample_key", groupby])
                 .size()
                 .unstack(fill_value=0))
-    # Replicate -> total cells (across all cell types observed in adata)
+    # Pseudosample -> total cells (across all cell types observed in adata)
     total_per_rep = pivot.sum(axis=1)
 
-    # Replicate -> condition (constant per rep by construction)
-    rep_to_condition = (obs.drop_duplicates(replicate_col)
-                          .set_index(replicate_col)[condition_col]
+    # Pseudosample -> condition (constant because paired keys include it)
+    rep_to_condition = (obs.drop_duplicates("_aria_pseudosample_key")
+                          .set_index("_aria_pseudosample_key")[condition_col]
                           .to_dict())
 
-    # Replicate -> covariate values (constant per rep)
+    # Pseudosample -> covariate values
     rep_to_covs = {}
     if covariates:
-        rep_to_covs = (obs.drop_duplicates(replicate_col)
-                         .set_index(replicate_col)[covariates]
+        rep_to_covs = (obs.drop_duplicates("_aria_pseudosample_key")
+                         .set_index("_aria_pseudosample_key")[covariates]
                          .to_dict(orient="index"))
 
     method = "poisson_offset_glm"
@@ -310,8 +321,8 @@ def rna_diff_abundance(params: dict) -> dict:
                 flat.append({"comparison": comp_key, **r})
         pd.DataFrame(flat).to_csv(out_path, sep="\t", index=False)
 
-    n_reps_per_group = (obs.drop_duplicates(replicate_col)
-                          .groupby(condition_col)[replicate_col]
+    n_reps_per_group = (obs.drop_duplicates("_aria_pseudosample_key")
+                          .groupby(condition_col)["_aria_pseudosample_key"]
                           .nunique()
                           .to_dict())
 
@@ -322,6 +333,7 @@ def rna_diff_abundance(params: dict) -> dict:
         "condition_col":          condition_col,
         "replicate_col":          replicate_col,
         "covariates":             covariates,
+        "paired_design":          paired_design,
         "n_replicates_per_group": n_reps_per_group,
         "significance_alpha":     alpha,
         "any_significant":        any_significant,

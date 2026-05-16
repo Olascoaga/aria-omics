@@ -147,6 +147,35 @@ def test_h5ad_obs_design_inference(tmp_path):
     assert "covariates: Gender" in summary
 
 
+def test_data_audit_filters_aria_generated_outputs_from_all_modalities():
+    from aria.agents.data_audit_agent import DataAuditAgent
+
+    agent = DataAuditAgent.__new__(DataAuditAgent)
+    classified = {
+        "scRNA": [
+            "/data/pbmc.h5ad",
+            "/data/qc_filtered.h5ad",
+            "/data/clustered.h5ad",
+        ],
+        "unknown": [
+            "/data/qc_filtered.summary.json",
+            "/data/de_per_cluster.csv",
+            "/data/pseudobulk/pseudobulk_de.csv",
+        ],
+    }
+
+    filtered, ignored = agent._filter_aria_intermediate_outputs(classified)
+
+    assert filtered == {"scRNA": ["/data/pbmc.h5ad"]}
+    assert set(ignored) == {
+        "/data/qc_filtered.h5ad",
+        "/data/clustered.h5ad",
+        "/data/qc_filtered.summary.json",
+        "/data/de_per_cluster.csv",
+        "/data/pseudobulk/pseudobulk_de.csv",
+    }
+
+
 def test_data_audit_infers_hg38_from_homo_sapiens_question(tmp_path):
     from aria.agents.data_audit_agent import DataAuditAgent
 
@@ -251,7 +280,7 @@ def test_data_audit_ignores_stale_aria_h5ad_intermediates():
     assert ignored == ["/data/qc_filtered.h5ad", "/data/clustered.h5ad"]
 
 
-def test_data_audit_keeps_intermediate_if_it_is_the_only_scrna_input():
+def test_data_audit_ignores_intermediate_even_if_only_scrna_input():
     from aria.agents.data_audit_agent import DataAuditAgent
 
     agent = DataAuditAgent.__new__(DataAuditAgent)
@@ -259,8 +288,8 @@ def test_data_audit_keeps_intermediate_if_it_is_the_only_scrna_input():
 
     filtered, ignored = agent._filter_aria_intermediate_outputs(classified)
 
-    assert filtered["scRNA"] == ["/data/qc_filtered.h5ad"]
-    assert ignored == []
+    assert filtered == {}
+    assert ignored == ["/data/qc_filtered.h5ad"]
 
 
 def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
@@ -1298,6 +1327,119 @@ def test_pseudobulk_default_min_replicates_is_three(tmp_path):
         "Default min_replicates=3 must reject n=2 designs somewhere: "
         f"{result['per_group']}"
     )
+
+
+def test_pseudobulk_paired_design_uses_donor_condition_pseudosamples(tmp_path):
+    """PBMC IFN-beta regression: paired donor designs must aggregate per
+    donor x condition, not donor alone."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+
+    rng = np.random.default_rng(44)
+    rows = []
+    for donor_i in range(1, 5):
+        donor = f"D{donor_i}"
+        for cond in ("CTRL", "STIM"):
+            for ct in ("CD14 Mono", "B", "T"):
+                for _ in range(20):
+                    rows.append({
+                        "stim": cond,
+                        "Donor": donor,
+                        "cluster": ct,
+                    })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    n_genes = 35
+    X = rng.negative_binomial(20, 0.5, (len(obs), n_genes)).astype(np.float32)
+    stim_mono = (obs["stim"] == "STIM") & (obs["cluster"] == "CD14 Mono")
+    X[stim_mono.to_numpy(), :5] *= 4
+    adata = ad.AnnData(
+        X=X,
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i:04d}" for i in range(n_genes)]),
+    )
+    input_path = tmp_path / "kang_shape.h5ad"
+    adata.write_h5ad(input_path)
+
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+    result = rna_pseudobulk_de({
+        "data_path": str(input_path),
+        "groupby": "cluster",
+        "condition_col": "stim",
+        "replicate_col": "Donor",
+        "comparisons": [["STIM", "CTRL"]],
+        "output_dir": str(tmp_path / "out"),
+        "min_cells_per_pseudosample": 5,
+        "min_replicates_per_condition": 3,
+        "padj_max": 0.5,
+        "lfc_min": 0.0,
+    })
+
+    assert result["status"] == "success", result
+    assert result["paired_design"] is True
+    for group_info in result["per_group"].values():
+        assert group_info["n_pseudosamples"] == 8
+        comp = group_info["per_comparison"]["STIM_vs_CTRL"]
+        assert comp["status"] == "success", comp
+        assert comp["n_replicates"] == {"test": 4, "ref": 4}
+        assert comp["paired_design"] is True
+        assert comp["paired_donor_covariate"] is True
+
+
+def test_pseudobulk_paired_design_counts_pseudosamples_without_deseq2(
+    tmp_path, monkeypatch
+):
+    """Regression guard for environments without pydeseq2: the paired key is
+    visible before DESeq2 is imported."""
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    rows = []
+    for donor_i in range(1, 5):
+        for cond in ("CTRL", "STIM"):
+            for _ in range(12):
+                rows.append({
+                    "stim": cond,
+                    "Donor": f"D{donor_i}",
+                    "cluster": "CD14 Mono",
+                })
+    obs = pd.DataFrame(rows)
+    obs.index = [f"cell_{i}" for i in range(len(obs))]
+    adata = ad.AnnData(
+        X=np.full((len(obs), 5), 100, dtype=np.float32),
+        obs=obs,
+        var=pd.DataFrame(index=[f"GENE_{i}" for i in range(5)]),
+    )
+    input_path = tmp_path / "paired_preflight.h5ad"
+    adata.write_h5ad(input_path)
+
+    class FakeScanpy:
+        @staticmethod
+        def read_h5ad(path):
+            return ad.read_h5ad(path)
+
+    monkeypatch.setitem(sys.modules, "scanpy", FakeScanpy)
+
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+    result = rna_pseudobulk_de({
+        "data_path": str(input_path),
+        "groupby": "cluster",
+        "condition_col": "stim",
+        "replicate_col": "Donor",
+        "comparisons": [["STIM", "CTRL"]],
+        "output_dir": str(tmp_path / "out"),
+        "min_cells_per_pseudosample": 5,
+        "min_replicates_per_condition": 5,
+    })
+
+    assert result["status"] == "success", result
+    group_info = result["per_group"]["CD14 Mono"]
+    assert result["paired_design"] is True
+    assert group_info["status"] == "skipped"
+    assert group_info["n_pseudosamples"] == 8
 
 
 def test_design_intelligence_downgrades_pseudobulk_at_n2():

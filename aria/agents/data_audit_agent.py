@@ -332,8 +332,21 @@ class DataAuditAgent(BaseAgent):
         return classified
 
     @staticmethod
-    def _is_aria_intermediate_h5ad(path: str) -> bool:
+    def _is_aria_generated_output(path: str) -> bool:
         p = Path(path)
+        lower_name = p.name.lower()
+        if p.parent.name == "pseudobulk":
+            return True
+        if lower_name in {
+            "de_per_cluster.csv",
+            "cellcomm_interactions.csv",
+            "pathways_per_cluster.csv",
+            "pseudobulk_de.csv",
+            "differential_abundance.tsv",
+        }:
+            return True
+        if lower_name.endswith(".summary.json"):
+            return True
         if p.suffix.lower() != ".h5ad":
             return False
         stem = p.stem
@@ -351,34 +364,30 @@ class DataAuditAgent(BaseAgent):
             "with_condition",
         }
 
+    @staticmethod
+    def _is_aria_intermediate_h5ad(path: str) -> bool:
+        return DataAuditAgent._is_aria_generated_output(path)
+
     def _filter_aria_intermediate_outputs(
         self, classified: dict[str, list[str]]
     ) -> tuple[dict[str, list[str]], list[str]]:
         """
-        Remove ARIA-generated h5ad intermediates from modality inputs when
-        source h5ads are present in the same audit. This prevents raw-data
-        directories from being misread as multi-sample experiments because a
-        previous failed/partial run left `qc_filtered.h5ad` or `clustered.h5ad`
-        next to the real input.
+        Remove ARIA-generated intermediates from modality inputs. This prevents
+        raw-data directories from being misread because a previous failed or
+        partial run left `qc_filtered.h5ad`, `clustered.h5ad`, summary JSONs,
+        DE CSVs, or a `pseudobulk/` folder next to the real input.
         """
         ignored: list[str] = []
         filtered: dict[str, list[str]] = {}
         for modality, files in classified.items():
-            if modality != "scRNA":
-                filtered[modality] = files
-                continue
-
-            intermediates = [
-                f for f in files if self._is_aria_intermediate_h5ad(f)
-            ]
-            sources = [
-                f for f in files if not self._is_aria_intermediate_h5ad(f)
-            ]
-            if sources and intermediates:
-                filtered[modality] = sources
-                ignored.extend(intermediates)
-            else:
-                filtered[modality] = files
+            kept = []
+            for f in files:
+                if self._is_aria_generated_output(f):
+                    ignored.append(f)
+                else:
+                    kept.append(f)
+            if kept:
+                filtered[modality] = kept
 
         return filtered, ignored
 

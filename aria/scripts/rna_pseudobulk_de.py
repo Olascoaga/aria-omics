@@ -136,6 +136,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
     lfc_min                       = float(params.get("lfc_min", 0.5))
     top_n                         = int(params.get("top_n", 50))
     output_dir                    = params.get("output_dir")
+    auto_paired_donor_covariate   = bool(
+        params.get("auto_paired_donor_covariate", True)
+    )
 
     if not Path(data_path).exists():
         return {"status": "error",
@@ -247,10 +250,24 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
     is_sparse = sparse.issparse(counts)
 
-    # T1.1: pre-compute total cells per replicate ACROSS ALL cell types so
+    # Paired scRNA designs (same donor under multiple conditions) require a
+    # replicate x condition pseudobulk key. Grouping only by donor collapses
+    # the two aliquots into one pseudosample and destroys the contrast.
+    rep_condition_counts = obs.groupby(replicate_col)[condition_col].nunique()
+    paired_design = bool((rep_condition_counts > 1).any())
+    if paired_design:
+        obs["_aria_pseudosample_key"] = (
+            obs[replicate_col].astype(str)
+            + "__"
+            + obs[condition_col].astype(str)
+        )
+    else:
+        obs["_aria_pseudosample_key"] = obs[replicate_col].astype(str)
+
+    # T1.1: pre-compute total cells per pseudosample ACROSS ALL cell types so
     # each per-group loop iteration can compute the composition log-ratio
     # without re-scanning obs.
-    total_cells_per_rep = obs.groupby(replicate_col).size().to_dict()
+    total_cells_per_sample = obs.groupby("_aria_pseudosample_key").size().to_dict()
 
     groups = sorted(obs[groupby].unique())
     per_group: dict = {}
@@ -270,16 +287,17 @@ def rna_pseudobulk_de(params: dict) -> dict:
         group_counts = counts[cell_pos]
         group_obs    = obs.loc[cells_in_group]
 
-        # pseudosample key
-        reps      = group_obs[replicate_col].values
-        unique_reps = sorted(np.unique(reps))
+        # Pseudosample key. In paired designs this is donor x condition; in
+        # standard cohort designs it remains donor/sample.
+        sample_keys = group_obs["_aria_pseudosample_key"].values
+        unique_samples = sorted(np.unique(sample_keys))
 
-        # Aggregate sums per replicate
+        # Aggregate sums per pseudosample
         rep_to_sum: dict   = {}
         rep_to_n:   dict   = {}
         rep_to_meta: dict  = {}
-        for rep in unique_reps:
-            mask = reps == rep
+        for sample_key in unique_samples:
+            mask = sample_keys == sample_key
             n    = int(mask.sum())
             if n < min_cells_per_pseudosample:
                 continue
@@ -300,21 +318,24 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 summed = np.asarray(block.sum(axis=0)).ravel().astype(np.int64)
             else:
                 summed = np.asarray(block.sum(axis=0)).ravel().astype(np.int64)
-            rep_to_sum[rep]  = summed
-            rep_to_n[rep]    = n
-            # Use the first cell's metadata for the replicate (constant by definition)
+            rep_to_sum[sample_key]  = summed
+            rep_to_n[sample_key]    = n
+            # Use the first cell's metadata for the pseudosample. In paired
+            # designs condition is constant because sample_key includes it.
             row              = group_obs[mask].iloc[0]
             meta_entry = {condition_col: row[condition_col],
+                          replicate_col: row[replicate_col],
                           **{cv: row[cv] for cv in covariates}}
             if composition_covariate:
-                # log( (cells_of_this_type_in_donor + 1) / (total_cells_in_donor + 1) ).
+                # log( (cells_of_this_type_in_pseudosample + 1) /
+                #      (total_cells_in_pseudosample + 1) ).
                 # Smoothing keeps the value finite when n is tiny.
-                total_for_rep = int(total_cells_per_rep.get(rep, n))
+                total_for_rep = int(total_cells_per_sample.get(sample_key, n))
                 import math as _math
                 meta_entry[COMPOSITION_COL] = float(
                     _math.log((n + 1.0) / (total_for_rep + 1.0))
                 )
-            rep_to_meta[rep] = meta_entry
+            rep_to_meta[sample_key] = meta_entry
 
         if len(rep_to_sum) < 2 * min_replicates_per_condition:
             per_group[group] = {"n_pseudosamples": len(rep_to_sum),
@@ -367,6 +388,20 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 continue
 
             design_factors = [condition_col] + (covariates or [])
+            paired_donor_covariate_used = False
+            if (
+                paired_design
+                and auto_paired_donor_covariate
+                and replicate_col not in design_factors
+            ):
+                reps_by_condition = meta_sub.groupby(replicate_col)[
+                    condition_col
+                ].nunique()
+                if len(reps_by_condition) > 0 and bool(
+                    (reps_by_condition == 2).all()
+                ):
+                    design_factors = design_factors + [replicate_col]
+                    paired_donor_covariate_used = True
             block_corrected_for_composition = False
             if composition_covariate and COMPOSITION_COL in meta_sub.columns:
                 # Only add the covariate if it actually varies across the
@@ -444,6 +479,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "mean_expression_estimate":   mean_expression,
                 "power_estimate_at_lfc_min":  power_estimate,
                 "corrected_for_composition": block_corrected_for_composition,
+                "paired_design":              paired_design,
+                "paired_donor_covariate":     paired_donor_covariate_used,
                 "top_genes":                 [],
                 "all_sig":                   [],
             }
@@ -555,6 +592,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "replicate_col":                   replicate_col,
         "covariates":                      covariates,
         "composition_covariate_requested": composition_covariate,
+        "paired_design":                   paired_design,
+        "auto_paired_donor_covariate":      auto_paired_donor_covariate,
         "background_genes": background_genes,
         "background_size":  len(background_genes),
         "background_source": "dataset_expressed_genes",

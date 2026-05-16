@@ -79,12 +79,15 @@ def rna_clustering(params: dict) -> dict:
     max_cells   = int(params.get("max_cells", 100_000))
     seed        = int(params.get("seed", 0))
     cluster_col = (params.get("cluster_col") or "").strip() or None
+    output_dir = params.get("output_dir")
     cache_params = _cache_params(params)
 
     input_path = Path(data_path)
+    out_dir = Path(output_dir) if output_dir else input_path.parent
+    out_dir.mkdir(parents=True, exist_ok=True)
     output_name = "clustered_sketch.h5ad"
-    full_output = input_path.parent / "clustered.h5ad"
-    sketch_output = input_path.parent / output_name
+    full_output = out_dir / "clustered.h5ad"
+    sketch_output = out_dir / output_name
     for existing in (sketch_output, full_output):
         summary_path = existing.with_suffix(".summary.json")
         if existing.exists() and existing.stat().st_mtime >= input_path.stat().st_mtime:
@@ -128,7 +131,7 @@ def rna_clustering(params: dict) -> dict:
             for c in adata.obs[groupby].unique()
         }
         top_markers = {str(c): [] for c in adata.obs[groupby].unique()}
-        output_path = Path(data_path).parent / "clustered.h5ad"
+        output_path = out_dir / "clustered.h5ad"
         adata.uns["aria_n_cells_total"] = n_cells_total
         adata.write_h5ad(str(output_path))
         rep = (
@@ -269,7 +272,7 @@ def rna_clustering(params: dict) -> dict:
             top_markers[str(cluster)] = []
 
     output_name = "clustered_sketch.h5ad" if sketch_used else "clustered.h5ad"
-    output_path = Path(data_path).parent / output_name
+    output_path = out_dir / output_name
     adata.uns["aria_n_cells_total"] = n_cells_total
     adata.write_h5ad(str(output_path))
 

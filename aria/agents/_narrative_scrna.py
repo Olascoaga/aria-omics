@@ -669,13 +669,29 @@ def build_scrna_methods(findings: dict) -> str:
             if powers else ""
         )
         cov = ", ".join(pb.get("covariates", []) or []) or "none"
+        paired = bool(pb.get("paired_design"))
+        paired_cov = any(
+            c.get("paired_donor_covariate")
+            for g in (pb.get("per_group", {}) or {}).values()
+            for c in (g.get("per_comparison", {}) or {}).values()
+            if c.get("status") == "success"
+        )
+        sample_unit = (
+            f"{pb.get('replicate_col', 'replicate')} × "
+            f"{pb.get('condition_col', 'condition')}"
+            if paired else pb.get("replicate_col", "replicate")
+        )
+        design_terms = [pb.get("condition_col", "condition")]
+        if paired_cov:
+            design_terms.append(pb.get("replicate_col", "replicate"))
+        if cov != "none":
+            design_terms.append(cov)
         lines.append(
             f"Between-condition differential expression was performed by "
             f"pseudobulk aggregation: raw counts were summed per "
             f"({pb.get('groupby', 'cell_type')} × "
-            f"{pb.get('replicate_col', 'replicate')}) and fitted with "
-            f"pyDESeq2 (design ~ {pb.get('condition_col', 'condition')} "
-            f"+ {cov if cov != 'none' else 'no covariates'}). "
+            f"{sample_unit}) and fitted with "
+            f"pyDESeq2 (design ~ {' + '.join(design_terms)}). "
             f"Pseudosamples with < "
             f"{thr.get('min_cells_per_pseudosample', 10)} cells were dropped; "
             f"groups requiring ≥ "

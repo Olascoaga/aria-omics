@@ -75,6 +75,19 @@ class scRNAAgent(BaseAgent):
         from aria.utils.environment_manager import env_manager
         self.env = env_manager
 
+    @staticmethod
+    def _workspace(experiment_id: str, *parts: str) -> Path:
+        root = Path("~/.aria/workspace").expanduser() / str(experiment_id) / "scrna"
+        path = root.joinpath(*parts) if parts else root
+        try:
+            path.mkdir(parents=True, exist_ok=True)
+            return path
+        except OSError:
+            fallback_root = Path("/tmp/aria_workspace") / str(experiment_id) / "scrna"
+            fallback = fallback_root.joinpath(*parts) if parts else fallback_root
+            fallback.mkdir(parents=True, exist_ok=True)
+            return fallback
+
     # ── Main entry point ──────────────────────────────────────────────────
 
     def run(self, experiment_id: str, context: dict) -> dict:
@@ -530,8 +543,7 @@ class scRNAAgent(BaseAgent):
         # Multi-sample: per-sample QC followed by concat. Each rna_qc call
         # gets its own sample_id so the script writes qc_filtered_{sid}.h5ad
         # without overwriting siblings.
-        workspace = Path("~/.aria/workspace/scrna_multi").expanduser()
-        workspace.mkdir(parents=True, exist_ok=True)
+        workspace = self._workspace(experiment_id, "qc")
 
         per_sample = []
         manifest   = []
@@ -622,6 +634,7 @@ class scRNAAgent(BaseAgent):
 
     def _qc_single(self, experiment_id: str, path: str,
                    organism: str, intent: dict) -> dict:
+        workspace = self._workspace(experiment_id, "qc")
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_qc.py",
@@ -629,6 +642,7 @@ class scRNAAgent(BaseAgent):
                 "data_path":          path,
                 "organism":           organism,
                 "biological_context": intent,
+                "output_dir":         str(workspace),
             },
         )
 
@@ -675,12 +689,14 @@ class scRNAAgent(BaseAgent):
 
     def _run_integration(self, experiment_id: str,
                           input_h5ad: str, batch_col: str) -> dict:
+        workspace = self._workspace(experiment_id, "integration")
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_integration.py",
             params={
                 "data_path": input_h5ad,
                 "batch_col": batch_col,
+                "output_dir": str(workspace),
             },
         )
 
@@ -776,6 +792,7 @@ class scRNAAgent(BaseAgent):
             "data_path":  input_h5ad,
             "resolution": float(decision.chosen_value) if not cluster_col else 0.5,
             "max_cells":  100_000,
+            "output_dir": str(self._workspace(experiment_id, "clustering")),
         }
         if cluster_col:
             params["cluster_col"] = cluster_col
@@ -957,6 +974,7 @@ class scRNAAgent(BaseAgent):
                 "tissue_hint":  tissue_hint,
                 "cluster_col":  "leiden",
                 "majority_voting": True,
+                "output_dir":   str(self._workspace(experiment_id, "annotation")),
             },
         )
 
@@ -1159,6 +1177,7 @@ Rules:
                     "labels": cell_types,
                     "cluster_col": "leiden",
                     "label_col": "cell_type_marker",
+                    "output_dir": str(self._workspace(experiment_id, "annotation")),
                 },
             )
             if applied.get("status") == "success":
@@ -1271,6 +1290,7 @@ Rules:
                 "padj_max":  padj_max,
                 "lfc_min":   lfc_min,
                 "top_n":     20,
+                "output_dir": str(self._workspace(experiment_id, "de_per_cluster")),
             },
         )
 
@@ -1351,6 +1371,7 @@ Rules:
                 "top_genes_per_cluster": 200,
                 "background_genes":       background_genes,
                 "padj_db_max":           0.05,
+                "output_dir":            str(self._workspace(experiment_id, "pathways")),
             },
             # Pathway enrichment hits Enrichr with rate limits; for a 10-cluster
             # × 3-database dataset that's 30 calls × 8s sleep = ~4 min minimum.
@@ -1534,8 +1555,7 @@ Rules:
 
         # 1. Prefer h5ad-native obs design when CP1 inferred one. Otherwise
         # inject condition obs from sample → group mapping.
-        workspace = Path(current_h5ad).parent / "pseudobulk"
-        workspace.mkdir(parents=True, exist_ok=True)
+        workspace = self._workspace(experiment_id, "pseudobulk")
         use_obs_design = bool(
             pb_cfg.get("from_obs") and factor and pb_cfg.get("replicate_col")
         )
@@ -1663,6 +1683,7 @@ Rules:
                 "padj_max":      0.05,
                 "lfc_min":       0.5,
                 "top_n":         50,
+                "auto_paired_donor_covariate": True,
                 "output_dir":    str(workspace),
             },
         )
@@ -1723,6 +1744,8 @@ Rules:
             "background_source": pb.get("background_source"),
             "params_sha256": pb.get("params_sha256"),
             "differential_abundance_params_sha256": da_result.get("params_sha256"),
+            "paired_design": pb.get("paired_design"),
+            "auto_paired_donor_covariate": pb.get("auto_paired_donor_covariate"),
             "n_groups":      pb.get("n_groups"),
             "per_group":     pb.get("per_group", {}),
         }
@@ -1754,6 +1777,7 @@ Rules:
                 "condition_col":          da_result.get("condition_col"),
                 "replicate_col":          da_result.get("replicate_col"),
                 "covariates":             da_result.get("covariates", []),
+                "paired_design":          da_result.get("paired_design"),
                 "significance_alpha":     da_result.get("significance_alpha"),
                 "any_significant":        da_result.get("any_significant"),
                 "n_replicates_per_group": da_result.get("n_replicates_per_group"),
@@ -1830,6 +1854,7 @@ Rules:
                 "data_path":      clustered_h5ad,
                 "root_cell_type": intent.get("root_cell_type"),
                 "cell_type_col":  cell_type_col,
+                "output_dir":     str(self._workspace(experiment_id, "trajectory")),
             },
         )
 
@@ -1895,6 +1920,7 @@ Rules:
                 "cell_type_col": cell_type_col,
                 "organism":      exp_ctx.get("organism", "Homo sapiens"),
                 "n_perms":       100,
+                "output_dir":    str(self._workspace(experiment_id, "cellcomm")),
             },
         )
 
