@@ -9,6 +9,7 @@ from aria.memory.memory import ARIAMemory
 from aria.utils.provenance import hash_file
 from aria.utils.raw_ingestion import (
     discover_10x_mtx_triplets,
+    execute_kb_count,
     ingest_10x_mtx_triplet,
     scan_fastq_plan,
 )
@@ -65,6 +66,16 @@ class RawIngestionAgent(BaseAgent):
         fastq_plan = scan_fastq_plan(data_dir)
         if fastq_plan.get("fastq_count", 0):
             records.append(fastq_plan)
+            kb_params = (
+                exp_ctx.get("raw_ingestion_kb")
+                or context.get("raw_ingestion_kb")
+                or {}
+            )
+            if kb_params.get("execute"):
+                kb_result = execute_kb_count(kb_params)
+                records.append(kb_result)
+                if kb_result.get("status") == "success":
+                    generated_h5ads.append(kb_result["output_h5ad"])
 
         if errors:
             return {

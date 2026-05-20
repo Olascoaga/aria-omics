@@ -2523,6 +2523,55 @@ def test_raw_ingestion_fastq_plan_blocks_without_explicit_metadata(tmp_path):
     assert any("index" in b for b in plan["blockers"])
 
 
+def test_raw_ingestion_kb_command_is_fully_explicit():
+    from aria.utils.raw_ingestion import build_kb_count_command
+
+    command = build_kb_count_command(
+        fastq_files=["s_R1.fastq.gz", "s_R2.fastq.gz"],
+        index_path="/refs/transcriptome.idx",
+        t2g_path="/refs/t2g.txt",
+        output_dir="/tmp/kb",
+        chemistry="10xv3",
+        threads=4,
+    )
+
+    assert command[:2] == ["kb", "count"]
+    assert "-i" in command and "/refs/transcriptome.idx" in command
+    assert "-g" in command and "/refs/t2g.txt" in command
+    assert "-x" in command and "10xv3" in command
+    assert command[-2:] == ["s_R1.fastq.gz", "s_R2.fastq.gz"]
+
+
+def test_raw_ingestion_kb_execution_blocks_without_tooling(tmp_path):
+    from aria.utils.raw_ingestion import execute_kb_count, hash_file
+
+    fq1 = tmp_path / "s_R1.fastq.gz"
+    fq2 = tmp_path / "s_R2.fastq.gz"
+    index = tmp_path / "transcriptome.idx"
+    t2g = tmp_path / "t2g.txt"
+    _write_gzip(fq1, "@r\nAC\n+\nII\n")
+    _write_gzip(fq2, "@r\nTG\n+\nII\n")
+    index.write_bytes(b"index")
+    t2g.write_text("tx\tgene\n")
+
+    result = execute_kb_count({
+        "fastq_files": [str(fq1), str(fq2)],
+        "index_path": str(index),
+        "index_sha256": hash_file(index),
+        "t2g_path": str(t2g),
+        "t2g_sha256": hash_file(t2g),
+        "chemistry": "10xv3",
+        "output_dir": str(tmp_path / "kb"),
+    })
+
+    if result["status"] == "blocked":
+        assert any("kb executable" in b for b in result["blockers"])
+    else:
+        # Allows the same test to pass on developer machines with kb installed.
+        assert result["status"] in {"success", "failed"}
+        assert result.get("params_sha256")
+
+
 def test_raw_ingestion_agent_updates_scrna_modalities(tmp_path, monkeypatch):
     import types
     import numpy as np

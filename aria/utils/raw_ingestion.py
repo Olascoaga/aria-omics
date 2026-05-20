@@ -260,6 +260,7 @@ def scan_fastq_plan(root: str | Path) -> dict[str, Any]:
 def build_kb_count_command(
     fastq_files: list[str],
     index_path: str,
+    t2g_path: str,
     output_dir: str,
     chemistry: str,
     threads: int = 8,
@@ -271,16 +272,152 @@ def build_kb_count_command(
         raise ValueError("kb count requires FASTQ files")
     if not index_path:
         raise ValueError("kb count requires a local index path")
+    if not t2g_path:
+        raise ValueError("kb count requires a local transcript-to-gene path")
     if not chemistry:
         raise ValueError("kb count requires explicit chemistry")
     return [
         "kb", "count",
         "-i", str(index_path),
+        "-g", str(t2g_path),
         "-x", str(tech),
         "-o", str(output_dir),
         "-t", str(int(threads)),
         *map(str, fastq_files),
     ]
+
+
+def execute_kb_count(params: dict[str, Any]) -> dict[str, Any]:
+    """
+    Run kb count only when every deterministic input is explicit.
+
+    Required params:
+      fastq_files, index_path, index_sha256, t2g_path, t2g_sha256,
+      chemistry, output_dir
+    """
+    blockers = []
+    fastq_files = [str(p) for p in params.get("fastq_files", []) or []]
+    index_path = str(params.get("index_path") or "")
+    t2g_path = str(params.get("t2g_path") or "")
+    output_dir = str(params.get("output_dir") or "")
+    chemistry = str(params.get("chemistry") or "")
+    threads = int(params.get("threads") or 8)
+    expected_index_hash = str(params.get("index_sha256") or "")
+    expected_t2g_hash = str(params.get("t2g_sha256") or "")
+
+    if not fastq_files:
+        blockers.append("kb execution requires FASTQ files.")
+    for fq in fastq_files:
+        if not Path(fq).exists():
+            blockers.append(f"FASTQ not found: {fq}")
+    if not index_path or not Path(index_path).exists():
+        blockers.append("kb execution requires an existing local index_path.")
+    if not expected_index_hash:
+        blockers.append("kb execution requires index_sha256.")
+    if not t2g_path or not Path(t2g_path).exists():
+        blockers.append("kb execution requires an existing local t2g_path.")
+    if not expected_t2g_hash:
+        blockers.append("kb execution requires t2g_sha256.")
+    if not chemistry:
+        blockers.append("kb execution requires explicit chemistry.")
+    if not output_dir:
+        blockers.append("kb execution requires output_dir.")
+    if shutil.which("kb") is None:
+        blockers.append("kb executable is not installed.")
+
+    if not blockers and hash_file(index_path) != expected_index_hash:
+        blockers.append("index_sha256 does not match index_path.")
+    if not blockers and hash_file(t2g_path) != expected_t2g_hash:
+        blockers.append("t2g_sha256 does not match t2g_path.")
+
+    command = []
+    if not blockers:
+        command = build_kb_count_command(
+            fastq_files=fastq_files,
+            index_path=index_path,
+            t2g_path=t2g_path,
+            output_dir=output_dir,
+            chemistry=chemistry,
+            threads=threads,
+            technology=params.get("technology"),
+        )
+    if blockers:
+        return {
+            "status": "blocked",
+            "mode": "fastq_kb_count",
+            "blockers": blockers,
+            "tool_versions": _kb_tool_versions(),
+            "params_sha256": hash_params(params),
+        }
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stdout_path = out_dir / "kb_count.stdout.txt"
+    stderr_path = out_dir / "kb_count.stderr.txt"
+    with stdout_path.open("w", encoding="utf-8") as stdout, \
+            stderr_path.open("w", encoding="utf-8") as stderr:
+        result = subprocess.run(
+            command,
+            stdout=stdout,
+            stderr=stderr,
+            text=True,
+            timeout=int(params.get("timeout_seconds") or 86400),
+            check=False,
+        )
+    if result.returncode != 0:
+        return {
+            "status": "failed",
+            "mode": "fastq_kb_count",
+            "command": command,
+            "returncode": result.returncode,
+            "stdout_path": str(stdout_path),
+            "stderr_path": str(stderr_path),
+            "tool_versions": _kb_tool_versions(),
+            "params_sha256": hash_params(params),
+        }
+
+    matrix_dir = _find_kb_matrix_dir(out_dir)
+    if matrix_dir is None:
+        return {
+            "status": "failed",
+            "mode": "fastq_kb_count",
+            "command": command,
+            "returncode": result.returncode,
+            "details": "kb completed but no 10X-style matrix directory was found.",
+            "stdout_path": str(stdout_path),
+            "stderr_path": str(stderr_path),
+            "tool_versions": _kb_tool_versions(),
+            "params_sha256": hash_params(params),
+        }
+    sample_id = _safe_sample_id(params.get("sample_id") or "kb_count")
+    h5ad_result = ingest_10x_mtx_triplet(
+        matrix_dir,
+        out_dir / "h5ad",
+        sample_id=sample_id,
+    )
+    return {
+        "status": "success",
+        "mode": "fastq_kb_count",
+        "command": command,
+        "stdout_path": str(stdout_path),
+        "stderr_path": str(stderr_path),
+        "matrix_dir": str(matrix_dir),
+        "output_h5ad": h5ad_result["output_h5ad"],
+        "output_sha256": h5ad_result["output_sha256"],
+        "source_files": [
+            {"path": fq, "sha256": hash_file(fq), "size_bytes": Path(fq).stat().st_size}
+            for fq in fastq_files
+        ],
+        "reference": {
+            "index_path": index_path,
+            "index_sha256": expected_index_hash,
+            "t2g_path": t2g_path,
+            "t2g_sha256": expected_t2g_hash,
+            "chemistry": chemistry,
+        },
+        "tool_versions": _kb_tool_versions(),
+        "params_sha256": hash_params(params),
+    }
 
 
 def _validate_gzip(path: Path) -> None:
@@ -355,6 +492,20 @@ def _parse_fastq_name(name: str) -> dict[str, str] | None:
         "lane": match.groupdict().get("lane") or "",
         "role": role,
     }
+
+
+def _find_kb_matrix_dir(output_dir: Path) -> Path | None:
+    candidates = [
+        output_dir / "counts_filtered",
+        output_dir / "counts_unfiltered",
+        output_dir,
+    ]
+    candidates.extend(p for p in output_dir.rglob("*") if p.is_dir())
+    for candidate in candidates:
+        if (candidate / TENX_MATRIX).exists() and (candidate / TENX_BARCODE).exists():
+            if any((candidate / name).exists() for name in TENX_FEATURES):
+                return candidate
+    return None
 
 
 def _kb_tool_versions() -> dict[str, str]:
