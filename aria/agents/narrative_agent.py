@@ -1654,11 +1654,15 @@ for small-effect genes."
         except Exception:
             pass
         tools = self._collect_tool_versions(
-            ("scanpy", "anndata", "pydeseq2", "gseapy", "numpy", "pandas")
+            (
+                "scanpy", "anndata", "pydeseq2", "gseapy", "numpy",
+                "pandas", "kb-python",
+            )
         )
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
+            "raw_ingestion": exp_ctx.get("raw_ingestion", []),
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,
@@ -1802,6 +1806,10 @@ for small-effect genes."
                 f"<td><code>{_html.escape(str(llm_usage.get(key, 0)))}</code></td>"
                 "</tr>"
             )
+        ingestion_html = self._build_raw_ingestion_section(
+            agent_results=agent_results,
+            exp_ctx_records=[]
+        )
         return (
             "<div class='card'>"
             "<h3>Runtime</h3>"
@@ -1816,6 +1824,7 @@ for small-effect genes."
             + "<table><tr><th>Stage</th><th>params_sha256</th></tr>"
             + "".join(param_rows)
             + "</table>"
+            + ingestion_html
             + "<h3>LLM Usage</h3>"
             + "<table><tr><th>Field</th><th>Value</th></tr>"
             + "".join(llm_rows)
@@ -1823,6 +1832,38 @@ for small-effect genes."
             + "<h3>Conda Lockfiles</h3>"
             + self._build_lockfile_section()
             + "</div>"
+        )
+
+    @staticmethod
+    def _build_raw_ingestion_section(agent_results: dict,
+                                     exp_ctx_records: list | None = None) -> str:
+        records = []
+        raw = (agent_results or {}).get("raw_ingestion_agent", {}) or {}
+        records.extend(raw.get("records", []) or [])
+        records.extend(exp_ctx_records or [])
+        if not records:
+            return ""
+        rows = []
+        for rec in records:
+            source = rec.get("source_directory") or rec.get("mode", "")
+            output = rec.get("output_h5ad") or ""
+            output_hash = rec.get("output_sha256") or ""
+            blockers = "; ".join(rec.get("blockers", [])[:3]) if rec.get("blockers") else ""
+            rows.append(
+                "<tr>"
+                f"<td>{_html.escape(str(rec.get('mode', '')))}</td>"
+                f"<td><code>{_html.escape(str(source))}</code></td>"
+                f"<td><code>{_html.escape(str(output))}</code></td>"
+                f"<td><code>{_html.escape(str(output_hash))}</code></td>"
+                f"<td>{_html.escape(blockers)}</td>"
+                "</tr>"
+            )
+        return (
+            "<h3>Raw Ingestion</h3>"
+            "<table><tr><th>Mode</th><th>Source</th><th>Generated h5ad</th>"
+            "<th>Output SHA-256</th><th>Blockers</th></tr>"
+            + "".join(rows)
+            + "</table>"
         )
 
     @staticmethod

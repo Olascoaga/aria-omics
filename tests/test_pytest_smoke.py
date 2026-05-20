@@ -2414,3 +2414,153 @@ def test_reproducible_mode_byte_identity(tmp_path):
     r2 = agent._render_html_report(report_dir=tmp_path / "r2", **common)
 
     assert r1.read_bytes() == r2.read_bytes()
+
+
+def _write_gzip(path: Path, text: str) -> None:
+    import gzip
+
+    with gzip.open(path, "wt", encoding="utf-8") as fh:
+        fh.write(text)
+
+
+def _write_minimal_10x_triplet(path: Path, *, mismatch: bool = False) -> None:
+    path.mkdir(parents=True, exist_ok=True)
+    _write_gzip(path / "barcodes.tsv.gz", "cell1\ncell2\n")
+    _write_gzip(
+        path / "features.tsv.gz",
+        "ENSG1\tGeneA\tGene Expression\nENSG2\tGeneB\tGene Expression\n",
+    )
+    shape = "3 2 2\n" if mismatch else "2 2 2\n"
+    _write_gzip(
+        path / "matrix.mtx.gz",
+        "%%MatrixMarket matrix coordinate integer general\n"
+        "%\n"
+        f"{shape}"
+        "1 1 5\n"
+        "2 2 7\n",
+    )
+
+
+def test_raw_ingestion_detects_valid_10x_triplet(tmp_path):
+    from aria.utils.raw_ingestion import discover_10x_mtx_triplets
+
+    tenx = tmp_path / "sampleA" / "filtered_feature_bc_matrix"
+    _write_minimal_10x_triplet(tenx)
+
+    triplets = discover_10x_mtx_triplets(tmp_path)
+
+    assert len(triplets) == 1
+    assert triplets[0].sample_id == "sampleA"
+    assert triplets[0].n_features == 2
+    assert triplets[0].n_barcodes == 2
+
+
+def test_raw_ingestion_rejects_10x_dimension_mismatch(tmp_path):
+    from aria.utils.raw_ingestion import validate_10x_mtx_triplet
+
+    tenx = tmp_path / "bad"
+    _write_minimal_10x_triplet(tenx, mismatch=True)
+
+    with pytest.raises(ValueError, match="dimensions do not match"):
+        validate_10x_mtx_triplet(tenx)
+
+
+def test_raw_ingestion_converts_10x_triplet_with_reader_provenance(
+    tmp_path, monkeypatch
+):
+    import types
+    import numpy as np
+    import anndata as ad
+
+    from aria.utils.raw_ingestion import ingest_10x_mtx_triplet
+
+    tenx = tmp_path / "sampleA" / "filtered_feature_bc_matrix"
+    _write_minimal_10x_triplet(tenx)
+
+    def fake_read_10x_mtx(path, var_names, make_unique, cache):
+        assert Path(path) == tenx
+        assert var_names == "gene_symbols"
+        assert make_unique is True
+        assert cache is False
+        return ad.AnnData(
+            X=np.array([[5, 0], [0, 7]], dtype=np.float32),
+            obs={"barcode": ["cell1", "cell2"]},
+            var={"gene_ids": ["ENSG1", "ENSG2"]},
+        )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "scanpy",
+        types.SimpleNamespace(read_10x_mtx=fake_read_10x_mtx),
+    )
+
+    result = ingest_10x_mtx_triplet(tenx, tmp_path / "out")
+
+    assert result["status"] == "success"
+    assert result["mode"] == "10x_mtx"
+    assert result["sample_id"] == "sampleA"
+    assert result["params_sha256"]
+    assert result["output_sha256"]
+    assert Path(result["output_h5ad"]).exists()
+    loaded = ad.read_h5ad(result["output_h5ad"])
+    assert loaded.uns["aria_ingestion"]["mode"] == "10x_mtx"
+    assert len(json.loads(loaded.uns["aria_ingestion"]["source_files_json"])) == 3
+
+
+def test_raw_ingestion_fastq_plan_blocks_without_explicit_metadata(tmp_path):
+    from aria.utils.raw_ingestion import scan_fastq_plan
+
+    _write_gzip(tmp_path / "sample1_S1_L001_R1_001.fastq.gz", "@r\nAC\n+\nII\n")
+    _write_gzip(tmp_path / "sample1_S1_L001_R2_001.fastq.gz", "@r\nTG\n+\nII\n")
+
+    plan = scan_fastq_plan(tmp_path)
+
+    assert plan["status"] == "blocked"
+    assert plan["fastq_count"] == 2
+    assert plan["samples"][0]["sample_id"] == "sample1"
+    assert "R1" in plan["samples"][0]["files"]
+    assert any("chemistry" in b for b in plan["blockers"])
+    assert any("index" in b for b in plan["blockers"])
+
+
+def test_raw_ingestion_agent_updates_scrna_modalities(tmp_path, monkeypatch):
+    import types
+    import numpy as np
+    import anndata as ad
+
+    from aria.agents.raw_ingestion_agent import RawIngestionAgent
+
+    tenx = tmp_path / "sampleA" / "filtered_feature_bc_matrix"
+    _write_minimal_10x_triplet(tenx)
+
+    def fake_read_10x_mtx(path, var_names, make_unique, cache):
+        return ad.AnnData(
+            X=np.array([[1, 0], [0, 1]], dtype=np.float32),
+            obs={"barcode": ["cell1", "cell2"]},
+            var={"gene_ids": ["ENSG1", "ENSG2"]},
+        )
+
+    monkeypatch.setitem(
+        sys.modules,
+        "scanpy",
+        types.SimpleNamespace(read_10x_mtx=fake_read_10x_mtx),
+    )
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+    agent = RawIngestionAgent.__new__(RawIngestionAgent)
+    result = agent.run(
+        "exp123",
+        {
+            "exp_context": {
+                "data_dir": str(tmp_path),
+                "modalities": {"scRNA": [str(tenx / "matrix.mtx.gz")]},
+                "input_files": [],
+            }
+        },
+    )
+
+    assert result["status"] == "done"
+    updates = result["exp_context_updates"]
+    assert len(updates["modalities"]["scRNA"]) == 1
+    assert updates["modalities"]["scRNA"][0].endswith(".h5ad")
+    assert updates["raw_ingestion"][0]["mode"] == "10x_mtx"

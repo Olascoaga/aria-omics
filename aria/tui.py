@@ -69,6 +69,7 @@ C = {
 AGENT_COLORS = {
     "orchestrator":      C['cyan'],
     "data_audit_agent":  C['teal'],
+    "raw_ingestion_agent": "#22d3ee",
     "setup_agent":       "#fbbf24",
     "scrna_agent":       C['green'],
     "bulk_rna_agent":    "#34d399",
@@ -84,6 +85,7 @@ AGENT_COLORS = {
 AGENT_ICONS = {
     "orchestrator":      "(orch )",
     "data_audit_agent":  "(audit)",
+    "raw_ingestion_agent": "(ingest)",
     "setup_agent":       "(setup)",
     "scrna_agent":       "(scRNA)",
     "bulk_rna_agent":    "(bulk )",
@@ -100,6 +102,7 @@ AGENT_ICONS = {
 AGENT_NAMES = {
     "orchestrator":      "Orchestrator",
     "data_audit_agent":  "Data Audit",
+    "raw_ingestion_agent": "Raw Ingest",
     "setup_agent":       "Setup",
     "scrna_agent":       "scRNA",
     "bulk_rna_agent":    "Bulk RNA",
@@ -139,7 +142,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v4.4.0"
+VERSION = "v4.5.0"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────

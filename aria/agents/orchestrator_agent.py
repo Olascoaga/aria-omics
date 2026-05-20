@@ -64,6 +64,10 @@ AGENT_REGISTRY = {
         "module": "aria.agents.setup_agent",
         "class":  "SetupAgent",
     },
+    "raw_ingestion_agent": {
+        "module": "aria.agents.raw_ingestion_agent",
+        "class":  "RawIngestionAgent",
+    },
     "scrna_agent": {
         "module": "aria.agents.scrna_agent",
         "class":  "scRNAAgent",
@@ -494,6 +498,26 @@ class OrchestratorAgent(BaseAgent):
         if setup_result.get("status") == "done":
             genome_config = setup_result.get("genome_config", {})
             exp_context   = {**exp_context, "genome_config": genome_config}
+
+        raw_ingestion_result = self._run_agent(
+            agent_name="raw_ingestion_agent",
+            experiment_id=experiment_id,
+            context={"exp_context": exp_context, "biological_intent": intent},
+        )
+        agent_results["raw_ingestion_agent"] = raw_ingestion_result
+        if raw_ingestion_result.get("status") == "done":
+            updates = raw_ingestion_result.get("exp_context_updates", {})
+            exp_context = {**exp_context, **updates}
+            modalities = exp_context.get("modalities", modalities)
+        elif raw_ingestion_result.get("status") == "error":
+            self.publish_status(
+                experiment_id,
+                "Raw ingestion failed before analysis dispatch.",
+                1.0,
+            )
+            self._agent_results[experiment_id] = agent_results
+            self._present_final_summary(experiment_id, agent_results, [])
+            return
 
         steps = plan.get("steps", []) or self._infer_steps(modalities)
         ordered = self._resolve_execution_order(steps)
