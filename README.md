@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.3.12-blue)
+![Version](https://img.shields.io/badge/version-4.5.1-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -118,10 +118,10 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current stable baseline is `v4.3.12`: bulk RNA + scRNA core paths are
-closed for practical use, regression tests cover the main report and h5ad
-resume paths, and large-dataset resume behavior is tied to real files and
-matching parameters.
+The current stable baseline is `v4.5.1`: bulk RNA + scRNA core paths are
+closed for practical use, publication-readiness provenance is embedded in
+reports, and raw-ingestion planning/conversion is available for supported
+10X inputs.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -428,13 +428,18 @@ v4.3.12  done     Stability closeout — h5ad obs design inference,
                   (skips Leiden/CellTypist), hard-stops on unrecoverable
                   scaled matrices, and surfaces per-cluster DE timeouts as
                   visible warnings on atlas-scale inputs.
-v4.4     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
+v4.4     done     Publication readiness — composition correction, global
+                  FDR, ORA backgrounds, power statements, provenance,
+                  lockfiles, methodology.json, reproducible mode
+v4.5     done     Raw ingestion bridge — deterministic 10X matrix-triplet
+                  ingestion and gated FASTQ/kb planning/execution
+v4.6     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module
-v4.5              ATAC bulk end-to-end — DA via DESeq2 on peak counts
-v4.6              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
+v4.7              ATAC bulk end-to-end — DA via DESeq2 on peak counts
+v4.8              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
                   until both modalities work standalone
-v4.7              Interactive HTML report (sortable tables, plotly figures)
+v4.9              Interactive HTML report (sortable tables, plotly figures)
 v5.0              Docker image, HPC support, bioRxiv preprint
 ```
 

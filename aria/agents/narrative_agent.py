@@ -1906,7 +1906,7 @@ for small-effect genes."
             return (
                 "<div class='warning'>No conda lockfiles found in "
                 "<code>envs/*.linux-64.lock</code>. Run "
-                "<code>scripts/generate_locks.sh</code> before tagging v4.4.</div>"
+                "<code>scripts/generate_locks.sh</code> before tagging the release.</div>"
             )
         blocks = []
         for lock in lockfiles:

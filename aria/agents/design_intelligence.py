@@ -197,7 +197,7 @@ class DesignIntelligence:
         warnings = []
         if modality == "scATAC":
             optional.extend(["LSI clustering", "motif enrichment", "gene activity summaries"])
-            warnings.append("scATAC remains roadmap/beta until v4.4 validation is completed.")
+            warnings.append("scATAC remains roadmap/beta until v4.6 validation is completed.")
         else:
             optional.append("Peak calling and consensus peak analysis for bulk chromatin assays.")
         return {
