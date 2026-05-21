@@ -40,13 +40,14 @@ def rna_trajectory(params: dict) -> dict:
     import scanpy as sc
     import numpy as np
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path      = params["data_path"]
     root_cell_type = params.get("root_cell_type")
     cell_type_col  = params.get("cell_type_col", "cell_type")
     output_dir     = params.get("output_dir", str(Path(data_path).parent))
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     # Pick grouping column
     if "leiden" in adata.obs.columns:

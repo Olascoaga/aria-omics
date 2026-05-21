@@ -77,6 +77,7 @@ def rna_celltypist(params: dict) -> dict:
     import pandas as pd
     import numpy as np
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path       = params["data_path"]
     organism        = params.get("organism", "Homo sapiens").lower()
@@ -117,7 +118,7 @@ def rna_celltypist(params: dict) -> dict:
                           f"'{model_name}': {e}",
         }
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     def _sample_matrix(a):
         n = min(int(a.n_obs), 2000)

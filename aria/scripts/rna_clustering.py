@@ -70,6 +70,7 @@ def rna_clustering(params: dict) -> dict:
     import numpy as np
     import json
     from pathlib import Path
+    from aria.utils.safe_h5ad import h5ad_is_readable, read_h5ad
 
     data_path   = params["data_path"]
     resolution  = float(params["resolution"])
@@ -97,6 +98,8 @@ def rna_clustering(params: dict) -> dict:
                         cached = json.load(f)
                     if not _cache_matches(cached, cache_params):
                         continue
+                    if not h5ad_is_readable(existing):
+                        continue
                     cached["resumed"] = True
                     cached["warnings"] = (
                         cached.get("warnings", []) +
@@ -110,7 +113,7 @@ def rna_clustering(params: dict) -> dict:
             except Exception:
                 pass
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
     n_cells_total = int(adata.n_obs)
     sketch_used = False
 

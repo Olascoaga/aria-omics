@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS tunnels (
 CREATE TABLE IF NOT EXISTS decisions (
     id         TEXT PRIMARY KEY,
     wing_id    TEXT NOT NULL,
-    checkpoint INTEGER,
+    checkpoint TEXT,
     question   TEXT,
     decision   TEXT,
     rationale  TEXT,
@@ -121,9 +121,38 @@ class ARIAMemory:
         self._conn.row_factory = sqlite3.Row
         with self._lock:
             self._conn.executescript(SCHEMA)
+            self._migrate_decisions_checkpoint_to_text()
             self._conn.commit()
 
     # ── Internal helpers (all DB access funnels through these) ──────────
+
+    def _migrate_decisions_checkpoint_to_text(self) -> None:
+        columns = self._conn.execute("PRAGMA table_info(decisions)").fetchall()
+        checkpoint = next((col for col in columns if col[1] == "checkpoint"),
+                          None)
+        if checkpoint is None or str(checkpoint[2]).upper() == "TEXT":
+            return
+        self._conn.executescript(
+            """
+            ALTER TABLE decisions RENAME TO decisions_old;
+            CREATE TABLE decisions (
+                id         TEXT PRIMARY KEY,
+                wing_id    TEXT NOT NULL,
+                checkpoint TEXT,
+                question   TEXT,
+                decision   TEXT,
+                rationale  TEXT,
+                made_at    TEXT,
+                made_by    TEXT DEFAULT 'user',
+                FOREIGN KEY (wing_id) REFERENCES wings(id)
+            );
+            INSERT OR REPLACE INTO decisions
+            SELECT id, wing_id, CAST(checkpoint AS TEXT), question, decision,
+                   rationale, made_at, made_by
+            FROM decisions_old;
+            DROP TABLE decisions_old;
+            """
+        )
 
     def _write(self, sql: str, params: tuple = ()):
         with self._lock:
@@ -245,12 +274,12 @@ class ARIAMemory:
     # ── Decisions ────────────────────────────────────────────────────────
 
     def store_decision(self, decision_id: str, wing_id: str,
-                       checkpoint: int, question: str,
+                       checkpoint: str | int | float, question: str,
                        decision: str, rationale: str = "",
                        made_by: str = "user"):
         self._write(
             "INSERT OR REPLACE INTO decisions VALUES (?,?,?,?,?,?,?,?)",
-            (decision_id, wing_id, checkpoint, question,
+            (decision_id, wing_id, str(checkpoint), question,
              decision, rationale, datetime.now().isoformat(), made_by),
         )
 

@@ -119,7 +119,7 @@ class BaseAgent(ABC):
         bus.publish(msg)
         return msg
 
-    def publish_escalation(self, experiment_id: str, checkpoint: int,
+    def publish_escalation(self, experiment_id: str, checkpoint: int | float | str,
                            question: str, options: list[str],
                            context: dict = None):
         """Trigger a user checkpoint — pause and wait for decision."""

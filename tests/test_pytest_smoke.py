@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -10,6 +11,25 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _assert_legacy_script_passed(result: subprocess.CompletedProcess) -> None:
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    match = re.search(r"(\d+)\s+failed", output)
+    assert match is not None, output
+    assert int(match.group(1)) == 0, output
+
+
+def test_legacy_script_wrapper_rejects_printed_failures():
+    result = subprocess.CompletedProcess(
+        args=["legacy"],
+        returncode=0,
+        stdout="29 passed / 1 failed / 30 total",
+        stderr="",
+    )
+    with pytest.raises(AssertionError):
+        _assert_legacy_script_passed(result)
 
 
 def test_package_compiles():
@@ -95,7 +115,7 @@ def test_bulk_rna_legacy_script_passes():
         text=True,
         timeout=180,
     )
-    assert result.returncode == 0, result.stdout + result.stderr
+    _assert_legacy_script_passed(result)
 
 
 def test_h5ad_obs_design_inference(tmp_path):
@@ -547,6 +567,115 @@ def test_integration_cache_requires_matching_parameters():
         {"cache_version": 1, "cache_params": expected},
         expected,
     )
+
+
+def test_safe_h5ad_rejects_truncated_files(tmp_path):
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+
+    from aria.utils.safe_h5ad import h5ad_is_readable, read_h5ad
+
+    valid = tmp_path / "valid.h5ad"
+    ad.AnnData(X=np.ones((2, 2))).write_h5ad(valid)
+    assert h5ad_is_readable(valid)
+    assert read_h5ad(valid).n_obs == 2
+
+    broken = tmp_path / "broken.h5ad"
+    broken.write_bytes(b"not an h5ad")
+    assert not h5ad_is_readable(broken)
+    with pytest.raises(ValueError, match="Unreadable h5ad"):
+        read_h5ad(broken)
+
+
+def test_message_bus_continues_fanout_after_receiver_failure(caplog):
+    from aria.bus.message_bus import (
+        CavemanMode,
+        Confidence,
+        Message,
+        MessageBus,
+        MessageType,
+    )
+
+    class FailingAgent:
+        def receive(self, message):
+            raise RuntimeError("boom")
+
+    class RecordingAgent:
+        def __init__(self):
+            self.messages = []
+
+        def receive(self, message):
+            self.messages.append(message.id)
+
+    bus = MessageBus()
+    good = RecordingAgent()
+    bus.register("bad", FailingAgent())
+    bus.register("good", good)
+    msg = Message(
+        id="m1",
+        sender="sender",
+        receiver="all",
+        type=MessageType.FINDING,
+        confidence=Confidence.HIGH,
+        payload={"ok": True},
+        caveman_mode=CavemanMode.FULL,
+        experiment_id="exp",
+    )
+
+    bus.publish(msg)
+
+    assert good.messages == ["m1"]
+    assert "continuing fan-out" in caplog.text
+
+
+def test_memory_decision_checkpoint_is_text(tmp_path):
+    from aria.memory.memory import ARIAMemory
+
+    db = tmp_path / "memory.db"
+    memory = ARIAMemory(str(db))
+    memory.create_wing("exp", "Experiment")
+    memory.store_decision(
+        decision_id="d1",
+        wing_id="exp",
+        checkpoint="2.pre",
+        question="q",
+        decision="d",
+    )
+
+    rows = memory.get_decisions("exp")
+    assert rows[0]["checkpoint"] == "2.pre"
+
+
+def test_failed_run_eviction_keeps_lockfile(tmp_path):
+    from aria.utils.environment_manager import EnvironmentManager
+
+    manager = EnvironmentManager.__new__(EnvironmentManager)
+    manager.workspace = tmp_path
+    manager.MAX_FAILED_RUNS = 1
+    failed_dir = tmp_path / "failed"
+    failed_dir.mkdir()
+    (failed_dir / ".lock").write_text("")
+    old_run = failed_dir / "rna_old"
+    old_run.mkdir()
+    (old_run / "error.json").write_text("{}")
+    os.utime(old_run, (1, 1))
+
+    input_file = tmp_path / "input.json"
+    output_file = tmp_path / "output.json"
+    input_file.write_text("{}")
+    output_file.write_text("{}")
+
+    manager._archive_failed_run(
+        "new",
+        "rna",
+        input_file,
+        output_file,
+        {"status": "error", "details": "boom"},
+    )
+
+    archived_runs = [p.name for p in failed_dir.iterdir() if p.is_dir()]
+    assert archived_runs == ["rna_new"]
+    assert (failed_dir / ".lock").exists()
 
 
 def test_qc_cache_requires_matching_parameters():
@@ -2570,6 +2699,40 @@ def test_raw_ingestion_kb_execution_blocks_without_tooling(tmp_path):
         # Allows the same test to pass on developer machines with kb installed.
         assert result["status"] in {"success", "failed"}
         assert result.get("params_sha256")
+
+
+def test_raw_ingestion_kb_hash_errors_return_blocker(tmp_path, monkeypatch):
+    import aria.utils.raw_ingestion as raw_ingestion
+
+    fq1 = tmp_path / "s_R1.fastq.gz"
+    fq2 = tmp_path / "s_R2.fastq.gz"
+    index = tmp_path / "transcriptome.idx"
+    t2g = tmp_path / "t2g.txt"
+    _write_gzip(fq1, "@r\nAC\n+\nII\n")
+    _write_gzip(fq2, "@r\nTG\n+\nII\n")
+    index.write_bytes(b"index")
+    t2g.write_text("tx\tgene\n")
+    monkeypatch.setattr(raw_ingestion.shutil, "which", lambda name: "/usr/bin/kb")
+
+    def fail_hash(path):
+        if str(path) == str(index):
+            raise PermissionError("denied")
+        return "expected-t2g"
+
+    monkeypatch.setattr(raw_ingestion, "hash_file", fail_hash)
+
+    result = raw_ingestion.execute_kb_count({
+        "fastq_files": [str(fq1), str(fq2)],
+        "index_path": str(index),
+        "index_sha256": "expected-index",
+        "t2g_path": str(t2g),
+        "t2g_sha256": "expected-t2g",
+        "chemistry": "10xv3",
+        "output_dir": str(tmp_path / "kb"),
+    })
+
+    assert result["status"] == "blocked"
+    assert any("Could not hash index_path" in b for b in result["blockers"])
 
 
 def test_raw_ingestion_agent_updates_scrna_modalities(tmp_path, monkeypatch):

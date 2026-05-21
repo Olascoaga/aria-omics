@@ -23,6 +23,7 @@ import logging
 import shutil
 import subprocess
 import uuid
+import fcntl
 from pathlib import Path
 from typing import Any
 from aria.utils.provenance import hash_params
@@ -301,9 +302,14 @@ class EnvironmentManager:
             return
 
         # FIFO eviction so the failed/ dir stays bounded.
+        lock_file = None
         try:
+            lock_path = failed_dir / ".lock"
+            lock_file = lock_path.open("a+")
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
             archived = sorted(
-                failed_dir.iterdir(),
+                (p for p in failed_dir.iterdir()
+                 if p.is_dir() and p.name != ".lock"),
                 key=lambda p: p.stat().st_mtime,
             )
             while len(archived) > self.MAX_FAILED_RUNS:
@@ -311,6 +317,13 @@ class EnvironmentManager:
                 shutil_rmtree(oldest)
         except Exception as e:
             log.debug(f"Failed-run eviction skipped: {e}")
+        finally:
+            if lock_file is not None:
+                try:
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                    lock_file.close()
+                except Exception:
+                    pass
 
     def check_environments(self) -> dict[str, bool]:
         """

@@ -46,6 +46,7 @@ def rna_integration(params: dict) -> dict:
     import numpy as np
     import json
     from pathlib import Path
+    from aria.utils.safe_h5ad import h5ad_is_readable, read_h5ad
 
     data_path  = params["data_path"]
     batch_col  = params.get("batch_col", "batch")
@@ -82,6 +83,8 @@ def rna_integration(params: dict) -> dict:
                     cached = json.load(f)
                 if not _cache_matches(cached, cache_params):
                     raise ValueError("stale integration cache")
+                if not h5ad_is_readable(output_path):
+                    raise ValueError("unreadable integration cache")
                 cached["resumed"] = True
                 cached["warnings"] = (
                     cached.get("warnings", []) +
@@ -94,7 +97,7 @@ def rna_integration(params: dict) -> dict:
         except Exception:
             pass
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     if batch_col not in adata.obs.columns:
         return {"status": "skipped",

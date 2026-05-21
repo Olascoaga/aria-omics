@@ -325,10 +325,18 @@ def execute_kb_count(params: dict[str, Any]) -> dict[str, Any]:
     if shutil.which("kb") is None:
         blockers.append("kb executable is not installed.")
 
-    if not blockers and hash_file(index_path) != expected_index_hash:
-        blockers.append("index_sha256 does not match index_path.")
-    if not blockers and hash_file(t2g_path) != expected_t2g_hash:
-        blockers.append("t2g_sha256 does not match t2g_path.")
+    if not blockers:
+        try:
+            if hash_file(index_path) != expected_index_hash:
+                blockers.append("index_sha256 does not match index_path.")
+        except Exception as exc:
+            blockers.append(f"Could not hash index_path: {exc}")
+    if not blockers:
+        try:
+            if hash_file(t2g_path) != expected_t2g_hash:
+                blockers.append("t2g_sha256 does not match t2g_path.")
+        except Exception as exc:
+            blockers.append(f"Could not hash t2g_path: {exc}")
 
     command = []
     if not blockers:

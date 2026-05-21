@@ -59,6 +59,7 @@ def rna_cellcomm(params: dict) -> dict:
     import numpy as np
     import pandas as pd
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path     = params["data_path"]
     cell_type_col = params.get("cell_type_col", "cell_type")
@@ -66,7 +67,7 @@ def rna_cellcomm(params: dict) -> dict:
     output_dir    = params.get("output_dir", str(Path(data_path).parent))
     n_perms       = int(params.get("n_perms", 100))
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     # Resolve cell type column
     if cell_type_col not in adata.obs.columns:

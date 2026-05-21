@@ -16,6 +16,7 @@ def rna_apply_cluster_labels(params: dict) -> dict:
     os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/aria_numba_cache")
     import scanpy as sc
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path = params["data_path"]
     labels = params.get("labels") or {}
@@ -24,7 +25,7 @@ def rna_apply_cluster_labels(params: dict) -> dict:
     output_dir = params.get("output_dir", str(Path(data_path).parent))
     out_dir = Path(output_dir)
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
     if cluster_col not in adata.obs.columns:
         return {
             "status": "error",

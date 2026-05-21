@@ -8,12 +8,15 @@ Only NarrativeAgent outputs are decompressed for the user.
 
 from __future__ import annotations
 import threading
+import logging
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 import uuid
+
+log = logging.getLogger("aria.bus")
 
 
 class MessageType(Enum):
@@ -43,7 +46,7 @@ class Message:
     """
     Universal message unit between ARIA agents.
     Every finding MUST carry a confidence level.
-    Every escalation MUST carry a checkpoint number.
+    Every escalation MUST carry a checkpoint identifier.
     """
     id:            str          = field(default_factory=lambda: str(uuid.uuid4())[:8])
     timestamp:     datetime     = field(default_factory=datetime.now)
@@ -53,7 +56,7 @@ class Message:
     confidence:    Confidence   = Confidence.MEDIUM
     payload:       dict         = field(default_factory=dict)
     caveman_mode:  CavemanMode  = CavemanMode.FULL
-    checkpoint:    Optional[int] = None
+    checkpoint:    Optional[int | float | str] = None
     experiment_id: str          = ""
 
     def to_dict(self) -> dict:
@@ -110,9 +113,19 @@ class MessageBus:
             else:
                 targets = []
 
-        for _name, agent in targets:
+        for name, agent in targets:
             if hasattr(agent, "receive"):
-                agent.receive(message)
+                try:
+                    agent.receive(message)
+                except Exception:
+                    log.exception(
+                        "MessageBus receiver failed; continuing fan-out "
+                        "message_id=%s receiver=%s sender=%s type=%s",
+                        message.id,
+                        name,
+                        message.sender,
+                        message.type.value,
+                    )
 
     def get_log(self, experiment_id: str = None) -> list[Message]:
         with self._lock:

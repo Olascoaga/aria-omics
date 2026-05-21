@@ -46,6 +46,7 @@ def rna_advise_resolution(params: dict) -> dict:
     import hashlib
     from pathlib import Path
     from sklearn.metrics import silhouette_score
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path   = params["data_path"]
     resolutions = params.get("resolutions") or [0.2, 0.5, 0.8, 1.2]
@@ -80,7 +81,7 @@ def rna_advise_resolution(params: dict) -> dict:
         except Exception:
             pass
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
     n_cells_total = int(adata.n_obs)
     sketch_used = False
     if adata.n_obs > max_cells:

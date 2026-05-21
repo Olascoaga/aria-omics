@@ -61,10 +61,10 @@ def _pick_sample_col(adata) -> tuple:
 
 
 def inject(params: dict) -> dict:
-    import anndata as ad
     import numpy as np
     import pandas as pd
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path   = params["data_path"]
     groups      = params.get("groups", {}) or {}
@@ -79,7 +79,7 @@ def inject(params: dict) -> dict:
     if not s2g:
         return {"status": "skipped", "reason": "groups_empty"}
 
-    adata = ad.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
     sample_col, sample_values = _pick_sample_col(adata)
 
     # Map each cell's sample → group. Cells from samples not in the

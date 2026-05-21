@@ -102,10 +102,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
     import numpy as np
     import pandas as pd
-    import scanpy as sc
     from pathlib import Path
     from scipy import sparse
     from aria.utils.power_estimation import pseudobulk_power_estimate
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path                     = params["data_path"]
     groupby                       = params["groupby"]
@@ -145,7 +145,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "error_type": "FileNotFound",
                 "details": f"data_path does not exist: {data_path}"}
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     # ── Resolve count source ──────────────────────────────────────────────
     def _looks_integerlike(mat) -> tuple[bool, float]:

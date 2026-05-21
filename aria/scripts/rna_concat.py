@@ -59,9 +59,9 @@ def _cache_matches(cached: dict, expected: dict) -> bool:
 
 def rna_concat(params: dict) -> dict:
     import anndata as ad
-    import scanpy as sc
     import json
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     samples    = params.get("samples") or []
     output_dir = params.get("output_dir")
@@ -121,7 +121,7 @@ def rna_concat(params: dict) -> dict:
                 "error_type": "FileNotFound",
                 "details":    f"Missing input: {path}",
             }
-        a = sc.read_h5ad(path)
+        a = read_h5ad(path)
         a.var_names_make_unique()
         # Overwrite (or set) provenance — caller is authoritative.
         a.obs["sample_id"] = str(sid)

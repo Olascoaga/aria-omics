@@ -165,8 +165,8 @@ def _plot_one(coords, values, key: str, out_path: Path,
 
 
 def make_umap_figures(params: dict) -> dict:
-    import anndata as ad
     import numpy as np
+    from aria.utils.safe_h5ad import read_h5ad
 
     h5ad_path = Path(params["h5ad_path"])
     color_by  = list(params.get("color_by") or [])
@@ -180,7 +180,7 @@ def make_umap_figures(params: dict) -> dict:
                 "error_type": "MissingParam",
                 "details": "color_by must be a non-empty list"}
 
-    adata = ad.read_h5ad(h5ad_path)
+    adata = read_h5ad(h5ad_path)
     try:
         emb_key = _pick_embedding(adata, requested)
         embedding_was_computed = False

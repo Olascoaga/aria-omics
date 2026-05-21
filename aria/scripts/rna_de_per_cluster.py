@@ -39,6 +39,7 @@ def rna_de_per_cluster(params: dict) -> dict:
     import numpy as np
     import pandas as pd
     from pathlib import Path
+    from aria.utils.safe_h5ad import read_h5ad
 
     data_path  = params["data_path"]
     groupby    = params.get("groupby", "leiden")
@@ -47,7 +48,7 @@ def rna_de_per_cluster(params: dict) -> dict:
     top_n      = int(params.get("top_n", 20))
     output_dir = params.get("output_dir", str(Path(data_path).parent))
 
-    adata = sc.read_h5ad(data_path)
+    adata = read_h5ad(data_path)
 
     if groupby not in adata.obs.columns:
         return {

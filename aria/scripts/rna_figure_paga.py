@@ -165,15 +165,15 @@ def _draw_paga(conn, cats, sizes, output_path: Path,
 
 
 def make_paga_figures(params: dict) -> dict:
-    import anndata as ad
     import numpy as np
+    from aria.utils.safe_h5ad import read_h5ad
 
     h5ad_path = Path(params["h5ad_path"])
     out_dir   = Path(params["output_dir"])
     groupby   = params.get("groupby")
     min_conn  = float(params.get("min_connectivity", 0))
 
-    adata = ad.read_h5ad(h5ad_path)
+    adata = read_h5ad(h5ad_path)
     if "paga" not in adata.uns:
         return {"status": "error", "error_type": "NoPAGA",
                 "details": "uns['paga'] not present in h5ad"}
