@@ -173,3 +173,27 @@ Implications:
 - scRNA and bulk RNA are the first two migrated modalities; chromatin should
   implement `ChromatinNarrator` in v4.6 instead of adding more branches to the
   central agent.
+
+## ADR-011 - No Hardcoded Biological Content In Runtime Or Generic Tests
+
+Status: accepted
+
+ARIA must remain dataset-agnostic. Hardcoded biological labels in runtime code
+or generic tests create hidden rescue paths and make reports less trustworthy.
+
+Implications:
+
+- Runtime code, narrators, prompts, and report templates must not hardcode
+  dataset names, genes, perturbations, cell types, pathways, or report-rescue
+  phrases.
+- New synthetic tests must use neutral labels (`GroupA`, `condition_a`,
+  `GENE_UP_1`, etc.) unless the test is explicitly a golden regression for a
+  named real dataset.
+- Validation records, release notes, and memory may name real datasets only as
+  historical audit evidence, not as executable logic.
+- Generic policy constants are allowed when they are dataset-agnostic and
+  documented, for example confidence levels, block types, and causal-language
+  guardrail patterns.
+- Before release, grep for validation-specific terms in runtime and newly
+  added generic tests; any hit needs either removal or an explicit documented
+  golden-fixture reason.

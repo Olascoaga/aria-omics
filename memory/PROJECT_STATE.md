@@ -19,8 +19,10 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: `3054318`
-  (`Post-v4.5.1 audit hardening: close P1 findings`).
+- Current HEAD: verify with `git log --oneline --decorate -5`; the latest
+  pushed line is v4.5.2 plus post-release anti-hardcode hardening.
+- v4.5.2 release commit: `ca8b169`
+  (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
@@ -32,6 +34,10 @@ supersedes:
 - P1 audit fixes landed in `3054318` (untagged) — safe h5ad helper, bus
   fan-out try/except, `failed/` eviction flock, `decisions.checkpoint` TEXT
   migration, kb hash blocker, RNA script resume validity guards.
+- Post-v4.5.2 anti-hardcode hardening neutralized new narrative-kernel
+  synthetic tests and added ADR-011 / design-principle language: runtime and
+  generic tests must not hardcode biological content unless explicitly marked
+  as named golden-dataset regressions.
 - Tags:
   - `v4.3.12` -> `3a0c40e`
   - `v4.3.12.post1` -> `805e0b2`

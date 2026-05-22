@@ -16,12 +16,12 @@ def _bulk_findings():
             "n_downregulated": 103,
             "power_estimate_at_lfc_min": 0.71,
             "top_genes": [
-                {"gene": "ISG15", "log2fc": 2.2},
-                {"gene": "MX1", "log2fc": 1.8},
+                {"gene": "GENE_UP_1", "log2fc": 2.2},
+                {"gene": "GENE_UP_2", "log2fc": 1.8},
             ],
             "pathways": {
                 "GO_BP": [{
-                    "term": "type I interferon signaling pathway",
+                    "term": "pathway_alpha_response",
                     "adjusted_p": 1e-4,
                 }]
             },
@@ -54,7 +54,7 @@ def test_bulk_narrator_generates_qc_contrast_pathway_and_power_blocks():
 
     contrast = next(b for b in blocks if b.id == "bulk.contrast.treat_vs_ctrl")
     assert contrast.claim == "Bulk contrast treat_vs_ctrl had 223 DE genes."
-    assert any("ISG15" in ev.label for ev in contrast.evidence)
+    assert any("GENE_UP_1" in ev.label for ev in contrast.evidence)
 
     low_power = next(b for b in blocks
                      if b.id == "bulk.contrast.low_power_vs_ctrl")

@@ -119,6 +119,9 @@ Read this file first in every ARIA session.
   it inherits v4.4 and v4.5 guarantees.
 - Do not add dataset-specific runtime guardrails.
 - Do not hardcode genes, perturbations, datasets, or report-rescue phrases.
+- New generic tests must also avoid hardcoded biological content; use neutral
+  synthetic labels unless the test is explicitly a named golden-dataset
+  regression. See `ADR-011`.
 - Do not allow silent mocks or fake scientific outputs.
 - Do not treat files in `memory/archive/` as source of truth.
 

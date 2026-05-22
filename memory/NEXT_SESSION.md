@@ -177,6 +177,14 @@ Validation recorded so far:
 Before starting v4.6 implementation, verify whether the final PBMC report
 rerun was completed for v4.5.2 and recorded in `PROJECT_STATE.md`.
 
+## Anti-Hardcode Follow-up After v4.5.2
+
+After review, the new narrative-kernel synthetic tests were neutralized so
+they no longer use PBMC/interferon/cell-type/gene labels. This is now governed
+by `ADR-011`: runtime and generic tests must not hardcode biological content;
+real names are reserved for explicit golden-dataset regressions and historical
+validation notes.
+
 ## Start By
 
 ```bash

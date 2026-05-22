@@ -33,6 +33,25 @@ If enrichment, annotation, figures, integration, trajectory, or communication
 analysis fails, the exact warning should propagate forward. Narrative code must
 not infer plausible biology from absent outputs.
 
+## No Hardcoded Biological Content
+
+Runtime code, prompts, report templates, narrator plugins, and technical docs
+must not hardcode dataset names, genes, perturbations, cell types, pathways, or
+validation-specific rescue phrases.
+
+Allowed exceptions are narrow:
+
+- explicit validation records and release audit notes may name the dataset they
+  validated;
+- golden-fixture tests may use real biological labels only when the test is
+  explicitly about that real dataset;
+- generic statistical or language-policy constants are allowed when documented
+  and dataset-agnostic.
+
+New synthetic tests should use neutral names such as `GroupA`, `condition_a`,
+and `GENE_UP_1` unless the purpose of the test is a named real-dataset
+regression.
+
 ## Resume Is File- and Parameter-Validated
 
 Heavy steps can resume only when outputs are present and valid for the current

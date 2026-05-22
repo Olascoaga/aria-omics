@@ -1,4 +1,4 @@
-def _pbmc_like_findings():
+def _synthetic_scrna_findings():
     return {
         "qc": {
             "n_cells_before": 29173,
@@ -12,11 +12,11 @@ def _pbmc_like_findings():
         },
         "differential_abundance": {
             "per_comparison": {
-                "STIM_vs_CTRL": {
+                "condition_a_vs_condition_b": {
                     "status": "success",
                     "n_significant": 1,
                     "per_cell_type": [{
-                        "name": "Monocytes",
+                        "name": "GroupA",
                         "significant": True,
                         "direction": "up",
                     }],
@@ -25,14 +25,14 @@ def _pbmc_like_findings():
         },
         "pseudobulk_de": {
             "groupby": "cluster",
-            "condition_col": "stim",
-            "replicate_col": "Donor",
+            "condition_col": "condition",
+            "replicate_col": "sample_id",
             "n_groups": 3,
             "per_group": {
-                "Monocytes": {
+                "GroupA": {
                     "n_pseudosamples": 16,
                     "per_comparison": {
-                        "STIM_vs_CTRL": {
+                        "condition_a_vs_condition_b": {
                             "status": "success",
                             "n_significant": 180,
                             "n_significant_local": 220,
@@ -44,24 +44,24 @@ def _pbmc_like_findings():
                             "corrected_for_composition": True,
                             "power_estimate_at_lfc_min": 0.78,
                             "top_genes": [
-                                {"gene": "ISG15", "log2fc": 2.1},
-                                {"gene": "MX1", "log2fc": 1.8},
-                                {"gene": "CCR2", "log2fc": -1.2},
+                                {"gene": "GENE_UP_1", "log2fc": 2.1},
+                                {"gene": "GENE_UP_2", "log2fc": 1.8},
+                                {"gene": "GENE_DOWN_1", "log2fc": -1.2},
                             ],
                         }
                     },
                 },
-                "T cells": {
+                "GroupB": {
                     "n_pseudosamples": 16,
                     "per_comparison": {
-                        "STIM_vs_CTRL": {
+                        "condition_a_vs_condition_b": {
                             "status": "success",
                             "n_significant_global": 12,
                             "n_significant_local": 20,
                             "n_up_global": 8,
                             "n_down_global": 4,
                             "corrected_for_composition": False,
-                            "top_genes": [{"gene": "IFIT1", "log2fc": 1.4}],
+                            "top_genes": [{"gene": "GENE_UP_3", "log2fc": 1.4}],
                         }
                     },
                 },
@@ -69,11 +69,11 @@ def _pbmc_like_findings():
         },
         "pseudobulk_pathways": {
             "per_cluster": {
-                "Monocytes::STIM_vs_CTRL": {
+                "GroupA::condition_a_vs_condition_b": {
                     "n_significant": 3,
                     "results": {
                         "GO_BP": [{
-                            "term": "type I interferon signaling pathway",
+                            "term": "pathway_alpha_response",
                             "adjusted_p": 1e-6,
                         }]
                     },
@@ -87,10 +87,10 @@ def _pbmc_like_findings():
             "n_interactions": 10,
             "n_autocrine_dropped": 4,
             "top_interactions": [{
-                "source": "Monocytes",
-                "target": "T cells",
-                "ligand": "CXCL10",
-                "receptor": "CXCR3",
+                "source": "GroupA",
+                "target": "GroupB",
+                "ligand": "LIGAND_A",
+                "receptor": "RECEPTOR_B",
             }],
         },
         "trajectory": {
@@ -98,20 +98,20 @@ def _pbmc_like_findings():
             "paga": {"n_connections": 6, "n_strong": 1},
             "pseudotime": {
                 "computed": True,
-                "pseudotime_by_group": {"Monocytes": 0.2, "T cells": 0.8},
+                "pseudotime_by_group": {"GroupA": 0.2, "GroupB": 0.8},
             },
             "velocity": {"computed": False},
         },
     }
 
 
-def test_scrna_narrator_generates_blocks_for_all_pbmc_like_results():
+def test_scrna_narrator_generates_blocks_for_all_synthetic_results():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
     from aria.agents.narrative.validators import validate_blocks
 
     agent_result = {
         "status": "done",
-        "findings": {"scRNA": {"findings": _pbmc_like_findings()}},
+        "findings": {"scRNA": {"findings": _synthetic_scrna_findings()}},
     }
     blocks = validate_blocks(
         ScrnaNarrator().collect("scrna_agent", agent_result)
@@ -120,17 +120,17 @@ def test_scrna_narrator_generates_blocks_for_all_pbmc_like_results():
 
     assert "scrna.qc" in ids
     assert "scrna.marker_discovery" in ids
-    assert "scrna.composition.STIM_vs_CTRL" in ids
-    assert "scrna.pseudobulk.Monocytes.STIM_vs_CTRL" in ids
-    assert "scrna.pseudobulk.T_cells.STIM_vs_CTRL" in ids
-    assert "scrna.pathway.Monocytes_STIM_vs_CTRL" in ids
+    assert "scrna.composition.condition_a_vs_condition_b" in ids
+    assert "scrna.pseudobulk.GroupA.condition_a_vs_condition_b" in ids
+    assert "scrna.pseudobulk.GroupB.condition_a_vs_condition_b" in ids
+    assert "scrna.pathway.GroupA_condition_a_vs_condition_b" in ids
     assert "scrna.cellcomm" in ids
     assert "scrna.trajectory" in ids
 
     mono = next(b for b in blocks
-                if b.id == "scrna.pseudobulk.Monocytes.STIM_vs_CTRL")
-    assert mono.claim == "Monocytes STIM_vs_CTRL had 180 global-FDR DE genes."
-    assert any(ev.value == "ISG15" or "ISG15" in ev.label for ev in mono.evidence)
+                if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    assert mono.claim == "GroupA condition_a_vs_condition_b had 180 global-FDR DE genes."
+    assert any(ev.value == "GENE_UP_1" or "GENE_UP_1" in ev.label for ev in mono.evidence)
     assert mono.metrics["corrected_for_composition"] is True
     assert any("composition covariate" in caveat.text for caveat in mono.caveats)
 
@@ -148,7 +148,7 @@ def test_scrna_narrator_methods_reuse_legacy_methods():
 
     agent_result = {
         "status": "done",
-        "findings": {"scRNA": {"findings": _pbmc_like_findings()}},
+        "findings": {"scRNA": {"findings": _synthetic_scrna_findings()}},
     }
     methods = ScrnaNarrator().methods("scrna_agent", agent_result)
     assert len(methods) == 1
