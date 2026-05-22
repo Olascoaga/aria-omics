@@ -1274,6 +1274,147 @@ def test_integrated_interpretation_sanitizes_long_prompt():
     assert "Do not run ATAC" not in text
 
 
+def test_scrna_narrative_adds_per_result_depth():
+    from aria.agents import _narrative_scrna
+
+    findings = {
+        "qc": {"n_cells_after": 1200},
+        "cell_types": {
+            "cell_types": {
+                "Monocytes": {
+                    "cell_type": "Monocytes",
+                    "annotation_source": "input_obs",
+                }
+            }
+        },
+        "differential_abundance": {
+            "per_comparison": {
+                "STIM_vs_CTRL": {
+                    "status": "success",
+                    "n_significant": 1,
+                    "per_cell_type": [{
+                        "name": "Monocytes",
+                        "significant": True,
+                        "direction": "up",
+                        "log2_fold_change": 1.25,
+                        "padj": 0.004,
+                    }],
+                }
+            }
+        },
+        "pseudobulk_de": {
+            "groupby": "cluster",
+            "condition_col": "stim",
+            "n_groups": 1,
+            "thresholds": {"padj_max": 0.05, "lfc_min": 0.5},
+            "multiple_testing": {"n_tests_global": 20000},
+            "per_group": {
+                "Monocytes": {
+                    "n_pseudosamples": 16,
+                    "per_comparison": {
+                        "STIM_vs_CTRL": {
+                            "status": "success",
+                            "n_significant": 140,
+                            "n_significant_local": 180,
+                            "n_significant_global": 140,
+                            "n_up": 90,
+                            "n_up_global": 80,
+                            "n_down": 50,
+                            "n_down_global": 60,
+                            "corrected_for_composition": True,
+                            "power_estimate_at_lfc_min": 0.82,
+                            "top_genes": [
+                                {
+                                    "gene": "ISG15",
+                                    "log2fc": 2.4,
+                                    "padj_global": 1e-8,
+                                },
+                                {
+                                    "gene": "MX1",
+                                    "log2fc": 1.9,
+                                    "padj_global": 2e-7,
+                                },
+                                {
+                                    "gene": "CCR2",
+                                    "log2fc": -1.1,
+                                    "padj_global": 0.002,
+                                },
+                            ],
+                        }
+                    },
+                }
+            },
+        },
+        "pseudobulk_pathways": {
+            "background_size": 13500,
+            "per_cluster": {
+                "Monocytes::STIM_vs_CTRL": {
+                    "n_significant": 4,
+                    "results": {
+                        "GO_BP": [{
+                            "term": "type I interferon signaling pathway",
+                            "adjusted_p": 1e-5,
+                        }]
+                    },
+                }
+            },
+        },
+        "cell_communication": {
+            "status": "done",
+            "method": "liana_rank_aggregate (specificity_rank)",
+            "n_interactions": 2,
+            "n_cell_types": 2,
+            "n_autocrine_dropped": 3,
+            "top_pairs": ["Monocytes->T cells"],
+            "top_interactions": [{
+                "source": "Monocytes",
+                "target": "T cells",
+                "ligand": "CXCL10",
+                "receptor": "CXCR3",
+                "rank": 1,
+                "rank_metric": "specificity_rank",
+            }],
+        },
+        "trajectory": {
+            "status": "done",
+            "paga": {
+                "n_connections": 3,
+                "n_strong": 1,
+                "strong_threshold": 0.05,
+                "max_connectivity": 0.12,
+            },
+            "pseudotime": {
+                "computed": True,
+                "root_used": "Monocytes",
+                "pseudotime_by_group": {
+                    "Monocytes": 0.1,
+                    "T cells": 0.7,
+                },
+            },
+            "velocity": {"computed": False},
+        },
+    }
+
+    summary = _narrative_scrna.summarize_scrna_text(findings)
+    synthesis = _narrative_scrna.build_scrna_integrated_interpretation(
+        findings,
+        {"summary": "Compare STIM versus CTRL in PBMCs."},
+    )
+
+    for text in (summary, synthesis):
+        assert "DE block 1: Monocytes STIM_vs_CTRL" in text
+        assert "ISG15" in text
+        assert "CCR2" in text
+        assert "approximate power=82%" in text
+        assert "composition-corrected" in text
+        assert "global FDR retained 140" in text
+        assert "type I interferon signaling pathway" in text
+        assert "Communication interpretation" in text
+        assert "CXCL10-CXCR3" in text
+        assert "Trajectory depth" in text
+        assert "DPT context" in text
+
+
 def test_narrative_html_escapes_methods_and_uses_package_version(tmp_path):
     from aria import __version__
     from aria.agents.narrative_agent import NarrativeAgent

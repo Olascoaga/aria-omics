@@ -141,6 +141,286 @@ def _top_pathway_blocks(pwp: dict, limit: int = 3) -> list[tuple[str, dict]]:
     return blocks[:limit]
 
 
+def _gene_name(rec: dict) -> str:
+    return str(rec.get("symbol") or rec.get("gene") or rec.get("name") or "?")
+
+
+def _gene_brief(rec: dict) -> str:
+    gene = _gene_name(rec)
+    lfc = rec.get("log2fc", rec.get("log2FoldChange"))
+    padj = rec.get("padj_global", rec.get("padj", rec.get("padj_local")))
+    details = []
+    if isinstance(lfc, (int, float)):
+        details.append(f"log2FC={lfc:+.2f}")
+    if isinstance(padj, (int, float)):
+        details.append(f"FDR={_fmt_stat(padj)}")
+    return f"{gene} ({', '.join(details)})" if details else gene
+
+
+def _top_directional_genes(comp: dict, direction: str,
+                           limit: int = 3) -> list[str]:
+    records = comp.get("top_genes") or comp.get("all_sig") or []
+    if direction == "up":
+        rows = [r for r in records if isinstance(r, dict)
+                and r.get("log2fc", 0) > 0]
+        rows.sort(key=lambda r: r.get("log2fc", 0), reverse=True)
+    else:
+        rows = [r for r in records if isinstance(r, dict)
+                and r.get("log2fc", 0) < 0]
+        rows.sort(key=lambda r: r.get("log2fc", 0))
+    return [_gene_brief(r) for r in rows[:limit]]
+
+
+def _find_pathway_block(pwp: dict, group: str, comp_key: str) -> tuple[str, dict]:
+    per_cluster = pwp.get("per_cluster", {}) or {}
+    if not per_cluster:
+        return "", {}
+    group_s = str(group)
+    comp_s = str(comp_key)
+    candidates = [
+        f"{group_s}::{comp_s}",
+        f"{group_s}__{comp_s}",
+        f"{group_s} {comp_s}",
+        f"{group_s}_{comp_s}",
+    ]
+    for key in candidates:
+        if key in per_cluster:
+            return key, per_cluster[key]
+    for key, block in per_cluster.items():
+        key_s = str(key)
+        if group_s in key_s and comp_s in key_s:
+            return key_s, block
+    return "", {}
+
+
+def _top_pathway_terms(block: dict, limit: int = 3) -> list[str]:
+    terms = []
+    for db_name, rows in (block.get("results", {}) or {}).items():
+        for row in rows or []:
+            if not isinstance(row, dict):
+                continue
+            term = row.get("term") or row.get("Term")
+            if not term:
+                continue
+            padj = _term_value(
+                row, "adjusted_p", "Adjusted P-value", "adj_p", "padj",
+                default=None,
+            )
+            label = f"{db_name}: {term}"
+            if isinstance(padj, (int, float)):
+                label += f" (FDR={_fmt_stat(padj)})"
+            terms.append(label)
+            if len(terms) >= limit:
+                return terms
+    return terms
+
+
+def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
+    """Detailed, grounded interpretation for the highest-priority DE blocks."""
+    pb = findings.get("pseudobulk_de") or {}
+    pwp = findings.get("pseudobulk_pathways") or {}
+    lines = []
+    for rank, (group, comp_key, comp) in enumerate(
+        _top_de_blocks(pb, limit=limit), 1
+    ):
+        n_global = comp.get("n_significant_global", comp.get("n_significant", 0))
+        n_local = comp.get("n_significant_local", comp.get("n_significant", 0))
+        n_up = comp.get("n_up_global", comp.get("n_up", 0))
+        n_down = comp.get("n_down_global", comp.get("n_down", 0))
+        power = comp.get("power_estimate_at_lfc_min")
+        power_txt = (
+            f"; approximate power={power:.0%}"
+            if isinstance(power, (int, float)) else ""
+        )
+        correction_txt = (
+            " composition-corrected"
+            if comp.get("corrected_for_composition") else
+            " not composition-corrected"
+        )
+        fdr_txt = ""
+        if n_local != n_global:
+            fdr_txt = (
+                f" Local FDR found {_fmt_int(n_local)} genes, but global FDR "
+                f"retained {_fmt_int(n_global)}; prioritize the global-FDR "
+                f"set for cross-cell-type claims."
+            )
+        up = _top_directional_genes(comp, "up")
+        down = _top_directional_genes(comp, "down")
+        gene_txt = []
+        if up:
+            gene_txt.append("top up: " + ", ".join(up))
+        if down:
+            gene_txt.append("top down: " + ", ".join(down))
+        gene_clause = " " + "; ".join(gene_txt) + "." if gene_txt else ""
+        _, pw_block = _find_pathway_block(pwp, group, comp_key)
+        terms = _top_pathway_terms(pw_block)
+        if terms:
+            pathway_clause = (
+                " ORA support: " + "; ".join(terms) + "."
+            )
+        elif pw_block:
+            pathway_clause = (
+                " ORA was run for this block but did not yield a compact "
+                "top-term signal."
+            )
+        else:
+            pathway_clause = (
+                " No matched ORA block was available, so interpretation rests "
+                "on the DE statistics alone."
+            )
+        caveats = []
+        if comp.get("low_power_warning"):
+            caveats.append("low replicate support")
+        if not comp.get("corrected_for_composition"):
+            caveats.append("no composition covariate")
+        caveat_txt = (
+            " Caveat: " + ", ".join(caveats) + "."
+            if caveats else ""
+        )
+        lines.append(
+            f"DE block {rank}: {group} {comp_key} had "
+            f"{_fmt_int(n_global)} global-FDR DE genes "
+            f"({_fmt_int(n_up)} up, {_fmt_int(n_down)} down; "
+            f"{_fmt_int(n_local)} local;{correction_txt}{power_txt})."
+            f"{gene_clause}{pathway_clause}{fdr_txt}{caveat_txt}"
+        )
+    return lines
+
+
+def _describe_pathway_support(findings: dict, limit: int = 3) -> list[str]:
+    pwp = findings.get("pseudobulk_pathways") or {}
+    if not (pwp.get("per_cluster") or {}):
+        return []
+    lines = []
+    for block_key, block in _top_pathway_blocks(pwp, limit=limit):
+        terms = _top_pathway_terms(block, limit=3)
+        if not terms:
+            continue
+        bg = (
+            f" against {_fmt_int(pwp.get('background_size'))} expressed genes"
+            if pwp.get("background_size") else ""
+        )
+        lines.append(
+            f"Pathway support for {str(block_key).replace('::', ' ')}: "
+            f"{_fmt_int(block.get('n_significant', len(terms)))} enriched "
+            f"term(s){bg}; strongest terms were {', '.join(terms)}."
+        )
+    return lines
+
+
+def _describe_abundance_de_relationship(findings: dict) -> list[str]:
+    da = findings.get("differential_abundance") or {}
+    pb = findings.get("pseudobulk_de") or {}
+    if not da or not pb:
+        return []
+    shifted = set()
+    for comp_info in (da.get("per_comparison") or {}).values():
+        if comp_info.get("status") != "success":
+            continue
+        for row in comp_info.get("per_cell_type", []) or []:
+            if row.get("significant"):
+                shifted.add(str(row.get("name")))
+    if not shifted:
+        return []
+    corrected = []
+    uncorrected = []
+    for group, info in (pb.get("per_group", {}) or {}).items():
+        for comp in (info.get("per_comparison", {}) or {}).values():
+            if comp.get("status") != "success":
+                continue
+            target = corrected if comp.get("corrected_for_composition") else uncorrected
+            if str(group) in shifted:
+                target.append(str(group))
+    lines = []
+    if corrected:
+        lines.append(
+            "Composition-aware interpretation: abundance shifts overlapped "
+            f"with DE blocks for {', '.join(sorted(set(corrected)))}; those "
+            "models included a log-proportion covariate, so within-cell-type "
+            "expression effects are less confounded by changing cell-type mix."
+        )
+    if uncorrected:
+        lines.append(
+            "Composition caveat: abundance shifts were detected for "
+            f"{', '.join(sorted(set(uncorrected)))}, but the matched DE block "
+            "was not marked composition-corrected. Treat within-cell-type "
+            "effect sizes cautiously."
+        )
+    return lines
+
+
+def _describe_cellcomm_context(findings: dict, limit: int = 5) -> list[str]:
+    ccc = findings.get("cell_communication") or {}
+    if ccc.get("status") not in ("done", "success"):
+        return []
+    top = ccc.get("top_interactions") or []
+    if not top:
+        return []
+    rows = []
+    for ia in top[:limit]:
+        if not isinstance(ia, dict):
+            continue
+        metric = ia.get("rank_metric") or (
+            (ccc.get("method", "").split("(")[-1].rstrip(")").strip())
+            if ccc.get("method") else "score"
+        )
+        rank = ia.get("rank")
+        rank_txt = f"rank #{int(rank)}" if isinstance(rank, (int, float)) else "top-ranked"
+        rows.append(
+            f"{ia.get('source', '?')} -> {ia.get('target', '?')} "
+            f"{ia.get('ligand', '?')}-{ia.get('receptor', '?')} "
+            f"({rank_txt}, metric={metric or 'score'})"
+        )
+    if not rows:
+        return []
+    return [
+        "Communication interpretation: the leading non-autocrine pairs were "
+        + "; ".join(rows)
+        + ". These are transcript-supported interaction candidates and need "
+        "manual ligand/receptor and cell-label review before functional claims."
+    ]
+
+
+def _describe_trajectory_context(findings: dict) -> list[str]:
+    traj = findings.get("trajectory") or {}
+    if traj.get("status") not in ("done", "success"):
+        return []
+    paga = traj.get("paga", {}) or {}
+    pt = traj.get("pseudotime", {}) or {}
+    lines = []
+    max_conn = paga.get("max_connectivity")
+    thr = paga.get("strong_threshold", 0.05)
+    if isinstance(max_conn, (int, float)):
+        if max_conn < thr:
+            lines.append(
+                f"Trajectory depth: maximum PAGA connectivity was "
+                f"{max_conn:.4f}, below the configured strong-edge threshold "
+                f"({thr}); use this as neighborhood context, not as evidence "
+                "for active state transitions."
+            )
+        else:
+            lines.append(
+                f"Trajectory depth: PAGA found "
+                f"{_fmt_int(paga.get('n_strong', 0))} strong edge(s) at "
+                f"threshold {thr}; the ranking of connected groups is useful "
+                "for hypothesis generation but remains non-causal without "
+                "velocity or time-course support."
+            )
+    if pt.get("computed") and pt.get("pseudotime_by_group"):
+        ordered = sorted(
+            pt.get("pseudotime_by_group", {}).items(),
+            key=lambda kv: kv[1],
+        )
+        first = ordered[0][0]
+        last = ordered[-1][0]
+        lines.append(
+            f"DPT context: groups span pseudotime from {first} to {last} "
+            f"(root={pt.get('root_used', 'auto')}). Interpret this as an "
+            "ordering on the observed manifold, not elapsed biological time."
+        )
+    return lines
+
+
 def summarize_scrna_text(findings: dict) -> str:
     """Multi-line text summary for findings_sections['scrna']."""
     lines = []
@@ -363,6 +643,8 @@ def summarize_scrna_text(findings: dict) -> str:
                     f"{_fmt_int(comp.get('n_significant_local', comp.get('n_significant', 0)))} local)"
                 )
             lines.append("Largest DE blocks: " + "; ".join(desc) + ".")
+        lines.extend(_describe_abundance_de_relationship(findings))
+        lines.extend(_describe_top_de_blocks(findings, limit=3))
 
     pwp = findings.get("pseudobulk_pathways") or {}
     if pwp.get("per_cluster"):
@@ -395,6 +677,7 @@ def summarize_scrna_text(findings: dict) -> str:
                 examples.append(f"{block_key.replace('::', ' ')}: {first_term}")
         if examples:
             lines.append("Top enriched examples: " + "; ".join(examples) + ".")
+        lines.extend(_describe_pathway_support(findings, limit=3))
 
     ccc = findings.get("cell_communication") or {}
     if ccc.get("status") in ("done", "success"):
@@ -412,6 +695,7 @@ def summarize_scrna_text(findings: dict) -> str:
             f"{n_int} significant L-R interactions across {n_ct} cell types "
             f"({n_auto} autocrine pairs excluded).{pair_str}"
         )
+        lines.extend(_describe_cellcomm_context(findings, limit=5))
 
     traj = findings.get("trajectory") or {}
     if traj.get("status") in ("done", "success"):
@@ -449,6 +733,7 @@ def summarize_scrna_text(findings: dict) -> str:
                 f" RNA velocity skipped ({vel['reason'][:60]})."
             )
         lines.append(traj_line)
+        lines.extend(_describe_trajectory_context(findings))
 
     return "\n".join(lines) if lines else (
         "scRNA analysis completed. See findings table for details."
@@ -502,6 +787,8 @@ def build_scrna_integrated_interpretation(findings: dict,
             "for biological follow-up because they combine cell-type "
             "specificity with replicate-aware differential expression."
         )
+        parts.extend(_describe_abundance_de_relationship(findings))
+        parts.extend(_describe_top_de_blocks(findings, limit=3))
 
     if pwp.get("per_cluster"):
         n_blocks = len(pwp.get("per_cluster", {}) or {})
@@ -514,6 +801,7 @@ def build_scrna_integrated_interpretation(findings: dict,
             f"group x comparison blocks, giving a functional layer for "
             f"prioritising the largest pseudobulk signals."
         )
+        parts.extend(_describe_pathway_support(findings, limit=3))
 
     if ccc.get("status") in ("done", "success"):
         top_pairs = ccc.get("top_pairs", [])[:3]
@@ -534,6 +822,7 @@ def build_scrna_integrated_interpretation(findings: dict,
                 "marker-panel annotations and should be manually curated before "
                 "being treated as definitive cell identities."
             )
+        parts.extend(_describe_cellcomm_context(findings, limit=5))
 
     if traj.get("status") in ("done", "success"):
         paga = traj.get("paga", {}) or {}
@@ -557,6 +846,7 @@ def build_scrna_integrated_interpretation(findings: dict,
                 "manual curation."
             )
         parts.append(traj_txt)
+        parts.extend(_describe_trajectory_context(findings))
 
     if not parts:
         return ""
