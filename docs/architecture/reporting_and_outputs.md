@@ -18,6 +18,25 @@ Examples:
 - LIANA communication is present only if interaction tables exist;
 - annotation confidence must reflect CellTypist/fallback status.
 
+## Narrative Kernel
+
+As of `v4.5.2`, `NarrativeAgent` composes supported modalities through a
+small kernel under `aria.agents.narrative`.
+
+- `NarrativeBlock` is the unit of report evidence. A successful block must
+  have a claim and at least one evidence item.
+- `ModalityNarrator` plugins convert agent outputs into blocks. scRNA and bulk
+  RNA have first-class narrators; unsupported modalities fall back to the
+  legacy renderer until their narrators exist.
+- Validators enforce report integrity before rendering: missing successful
+  evidence fails, failed analyses must explain the failure, low-confidence
+  findings stay visible, causal language is downgraded unless causal evidence
+  is explicit, PAGA/DPT receives an exploratory caveat without velocity or
+  time-course support, and referenced figures/tables must exist at render time.
+- `methodology.json` persists the serialized narrative blocks so a reviewer
+  can audit claims, evidence, caveats, metrics, figures, and tables outside
+  the HTML.
+
 ## Main Outputs
 
 | Output | Purpose |

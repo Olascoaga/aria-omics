@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.5.1-blue)
+![Version](https://img.shields.io/badge/version-4.5.2-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -118,10 +118,11 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current stable baseline is `v4.5.1`: bulk RNA + scRNA core paths are
+The current stable baseline is `v4.5.2`: bulk RNA + scRNA core paths are
 closed for practical use, publication-readiness provenance is embedded in
-reports, and raw-ingestion planning/conversion is available for supported
-10X inputs.
+reports, raw-ingestion planning/conversion is available for supported 10X
+inputs, and the report narrative is composed from validated modality blocks
+for scRNA and bulk RNA.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 

@@ -1,0 +1,75 @@
+def _bulk_findings():
+    return {
+        "sample_qc": {
+            "n_samples": 6,
+            "size_ratio": 1.4,
+            "outliers": [],
+        },
+        "design_used": "~condition",
+        "padj_threshold": 0.05,
+        "lfc_threshold": 0.5,
+        "contrasts": [{
+            "name": "treat_vs_ctrl",
+            "status": "success",
+            "n_significant": 223,
+            "n_upregulated": 120,
+            "n_downregulated": 103,
+            "power_estimate_at_lfc_min": 0.71,
+            "top_genes": [
+                {"gene": "ISG15", "log2fc": 2.2},
+                {"gene": "MX1", "log2fc": 1.8},
+            ],
+            "pathways": {
+                "GO_BP": [{
+                    "term": "type I interferon signaling pathway",
+                    "adjusted_p": 1e-4,
+                }]
+            },
+        }, {
+            "name": "low_power_vs_ctrl",
+            "status": "success",
+            "n_significant": 8,
+            "n_upregulated": 5,
+            "n_downregulated": 3,
+            "power_estimate_at_lfc_min": 0.31,
+            "low_power_warning": True,
+            "low_power_reason": "n<=2 replicates on one side.",
+        }],
+    }
+
+
+def test_bulk_narrator_generates_qc_contrast_pathway_and_power_blocks():
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.agents.narrative.validators import validate_blocks
+
+    agent_result = {"status": "done", "findings": _bulk_findings()}
+    blocks = validate_blocks(BulkRnaNarrator().collect("bulk_rna_agent", agent_result))
+    ids = {block.id for block in blocks}
+
+    assert "bulk.qc" in ids
+    assert "bulk.contrast.treat_vs_ctrl" in ids
+    assert "bulk.pathway.treat_vs_ctrl" in ids
+    assert "bulk.contrast.low_power_vs_ctrl" in ids
+    assert "bulk.power" in ids
+
+    contrast = next(b for b in blocks if b.id == "bulk.contrast.treat_vs_ctrl")
+    assert contrast.claim == "Bulk contrast treat_vs_ctrl had 223 DE genes."
+    assert any("ISG15" in ev.label for ev in contrast.evidence)
+
+    low_power = next(b for b in blocks
+                     if b.id == "bulk.contrast.low_power_vs_ctrl")
+    assert any("n<=2" in caveat.text for caveat in low_power.caveats)
+
+    power = next(b for b in blocks if b.id == "bulk.power")
+    assert power.metrics["min_power"] == 0.31
+    assert power.metrics["max_power"] == 0.71
+
+
+def test_bulk_narrator_methods_are_generic_and_auditable():
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+
+    agent_result = {"status": "done", "findings": _bulk_findings()}
+    methods = BulkRnaNarrator().methods("bulk_rna_agent", agent_result)
+    assert len(methods) == 1
+    assert "design ~condition" in methods[0]
+    assert "adjusted p-value < 0.05" in methods[0]

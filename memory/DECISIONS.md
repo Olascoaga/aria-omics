@@ -147,3 +147,29 @@ Implications:
   must not decide which analyses ran or invent biological interpretation.
 - New modality narrative modules such as `_narrative_chromatin.py` should
   follow the same result-local pattern.
+
+## ADR-010 - NarrativeAgent Is A Kernel Plus Modality Narrators
+
+Status: accepted
+
+Report composition should be mediated by a small, modality-agnostic kernel
+instead of expanding `narrative_agent.py` as each modality grows.
+
+Implications:
+
+- `NarrativeBlock` is the common reporting unit. Successful blocks require a
+  claim and structured evidence; failed/skipped blocks must still explain what
+  happened.
+- Modality-specific code implements `ModalityNarrator` and emits blocks for
+  every attempted analysis, including errors and skipped results.
+- The registry selects the first narrator that accepts an agent result.
+  Modalities without narrators use the legacy fallback path until migrated.
+- The renderer composes blocks by block type (`qc`, `result`, `exploratory`,
+  `limitation`, `error`, `method`) and styles status/confidence explicitly.
+- Validators enforce evidence-backed claims, visible low/insufficient
+  findings, deterministic causal-language caveats, PAGA/DPT exploratory
+  caveats, and figure/table existence at render time.
+- `methodology.json` persists serialized narrative blocks for reviewer audit.
+- scRNA and bulk RNA are the first two migrated modalities; chromatin should
+  implement `ChromatinNarrator` in v4.6 instead of adding more branches to the
+  central agent.

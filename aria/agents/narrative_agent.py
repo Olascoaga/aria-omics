@@ -621,20 +621,25 @@ for small-effect genes."
         Returns dict of section_name -> prose text.
         """
         sections = {}
+        narrative_prefixes = self._narrative_prefixes_for(agent_results, exp_ctx)
 
         # Bulk RNA (v3: multi-contrast aware)
         bulk = agent_results.get("bulk_rna_agent", {})
-        if bulk.get("status") == "done":
+        if bulk.get("status") == "done" and "bulk" not in narrative_prefixes:
             sections["bulk_rna"] = self._summarize_bulk_rna(bulk, grouped)
 
         # scRNA
         scrna = agent_results.get("scrna_agent", {})
-        if scrna.get("status") == "done":
+        if scrna.get("status") == "done" and "scrna" not in narrative_prefixes:
             sections["scrna"] = self._summarize_rna(scrna, grouped)
 
         # Legacy "rna_agent" key (backward compatibility)
         rna = agent_results.get("rna_agent", {})
-        if rna.get("status") == "done" and "scrna" not in sections:
+        if (
+            rna.get("status") == "done"
+            and "scrna" not in sections
+            and "scrna" not in narrative_prefixes
+        ):
             sections["scrna"] = self._summarize_rna(rna, grouped)
 
         # Chromatin findings
@@ -656,7 +661,7 @@ for small-effect genes."
 
         # Final structured synthesis for single-cell reports
         sc = agent_results.get("scrna_agent") or agent_results.get("rna_agent", {})
-        if sc.get("status") == "done":
+        if sc.get("status") == "done" and "scrna" not in narrative_prefixes:
             from aria.agents import _narrative_scrna
             sc_findings = _narrative_scrna.unwrap_scrna_findings(sc)
             synthesis = _narrative_scrna.build_scrna_integrated_interpretation(
@@ -672,6 +677,30 @@ for small-effect genes."
         )
 
         return sections
+
+    def _narrative_registry(self):
+        from aria.agents.narrative.narrators import BulkRnaNarrator, ScrnaNarrator
+        from aria.agents.narrative.registry import registry_with
+        return registry_with((ScrnaNarrator(), BulkRnaNarrator()))
+
+    def _collect_narrative_blocks(self, agent_results: dict,
+                                  exp_ctx: dict | None = None) -> list:
+        try:
+            context = {"exp_context": exp_ctx or {}}
+            return self._narrative_registry().collect_blocks(
+                agent_results or {}, context
+            )
+        except Exception as exc:
+            log.warning(f"Narrative block collection failed: {exc}",
+                        exc_info=True)
+            return []
+
+    def _narrative_prefixes_for(self, agent_results: dict,
+                                exp_ctx: dict | None = None) -> set[str]:
+        prefixes = set()
+        for block in self._collect_narrative_blocks(agent_results, exp_ctx):
+            prefixes.add(str(block.id).split(".", 1)[0])
+        return prefixes
 
     def _write_methods_section(self, exp_ctx: dict,
                                 agent_results: dict,
@@ -1323,6 +1352,7 @@ for small-effect genes."
             report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
         report_dir.mkdir(parents=True, exist_ok=True)
         self._stage_artifacts(agent_results, report_dir)
+        narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
 
         # Findings table rows
         findings_rows = self._build_findings_table(grouped_findings)
@@ -1346,6 +1376,12 @@ for small-effect genes."
             input_files=exp_ctx.get("input_files", []),
             agent_results=agent_results,
             llm_usage=llm_usage,
+        )
+        findings_html = self._build_findings_section(
+            findings_sections,
+            agent_results,
+            narrative_blocks=narrative_blocks,
+            report_dir=report_dir,
         )
 
         html = f"""<!DOCTYPE html>
@@ -1540,7 +1576,7 @@ for small-effect genes."
 {self._build_qc_section(grouped_findings, agent_results, exp_ctx)}
 
 <h2>Findings</h2>
-{self._build_findings_section(findings_sections, agent_results)}
+{findings_html}
 
 <h2>All Findings ({sum(len(v) for v in grouped_findings.values())} total)</h2>
 <table>
@@ -1610,6 +1646,7 @@ for small-effect genes."
                     agent_results=agent_results,
                     decisions=decisions,
                     llm_usage=llm_usage,
+                    narrative_blocks=narrative_blocks,
                 ),
                 indent=2,
                 sort_keys=True,
@@ -1635,7 +1672,8 @@ for small-effect genes."
 
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
                                 agent_results: dict, decisions: list,
-                                llm_usage: dict | None = None) -> dict:
+                                llm_usage: dict | None = None,
+                                narrative_blocks: list | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -1659,10 +1697,15 @@ for small-effect genes."
                 "pandas", "kb-python",
             )
         )
+        if narrative_blocks is None:
+            narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
             "raw_ingestion": exp_ctx.get("raw_ingestion", []),
+            "narrative_blocks": [
+                block.to_dict() for block in narrative_blocks or []
+            ],
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,
@@ -2104,9 +2147,18 @@ for small-effect genes."
 </div>"""
 
     def _build_findings_section(self, sections: dict,
-                                  agent_results: dict = None) -> str:
+                                  agent_results: dict = None,
+                                  narrative_blocks: list | None = None,
+                                  report_dir: Path | None = None) -> str:
         """Build the findings cards. When agent_results provided, embed plots."""
         parts = []
+        block_groups = {}
+        if narrative_blocks:
+            from aria.agents.narrative.render_blocks import (
+                group_blocks_by_prefix,
+                render_blocks,
+            )
+            block_groups = group_blocks_by_prefix(narrative_blocks)
         section_labels = {
             "bulk_rna":    ("Bulk RNA-seq", "var(--green)"),
             "scrna":       ("Single-cell RNA-seq", "var(--green)"),
@@ -2116,17 +2168,26 @@ for small-effect genes."
             "integration": ("Integration", "#f472b6"),
             "synthesis":   ("Integrated Interpretation", "var(--navy)"),
         }
+        section_prefix = {
+            "bulk_rna": "bulk",
+            "scrna": "scrna",
+        }
         for key, (label, color) in section_labels.items():
             text = sections.get(key, "")
-            if not text:
+            blocks = block_groups.get(section_prefix.get(key, ""), [])
+            if not text and not blocks:
                 continue
 
             # Build plot embeds if we have bulk RNA results
             plot_html = ""
-            if key == "bulk_rna" and agent_results:
+            if blocks:
+                plot_html = render_blocks(blocks, report_dir=report_dir)
+                body_html = ""
+            elif key == "bulk_rna" and agent_results:
                 plot_html = self._build_bulk_rna_plots(
                     agent_results.get("bulk_rna_agent", {})
                 )
+                body_html = self._plain_text_to_html(text)
             elif key == "scrna" and agent_results:
                 from aria.agents import _narrative_scrna
                 sc_envelope = agent_results.get("scrna_agent") or \
@@ -2137,13 +2198,15 @@ for small-effect genes."
                 plot_html = _narrative_scrna.build_scrna_html_section(
                     sc_findings
                 )
+                body_html = self._plain_text_to_html(text)
+            else:
+                body_html = self._plain_text_to_html(text)
 
             # Escape HTML-breaking newlines into <br> for readability
-            body_html = self._plain_text_to_html(text)
             parts.append(f"""
 <div class="card">
   <h3 style="color:{color}">{label}</h3>
-  <p>{body_html}</p>
+  {f'<p>{body_html}</p>' if body_html else ''}
   {plot_html}
 </div>""")
         return "\n".join(parts) if parts else \

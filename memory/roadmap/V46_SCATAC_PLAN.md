@@ -58,11 +58,13 @@ documented decision.
 6. Wire chromatin findings into `NarrativeAgent`.
 7. Add focused smoke tests before broad refactors.
 
-Narrative expectation: follow the post-v4.5.1 scRNA narrative-depth pattern
-from `ADR-009`. The chromatin narrative should not stop at aggregate counts;
-it should describe each major QC, accessibility, and motif result with local
-evidence, limitations, and how it supports or fails to support the biological
-question.
+Narrative expectation: follow the v4.5.2 Narrative Kernel pattern from
+`ADR-009` and `ADR-010`. Implement `ChromatinNarrator` under
+`aria/agents/narrative/narrators/` instead of adding more chromatin branches
+to `narrative_agent.py`. The chromatin narrative should not stop at aggregate
+counts; it should describe each major QC, accessibility, and motif result with
+local evidence, limitations, and how it supports or fails to support the
+biological question.
 
 ## Done Criteria
 

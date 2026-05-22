@@ -21,9 +21,11 @@ supersedes:
   (`Remove dataset-specific narrative guardrails`)
 - Current HEAD: `3054318`
   (`Post-v4.5.1 audit hardening: close P1 findings`).
-- Last stable tag: `v4.5.1` (`a0b33dd`,
+- Last stable tag: `v4.5.2`
+  (`v4.5.2 narrative kernel`).
+- Previous stable tag: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).
-- Previous stable tag: `v4.5` (`1d54cc0`,
+- Previous base tag: `v4.5` (`1d54cc0`,
   `v4.5 raw ingestion bridge`).
 - P0 audit fixes landed in `05f6f4e`
   (`Close P0 audit findings for v4.3.19`).
@@ -43,6 +45,7 @@ supersedes:
   - `v4.4` -> `cbcde8e`
   - `v4.5` -> `1d54cc0`
   - `v4.5.1` -> `a0b33dd`
+  - `v4.5.2` -> narrative kernel release commit
 
 Do not move existing tags. Use a new patch tag if one is ever needed.
 
@@ -463,3 +466,42 @@ Validation after the narrative-depth work:
   -> 4 passed
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
 - `git diff --check` -> pass
+
+## v4.5.2 Narrative Kernel Closeout
+
+`v4.5.2` promotes the post-v4.5.1 narrative-depth work into a structured
+Narrative Kernel before v4.6 scATAC begins.
+
+Implemented:
+
+- New `aria.agents.narrative` package:
+  - `types.py`: `EvidenceItem`, `Caveat`, and `NarrativeBlock` dataclasses;
+  - `protocols.py`: `ModalityNarrator` protocol;
+  - `registry.py`: narrator registration and block collection;
+  - `validators.py`: integrity validators for claims, evidence, failed
+    analyses, low/insufficient visibility, causal-language downgrade,
+    PAGA/DPT caveats, and file existence;
+  - `render_blocks.py`: HTML composer for narrative blocks.
+- New narrators:
+  - `ScrnaNarrator` wraps `_narrative_scrna.py` and emits blocks for QC,
+    marker-discovery errors, composition, pseudobulk DE, ORA, LIANA, and
+    trajectory.
+  - `BulkRnaNarrator` emits QC, contrast, pathway, and power blocks.
+- `NarrativeAgent` now uses the registry for scRNA and bulk RNA. If blocks
+  exist for a modality, the block composer renders that modality; modalities
+  without blocks keep the legacy fallback path.
+- `methodology.json` now includes serialized `narrative_blocks`.
+- `rna_narrative_adapter.py` now persists input file SHA-256 records for
+  offline harness-rendered reports.
+- Version metadata aligned to `4.5.2`.
+- Documentation updated in `docs/architecture/reporting_and_outputs.md` and
+  `docs/release_notes_v4.5.2.md`.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `python -m pytest -q tests/test_narrative_types.py tests/test_narrative_validators.py tests/test_narrator_scrna.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py` -> 16 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
+
+Release caveat: the final PBMC report rerun must be recorded here before the
+`v4.5.2` tag is considered fully closed.

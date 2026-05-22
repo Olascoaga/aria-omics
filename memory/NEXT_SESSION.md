@@ -21,8 +21,7 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: `3054318`
-  (`Post-v4.5.1 audit hardening: close P1 findings`).
+- Current HEAD: v4.5.2 narrative-kernel release commit after closeout.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -52,19 +51,20 @@ supersedes:
   min replicates/power, input SHA-256, and LLM token/cost accounting.
   `git_dirty=True` is attributable to unrelated untracked `codigo_aria.txt`;
   tracked files had no diff.
-- Last stable tag: `v4.5.1` (`a0b33dd`,
+- Last stable tag: `v4.5.2`
+  (`v4.5.2 narrative kernel`).
+- Previous stable tag: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).
-- Previous stable tag: `v4.5` (`1d54cc0`,
+- Previous base tag: `v4.5` (`1d54cc0`,
   `v4.5 raw ingestion bridge`).
 - P0 audit fixes landed in `05f6f4e`
   (`Close P0 audit findings for v4.3.19`).
 - P1 audit fixes landed in `3054318` on top of `v4.5.1` (untagged) —
   see "Audit Follow-ups After v4.5.1" below for the full list.
-- **Narrative depth work is implemented locally on top of `3054318`, not yet
-  committed or tagged.** scRNA reports now add deterministic per-result
-  interpretation for top pseudobulk DE blocks, composition/abundance
-  relationships, ORA support, LIANA candidates, and PAGA/DPT limits. See
-  "Narrative Depth After v4.5.1" below.
+- **`v4.5.2` Narrative Kernel is the current pre-v4.6 reporting baseline.**
+  scRNA and bulk RNA report sections are composed from validated
+  `NarrativeBlock` objects via modality narrators. See "Narrative Kernel
+  v4.5.2" below.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`,
   `Make design intelligence choices explicit`).
 - Maintenance tags after `v4.3.12.post1`:
@@ -143,6 +143,39 @@ Follow-up recommendation: before starting chromatin narrative in v4.6, mirror
 this contract in `_narrative_chromatin.py`: each peak/accessibility/motif
 result should receive local evidence, caveats, and synthesis rather than only
 aggregate counts.
+
+## Narrative Kernel v4.5.2
+
+Implemented for the v4.5.2 closeout:
+
+- New `aria.agents.narrative` package with:
+  - `types.py` (`EvidenceItem`, `Caveat`, `NarrativeBlock`);
+  - `protocols.py` (`ModalityNarrator`);
+  - `registry.py` (`NarrativeRegistry`);
+  - `validators.py` (claim/evidence, failed-analysis, low-confidence,
+    causal-language, PAGA/DPT, and file-reference rules);
+  - `render_blocks.py` (HTML composer).
+- `ScrnaNarrator` emits blocks for QC, marker-discovery errors, composition,
+  pseudobulk DE, ORA, LIANA, and trajectory.
+- `BulkRnaNarrator` emits blocks for QC, contrasts, pathways, and power.
+- `NarrativeAgent` uses block rendering for modalities with blocks and keeps
+  legacy fallback for chromatin, Hi-C, and integration until their narrators
+  exist.
+- `methodology.json` persists serialized `narrative_blocks`.
+- Offline scRNA harness reports now persist input SHA-256 records via
+  `rna_narrative_adapter.py`.
+- Version metadata is aligned to `4.5.2`.
+
+Validation recorded so far:
+
+- `python -m compileall -q aria` -> pass
+- Narrative kernel tests:
+  `python -m pytest -q tests/test_narrative_types.py tests/test_narrative_validators.py tests/test_narrator_scrna.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py`
+  -> 16 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
+
+Before starting v4.6 implementation, verify whether the final PBMC report
+rerun was completed for v4.5.2 and recorded in `PROJECT_STATE.md`.
 
 ## Start By
 

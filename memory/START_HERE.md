@@ -17,11 +17,12 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: `3054318`
-  (`Post-v4.5.1 audit hardening: close P1 findings`).
-- Last stable tag: `v4.5.1` (`a0b33dd`,
+- Current HEAD: v4.5.2 narrative-kernel release commit after closeout.
+- Last stable tag: `v4.5.2`
+  (`v4.5.2 narrative kernel`).
+- Previous stable tag: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).
-- Previous stable tag: `v4.5` (`1d54cc0`,
+- Previous base tag: `v4.5` (`1d54cc0`,
   `v4.5 raw ingestion bridge`).
 - P0 audit fixes landed in `05f6f4e`
   (`Close P0 audit findings for v4.3.19`).
@@ -30,12 +31,12 @@ Read this file first in every ARIA session.
   helper, bus fan-out resilience, failed/ eviction flock,
   `decisions.checkpoint` TEXT migration, kb hash blocker, and RNA-script
   resume guards. Untagged.
-- Narrative-depth work is implemented locally on top of `3054318`, uncommitted:
-  scRNA reports now add deterministic per-result interpretation for top
-  pseudobulk DE blocks, composition/abundance relationships, ORA support,
-  LIANA candidates, and PAGA/DPT limits. Validation: `compileall` pass,
-  targeted narrative tests 4 passed, full `tests/test_pytest_smoke.py` 86
-  passed / 4 skipped, `git diff --check` pass.
+- `v4.5.2` Narrative Kernel: `NarrativeAgent` now composes scRNA and bulk RNA
+  report sections from validated `NarrativeBlock` objects via modality
+  narrators. `methodology.json` persists serialized narrative blocks.
+  Validation: `compileall` pass, narrative-kernel tests 16 passed, full
+  `tests/test_pytest_smoke.py` 86 passed / 4 skipped. PBMC rerun closeout
+  should be checked before starting v4.6 implementation work.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

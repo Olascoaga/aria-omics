@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import logging
+import hashlib
 from pathlib import Path
 from typing import Optional, Union
 
@@ -282,6 +283,7 @@ def adapt(report: Union[dict, str, Path],
         "genome":      _genome_for_organism(organism),
         "tissue":      tissue,
         "modalities":  {"scRNA": [str(f) for f in files_in]},
+        "input_files": [_input_record("scRNA", f) for f in files_in],
         "experiment_type": "scRNA_pseudobulk" if mode == "pseudobulk"
                           else "scRNA",
     }
@@ -353,6 +355,30 @@ def _genome_for_organism(organism: str) -> str:
     if "mus musculus" in o or "mouse" in o:
         return "GRCm39"
     return "unknown"
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _input_record(modality: str, path_like) -> dict:
+    path = Path(path_like)
+    try:
+        size = path.stat().st_size
+        digest = _sha256_file(path) if path.is_file() else "unavailable"
+    except Exception:
+        size = None
+        digest = "unavailable"
+    return {
+        "modality": modality,
+        "path": str(path),
+        "size_bytes": size,
+        "sha256": digest,
+    }
 
 
 def _entities_from_pb(pb_inputs: dict) -> list:
