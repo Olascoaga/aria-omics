@@ -29,6 +29,45 @@ _DARK_TEXT  = "#1e293b"
 _DARK_MUTED = "#475569"
 
 
+def _ranked_signature_frame(de_results_df, symbol_map: Optional[dict] = None):
+    """
+    Build the two-column preranked GSEA signature.
+
+    Ensembl IDs require a symbol map. Already-symbolic gene IDs are kept when
+    no map exists or when a mapped lookup misses a non-Ensembl token.
+    """
+    import pandas as pd
+
+    symbol_map = symbol_map or {}
+    df = de_results_df.dropna(subset=["log2FoldChange"]).copy()
+    df["clean_id"] = df.index.astype(str).str.split(".").str[0]
+
+    def resolve_symbol(gene_id: str):
+        symbol = symbol_map.get(gene_id)
+        if symbol:
+            return symbol
+        if not gene_id.startswith(("ENSG", "ENSMUSG", "ENS")):
+            return gene_id
+        return None
+
+    df["symbol"] = df["clean_id"].map(resolve_symbol)
+    df = df.dropna(subset=["symbol"])
+    if df.empty:
+        return pd.DataFrame(columns=["gene", "score"])
+
+    # Dedupe: if multiple Ensembl IDs map to the same symbol, keep the one
+    # with largest |log2FC|.
+    df["abs_lfc"] = df["log2FoldChange"].abs()
+    df = df.sort_values("abs_lfc", ascending=False)
+    df = df.drop_duplicates(subset=["symbol"], keep="first")
+
+    signature = pd.DataFrame({
+        "gene": df["symbol"].values,
+        "score": df["log2FoldChange"].values,
+    })
+    return signature
+
+
 def make_ora_dotplot(pathways_list: list,
                        db_name: str,
                        contrast_name: str,
@@ -208,35 +247,17 @@ def make_gsea_running_sums(de_results_df,
 
     try:
         import blitzgsea as blitz
-        import pandas as pd
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
 
         # ── Build the ranked signature ───────────────────────────────────
-        # blitzgsea expects DataFrame with 2 cols: [symbol, score]
-        # where score is log2FC (positive = upregulated).
-        # Convert IDs → symbols, drop unmapped, dedupe (keep largest |log2FC|)
-        df = de_results_df.dropna(subset=["log2FoldChange"]).copy()
-        df["clean_id"] = df.index.astype(str).str.split(".").str[0]
-        df["symbol"] = df["clean_id"].map(symbol_map)
-        df = df.dropna(subset=["symbol"])
-
-        if df.empty:
+        # blitzgsea expects DataFrame with columns [gene, score], where score
+        # is log2FC (positive = upregulated).
+        signature = _ranked_signature_frame(de_results_df, symbol_map)
+        if signature.empty:
             log.warning(f"GSEA[{contrast_name}]: no genes after symbol mapping")
             return out
-
-        # Dedupe: if multiple Ensembl IDs map to same symbol, keep the one
-        # with largest |log2FC|
-        df["abs_lfc"] = df["log2FoldChange"].abs()
-        df = df.sort_values("abs_lfc", ascending=False)
-        df = df.drop_duplicates(subset=["symbol"], keep="first")
-
-        signature = pd.DataFrame({
-            0: df["symbol"].values,
-            1: df["log2FoldChange"].values,
-        })
-        signature.columns = ["gene", "score"]
 
         log.info(f"GSEA[{contrast_name}]: {len(signature)} ranked genes")
 

@@ -31,7 +31,8 @@ def test_render_blocks_shows_claim_evidence_caveats_and_validates_files(tmp_path
 
     html = render_blocks([block], report_dir=tmp_path)
     assert "data-block-id=\"scrna.pseudobulk.GroupA.condition_a_vs_condition_b\"" in html
-    assert "GroupA had 140 global-FDR DE genes" in html
+    assert "GroupA condition_a_vs_condition_b contributed 140 global-FDR DE genes" in html
+    assert "Structured evidence" in html
     assert "global-FDR DE genes" in html
     assert "Composition covariate" in html
     assert "DE genes" in html
@@ -98,7 +99,7 @@ def test_narrative_agent_composes_scrna_from_blocks_and_persists_json(tmp_path):
     )
     html = report.read_text(encoding="utf-8")
     assert "data-block-id=\"scrna.pseudobulk.GroupA.condition_a_vs_condition_b\"" in html
-    assert "GroupA condition_a_vs_condition_b had 140 global-FDR DE genes" in html
+    assert "GroupA condition_a_vs_condition_b contributed 140 global-FDR DE genes" in html
     assert "GENE_UP_1" in html
     assert "GENE_DOWN_1" in html
 

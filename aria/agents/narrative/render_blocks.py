@@ -6,6 +6,7 @@ import base64
 import html
 from pathlib import Path
 
+from aria.agents.narrative.compose_prose import compose_block_prose
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.validators import validate_blocks
 
@@ -70,7 +71,7 @@ def _render_block(block: NarrativeBlock,
             + "".join(f"<li>{html.escape(str(w))}</li>" for w in block.warnings)
             + "</ul>"
         )
-    claim = html.escape(block.claim or "")
+    prose = html.escape(compose_block_prose(block) or block.claim or "")
     return f"""
 <section class="narrative-block" data-block-id="{html.escape(block.id)}"
          style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">
@@ -79,7 +80,7 @@ def _render_block(block: NarrativeBlock,
       {html.escape(block.status)} / {html.escape(block.confidence)}
     </span>
   </h4>
-  {f"<p>{claim}</p>" if claim else ""}
+  {f"<p>{prose}</p>" if prose else ""}
   {error_html}
   {evidence_html}
   {caveats_html}
@@ -104,10 +105,14 @@ def _render_evidence(block: NarrativeBlock) -> str:
             "</tr>"
         )
     return (
-        "<table style='font-size:0.84rem'>"
+        "<details style='margin-top:0.45rem'>"
+        "<summary style='font-size:0.85rem;color:var(--muted);cursor:pointer'>"
+        "Structured evidence</summary>"
+        "<table style='font-size:0.84rem;margin-top:0.35rem'>"
         "<tr><th>Evidence</th><th>Value</th><th>Source</th></tr>"
         + "".join(rows)
         + "</table>"
+        "</details>"
     )
 
 

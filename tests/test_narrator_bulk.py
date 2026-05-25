@@ -73,3 +73,31 @@ def test_bulk_narrator_methods_are_generic_and_auditable():
     assert len(methods) == 1
     assert "design ~condition" in methods[0]
     assert "adjusted p-value < 0.05" in methods[0]
+
+
+def test_bulk_narrator_surfaces_gsea_as_narrative_block(tmp_path):
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.agents.narrative.validators import validate_blocks
+
+    gsea = tmp_path / "gsea_results.csv"
+    gsea.write_text(
+        ",nes,fdr\n"
+        "pathway_alpha_response,1.9,0.04\n"
+        "pathway_beta_response,-1.4,0.2\n"
+        "pathway_gamma_response,1.1,0.4\n",
+        encoding="utf-8",
+    )
+    findings = _bulk_findings()
+    findings["contrasts"][0]["plots"] = {
+        "gsea_table": str(gsea),
+        "gsea_running_sums": [str(tmp_path / "running.png")],
+    }
+
+    agent_result = {"status": "done", "findings": findings}
+    blocks = validate_blocks(BulkRnaNarrator().collect("bulk_rna_agent", agent_result))
+    gsea_block = next(block for block in blocks if block.id == "bulk.gsea.treat_vs_ctrl")
+
+    assert gsea_block.analysis == "gsea_preranked"
+    assert gsea_block.metrics["n_pathways"] == 2
+    assert gsea_block.metrics["top_pathways"][0]["term"] == "pathway_alpha_response"
+    assert any(ev.label == "FDR<0.25 pathways" for ev in gsea_block.evidence)

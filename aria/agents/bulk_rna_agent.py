@@ -61,6 +61,10 @@ def _infer_lfc_threshold(intent: dict) -> float:
     return 1.0
 
 
+def _normalise_sample_token(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+
+
 class BulkRNAAgent(BaseAgent):
 
     name        = "bulk_rna_agent"
@@ -196,6 +200,13 @@ class BulkRNAAgent(BaseAgent):
         groups = design["groups"]
         factor = design.get("main_factor", "condition")
         sample_stems = {sample: group for group, samples in groups.items() for sample in samples}
+        sample_aliases = design.get("sample_aliases", {}) or {}
+        alias_to_group = {}
+        for stem, grp in sample_stems.items():
+            aliases = sample_aliases.get(stem, [stem])
+            for alias in aliases:
+                if alias:
+                    alias_to_group[str(alias)] = grp
 
         # Read actual column names from the first count file (gzip-aware)
         try:
@@ -217,8 +228,10 @@ class BulkRNAAgent(BaseAgent):
             if col.lower() in _GENE_COLS:
                 continue
             best_match = None
-            for stem, grp in sample_stems.items():
-                if stem in col:
+            col_norm = _normalise_sample_token(col)
+            for stem, grp in {**sample_stems, **alias_to_group}.items():
+                stem_norm = _normalise_sample_token(stem)
+                if stem in col or stem_norm in col_norm:
                     if best_match is not None:
                         log.warning(
                             f"Ambiguous column '{col}' matches both group "
@@ -237,10 +250,21 @@ class BulkRNAAgent(BaseAgent):
         if not group_labels:
             for col in ordered_cols:
                 best_match = None
-                for stem, grp in sample_stems.items():
+                col_norm = _normalise_sample_token(col)
+                for stem, grp in {**sample_stems, **alias_to_group}.items():
                     # Trim common suffixes from col
                     col_base = re.sub(r"[_\-]?[12]$", "", col)
-                    if col_base == stem or stem.startswith(col_base) or col_base.startswith(stem):
+                    col_base_norm = _normalise_sample_token(col_base)
+                    stem_norm = _normalise_sample_token(stem)
+                    if (
+                        col_base == stem
+                        or stem.startswith(col_base)
+                        or col_base.startswith(stem)
+                        or col_base_norm == stem_norm
+                        or stem_norm.startswith(col_base_norm)
+                        or col_base_norm.startswith(stem_norm)
+                        or stem_norm in col_norm
+                    ):
                         if best_match is not None:
                             best_match = None
                             break

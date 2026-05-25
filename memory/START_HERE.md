@@ -37,6 +37,10 @@ Read this file first in every ARIA session.
   Validation: `compileall` pass, narrative-kernel tests 16 passed, full
   `tests/test_pytest_smoke.py` 86 passed / 4 skipped. PBMC rerun closeout
   should be checked before starting v4.6 implementation work.
+- Post-v4.5.2 hardening on top of `4bf9741` fixes GEO/SRA design aliases,
+  bulk preranked GSEA symbol-ID handling, explicit GSEA narrative blocks, and
+  deterministic block-to-prose rendering. The versionable dependency/impact
+  graph is `docs/architecture/code_graph.md`.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

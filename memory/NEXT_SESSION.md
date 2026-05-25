@@ -344,6 +344,28 @@ Validation:
 
 ## Next Milestone — v4.6 scATAC
 
+Before starting v4.6, note the post-v4.5.2 hardening now in progress on top
+of `4bf9741`:
+
+- GEO/SRA metadata design inference was tightened to prefer experimental
+  characteristic keys and preserve GSM/SRR IDs plus title aliases for count
+  matrix mapping.
+- Bulk preranked GSEA was fixed for count matrices whose gene IDs are already
+  symbols and now receives explicit `NarrativeBlock` coverage.
+- Narrative rendering now composes deterministic prose from blocks via
+  `aria.agents.narrative.compose_prose`, with evidence tables as audit support.
+- The versionable dependency/impact graph lives at
+  `docs/architecture/code_graph.md`.
+- `memory/architecture/PROJECT_ARCHITECTURE.md` was refreshed locally; the
+  tracked durable architecture docs are under `docs/architecture/`.
+
+Validation from the hardening pass:
+
+- `python -m pytest -q tests/test_pathway_viz.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py tests/test_geo_design.py` -> 10 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
+- `python -m compileall -q aria` -> pass
+- `git diff --check` -> pass
+
 Read `memory/roadmap/V46_SCATAC_PLAN.md` first. scATAC must reuse v4.4
 provenance/methodology guarantees and v4.5 raw-ingestion patterns rather than
 inventing separate input handling.

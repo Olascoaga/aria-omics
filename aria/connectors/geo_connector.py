@@ -440,54 +440,113 @@ def _soft_from_geoparse(gse) -> dict:
 def _infer_design(metadata: dict) -> dict:
     """
     Infer experimental groups from sample characteristics.
-    Picks the characteristic key with the most variation
-    (>1 unique value, but not all unique — those are IDs).
+    Prefer experimental-design keys over incidental sample attributes and use
+    GEO/SRA accessions as the canonical sample IDs.  Titles are kept as aliases
+    so downstream count matrices can match either GSM/SRR columns or readable
+    sample labels.
     """
     samples = metadata.get("samples", [])
     if not samples:
-        return {"groups": {}, "factor": "condition", "n_groups": 0}
+        return {"groups": {}, "factor": "condition", "main_factor": "condition",
+                "condition_col": "condition", "n_groups": 0}
 
     all_keys: set = set()
     for s in samples:
         all_keys.update(s.get("characteristics", {}).keys())
 
     best_key: Optional[str] = None
-    best_score = 0
+    best_score = -1.0
     n = len(samples)
+    priority = {
+        "condition": 100,
+        "treatment": 95,
+        "group": 90,
+        "experimental group": 90,
+        "genotype": 85,
+        "perturbation": 80,
+        "knockout": 80,
+        "stim": 78,
+        "stimulation": 78,
+        "timepoint": 70,
+        "time point": 70,
+        "dose": 65,
+        "disease": 60,
+        "phenotype": 55,
+        "source": 25,
+        "source_name": 25,
+    }
 
     for key in all_keys:
-        vals = [s.get("characteristics", {}).get(key, "") for s in samples]
+        vals = [
+            str(s.get("characteristics", {}).get(key, "")).strip()
+            for s in samples
+        ]
+        vals = [v for v in vals if v]
         unique = len(set(vals))
-        # Prefer keys with 2–(n/2+1) unique values (groups, not IDs)
-        if 1 < unique <= max(2, n // 2 + 1):
-            # Also prefer shorter, cleaner values
-            score = unique * (1 / (1 + len(key)))
-            if score > best_score:
-                best_score = score
-                best_key   = key
+        if unique <= 1 or unique == n:
+            continue
+        # Prefer a balanced number of groups, but make semantic design keys
+        # outrank short incidental keys such as sex.
+        balance = 1.0 - abs(unique - 2) / max(2, n)
+        semantic = priority.get(key.lower(), 0)
+        if semantic == 0:
+            for token, weight in priority.items():
+                if token in key.lower():
+                    semantic = max(semantic, weight)
+        score = semantic + (10 * balance) - (0.05 * len(key))
+        if score > best_score:
+            best_score = score
+            best_key = key
 
     if not best_key:
         # Fall back: any key with > 1 unique value
         for key in sorted(all_keys):
-            vals = [s.get("characteristics", {}).get(key, "") for s in samples]
-            if len(set(vals)) > 1:
+            vals = [
+                str(s.get("characteristics", {}).get(key, "")).strip()
+                for s in samples
+            ]
+            unique = len(set(v for v in vals if v))
+            if 1 < unique < n:
                 best_key = key
                 break
 
     groups: dict = {}
+    sample_aliases: dict = {}
     if best_key:
         for s in samples:
             val = s.get("characteristics", {}).get(best_key, "unknown")
             # Sanitise group name
             val = re.sub(r"[^a-zA-Z0-9_\-]", "_", val).strip("_") or "group"
-            groups.setdefault(val, []).append(s.get("title") or s["id"])
+            sample_id = str(s.get("id") or s.get("title") or "sample")
+            title = str(s.get("title") or "")
+            groups.setdefault(val, []).append(sample_id)
+            aliases = [sample_id]
+            if title and title != sample_id:
+                aliases.append(title)
+            sample_aliases[sample_id] = aliases
     else:
-        groups = {"all_samples": [s.get("title") or s["id"] for s in samples]}
+        for s in samples:
+            sample_id = str(s.get("id") or s.get("title") or "sample")
+            title = str(s.get("title") or "")
+            groups.setdefault("all_samples", []).append(sample_id)
+            sample_aliases[sample_id] = [sample_id] + (
+                [title] if title and title != sample_id else []
+            )
 
     return {
         "groups":   groups,
         "factor":   best_key or "condition",
+        "main_factor": best_key or "condition",
+        "condition_col": best_key or "condition",
         "n_groups": len(groups),
+        "sample_aliases": sample_aliases,
+        "source": "GEO/SRA metadata",
+        "confidence": "high" if best_key and len(groups) > 1 else "low",
+        "reasoning": (
+            f"Groups inferred from GEO/SRA sample characteristic '{best_key}'."
+            if best_key else
+            "No multi-level GEO/SRA characteristic was suitable for grouping."
+        ),
     }
 
 

@@ -43,6 +43,9 @@ flowchart TD
 ```
 
 The same diagram is stored as [aria_overview.mmd](../diagrams/aria_overview.mmd).
+For implementation-impact checks, use the deeper
+[Code Dependency Graph](code_graph.md), which maps runtime dependencies,
+ownership boundaries, and test anchors.
 
 ## Components
 

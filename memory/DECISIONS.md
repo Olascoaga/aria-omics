@@ -164,8 +164,11 @@ Implications:
   every attempted analysis, including errors and skipped results.
 - The registry selects the first narrator that accepts an agent result.
   Modalities without narrators use the legacy fallback path until migrated.
-- The renderer composes blocks by block type (`qc`, `result`, `exploratory`,
-  `limitation`, `error`, `method`) and styles status/confidence explicitly.
+- The renderer must present prose as the primary report surface. Structured
+  evidence tables, figures, and file links are audit support; they must not be
+  the only readable form of a finding.
+- Prose composition should be deterministic and block-local by default. LLM
+  polish may improve transitions only after evidence-backed prose exists.
 - Validators enforce evidence-backed claims, visible low/insufficient
   findings, deterministic causal-language caveats, PAGA/DPT exploratory
   caveats, and figure/table existence at render time.

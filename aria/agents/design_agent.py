@@ -727,6 +727,7 @@ class DesignAgent(BaseAgent):
             "batch_covariate": self._batch_covariate,
             "pseudobulk":      self._pseudobulk_design,
             "source":          self._inferred_design.get("source"),
+            "sample_aliases":  self._inferred_design.get("sample_aliases", {}),
             "replicates":      replicates,
             "n_total_samples": sum(replicates.values()),
         }

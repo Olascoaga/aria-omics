@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import re
 from pathlib import Path
 
@@ -184,6 +185,7 @@ class BulkRnaNarrator:
                 },
             ))
             blocks.extend(self._pathway_blocks_for_contrast(contrast))
+            blocks.extend(self._gsea_blocks_for_contrast(contrast))
         return blocks
 
     def _pathway_blocks_for_contrast(self, contrast: dict) -> list[NarrativeBlock]:
@@ -222,6 +224,71 @@ class BulkRnaNarrator:
             metrics={"n_terms": len(terms)},
         ))
         return blocks
+
+    def _gsea_blocks_for_contrast(self, contrast: dict) -> list[NarrativeBlock]:
+        plots = contrast.get("plots", {}) or {}
+        gsea_table = plots.get("gsea_table")
+        running_sums = plots.get("gsea_running_sums") or []
+        top_table_fig = plots.get("gsea_top_table")
+        if not gsea_table and not running_sums and not top_table_fig:
+            return []
+
+        summary = _read_gsea_summary(gsea_table)
+        n_pathways = summary.get("n_pathways")
+        top_pathways = summary.get("top_pathways", [])
+        evidence = [
+            _evidence(
+                "FDR<0.25 pathways",
+                n_pathways if n_pathways is not None else "see GSEA table",
+                "gsea_preranked",
+                path=gsea_table,
+            ),
+            _evidence("running-sum plots", len(running_sums), "gsea_preranked"),
+        ]
+        for row in top_pathways[:3]:
+            value = row.get("nes")
+            if value is None:
+                value = row.get("fdr")
+            evidence.append(_evidence(
+                f"GSEA term {row.get('term', 'pathway')}",
+                value,
+                "gsea_preranked",
+                path=gsea_table,
+            ))
+
+        name = contrast.get("name", "contrast")
+        return [NarrativeBlock(
+            id=f"bulk.gsea.{_safe_id(name)}",
+            modality="bulk RNA-seq",
+            analysis="gsea_preranked",
+            block_type="exploratory",
+            title=f"Preranked GSEA {name}",
+            status="success",
+            confidence="low",
+            claim=(
+                f"Preranked GSEA generated ranked pathway support for {name}."
+            ),
+            evidence=evidence,
+            caveats=[Caveat(
+                "GSEA uses the complete ranked gene list and is exploratory "
+                "at FDR < 0.25; inspect the leading-edge genes before making "
+                "mechanistic claims.",
+                "info",
+            )],
+            metrics={
+                "n_pathways": n_pathways,
+                "top_pathways": top_pathways,
+            },
+            figures=[
+                {"id": "gsea_top_table", "path": top_table_fig,
+                 "caption": f"{name} GSEA top table"}
+            ] if top_table_fig else [],
+            tables=[
+                {"id": "gsea_table", "path": gsea_table,
+                 "label": f"{name} GSEA results"}
+            ] if gsea_table else [],
+            metadata={"gsea_fdr_threshold": 0.25},
+        )]
 
     def _power_blocks(self, findings: dict) -> list[NarrativeBlock]:
         powers = [
@@ -275,6 +342,9 @@ class BulkRnaNarrator:
             pathway = by_id.get(
                 f"bulk.pathway.{_safe_id(contrast.get('name', 'contrast'))}"
             )
+            gsea = by_id.get(
+                f"bulk.gsea.{_safe_id(contrast.get('name', 'contrast'))}"
+            )
             plots = contrast.get("plots", {}) or {}
             if block:
                 for key in ("volcano", "heatmap_padj", "heatmap_lfc", "heatmap"):
@@ -297,3 +367,73 @@ class BulkRnaNarrator:
                         "path": path,
                         "caption": f"{contrast.get('name')} ORA {db}",
                     })
+            if gsea:
+                for idx, path in enumerate(plots.get("gsea_running_sums") or [], 1):
+                    gsea.figures.append({
+                        "id": f"gsea_running_sum_{idx}",
+                        "path": path,
+                        "caption": (
+                            f"{contrast.get('name')} GSEA running sum {idx}"
+                        ),
+                    })
+
+
+def _read_gsea_summary(path: str | None) -> dict:
+    if not path:
+        return {"n_pathways": None, "top_pathways": []}
+    p = Path(path)
+    if not p.exists():
+        return {"n_pathways": None, "top_pathways": []}
+
+    rows = []
+    try:
+        with p.open("r", newline="", encoding="utf-8") as handle:
+            reader = csv.DictReader(handle)
+            for row in reader:
+                rows.append(row)
+    except Exception:
+        return {"n_pathways": None, "top_pathways": []}
+
+    parsed = [_parse_gsea_row(row) for row in rows]
+    parsed = [row for row in parsed if row.get("term")]
+    n_pathways = sum(
+        1 for row in parsed
+        if isinstance(row.get("fdr"), (int, float)) and row["fdr"] < 0.25
+    )
+    parsed.sort(
+        key=lambda row: (
+            row.get("fdr") if isinstance(row.get("fdr"), (int, float)) else 1.0,
+            -abs(row.get("nes") or 0.0),
+        )
+    )
+    return {"n_pathways": n_pathways, "top_pathways": parsed[:5]}
+
+
+def _parse_gsea_row(row: dict) -> dict:
+    lower = {str(k).lower(): v for k, v in row.items() if k is not None}
+    term = (
+        row.get("")
+        or row.get("Term")
+        or row.get("term")
+        or row.get("pathway")
+        or row.get("name")
+    )
+    if not term:
+        for key, value in row.items():
+            if key is None or str(key).lower().startswith("unnamed"):
+                term = value
+                break
+    return {
+        "term": str(term) if term else "",
+        "nes": _to_float(lower.get("nes") or lower.get("normalized enrichment score")),
+        "fdr": _to_float(lower.get("fdr") or lower.get("fdr q-val") or lower.get("fdr_q_val")),
+    }
+
+
+def _to_float(value):
+    try:
+        if value in (None, ""):
+            return None
+        return round(float(value), 4)
+    except (TypeError, ValueError):
+        return None

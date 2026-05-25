@@ -511,3 +511,36 @@ Validation:
 
 Release caveat: the final PBMC report rerun must be recorded here before the
 `v4.5.2` tag is considered fully closed.
+
+## Post-v4.5.2 Narrative/GEO/GSEA Hardening
+
+Implemented on top of `4bf9741`, pending commit at the time of this memory
+update:
+
+- `render_blocks.py` no longer presents block findings primarily as raw
+  claim/evidence tables. New `aria.agents.narrative.compose_prose` composes
+  deterministic prose per `NarrativeBlock` analysis type, while structured
+  evidence remains collapsible audit support.
+- `BulkRnaNarrator` now emits explicit preranked GSEA narrative blocks when
+  `rna_bulk_de.py` produced GSEA tables or running-sum/top-table figures.
+- `rna_pathway_viz.py` now keeps already-symbolic gene identifiers when no
+  Ensembl-to-symbol `symbol_map` is available, fixing the preranked-GSEA path
+  that previously dropped all genes for symbol-indexed count matrices.
+- GEO/SRA design inference now prefers experimental characteristic keys
+  (`condition`, `treatment`, `group`, `genotype`, etc.), uses GSM/SRR IDs as
+  canonical samples, and stores sample-title aliases so bulk count matrix
+  columns can map by accession or readable title.
+- `DesignAgent` preserves external `sample_aliases`, and `BulkRNAAgent`
+  uses them while applying confirmed design to count matrices.
+- New versionable impact map: `docs/architecture/code_graph.md`, linked from
+  `docs/README.md` and `docs/architecture/overview.md`.
+- `memory/architecture/PROJECT_ARCHITECTURE.md` was refreshed locally with
+  current approximate line counts, the narrative kernel package, and visible
+  debt notes for `narrative_agent.py` and `_narrative_scrna.py`.
+
+Validation:
+
+- `python -m pytest -q tests/test_pathway_viz.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py tests/test_geo_design.py` -> 10 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
+- `python -m compileall -q aria` -> pass
+- `git diff --check` -> pass
