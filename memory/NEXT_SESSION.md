@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: next_session
-last_updated: 2026-05-22
+last_updated: 2026-05-28
 supersedes:
   - archive/sessions/2026-05-14_close.md
 ---
@@ -21,7 +21,8 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: v4.5.2 narrative-kernel release commit after closeout.
+- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
+  two commits past the `v4.5.2` tag).
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -344,8 +345,9 @@ Validation:
 
 ## Next Milestone — v4.6 scATAC
 
-Before starting v4.6, note the post-v4.5.2 hardening now in progress on top
-of `4bf9741`:
+Before starting v4.6, note the post-v4.5.2 hardening is committed and pushed
+in `c611e45` (HEAD = `origin/main`, untagged, `aria.__version__` = `4.5.2`)
+on top of `4bf9741`:
 
 - GEO/SRA metadata design inference was tightened to prefer experimental
   characteristic keys and preserve GSM/SRR IDs plus title aliases for count
@@ -359,9 +361,12 @@ of `4bf9741`:
 - `memory/architecture/PROJECT_ARCHITECTURE.md` was refreshed locally; the
   tracked durable architecture docs are under `docs/architecture/`.
 
-Validation from the hardening pass:
+Validation from the hardening pass (re-confirmed at `c611e45` on 2026-05-28
+with the `aria-env` interpreter; narrative/smoke tests need `litellm`, present
+in `aria-env`, absent in `aria-rna-env`):
 
 - `python -m pytest -q tests/test_pathway_viz.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py tests/test_geo_design.py` -> 10 passed
+- narrative kernel suite -> 17 passed (was 16 at v4.5.2)
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
 - `python -m compileall -q aria` -> pass
 - `git diff --check` -> pass

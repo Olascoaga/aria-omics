@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: project_state
-last_updated: 2026-05-22
+last_updated: 2026-05-28
 supersedes:
   - archive/sessions/2026-05-14_close.md
   - archive/handoffs/CODEX_ARIA_HANDOFF_2026-05-12.md
@@ -19,8 +19,9 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: verify with `git log --oneline --decorate -5`; the latest
-  pushed line is v4.5.2 plus post-release anti-hardcode hardening.
+- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
+  two commits past the `v4.5.2` tag, = `origin/main`). Verify with
+  `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
@@ -514,8 +515,9 @@ Release caveat: the final PBMC report rerun must be recorded here before the
 
 ## Post-v4.5.2 Narrative/GEO/GSEA Hardening
 
-Implemented on top of `4bf9741`, pending commit at the time of this memory
-update:
+Committed and pushed in `c611e45` (`Harden narrative composer, GEO design, and
+GSEA reporting`) on top of `4bf9741`. Untagged; `aria.__version__` stays
+`4.5.2`. HEAD = `origin/main` = `c611e45`:
 
 - `render_blocks.py` no longer presents block findings primarily as raw
   claim/evidence tables. New `aria.agents.narrative.compose_prose` composes
@@ -538,9 +540,14 @@ update:
   current approximate line counts, the narrative kernel package, and visible
   debt notes for `narrative_agent.py` and `_narrative_scrna.py`.
 
-Validation:
+Validation (re-confirmed at `c611e45` on 2026-05-28, `aria-env` interpreter;
+narrative/smoke tests require `litellm`, which lives in `aria-env`, not
+`aria-rna-env`):
 
 - `python -m pytest -q tests/test_pathway_viz.py tests/test_narrator_bulk.py tests/test_narrative_render_blocks.py tests/test_geo_design.py` -> 10 passed
+- narrative kernel suite (`test_narrative_types`, `test_narrative_validators`,
+  `test_narrator_scrna`, `test_narrator_bulk`, `test_narrative_render_blocks`)
+  -> 17 passed (was 16 at v4.5.2; the GSEA-as-narrative-block test was added)
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
 - `python -m compileall -q aria` -> pass
 - `git diff --check` -> pass

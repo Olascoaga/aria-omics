@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: entrypoint
-last_updated: 2026-05-22
+last_updated: 2026-05-28
 ---
 
 # ARIA START HERE
@@ -17,7 +17,8 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: v4.5.2 narrative-kernel release commit after closeout.
+- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
+  two commits past the `v4.5.2` tag). See the dedicated bullet below.
 - Last stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
@@ -37,10 +38,13 @@ Read this file first in every ARIA session.
   Validation: `compileall` pass, narrative-kernel tests 16 passed, full
   `tests/test_pytest_smoke.py` 86 passed / 4 skipped. PBMC rerun closeout
   should be checked before starting v4.6 implementation work.
-- Post-v4.5.2 hardening on top of `4bf9741` fixes GEO/SRA design aliases,
-  bulk preranked GSEA symbol-ID handling, explicit GSEA narrative blocks, and
-  deterministic block-to-prose rendering. The versionable dependency/impact
-  graph is `docs/architecture/code_graph.md`.
+- Post-v4.5.2 hardening is committed and pushed in `c611e45` (current HEAD =
+  `origin/main`, untagged, `aria.__version__` = `4.5.2`) on top of `4bf9741`.
+  It fixes GEO/SRA design aliases, bulk preranked GSEA symbol-ID handling,
+  explicit GSEA narrative blocks, and deterministic block-to-prose rendering.
+  Re-validated 2026-05-28 (aria-env): targeted 10 passed, narrative kernel 17
+  passed, smoke 86 passed / 4 skipped, compileall + diff-check clean. The
+  versionable dependency/impact graph is `docs/architecture/code_graph.md`.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.
