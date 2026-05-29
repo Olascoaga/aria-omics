@@ -21,8 +21,9 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
-  two commits past the `v4.5.2` tag).
+- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
+  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`),
+  untagged, `aria.__version__` = `4.5.3`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -345,9 +346,9 @@ Validation:
 
 ## Next Milestone — v4.6 scATAC
 
-Before starting v4.6, note the post-v4.5.2 hardening is committed and pushed
-in `c611e45` (HEAD = `origin/main`, untagged, `aria.__version__` = `4.5.2`)
-on top of `4bf9741`:
+Before starting v4.6, note the post-v4.5.2 hardening was committed and pushed
+in `c611e45` (untagged, `aria.__version__` = `4.5.2` at that point) on top of
+`4bf9741`:
 
 - GEO/SRA metadata design inference was tightened to prefer experimental
   characteristic keys and preserve GSM/SRR IDs plus title aliases for count
@@ -385,14 +386,14 @@ hardening (`tests/test_causal_guard.py`); P4a lognorm-recovery provenance; P4b
 power-disclosure; P-ENG-PERF env-detection cache (`tests/test_env_manager_cache.py`);
 P2 partial CI/Dockerfile.
 
-**OPEN BLOCKER — PBMC v4.5.2 rerun is THIN.** Report
-`~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`
-is provenance-clean (`git_sha=0569689`) but ran only QC + LIANA — pseudobulk
-DE / composition / pathway / trajectory did NOT execute (d72 v4.4 did). Likely
-a v4.4→v4.5.2 scRNA-dispatch regression or cell-focus steering. **Next step:**
-rerun with the d72 question ("monocytes, T cells, B cells") to isolate
-focus-steering vs a true regression, then trace why `scrna_agent` skipped
-pseudobulk dispatch. v4.5.2 scientific-depth validation is NOT closed.
+**PBMC v4.5.2 thin-report blocker — diagnosed, fixed, confirmed.** The thin
+report was caused by `scRNAAgent._needs_pseudobulk` silently re-gating an
+approved DesignIntelligence pseudobulk plan on free-text keywords. Commit
+`27d4b15` fixes the gate so explicit obs design + DI-recommended pseudobulk
+runs regardless of keyword phrasing. Confirmation rerun produced
+`pseudobulk_de.csv` with 3,376 DE genes across 11 STIM_vs_CTRL blocks plus
+differential abundance. A longer-timeout full HTML rerun is still useful for
+release evidence, but the scientific-depth regression is closed.
 
 Deferred remediation items (steps in the audit file): IHW/hierarchical FDR,
 apeglm shrinkage, bus persistence, integration QA (LISI/kBET), ambient-RNA
@@ -403,9 +404,11 @@ verdicts + items X1–X20 are in the audit file. Their P0 "missing
 agents / broken core" claims are REJECTED as stale-snapshot artifacts
 (design/audit/raw_ingestion/design_intelligence agents and narrative narrators
 all exist). VERIFIED-real accepts form a cheap **"v4.5.3 Integrity & Trust"**
-mini-milestone to do before ATAC: X1 version drift (`install.sh` says v4.3.12),
-X2 API keys written to `~/.bashrc`, X3 registry-integrity test, X4 ChromatinAgent
-calls missing `chromatin_motifs.py`/`chromatin_differential.py`, X17 tiered
-`aria doctor`. Flagship deferred: X14 Claim Compiler (evolves the causal guard +
+mini-milestone before ATAC is implemented locally as `v4.5.3` metadata: X1
+central version source, X2 no API-key writes to `.bashrc`, X3 registry-integrity
+checks, X4 chromatin scaffold dispatch gate, and X17 tiered `aria doctor`.
+Validation: compileall pass, targeted integrity tests 8 passed, smoke 86 passed
+/ 4 skipped, combined targeted + smoke 94 passed / 4 skipped, diff-check pass.
+Flagship deferred: X14 Claim Compiler (evolves the causal guard +
 NarrativeBlock kernel), X5 typed IPC contracts, X6 synthetic ground-truth
 benchmark, X10 privacy firewall.

@@ -1,3 +1,4 @@
 # ARIA — Agentic Research Intelligence for -omics Analysis
-__version__ = "4.5.2"
+from aria.version import __version__
+
 __author__ = "ARIA Project"

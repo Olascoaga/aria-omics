@@ -77,6 +77,16 @@ class ChromatinAgent(BaseAgent):
         "Chromatin accessibility and protein-DNA interaction analysis. "
         "Handles scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG."
     )
+    validation_level = "scaffold"
+    dispatch_enabled = False
+    REQUIRED_SCRIPTS = (
+        "aria/scripts/chromatin_qc.py",
+        "aria/scripts/chromatin_peaks.py",
+    )
+    PLANNED_SCRIPTS = (
+        "aria/scripts/chromatin_motifs.py",
+        "aria/scripts/chromatin_differential.py",
+    )
 
     # Assay-specific MACS3 parameters
     MACS3_PARAMS = {
@@ -461,9 +471,13 @@ class ChromatinAgent(BaseAgent):
         DebateCouncil is MANDATORY here — Tn5 bias must be addressed
         before claiming any TF is active based on motif enrichment alone.
         """
+        script_path = "aria/scripts/chromatin_motifs.py"
+        if not self._script_exists(script_path):
+            return self._planned_script_blocker(script_path, "motif_enrichment")
+
         motif_result = self.env.run_in_stack(
             stack="chromatin",
-            script_path="aria/scripts/chromatin_motifs.py",
+            script_path=script_path,
             params={
                 "peaks_path": peaks_result.get("peaks_path", ""),
                 "genome":     exp_ctx.get("genome", "hg38"),
@@ -541,9 +555,15 @@ class ChromatinAgent(BaseAgent):
         intent: dict, peaks_result: dict
     ) -> dict:
         """Differential accessibility between conditions using DESeq2."""
+        script_path = "aria/scripts/chromatin_differential.py"
+        if not self._script_exists(script_path):
+            return self._planned_script_blocker(
+                script_path, "differential_accessibility"
+            )
+
         return self.env.run_in_stack(
             stack="chromatin",
-            script_path="aria/scripts/chromatin_differential.py",
+            script_path=script_path,
             params={
                 "peaks_path":  peaks_result.get("consensus_peaks_path", ""),
                 "comparison":  intent.get("comparison", ""),
@@ -579,6 +599,25 @@ class ChromatinAgent(BaseAgent):
         ]
         question = intent.get("user_question", "").lower()
         return any(kw in question for kw in TF_KEYWORDS)
+
+    @staticmethod
+    def _script_exists(script_path: str) -> bool:
+        root = Path(__file__).resolve().parents[2]
+        return (root / script_path).exists()
+
+    @staticmethod
+    def _planned_script_blocker(script_path: str, analysis: str) -> dict:
+        return {
+            "status": "skipped",
+            "reason": "script_not_implemented",
+            "analysis": analysis,
+            "script_path": script_path,
+            "validation_level": "scaffold",
+            "details": (
+                f"{script_path} is planned for the v4.6+ chromatin roadmap "
+                "and is not available in this build."
+            ),
+        }
 
     def _publish_qc_finding(self, experiment_id: str,
                              qc_result: dict, modality: str):

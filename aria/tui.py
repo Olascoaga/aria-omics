@@ -48,6 +48,7 @@ from rich import box
 from aria.memory.memory import ARIAMemory
 from aria.agents.orchestrator_agent import OrchestratorAgent
 from aria.bus.message_bus import bus, MessageType, Message
+from aria.version import __version__
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
 
@@ -142,7 +143,7 @@ ARIA_BANNER = r"""
   ##         ##      ## ##    ##
 """
 TAGLINE = "Agentic Research Intelligence for -omics Analysis"
-VERSION = "v4.5.2"
+VERSION = f"v{__version__}"
 
 
 # ── Display helpers ───────────────────────────────────────────────────────────
@@ -783,6 +784,15 @@ def _print_final_summary(experiment_id: str):
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main():
+    args = [arg for arg in sys.argv[1:] if arg != "--reproducible"]
+    if args and args[0] == "doctor":
+        from aria.doctor import main as doctor_main
+
+        code = doctor_main(args[1:])
+        if code:
+            raise SystemExit(code)
+        return
+
     reproducible_mode = "--reproducible" in sys.argv[1:]
     memory       = ARIAMemory()
     orchestrator = OrchestratorAgent(memory)

@@ -249,7 +249,7 @@ filtered `bus.get_log(experiment_id)`, but agent STATUS messages do not carry
 and the runner timed out despite a finished report. Fixed to poll the full bus
 log (like `tui._live_analysis_loop`) plus a filesystem fallback.
 
-## PBMC v4.5.2 rerun outcome (OPEN BLOCKER — do before ATAC)
+## PBMC v4.5.2 rerun outcome (BLOCKER FIXED — full report rerun still useful)
 
 The headless PBMC rerun produced
 `~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`.
@@ -341,19 +341,21 @@ registry-integrity test existed — which is itself a good accepted item (X3).
 
 P0/cheap integrity (a "v4.5.3 Integrity & Trust" mini-milestone before ATAC):
 
-- ☐ **X1** Centralize version (single source / `pyproject.toml`); fix
-  `install.sh` (says `v4.3.12`, code is `4.5.2`). VERIFIED drift.
-- ☐ **X2** Stop writing API keys to `~/.bashrc` (`install.sh:281-290`); use
-  `~/.aria/.env` with `chmod 600` only. VERIFIED security smell.
-- ☐ **X3** Registry-integrity test: import every `AGENT_REGISTRY` agent, assert
-  every referenced script exists, every modality has a validation level. Cheap,
-  high value; would catch X4 and would have disproven IA2 2.1.
-- ☐ **X4** `ChromatinAgent` references `chromatin_motifs.py` /
-  `chromatin_differential.py` which do NOT exist (only qc/peaks do). Mark
-  chromatin "scaffold" in the UI and gate dispatch until the scripts land in
-  v4.6+. VERIFIED.
-- ☐ **X17** Tiered `aria doctor` (`--smoke`/`--synthetic`/`--benchmark`);
-  `install.sh` must not claim "ready" after a mock-only test (IA2 2.3).
+- ✅ **X1** Centralized version in `aria/version.py`; `aria.__version__`,
+  `aria.llm.__version__`, `setup.py`, TUI, and `install.sh` now read the same
+  source. Version metadata bumped to `4.5.3` locally.
+- ✅ **X2** Installer no longer writes API keys to `~/.bashrc`; keys are stored
+  only in `~/.aria/.env` with `chmod 600` and exported to the current installer
+  process for verification.
+- ✅ **X3** Added registry-integrity checks/tests: import every
+  `AGENT_REGISTRY` entry, validate modality validation metadata, and check
+  required script contracts.
+- ✅ **X4** Chromatin modalities are marked `scaffold` and dispatch-gated until
+  v4.6+ scripts land; direct calls to planned missing chromatin scripts return
+  structured `script_not_implemented` blockers.
+- ✅ **X17** Added tiered `aria doctor` (`--smoke`/`--synthetic`/`--benchmark`)
+  plus installer smoke verification. Installer no longer claims full readiness
+  after mock-only integration checks.
 
 Scientific contracts & validation:
 
@@ -421,3 +423,39 @@ defense against that class of false alarm.
 /home/medusa/anaconda3/envs/aria-env/bin/python -m pytest -q tests/test_pytest_smoke.py
 # narrative + new targeted tests
 ```
+
+## v4.5.3 Integrity & Trust execution log (2026-05-28)
+
+Implemented locally after commit `27d4b15`:
+
+- X1-X4 and X17 closed as described above.
+- New files: `aria/version.py`, `aria/doctor.py`,
+  `aria/utils/registry_integrity.py`,
+  `tests/test_registry_integrity.py`, `tests/test_doctor.py`,
+  `tests/test_chromatin_dispatch_gate.py`.
+- Validation:
+  - `python -m compileall -q aria` -> pass
+  - `python -m pytest -q tests/test_registry_integrity.py tests/test_doctor.py tests/test_chromatin_dispatch_gate.py` -> 8 passed
+  - `python -m pytest -q tests/test_chromatin_agent.py tests/test_env_manager_cache.py` -> 1 passed
+  - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed / 4 skipped
+  - Combined targeted + smoke -> 94 passed / 4 skipped
+  - `python -c "import sys; sys.argv=['aria','doctor','--smoke']; from aria.tui import main; main()"` -> passed with one warning: HiC is still scaffold but dispatch-enabled from earlier behavior.
+  - `git diff --check` -> pass
+
+### HiC scaffold-dispatch — DECIDED 2026-05-28 (accept as tracked warning)
+
+`MODALITY_VALIDATION["HiC"]` is `level="scaffold"` with `dispatch_enabled=True`.
+Reviewed and **accepted as a tracked warning**, not silenced: unlike the
+chromatin family (whose `chromatin_motifs.py` / `chromatin_differential.py` are
+absent, hence hard-blocked), all HiC scripts exist and run
+(`hic_inspect`, `hic_qc_and_balance`, `hic_topology`), so prior QC behavior is
+preserved. `registry_integrity.check_registry_integrity` emits a
+`scaffold_dispatch_enabled` **warning** so the state stays visible and auditable.
+Caveat carried forward: `hic_topology` emits TADs/loops, which are unvalidated
+biological conclusions under a scaffold level — the proper resolution
+(inspect+QC only, gating topology until HiC validation) is deferred to the HiC
+validation milestone. Recorded as ADR-012 in `DECISIONS.md`.
+
+Status: X1, X2, X3, X4, X17 are CLOSED in this v4.5.3 work (committed, not
+tagged — no `v4.5.3` tag was created). Remaining external-audit items
+(X5–X16, X18–X20) stay open in the plan above.

@@ -17,8 +17,10 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
-  two commits past the `v4.5.2` tag). See the dedicated bullet below.
+- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
+  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`) on
+  `main`, untagged, `aria.__version__` = `4.5.3`. Verify with
+  `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
@@ -38,13 +40,19 @@ Read this file first in every ARIA session.
   Validation: `compileall` pass, narrative-kernel tests 16 passed, full
   `tests/test_pytest_smoke.py` 86 passed / 4 skipped. PBMC rerun closeout
   should be checked before starting v4.6 implementation work.
-- Post-v4.5.2 hardening is committed and pushed in `c611e45` (current HEAD =
-  `origin/main`, untagged, `aria.__version__` = `4.5.2`) on top of `4bf9741`.
+- Post-v4.5.2 hardening was committed and pushed in `c611e45` (untagged,
+  `aria.__version__` = `4.5.2` at that point) on top of `4bf9741`.
   It fixes GEO/SRA design aliases, bulk preranked GSEA symbol-ID handling,
   explicit GSEA narrative blocks, and deterministic block-to-prose rendering.
   Re-validated 2026-05-28 (aria-env): targeted 10 passed, narrative kernel 17
   passed, smoke 86 passed / 4 skipped, compileall + diff-check clean. The
   versionable dependency/impact graph is `docs/architecture/code_graph.md`.
+- Local v4.5.3 Integrity & Trust work is implemented after `27d4b15` and
+  untagged: centralized version metadata, installer API-key hardening,
+  registry-integrity checks, chromatin scaffold dispatch gate, and tiered
+  `aria doctor`. Validation: compileall pass, targeted integrity tests 8
+  passed, smoke 86 passed / 4 skipped, combined targeted + smoke 94 passed /
+  4 skipped, diff-check pass.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

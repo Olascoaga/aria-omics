@@ -1,8 +1,10 @@
 from setuptools import setup, find_packages
 
+from aria.version import __version__
+
 setup(
     name="aria-omics",
-    version="4.5.2",
+    version=__version__,
     description="Agentic Research Intelligence for -omics Analysis",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
@@ -41,6 +43,7 @@ setup(
     entry_points={
         "console_scripts": [
             "aria=aria.tui:main",
+            "aria-doctor=aria.doctor:console_main",
         ],
     },
     classifiers=[

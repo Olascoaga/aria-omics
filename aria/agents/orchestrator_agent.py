@@ -114,6 +114,55 @@ MODALITY_TO_AGENT = {
     "HiC":         "genome_arch_agent",
 }
 
+MODALITY_VALIDATION = {
+    "scRNA": {
+        "level": "production",
+        "dispatch_enabled": True,
+    },
+    "bulk_RNA": {
+        "level": "production",
+        "dispatch_enabled": True,
+    },
+    "bulk_RNA_raw": {
+        "level": "beta",
+        "dispatch_enabled": True,
+    },
+    "scATAC": {
+        "level": "scaffold",
+        "dispatch_enabled": False,
+        "reason": "scATAC E2E validation is scheduled for v4.6.",
+    },
+    "bulk_ATAC": {
+        "level": "scaffold",
+        "dispatch_enabled": False,
+        "reason": "bulk ATAC validation is scheduled after scATAC.",
+    },
+    "ChIP": {
+        "level": "scaffold",
+        "dispatch_enabled": False,
+        "reason": "ChIP validation is not closed.",
+    },
+    "CUT_AND_RUN": {
+        "level": "scaffold",
+        "dispatch_enabled": False,
+        "reason": "CUT&RUN validation is not closed.",
+    },
+    "CUT_AND_TAG": {
+        "level": "scaffold",
+        "dispatch_enabled": False,
+        "reason": "CUT&TAG validation is not closed.",
+    },
+    "HiC": {
+        "level": "scaffold",
+        "dispatch_enabled": True,
+    },
+}
+
+MODALITY_VALIDATION_LEVELS = {
+    modality: meta["level"]
+    for modality, meta in MODALITY_VALIDATION.items()
+}
+
 
 class OrchestratorAgent(BaseAgent):
 
@@ -121,6 +170,7 @@ class OrchestratorAgent(BaseAgent):
     description = "Central coordinator — routes tasks to specialized agents."
 
     MODALITY_TO_AGENT = MODALITY_TO_AGENT
+    MODALITY_VALIDATION = MODALITY_VALIDATION
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider = None,
@@ -487,6 +537,42 @@ class OrchestratorAgent(BaseAgent):
             modalities = {**modalities, "bulk_RNA": list(existing) + list(raw_files)}
             exp_context = {**exp_context, "modalities": modalities}
 
+        blocked_modalities = self._blocked_modalities(modalities)
+        if blocked_modalities:
+            modalities = {
+                m: files for m, files in modalities.items()
+                if m not in blocked_modalities
+            }
+            exp_context = {**exp_context, "modalities": modalities}
+            for modality, meta in blocked_modalities.items():
+                agent_name = MODALITY_TO_AGENT.get(modality, "unknown")
+                agent_results.setdefault(agent_name, {
+                    "status": "skipped",
+                    "reason": "modality_not_validated",
+                    "validation_level": meta.get("level", "unknown"),
+                    "modalities": [],
+                    "details": [],
+                })
+                agent_results[agent_name]["modalities"].append(modality)
+                agent_results[agent_name]["details"].append(
+                    meta.get("reason", "Modality is not validated for dispatch.")
+                )
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            f"{modality} is {meta.get('level', 'unvalidated')} "
+                            "and was not dispatched."
+                        ),
+                        "modality": modality,
+                        "validation_level": meta.get("level", "unknown"),
+                        "reason": meta.get(
+                            "reason", "Modality is not validated for dispatch."
+                        ),
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+
         self.publish_status(experiment_id, "Checking computational environment...", 0.05)
         setup_result = self._run_agent(
             agent_name="setup_agent",
@@ -609,6 +695,15 @@ class OrchestratorAgent(BaseAgent):
         except Exception as e:
             log.error(f"{agent_name} raised: {e}", exc_info=True)
             return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
+
+    @staticmethod
+    def _blocked_modalities(modalities: dict) -> dict:
+        blocked = {}
+        for modality in modalities:
+            meta = MODALITY_VALIDATION.get(modality, {})
+            if meta and not meta.get("dispatch_enabled", True):
+                blocked[modality] = meta
+        return blocked
 
     def _resolve_execution_order(self, steps: list) -> list:
         remaining, ordered, completed = list(steps), [], set()

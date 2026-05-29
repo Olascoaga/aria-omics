@@ -19,9 +19,10 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: `c611e45` (post-v4.5.2 Narrative/GEO/GSEA hardening, untagged,
-  two commits past the `v4.5.2` tag, = `origin/main`). Verify with
-  `git log --oneline --decorate -5`.
+- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
+  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`),
+  untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+  Verify with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
@@ -516,8 +517,8 @@ Release caveat: the final PBMC report rerun must be recorded here before the
 ## Post-v4.5.2 Narrative/GEO/GSEA Hardening
 
 Committed and pushed in `c611e45` (`Harden narrative composer, GEO design, and
-GSEA reporting`) on top of `4bf9741`. Untagged; `aria.__version__` stays
-`4.5.2`. HEAD = `origin/main` = `c611e45`:
+GSEA reporting`) on top of `4bf9741`. Untagged; `aria.__version__` stayed
+`4.5.2` at that point:
 
 - `render_blocks.py` no longer presents block findings primarily as raw
   claim/evidence tables. New `aria.agents.narrative.compose_prose` composes
@@ -605,3 +606,29 @@ expected for IFN-β). Full suite: 100 passed / 4 skipped, zero regressions.
 NOTE: the confirmation run timed out at 900s before the HTML finished (full-PBMC
 pseudobulk+ORA is slow); a longer-timeout rerun for a complete v4.5.2 report is
 still worth recording, but the scientific-depth regression itself is closed.
+
+### v4.5.3 Integrity & Trust local implementation
+
+Implemented locally after `27d4b15` (not tagged at time of writing):
+
+- `aria/version.py` is now the single version source; package, setup, TUI, LLM
+  module, and installer metadata report `4.5.3`.
+- `install.sh` no longer writes LLM API keys to `~/.bashrc`; keys stay in
+  `~/.aria/.env` (`chmod 600`) and are exported only for the current installer
+  process.
+- `aria.utils.registry_integrity` plus tests validate `AGENT_REGISTRY`, script
+  contracts, and modality validation metadata.
+- Chromatin/ATAC/CUT&RUN/CUT&TAG modalities are explicit `scaffold` entries and
+  are dispatch-gated until v4.6+ scripts land. Direct planned-script calls
+  return structured `script_not_implemented` blockers.
+- `aria doctor` supports `--smoke`, `--synthetic`, and `--benchmark`; installer
+  now runs smoke checks and labels legacy integration tests as mock checks, not
+  proof of full readiness.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `python -m pytest -q tests/test_registry_integrity.py tests/test_doctor.py tests/test_chromatin_dispatch_gate.py` -> 8 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
+- Combined targeted + smoke -> 94 passed, 4 skipped
+- `git diff --check` -> pass

@@ -200,3 +200,32 @@ Implications:
 - Before release, grep for validation-specific terms in runtime and newly
   added generic tests; any hit needs either removal or an explicit documented
   golden-fixture reason.
+
+## ADR-012 - Scaffold Modalities Are Dispatch-Gated; HiC Is A Tracked Exception
+
+Status: accepted (2026-05-28, v4.5.3 Integrity & Trust)
+
+Modalities whose end-to-end analysis is not validated must not silently run
+expensive, conclusion-producing dispatch. `OrchestratorAgent.MODALITY_VALIDATION`
+assigns each modality a `level` (`production` | `beta` | `scaffold`) and a
+`dispatch_enabled` flag; blocked modalities are skipped with an
+`INSUFFICIENT`-confidence finding instead of partial, unvalidated results.
+
+Implications:
+
+- scATAC, bulk ATAC, ChIP, CUT&RUN, and CUT&TAG are `scaffold` and
+  `dispatch_enabled=False` until their validation milestones (v4.6+). Direct
+  calls to planned-but-absent scripts return `script_not_implemented` rather
+  than crashing.
+- `aria.utils.registry_integrity` enforces this contract in tests: every
+  registry agent imports as a `BaseAgent`, every modality has a validation
+  level, required scripts exist, and any `scaffold` modality that is
+  `dispatch_enabled` raises a visible `scaffold_dispatch_enabled` warning.
+- HiC is an explicit, accepted exception: `scaffold` but `dispatch_enabled=True`,
+  because its scripts exist and run (`hic_inspect`, `hic_qc_and_balance`,
+  `hic_topology`), preserving prior QC behavior. The integrity warning keeps the
+  exception visible. Carried-forward caveat: `hic_topology` emits TADs/loops
+  (unvalidated conclusions under a scaffold level); gating topology to
+  inspect+QC-only is deferred to the HiC validation milestone.
+- A modality is promoted out of `scaffold` only after a validation milestone
+  closes (e.g., the seven-question peer-reviewer bar used for RNA in v4.4).
