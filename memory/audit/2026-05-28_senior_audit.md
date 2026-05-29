@@ -364,9 +364,11 @@ Scientific contracts & validation:
   Implemented in `aria.utils.script_contracts`; input/output contract failures
   now return structured `InvalidScriptParams` or `IncompatibleScriptContract`
   errors instead of obscure downstream failures.
-- ☐ **X6** Synthetic ground-truth benchmark (splatter/scDesign3) with known
-  true DE genes — numerical-accuracy regression, not just flow (IA1 missing #1,
-  IA2 5.6). Overlaps the P2 test-debt.
+- ✅ **X6** Synthetic ground-truth benchmark (`aria/benchmarks/synthetic_de.py`)
+  with known true DE genes — numerical-accuracy regression, not just flow (IA1
+  missing #1, IA2 5.6). NB simulator + `run_pseudobulk_de_benchmark` exercises
+  ARIA's real pseudobulk DE and scores recall / empirical FDR vs tolerances;
+  `aria doctor --benchmark` runs it when pydeseq2 is present (skips in aria-env).
 - ✅ **X7** Design-matrix sanity validator before DESeq2: rank deficiency,
   batch↔condition confounding, n=1 blocks, continuous-vs-miscategorized factor
   (IA1 sci #1, IA2 4.4/5.3). Implemented in
@@ -526,5 +528,40 @@ biological conclusions under a scaffold level — the proper resolution
 validation milestone. Recorded as ADR-012 in `DECISIONS.md`.
 
 Status: X1, X2, X3, X4, X17 are CLOSED in this v4.5.3 work (committed, not
-tagged — no `v4.5.3` tag was created). Remaining external-audit items
-(X5–X16, X18–X20) stay open in the plan above.
+tagged — no `v4.5.3` tag was created). X5 and X7 closed afterwards (separate
+commits). X6 closed here (below). Remaining external-audit items
+(X10–X16, X18–X20) stay open in the plan above.
+
+## X6 synthetic-DE benchmark execution log (2026-05-28)
+
+Closed on top of `54ef7dd` (after X5). New, self-contained, no IPC overlap:
+
+- `aria/benchmarks/synthetic_de.py`: deterministic NB (Gamma-Poisson) simulator
+  with a known set of true-DE genes (per-gene log2FC, direction) and null
+  genes; unpaired 2-condition design (distinct donors per group) so pseudobulk
+  aggregation by donor is the replication unit. `run_pseudobulk_de_benchmark`
+  writes a synthetic `.h5ad`, runs the real `rna_pseudobulk_de`, and scores
+  recall (true-DE recovered) and empirical FDR (calls that are truly null) vs
+  tolerances. Neutral labels only (GENE_####, COND_A/COND_B, d##, ctype0) per
+  ADR-011 — generated ground truth, not a named golden dataset.
+- `tests/test_benchmark_synthetic_de.py`: simulator determinism/truth tests run
+  anywhere; the DE-recovery test is pydeseq2-gated (skips in aria-env).
+- `aria/doctor.py --benchmark`: runs a fast benchmark when pydeseq2/anndata are
+  present; in aria-env it reports a graceful `benchmark_skipped` warning (the
+  doctor's registry check needs litellm, which lives in aria-env, while the
+  benchmark needs pydeseq2 in aria-rna-env — so the real gate is the pytest in
+  aria-rna-env / CI heavy lane).
+
+Measured recovery (aria-rna-env, seed=11, 1200 genes / 120 true DE / 6+6
+donors / 80 cells per donor): **recall=1.000, empirical_fdr=0.000**
+(120/120 true DE recovered, 0 false positives). Tolerances are conservative
+(recall ≥ 0.5, empirical FDR ≤ 0.2) as drift buffers.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- aria-env: `pytest tests/test_benchmark_synthetic_de.py tests/test_doctor.py
+  tests/test_registry_integrity.py tests/test_design_matrix_validator.py
+  tests/test_pytest_smoke.py` -> 98 passed / 5 skipped
+- aria-rna-env: `pytest .../test_pseudobulk_de_recovers_ground_truth` -> 1 passed
+- `aria doctor --benchmark` (aria-env) -> passed with benchmark_skipped warning

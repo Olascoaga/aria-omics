@@ -22,11 +22,7 @@ def run_doctor(tier: str = "smoke") -> tuple[int, list[str]]:
     if tier in {"synthetic", "benchmark"}:
         issues.extend(_check_synthetic_assets())
     if tier == "benchmark":
-        issues.append(IntegrityIssue(
-            "benchmark_not_executed",
-            "Benchmark tier requires an explicit dataset run; use tests/test_pbmc_e2e.py or the PBMC headless validation harness.",
-            severity="warning",
-        ))
+        issues.extend(_run_synthetic_de_benchmark())
 
     errors = [issue for issue in issues if issue.severity == "error"]
     warnings = [issue for issue in issues if issue.severity != "error"]
@@ -77,6 +73,43 @@ def _check_env_file_permissions() -> list[IntegrityIssue]:
             "env_file_too_permissive",
             f"{env_path} should be readable only by the owner (chmod 600).",
         )]
+    return []
+
+
+def _run_synthetic_de_benchmark() -> list[IntegrityIssue]:
+    """X6: run the synthetic ground-truth DE benchmark when the DE stack is
+    available. Skips gracefully (warning) when pydeseq2/anndata are absent
+    (e.g. the base aria-env); the gate then runs in aria-rna-env / CI."""
+    try:
+        import anndata  # noqa: F401
+        import pydeseq2  # noqa: F401
+    except Exception:
+        return [IntegrityIssue(
+            "benchmark_skipped",
+            "Synthetic DE benchmark skipped: pydeseq2/anndata not in this env. "
+            "Run in aria-rna-env (or CI) to exercise numerical-accuracy recovery.",
+            severity="warning",
+        )]
+    try:
+        from aria.benchmarks.synthetic_de import run_pseudobulk_de_benchmark
+        # Small/fast config for the doctor; the pytest gate uses a larger one.
+        res = run_pseudobulk_de_benchmark(
+            n_genes=400, n_de=40, donors_per_condition=4, cells_per_donor=30,
+            seed=11, min_recall=0.5, max_empirical_fdr=0.25,
+        )
+    except Exception as exc:  # never let doctor crash on the benchmark
+        return [IntegrityIssue(
+            "benchmark_error",
+            f"Synthetic DE benchmark could not run: {exc}",
+            severity="warning",
+        )]
+    if res.status != "pass":
+        return [IntegrityIssue(
+            "benchmark_failed",
+            f"Synthetic DE recovery out of tolerance: {res.messages[0] if res.messages else res.as_dict()}",
+            severity="error",
+        )]
+    # Pass: clean (no issue). The pytest gate records the positive metrics.
     return []
 
 

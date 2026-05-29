@@ -21,9 +21,9 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
-  on top of `df4693a`, untagged, `aria.__version__` = `4.5.3`. Verify the
-  exact hash with `git log --oneline --decorate -5`.
+- Current HEAD: the X6 synthetic-DE-benchmark commit on top of `54ef7dd`
+  (after X5), untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
+  with `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -429,6 +429,14 @@ registry/doctor 10 passed, combined X5+integrity+X7+narrator 20 passed, smoke
 86 passed / 4 skipped, doctor smoke pass with expected HiC warning, diff-check
 pass.
 
-Flagship deferred: X14 Claim Compiler (evolves the causal guard +
-NarrativeBlock kernel), X6 synthetic ground-truth benchmark, X10 privacy
-firewall.
+**X6 synthetic-DE benchmark is closed.** `aria/benchmarks/synthetic_de.py`
+simulates an NB dataset with known true-DE genes and runs ARIA's real
+pseudobulk DE, scoring recall / empirical FDR vs tolerances; pydeseq2-gated
+test + `aria doctor --benchmark` wiring. Measured recall=1.000 /
+empirical_fdr=0.000 (aria-rna-env); aria-env suite 98 passed / 5 skipped.
+
+Pre-ATAC integrity-freeze status: X1–X4, X17, X7, X5, X6 are CLOSED.
+Flagship deferred (highest leverage next): **X14 Claim Compiler** (evolves the
+causal guard + NarrativeBlock kernel into a claim-evidence-tier compiler), then
+X10 privacy firewall, X13 DataAudit scan limits, X11/X12 DebateCouncil cost +
+ParameterAdvisor bias guardrails, and the research-track X15/X16/X19/X20.

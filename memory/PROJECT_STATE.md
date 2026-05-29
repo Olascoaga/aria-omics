@@ -19,10 +19,9 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
-  on top of `df4693a`, untagged, `aria.__version__` = `4.5.3`,
-  = `origin/main`. Verify the exact hash with
-  `git log --oneline --decorate -5`.
+- Current HEAD: the X6 synthetic-DE-benchmark commit on top of `54ef7dd`
+  (after X5), untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+  Verify the exact hash with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
@@ -107,6 +106,27 @@ scripts before and after subprocess execution:
 Validation: compileall pass; X5+registry/doctor 10 passed; combined
 X5+integrity+X7+narrator 20 passed; smoke 86 passed / 4 skipped; doctor smoke
 pass with expected HiC warning; diff-check pass.
+
+## X6 Synthetic-DE Benchmark
+
+Closed on top of `54ef7dd` as part of the pre-ATAC integrity freeze. ARIA now
+has a numerical-accuracy regression that checks the real DE code recovers a
+KNOWN ground truth, not just flow:
+
+- `aria/benchmarks/synthetic_de.py`: deterministic negative-binomial simulator
+  with planted true-DE genes + null genes (neutral labels per ADR-011);
+  `run_pseudobulk_de_benchmark` runs the real `rna_pseudobulk_de` and scores
+  recall and empirical FDR vs tolerances;
+- `tests/test_benchmark_synthetic_de.py`: simulator tests run anywhere, the
+  DE-recovery test is pydeseq2-gated;
+- `aria doctor --benchmark` runs it when pydeseq2 is available (graceful skip
+  in aria-env).
+
+Measured (aria-rna-env, seed=11): recall=1.000, empirical_fdr=0.000 (120/120
+true DE recovered, 0 false positives); tolerances recall ≥ 0.5, FDR ≤ 0.2.
+
+Validation: compileall pass; aria-env benchmark/doctor/registry/design-matrix +
+smoke -> 98 passed / 5 skipped; aria-rna-env DE-recovery gate -> 1 passed.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 
