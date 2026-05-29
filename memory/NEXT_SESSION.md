@@ -8,6 +8,24 @@ supersedes:
 
 # NEXT SESSION
 
+## Last Completed (most recent first)
+
+- **`v4.5.4` Scientific-Honesty Hardening (2026-05-29)** — tagged + pushed on
+  top of `v4.5.3`. Per-cluster FDR is now the pseudobulk default
+  (`fdr_strategy`, ADR-015); power reconciled with the global-BH decision rule
+  (`effective_alpha_global` + `power_estimate_at_effective_alpha`, ADR-016);
+  log-norm-recovered DE capped at `confidence="low"` (ADR-016). Validation:
+  aria-env 128 passed / 4 skipped, aria-rna-env pydeseq2-gated 3 passed
+  (recall=1.0/FDR=0 preserved), diff-check clean. **Behavior change: pseudobulk
+  significant-gene counts differ from pre-v4.5.4 runs.** Details in
+  `PROJECT_STATE.md` and `memory/audit/2026-05-28_senior_audit.md`.
+- **`v4.5.3` tagged + pushed** at `bab6fbd` — fixes F-NEW-3 (the pre-ATAC
+  integrity freeze X1-X9/X14/X17 had no tag).
+- Senior dual-lens audit ran 2026-05-29; remaining open items (F-SCI-FDR
+  hierarchical/IHW upgrade, F-ENG-BUS persistence, F-NEW-1 single-env test
+  story + real Docker, F-NEW-2 composition-covariate justification, HiC
+  topology gating) are documented in the audit file. v4.6 scATAC remains next.
+
 ## Last Completed
 
 - 4.3 line closed.

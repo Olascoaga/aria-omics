@@ -66,6 +66,17 @@ def _fmt_int(value) -> str:
         return str(value)
 
 
+def _fdr_primary_clause(pb: dict) -> str:
+    """Name the adjusted-p column that defined significance, per fdr_strategy.
+
+    Legacy results without an explicit strategy used global pooled BH.
+    """
+    strategy = ((pb or {}).get("multiple_testing", {}) or {}).get(
+        "fdr_strategy", "global"
+    )
+    return "padj_local (per-cluster BH)" if strategy == "per_cluster" else "padj_global"
+
+
 def _fmt_stat(value) -> str:
     """Compact numeric display that preserves very small nonzero values."""
     if not isinstance(value, (int, float)):
@@ -992,7 +1003,7 @@ def build_scrna_methods(findings: dict) -> str:
             f"across all gene × block tests"
             f"{n_tests_clause}. "
             f"Significance for narrative summaries and ORA input used "
-            f"padj_global &lt; {thr.get('padj_max', 0.05)} and "
+            f"{_fdr_primary_clause(pb)} &lt; {thr.get('padj_max', 0.05)} and "
             f"|log2FC| &gt; {thr.get('lfc_min', 0.5)}. "
             f"For Seurat-derived h5ads with log-normalised raw.X, counts were "
             f"recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."

@@ -160,6 +160,35 @@ def test_scrna_narrator_flags_lognorm_recovered_counts():
               if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
     assert any("reverse-engineered" in c.text.lower() for c in pb.caveats), \
         [c.text for c in pb.caveats]
+    # F-SCI-LOGNORM: recovered-count DE must not be presented at the same trust
+    # level as raw-count DE.
+    assert pb.confidence == "low"
+
+
+def test_scrna_narrator_uses_per_cluster_fdr_label_when_strategy_set():
+    """F-SCI-FDR (audit 2026-05-28): when the pseudobulk script declared the
+    per-cluster FDR strategy, the narrative claim must name that family (not the
+    legacy global-FDR wording) and report the primary count."""
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    comp = findings["pseudobulk_de"]["per_group"]["GroupA"]["per_comparison"][
+        "condition_a_vs_condition_b"
+    ]
+    comp["fdr_strategy"] = "per_cluster"
+    comp["n_significant"] = 220          # primary = per-cluster (local) count
+    comp["n_significant_local"] = 220
+
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    pb = next(b for b in blocks
+              if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    assert pb.claim == "GroupA condition_a_vs_condition_b had 220 per-cluster FDR DE genes."
+    # Both families must remain visible as audit evidence.
+    labels = {ev.label: ev.value for ev in pb.evidence}
+    assert labels.get("global-FDR DE genes") == 180
+    assert labels.get("local-FDR DE genes") == 220
 
 
 def test_scrna_narrator_surfaces_design_matrix_warnings():

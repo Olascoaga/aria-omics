@@ -315,3 +315,51 @@ Implications:
   the HTML. This is the auditable bridge between a sentence and its evidence.
 - This builds on ADR-011 (no hardcoded biology) and the causal guard: it is the
   structural enforcement of "LLM proposes, code guarantees" for claims.
+
+## ADR-015 - Pseudobulk Significance Defaults To Per-Cluster FDR
+
+Status: accepted (2026-05-29, v4.5.4, F-SCI-FDR audit remediation)
+
+scRNA pseudobulk DE declares significance with a configurable FDR family
+(`fdr_strategy`), defaulting to **per-cluster** BH (`padj_local`) rather than
+the previous global pooled BH (`padj_global`). Per-cluster control is the field
+standard for pseudobulk scRNA (e.g. muscat, Crowell et al. 2020) and decouples
+unrelated cell types: a cell type with massive signal no longer moves the
+significance threshold for an unrelated cell type. Global pooling remains
+available as `fdr_strategy="global"` for whole-experiment FDR control.
+
+Implications:
+
+- `rna_pseudobulk_de` always computes BOTH `padj_local` and `padj_global`;
+  `fdr_strategy` selects only which family defines the primary significance
+  call (`n_significant`, `top_genes`, `all_sig`, `n_up`/`n_down`). The
+  non-primary family stays in every record for audit.
+- ORA (`all_sig`) and narrative claims follow the primary family, so the
+  pathway layer is coherent with the reported significant set.
+- `multiple_testing.fdr_strategy` / `primary_family` are persisted; the
+  narrative claim names the family ("per-cluster FDR" vs "global-FDR") and the
+  Methods text describes the column actually used.
+- Legacy results without `fdr_strategy` keep the global-FDR wording, so old
+  workspaces and reports render unchanged.
+- This is a behavior change: reported significant-gene counts differ from
+  pre-v4.5.4 runs. It is a deliberate scientific default, not a silent shift.
+
+## ADR-016 - Power And Log-Norm Recovery Must Be Honest By Construction
+
+Status: accepted (2026-05-29, v4.5.4, F-SCI-POWER + F-SCI-LOGNORM remediation)
+
+Two report-integrity hardenings that keep reported numbers from overstating
+trust:
+
+- **Power vs the decision rule.** Approximate NB-Wald power
+  (`power_estimate_at_lfc_min`) is computed at the NOMINAL per-test alpha and is
+  an upper bound. ARIA additionally reports `effective_alpha_global` (the
+  empirical global-BH cutoff) and `power_estimate_at_effective_alpha`, the power
+  at the stricter threshold actually applied, so Methods can state both.
+- **Log-norm count recovery is low-trust.** When DESeq2 counts are
+  reverse-engineered from log-normalized values (`lognorm_recovered`), the
+  pseudobulk DE narrative block is capped at `confidence="low"` and carries an
+  explicit caveat. ARIA still refuses recovery outright when
+  `allow_lognorm_recovery=False` or the integer-probe fails, but the supported
+  processed-h5ad workflow keeps running at an honestly downgraded confidence
+  rather than presenting recovered-count DE as raw-count DE.

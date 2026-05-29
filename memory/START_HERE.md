@@ -17,10 +17,14 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
-  untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
+- Current HEAD: the `v4.5.4` scientific-honesty commit on top of `bab6fbd`,
+  `aria.__version__` = `4.5.4`, tagged. Verify the exact hash with
   `git log --oneline --decorate -5`.
-- Last stable tag: `v4.5.2`
+- Last stable tag: `v4.5.4` (FDR/power/log-norm honesty hardening; ADR-015,
+  ADR-016). Pseudobulk significance now defaults to per-cluster FDR — counts
+  differ from pre-v4.5.4 runs by design.
+- `v4.5.3` (`bab6fbd`): pre-ATAC integrity freeze (X1-X9/X14/X17), tagged+pushed.
+- Earlier stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).

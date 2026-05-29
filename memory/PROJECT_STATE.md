@@ -19,8 +19,10 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
-  untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+- `v4.5.3` tag -> `bab6fbd` (the X8/X9 commit; integrity freeze X1-X9/X14/X17),
+  pushed to origin.
+- Current HEAD: the v4.5.4 scientific-honesty commit on top of `bab6fbd`,
+  tagged `v4.5.4`, `aria.__version__` = `4.5.4`, = `origin/main`.
   Verify the exact hash with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
@@ -167,6 +169,44 @@ a narrative data-quality block.
 Validation: compileall pass; `tests/test_integration_annotation_qc.py` 8 passed;
 narrator + qc 13 passed; full smoke + narrative + claim compiler 109 passed /
 4 skipped.
+
+## v4.5.4 Scientific-Honesty Hardening (FDR / power / log-norm)
+
+Closed on top of `v4.5.3`. A senior dual-lens audit (2026-05-29) remediated
+three scientific findings that a peer reviewer would challenge. Durable policy:
+ADR-015 (FDR) and ADR-016 (power + log-norm).
+
+- **F-SCI-FDR — per-cluster FDR is the default.** `rna_pseudobulk_de` gains
+  `fdr_strategy` (`per_cluster` default, `global` optional). It always computes
+  both `padj_local` and `padj_global`; the strategy selects the primary
+  significance call (`n_significant`, `top_genes`, `all_sig`, up/down). ORA and
+  narrative claims follow the primary family, so the pathway layer stays
+  coherent. `multiple_testing.fdr_strategy`/`primary_family` persisted; narrator
+  + Methods are strategy-aware ("per-cluster FDR" vs "global-FDR"). Legacy
+  results without the key keep global wording. **Behavior change: significant
+  counts differ from pre-v4.5.4 runs.**
+- **F-SCI-POWER — power reconciled with the decision rule.** Adds
+  `effective_alpha_global` (empirical global-BH cutoff) and per-block
+  `power_estimate_at_effective_alpha`; the nominal-alpha estimate is labeled an
+  upper bound.
+- **F-SCI-LOGNORM — recovered-count DE is low-trust.** When `lognorm_recovered`,
+  the pseudobulk DE narrative block is capped at `confidence="low"` with a
+  reinforced caveat. The hard-refuse path (`allow_lognorm_recovery=False`) is
+  unchanged.
+
+Validation (2026-05-29):
+
+- `python -m compileall -q aria` -> pass
+- aria-env targeted (smoke + narrative kernel + narrator + claim compiler +
+  causal guard + QC + bulk narrator) -> 128 passed / 4 skipped
+- aria-rna-env pydeseq2-gated `tests/test_benchmark_synthetic_de.py` -> 3 passed
+  (recall=1.0 / empirical_fdr=0.0 preserved under the new per-cluster default)
+- New regression tests in `tests/test_narrator_scrna.py`: per-cluster FDR label
+  + both families visible; lognorm confidence cap.
+- `python -c "import aria; print(aria.__version__)"` -> `4.5.4`
+- `git diff --check` -> pass
+
+Tags: `v4.5.3` -> `bab6fbd` (integrity freeze, pushed); `v4.5.4` -> this commit.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

@@ -254,21 +254,27 @@ class ScrnaNarrator:
                         caveats=[Caveat("No DE conclusion is drawn for this block.")],
                     ))
                     continue
-                n_sig = comp.get("n_significant_global", comp.get("n_significant", 0))
+                # Primary significance count follows the FDR strategy the script
+                # applied. Legacy results without fdr_strategy keep global wording.
+                strategy = comp.get("fdr_strategy", "global")
+                fdr_label = ("per-cluster FDR" if strategy == "per_cluster"
+                             else "global-FDR")
+                n_sig = comp.get("n_significant", comp.get("n_significant_global", 0))
                 if not n_sig:
                     continue
                 evidence = [
-                    _evidence("global-FDR DE genes", n_sig, "pseudobulk_de"),
+                    _evidence("global-FDR DE genes",
+                              comp.get("n_significant_global", n_sig), "pseudobulk_de"),
                     _evidence(
                         "local-FDR DE genes",
                         comp.get("n_significant_local", comp.get("n_significant", 0)),
                         "pseudobulk_de",
                     ),
-                    _evidence("up genes", comp.get("n_up_global", comp.get("n_up", 0)),
+                    _evidence("up genes", comp.get("n_up", comp.get("n_up_global", 0)),
                               "pseudobulk_de"),
                     _evidence(
                         "down genes",
-                        comp.get("n_down_global", comp.get("n_down", 0)),
+                        comp.get("n_down", comp.get("n_down_global", 0)),
                         "pseudobulk_de",
                     ),
                 ]
@@ -279,11 +285,18 @@ class ScrnaNarrator:
                         "pseudobulk_de",
                     ))
                 caveats = []
-                if pb.get("lognorm_recovered"):
+                # F-SCI-LOGNORM (audit 2026-05-28): counts recovered from
+                # log-normalized values are quantitatively unreliable for the NB
+                # dispersion estimate DESeq2 depends on. Surface the caveat AND
+                # cap this block's confidence so the report never presents
+                # recovered-count DE at the same trust level as raw-count DE.
+                lognorm_recovered = bool(pb.get("lognorm_recovered"))
+                if lognorm_recovered:
                     caveats.append(Caveat(
                         "Counts were reverse-engineered from log-normalized "
                         "values (raw counts were not available); DESeq2 inputs "
-                        "are approximate integer reconstructions.",
+                        "are approximate integer reconstructions, so effect "
+                        "sizes and dispersion are only directionally reliable.",
                         "warning",
                     ))
                 if comp.get("low_power_warning"):
@@ -310,8 +323,8 @@ class ScrnaNarrator:
                     block_type="result",
                     title=f"{group} {comp_key}",
                     status="success",
-                    confidence="medium",
-                    claim=f"{group} {comp_key} had {n_sig} global-FDR DE genes.",
+                    confidence="low" if lognorm_recovered else "medium",
+                    claim=f"{group} {comp_key} had {n_sig} {fdr_label} DE genes.",
                     evidence=evidence,
                     caveats=caveats,
                     metrics={
@@ -321,6 +334,9 @@ class ScrnaNarrator:
                         ),
                         "power_estimate_at_lfc_min": comp.get(
                             "power_estimate_at_lfc_min"
+                        ),
+                        "power_estimate_at_effective_alpha": comp.get(
+                            "power_estimate_at_effective_alpha"
                         ),
                         "corrected_for_composition": bool(
                             comp.get("corrected_for_composition")

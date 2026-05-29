@@ -137,6 +137,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
     padj_max                      = float(params.get("padj_max", 0.05))
     lfc_min                       = float(params.get("lfc_min", 0.5))
     top_n                         = int(params.get("top_n", 50))
+    # F-SCI-FDR (audit 2026-05-28): which BH family defines "significant".
+    # 'per_cluster' = per-block BH (field standard, e.g. muscat/Crowell 2020;
+    # decouples unrelated cell types). 'global' = one BH family pooled across
+    # gene x cell-type x contrast (whole-experiment FDR control, conservative).
+    # Both adjusted p-values are always computed and reported; this selects the
+    # primary significance call only. Default per_cluster.
+    fdr_strategy                  = str(params.get("fdr_strategy", "per_cluster")).lower()
+    if fdr_strategy not in ("per_cluster", "global"):
+        fdr_strategy = "per_cluster"
     output_dir                    = params.get("output_dir")
     auto_paired_donor_covariate   = bool(
         params.get("auto_paired_donor_covariate", True)
@@ -525,8 +534,18 @@ def rna_pseudobulk_de(params: dict) -> dict:
         global_pvals.extend(pvals[valid].tolist())
 
     n_tests_global = int(len(global_pvals))
+    # F-SCI-POWER (audit 2026-05-28): the empirical BH cutoff is the largest
+    # raw p-value whose global-BH adjusted value still clears padj_max. This is
+    # the per-test alpha actually applied, which is far stricter than the
+    # nominal alpha used for the planning power estimate. Reporting power at
+    # this effective alpha reconciles the "power vs decision rule" gap.
+    effective_alpha_global = None
     if n_tests_global:
         padj_global = _global_bh(global_pvals)
+        _gp = np.asarray(global_pvals, dtype=float)
+        _pg = np.asarray(padj_global, dtype=float)
+        _passing = _gp[_pg < padj_max]
+        effective_alpha_global = float(_passing.max()) if _passing.size else 0.0
         cursor = 0
         for block in successful_blocks:
             res = block["results"]
@@ -547,39 +566,62 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 & (res["log2FoldChange"].abs() > lfc_min)
             ].sort_values("padj_global")
 
+            # Primary significance set follows fdr_strategy. 'padj' in each
+            # record mirrors the primary adjusted p-value so downstream ORA and
+            # narrative use the chosen family; padj_local/padj_global are always
+            # carried for audit.
+            if fdr_strategy == "global":
+                sig_primary = sig_global
+                primary_padj_col = "padj_global"
+            else:
+                sig_primary = sig_local
+                primary_padj_col = "padj_local"
+
             top_records = [
                 {"gene":        str(g),
                  "log2fc":      round(float(row["log2FoldChange"]), 3),
                  "pvalue":      float(row["pvalue"]),
-                 "padj":        float(row["padj_global"]),
+                 "padj":        float(row[primary_padj_col]),
                  "padj_local":  float(row["padj_local"]),
                  "padj_global": float(row["padj_global"]),
                  "basemean":    round(float(row["baseMean"]), 1)}
-                for g, row in sig_global.head(top_n).iterrows()
+                for g, row in sig_primary.head(top_n).iterrows()
             ]
             all_records = [
                 {"gene":        str(g),
                  "log2fc":      round(float(row["log2FoldChange"]), 3),
                  "pvalue":      float(row["pvalue"]),
-                 "padj":        float(row["padj_global"]),
+                 "padj":        float(row[primary_padj_col]),
                  "padj_local":  float(row["padj_local"]),
                  "padj_global": float(row["padj_global"])}
-                for g, row in sig_global.iterrows()
+                for g, row in sig_primary.iterrows()
             ]
 
             comp.update({
-                "n_significant":        int(len(sig_global)),
+                "fdr_strategy":         fdr_strategy,
+                "n_significant":        int(len(sig_primary)),
                 "n_significant_local":  int(len(sig_local)),
                 "n_significant_global": int(len(sig_global)),
-                "n_up":                 int((sig_global["log2FoldChange"] > 0).sum()),
+                "n_up":                 int((sig_primary["log2FoldChange"] > 0).sum()),
                 "n_up_local":           int((sig_local["log2FoldChange"] > 0).sum()),
                 "n_up_global":          int((sig_global["log2FoldChange"] > 0).sum()),
-                "n_down":               int((sig_global["log2FoldChange"] < 0).sum()),
+                "n_down":               int((sig_primary["log2FoldChange"] < 0).sum()),
                 "n_down_local":         int((sig_local["log2FoldChange"] < 0).sum()),
                 "n_down_global":        int((sig_global["log2FoldChange"] < 0).sum()),
                 "top_genes":            top_records,
                 "all_sig":              all_records,
             })
+
+            # Power at the effective (global-BH) threshold, not just nominal.
+            if effective_alpha_global and effective_alpha_global > 0:
+                nreps = comp.get("n_replicates", {}) or {}
+                comp["power_estimate_at_effective_alpha"] = pseudobulk_power_estimate(
+                    n_per_group=(nreps.get("test", 0), nreps.get("ref", 0)),
+                    dispersion_estimate=comp.get("dispersion_estimate") or 0.1,
+                    target_log2fc=lfc_min,
+                    alpha=effective_alpha_global,
+                    mean_expression=comp.get("mean_expression_estimate") or 100.0,
+                )
 
             for r in all_records:
                 csv_rows.append({
@@ -635,6 +677,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "background_size":  len(background_genes),
         "background_source": "dataset_expressed_genes",
         "multiple_testing": {
+            "fdr_strategy":   fdr_strategy,
+            "primary_family": ("per-cluster BH" if fdr_strategy == "per_cluster"
+                               else "global pooled BH"),
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
@@ -646,13 +691,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
         # the applied threshold. Disclosed so Methods can state it honestly.
         "power": {
             "alpha_nominal":  padj_max,
+            "effective_alpha_global": effective_alpha_global,
             "method":         "approximate NB-Wald (closed form)",
             "applied_threshold": "global BH-FDR",
             "note": (
-                "Power is computed at the nominal per-test alpha; the applied "
-                "significance threshold is global BH-FDR across all blocks, so "
-                "reported power overestimates the effective power at the "
-                "threshold actually used."
+                "power_estimate_at_lfc_min is computed at the nominal per-test "
+                "alpha and is an UPPER BOUND. Significance is declared with "
+                "global BH-FDR across all blocks; the empirical per-test cutoff "
+                "is effective_alpha_global. power_estimate_at_effective_alpha "
+                "reports power at that stricter, actually-applied threshold."
             ),
         },
         "thresholds":     {"padj_max": padj_max, "lfc_min": lfc_min,
