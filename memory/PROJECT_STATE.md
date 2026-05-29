@@ -19,7 +19,7 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
   untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
   Verify the exact hash with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
@@ -144,6 +144,29 @@ evidence-tier badge per block. Durable policy: ADR-013.
 Validation: compileall pass; `tests/test_claim_compiler.py` + causal-guard +
 narrative render/narrator -> 20 passed; full smoke + narrative + claim compiler
 -> 109 passed / 4 skipped.
+
+## X8 / X9 Scientific QC (integration + annotation)
+
+Closed on top of `63a7735`. Two pure, unit-tested assessors + scRNA wiring +
+a narrative data-quality block.
+
+- **X8** `aria/utils/integration_qc.py` — `assess_integration_quality` turns
+  integration silhouettes into explicit findings: residual batch effect
+  (under-correction), worsened mixing, and possible overcorrection (negative
+  cluster silhouette while batches mixed) — not a passive number.
+- **X9** `aria/utils/annotation_qc.py` — `assess_annotation_coherence` is
+  data-driven, no hardcoded marker map (ADR-011): reused obs labels with no
+  recomputed markers are flagged `unverified`; computed labels lacking a
+  distinct marker signature are flagged. Stated limitation: cannot catch a
+  distinct-but-misnamed cluster without a reference.
+- Wiring: `scrna_agent` computes `findings['integration_qc']` (after clustering,
+  only when integration ran) and `findings['annotation_qc']` (after annotation);
+  `ScrnaNarrator._data_quality_blocks` emits a `scrna.data_quality` limitation
+  block with the issues as caveats.
+
+Validation: compileall pass; `tests/test_integration_annotation_qc.py` 8 passed;
+narrator + qc 13 passed; full smoke + narrative + claim compiler 109 passed /
+4 skipped.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

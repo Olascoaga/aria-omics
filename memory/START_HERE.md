@@ -17,7 +17,7 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
   untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
   `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.2`
@@ -77,6 +77,13 @@ Read this file first in every ARIA session.
   gains a `claims` manifest; HTML shows an evidence-tier badge; ADR-013 records
   the policy. Validation: claim-compiler+guard+narrative 20 passed, full smoke
   109 passed / 4 skipped.
+- X8/X9 scientific QC closed on top of `63a7735`:
+  `aria/utils/integration_qc.py` flags integration overcorrection / residual
+  batch from silhouettes, and `aria/utils/annotation_qc.py` flags reused obs
+  labels as unverified (or lacking distinct markers) — data-driven, no
+  hardcoded marker map (ADR-011). Surfaced via `scrna_agent` findings +
+  a `scrna.data_quality` narrative block. Validation: qc 8 passed, narrator+qc
+  13 passed, full smoke 109 passed / 4 skipped.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

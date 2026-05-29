@@ -54,6 +54,7 @@ class ScrnaNarrator:
         findings = _narrative_scrna.unwrap_scrna_findings(agent_result)
         blocks: list[NarrativeBlock] = []
         blocks.extend(self._qc_blocks(findings))
+        blocks.extend(self._data_quality_blocks(findings))
         blocks.extend(self._error_blocks(findings))
         blocks.extend(self._composition_blocks(findings))
         blocks.extend(self._pseudobulk_blocks(findings))
@@ -126,6 +127,35 @@ class ScrnaNarrator:
             claim=claim,
             evidence=evidence or [_evidence("QC status", "completed", "qc")],
             metrics={k: v for k, v in qc.items() if isinstance(v, (int, float, str))},
+        )]
+
+    def _data_quality_blocks(self, findings: dict) -> list[NarrativeBlock]:
+        """X8/X9: surface integration-overcorrection and annotation-coherence
+        red-flags as a visible limitation block instead of buried numbers."""
+        caveats = []
+        for key, label in (("integration_qc", "Integration"),
+                            ("annotation_qc", "Annotation")):
+            qc = findings.get(key) or {}
+            for issue in qc.get("issues", []) or []:
+                sev = "warning" if issue.get("severity") != "blocking" else "blocking"
+                caveats.append(Caveat(
+                    f"{label}: {issue.get('message', '')} "
+                    f"{issue.get('recommendation', '')}".strip(),
+                    sev,
+                ))
+        if not caveats:
+            return []
+        return [NarrativeBlock(
+            id="scrna.data_quality",
+            modality="scRNA-seq",
+            analysis="data_quality",
+            block_type="limitation",
+            title="Data quality & integration checks",
+            status="warnings",
+            confidence="medium",
+            claim="Automated quality checks flagged issues to review before "
+                  "interpreting downstream cell-type-resolved results.",
+            caveats=caveats,
         )]
 
     def _error_blocks(self, findings: dict) -> list[NarrativeBlock]:

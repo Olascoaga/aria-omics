@@ -187,6 +187,41 @@ def test_scrna_narrator_surfaces_design_matrix_warnings():
     assert any("Design-matrix warning" in c.text for c in pb.caveats)
 
 
+def test_scrna_narrator_emits_data_quality_block_for_qc_flags():
+    """X8/X9: integration-overcorrection and annotation-coherence flags must
+    surface as a visible data-quality limitation block."""
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    findings["integration_qc"] = {
+        "status": "warnings",
+        "issues": [{
+            "severity": "warning",
+            "check": "possible_overcorrection",
+            "message": "Cluster silhouette is negative; overcorrection.",
+            "recommendation": "Lower integration strength.",
+        }],
+    }
+    findings["annotation_qc"] = {
+        "status": "unverified",
+        "issues": [{
+            "severity": "warning",
+            "check": "annotation_unverified",
+            "message": "Reused obs annotations were not marker-verified.",
+            "recommendation": "Validate canonical markers manually.",
+        }],
+    }
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    dq = next((b for b in blocks if b.id == "scrna.data_quality"), None)
+    assert dq is not None
+    assert dq.block_type == "limitation"
+    texts = " ".join(c.text for c in dq.caveats)
+    assert "overcorrection" in texts.lower()
+    assert "marker-verified" in texts.lower()
+
+
 def test_scrna_narrator_methods_reuse_legacy_methods():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
 

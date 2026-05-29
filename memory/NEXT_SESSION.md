@@ -21,7 +21,7 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
   untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
   `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
@@ -444,10 +444,18 @@ associative, causal needs an interventional design; methodology.json gains a
 Validation: claim-compiler+guard+narrative 20 passed; full smoke 109 passed /
 4 skipped.
 
-Pre-ATAC integrity-freeze status: **X1–X7, X14, X17 are CLOSED.** Remaining
+**X8/X9 scientific QC are closed.** `aria/utils/integration_qc.py` flags
+integration overcorrection / residual batch from silhouettes;
+`aria/utils/annotation_qc.py` flags reused obs labels as unverified or lacking
+distinct markers (data-driven, no hardcoded marker map, ADR-011). Surfaced via
+`scrna_agent` findings + a `scrna.data_quality` narrative block. Validation:
+qc 8 passed, narrator+qc 13 passed, full smoke 109 passed / 4 skipped.
+
+Pre-ATAC integrity-freeze status: **X1–X9, X14, X17 are CLOSED.** Remaining
 audit items (lower priority, can run alongside or after v4.6): X10 privacy
-firewall, X13 DataAudit scan limits, X11/X12 DebateCouncil cost +
-ParameterAdvisor bias guardrails, X8 integration QA red-flags, X9 annotation
-marker-coherence, and the research-track X15/X16/X18/X19/X20. The original
-deferred engineering items (bus persistence, apeglm shrinkage, IHW FDR,
-god-file splits, FASTQ-path tests) also remain in the audit file.
+firewall, X11/X12 DebateCouncil cost + ParameterAdvisor bias guardrails, X13
+DataAudit scan limits, X18 spatial scaffold, and the research-track
+X15/X16/X19/X20. The original deferred engineering items (bus persistence,
+apeglm shrinkage, IHW FDR, god-file splits, FASTQ-path tests) also remain in
+the audit file. The pre-ATAC integrity freeze is essentially complete; v4.6
+scATAC can begin, inheriting these contracts.

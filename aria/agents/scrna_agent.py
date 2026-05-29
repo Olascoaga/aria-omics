@@ -181,6 +181,27 @@ class scRNAAgent(BaseAgent):
                     "findings": findings}
         current_h5ad = cluster_result["output_path"]
 
+        # X8: integration QC red-flags (overcorrection / residual batch).
+        # Surfaced as a structured finding instead of a passive silhouette
+        # number, only when integration actually ran.
+        integ = findings.get("integration") or {}
+        if integ.get("status") == "success":
+            try:
+                from aria.utils.integration_qc import assess_integration_quality
+                cluster_sil = (
+                    cluster_result.get("silhouette")
+                    if cluster_result.get("silhouette") is not None
+                    else getattr(cluster_decision, "metadata", {}).get("silhouette")
+                    if hasattr(cluster_decision, "metadata") else None
+                )
+                findings["integration_qc"] = assess_integration_quality(
+                    integ.get("silhouette_before"),
+                    integ.get("silhouette_after"),
+                    cluster_sil,
+                )
+            except Exception as exc:
+                log.warning(f"Integration QC assessment failed: {exc}")
+
         # 4. Annotation ───────────────────────────────────────────────────
         # When clustering used a pre-existing cell-type col, the annotation
         # IS that column — we skip CellTypist and synthesise the findings.
@@ -205,6 +226,26 @@ class scRNAAgent(BaseAgent):
         # the cell_type_celltypist column on the new annotated.h5ad.
         if annotation.get("annotated_h5ad"):
             current_h5ad = annotation["annotated_h5ad"]
+
+        # X9: annotation-coherence check. Reused obs labels are trusted with no
+        # marker verification (the fast path leaves top_markers empty), so flag
+        # them as unverified; for computed clusters, flag labels lacking a
+        # distinct marker signature. Data-driven, no hardcoded marker map.
+        try:
+            from aria.utils.annotation_qc import assess_annotation_coherence
+            top_markers = cluster_result.get("top_markers", {}) or {}
+            reused = bool(cluster_result.get("predef_clusters"))
+            markers_present = any(
+                len(m or []) > 0 for m in top_markers.values()
+            )
+            findings["annotation_qc"] = assess_annotation_coherence(
+                top_markers,
+                cluster_result.get("cluster_sizes", {}),
+                reused=reused,
+                markers_verified=markers_present,
+            )
+        except Exception as exc:
+            log.warning(f"Annotation QC assessment failed: {exc}")
 
         # 5. DE per cluster (always when ≥2 clusters) ─────────────────────
         de_result = None

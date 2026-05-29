@@ -374,13 +374,19 @@ Scientific contracts & validation:
   (IA1 sci #1, IA2 4.4/5.3). Implemented in
   `aria.utils.design_matrix`, surfaced in DesignIntelligence/AuditAgent, and
   enforced before bulk/scRNA DESeq2 calls.
-- ☐ **X8** Integration QA as red flags: negative silhouette / poor LISI/kBET
-  must raise a flagged AuditAgent finding (overcorrection), not a passive
-  report line (IA1 sci #3). Folds into the deferred integration-QA item.
-- ☐ **X9** Annotation-reuse marker-coherence check: when reusing `obs` labels,
-  verify canonical markers are consistent (avoid mislabeled atlas/species
-  annotations) (IA1 sci #4). Mind ADR-011: use a generic, documented marker
-  reference, flag-only.
+- ✅ **X8** Integration QA red flags (`aria/utils/integration_qc.py`):
+  `assess_integration_quality` turns integration silhouettes into explicit
+  findings — residual batch effect (under-correction), worsened mixing, and
+  possible overcorrection (negative cluster silhouette). Surfaced via
+  `scrna_agent` (`findings['integration_qc']`) and a narrative data-quality
+  block (IA1 sci #3). LISI/kBET remain a future add; the framework accepts them.
+- ✅ **X9** Annotation-coherence check (`aria/utils/annotation_qc.py`):
+  `assess_annotation_coherence` is **data-driven, no hardcoded marker map**
+  (ADR-011): reused obs labels with no recomputed markers are flagged
+  `unverified`; computed labels lacking a distinct marker signature are flagged.
+  Honest limitation stated: it cannot catch a distinct-but-misnamed cluster
+  without a reference. Surfaced via `scrna_agent` (`findings['annotation_qc']`)
+  + the data-quality block (IA1 sci #4).
 - ☐ **X10** Privacy firewall: `ARIA_AIR_GAPPED` app-level network block + LLM
   prompt redactor (sample-name → token map, kept locally) + human-data cache
   policy (IA1 missing #2, IA2 2.5/5.5).
@@ -529,9 +535,9 @@ biological conclusions under a scaffold level — the proper resolution
 validation milestone. Recorded as ADR-012 in `DECISIONS.md`.
 
 Status: X1, X2, X3, X4, X17 are CLOSED in this v4.5.3 work (committed, not
-tagged — no `v4.5.3` tag was created). X5, X7, X6, and the flagship X14 closed
-afterwards (separate commits). Remaining external-audit items (X10–X13, X15,
-X16, X18–X20) stay open in the plan above.
+tagged — no `v4.5.3` tag was created). X5, X7, X6, the flagship X14, and the
+scientific-QC pair X8/X9 closed afterwards (separate commits). Remaining
+external-audit items (X10–X13, X15, X16, X18–X20) stay open in the plan above.
 
 ## X6 synthetic-DE benchmark execution log (2026-05-28)
 
@@ -608,3 +614,33 @@ Validation:
   tests/test_narrative_render_blocks.py tests/test_narrator_scrna.py` -> 20 passed
 - full: `pytest tests/test_pytest_smoke.py + narrative kernel + claim compiler`
   -> 109 passed / 4 skipped
+
+## X8 / X9 scientific-QC execution log (2026-05-28)
+
+Closed on top of the X14 commit. Two pure, fully-unit-tested assessors plus
+surgical scRNA wiring + a narrative data-quality block.
+
+- `aria/utils/integration_qc.py` — `assess_integration_quality(silhouette_before,
+  silhouette_after, cluster_silhouette)` flags residual batch effect
+  (under-correction), worsened mixing, and possible overcorrection (negative
+  cluster silhouette while batches mixed). Convention matches `rna_integration`
+  (batch silhouette lower = better mixing) and `rna_clustering`/
+  `rna_advise_resolution` (cluster silhouette higher = cleaner structure).
+- `aria/utils/annotation_qc.py` — `assess_annotation_coherence(top_markers,
+  cluster_sizes, *, reused, markers_verified)` is data-driven and ADR-011-clean:
+  reused labels with no recomputed markers -> `unverified`; computed labels with
+  fewer than `min_markers` distinct top markers -> flagged. Cannot detect a
+  distinct-but-misnamed cluster without a reference (stated, not hidden).
+- `scrna_agent`: computes `findings['integration_qc']` after clustering (only
+  when integration ran) and `findings['annotation_qc']` after annotation
+  (reused path -> unverified because the fast path leaves top_markers empty).
+- `ScrnaNarrator._data_quality_blocks`: emits a `scrna.data_quality` limitation
+  block with the issues as caveats when either QC has findings.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `pytest tests/test_integration_annotation_qc.py` -> 8 passed
+- `pytest tests/test_narrator_scrna.py tests/test_integration_annotation_qc.py`
+  -> 13 passed
+- full: smoke + narrator + claim compiler + render -> 109 passed / 4 skipped
