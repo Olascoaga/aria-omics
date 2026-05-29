@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: project_state
-last_updated: 2026-05-28
+last_updated: 2026-05-29
 supersedes:
   - archive/sessions/2026-05-14_close.md
   - archive/handoffs/CODEX_ARIA_HANDOFF_2026-05-12.md
@@ -24,11 +24,14 @@ supersedes:
 - Current HEAD: the v4.5.4 scientific-honesty commit on top of `bab6fbd`,
   tagged `v4.5.4`, `aria.__version__` = `4.5.4`, = `origin/main`.
   Verify the exact hash with `git log --oneline --decorate -5`.
-- v4.5.2 release commit: `ca8b169`
-  (`v4.5.2 narrative kernel`).
-- Last stable tag: `v4.5.2`
-  (`v4.5.2 narrative kernel`).
-- Previous stable tag: `v4.5.1` (`a0b33dd`,
+- Last stable tag: `v4.5.4`
+  (`v4.5.4 scientific-honesty hardening`; per-cluster pseudobulk FDR default,
+  power-at-effective-alpha disclosure, and log-norm recovery confidence cap).
+- Previous stable tag: `v4.5.3` (`bab6fbd`,
+  pre-ATAC integrity freeze: X1-X9/X14/X17).
+- Earlier stable tag: `v4.5.2` (`ca8b169`,
+  `v4.5.2 narrative kernel`).
+- Previous stable tag before that: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).
 - Previous base tag: `v4.5` (`1d54cc0`,
   `v4.5 raw ingestion bridge`).
@@ -54,20 +57,22 @@ supersedes:
   - `v4.4` -> `cbcde8e`
   - `v4.5` -> `1d54cc0`
   - `v4.5.1` -> `a0b33dd`
-  - `v4.5.2` -> narrative kernel release commit
+  - `v4.5.2` -> `ca8b169`
+  - `v4.5.3` -> `bab6fbd`
+  - `v4.5.4` -> current HEAD scientific-honesty hardening
 
 Do not move existing tags. Use a new patch tag if one is ever needed.
 
 ## Current Release Boundary
 
-The 4.3 line remains closed to broad new modality features. `v4.4` is the
-latest stable scientific/reproducibility baseline for RNA workflows and report
-provenance. `v4.3.12` remains the historical stable baseline for bulk RNA and
-scRNA workflows; `v4.3.12.post1` marks report-fidelity fixes; `d3de169`
-removed dataset-specific runtime narrative guardrails after the post1 tag.
-`v4.3.18` made Design Intelligence choices explicit. `v4.3.19` closes four
-P0 audit findings against documented principles and aligns release docs/version
-metadata.
+The 4.3 line remains closed to broad new modality features. `v4.5.4` is the
+current stable RNA/reporting baseline. It inherits the v4.4 publication
+readiness guarantees, v4.5/v4.5.1 raw ingestion, v4.5.2 Narrative Kernel, and
+v4.5.3 pre-ATAC integrity freeze, then changes pseudobulk significance to a
+per-cluster FDR default by design. Historical report counts from pre-v4.5.4
+global-FDR runs must not be compared as if the decision rule were unchanged.
+`v4.4` remains the publication-readiness provenance milestone; `v4.3.12`
+remains the historical stable baseline for older bulk RNA and scRNA workflows.
 
 ## X7 Design-Matrix Validator
 
@@ -349,7 +354,7 @@ seven-question peer-reviewer test.
 |------|------------|-------|
 | T1.3 | ✅ done    | Commit `e8fc846`. Default n=3; low_power_warning at n=2; DI downgrade. 4 new tests; 42 pytest + 30 legacy bulk + 2 rna-env-gated all green. |
 | T1.1 | ✅ done    | Commit `52bf703`. New `rna_diff_abundance.py` (Poisson-offset GLM + Fisher fallback); `composition_covariate` param in pseudobulk DE; scrna_agent wires DA before DE and gates the covariate on `any_significant`; new "Cell-type abundance" narrative section; DE header reports composition-corrected count. 4 new tests; 45 pytest + 30 legacy + 3 rna-env-gated all green. |
-| T1.2 | ✅ done | Commit `ab246ca`. `rna_pseudobulk_de.py` now carries `padj_local`, `padj_global`, `multiple_testing.n_tests_global`, and global-FDR counts; narrative and ORA use global-FDR significant genes by default. Wording tightened in `efa7136`. |
+| T1.2 | ✅ done | Commit `ab246ca`. `rna_pseudobulk_de.py` carries `padj_local`, `padj_global`, `multiple_testing.n_tests_global`, and global-FDR counts; v4.4/v4.5.2 reports used global-FDR significance by default. Wording tightened in `efa7136`. Superseded in `v4.5.4`: per-cluster FDR is now the primary default while both FDR families remain reported. |
 | T1.4 | ✅ done | Commit `ab246ca`. scRNA and bulk ORA pass dataset-expressed backgrounds; reports surface `background_size` / `background_source`; gseapy background incompatibility falls back visibly. |
 | T1.5 | ✅ done | Commit `ab246ca`. `aria.utils.power_estimation` adds NB-Wald approximate power; pseudobulk and bulk blocks surface `power_estimate_at_lfc_min`; methods report power ranges. |
 | T2.1-T2.5 | ✅ done | `ab246ca` implemented provenance block, input SHA-256, params hashes, lockfile embed/warning, `methodology.json`, `--reproducible`, and memory snapshot. `efa7136` tightened Stage C report blockers: nested params hashes, LLM token/cost report table, clearer global-FDR wording, scRNA params-hash propagation, and `idr` moved to conda for the chromatin env. `ac48599` closed the residual: `inputs` are now persisted in `methodology.json`, and `generate_locks.sh` switched to snapshot-from-installed (`conda list --explicit` + `pip freeze`) so the solver hang no longer blocks the v4.4 closeout. Final PBMC Stage C real-data validation passed on 2026-05-20. |
@@ -747,12 +752,10 @@ NOTE: the confirmation run timed out at 900s before the HTML finished (full-PBMC
 pseudobulk+ORA is slow); a longer-timeout rerun for a complete v4.5.2 report is
 still worth recording, but the scientific-depth regression itself is closed.
 
-### v4.5.3 Integrity & Trust local implementation
-
-Implemented locally after `27d4b15` (not tagged at time of writing):
+### v4.5.3 Integrity & Trust tag
 
 - `aria/version.py` is now the single version source; package, setup, TUI, LLM
-  module, and installer metadata report `4.5.3`.
+  module, and installer metadata report from the shared version file.
 - `install.sh` no longer writes LLM API keys to `~/.bashrc`; keys stay in
   `~/.aria/.env` (`chmod 600`) and are exported only for the current installer
   process.
@@ -772,3 +775,6 @@ Validation:
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
 - Combined targeted + smoke -> 94 passed, 4 skipped
 - `git diff --check` -> pass
+
+This work was subsequently tagged as `v4.5.3` at `bab6fbd`; `v4.5.4` is now
+the current baseline on top of it.

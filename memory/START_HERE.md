@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: entrypoint
-last_updated: 2026-05-28
+last_updated: 2026-05-29
 ---
 
 # ARIA START HERE
@@ -50,12 +50,11 @@ Read this file first in every ARIA session.
   Re-validated 2026-05-28 (aria-env): targeted 10 passed, narrative kernel 17
   passed, smoke 86 passed / 4 skipped, compileall + diff-check clean. The
   versionable dependency/impact graph is `docs/architecture/code_graph.md`.
-- Local v4.5.3 Integrity & Trust work is implemented after `27d4b15` and
-  untagged: centralized version metadata, installer API-key hardening,
-  registry-integrity checks, chromatin scaffold dispatch gate, and tiered
-  `aria doctor`. Validation: compileall pass, targeted integrity tests 8
-  passed, smoke 86 passed / 4 skipped, combined targeted + smoke 94 passed /
-  4 skipped, diff-check pass.
+- `v4.5.3` Integrity & Trust was tagged at `bab6fbd`: centralized version
+  metadata, installer API-key hardening, registry-integrity checks, chromatin
+  scaffold dispatch gate, tiered `aria doctor`, typed IPC contracts, design
+  matrix validation, synthetic-DE benchmark, Claim Compiler, and X8/X9
+  scientific QC. `v4.5.4` is the current baseline on top of it.
 - X7 design-matrix validator is closed on top of `22c93ac`: shared validator,
   DesignIntelligence/AuditAgent surfacing, bulk/scRNA pseudobulk enforcement
   before DESeq2, and scRNA narrative caveats. Validation: compileall pass,

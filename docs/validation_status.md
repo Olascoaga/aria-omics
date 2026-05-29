@@ -1,6 +1,6 @@
 # Validation Status
 
-Last updated: May 2026.
+Last updated: May 29, 2026.
 
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
@@ -13,6 +13,11 @@ workflows from beta analysis paths and implementation scaffolds.
 | scRNA single-sample | Validated | PBMC 3k and GSE278576 single-sample runs |
 | scRNA multi-sample | Validated | GSE278576 3-donor concat + Harmony workflow |
 | Processed h5ad pseudobulk | Validated | 40-donor hippocampus rerun completed analytically; report review confirmed pseudobulk, ORA, LIANA, trajectory, figures, and TSV exports |
+
+Current RNA/reporting baseline: `v4.5.4`. scRNA pseudobulk DE now defaults to
+per-cluster FDR for the primary significance call while still reporting global
+FDR for audit. Significant-gene counts can differ from pre-`v4.5.4` reports by
+design.
 
 ## Validated / Beta
 

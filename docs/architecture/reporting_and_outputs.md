@@ -37,6 +37,10 @@ small kernel under `aria.agents.narrative`.
   can audit claims, evidence, caveats, metrics, figures, and tables outside
   the HTML.
 
+As of `v4.5.4`, scRNA pseudobulk blocks name the FDR family used for the
+primary significance call. The default is per-cluster FDR; global FDR remains
+reported as audit context.
+
 ## Main Outputs
 
 | Output | Purpose |

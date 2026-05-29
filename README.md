@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.5.2-blue)
+![Version](https://img.shields.io/badge/version-4.5.4-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -120,19 +120,21 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current stable baseline is `v4.5.2`: bulk RNA + scRNA core paths are
+The current stable baseline is `v4.5.4`: bulk RNA + scRNA core paths are
 closed for practical use, publication-readiness provenance is embedded in
 reports, raw-ingestion planning/conversion is available for supported 10X
-inputs, and the report narrative is composed from validated modality blocks
-for scRNA and bulk RNA.
+inputs, and reports are composed from validated modality blocks for scRNA and
+bulk RNA.
 
-A post-`v4.5.2` pre-ATAC integrity-and-trust pass (`aria.__version__`
-`4.5.3`, untagged) hardened the platform before new modalities: centralized
-version metadata, installer secret hygiene, a registry-integrity contract test,
-scaffold dispatch gating, typed script IPC contracts, a design-matrix validator
-before DESeq2, a synthetic ground-truth DE benchmark, and the **Claim Compiler**
-(evidence-tiered claims with per-claim manifests). See
-`memory/audit/2026-05-28_senior_audit.md` for the tracked plan.
+`v4.5.3` tagged the pre-ATAC integrity freeze: centralized version metadata,
+installer secret hygiene, registry-integrity checks, scaffold dispatch gating,
+typed script IPC contracts, design-matrix validation before DESeq2, synthetic
+ground-truth DE benchmarking, scientific QC red flags, and the **Claim
+Compiler**. `v4.5.4` adds scientific-honesty hardening: pseudobulk scRNA now
+defaults to per-cluster FDR while still reporting global FDR, power is reported
+against the effective global-BH threshold, and log-normalized count recovery is
+visibly low-confidence. Pseudobulk significant-gene counts can differ from
+pre-`v4.5.4` reports by design.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 

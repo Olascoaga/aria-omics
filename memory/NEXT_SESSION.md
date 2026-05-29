@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: next_session
-last_updated: 2026-05-28
+last_updated: 2026-05-29
 supersedes:
   - archive/sessions/2026-05-14_close.md
 ---
@@ -39,9 +39,8 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: the X8/X9 scientific-QC commit on top of `63a7735` (after X14),
-  untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
-  `git log --oneline --decorate -5`.
+- Current HEAD is `v4.5.4` (`b7cd67f` at last verification), tagged and pushed
+  on `origin/main`. Verify the exact hash with `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -71,9 +70,13 @@ supersedes:
   min replicates/power, input SHA-256, and LLM token/cost accounting.
   `git_dirty=True` is attributable to unrelated untracked `codigo_aria.txt`;
   tracked files had no diff.
-- Last stable tag: `v4.5.2`
+- Last stable tag: `v4.5.4`
+  (`v4.5.4 scientific-honesty hardening`; per-cluster pseudobulk FDR default).
+- Previous stable tag: `v4.5.3` (`bab6fbd`,
+  pre-ATAC integrity freeze).
+- Earlier stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
-- Previous stable tag: `v4.5.1` (`a0b33dd`,
+- Previous stable tag before that: `v4.5.1` (`a0b33dd`,
   `v4.5.1 add gated kb ingestion execution`).
 - Previous base tag: `v4.5` (`1d54cc0`,
   `v4.5 raw ingestion bridge`).
@@ -81,10 +84,10 @@ supersedes:
   (`Close P0 audit findings for v4.3.19`).
 - P1 audit fixes landed in `3054318` on top of `v4.5.1` (untagged) —
   see "Audit Follow-ups After v4.5.1" below for the full list.
-- **`v4.5.2` Narrative Kernel is the current pre-v4.6 reporting baseline.**
-  scRNA and bulk RNA report sections are composed from validated
-  `NarrativeBlock` objects via modality narrators. See "Narrative Kernel
-  v4.5.2" below.
+- **`v4.5.4` is the current pre-v4.6 reporting baseline.** It includes the
+  `v4.5.2` Narrative Kernel plus `v4.5.3` integrity freeze and `v4.5.4`
+  scientific-honesty defaults. scRNA and bulk RNA report sections are composed
+  from validated `NarrativeBlock` objects via modality narrators.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`,
   `Make design intelligence choices explicit`).
 - Maintenance tags after `v4.3.12.post1`:
@@ -422,11 +425,12 @@ verdicts + items X1–X20 are in the audit file. Their P0 "missing
 agents / broken core" claims are REJECTED as stale-snapshot artifacts
 (design/audit/raw_ingestion/design_intelligence agents and narrative narrators
 all exist). VERIFIED-real accepts form a cheap **"v4.5.3 Integrity & Trust"**
-mini-milestone before ATAC is implemented locally as `v4.5.3` metadata: X1
-central version source, X2 no API-key writes to `.bashrc`, X3 registry-integrity
-checks, X4 chromatin scaffold dispatch gate, and X17 tiered `aria doctor`.
-Validation: compileall pass, targeted integrity tests 8 passed, smoke 86 passed
-/ 4 skipped, combined targeted + smoke 94 passed / 4 skipped, diff-check pass.
+mini-milestone before ATAC; it was tagged at `bab6fbd` as `v4.5.3`: X1 central
+version source, X2 no API-key writes to `.bashrc`, X3 registry-integrity
+checks, X4 chromatin scaffold dispatch gate, and X17 tiered `aria doctor`
+(with X5-X9/X14 closed later in the same freeze). Validation: compileall pass,
+targeted integrity tests 8 passed, smoke 86 passed / 4 skipped, combined
+targeted + smoke 94 passed / 4 skipped, diff-check pass.
 
 **X7 design-matrix validator is closed.** `aria.utils.design_matrix` now
 validates rank deficiency, complete condition-covariate confounding,
