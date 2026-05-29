@@ -159,7 +159,7 @@ info "Core packages (required)..."
 pip install -q \
     anthropic>=0.25.0 litellm>=1.30.0 rich>=13.7.0 \
     tiktoken>=0.6.0 pyyaml>=6.0 requests>=2.31.0 \
-    tqdm>=4.66.0 click>=8.1.0
+    tqdm>=4.66.0 click>=8.1.0 pydantic>=2.0.0
 success "Core packages installed"
 
 info "Analysis packages..."

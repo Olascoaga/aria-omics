@@ -19,6 +19,7 @@ setup(
         "requests>=2.31.0",
         "tqdm>=4.66.0",
         "click>=8.1.0",
+        "pydantic>=2.0.0",
         "numpy>=1.24.0",
         "pandas>=2.0.0",
         "h5py>=3.9.0",

@@ -359,10 +359,11 @@ P0/cheap integrity (a "v4.5.3 Integrity & Trust" mini-milestone before ATAC):
 
 Scientific contracts & validation:
 
-- ☐ **X5** Typed IPC contracts (pydantic `ScriptContract`: input/output schema,
-  required files, `validation_level`) at the `EnvironmentManager` boundary —
-  fail with "incompatible schema/version", not an obscure KeyError (IA1 IPC,
-  IA2 4.1/4.3).
+- ✅ **X5** Typed IPC contracts (pydantic `ScriptContract`: input/output schema,
+  required files, `validation_level`) at the `EnvironmentManager` boundary.
+  Implemented in `aria.utils.script_contracts`; input/output contract failures
+  now return structured `InvalidScriptParams` or `IncompatibleScriptContract`
+  errors instead of obscure downstream failures.
 - ☐ **X6** Synthetic ground-truth benchmark (splatter/scDesign3) with known
   true DE genes — numerical-accuracy regression, not just flow (IA1 missing #1,
   IA2 5.6). Overlaps the P2 test-debt.
@@ -477,6 +478,38 @@ Validation:
   `test_chromatin_dispatch_gate`) -> 8 passed
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed / 4 skipped
 - `git diff --check` -> pass
+
+## X5 typed IPC contract execution log (2026-05-28)
+
+Implemented after `e616d30`:
+
+- Added pydantic-backed `aria/utils/script_contracts.py` with `ScriptContract`,
+  `ContractField`, `ContractIssue`, contract version `1.0`, required input
+  fields, required file checks, success-output checks, and validation levels.
+- `EnvironmentManager.run_in_stack` now validates registered script inputs
+  before writing IPC JSON or invoking conda, validates output JSON after script
+  completion, attaches `ipc_contract` metadata to valid outputs, and returns
+  structured contract errors.
+- Registered contracts for critical RNA and chromatin scripts:
+  `rna_qc`, `rna_clustering`, `rna_bulk_de`, `rna_diff_abundance`,
+  `rna_pseudobulk_de`, `rna_pathway_per_cluster`, `rna_cellcomm`,
+  `rna_trajectory`, `chromatin_qc`, and `chromatin_peaks`.
+- `registry_integrity` now checks IPC contract script existence and version
+  coherence.
+- `setup.py` and `install.sh` now include `pydantic>=2.0.0`.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `python -m pytest -q tests/test_script_contracts.py tests/test_registry_integrity.py tests/test_doctor.py` -> 10 passed
+- `python -m pytest -q tests/test_script_contracts.py tests/test_registry_integrity.py tests/test_doctor.py tests/test_chromatin_dispatch_gate.py tests/test_design_matrix_validator.py tests/test_narrator_scrna.py` -> 20 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed / 4 skipped
+- `aria doctor --smoke` via TUI -> pass with the expected tracked HiC scaffold warning
+- `git diff --check` -> pass
+- Legacy `python tests/test_environment_manager.py` was also attempted and
+  failed for pre-existing environmental reasons: scanpy/numba cache locator in
+  `aria-env` and leftover temp JSON files in `~/.aria/workspace`; no X5
+  contract failure was indicated by that legacy script.
 
 ### HiC scaffold-dispatch — DECIDED 2026-05-28 (accept as tracked warning)
 

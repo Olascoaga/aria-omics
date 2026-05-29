@@ -256,3 +256,29 @@ Implications:
   check for audit.
 - Narrative blocks must surface design-matrix warnings/caveats when a DE block
   completed under a non-clean design.
+
+## ADR-014 - EnvironmentManager Enforces Typed Script IPC Contracts
+
+Status: accepted (2026-05-28, X5 pre-ATAC remediation)
+
+Scripts executed through `EnvironmentManager` should have explicit IPC
+contracts for required inputs, required file paths, success-output fields,
+contract version, and validation level. The boundary must fail with structured
+contract errors before expensive execution when inputs are incompatible, and
+after execution when a script returns an incompatible payload.
+
+Implications:
+
+- `aria.utils.script_contracts.ScriptContract` is the source of typed script
+  IPC metadata.
+- Registered scripts validate input parameters before IPC JSON is written or
+  conda is invoked.
+- Registered scripts validate output JSON before the result reaches agents.
+- Input contract failures return `InvalidScriptParams`; output or version
+  mismatches return `IncompatibleScriptContract`.
+- Successful registered script outputs carry `ipc_contract` metadata with
+  script path, contract version, and validation level.
+- `registry_integrity` checks that registered IPC contracts reference existing
+  scripts and use the current contract version.
+- Unregistered scripts keep the legacy `_base.py` IPC path until contracts are
+  added; this avoids a broad migration cliff.

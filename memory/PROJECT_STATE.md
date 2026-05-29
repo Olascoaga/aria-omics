@@ -19,9 +19,10 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
-  `22c93ac`, untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
-  Verify the exact hash with `git log --oneline --decorate -5`.
+- Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
+  on top of `e616d30`, untagged, `aria.__version__` = `4.5.3`,
+  = `origin/main`. Verify the exact hash with
+  `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
@@ -86,6 +87,26 @@ as text. Invalid pseudobulk blocks are skipped with
 Validation: compileall pass; X7+narrator targeted 8 passed; narrative+X7 suite
 23 passed; integrity suite 8 passed; smoke 86 passed / 4 skipped; diff-check
 pass.
+
+## X5 Typed IPC Contracts
+
+Closed on top of `e616d30` as part of the pre-ATAC integrity freeze.
+`EnvironmentManager` now enforces typed script IPC contracts for registered
+scripts before and after subprocess execution:
+
+- contract source: `aria/utils/script_contracts.py`;
+- registered critical scripts: RNA QC/clustering/bulk DE/differential
+  abundance/pseudobulk/pathway/cellcomm/trajectory and chromatin QC/peaks;
+- input failures return `InvalidScriptParams`;
+- output or version mismatches return `IncompatibleScriptContract`;
+- successful registered outputs include `ipc_contract` metadata;
+- `registry_integrity` verifies contract script existence and version
+  coherence;
+- `pydantic>=2.0.0` is now an install/setup dependency.
+
+Validation: compileall pass; X5+registry/doctor 10 passed; combined
+X5+integrity+X7+narrator 20 passed; smoke 86 passed / 4 skipped; doctor smoke
+pass with expected HiC warning; diff-check pass.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

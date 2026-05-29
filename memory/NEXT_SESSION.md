@@ -21,9 +21,9 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
-  `22c93ac`, untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
-  with `git log --oneline --decorate -5`.
+- Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
+  on top of `e616d30`, untagged, `aria.__version__` = `4.5.3`. Verify the
+  exact hash with `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -419,6 +419,16 @@ and scRNA pseudobulk scripts before DESeq2. Validation: compileall pass,
 X7+narrator 8 passed, narrative+X7 23 passed, integrity 8 passed, smoke 86
 passed / 4 skipped, diff-check pass.
 
+**X5 typed IPC contracts are closed.** `aria.utils.script_contracts` defines
+pydantic `ScriptContract`s; `EnvironmentManager` validates registered script
+inputs before conda, validates output JSON after execution, returns
+`InvalidScriptParams` / `IncompatibleScriptContract`, and attaches
+`ipc_contract` metadata to valid outputs. `registry_integrity` checks contract
+script existence/version coherence. Validation: compileall pass, X5+
+registry/doctor 10 passed, combined X5+integrity+X7+narrator 20 passed, smoke
+86 passed / 4 skipped, doctor smoke pass with expected HiC warning, diff-check
+pass.
+
 Flagship deferred: X14 Claim Compiler (evolves the causal guard +
-NarrativeBlock kernel), X5 typed IPC contracts, X6 synthetic ground-truth
-benchmark, X10 privacy firewall.
+NarrativeBlock kernel), X6 synthetic ground-truth benchmark, X10 privacy
+firewall.

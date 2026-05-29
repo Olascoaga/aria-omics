@@ -27,6 +27,7 @@ import fcntl
 from pathlib import Path
 from typing import Any
 from aria.utils.provenance import hash_params
+from aria.utils.script_contracts import ContractIssue, contract_for_script
 
 shutil_rmtree = shutil.rmtree
 
@@ -157,7 +158,6 @@ class EnvironmentManager:
                 "details":    f"Unknown stack: '{stack}'. Valid: {list(self.STACKS)}",
             }
 
-        env_name    = self._resolve_env(stack)
         run_id      = str(uuid.uuid4())[:8]
         input_file  = self.workspace / f"input_{run_id}.json"
         output_file = self.workspace / f"output_{run_id}.json"
@@ -167,14 +167,7 @@ class EnvironmentManager:
         result: dict = {"status": "error"}
         succeeded = False
         try:
-            # 1. Write parameters to input file
-            with open(input_file, "w") as f:
-                json.dump(params, f)
-            (self.workspace / f"params_{run_id}.sha256").write_text(
-                params_sha256 + "\n"
-            )
-
-            # 2. Build command — resolve script path against package root
+            # 1. Build command — resolve script path against package root
             # (CWD-based resolution caused duplicate path bugs like
             # /aria/scripts/aria/scripts/foo.py when launched from aria/scripts/)
             resolved_script = _resolve_script_path(script_path)
@@ -190,6 +183,25 @@ class EnvironmentManager:
                 }
                 return result
 
+            contract = contract_for_script(resolved_script)
+            if contract is not None:
+                issues = contract.validate_params(params)
+                if issues:
+                    result = self._contract_error(
+                        stage="input",
+                        contract_path=contract.script_path,
+                        issues=issues,
+                    )
+                    return result
+
+            # 2. Write parameters to input file after schema validation.
+            with open(input_file, "w") as f:
+                json.dump(params, f)
+            (self.workspace / f"params_{run_id}.sha256").write_text(
+                params_sha256 + "\n"
+            )
+
+            env_name = self._resolve_env(stack)
             cmd = [
                 "conda", "run",
                 "--no-capture-output",   # let heavy C logs go to system stderr
@@ -240,6 +252,21 @@ class EnvironmentManager:
             with open(output_file, "r") as f:
                 result = json.load(f)
             result.setdefault("params_sha256", params_sha256)
+            if contract is not None:
+                issues = contract.validate_result(result)
+                if issues:
+                    result = self._contract_error(
+                        stage="output",
+                        contract_path=contract.script_path,
+                        issues=issues,
+                        params_sha256=params_sha256,
+                    )
+                    return result
+                result.setdefault("ipc_contract", {
+                    "script_path": contract.script_path,
+                    "contract_version": contract.contract_version,
+                    "validation_level": contract.validation_level,
+                })
 
             succeeded = (result.get("status") == "success")
             return result
@@ -281,6 +308,39 @@ class EnvironmentManager:
                 # Failure: preserve input + output for postmortem.
                 result.setdefault("params_sha256", params_sha256)
                 self._archive_failed_run(run_id, stack, input_file, output_file, result)
+
+    @staticmethod
+    def _contract_error(
+        stage: str,
+        contract_path: str,
+        issues: list[ContractIssue],
+        params_sha256: str | None = None,
+    ) -> dict[str, Any]:
+        issue_dicts = [issue.model_dump() for issue in issues]
+        version_issue = any(issue.field in {
+            "_aria_contract_version",
+            "contract_version",
+            "ipc_contract_version",
+        } for issue in issues)
+        result = {
+            "status": "error",
+            "error_type": (
+                "IncompatibleScriptContract"
+                if version_issue or stage == "output"
+                else "InvalidScriptParams"
+            ),
+            "details": (
+                f"{stage} IPC contract validation failed for "
+                f"{contract_path}: "
+                + "; ".join(issue.message for issue in issues)
+            ),
+            "contract_stage": stage,
+            "script_path": contract_path,
+            "contract_issues": issue_dicts,
+        }
+        if params_sha256:
+            result["params_sha256"] = params_sha256
+        return result
 
     def _archive_failed_run(self, run_id: str, stack: str,
                              input_file: Path, output_file: Path,

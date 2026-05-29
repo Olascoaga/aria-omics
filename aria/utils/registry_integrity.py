@@ -15,7 +15,7 @@ class IntegrityIssue:
     severity: str = "error"
 
 
-SCRIPT_CONTRACTS = {
+AGENT_SCRIPT_CONTRACTS = {
     "bulk_rna_agent": {
         "required": (
             "aria/scripts/rna_bulk_de.py",
@@ -80,6 +80,10 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
         MODALITY_TO_AGENT,
         MODALITY_VALIDATION,
     )
+    from aria.utils.script_contracts import (
+        CONTRACT_VERSION,
+        SCRIPT_CONTRACTS as IPC_SCRIPT_CONTRACTS,
+    )
 
     for agent_name, entry in AGENT_REGISTRY.items():
         try:
@@ -116,7 +120,7 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 severity="warning",
             ))
 
-    for agent_name, contract in SCRIPT_CONTRACTS.items():
+    for agent_name, contract in AGENT_SCRIPT_CONTRACTS.items():
         for script in _scripts(contract.get("required", ())):
             if not (root / script).exists():
                 issues.append(IntegrityIssue(
@@ -131,6 +135,21 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                     "planned_script_missing_unblocked",
                     f"{agent_name}: planned script missing without scaffold gate: {script}",
                 ))
+
+    for script, contract in IPC_SCRIPT_CONTRACTS.items():
+        if not (root / script).exists():
+            issues.append(IntegrityIssue(
+                "contract_script_missing",
+                f"IPC contract references missing script: {script}",
+            ))
+        if contract.contract_version != CONTRACT_VERSION:
+            issues.append(IntegrityIssue(
+                "contract_version_mismatch",
+                (
+                    f"{script}: contract version {contract.contract_version} "
+                    f"does not match runtime {CONTRACT_VERSION}"
+                ),
+            ))
 
     return issues
 
