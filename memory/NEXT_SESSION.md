@@ -397,3 +397,15 @@ pseudobulk dispatch. v4.5.2 scientific-depth validation is NOT closed.
 Deferred remediation items (steps in the audit file): IHW/hierarchical FDR,
 apeglm shrinkage, bus persistence, integration QA (LISI/kBET), ambient-RNA
 correction, god-file splits, FASTQ-path tests.
+
+**External AI audit adjudicated** (`auditoria.txt`, two static-GitHub audits):
+verdicts + items X1–X20 are in the audit file. Their P0 "missing
+agents / broken core" claims are REJECTED as stale-snapshot artifacts
+(design/audit/raw_ingestion/design_intelligence agents and narrative narrators
+all exist). VERIFIED-real accepts form a cheap **"v4.5.3 Integrity & Trust"**
+mini-milestone to do before ATAC: X1 version drift (`install.sh` says v4.3.12),
+X2 API keys written to `~/.bashrc`, X3 registry-integrity test, X4 ChromatinAgent
+calls missing `chromatin_motifs.py`/`chromatin_differential.py`, X17 tiered
+`aria doctor`. Flagship deferred: X14 Claim Compiler (evolves the causal guard +
+NarrativeBlock kernel), X5 typed IPC contracts, X6 synthetic ground-truth
+benchmark, X10 privacy firewall.

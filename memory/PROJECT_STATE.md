@@ -580,13 +580,28 @@ Deferred (documented with steps in the audit file): IHW/hierarchical FDR,
 apeglm shrinkage, bus persistence, integration QA (LISI/kBET), ambient-RNA
 correction, god-file splits, FASTQ-path tests.
 
-### PBMC v4.5.2 rerun — OPEN BLOCKER
+### PBMC v4.5.2 rerun blocker — DIAGNOSED + FIXED + CONFIRMED
 
-Headless rerun:
-`~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`.
-Provenance clean (`git_sha=0569689`, `aria_version=4.5.2`, input SHA
-`af0696e9…`, locks, LLM 3 calls/$0.0145). **But THIN vs the v4.4 d72 report:
-only QC + LIANA ran; pseudobulk DE / composition / pathway / trajectory did
-NOT execute.** Candidate v4.4→v4.5.2 scRNA-dispatch regression or cell-focus
-steering. The v4.5.2 scientific-depth validation is therefore NOT yet closed;
-diagnose before ATAC (isolation step in the audit file).
+The first headless rerun
+(`…interferonbeta_myeloidcells_lymphoidcell_-1db`) was provenance-clean but
+THIN: only QC + LIANA ran. **Root cause (isolated, not a guess):** NOT focus
+steering (`focus=[]`) and NOT a v4.4→v4.5.2 regression. `scRNAAgent._needs_pseudobulk`
+re-gated pseudobulk on `PSEUDOBULK_KEYWORDS` in the free-text question and
+silently overrode DesignIntelligence's recommendation + the user's CP2 plan;
+the IFN-β "response programs / signaling networks" phrasing carried no keyword
+(a d72-style "compare … versus control … differential" hits 4). Latent in v4.4
+too. Full forensics in `memory/audit/2026-05-28_senior_audit.md`.
+
+**Fix:** `_needs_pseudobulk` now honors the approved plan — explicit obs design
++ DI-recommended pseudobulk runs regardless of keywords; the keyword gate is a
+fallback only. Guard: `tests/test_pseudobulk_gate.py` (3 tests).
+
+**Confirmed empirically:** a rerun with the same keyword-free question now
+dispatches pseudobulk (memory decisions `groupby=cluster; condition=stim;
+replicate=Donor` + `composition_covariate=ON` reappear) and produced
+`pseudobulk_de.csv` with **3,376 DE genes across 11 STIM_vs_CTRL blocks** plus
+differential abundance — matching the v4.4 d72 depth (ISG20 up in STIM, as
+expected for IFN-β). Full suite: 100 passed / 4 skipped, zero regressions.
+NOTE: the confirmation run timed out at 900s before the HTML finished (full-PBMC
+pseudobulk+ORA is slow); a longer-timeout rerun for a complete v4.5.2 report is
+still worth recording, but the scientific-depth regression itself is closed.

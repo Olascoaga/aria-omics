@@ -266,13 +266,153 @@ trajectory did NOT run** — the decisions log has no pseudobulk/composition
 decision (d72 had `composition_covariate=ON`, `groupby=cluster; condition=stim;
 replicate=Donor`).
 
-This is a candidate **regression between v4.4 (`cbcde8e`) and v4.5.2
-(`0569689`)** in the scRNA dispatch/plan path, OR a cell-focus/question
-steering effect ("myeloid-lymphoid signaling" → focus subset). It is exactly
-the class of silent control-path regression F-ENG-E2E warns about. Must be
-diagnosed before ATAC. Suggested next step: rerun with the d72 question
-("monocytes, T cells, B cells") to isolate focus-steering from a true
-regression, and trace why `scrna_agent` did not dispatch pseudobulk.
+### DIAGNOSED 2026-05-28 — root cause + fix
+
+Isolation verdict (evidence-based, not a rerun guess):
+
+- **NOT cell-focus steering.** `methodology.design_intelligence.profiles[0].focus
+  == []` — no focus subset was applied.
+- **NOT a v4.4→v4.5.2 code regression.** The gate logic is unchanged; the
+  behavior difference is driven entirely by question phrasing.
+- **Root cause = silent plan/dispatch disagreement (latent in v4.4 too).**
+  `scRNAAgent._needs_pseudobulk` re-gated pseudobulk DE on
+  `PSEUDOBULK_KEYWORDS` matched against the free-text question, and that gate
+  **overrode** DesignIntelligence's recommendation + the user's CP2 approval.
+  The blocker question ("interferon-beta transcriptional response programs /
+  myeloid-lymphoid signaling networks") contains NONE of the keywords
+  (`compare`, `versus`, `differential`, `control`, `treatment`, …), so
+  `_needs_pseudobulk` returned False and DE was dropped **without a logged
+  decision or a reported skip** — while DesignIntelligence had recommended
+  `Donor/sample-level pseudobulk DE: condition=stim, replicate=Donor,
+  groupby=cluster` and the user selected "recommended + optional". A
+  d72-style question hits 4 keywords, which is why the v4.4 report ran DE.
+
+**Fix (committed):** `_needs_pseudobulk` now honors the approved plan — when
+there is an explicit obs design AND DesignIntelligence recommended pseudobulk,
+it runs regardless of question keywords. The keyword gate remains only as a
+fallback for designs with no DI recommendation (e.g. filename-inferred groups
+on a purely descriptive question). Regression guard:
+`tests/test_pseudobulk_gate.py` (3 tests).
+
+Follow-up worth considering: a run that silently drops a recommended/approved
+analysis is a report-integrity violation — the dispatch layer should at least
+emit a visible "planned but not run" finding whenever it diverges from the
+approved plan (candidate hardening, tracked).
+
+## External AI audit (auditoria.txt) — adjudication 2026-05-28
+
+Two external AIs audited ARIA **statically from GitHub (not executed, stale/
+partial snapshot)**. Each claim below was checked against the real code. The
+methodology caveat matters: several headline P0s are factually wrong because
+the snapshot missed files that exist on `main`.
+
+### REJECTED — false against the current tree (with evidence)
+
+- **"orchestrator references missing agents design_agent/audit_agent/
+  raw_ingestion_agent; central flow broken" (IA2 P0 2.1)** — FALSE. All exist
+  (`design_agent.py` 761 LOC, `audit_agent.py` 441, `raw_ingestion_agent.py`,
+  `design_intelligence.py` 371). The design state machine is now covered by
+  `tests/test_headless_design_e2e.py`.
+- **"DesignIntelligence absent" (5.3) / "no section narrators" (5.7)** —
+  FALSE. `design_intelligence.py` and `narrative/narrators/{scrna,bulk_rna}.py`
+  exist (the v4.5.2 Narrative Kernel already does evidence-card narrators).
+- **"SQLite free concurrent writes will corrupt state" (IA1 1.1)** —
+  OVERSTATED. `memory.py` already uses `check_same_thread=False` + `RLock`
+  serialization + `WAL`, and dispatch runs in a single daemon thread. The real
+  residual is durability, tracked as F-ENG-BUS.
+- **"Quantum superposition agent architecture" (IA1 novel #4)** — REJECT the
+  framing (buzzword); a modest reframe is accepted as X19.
+
+Lesson: the external audits would not have produced these false P0s if a
+registry-integrity test existed — which is itself a good accepted item (X3).
+
+### CROSS-REF — already done or already in this plan
+
+- lognorm recovery should be LOW/INSUFFICIENT, not a log line (IA1 sci #2) →
+  **DONE this session (P4a)**; can additionally force a confidence downgrade.
+- bus not durable (IA2 2.6) → F-ENG-BUS (deferred).
+- ambient RNA, LISI/kBET, effect-size shrinkage, per-sample QC, FASTQ-path
+  tests (IA2 4.4) → already in this file's deferred list.
+- reproducibility must be transitive/cryptographic (IA1 systemic #3) → the
+  Docker image digest in provenance is that answer; P2 (CI+Docker) started.
+- pseudobulk design/dispatch must honor the plan → the PBMC-blocker fix.
+
+### ACCEPTED — new items folded into the remediation plan
+
+P0/cheap integrity (a "v4.5.3 Integrity & Trust" mini-milestone before ATAC):
+
+- ☐ **X1** Centralize version (single source / `pyproject.toml`); fix
+  `install.sh` (says `v4.3.12`, code is `4.5.2`). VERIFIED drift.
+- ☐ **X2** Stop writing API keys to `~/.bashrc` (`install.sh:281-290`); use
+  `~/.aria/.env` with `chmod 600` only. VERIFIED security smell.
+- ☐ **X3** Registry-integrity test: import every `AGENT_REGISTRY` agent, assert
+  every referenced script exists, every modality has a validation level. Cheap,
+  high value; would catch X4 and would have disproven IA2 2.1.
+- ☐ **X4** `ChromatinAgent` references `chromatin_motifs.py` /
+  `chromatin_differential.py` which do NOT exist (only qc/peaks do). Mark
+  chromatin "scaffold" in the UI and gate dispatch until the scripts land in
+  v4.6+. VERIFIED.
+- ☐ **X17** Tiered `aria doctor` (`--smoke`/`--synthetic`/`--benchmark`);
+  `install.sh` must not claim "ready" after a mock-only test (IA2 2.3).
+
+Scientific contracts & validation:
+
+- ☐ **X5** Typed IPC contracts (pydantic `ScriptContract`: input/output schema,
+  required files, `validation_level`) at the `EnvironmentManager` boundary —
+  fail with "incompatible schema/version", not an obscure KeyError (IA1 IPC,
+  IA2 4.1/4.3).
+- ☐ **X6** Synthetic ground-truth benchmark (splatter/scDesign3) with known
+  true DE genes — numerical-accuracy regression, not just flow (IA1 missing #1,
+  IA2 5.6). Overlaps the P2 test-debt.
+- ☐ **X7** Design-matrix sanity validator before DESeq2: rank deficiency,
+  batch↔condition confounding, n=1 blocks, continuous-vs-miscategorized factor
+  (IA1 sci #1, IA2 4.4/5.3). Extends DesignIntelligence + AuditAgent.
+- ☐ **X8** Integration QA as red flags: negative silhouette / poor LISI/kBET
+  must raise a flagged AuditAgent finding (overcorrection), not a passive
+  report line (IA1 sci #3). Folds into the deferred integration-QA item.
+- ☐ **X9** Annotation-reuse marker-coherence check: when reusing `obs` labels,
+  verify canonical markers are consistent (avoid mislabeled atlas/species
+  annotations) (IA1 sci #4). Mind ADR-011: use a generic, documented marker
+  reference, flag-only.
+- ☐ **X10** Privacy firewall: `ARIA_AIR_GAPPED` app-level network block + LLM
+  prompt redactor (sample-name → token map, kept locally) + human-data cache
+  policy (IA1 missing #2, IA2 2.5/5.5).
+- ☐ **X11** DebateCouncil cost governance: cap rounds, gate debates to
+  high-impact findings, hard budget ceiling (IA1 systemic #1).
+- ☐ **X12** ParameterAdvisor bias guardrail: historical suggestions are
+  provenance, not authority; never silently override scientific defaults
+  (IA1 systemic #2).
+- ☐ **X13** DataAudit scan limits: max files/depth/total-size, symlink policy,
+  sampling for inference on huge directories (IA1 systemic #4, IA2 2.7).
+- ☐ **X18** Spatial-transcriptomics scaffold (Visium/MERFISH); the `spatial`
+  env alias already exists in `EnvironmentManager.STACKS` (IA1 missing #4).
+
+Flagship / deferred research (post-integrity, high value):
+
+- ☐ **X14** **Claim Compiler** — classify each biological claim as
+  descriptive / associative / weak-mechanistic / strong-mechanistic /
+  causal-experimental, with a per-claim manifest (claim_id → evidence paths →
+  code commit → limitations → confidence). Evolves the hardened causal guard +
+  the NarrativeBlock kernel (already has evidence/claim/caveats/confidence) into
+  the real thing. Both AIs converge on this; it is the single highest-value
+  differentiator (IA1 novel #3, IA2 4.5/5.1).
+- ☐ **X15** Shadow / multiverse analysis: rerun key decisions (QC strictness,
+  Harmony vs scVI, DESeq2 vs edgeR, thresholds) on a subset; report robustness
+  ("conclusions stable across 5/6 choices") (IA2 5.4).
+- ☐ **X16** Evidence/knowledge graph per run (dataset→samples→design→contrasts
+  →scripts→artifacts→results→claims→report) for navigation, partial reanalysis,
+  and auto-methods (IA2 5.2). Overlaps X14 + bus persistence.
+- ☐ **X19** Calibrated-uncertainty hypotheses (reframed from "quantum"): when
+  competing cell-state hypotheses exist, report a probability distribution +
+  the discriminating experiment, instead of forcing a binary DebateCouncil
+  verdict (IA1 novel #4, reframed).
+- ☐ **X20** Knowledge-synthesis agents: Null-Result-of-Interest + LitCross
+  (local PubMed embeddings) (IA1 novel #1/#2). Most speculative; research track.
+
+Net: the external audits add real value in **X1–X14** (integrity, contracts,
+privacy, claim compiler). Their P0 "broken core" narrative is rejected as a
+stale-snapshot artifact; the registry-integrity test (X3) is the durable
+defense against that class of false alarm.
 
 ## Validation gates (run after each executed item)
 

@@ -1488,6 +1488,25 @@ Rules:
                     return False
             else:
                 return False
+        # Honor the approved plan. When DesignIntelligence recommended
+        # pseudobulk DE from an explicit obs design (condition + replicate +
+        # groups/comparisons) and the user approved that plan at CP2, the
+        # between-condition contrast is well-defined and must run regardless of
+        # how the free-text question is phrased. Re-gating on question keywords
+        # here previously OVERRODE the recommendation silently: an IFN-β
+        # "response programs / signaling networks" question carried no keyword,
+        # so DE was dropped without a logged decision or a reported skip even
+        # though DesignIntelligence had recommended it (audit 2026-05-28
+        # PBMC-blocker; F-ENG-E2E class of silent plan/dispatch disagreement).
+        di = (exp_ctx or {}).get("design_intelligence", {}) or {}
+        recommended = " ".join(di.get("recommended", []) or []).lower()
+        if has_obs_design and "pseudobulk" in recommended:
+            return True
+
+        # Fallback for designs without an explicit DI recommendation (e.g.
+        # filename-inferred groups): the question must carry comparison
+        # semantics so we do not surprise the user with extra compute on a
+        # purely descriptive cell-characterisation question.
         text = (
             (intent.get("summary", "") or "") + " "
             + " ".join(intent.get("biological_entities", []) or [])
