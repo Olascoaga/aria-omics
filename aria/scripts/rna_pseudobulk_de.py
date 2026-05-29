@@ -104,6 +104,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
     import pandas as pd
     from pathlib import Path
     from scipy import sparse
+    import inspect
+    from aria.utils.design_matrix import validate_design_matrix
     from aria.utils.power_estimation import pseudobulk_power_estimate
     from aria.utils.safe_h5ad import read_h5ad
 
@@ -410,6 +412,23 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 if meta_sub[COMPOSITION_COL].nunique() > 1:
                     design_factors = design_factors + [COMPOSITION_COL]
                     block_corrected_for_composition = True
+            design_check = validate_design_matrix(
+                meta_sub,
+                condition_col=condition_col,
+                covariates=[f for f in design_factors if f != condition_col],
+                min_replicates_per_condition=min_replicates_per_condition,
+            )
+            if design_check.get("status") == "blocking":
+                per_group_entry["per_comparison"][comp_key] = {
+                    "status": "skipped",
+                    "reason": "design_matrix_invalid",
+                    "design_check": design_check,
+                }
+                continue
+            continuous_factors = design_check.get("continuous_factors", [])
+            for col in continuous_factors:
+                if col in meta_sub.columns:
+                    meta_sub[col] = pd.to_numeric(meta_sub[col], errors="coerce")
             try:
                 means = counts_sub.mean(axis=1).astype(float)
                 variances = counts_sub.var(axis=1, ddof=1).astype(float)
@@ -428,12 +447,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     alpha=padj_max,
                     mean_expression=mean_expression,
                 )
-                dds = DeseqDataSet(
-                    counts        = counts_sub.T,    # samples × genes
-                    metadata      = meta_sub,
-                    design_factors= design_factors,
-                    refit_cooks   = True,
-                )
+                dds_kwargs = {
+                    "counts": counts_sub.T,    # samples × genes
+                    "metadata": meta_sub,
+                    "design_factors": design_factors,
+                    "refit_cooks": True,
+                }
+                if continuous_factors and "continuous_factors" in inspect.signature(DeseqDataSet).parameters:
+                    dds_kwargs["continuous_factors"] = continuous_factors
+                dds = DeseqDataSet(**dds_kwargs)
                 dds.deseq2()
                 stat_res = DeseqStats(
                     dds,
@@ -481,6 +503,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "corrected_for_composition": block_corrected_for_composition,
                 "paired_design":              paired_design,
                 "paired_donor_covariate":     paired_donor_covariate_used,
+                "design_check":               design_check,
                 "top_genes":                 [],
                 "all_sig":                   [],
             }

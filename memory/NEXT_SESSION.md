@@ -21,9 +21,9 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
-  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`),
-  untagged, `aria.__version__` = `4.5.3`.
+- Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
+  `22c93ac`, untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
+  with `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -409,6 +409,16 @@ central version source, X2 no API-key writes to `.bashrc`, X3 registry-integrity
 checks, X4 chromatin scaffold dispatch gate, and X17 tiered `aria doctor`.
 Validation: compileall pass, targeted integrity tests 8 passed, smoke 86 passed
 / 4 skipped, combined targeted + smoke 94 passed / 4 skipped, diff-check pass.
+
+**X7 design-matrix validator is closed.** `aria.utils.design_matrix` now
+validates rank deficiency, complete condition-covariate confounding,
+insufficient condition replicates, n=1 design cells, numeric condition factors,
+binary numeric covariates, and text-stored continuous covariates. The same
+contract is surfaced in DesignIntelligence/AuditAgent and enforced in bulk RNA
+and scRNA pseudobulk scripts before DESeq2. Validation: compileall pass,
+X7+narrator 8 passed, narrative+X7 23 passed, integrity 8 passed, smoke 86
+passed / 4 skipped, diff-check pass.
+
 Flagship deferred: X14 Claim Compiler (evolves the causal guard +
 NarrativeBlock kernel), X5 typed IPC contracts, X6 synthetic ground-truth
 benchmark, X10 privacy firewall.

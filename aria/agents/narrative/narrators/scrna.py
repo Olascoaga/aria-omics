@@ -20,6 +20,24 @@ def _evidence(label: str, value, source: str,
     return EvidenceItem(label=label, value=value, source=source, path=path)
 
 
+def _design_issues(comp: dict, severities: set[str] | None = None) -> list[dict]:
+    issues = ((comp.get("design_check") or {}).get("issues") or [])
+    if severities is None:
+        return [i for i in issues if isinstance(i, dict)]
+    return [
+        i for i in issues
+        if isinstance(i, dict) and i.get("severity") in severities
+    ]
+
+
+def _first_design_issue(comp: dict) -> str:
+    issues = _design_issues(comp)
+    if not issues:
+        return ""
+    issue = issues[0]
+    return issue.get("message") or issue.get("check") or ""
+
+
 class ScrnaNarrator:
     name = "scrna"
 
@@ -190,6 +208,7 @@ class ScrnaNarrator:
                     f"scrna.pseudobulk.{_safe_id(group)}.{_safe_id(comp_key)}"
                 )
                 if comp.get("status") != "success":
+                    issue_text = _first_design_issue(comp)
                     blocks.append(NarrativeBlock(
                         id=block_id,
                         modality="scRNA-seq",
@@ -199,7 +218,9 @@ class ScrnaNarrator:
                         status=comp.get("status", "skipped"),
                         confidence="insufficient",
                         claim="",
-                        error=comp.get("reason", "pseudobulk block did not complete"),
+                        error=issue_text or comp.get(
+                            "reason", "pseudobulk block did not complete"
+                        ),
                         caveats=[Caveat("No DE conclusion is drawn for this block.")],
                     ))
                     continue
@@ -237,6 +258,11 @@ class ScrnaNarrator:
                     ))
                 if comp.get("low_power_warning"):
                     caveats.append(Caveat("Low replicate support; interpret cautiously."))
+                for issue in _design_issues(comp, severities={"warning"}):
+                    caveats.append(Caveat(
+                        f"Design-matrix warning: {issue.get('message', '')}",
+                        "warning",
+                    ))
                 if comp.get("corrected_for_composition"):
                     caveats.append(Caveat(
                         "DESeq2 design included a log-proportion composition covariate.",

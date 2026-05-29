@@ -17,10 +17,9 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
-  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`) on
-  `main`, untagged, `aria.__version__` = `4.5.3`. Verify with
-  `git log --oneline --decorate -5`.
+- Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
+  `22c93ac`, untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
+  with `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
@@ -53,6 +52,11 @@ Read this file first in every ARIA session.
   `aria doctor`. Validation: compileall pass, targeted integrity tests 8
   passed, smoke 86 passed / 4 skipped, combined targeted + smoke 94 passed /
   4 skipped, diff-check pass.
+- X7 design-matrix validator is closed on top of `22c93ac`: shared validator,
+  DesignIntelligence/AuditAgent surfacing, bulk/scRNA pseudobulk enforcement
+  before DESeq2, and scRNA narrative caveats. Validation: compileall pass,
+  X7+narrator 8 passed, narrative+X7 23 passed, integrity 8 passed, smoke 86
+  passed / 4 skipped, diff-check pass.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

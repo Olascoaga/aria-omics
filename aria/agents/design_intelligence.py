@@ -145,6 +145,8 @@ class DesignIntelligence:
         if not h5ad_meta.get("raw_counts_likely", True):
             warnings.append("Processed/log-normalized h5ad input may require count recovery for pseudobulk.")
 
+        warnings.extend(self._design_matrix_warnings(design, condition, covariates))
+
         return {
             "modality": "scRNA",
             "condition": condition,
@@ -182,6 +184,13 @@ class DesignIntelligence:
             unsupported.append("Bulk RNA differential expression needs at least two replicates per condition.")
         if modality == "bulk_RNA_raw":
             recommended.append("FASTQ QC/quantification before DE.")
+        warnings.extend(
+            self._design_matrix_warnings(
+                design,
+                design.get("main_factor", "condition"),
+                design.get("covariates", []),
+            )
+        )
         return {
             "modality": modality,
             "recommended": recommended,
@@ -241,6 +250,55 @@ class DesignIntelligence:
     @staticmethod
     def _has_replicates(groups: dict, min_reps: int = 2) -> bool:
         return bool(groups) and all(len(v or []) >= min_reps for v in groups.values())
+
+    @staticmethod
+    def _design_matrix_warnings(
+        design: dict,
+        condition_col: str | None,
+        covariates: list[str] | None,
+    ) -> list[str]:
+        groups = (design or {}).get("groups", {}) or {}
+        if not groups or not condition_col:
+            return []
+        try:
+            import pandas as pd
+            from aria.utils.design_matrix import validate_design_matrix
+        except Exception:
+            return []
+
+        rows = []
+        for condition, samples in groups.items():
+            for sample in samples or []:
+                row = {"sample": sample, condition_col: condition}
+                rows.append(row)
+        if not rows:
+            return []
+        meta = pd.DataFrame(rows).set_index("sample")
+
+        covariate_cols = []
+        batch_map = (design or {}).get("batch_map", {}) or {}
+        if batch_map:
+            batch_col = (design or {}).get("batch_factor") or "batch"
+            meta[batch_col] = [batch_map.get(sample, "") for sample in meta.index]
+            covariate_cols.append(batch_col)
+
+        cov_map_all = (design or {}).get("covariate_map", {}) or {}
+        for cov in covariates or []:
+            cov_map = cov_map_all.get(cov, {})
+            if cov_map:
+                meta[cov] = [cov_map.get(sample, "") for sample in meta.index]
+                covariate_cols.append(cov)
+
+        check = validate_design_matrix(
+            meta,
+            condition_col=condition_col,
+            covariates=covariate_cols,
+            min_replicates_per_condition=2,
+        )
+        return [
+            f"Design-matrix {issue['severity']}: {issue['message']}"
+            for issue in check.get("issues", [])
+        ]
 
     @staticmethod
     def _lineage_intent(intent: dict) -> bool:

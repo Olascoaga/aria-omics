@@ -366,9 +366,11 @@ Scientific contracts & validation:
 - ☐ **X6** Synthetic ground-truth benchmark (splatter/scDesign3) with known
   true DE genes — numerical-accuracy regression, not just flow (IA1 missing #1,
   IA2 5.6). Overlaps the P2 test-debt.
-- ☐ **X7** Design-matrix sanity validator before DESeq2: rank deficiency,
+- ✅ **X7** Design-matrix sanity validator before DESeq2: rank deficiency,
   batch↔condition confounding, n=1 blocks, continuous-vs-miscategorized factor
-  (IA1 sci #1, IA2 4.4/5.3). Extends DesignIntelligence + AuditAgent.
+  (IA1 sci #1, IA2 4.4/5.3). Implemented in
+  `aria.utils.design_matrix`, surfaced in DesignIntelligence/AuditAgent, and
+  enforced before bulk/scRNA DESeq2 calls.
 - ☐ **X8** Integration QA as red flags: negative silhouette / poor LISI/kBET
   must raise a flagged AuditAgent finding (overcorrection), not a passive
   report line (IA1 sci #3). Folds into the deferred integration-QA item.
@@ -441,6 +443,40 @@ Implemented locally after commit `27d4b15`:
   - Combined targeted + smoke -> 94 passed / 4 skipped
   - `python -c "import sys; sys.argv=['aria','doctor','--smoke']; from aria.tui import main; main()"` -> passed with one warning: HiC is still scaffold but dispatch-enabled from earlier behavior.
   - `git diff --check` -> pass
+
+## X7 design-matrix validator execution log (2026-05-28)
+
+Implemented on top of `22c93ac`:
+
+- New `aria/utils/design_matrix.py` validates sample-level DE designs for:
+  rank-deficient model matrices, complete condition-covariate confounding,
+  insufficient condition replicates, n=1 condition x covariate cells, numeric
+  condition factors, binary numeric covariates, and text-stored continuous
+  covariates.
+- `AuditAgent` now runs the validator before dispatch when confirmed design
+  metadata can be mapped to count-matrix columns; blocking design issues enter
+  CP3.5 rather than failing inside DESeq2.
+- `DesignIntelligence` surfaces early design-matrix warnings from confirmed
+  groups plus batch/covariate maps.
+- `rna_bulk_de.py` validates each contrast before DESeq2 and returns
+  `InvalidDesignMatrix` instead of opaque model errors.
+- `rna_pseudobulk_de.py` validates each cell-group contrast before DESeq2,
+  skips invalid blocks with structured `design_matrix_invalid`, records
+  `design_check`, and passes explicit `continuous_factors` to pydeseq2 when
+  the installed API supports it.
+- `ScrnaNarrator` surfaces design-matrix warnings as visible pseudobulk caveats.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `python -m pytest -q tests/test_design_matrix_validator.py tests/test_narrator_scrna.py` -> 8 passed
+- Narrative + X7 suite (`test_narrative_types`, `test_narrative_validators`,
+  `test_narrator_scrna`, `test_narrator_bulk`,
+  `test_narrative_render_blocks`, `test_design_matrix_validator`) -> 23 passed
+- Integrity suite (`test_registry_integrity`, `test_doctor`,
+  `test_chromatin_dispatch_gate`) -> 8 passed
+- `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed / 4 skipped
+- `git diff --check` -> pass
 
 ### HiC scaffold-dispatch — DECIDED 2026-05-28 (accept as tracked warning)
 

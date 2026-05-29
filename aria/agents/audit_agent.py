@@ -83,6 +83,13 @@ class AuditAgent(BaseAgent):
             except Exception as e:
                 log.warning(f"PCA batch dominance check failed: {e}")
 
+        # ── 2b. Design-matrix sanity ────────────────────────────────────
+        try:
+            design_findings = self._check_design_matrix_sanity(files, design)
+            findings.extend(design_findings)
+        except Exception as e:
+            log.warning(f"Design-matrix sanity check failed: {e}")
+
         # ── 3. STAR alignment rate ────────────────────────────────────────
         try:
             star_findings = self._check_star_alignment(files)
@@ -288,6 +295,69 @@ class AuditAgent(BaseAgent):
             }]
 
         return []
+
+    # ── Check 2b: DE design-matrix sanity ───────────────────────────────
+
+    def _check_design_matrix_sanity(self, files: list, design: dict) -> list:
+        """Validate condition/covariate structure before DESeq2 dispatch."""
+        if not files or not design or not design.get("groups"):
+            return []
+
+        try:
+            import pandas as pd
+            from aria.utils.design_matrix import validate_design_matrix
+        except ImportError:
+            return []
+
+        counts = _load_count_matrix(files)
+        if counts is None or counts.empty:
+            return []
+
+        group_labels = _infer_group_labels(counts, design)
+        if not group_labels:
+            return []
+
+        meta = pd.DataFrame(index=list(group_labels))
+        condition_col = design.get("main_factor") or "condition"
+        meta[condition_col] = [
+            group_labels[sample] for sample in meta.index
+        ]
+
+        covariates = []
+        batch_labels = _infer_batch_labels(counts, design)
+        if batch_labels:
+            batch_col = design.get("batch_factor") or "batch"
+            meta[batch_col] = [
+                batch_labels.get(sample, "") for sample in meta.index
+            ]
+            covariates.append(batch_col)
+
+        for cov in design.get("covariates", []) or []:
+            cov_map = (design.get("covariate_map", {}) or {}).get(cov, {})
+            if cov_map:
+                meta[cov] = [cov_map.get(sample, "") for sample in meta.index]
+                covariates.append(cov)
+
+        check = validate_design_matrix(
+            meta,
+            condition_col=condition_col,
+            covariates=covariates,
+            min_replicates_per_condition=2,
+        )
+
+        findings = []
+        for issue in check.get("issues", []):
+            findings.append({
+                "severity": (
+                    "blocking"
+                    if issue.get("severity") == "blocking"
+                    else "warning"
+                ),
+                "check": f"design_matrix_{issue.get('check', 'sanity')}",
+                "message": issue.get("message", ""),
+                "recommendation": issue.get("recommendation", ""),
+            })
+        return findings
 
     # ── Check 3: STAR alignment rate ─────────────────────────────────────
 

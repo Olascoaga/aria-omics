@@ -19,9 +19,9 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: the v4.5.3 Integrity & Trust commit on top of `27d4b15`
-  (`Fix PBMC blocker: scRNA pseudobulk gate must honor the approved plan`),
-  untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+- Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
+  `22c93ac`, untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+  Verify the exact hash with `git log --oneline --decorate -5`.
   Verify with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
@@ -67,6 +67,26 @@ removed dataset-specific runtime narrative guardrails after the post1 tag.
 `v4.3.18` made Design Intelligence choices explicit. `v4.3.19` closes four
 P0 audit findings against documented principles and aligns release docs/version
 metadata.
+
+## X7 Design-Matrix Validator
+
+Closed on top of `22c93ac` as part of the pre-ATAC integrity freeze. ARIA now
+validates DESeq2 designs before model fitting:
+
+- shared validator: `aria/utils/design_matrix.py`;
+- pre-dispatch surfacing: `AuditAgent` + `DesignIntelligence`;
+- final script-level enforcement: `rna_bulk_de.py` and `rna_pseudobulk_de.py`;
+- report surfacing: scRNA pseudobulk `NarrativeBlock` caveats.
+
+The validator catches rank-deficient designs, complete batch/condition
+confounding, insufficient condition replicates, singleton design cells, numeric
+condition factors, binary numeric covariates, and continuous covariates stored
+as text. Invalid pseudobulk blocks are skipped with
+`reason=design_matrix_invalid`; bulk contrasts return `InvalidDesignMatrix`.
+
+Validation: compileall pass; X7+narrator targeted 8 passed; narrative+X7 suite
+23 passed; integrity suite 8 passed; smoke 86 passed / 4 skipped; diff-check
+pass.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

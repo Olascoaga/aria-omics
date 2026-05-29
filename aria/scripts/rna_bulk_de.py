@@ -382,6 +382,7 @@ def bulk_rna_de(params: dict) -> dict:
             "dispersion_estimate": de_result.get("dispersion_estimate"),
             "mean_expression_estimate": de_result.get("mean_expression_estimate"),
             "power_estimate_at_lfc_min": de_result.get("power_estimate_at_lfc_min"),
+            "design_check":       de_result.get("design_check"),
             "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
@@ -1469,6 +1470,28 @@ def _run_deseq2(counts, metadata, design_factor: str,
             ),
         }, warnings
 
+    from aria.utils.design_matrix import validate_design_matrix
+    design_check = validate_design_matrix(
+        meta_sub,
+        condition_col=design_factor,
+        covariates=[],
+        min_replicates_per_condition=min_replicates_per_condition,
+    )
+    warnings.extend(
+        f"Design matrix {issue['severity']}: {issue['message']}"
+        for issue in design_check.get("issues", [])
+    )
+    if design_check.get("status") == "blocking":
+        return {
+            "status": "error",
+            "error_type": "InvalidDesignMatrix",
+            "details": "; ".join(
+                issue["message"] for issue in design_check.get("issues", [])
+                if issue.get("severity") == "blocking"
+            )[:500],
+            "design_check": design_check,
+        }, warnings
+
     try:
         from pydeseq2.dds import DeseqDataSet
         from pydeseq2.ds import DeseqStats
@@ -1565,6 +1588,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
             "dispersion_estimate": dispersion_estimate,
             "mean_expression_estimate": mean_expression,
             "power_estimate_at_lfc_min": power_estimate,
+            "design_check":      design_check,
         }, warnings
 
     except ImportError:

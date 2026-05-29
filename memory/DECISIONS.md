@@ -229,3 +229,30 @@ Implications:
   inspect+QC-only is deferred to the HiC validation milestone.
 - A modality is promoted out of `scaffold` only after a validation milestone
   closes (e.g., the seven-question peer-reviewer bar used for RNA in v4.4).
+
+## ADR-013 - DESeq2 Designs Must Pass Preflight Matrix Validation
+
+Status: accepted (2026-05-28, X7 pre-ATAC remediation)
+
+Differential-expression scripts must validate the sample-level design before
+fitting DESeq2 models. ARIA should report rank deficiency, complete
+condition-covariate confounding, insufficient replicates, singleton design
+cells, and ambiguous continuous-vs-categorical covariates as structured
+findings or blockers instead of letting DESeq2 fail deep inside model fitting.
+
+Implications:
+
+- `aria.utils.design_matrix.validate_design_matrix` is the shared validator for
+  bulk RNA and scRNA pseudobulk DE designs.
+- `AuditAgent` runs the same validator before dispatch when confirmed design
+  metadata can be mapped to sample columns; blocking issues require CP3.5
+  acknowledgement.
+- `DesignIntelligence` may surface validator warnings early, but it does not
+  override user-approved scientific defaults.
+- RNA scripts still perform their own final validation immediately before
+  DESeq2 because they hold the real per-contrast/per-cell-group metadata.
+- Continuous covariates are explicit in pydeseq2 when supported by the
+  installed API; otherwise ARIA keeps numeric metadata and reports the design
+  check for audit.
+- Narrative blocks must surface design-matrix warnings/caveats when a DE block
+  completed under a non-clean design.

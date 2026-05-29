@@ -162,6 +162,31 @@ def test_scrna_narrator_flags_lognorm_recovered_counts():
         [c.text for c in pb.caveats]
 
 
+def test_scrna_narrator_surfaces_design_matrix_warnings():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    comp = findings["pseudobulk_de"]["per_group"]["GroupA"]["per_comparison"][
+        "condition_a_vs_condition_b"
+    ]
+    comp["design_check"] = {
+        "status": "warnings",
+        "issues": [{
+            "severity": "warning",
+            "check": "n1_design_cells",
+            "message": "Some condition x covariate design cells have one sample.",
+        }],
+    }
+
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    pb = next(b for b in blocks
+              if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+
+    assert any("Design-matrix warning" in c.text for c in pb.caveats)
+
+
 def test_scrna_narrator_methods_reuse_legacy_methods():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
 
