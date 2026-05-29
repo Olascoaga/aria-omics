@@ -41,6 +41,7 @@ flowchart TD
     DISPATCH --> BULK_AGENT[aria/agents/bulk_rna_agent.py]
     BULK_AGENT --> ENV[aria/utils/environment_manager.py]
     ENV --> BULK_SCRIPT[aria/scripts/rna_bulk_de.py]
+    BULK_SCRIPT --> CLASSIFIER[aria/utils/count_classifier.py raw-count guard]
     BULK_SCRIPT --> PATHWAY_VIZ[aria/scripts/rna_pathway_viz.py]
     BULK_SCRIPT --> BULK_OUT[bulk findings: QC, DE, ORA, GSEA, figures, tables]
 
@@ -50,6 +51,7 @@ flowchart TD
     SCRNA_AGENT --> SCRNA_CLUSTER[aria/scripts/rna_clustering.py]
     SCRNA_AGENT --> SCRNA_DA[aria/scripts/rna_diff_abundance.py]
     SCRNA_AGENT --> SCRNA_PB[aria/scripts/rna_pseudobulk_de.py]
+    SCRNA_PB --> CLASSIFIER
     SCRNA_AGENT --> SCRNA_PW[aria/scripts/rna_pathway_per_cluster.py]
     SCRNA_AGENT --> SCRNA_CCC[aria/scripts/rna_cellcomm.py]
     SCRNA_AGENT --> SCRNA_TRAJ[aria/scripts/rna_trajectory.py]
@@ -101,12 +103,13 @@ flowchart TD
 | `rna_pathway_viz.py` | `rna_bulk_de.py`, bulk narrative, report artifacts | It creates GSEA/ORA figures and tables that reports reference. |
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
 | `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. |
+| `count_classifier.py` raw-count detection | `rna_bulk_de.py` (`_load_counts` hard-refuse), `rna_pseudobulk_de.py` (integer-likeness + log-norm recovery probes), `count_source` provenance | The single detector deciding raw vs normalized input for DESeq2. Loosening `is_raw_counts` lets normalized matrices become pseudo-counts; the sampler is seeded — keep it deterministic for reproducible mode. |
 | `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |
 | `orchestrator_agent.py` CP3 resolution | CP3 threshold tuning, internal agent parameter checkpoints, dispatch thread lifecycle | Internal CP3 messages carry `agent_parameter_checkpoint=True` and must not trigger threshold-tuning redispatch. |
 | `orchestrator_agent.py` integration validation gate | `IntegrationAgent`, multimodal report sections, registry integrity | Scaffolded WNN/MOFA+/peak-to-gene code must not dispatch until validation is closed; otherwise beta scripts can emit publication-looking integration output. |
 | `parameter_advisor.py` metric evaluators | scRNA clustering CP3, WNN k CP3, memory decisions | Candidate metrics shown to users must be measured or explicitly marked as not computed; fabricated WNN weights and zero-filled modularity are invalid. |
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
-| `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. |
+| `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
 | `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. |
 | `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. |
@@ -164,6 +167,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_pathway_viz.py`
 - scRNA narrator: `tests/test_narrator_scrna.py`
 - GEO/design mapping: `tests/test_geo_design.py`
+- Raw-count guard (DESeq2 input integrity): `tests/test_count_classifier.py`,
+  `tests/test_bulk_raw_count_guard.py`
 - Checkpoint blocking and dispatch safety:
   `tests/test_pytest_smoke.py::test_internal_parameter_checkpoint_blocks_until_user_resolution`,
   `tests/test_pytest_smoke.py::test_wnn_checkpoint_skip_prevents_script_execution`,
