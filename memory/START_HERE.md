@@ -28,6 +28,10 @@ Read this file first in every ARIA session.
   `fdr_strategy`; under the default per-cluster FDR it reports
   `effective_alpha_primary` from the per-cluster family and treats
   `effective_alpha_global` only as a secondary whole-experiment diagnostic.
+- Post-v4.5.4 B1 fix: internal parameter checkpoints now block dispatch-thread
+  execution until resolved. Leiden resolution, WNN k, and MOFA+ factor count
+  honor recommended/custom/skip user decisions; internal CP3 resolution no
+  longer triggers threshold CP3 redispatch.
 - `v4.5.3` (`bab6fbd`): pre-ATAC integrity freeze (X1-X9/X14/X17), tagged+pushed.
 - Earlier stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).

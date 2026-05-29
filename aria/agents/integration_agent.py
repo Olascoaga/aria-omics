@@ -270,18 +270,49 @@ class IntegrationAgent(BaseAgent):
             biological_context=intent,
         )
 
-        # Escalate to user (Checkpoint 3)
-        self.publish_escalation(
+        # Escalate to user (Checkpoint 3) and block until the dispatch-loop UI
+        # resolves it. Otherwise the advisor value would run before user input.
+        _, user_decision = self.publish_blocking_escalation(
             experiment_id=experiment_id,
             checkpoint=3,
             question=self._format_wnn_checkpoint(k_decision),
             options=[
                 f"Use recommended k={k_decision.chosen_value}",
-                "Enter custom k value",
+                "Other: Enter custom k value",
                 "Skip WNN integration",
             ],
-            context={"wnn_k_decision": k_decision.decision_id},
+            context={
+                "wnn_k_decision": k_decision.decision_id,
+                "analysis_type": "wnn_integration",
+                "parameter_name": "k",
+            },
         )
+        choice = self.checkpoint_choice_text(user_decision)
+        if not choice:
+            return {
+                "status": "error",
+                "error_type": "CheckpointUnresolved",
+                "details": "WNN k checkpoint was not resolved.",
+            }
+        if "skip" in choice.lower():
+            k_decision.chosen_by = "user"
+            k_decision.approved_by_user = True
+            return {
+                "status": "skipped",
+                "reason": "user_skipped_wnn",
+                "details": "User skipped WNN integration at checkpoint 3.",
+            }
+        override = self.numeric_checkpoint_override(user_decision, int)
+        if hasattr(self.advisor, "approve_decision"):
+            k_decision = self.advisor.approve_decision(
+                k_decision,
+                user_override=override,
+            )
+        else:
+            if override is not None:
+                k_decision.chosen_value = override
+                k_decision.chosen_by = "user"
+            k_decision.approved_by_user = True
 
         # Execute WNN in isolated environment
         rna_files  = mods.get("scRNA", [])
@@ -523,6 +554,12 @@ class IntegrationAgent(BaseAgent):
         n_factors_decision = self._advise_mofa_factors(
             experiment_id, intent, mods
         )
+        if n_factors_decision is None:
+            return {
+                "status": "skipped",
+                "reason": "user_skipped_mofa",
+                "details": "User skipped MOFA+ at checkpoint 3.",
+            }
 
         mofa_result = self.env.run_in_stack(
             stack="integration",
@@ -547,7 +584,7 @@ class IntegrationAgent(BaseAgent):
         return mofa_result
 
     def _advise_mofa_factors(self, experiment_id: str,
-                              intent: dict, mods: dict) -> int:
+                              intent: dict, mods: dict) -> int | None:
         """
         Advise on number of MOFA+ factors using biological context.
         Stores decision in ARIAMemory for reproducibility.
@@ -568,24 +605,50 @@ class IntegrationAgent(BaseAgent):
         else:
             n_factors = 10
 
-        # Store decision
-        try:
-            self.memory.store_decision(
-                decision_id=str(uuid.uuid4())[:8],
-                wing_id=experiment_id,
-                checkpoint=3,
-                question="MOFA+ number of factors",
-                decision=str(n_factors),
-                rationale=(
-                    f"n_factors={n_factors} based on {n_modalities} modalities "
-                    f"and {complexity} experimental complexity."
-                ),
-                made_by="advisor",
-            )
-        except Exception:
-            pass
+        question = (
+            "MOFA+ factor count\n\n"
+            f"Recommended n_factors={n_factors} based on {n_modalities} "
+            f"modalities and {complexity} experimental complexity.\n\n"
+            "Approve the factor count to proceed with MOFA+."
+        )
+        _, user_decision = self.publish_blocking_escalation(
+            experiment_id=experiment_id,
+            checkpoint=3,
+            question=question,
+            options=[
+                f"Use recommended n_factors={n_factors}",
+                "Other: Enter custom n_factors",
+                "Skip MOFA+",
+            ],
+            context={
+                "analysis_type": "mofa_integration",
+                "parameter_name": "n_factors",
+                "recommended_value": n_factors,
+            },
+        )
+        choice = self.checkpoint_choice_text(user_decision)
+        if not choice:
+            return None
+        if "skip" in choice.lower():
+            return None
+        override = self.numeric_checkpoint_override(user_decision, int)
+        chosen_factors = override if override is not None else n_factors
 
-        return n_factors
+        self.memory.store_decision(
+            decision_id=str(uuid.uuid4())[:8],
+            wing_id=experiment_id,
+            checkpoint=3,
+            question="MOFA+ number of factors",
+            decision=str(chosen_factors),
+            rationale=(
+                f"n_factors={chosen_factors} based on user approval of the "
+                f"checkpoint recommendation for {n_modalities} modalities and "
+                f"{complexity} experimental complexity."
+            ),
+            made_by="user" if override is not None else "advisor",
+        )
+
+        return chosen_factors
 
     def _interpret_mofa_factors(self, experiment_id: str,
                                  mofa_result: dict, intent: dict):

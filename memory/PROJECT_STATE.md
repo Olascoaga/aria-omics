@@ -220,6 +220,14 @@ Post-`v4.5.4` B8 validation (2026-05-29): `aria-env` `compileall` pass;
 valid gate on this machine because `litellm` is absent and compiled scientific
 packages have NumPy 2 ABI conflicts.
 
+Post-`v4.5.4` B1 remediation (2026-05-29): internal agent parameter checkpoints
+now use a condition-backed bus wait. Leiden resolution, WNN k, and MOFA+ factor
+count block execution until recommended/custom/skip is resolved; internal CP3
+messages no longer invoke the threshold CP3 dispatch path; TUI live polling no
+longer consumes ESCALATION messages before displaying them. Validation:
+`aria-env` `compileall` pass; targeted B1 regressions 3 passed; IntegrationAgent
+legacy 24/24 passed; full `tests/test_pytest_smoke.py` 90 passed / 4 skipped.
+
 Tags: `v4.5.3` -> `bab6fbd` (integrity freeze, pushed); `v4.5.4` -> `b7cd67f`.
 
 ## v4.3.13-v4.3.19 Maintenance Patches

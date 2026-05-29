@@ -5,6 +5,8 @@ import json
 import re
 import subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -86,6 +88,210 @@ def test_aria_env_loader_preserves_existing_env(tmp_path, monkeypatch):
 
     assert loaded == {}
     assert os.environ["ANTHROPIC_API_KEY"] == "terminal-value"
+
+
+def test_internal_parameter_checkpoint_blocks_until_user_resolution(tmp_path):
+    from aria.agents.base_agent import BaseAgent
+    from aria.agents.scrna_agent import scRNAAgent
+    from aria.bus.message_bus import bus
+
+    class FakeDecision:
+        decision_id = "decision_blocking"
+        chosen_value = 0.4
+        chosen_by = "advisor"
+        approved_by_user = False
+        justification = "Synthetic resolution recommendation."
+        candidates = []
+
+    class FakeAdvisor:
+        def advise_leiden_resolution(self, **_kwargs):
+            return FakeDecision()
+
+        def format_for_checkpoint(self, decision):
+            return f"Approve resolution={decision.chosen_value}"
+
+        def approve_decision(self, decision, user_override=None):
+            if user_override is not None:
+                decision.chosen_value = user_override
+                decision.chosen_by = "user"
+            decision.approved_by_user = True
+            return decision
+
+    class FakeEnv:
+        def __init__(self):
+            self.calls = []
+
+        def run_in_stack(self, **kwargs):
+            self.calls.append(kwargs)
+            return {
+                "status": "success",
+                "n_clusters": 3,
+                "output_path": str(tmp_path / "clustered.h5ad"),
+                "groupby": "leiden",
+                "cluster_sizes": {"0": 10, "1": 12, "2": 14},
+            }
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.advisor = FakeAdvisor()
+    agent.env = FakeEnv()
+    agent.memory = object()
+    agent.publish_escalation = BaseAgent.publish_escalation.__get__(agent, scRNAAgent)
+    agent.publish_blocking_escalation = (
+        BaseAgent.publish_blocking_escalation.__get__(agent, scRNAAgent)
+    )
+    agent.publish_finding = lambda *args, **kwargs: None
+    agent._log_decision = lambda *args, **kwargs: None
+    agent._workspace = lambda _exp, *parts: tmp_path.joinpath(*parts)
+
+    result_holder = {}
+    exp_id = "blocking_cp_test"
+    worker = threading.Thread(
+        target=lambda: result_holder.setdefault(
+            "result",
+            agent._run_clustering(exp_id, "/tmp/input.h5ad", {}),
+        ),
+        daemon=True,
+    )
+    worker.start()
+
+    pending = []
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        pending = [
+            m for m in bus.get_pending_checkpoints()
+            if m.experiment_id == exp_id and not m.payload.get("resolved")
+        ]
+        if pending:
+            break
+        time.sleep(0.01)
+
+    assert pending, "Expected a pending internal parameter checkpoint"
+    assert agent.env.calls == [], "Clustering ran before checkpoint resolution"
+
+    bus.resolve_checkpoint(pending[0].id, {"choice": "0.9"})
+    worker.join(timeout=2)
+    assert not worker.is_alive()
+    assert agent.env.calls[0]["params"]["resolution"] == 0.9
+    result, decision = result_holder["result"]
+    assert result["status"] == "success"
+    assert decision.chosen_value == 0.9
+    assert decision.chosen_by == "user"
+
+
+def test_wnn_checkpoint_skip_prevents_script_execution():
+    from aria.agents.base_agent import BaseAgent
+    from aria.agents.integration_agent import IntegrationAgent
+    from aria.bus.message_bus import bus
+
+    class FakeDecision:
+        decision_id = "wnn_decision"
+        chosen_value = 20
+        chosen_by = "advisor"
+        approved_by_user = False
+        justification = "Synthetic WNN k recommendation."
+        candidates = [
+            type("C", (), {
+                "value": 20,
+                "recommended": True,
+                "metrics": {"rna_weight": 0.6, "atac_weight": 0.4},
+            })()
+        ]
+
+    class FakeAdvisor:
+        def advise_wnn_k(self, **_kwargs):
+            return FakeDecision()
+
+    class FakeEnv:
+        def __init__(self):
+            self.calls = []
+
+        def run_in_stack(self, **kwargs):
+            self.calls.append(kwargs)
+            return {"status": "success"}
+
+    agent = IntegrationAgent.__new__(IntegrationAgent)
+    agent.advisor = FakeAdvisor()
+    agent.env = FakeEnv()
+    agent.memory = object()
+    agent.publish_escalation = BaseAgent.publish_escalation.__get__(
+        agent, IntegrationAgent
+    )
+    agent.publish_blocking_escalation = (
+        BaseAgent.publish_blocking_escalation.__get__(agent, IntegrationAgent)
+    )
+    agent.publish_finding = lambda *args, **kwargs: None
+
+    result_holder = {}
+    exp_id = "wnn_skip_cp_test"
+    worker = threading.Thread(
+        target=lambda: result_holder.setdefault(
+            "result",
+            agent._run_wnn(
+                exp_id,
+                {"genome": "hg38", "organism": "Homo sapiens"},
+                {},
+                {"scRNA": ["/tmp/rna.h5ad"], "scATAC": ["/tmp/atac.h5ad"]},
+            ),
+        ),
+        daemon=True,
+    )
+    worker.start()
+
+    pending = []
+    deadline = time.time() + 2
+    while time.time() < deadline:
+        pending = [
+            m for m in bus.get_pending_checkpoints()
+            if m.experiment_id == exp_id and not m.payload.get("resolved")
+        ]
+        if pending:
+            break
+        time.sleep(0.01)
+
+    assert pending, "Expected WNN checkpoint before script execution"
+    assert agent.env.calls == []
+    bus.resolve_checkpoint(pending[0].id, {"choice": "Skip WNN integration"})
+    worker.join(timeout=2)
+
+    assert not worker.is_alive()
+    assert agent.env.calls == []
+    assert result_holder["result"]["status"] == "skipped"
+    assert result_holder["result"]["reason"] == "user_skipped_wnn"
+
+
+def test_orchestrator_does_not_dispatch_on_internal_cp3_resolution():
+    import uuid
+    from aria.agents.orchestrator_agent import OrchestratorAgent
+    from aria.bus.message_bus import Message, MessageType, Confidence, bus
+
+    exp_id = f"internal_cp3_{uuid.uuid4().hex[:8]}"
+    msg = Message(
+        id=f"msg_{uuid.uuid4().hex[:8]}",
+        sender="scrna_agent",
+        receiver="orchestrator",
+        type=MessageType.ESCALATION,
+        confidence=Confidence.HIGH,
+        checkpoint=3,
+        experiment_id=exp_id,
+        payload={
+            "checkpoint": 3,
+            "question": "Approve resolution",
+            "options": ["Use recommended", "Skip clustering"],
+            "context": {"agent_parameter_checkpoint": True},
+            "resolved": False,
+        },
+    )
+    bus.publish(msg)
+
+    orch = OrchestratorAgent.__new__(OrchestratorAgent)
+    orch._active_design_agent = None
+
+    def fail_dispatch(*_args, **_kwargs):
+        raise AssertionError("Internal CP3 triggered dispatch CP3")
+
+    orch._after_checkpoint_3 = fail_dispatch
+    result = orch.on_checkpoint_resolved(msg.id, "Use recommended", exp_id)
+    assert result["status"] == "parameter_checkpoint_resolved"
 
 
 def test_llm_provider_loads_aria_env_file(tmp_path, monkeypatch):

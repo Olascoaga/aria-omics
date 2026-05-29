@@ -815,17 +815,47 @@ class scRNAAgent(BaseAgent):
                 biological_context=intent,
             )
 
-            self.publish_escalation(
+            _, user_decision = self.publish_blocking_escalation(
                 experiment_id=experiment_id,
                 checkpoint=3,
                 question=self.advisor.format_for_checkpoint(decision),
                 options=[
                     f"Use recommended (resolution={decision.chosen_value})",
-                    "Enter custom resolution",
+                    "Other: Enter custom resolution",
                     "Skip clustering",
                 ],
-                context={"decision": decision.decision_id},
+                context={
+                    "decision": decision.decision_id,
+                    "analysis_type": "leiden_clustering",
+                    "parameter_name": "resolution",
+                },
             )
+            choice = self.checkpoint_choice_text(user_decision)
+            if not choice:
+                return {
+                    "status": "error",
+                    "error_type": "CheckpointUnresolved",
+                    "details": "Leiden resolution checkpoint was not resolved.",
+                }, decision
+            if "skip" in choice.lower():
+                decision.chosen_by = "user"
+                decision.approved_by_user = True
+                return {
+                    "status": "skipped",
+                    "reason": "user_skipped_clustering",
+                    "details": "User skipped Leiden clustering at checkpoint 3.",
+                }, decision
+            override = self.numeric_checkpoint_override(user_decision, float)
+            if hasattr(self.advisor, "approve_decision"):
+                decision = self.advisor.approve_decision(
+                    decision,
+                    user_override=override,
+                )
+            else:
+                if override is not None:
+                    decision.chosen_value = override
+                    decision.chosen_by = "user"
+                decision.approved_by_user = True
 
         # Run clustering with the chosen resolution (or skip Leiden when a
         # pre-existing cluster_col is provided — rna_clustering accepts it).

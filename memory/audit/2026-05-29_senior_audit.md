@@ -39,7 +39,7 @@ decisions").
 
 ## Findings — what is WRONG (bugs / principle violations)
 
-### B1 [HIGH] [NEW] — In-agent parameter checkpoints do not block; they are decorative
+### B1 [HIGH] [NEW] — ✅ fixed: in-agent parameter checkpoints do not block; they are decorative
 
 `scrna_agent.py:812-840` calls `advise_leiden_resolution`, then
 `publish_escalation(checkpoint=3, options=["Use recommended","Enter custom
@@ -56,6 +56,20 @@ advisor value always runs.
 Evidence: `aria/agents/scrna_agent.py:812-845`,
 `aria/agents/integration_agent.py:259-301`,
 `aria/agents/orchestrator_agent.py:218-304` (async resolution model).
+
+Status: ✅ fixed in the post-`v4.5.4` B1 remediation. `MessageBus` now exposes a
+condition-backed `wait_for_checkpoint_resolution`; `BaseAgent` exposes
+`publish_blocking_escalation` for in-dispatch parameter checkpoints; `scRNAAgent`
+blocks Leiden resolution until user approval/custom override/skip; and
+`IntegrationAgent` blocks WNN k and MOFA+ factor count before script execution.
+Agent-parameter CP3 messages carry `agent_parameter_checkpoint=True`, so
+`OrchestratorAgent.on_checkpoint_resolved` resolves them without invoking the
+threshold CP3 dispatch path. The TUI live loop no longer marks ESCALATION
+messages as seen before the checkpoint handler can display them. Validation:
+`aria-env` `compileall` pass; B1 regressions for blocking/custom Leiden,
+WNN skip-before-script, and internal CP3 no-dispatch passed; IntegrationAgent
+legacy suite 24/24 passed; full `tests/test_pytest_smoke.py` 90 passed /
+4 skipped.
 
 ### B2 [HIGH] [NEW] — Fabricated metrics shown to the user as if measured
 
@@ -434,13 +448,14 @@ Air-Gapped → X10 / C6; Multiverse → P-MULTIVERSE; ChromatinNarrator → v4.6
 
 | Priority | Items | Why |
 |---|---|---|
-| **Before v4.6** | B1, B2/B3 (or scaffold-gate IntegrationAgent B4), R1 | Inviolable principles; B8 live v4.5.4 honesty regression is fixed. |
+| **Before v4.6** | B2/B3 (or scaffold-gate IntegrationAgent B4), R1 | Inviolable principles; B1 and B8 are fixed. |
 | **v4.5.5 honesty patch** | B5, B10/P-RAWCLASS, B11, C1, C2, R7, D1/D2, B7 | Fix science/precision/docs without a new modality. |
 | **v4.6 readiness gate** | C8, B9, B12 | Must precede chromatin work: `.h5mu` detection, real QC (no placeholders), env-alias path. |
 | **During/after v4.6** | R3-R6, C4-C7, P-LEDGER/P-DET/P-CLAIM2/P-DEVIL/P-MULTIVERSE, D3 | More effort or depend on installing envs. |
 
-Cheapest highest-value remaining: **B1** (non-blocking checkpoints) and **R1**
-(`temperature=0` + seed). B8 (v4.5.4 power/FDR text) is fixed. All three are direct
+Cheapest highest-value remaining: **R1** (`temperature=0` + seed) plus
+**B2/B3** or **B4**. B1 (non-blocking checkpoints) and B8 (v4.5.4 power/FDR text)
+are fixed. These items are direct
 contradictions of the project's identity and fix in a few lines.
 **Do not start v4.6** until C8 + B9 are addressed — the planned `.h5mu` input is
 undetectable today and chromatin QC would emit fabricated metrics.

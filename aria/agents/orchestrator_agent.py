@@ -225,6 +225,14 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "error", "message": "Checkpoint not found"}
 
         cp = resolved_msg.checkpoint
+        context = resolved_msg.payload.get("context", {}) or {}
+
+        if context.get("agent_parameter_checkpoint"):
+            return {
+                "status": "parameter_checkpoint_resolved",
+                "checkpoint": cp,
+                "sender": resolved_msg.sender,
+            }
 
         # ── v4.0: Delegar checkpoints de diseño al DesignAgent ──────────
         if cp in (2.1, 2.2, 2.3, 2.4, 2.5, 2.6) and self._active_design_agent is not None:

@@ -21,7 +21,7 @@ from it and were code-verified. Suggested execution order (full detail in the
 audit file):
 
 **Stage 1 — Before anything else (cheap, principle-level + live regression):**
-- ☐ **B1** — in-agent parameter checkpoints do not block (Leiden res, WNN k,
+- ✅ **B1** — in-agent parameter checkpoints do not block (Leiden res, WNN k,
   MOFA). Make them await resolution or move to pre-dispatch. E2E test.
 - ✅ **B8** — v4.5.4 `power` block text says "global BH-FDR" but default is
   per-cluster → Methods is wrong for the shipped default. Branch on `fdr_strategy`.
@@ -69,14 +69,22 @@ audit file):
 - Proposals to land alongside: **P-CHK**, **P-LEDGER** (planned-vs-run manifest),
   **P-DET**, **P-CLAIM2**, **P-DEVIL**, **P-MULTIVERSE**, **P-RAWCLASS**.
 
-**Start by:** open `memory/audit/2026-05-29_senior_audit.md`, pick Stage 1, fix
-**B1** next (highest remaining value), run the validation gates
+**Start by:** open `memory/audit/2026-05-29_senior_audit.md`, continue Stage 1
+with **R1** or **B2/B3** (highest remaining value), run the validation gates
 (`compileall` + `tests/test_pytest_smoke.py` + targeted tests), and tick the box
 here as each item closes. Mark `[NEW-2]` items as verified-fixed in the audit
 file's status legend (☐ → ✅).
 
 ## Last Completed (most recent first)
 
+- **B1 audit remediation (2026-05-29)** — internal parameter checkpoints now
+  block dispatch-thread execution until the user/headless runner resolves them.
+  Leiden resolution, WNN k, and MOFA+ factor count use blocking checkpoints with
+  recommended/custom/skip handling; internal CP3 resolution no longer triggers
+  threshold CP3 redispatch; the TUI live loop leaves ESCALATION messages visible
+  for the checkpoint handler. Validation: `aria-env` `compileall` pass; B1
+  regressions 3 passed; IntegrationAgent legacy 24/24 passed; full
+  `tests/test_pytest_smoke.py` 90 passed / 4 skipped.
 - **B8 audit remediation (2026-05-29)** — pseudobulk power disclosure now follows
   the actual `fdr_strategy`. The default per-cluster path uses per-block
   `effective_alpha_primary` for `power_estimate_at_effective_alpha` and labels

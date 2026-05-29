@@ -93,6 +93,7 @@ class MessageBus:
         )
         self._agents: dict[str, Any] = {}
         self._lock = threading.RLock()
+        self._checkpoint_condition = threading.Condition(self._lock)
 
     def register(self, agent_name: str, agent_instance: Any):
         with self._lock:
@@ -158,7 +159,34 @@ class MessageBus:
                 if m.id == message_id and m.type == MessageType.ESCALATION:
                     m.payload["resolved"]      = True
                     m.payload["user_decision"] = user_decision
+                    self._checkpoint_condition.notify_all()
                     break
+
+    def wait_for_checkpoint_resolution(
+        self,
+        message_id: str,
+        timeout: float | None = None,
+    ) -> dict | None:
+        """Block until an escalation has a user_decision, or timeout expires."""
+        with self._checkpoint_condition:
+            def _resolved_message() -> Message | None:
+                for m in self._log:
+                    if m.id == message_id and m.type == MessageType.ESCALATION:
+                        if m.payload.get("resolved") is True:
+                            return m
+                        return None
+                return None
+
+            msg = _resolved_message()
+            if msg is None:
+                self._checkpoint_condition.wait_for(
+                    lambda: _resolved_message() is not None,
+                    timeout=timeout,
+                )
+                msg = _resolved_message()
+            if msg is None:
+                return None
+            return msg.payload.get("user_decision") or {}
 
 
 # Global bus instance — imported by all agents

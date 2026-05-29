@@ -8,6 +8,7 @@ Handles: message bus integration, caveman mode, memory access,
 
 from __future__ import annotations
 import json
+import re
 import uuid
 from abc import ABC, abstractmethod
 from typing import Optional
@@ -122,7 +123,7 @@ class BaseAgent(ABC):
     def publish_escalation(self, experiment_id: str, checkpoint: int | float | str,
                            question: str, options: list[str],
                            context: dict = None):
-        """Trigger a user checkpoint — pause and wait for decision."""
+        """Publish a user checkpoint for the UI/headless runner to resolve."""
         msg = Message(
             id=str(uuid.uuid4())[:8],
             sender=self.name,
@@ -142,6 +143,49 @@ class BaseAgent(ABC):
         )
         bus.publish(msg)
         return msg
+
+    def publish_blocking_escalation(
+        self,
+        experiment_id: str,
+        checkpoint: int | float | str,
+        question: str,
+        options: list[str],
+        context: dict = None,
+        timeout: float | None = None,
+    ) -> tuple[Message, dict | None]:
+        """Publish an in-dispatch checkpoint and wait for the user's decision."""
+        blocking_context = dict(context or {})
+        blocking_context["agent_parameter_checkpoint"] = True
+        msg = self.publish_escalation(
+            experiment_id=experiment_id,
+            checkpoint=checkpoint,
+            question=question,
+            options=options,
+            context=blocking_context,
+        )
+        if not isinstance(msg, Message):
+            return msg, {"choice": options[0] if options else ""}
+        decision = bus.wait_for_checkpoint_resolution(msg.id, timeout=timeout)
+        return msg, decision
+
+    @staticmethod
+    def checkpoint_choice_text(user_decision: dict | None) -> str:
+        if not user_decision:
+            return ""
+        return str(user_decision.get("choice", "")).strip()
+
+    @staticmethod
+    def numeric_checkpoint_override(
+        user_decision: dict | None,
+        cast=float,
+    ):
+        choice = BaseAgent.checkpoint_choice_text(user_decision)
+        if not choice or "recommended" in choice.lower():
+            return None
+        match = re.search(r"[-+]?\d*\.?\d+", choice)
+        if not match:
+            return None
+        return cast(match.group(0))
 
     def publish_status(self, experiment_id: str, message: str,
                        progress: float = None):

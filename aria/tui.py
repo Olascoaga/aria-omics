@@ -648,11 +648,11 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
         ]
 
         for msg in new_msgs:
-            seen_message_ids.add(msg.id)
             last_message_time = time.time()     # reset idle counter
             idle_warning_shown = False
 
             if msg.type == MessageType.STATUS:
+                seen_message_ids.add(msg.id)
                 print_agent_progress(msg)
                 last_status_text = str(msg.payload.get("status", ""))
                 # CRITICAL: only the NarrativeAgent reaching 1.0 signals
@@ -669,7 +669,10 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
                     analysis_done = True
 
             elif msg.type == MessageType.FINDING:
+                seen_message_ids.add(msg.id)
                 print_finding(msg)
+            elif msg.type != MessageType.ESCALATION:
+                seen_message_ids.add(msg.id)
 
         # ── Check for pending checkpoints ─────────────────────────────────
         pending = [
