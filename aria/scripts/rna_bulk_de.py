@@ -50,6 +50,7 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.count_classifier import classify_matrix
 from pathlib import Path
 
 # ── Paper theme — applied to every plot in this module ────────────────────────
@@ -106,14 +107,25 @@ def bulk_rna_de(params: dict) -> dict:
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     # ── 1. Load counts matrix ─────────────────────────────────────────────
-    counts, load_warn = _load_counts(files)
+    allow_nonraw = bool(params.get("allow_nonraw_counts", False))
+    counts, load_warn, count_meta = _load_counts(files, allow_nonraw=allow_nonraw)
     warnings.extend(load_warn)
     if counts is None:
+        if count_meta.get("refused"):
+            # Raw-count guard (B10): hard-refuse a non-raw matrix rather than
+            # coerce it into pseudo-counts for DESeq2.
+            return {
+                "status":       "error",
+                "error_type":   count_meta.get("error_type", "NonRawCounts"),
+                "details":      count_meta.get("details", ""),
+                "count_source": count_meta.get("kind"),
+            }
         return {
             "status":     "error",
             "error_type": "CountsLoadFailed",
             "details":    "Could not load count matrix from provided files.",
         }
+    count_source = count_meta.get("count_source", "raw_counts")
 
     # ── 2. Load or infer metadata ─────────────────────────────────────────
     metadata, meta_warn = _load_or_infer_metadata(
@@ -492,6 +504,7 @@ def bulk_rna_de(params: dict) -> dict:
         "lfc_threshold":    lfc_thr,
         "overlap":          overlap_info,
         "methodology":      methodology,
+        "count_source":     count_source,
         "warnings":         warnings,
     }
 
@@ -629,18 +642,25 @@ def _contrast_overlap(contrast_results: list) -> dict:
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 
-def _load_counts(files: list) -> tuple:
+def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
     """
     Load counts matrix from various formats.
-    Returns (DataFrame, warnings_list).
+    Returns (DataFrame, warnings_list, count_meta).
     genes × samples orientation enforced.
+
+    Raw-count guard (audit 2026-05-29, B10 / P-RAWCLASS): DESeq2 requires raw
+    integer counts. The loaded matrix is classified before rounding so that
+    TPM/CPM/FPKM/log-normalized/scaled inputs are NOT silently coerced into
+    pseudo-counts. Non-raw matrices are hard-refused unless ``allow_nonraw`` is
+    set, in which case they are coerced at explicit low confidence. ``count_meta``
+    always carries ``count_source`` / ``kind`` (or ``refused`` details).
     """
     import pandas as pd
     warnings = []
 
     valid = [f for f in files if Path(f).exists()]
     if not valid:
-        return None, ["No valid count files found."]
+        return None, ["No valid count files found."], {}
 
     # Detect format
     count_files = [f for f in valid
@@ -664,9 +684,9 @@ def _load_counts(files: list) -> tuple:
             # Keep only numeric columns
             counts = counts.select_dtypes(include="number")
             if counts.empty:
-                return None, ["Count matrix has no numeric columns."]
+                return None, ["Count matrix has no numeric columns."], {}
         except Exception as e:
-            return None, [f"Failed to load {count_files[0]}: {e}"]
+            return None, [f"Failed to load {count_files[0]}: {e}"], {}
     else:
         # Multiple per-sample files — merge by gene ID
         frames = []
@@ -680,7 +700,7 @@ def _load_counts(files: list) -> tuple:
             except Exception as e:
                 warnings.append(f"Skipping {f}: {e}")
         if not frames:
-            return None, ["Could not load any count files."]
+            return None, ["Could not load any count files."], {}
         counts = pd.concat(frames, axis=1).fillna(0)
 
     # Ensure genes × samples (more genes than samples in typical experiments)
@@ -691,10 +711,39 @@ def _load_counts(files: list) -> tuple:
         )
         counts = counts.T
 
+    # Raw-count guard (B10 / P-RAWCLASS): classify BEFORE rounding so a
+    # normalized matrix is not silently turned into pseudo-counts.
+    info = classify_matrix(counts.values)
+    if info["is_raw_counts"]:
+        count_source = "raw_counts"
+    elif allow_nonraw:
+        count_source = "coerced_nonraw"
+        warnings.append(
+            f"Count matrix does not look like raw counts "
+            f"(kind={info['kind']}, max={info['max']:.2f}); coercing to "
+            f"integers because allow_nonraw_counts=True. DESeq2 results are "
+            f"LOW CONFIDENCE — supply raw counts for a valid negative-binomial "
+            f"fit."
+        )
+    else:
+        return None, warnings, {
+            "refused":    True,
+            "error_type": "NonRawCounts",
+            "kind":       info["kind"],
+            "details": (
+                f"Count matrix does not look like raw counts "
+                f"(kind={info['kind']}, max={info['max']:.2f}, "
+                f"min={info['min']:.2f}). DESeq2 requires raw integer counts; "
+                f"TPM/CPM/FPKM/log-normalized/scaled inputs are invalid. Supply "
+                f"a raw-count matrix, or set allow_nonraw_counts=True to coerce "
+                f"at low confidence."
+            ),
+        }
+
     # Round to integers (required by DESeq2)
     counts = counts.round().astype(int)
 
-    return counts, warnings
+    return counts, warnings, {"count_source": count_source, "kind": info["kind"]}
 
 
 def _load_or_infer_metadata(counts, metadata_file: str,

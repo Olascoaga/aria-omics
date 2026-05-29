@@ -67,6 +67,7 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+from aria.utils.count_classifier import classify_matrix, sample_row_indices
 
 
 def _bh_correct(pvals):
@@ -199,30 +200,26 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
     # ── Resolve count source ──────────────────────────────────────────────
     def _looks_integerlike(mat) -> tuple[bool, float]:
-        if hasattr(mat, "toarray"):
-            sample = mat[:200].toarray()
-        else:
-            sample = np.asarray(mat[:200])
-        max_val = float(np.nanmax(sample)) if sample.size else 0.0
-        if np.issubdtype(sample.dtype, np.integer):
-            return True, max_val
-        # log-normalized data sits in [0, ~10]; raw counts are non-negative
-        # integers spanning [0, thousands]. The combination of "large max"
-        # and "values close to integers" is the discriminator.
-        rounded_ok = np.allclose(sample, np.round(sample))
-        return (max_val > 50 and rounded_ok), max_val
+        # Shared classifier on a RANDOM sampled slice (P-RAWCLASS / R7): the
+        # old first-200-row probe was biased when the h5ad is ordered by cell
+        # type or condition. Raw counts are non-negative integers with a large
+        # max; log-normalized data sits in [0, ~10].
+        info = classify_matrix(mat)
+        return bool(info["is_raw_counts"]), float(info["max"])
 
     def _validate_lognorm_recovery(mat, lib_sizes) -> bool:
-        """Probe: does (expm1(x) * lib/scale) on a small block produce
+        """Probe: does (expm1(x) * lib/scale) on a random block produce
         integer-like values? Used to gate per-block recovery without
-        materializing the full matrix."""
-        if hasattr(mat, "toarray"):
-            block = mat[:200].toarray()
-        else:
-            block = np.asarray(mat[:200])
+        materializing the full matrix. Rows are sampled randomly (R7) and the
+        library sizes are aligned to the same row indices."""
+        idx = sample_row_indices(mat.shape[0])
+        if idx.size == 0:
+            return False
+        block = mat[idx]
+        block = block.toarray() if hasattr(block, "toarray") else np.asarray(block)
         if block.size == 0 or block.max() > 50 or block.min() < 0:
             return False
-        sample_lib = np.asarray(lib_sizes[:200], dtype=float)
+        sample_lib = np.asarray(np.asarray(lib_sizes)[idx], dtype=float)
         recovered  = np.expm1(block) * sample_lib[:, None] / norm_scale_factor
         frac_int   = float((np.abs(recovered - np.round(recovered)) < 0.05).mean())
         return frac_int >= 0.85

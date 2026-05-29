@@ -228,6 +228,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         success_outputs=(
             _f("n_contrasts", "int"),
             _f("contrasts", "list"),
+            _f("count_source", "str", required=False),
         ),
     ),
     "aria/scripts/rna_diff_abundance.py": ScriptContract(
