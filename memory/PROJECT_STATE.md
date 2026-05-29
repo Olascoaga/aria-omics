@@ -20,7 +20,7 @@ supersedes:
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
 - Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
-  on top of `e616d30`, untagged, `aria.__version__` = `4.5.3`,
+  on top of `df4693a`, untagged, `aria.__version__` = `4.5.3`,
   = `origin/main`. Verify the exact hash with
   `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
@@ -90,7 +90,7 @@ pass.
 
 ## X5 Typed IPC Contracts
 
-Closed on top of `e616d30` as part of the pre-ATAC integrity freeze.
+Closed on top of `df4693a` as part of the pre-ATAC integrity freeze.
 `EnvironmentManager` now enforces typed script IPC contracts for registered
 scripts before and after subprocess execution:
 

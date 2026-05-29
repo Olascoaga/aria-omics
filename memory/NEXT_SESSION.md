@@ -22,7 +22,7 @@ supersedes:
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
 - Current HEAD: `Close X5 typed IPC contracts at EnvironmentManager boundary`
-  on top of `e616d30`, untagged, `aria.__version__` = `4.5.3`. Verify the
+  on top of `df4693a`, untagged, `aria.__version__` = `4.5.3`. Verify the
   exact hash with `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:

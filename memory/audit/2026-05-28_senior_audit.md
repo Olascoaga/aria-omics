@@ -481,7 +481,7 @@ Validation:
 
 ## X5 typed IPC contract execution log (2026-05-28)
 
-Implemented after `e616d30`:
+Implemented after `df4693a`:
 
 - Added pydantic-backed `aria/utils/script_contracts.py` with `ScriptContract`,
   `ContractField`, `ContractIssue`, contract version `1.0`, required input
