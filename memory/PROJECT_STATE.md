@@ -22,7 +22,6 @@ supersedes:
 - Current HEAD: `Close X7 design-matrix validation before DESeq2` on top of
   `22c93ac`, untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
   Verify the exact hash with `git log --oneline --decorate -5`.
-  Verify with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
 - Last stable tag: `v4.5.2`
