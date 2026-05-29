@@ -82,6 +82,9 @@ flowchart TD
     VALIDATORS --> PROSE[aria/agents/narrative/compose_prose.py]
     PROSE --> RENDER[aria/agents/narrative/render_blocks.py]
     RENDER --> REPORT[report.html]
+    NARR --> LLM[aria/llm/provider.py]
+    LLM --> LLM_USAGE[llm_usage.jsonl deterministic controls and cost]
+    LLM_USAGE --> METHODOLOGY
     NARR --> METHODOLOGY[methodology.json]
 ```
 
@@ -102,6 +105,7 @@ flowchart TD
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
+| `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. |
 | `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. |
 | `memory.py` decisions schema | checkpoints, provenance, reports, resume | DB shape changes can break old sessions and audit trails. |
 
@@ -161,4 +165,9 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_pytest_smoke.py::test_internal_parameter_checkpoint_blocks_until_user_resolution`,
   `tests/test_pytest_smoke.py::test_wnn_checkpoint_skip_prevents_script_execution`,
   `tests/test_pytest_smoke.py::test_orchestrator_does_not_dispatch_on_internal_cp3_resolution`
+- LLM deterministic provenance:
+  `tests/test_pytest_smoke.py::test_llm_provider_forces_deterministic_generation`,
+  `tests/test_pytest_smoke.py::test_llm_cache_key_includes_deterministic_controls`,
+  `tests/test_pytest_smoke.py::test_collect_llm_usage_summarizes_deterministic_provenance`,
+  `tests/test_pytest_smoke.py::test_provenance_section_renders_llm_usage`
 - Main integration smoke: `tests/test_pytest_smoke.py`

@@ -310,6 +310,61 @@ def test_llm_provider_loads_aria_env_file(tmp_path, monkeypatch):
     assert provider.api_keys["anthropic"] == "provider-test"
 
 
+def test_llm_provider_forces_deterministic_generation(monkeypatch, tmp_path):
+    from types import SimpleNamespace
+    from aria.llm import provider as provider_mod
+    from aria.llm.provider import LLMProvider, ModelConfig, TaskTier
+
+    calls = []
+    usage_events = []
+
+    def fake_completion(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(
+            choices=[
+                SimpleNamespace(message=SimpleNamespace(content="deterministic"))
+            ],
+            usage=SimpleNamespace(
+                prompt_tokens=7,
+                completion_tokens=3,
+                total_tokens=10,
+            ),
+        )
+
+    monkeypatch.setattr(provider_mod, "completion", fake_completion)
+    monkeypatch.setattr(provider_mod, "record_llm_usage", usage_events.append)
+    monkeypatch.setattr(provider_mod.litellm, "completion_cost", lambda **_kw: 0.02)
+    monkeypatch.setenv("ARIA_LLM_CACHE", "0")
+
+    llm = LLMProvider(
+        models={
+            TaskTier.MEDIUM: [
+                ModelConfig("openai", "test-model", 128_000),
+            ],
+        },
+        cache_dir=str(tmp_path),
+    )
+
+    assert llm.complete("prompt", system="system", tier=TaskTier.MEDIUM) == "deterministic"
+    assert calls[0]["temperature"] == 0.0
+    assert calls[0]["seed"] == 0
+    assert usage_events[0]["temperature"] == 0.0
+    assert usage_events[0]["seed"] == 0
+    assert usage_events[0]["deterministic"] is True
+    assert usage_events[0]["tier"] == "medium"
+
+
+def test_llm_cache_key_includes_deterministic_controls():
+    from aria.llm.provider import LLMProvider
+
+    key_a = LLMProvider._cache_key("m", "s", "p", 10, 0.0, 0)
+    key_b = LLMProvider._cache_key("m", "s", "p", 10, 0.2, 0)
+    key_c = LLMProvider._cache_key("m", "s", "p", 10, 0.0, 11)
+
+    assert key_a != key_b
+    assert key_a != key_c
+
+
 def test_bulk_rna_legacy_script_passes():
     env = os.environ.copy()
     env["ARIA_ALLOW_MOCKS"] = "1"
@@ -2803,12 +2858,19 @@ def test_provenance_section_renders_llm_usage():
             "completion_tokens": 5,
             "total_tokens": 15,
             "estimated_cost_usd": 0.001,
+            "deterministic": True,
+            "temperature": 0.0,
+            "seed": 0,
+            "models": ["m"],
+            "tiers": ["medium"],
         },
     )
 
     assert "LLM Usage" in html
     assert "total_tokens" in html
     assert "0.001" in html
+    assert "deterministic" in html
+    assert "seed" in html
 
 
 def test_collect_llm_usage_invalid_since_returns_empty(monkeypatch, tmp_path):
@@ -2843,6 +2905,29 @@ def test_collect_llm_usage_includes_grace_window(monkeypatch, tmp_path):
 
     assert usage["calls"] == 1
     assert usage["total_tokens"] == 11
+
+
+def test_collect_llm_usage_summarizes_deterministic_provenance(monkeypatch, tmp_path):
+    from aria.utils import provenance
+
+    usage_log = tmp_path / "usage.jsonl"
+    usage_log.write_text(
+        '{"timestamp_utc":"2026-01-01T00:00:04+00:00","model":"m",'
+        '"tier":"heavy","temperature":0.0,"seed":0,"deterministic":true,'
+        '"prompt_tokens":10,"completion_tokens":1,"total_tokens":11,'
+        '"estimated_cost_usd":0.1}\n'
+    )
+    monkeypatch.setattr(provenance, "USAGE_LOG", usage_log)
+
+    usage = provenance.collect_llm_usage("2026-01-01T00:00:05+00:00")
+
+    assert usage["deterministic"] is True
+    assert usage["temperature"] == 0.0
+    assert usage["seed"] == 0
+    assert usage["models"] == ["m"]
+    assert usage["tiers"] == ["heavy"]
+    assert usage["by_model"]["m"]["temperature"] == 0.0
+    assert usage["by_model"]["m"]["seed"] == 0
 
 
 def test_reproducible_mode_writes_memory_snapshot(tmp_path):

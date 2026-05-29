@@ -111,6 +111,9 @@ class LLMProvider:
         )
     """
 
+    DETERMINISTIC_TEMPERATURE = 0.0
+    DETERMINISTIC_SEED = 0
+
     def __init__(
         self,
         models:      dict[TaskTier, list[ModelConfig]] = None,
@@ -123,7 +126,8 @@ class LLMProvider:
         self._context_managers: dict[str, ContextManager] = {}
         self._inject_api_keys()
         # File-backed prompt cache. Disabled when ARIA_LLM_CACHE=0.
-        # Cache key: sha256(model + system + prompt + max_tokens).
+        # Cache key: sha256(model + system + prompt + max_tokens + deterministic
+        # generation controls).
         self._cache_enabled = os.environ.get("ARIA_LLM_CACHE", "1") != "0"
         if self._cache_enabled:
             base = cache_dir or os.environ.get("ARIA_LLM_CACHE_DIR") \
@@ -160,7 +164,7 @@ class LLMProvider:
         for model_cfg in candidates:
             try:
                 return self._call(model_cfg, prompt, system,
-                                  max_tokens, messages)
+                                  max_tokens, messages, tier=tier)
             except Exception as e:
                 log.warning(
                     f"Model {model_cfg.model} failed: {e}. "
@@ -203,6 +207,7 @@ class LLMProvider:
         system:     str,
         max_tokens: int,
         messages:   list = None,
+        tier:       TaskTier = TaskTier.MEDIUM,
     ) -> str:
         """Execute a single LiteLLM call with context management."""
 
@@ -210,7 +215,14 @@ class LLMProvider:
         # are skipped because the cache key would explode in size).
         cache_key = None
         if self._cache_enabled and messages is None:
-            cache_key = self._cache_key(cfg.model, system, prompt, max_tokens)
+            cache_key = self._cache_key(
+                cfg.model,
+                system,
+                prompt,
+                max_tokens,
+                self.DETERMINISTIC_TEMPERATURE,
+                self.DETERMINISTIC_SEED,
+            )
             cached = self._cache_get(cache_key)
             if cached is not None:
                 log.debug(f"LLM cache hit: {cfg.model} key={cache_key[:8]}")
@@ -218,6 +230,10 @@ class LLMProvider:
                     "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                     "provider": cfg.provider,
                     "model": cfg.model,
+                    "tier": tier.value,
+                    "temperature": self.DETERMINISTIC_TEMPERATURE,
+                    "seed": self.DETERMINISTIC_SEED,
+                    "deterministic": True,
                     "cache_hit": True,
                     "prompt_tokens": 0,
                     "completion_tokens": 0,
@@ -250,6 +266,8 @@ class LLMProvider:
             model=cfg.model,
             messages=msgs,
             max_tokens=max_tokens,
+            temperature=self.DETERMINISTIC_TEMPERATURE,
+            seed=self.DETERMINISTIC_SEED,
         )
 
         # Inject API base for local models
@@ -279,6 +297,10 @@ class LLMProvider:
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "provider": cfg.provider,
             "model": cfg.model,
+            "tier": tier.value,
+            "temperature": self.DETERMINISTIC_TEMPERATURE,
+            "seed": self.DETERMINISTIC_SEED,
+            "deterministic": True,
             "cache_hit": False,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
@@ -292,9 +314,23 @@ class LLMProvider:
     # ── Prompt cache helpers ─────────────────────────────────────────────
 
     @staticmethod
-    def _cache_key(model: str, system: str, prompt: str, max_tokens: int) -> str:
+    def _cache_key(
+        model: str,
+        system: str,
+        prompt: str,
+        max_tokens: int,
+        temperature: float,
+        seed: int,
+    ) -> str:
         blob = json.dumps(
-            {"m": model, "s": system, "p": prompt, "t": max_tokens},
+            {
+                "m": model,
+                "s": system,
+                "p": prompt,
+                "t": max_tokens,
+                "temperature": temperature,
+                "seed": seed,
+            },
             sort_keys=True,
         )
         return hashlib.sha256(blob.encode("utf-8")).hexdigest()

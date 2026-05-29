@@ -1860,7 +1860,8 @@ for small-effect genes."
         llm_rows = []
         for key in (
             "calls", "cache_hits", "prompt_tokens", "completion_tokens",
-            "total_tokens", "estimated_cost_usd",
+            "total_tokens", "estimated_cost_usd", "deterministic",
+            "temperature", "seed", "models", "tiers",
         ):
             llm_rows.append(
                 "<tr>"

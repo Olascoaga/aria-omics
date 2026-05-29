@@ -91,7 +91,16 @@ def collect_llm_usage(
         "total_tokens": 0,
         "estimated_cost_usd": 0.0,
         "by_model": {},
+        "models": [],
+        "tiers": [],
+        "temperature": None,
+        "seed": None,
+        "deterministic": True,
     }
+    models_seen = set()
+    tiers_seen = set()
+    temperatures_seen = set()
+    seeds_seen = set()
     since = None
     if since_utc:
         try:
@@ -119,7 +128,26 @@ def collect_llm_usage(
                     if ts < since:
                         continue
                 model = str(event.get("model") or "unknown")
+                tier = str(event.get("tier") or "unknown")
                 totals["calls"] += 1
+                models_seen.add(model)
+                tiers_seen.add(tier)
+                if "temperature" in event:
+                    try:
+                        temperatures_seen.add(float(event.get("temperature")))
+                    except Exception:
+                        totals["deterministic"] = False
+                else:
+                    totals["deterministic"] = False
+                if "seed" in event:
+                    try:
+                        seeds_seen.add(int(event.get("seed")))
+                    except Exception:
+                        totals["deterministic"] = False
+                else:
+                    totals["deterministic"] = False
+                if event.get("deterministic") is not True:
+                    totals["deterministic"] = False
                 if event.get("cache_hit"):
                     totals["cache_hits"] += 1
                 for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
@@ -131,6 +159,10 @@ def collect_llm_usage(
                     model,
                     {
                         "calls": 0,
+                        "tiers": [],
+                        "temperature": event.get("temperature"),
+                        "seed": event.get("seed"),
+                        "deterministic": event.get("deterministic") is True,
                         "prompt_tokens": 0,
                         "completion_tokens": 0,
                         "total_tokens": 0,
@@ -138,6 +170,15 @@ def collect_llm_usage(
                     },
                 )
                 by_model["calls"] += 1
+                if tier not in by_model["tiers"]:
+                    by_model["tiers"].append(tier)
+                    by_model["tiers"].sort()
+                if by_model.get("temperature") != event.get("temperature"):
+                    by_model["temperature"] = "mixed"
+                if by_model.get("seed") != event.get("seed"):
+                    by_model["seed"] = "mixed"
+                if event.get("deterministic") is not True:
+                    by_model["deterministic"] = False
                 for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
                     by_model[key] += int(event.get(key) or 0)
                 by_model["estimated_cost_usd"] += float(
@@ -146,6 +187,20 @@ def collect_llm_usage(
     except Exception:
         return totals
     totals["estimated_cost_usd"] = round(totals["estimated_cost_usd"], 6)
+    totals["models"] = sorted(models_seen)
+    totals["tiers"] = sorted(tiers_seen)
+    if len(temperatures_seen) == 1:
+        totals["temperature"] = next(iter(temperatures_seen))
+    elif len(temperatures_seen) > 1:
+        totals["temperature"] = "mixed"
+        totals["deterministic"] = False
+    if len(seeds_seen) == 1:
+        totals["seed"] = next(iter(seeds_seen))
+    elif len(seeds_seen) > 1:
+        totals["seed"] = "mixed"
+        totals["deterministic"] = False
+    if temperatures_seen and temperatures_seen != {0.0}:
+        totals["deterministic"] = False
     for model_totals in totals["by_model"].values():
         model_totals["estimated_cost_usd"] = round(
             model_totals["estimated_cost_usd"], 6
