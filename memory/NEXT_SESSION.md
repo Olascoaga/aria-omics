@@ -374,3 +374,26 @@ in `aria-env`, absent in `aria-rna-env`):
 Read `memory/roadmap/V46_SCATAC_PLAN.md` first. scATAC must reuse v4.4
 provenance/methodology guarantees and v4.5 raw-ingestion patterns rather than
 inventing separate input handling.
+
+## Pre-ATAC remediation (2026-05-28) — DO NOT skip before scATAC
+
+A senior audit (`memory/audit/2026-05-28_senior_audit.md`) is the authoritative
+tracker. Samael's mandate: solve before v4.6. Executed this session (108
+passed / 4 skipped, zero regressions): P1 headless runner + design E2E test
+(`aria/headless.py`, `tests/test_headless_design_e2e.py`); P3 causal-guard
+hardening (`tests/test_causal_guard.py`); P4a lognorm-recovery provenance; P4b
+power-disclosure; P-ENG-PERF env-detection cache (`tests/test_env_manager_cache.py`);
+P2 partial CI/Dockerfile.
+
+**OPEN BLOCKER — PBMC v4.5.2 rerun is THIN.** Report
+`~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`
+is provenance-clean (`git_sha=0569689`) but ran only QC + LIANA — pseudobulk
+DE / composition / pathway / trajectory did NOT execute (d72 v4.4 did). Likely
+a v4.4→v4.5.2 scRNA-dispatch regression or cell-focus steering. **Next step:**
+rerun with the d72 question ("monocytes, T cells, B cells") to isolate
+focus-steering vs a true regression, then trace why `scrna_agent` skipped
+pseudobulk dispatch. v4.5.2 scientific-depth validation is NOT closed.
+
+Deferred remediation items (steps in the audit file): IHW/hierarchical FDR,
+apeglm shrinkage, bus persistence, integration QA (LISI/kBET), ambient-RNA
+correction, god-file splits, FASTQ-path tests.

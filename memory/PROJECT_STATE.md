@@ -551,3 +551,42 @@ narrative/smoke tests require `litellm`, which lives in `aria-env`, not
 - `python -m pytest -q tests/test_pytest_smoke.py` -> 86 passed, 4 skipped
 - `python -m compileall -q aria` -> pass
 - `git diff --check` -> pass
+
+## Pre-ATAC Senior Audit + Remediation (2026-05-28)
+
+Full audit (SWE + comp-bio lens) lives in
+`memory/audit/2026-05-28_senior_audit.md` (authoritative remediation tracker).
+Mandate from Samael: solve before v4.6 scATAC.
+
+Executed and validated this session (zero regressions; 108 passed / 4 skipped
+across smoke + narrative + new files):
+
+- **P1** — `aria/headless.py` maintained non-interactive runner +
+  `tests/test_headless_design_e2e.py`. Closes F-ENG-E2E (the checkpoint state
+  machine had no integration test).
+- **P3** — causal guard hardened: ~25-phrase lexicon + `find_causal_language`
+  + render-level prose scan; `tests/test_causal_guard.py`. Closes F-SCI-CAUSAL.
+- **P4a** — `rna_pseudobulk_de` surfaces count provenance (`count_source`,
+  `lognorm_recovered`, …) + scRNA narrator recovery caveat. Closes
+  F-SCI-LOGNORM.
+- **P4b** — `rna_pseudobulk_de` returns a `power` disclosure (nominal-α power
+  is an upper bound vs applied global-BH). Closes F-SCI-POWER (data contract).
+- **P-ENG-PERF** — `EnvironmentManager.check_environments()` memoized;
+  `tests/test_env_manager_cache.py`.
+- **P2 (partial)** — `.github/workflows/ci.yml` + `Dockerfile` (run on the
+  remote/CI, not verifiable locally). Partially closes F-ENG-REPRO.
+
+Deferred (documented with steps in the audit file): IHW/hierarchical FDR,
+apeglm shrinkage, bus persistence, integration QA (LISI/kBET), ambient-RNA
+correction, god-file splits, FASTQ-path tests.
+
+### PBMC v4.5.2 rerun — OPEN BLOCKER
+
+Headless rerun:
+`~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`.
+Provenance clean (`git_sha=0569689`, `aria_version=4.5.2`, input SHA
+`af0696e9…`, locks, LLM 3 calls/$0.0145). **But THIN vs the v4.4 d72 report:
+only QC + LIANA ran; pseudobulk DE / composition / pathway / trajectory did
+NOT execute.** Candidate v4.4→v4.5.2 scRNA-dispatch regression or cell-focus
+steering. The v4.5.2 scientific-depth validation is therefore NOT yet closed;
+diagnose before ATAC (isolation step in the audit file).

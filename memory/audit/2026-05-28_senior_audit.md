@@ -1,0 +1,283 @@
+---
+status: active
+source_of_truth_for: pre_atac_remediation
+last_updated: 2026-05-28
+---
+
+# ARIA Senior Audit + Pre-ATAC Remediation Plan (2026-05-28)
+
+Audit performed at HEAD `c611e45` (post-v4.5.2 hardening) from a dual lens:
+senior software engineer + senior computational-biology/bioinformatics
+researcher. Every finding below was grounded in reading the implementation;
+one hypothesis was falsified by an executed probe (see F-SCI-COMPOSITION).
+
+**Mandate from Samael:** solve these before moving to v4.6 scATAC.
+
+This file is the authoritative remediation tracker. Each item carries:
+severity, evidence (`file:line`), and the exact execution steps. Status is
+updated in place as items land.
+
+---
+
+## Verification note (why this audit trusts itself)
+
+The composition-covariate concern was initially flagged as a HIGH bug
+(continuous log-ratio passed to `pydeseq2` in `design_factors` without
+`continuous_factors` → suspected one-hot rank-deficiency). A synthetic probe
+in `aria-rna-env` disproved it: this pydeseq2 version auto-detects numeric
+dtype as continuous (design matrix = `[Intercept, condition[T.STIM],
+_aria_composition_log_ratio]`, one column). Reclassified to a MINOR
+robustness item (F-SCI-COMPOSITION). Lesson recorded: verify before asserting.
+
+---
+
+## Findings
+
+### Software / architecture
+
+- **F-ENG-E2E [HIGH] — the checkpoint state machine has no integration test.**
+  The orchestrator → `DesignAgent` (CP2.1–2.6) → CP2-plan → dispatch control
+  path is the most complex, most user-facing code and is untested.
+  `tests/test_pytest_smoke.py:999` only tests `_format_plan_summary` via
+  `__new__`. Fragile, real subtleties are uncovered: `checkpoint=2` means
+  three different things (design-confirm store, plan escalation, post-audit),
+  and `options[0]` is NOT the safe answer at CP2.3 (factor: `options[0]`
+  can be `"genotype"` while the correct factor is `"stim"`/`"stimulation"`).
+  Evidence: `aria/agents/orchestrator_agent.py:168-289`,
+  `aria/agents/design_agent.py:165-391,467-503`.
+
+- **F-ENG-REPRO [MEDIUM-HIGH] — reproducibility is documented, not enforced.**
+  No `.github/workflows/`, no `Dockerfile`/Apptainer. Lockfiles are
+  snapshot-from-installed (no real solve) and only `aria-rna-env` has a lock;
+  chromatin/hic/integration have none. `--reproducible` + provenance hashes
+  are good but depend on one machine. Evidence: `envs/` contents,
+  absence of CI config.
+
+- **F-ENG-BUS [MEDIUM] — the message bus is in-memory only.**
+  `MessageBus._log` is a `deque` with no persistence
+  (`aria/bus/message_bus.py:91`). A crash mid-run loses findings/decisions of
+  completed stages; resume only covers file-valid h5ad stages, not the
+  narrative/finding layer. Post-mortem audit and replay are incomplete.
+
+- **F-ENG-PERF [MINOR-MEDIUM] — avoidable per-call overhead.**
+  `EnvironmentManager.run_in_stack` calls `check_environments()` (which spawns
+  `conda env list --json`) on every script dispatch
+  (`aria/utils/environment_manager.py:400`). `conda run` re-activates the env
+  per call. `bus.get_pending_checkpoints()`/`get_log()` scan the full deque
+  (up to 100k) on every 0.5s poll tick.
+
+- **F-ENG-GODFILES [MEDIUM] — maintainability hotspots.**
+  `narrative_agent.py` 2723, `rna_bulk_de.py` 2431, `_narrative_scrna.py`
+  2200, `scrna_agent.py` 1983 LOC. High merge/regression risk.
+
+- **F-ENG-TESTGAPS [MEDIUM] — untested modules.**
+  `setup_agent` (719 LOC, env detection), `rna_quantify`/`rna_align` (raw
+  FASTQ path), `base_agent`, `rna_inject_condition`, `rna_figure_paga` have no
+  test reference.
+
+### Scientific / bioinformatics
+
+- **F-SCI-POWER [MEDIUM] — reported power is optimistic vs the decision
+  threshold.** `power_estimation.py` computes Wald-NB power at nominal
+  α=0.05, but significance is declared via **global BH** over ~127k tests
+  (`rna_pseudobulk_de.py:504`). The effective per-test α is far below 0.05, so
+  reported power (8–13% in the d72 PBMC run) overstates the true power against
+  the applied bar. Must be disclosed in Methods or reconciled.
+
+- **F-SCI-LOGNORM [MEDIUM] — count "recovery" is not surfaced in provenance.**
+  `rna_pseudobulk_de.py:165-235` reverses `round(expm1(x)·lib/1e4)` when
+  `raw.X` is log-normalized. Clever, but: (a) the return dict does NOT record
+  that counts were reverse-engineered → reports may not disclose it;
+  (b) invalid if the input was scaled/regressed (ScaleData), only weakly
+  guarded by an 85%-integer probe on 200 cells; (c) assumes scale_factor=1e4.
+  Borders on the "no fabricated scientific outputs" principle.
+
+- **F-SCI-CAUSAL [MEDIUM] — the causal-language guard is a 10-phrase
+  blocklist.** `aria/agents/narrative/validators.py:15-26` scans only
+  `claim` + evidence labels for a fixed list ("drives", "binds to", …). It
+  misses most causal phrasing ("induces", "triggers", "causes", "controls",
+  "leads to", "master regulator", "upstream of", "promotes", "responsible
+  for") and does NOT scan the composed prose / LLM integrated interpretation,
+  which is exactly where causal overreach appears. Weakest possible
+  implementation of a core project principle.
+
+- **F-SCI-FDR [LOW-MEDIUM] — global FDR pooling is opinionated.**
+  Pooling every gene×celltype×contrast p-value into one BH family
+  (`rna_pseudobulk_de.py:495-515`) is defensible but conservative for small
+  blocks and couples unrelated cell types. Rationale should be documented; an
+  IHW / per-contrast / hierarchical option would strengthen it.
+
+- **F-SCI-LIANA [MINOR] — `n_perms=100` default is low** for stable LIANA
+  permutation specificity p-values (`aria/scripts/rna_cellcomm.py:68`);
+  1000 is typical.
+
+- **F-SCI-COMPOSITION [MINOR] — composition covariate relies on pydeseq2
+  dtype auto-detection.** Works today (verified) but is fragile to version /
+  dtype changes; passing `continuous_factors=[COMPOSITION_COL]` explicitly is
+  defensive. `rna_pseudobulk_de.py:431-436`.
+
+### Missing capability
+
+- No ambient-RNA correction (SoupX/decontX); only Scrublet doublets.
+- No integration-QA metrics (LISI/kBET/silhouette) to validate Harmony.
+- No effect-size shrinkage (apeglm/ashr) or s-values; raw DESeq2 LFCs only.
+- No real RNA velocity (scVelo); PAGA/DPT only (honestly caveated).
+- scATAC/bulk-ATAC/Hi-C/integration scaffolded (roadmap v4.6–v4.8).
+
+---
+
+## Remediation plan — execution steps per proposal
+
+Status legend: ☐ planned · ◐ in progress · ✅ done.
+
+### P1 — Headless runner + E2E test of the control path  (closes F-ENG-E2E)
+
+Highest value/risk ratio. Reuses the validated `/tmp/aria_pbmc_headless.py`
+driver written for the PBMC rerun.
+
+Steps:
+1. ✅ Add `aria/headless.py`: a maintained non-interactive runner. It mirrors
+   `tui.run_analysis` but resolves checkpoints with an auditable answer policy
+   that follows ARIA's own inference (parse proposed factor, accept inferred
+   groups/organism, recommended+optional plan) — no hardcoded biology
+   (ADR-011). Exposes `run_headless(data_dir, question, answer_policy=...)`.
+2. ✅ Add `tests/test_headless_design_e2e.py`: drive the full `DesignAgent`
+   state machine (start_design → groups → organism → factor → batch/pseudorep
+   auto-skip → confirm → `_build_design`) from a synthetic high-confidence
+   `inferred_design`, asserting the final design (condition/replicate/groupby,
+   formula, n_total). Pure Python, no LLM, no subprocess. Neutral synthetic
+   labels only.
+3. ✅ Validate: `pytest -q tests/test_headless_design_e2e.py` + full smoke.
+
+### P3 — Honesty layer hardening  (closes F-SCI-CAUSAL)
+
+Steps:
+1. ✅ Broaden `CAUSAL_PATTERNS` to cover the common causal verbs/nouns above.
+2. ✅ Scan composed prose: have `compose_prose`/`render_blocks` route the final
+   per-block prose through the causal guard, not just `claim`+evidence.
+3. ✅ Add `tests/` cases: a block whose prose contains "induces"/"master
+   regulator" gets a caveat + confidence downgrade.
+
+### P4a — Lognorm-recovery provenance  (closes F-SCI-LOGNORM)
+
+Steps:
+1. ✅ `rna_pseudobulk_de.py`: add `count_source`
+   (`raw_counts`|`X_counts`|`recovered_from_lognorm`), `lognorm_recovered`
+   bool, and `norm_scale_factor_used` to the return dict.
+2. ✅ scRNA narrator emits a visible caveat when `lognorm_recovered` is true.
+3. ✅ Test: synthetic log-norm h5ad → return dict flags recovery.
+
+### P4b — Power honesty  (closes F-SCI-POWER)
+
+Steps:
+1. ✅ Surface `power_alpha` and an explicit note that power is computed at the
+   nominal α, while significance uses global BH (so power is an upper bound).
+   Add to the pseudobulk/bulk power payload and Methods prose.
+2. ✅ Test: power payload includes the disclosure field.
+
+### P-ENG-PERF — cache env detection  (closes F-ENG-PERF, env part)
+
+Steps:
+1. ✅ Cache `check_environments()` result on the `EnvironmentManager` instance
+   (invalidate on alias-file mtime change). Keep correctness for SetupAgent.
+2. ✅ Covered by existing env tests + a new cache test.
+
+### P2 — CI + container artifacts  (closes F-ENG-REPRO, partially)
+
+Cannot run CI/Docker build in this environment; delivered as committed
+artifacts that run on the GitHub remote.
+
+Steps:
+1. ✅ `.github/workflows/ci.yml`: matrix that sets up `aria-env`, runs
+   `compileall` + `tests/test_pytest_smoke.py` and the narrative suite; a
+   second job (allowed-to-fail until envs are containerized) for the
+   pydeseq2-gated tests.
+2. ✅ `Dockerfile` (or `Apptainer.def`) skeleton per the rna stack, documented
+   in `docs/`. Build is deferred to Samael's machine / CI.
+
+### Deferred to a dedicated v4.5.x patch (documented, not executed now)
+
+These need package installs / heavy validation and must not be done blind:
+
+- ☐ **F-SCI-FDR**: add IHW/hierarchical FDR option behind a flag; document the
+  global-pooling rationale in Methods.
+- ☐ **Effect-size shrinkage** (apeglm/ashr) + s-values in `rna_pseudobulk_de`
+  and `rna_bulk_de`.
+- ☐ **F-ENG-BUS**: persist bus events to the SQLite memory as an event log so
+  resume reconstructs narrative state.
+- ☐ **Integration QA** (LISI/kBET/silhouette) + a report "analysis confidence
+  score" closing the DesignIntelligence loop.
+- ☐ **Ambient RNA** correction (decontX/SoupX) in `rna_qc`.
+- ☐ **F-ENG-GODFILES**: split `narrative_agent.py` / `_narrative_scrna.py`.
+- ☐ **F-ENG-TESTGAPS**: native pytest for `setup_agent` + FASTQ path
+  (overlaps the existing P2 test-debt item).
+- ☐ **F-SCI-LIANA**: raise default `n_perms` to 1000 (perf-validate first).
+
+---
+
+## Execution log (2026-05-28)
+
+Executed and validated this session (all green, zero regressions —
+`tests/test_pytest_smoke.py` 86 passed/4 skipped plus the new files):
+
+- **P1 ✅** `aria/headless.py` (maintained non-interactive runner) +
+  `tests/test_headless_design_e2e.py` (2 tests: full CP2.1–2.6 walk asserting
+  the confirmed design uses the inferred factor not `options[0]`; reject-at-
+  confirm cancels). Closes F-ENG-E2E.
+- **P3 ✅** Broadened `CAUSAL_PATTERNS` (~25 phrases), added
+  `find_causal_language`, and made `render_blocks` scan the FINAL composed
+  prose (not just claim/evidence). `tests/test_causal_guard.py` (5 tests).
+  Closes F-SCI-CAUSAL.
+- **P4a ✅** `rna_pseudobulk_de` now returns `count_source`,
+  `lognorm_recovered`, `norm_scale_factor_used`, `lognorm_lib_size_col`; the
+  scRNA narrator emits a recovery caveat. New narrator test. Closes
+  F-SCI-LOGNORM.
+- **P4b ✅** `rna_pseudobulk_de` returns a `power` disclosure block
+  (nominal-alpha vs applied global-BH threshold = upper bound). Closes
+  F-SCI-POWER (data contract; methods prose surfacing tracked).
+- **P-ENG-PERF ✅** `EnvironmentManager.check_environments()` is memoized on
+  env-aliases mtime. `tests/test_env_manager_cache.py`. Closes F-ENG-PERF
+  (env part).
+- **P2 ◐** `.github/workflows/ci.yml` (light lane runs compileall + audit-gate
+  tests + smoke; heavy lane = micromamba rna env, allowed-to-fail) and a
+  `Dockerfile` (micromamba + `aria-rna-env.yml`). Build/CI run on the GitHub
+  remote, not verifiable locally. Partially closes F-ENG-REPRO.
+
+Headless-runner bug found and fixed during the PBMC rerun: the live loop
+filtered `bus.get_log(experiment_id)`, but agent STATUS messages do not carry
+`experiment_id`, so the narrative "Report saved" completion signal was hidden
+and the runner timed out despite a finished report. Fixed to poll the full bus
+log (like `tui._live_analysis_loop`) plus a filesystem fallback.
+
+## PBMC v4.5.2 rerun outcome (OPEN BLOCKER — do before ATAC)
+
+The headless PBMC rerun produced
+`~/.aria/reports/aria_20260528_165233_interferonbeta_myeloidcells_lymphoidcell_-1db/`.
+
+Provenance is clean: `git_sha=0569689` (clean tree), `aria_version=4.5.2`,
+input SHA-256 `af0696e9…` (matches canonical pbmc.h5ad), conda/pip locks
+embedded, LLM usage 3 haiku calls / $0.0145 (real calls, honestly accounted).
+
+**But the report is THIN and does NOT reproduce the v4.4 (`cbcde8e`/d72)
+depth.** Only two success narrative blocks: QC (13,807/13,836 cells, 13
+`obs['cluster']` groups) and LIANA (50 L-R interactions, low confidence).
+**Pseudobulk DE, differential abundance/composition, pathway ORA, and
+trajectory did NOT run** — the decisions log has no pseudobulk/composition
+decision (d72 had `composition_covariate=ON`, `groupby=cluster; condition=stim;
+replicate=Donor`).
+
+This is a candidate **regression between v4.4 (`cbcde8e`) and v4.5.2
+(`0569689`)** in the scRNA dispatch/plan path, OR a cell-focus/question
+steering effect ("myeloid-lymphoid signaling" → focus subset). It is exactly
+the class of silent control-path regression F-ENG-E2E warns about. Must be
+diagnosed before ATAC. Suggested next step: rerun with the d72 question
+("monocytes, T cells, B cells") to isolate focus-steering from a true
+regression, and trace why `scrna_agent` did not dispatch pseudobulk.
+
+## Validation gates (run after each executed item)
+
+```bash
+/home/medusa/anaconda3/envs/aria-env/bin/python -m compileall -q aria
+/home/medusa/anaconda3/envs/aria-env/bin/python -m pytest -q tests/test_pytest_smoke.py
+# narrative + new targeted tests
+```

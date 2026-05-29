@@ -584,6 +584,16 @@ def rna_pseudobulk_de(params: dict) -> dict:
         ]) \
           .to_csv(csv_path, index=False)
 
+    # Count provenance (audit 2026-05-28, F-SCI-LOGNORM): be explicit about
+    # whether DESeq2 saw genuine raw counts or counts reverse-engineered from
+    # log-normalized values, so the report can disclose it honestly.
+    if needs_recovery:
+        count_source = "recovered_from_lognorm"
+    elif use_raw and adata.raw is not None:
+        count_source = "raw_counts"
+    else:
+        count_source = "X_counts"
+
     return {
         "status":                          "success",
         "n_groups":                        len(per_group),
@@ -591,6 +601,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "condition_col":                   condition_col,
         "replicate_col":                   replicate_col,
         "covariates":                      covariates,
+        "count_source":                    count_source,
+        "lognorm_recovered":               bool(needs_recovery),
+        "norm_scale_factor_used":          (norm_scale_factor if needs_recovery else None),
+        "lognorm_lib_size_col":            (lib_size_col if needs_recovery else None),
         "composition_covariate_requested": composition_covariate,
         "paired_design":                   paired_design,
         "auto_paired_donor_covariate":      auto_paired_donor_covariate,
@@ -601,6 +615,22 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
+        },
+        # F-SCI-POWER (audit 2026-05-28): power is an approximate NB-Wald value
+        # at the NOMINAL per-test alpha. Significance is actually declared with
+        # global BH-FDR across all blocks, whose effective per-test threshold is
+        # far stricter, so the reported power is an UPPER BOUND on the power at
+        # the applied threshold. Disclosed so Methods can state it honestly.
+        "power": {
+            "alpha_nominal":  padj_max,
+            "method":         "approximate NB-Wald (closed form)",
+            "applied_threshold": "global BH-FDR",
+            "note": (
+                "Power is computed at the nominal per-test alpha; the applied "
+                "significance threshold is global BH-FDR across all blocks, so "
+                "reported power overestimates the effective power at the "
+                "threshold actually used."
+            ),
         },
         "thresholds":     {"padj_max": padj_max, "lfc_min": lfc_min,
                            "min_cells_per_pseudosample": min_cells_per_pseudosample,

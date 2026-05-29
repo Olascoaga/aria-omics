@@ -120,6 +120,12 @@ class EnvironmentManager:
         self.workspace.mkdir(parents=True, exist_ok=True)
         (self.workspace / "failed").mkdir(exist_ok=True)
         self._conda_ok = self._verify_conda()
+        # Cache for check_environments() — enumerating conda envs spawns a
+        # subprocess, and run_in_stack used to do it on every dispatch. Cache
+        # keyed on the env-aliases file mtime so SetupAgent-created envs are
+        # still picked up when the aliases change.
+        self._env_cache: dict[str, bool] | None = None
+        self._env_cache_key: float | None = None
 
     # ── Public interface ──────────────────────────────────────────────────
 
@@ -335,6 +341,16 @@ class EnvironmentManager:
         if not self._conda_ok:
             return {stack: False for stack in self.STACKS}
 
+        # Cache key: env-aliases mtime (0.0 if absent). A changed aliases file
+        # is the signal that SetupAgent reconfigured environments.
+        aliases_file = Path.home() / ".aria" / "env_aliases.json"
+        try:
+            cache_key = aliases_file.stat().st_mtime if aliases_file.exists() else 0.0
+        except OSError:
+            cache_key = 0.0
+        if self._env_cache is not None and self._env_cache_key == cache_key:
+            return dict(self._env_cache)
+
         try:
             result = subprocess.run(
                 ["conda", "env", "list", "--json"],
@@ -342,10 +358,13 @@ class EnvironmentManager:
             )
             data         = json.loads(result.stdout)
             installed    = {Path(e).name for e in data.get("envs", [])}
-            return {
+            envs = {
                 stack: self.STACKS[stack] in installed
                 for stack in self.STACKS
             }
+            self._env_cache = dict(envs)
+            self._env_cache_key = cache_key
+            return envs
         except Exception as e:
             log.warning(f"Could not enumerate Conda environments: {e}")
             return {stack: False for stack in self.STACKS}

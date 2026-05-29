@@ -143,6 +143,25 @@ def test_scrna_narrator_generates_blocks_for_all_synthetic_results():
     assert any("PAGA/DPT is exploratory" in c.text for c in trajectory.caveats)
 
 
+def test_scrna_narrator_flags_lognorm_recovered_counts():
+    """F-SCI-LOGNORM (audit 2026-05-28): when DESeq2 counts were
+    reverse-engineered from log-normalized values, every pseudobulk block must
+    carry a visible recovery caveat."""
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    findings["pseudobulk_de"]["lognorm_recovered"] = True
+    findings["pseudobulk_de"]["count_source"] = "recovered_from_lognorm"
+
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    pb = next(b for b in blocks
+              if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    assert any("reverse-engineered" in c.text.lower() for c in pb.caveats), \
+        [c.text for c in pb.caveats]
+
+
 def test_scrna_narrator_methods_reuse_legacy_methods():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
 

@@ -228,6 +228,13 @@ class ScrnaNarrator:
                         "pseudobulk_de",
                     ))
                 caveats = []
+                if pb.get("lognorm_recovered"):
+                    caveats.append(Caveat(
+                        "Counts were reverse-engineered from log-normalized "
+                        "values (raw counts were not available); DESeq2 inputs "
+                        "are approximate integer reconstructions.",
+                        "warning",
+                    ))
                 if comp.get("low_power_warning"):
                     caveats.append(Caveat("Low replicate support; interpret cautiously."))
                 if comp.get("corrected_for_composition"):

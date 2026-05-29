@@ -8,7 +8,7 @@ from pathlib import Path
 
 from aria.agents.narrative.compose_prose import compose_block_prose
 from aria.agents.narrative.types import NarrativeBlock
-from aria.agents.narrative.validators import validate_blocks
+from aria.agents.narrative.validators import validate_blocks, find_causal_language
 
 
 BLOCK_ORDER = {
@@ -64,14 +64,31 @@ def _render_block(block: NarrativeBlock,
         f"<p class='warning'><strong>Error:</strong> {html.escape(str(block.error))}</p>"
         if block.error else ""
     )
+    raw_prose = compose_block_prose(block) or block.claim or ""
+
+    # F-SCI-CAUSAL (audit 2026-05-28): the causal guard in validate_blocks only
+    # scans claim+evidence. Scan the FINAL composed prose too — that is what the
+    # reader sees — and surface a visible warning if unlicensed causal phrasing
+    # slipped in (unless the block declares explicit causal evidence).
+    block_warnings = list(block.warnings or [])
+    if not block.metadata.get("causal_evidence"):
+        causal_hit = find_causal_language(raw_prose)
+        if causal_hit:
+            warn = (
+                f"Associative result described with causal language "
+                f"('{causal_hit}'); interpret as correlation, not causation."
+            )
+            if warn not in block_warnings:
+                block_warnings.append(warn)
+
     warnings_html = ""
-    if block.warnings:
+    if block_warnings:
         warnings_html = (
             "<ul style='margin:0.4rem 0 0.4rem 1.1rem;color:var(--amber)'>"
-            + "".join(f"<li>{html.escape(str(w))}</li>" for w in block.warnings)
+            + "".join(f"<li>{html.escape(str(w))}</li>" for w in block_warnings)
             + "</ul>"
         )
-    prose = html.escape(compose_block_prose(block) or block.claim or "")
+    prose = html.escape(raw_prose)
     return f"""
 <section class="narrative-block" data-block-id="{html.escape(block.id)}"
          style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">

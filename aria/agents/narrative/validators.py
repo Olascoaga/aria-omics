@@ -13,6 +13,7 @@ class NarrativeValidationError(ValueError):
 
 
 CAUSAL_PATTERNS = (
+    # original set
     "drives",
     "enforces",
     "acts as",
@@ -23,12 +24,51 @@ CAUSAL_PATTERNS = (
     "binds to",
     "hierarchical gatekeeper",
     "hierarchical gatekeepers",
+    # broadened lexicon (audit 2026-05-28, F-SCI-CAUSAL): associative
+    # transcriptomic/communication evidence does not license causal verbs.
+    "causes",
+    "caused by",
+    "induces",
+    "induced by",
+    "triggers",
+    "leads to",
+    "results in",
+    "gives rise to",
+    "controls",
+    "regulates",
+    "drives the",
+    "promotes",
+    "inhibits",
+    "suppresses",
+    "activates",
+    "represses",
+    "responsible for",
+    "master regulator",
+    "master regulators",
+    "upstream of",
+    "downstream effector",
+    "orchestrates",
+    "dictates",
+    "determines",
+    "mediates",
 )
 
 _CAUSAL_RE = re.compile(
     r"\b(" + "|".join(re.escape(p) for p in CAUSAL_PATTERNS) + r")\b",
     flags=re.IGNORECASE,
 )
+
+
+def find_causal_language(text: str) -> str | None:
+    """Return the first causal pattern found in ``text``, or None.
+
+    Reusable so any layer (validators, renderer) can scan free text — not just
+    the structured claim/evidence — for unlicensed causal phrasing.
+    """
+    if not text:
+        return None
+    match = _CAUSAL_RE.search(text)
+    return match.group(0) if match else None
 
 _CONFIDENCE_DOWN = {
     "high": "medium",
@@ -98,10 +138,9 @@ def _text_for_causal_scan(block: NarrativeBlock) -> str:
 def _apply_causal_guard(block: NarrativeBlock) -> None:
     if block.metadata.get("causal_evidence") is True:
         return
-    match = _CAUSAL_RE.search(_text_for_causal_scan(block))
-    if not match:
+    pattern = find_causal_language(_text_for_causal_scan(block))
+    if not pattern:
         return
-    pattern = match.group(0)
     caveat_text = (
         f"Causal language pattern '{pattern}' was detected without explicit "
         "causal evidence; interpret this block as associative."
