@@ -282,3 +282,36 @@ Implications:
   scripts and use the current contract version.
 - Unregistered scripts keep the legacy `_base.py` IPC path until contracts are
   added; this avoids a broad migration cliff.
+
+## ADR-013 - Claims Are Evidence-Tiered; Language Is Capped By Tier
+
+Status: accepted (2026-05-28, X14 Claim Compiler)
+
+Every biological claim ARIA reports is classified by a deterministic compiler
+(`aria.agents.narrative.claim_compiler`) into an evidence tier derived from the
+STRUCTURED evidence that supports it — never from the LLM's prose. The tier caps
+the language the report may use.
+
+Tiers (ascending): descriptive < associative < weak_mechanistic <
+strong_mechanistic < causal_experimental.
+
+Implications:
+
+- Observational omics (the default for ARIA's current RNA modalities) caps at
+  `associative`: a mechanism may be proposed as a hypothesis but causation is
+  never asserted. Causal language is licensed only for `causal_experimental`,
+  which requires an EXPLICITLY interventional design
+  (`design.interventional is True`). ARIA never infers intervention from a
+  factor name (`design_is_interventional` is conservative).
+- Mechanistic tiers require independent regulatory evidence (motif /
+  accessibility / regulon); they raise the tier but still license only
+  associative language without a perturbation.
+- A claim whose wording exceeds its tier (detected by the causal-language guard
+  in `validators.find_causal_language`) is flagged with a `language_violation`
+  and an added limitation; the report shows the true tier.
+- Each claim ships a manifest in `methodology.json["claims"]`
+  (claim_id, text, tier, licensed_language, evidence categories, evidence
+  cards, tables/figures, limitations, confidence) and an evidence-tier badge in
+  the HTML. This is the auditable bridge between a sentence and its evidence.
+- This builds on ADR-011 (no hardcoded biology) and the causal guard: it is the
+  structural enforcement of "LLM proposes, code guarantees" for claims.

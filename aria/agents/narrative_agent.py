@@ -687,9 +687,19 @@ for small-effect genes."
                                   exp_ctx: dict | None = None) -> list:
         try:
             context = {"exp_context": exp_ctx or {}}
-            return self._narrative_registry().collect_blocks(
+            blocks = self._narrative_registry().collect_blocks(
                 agent_results or {}, context
             )
+            # X14 Claim Compiler: classify each claim into an evidence tier from
+            # the structured evidence and cap the licensed language. Stored in
+            # block.metadata['claim'] so both the HTML render and methodology.json
+            # carry it. Best-effort — never block report generation.
+            try:
+                from aria.agents.narrative.claim_compiler import annotate_claim_tiers
+                annotate_claim_tiers(blocks, exp_ctx or {})
+            except Exception as exc:
+                log.warning(f"Claim-tier annotation failed: {exc}", exc_info=True)
+            return blocks
         except Exception as exc:
             log.warning(f"Narrative block collection failed: {exc}",
                         exc_info=True)
@@ -1699,6 +1709,14 @@ for small-effect genes."
         )
         if narrative_blocks is None:
             narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
+        # X14: per-claim evidence-tier manifests (claim_id -> tier, evidence,
+        # limitations, confidence). Best-effort; never block methodology output.
+        try:
+            from aria.agents.narrative.claim_compiler import compile_claims
+            claims = compile_claims(list(narrative_blocks or []), exp_ctx)
+        except Exception as exc:
+            log.warning(f"Claim manifest compilation failed: {exc}", exc_info=True)
+            claims = []
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
@@ -1706,6 +1724,7 @@ for small-effect genes."
             "narrative_blocks": [
                 block.to_dict() for block in narrative_blocks or []
             ],
+            "claims": claims,
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,

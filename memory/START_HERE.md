@@ -17,9 +17,9 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: the X6 synthetic-DE-benchmark commit on top of `54ef7dd`
-  (after X5), untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
-  with `git log --oneline --decorate -5`.
+- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+  untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
+  `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
 - Previous stable tag: `v4.5.1` (`a0b33dd`,
@@ -69,6 +69,14 @@ Read this file first in every ARIA session.
   pseudobulk DE, a pydeseq2-gated test, and `aria doctor --benchmark` wiring.
   Measured recall=1.000 / empirical_fdr=0.000 (aria-rna-env); aria-env suite 98
   passed / 5 skipped.
+- X14 Claim Compiler (flagship) is closed on top of `0c38143`:
+  `aria/agents/narrative/claim_compiler.py` deterministically tiers every claim
+  (descriptive → associative → weak/strong mechanistic → causal_experimental)
+  from structured evidence and caps the licensed language (observational omics
+  caps at associative; causal needs an interventional design). methodology.json
+  gains a `claims` manifest; HTML shows an evidence-tier badge; ADR-013 records
+  the policy. Validation: claim-compiler+guard+narrative 20 passed, full smoke
+  109 passed / 4 skipped.
 - Last previous tagged release: `v4.3.18` (`9dc48aa`).
 - `v4.3.12` tag: `3a0c40e`.
 - `v4.3.12.post1` tag: `805e0b2`.

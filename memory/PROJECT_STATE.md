@@ -19,8 +19,8 @@ supersedes:
   (`Document final v4.3.12 closeout`)
 - Last pre-maintenance code commit: `d3de169`
   (`Remove dataset-specific narrative guardrails`)
-- Current HEAD: the X6 synthetic-DE-benchmark commit on top of `54ef7dd`
-  (after X5), untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
+- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+  untagged, `aria.__version__` = `4.5.3`, = `origin/main`.
   Verify the exact hash with `git log --oneline --decorate -5`.
 - v4.5.2 release commit: `ca8b169`
   (`v4.5.2 narrative kernel`).
@@ -127,6 +127,23 @@ true DE recovered, 0 false positives); tolerances recall ≥ 0.5, FDR ≤ 0.2.
 
 Validation: compileall pass; aria-env benchmark/doctor/registry/design-matrix +
 smoke -> 98 passed / 5 skipped; aria-rna-env DE-recovery gate -> 1 passed.
+
+## X14 Claim Compiler (flagship)
+
+Closed on top of `0c38143`. A deterministic compiler
+(`aria/agents/narrative/claim_compiler.py`) classifies every claim into an
+evidence tier (descriptive / associative / weak_mechanistic /
+strong_mechanistic / causal_experimental) from the structured evidence — not the
+LLM — and caps the licensed language. Observational omics caps at associative;
+causal language requires an explicitly interventional design. Wording above the
+tier is flagged (reusing the causal guard). Integrated surgically:
+`narrative_agent` annotates tiers once (so HTML + methodology both carry them),
+`methodology.json` gains a `claims` manifest array, and `render_blocks` shows an
+evidence-tier badge per block. Durable policy: ADR-013.
+
+Validation: compileall pass; `tests/test_claim_compiler.py` + causal-guard +
+narrative render/narrator -> 20 passed; full smoke + narrative + claim compiler
+-> 109 passed / 4 skipped.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

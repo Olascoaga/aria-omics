@@ -396,13 +396,14 @@ Scientific contracts & validation:
 
 Flagship / deferred research (post-integrity, high value):
 
-- ☐ **X14** **Claim Compiler** — classify each biological claim as
-  descriptive / associative / weak-mechanistic / strong-mechanistic /
-  causal-experimental, with a per-claim manifest (claim_id → evidence paths →
-  code commit → limitations → confidence). Evolves the hardened causal guard +
-  the NarrativeBlock kernel (already has evidence/claim/caveats/confidence) into
-  the real thing. Both AIs converge on this; it is the single highest-value
-  differentiator (IA1 novel #3, IA2 4.5/5.1).
+- ✅ **X14** **Claim Compiler** (`aria/agents/narrative/claim_compiler.py`) —
+  deterministically classifies each claim as descriptive / associative /
+  weak-mechanistic / strong-mechanistic / causal-experimental from the
+  structured evidence, caps the licensed language per tier, flags wording above
+  tier (reusing the causal guard), and emits a per-claim manifest into
+  `methodology.json["claims"]` + an evidence-tier badge in the HTML. Evolves the
+  causal guard + NarrativeBlock kernel into the real thing (IA1 novel #3, IA2
+  4.5/5.1). See execution log below.
 - ☐ **X15** Shadow / multiverse analysis: rerun key decisions (QC strictness,
   Harmony vs scVI, DESeq2 vs edgeR, thresholds) on a subset; report robustness
   ("conclusions stable across 5/6 choices") (IA2 5.4).
@@ -528,9 +529,9 @@ biological conclusions under a scaffold level — the proper resolution
 validation milestone. Recorded as ADR-012 in `DECISIONS.md`.
 
 Status: X1, X2, X3, X4, X17 are CLOSED in this v4.5.3 work (committed, not
-tagged — no `v4.5.3` tag was created). X5 and X7 closed afterwards (separate
-commits). X6 closed here (below). Remaining external-audit items
-(X10–X16, X18–X20) stay open in the plan above.
+tagged — no `v4.5.3` tag was created). X5, X7, X6, and the flagship X14 closed
+afterwards (separate commits). Remaining external-audit items (X10–X13, X15,
+X16, X18–X20) stay open in the plan above.
 
 ## X6 synthetic-DE benchmark execution log (2026-05-28)
 
@@ -565,3 +566,45 @@ Validation:
   tests/test_pytest_smoke.py` -> 98 passed / 5 skipped
 - aria-rna-env: `pytest .../test_pseudobulk_de_recovers_ground_truth` -> 1 passed
 - `aria doctor --benchmark` (aria-env) -> passed with benchmark_skipped warning
+
+## X14 Claim Compiler execution log (2026-05-28)
+
+The flagship. Closed on top of the X6 commit. Deterministic — the LLM never
+decides a claim's tier; the code derives it from structured evidence.
+
+New file `aria/agents/narrative/claim_compiler.py`:
+
+- `classify_claim(block, *, interventional, converging_categories)` maps a
+  block's analysis + sibling evidence to a tier (descriptive / associative /
+  weak_mechanistic / strong_mechanistic / causal_experimental) and a
+  `licensed_language` (descriptive | associative | causal).
+- Honest defaults: observational omics caps at `associative` (mechanism may be
+  proposed as a hypothesis, never asserted); `causal` is licensed ONLY when the
+  design is explicitly interventional (`design.interventional is True`) —
+  `design_is_interventional` is conservative and never infers intervention from
+  a factor name.
+- Language capping: if the claim/prose uses causal phrasing above its tier
+  (via `validators.find_causal_language`) and no explicit `causal_evidence`,
+  the violation is recorded and a limitation is added.
+- `annotate_claim_tiers(blocks, exp_ctx)` stores the classification in
+  `block.metadata['claim']`; `compile_claims` returns per-claim manifests.
+
+Integration (surgical):
+
+- `narrative_agent._collect_narrative_blocks` annotates tiers once, so both the
+  HTML render and methodology.json carry them.
+- `narrative_agent._build_methodology_json` adds a top-level `claims` array
+  (claim_id, text, tier, licensed_language, evidence categories, evidence cards,
+  tables/figures, limitations, confidence).
+- `render_blocks` shows an "evidence: <tier> · <licensed>" badge per block
+  (classifies on the fly if metadata is absent, e.g. offline harness).
+
+Durable decision recorded as ADR-013 in `DECISIONS.md`.
+
+Validation:
+
+- `python -m compileall -q aria` -> pass
+- `pytest tests/test_claim_compiler.py tests/test_causal_guard.py
+  tests/test_narrative_render_blocks.py tests/test_narrator_scrna.py` -> 20 passed
+- full: `pytest tests/test_pytest_smoke.py + narrative kernel + claim compiler`
+  -> 109 passed / 4 skipped

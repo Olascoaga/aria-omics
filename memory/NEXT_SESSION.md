@@ -21,9 +21,9 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD: the X6 synthetic-DE-benchmark commit on top of `54ef7dd`
-  (after X5), untagged, `aria.__version__` = `4.5.3`. Verify the exact hash
-  with `git log --oneline --decorate -5`.
+- Current HEAD: the X14 Claim-Compiler commit on top of `0c38143` (after X6),
+  untagged, `aria.__version__` = `4.5.3`. Verify the exact hash with
+  `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for
@@ -435,8 +435,19 @@ pseudobulk DE, scoring recall / empirical FDR vs tolerances; pydeseq2-gated
 test + `aria doctor --benchmark` wiring. Measured recall=1.000 /
 empirical_fdr=0.000 (aria-rna-env); aria-env suite 98 passed / 5 skipped.
 
-Pre-ATAC integrity-freeze status: X1–X4, X17, X7, X5, X6 are CLOSED.
-Flagship deferred (highest leverage next): **X14 Claim Compiler** (evolves the
-causal guard + NarrativeBlock kernel into a claim-evidence-tier compiler), then
-X10 privacy firewall, X13 DataAudit scan limits, X11/X12 DebateCouncil cost +
-ParameterAdvisor bias guardrails, and the research-track X15/X16/X19/X20.
+**X14 Claim Compiler (flagship) is closed.**
+`aria/agents/narrative/claim_compiler.py` tiers every claim
+(descriptive→associative→weak/strong mechanistic→causal_experimental) from
+structured evidence and caps the licensed language; observational omics caps at
+associative, causal needs an interventional design; methodology.json gains a
+`claims` manifest, HTML shows an evidence-tier badge, policy in ADR-013.
+Validation: claim-compiler+guard+narrative 20 passed; full smoke 109 passed /
+4 skipped.
+
+Pre-ATAC integrity-freeze status: **X1–X7, X14, X17 are CLOSED.** Remaining
+audit items (lower priority, can run alongside or after v4.6): X10 privacy
+firewall, X13 DataAudit scan limits, X11/X12 DebateCouncil cost +
+ParameterAdvisor bias guardrails, X8 integration QA red-flags, X9 annotation
+marker-coherence, and the research-track X15/X16/X18/X19/X20. The original
+deferred engineering items (bus persistence, apeglm shrinkage, IHW FDR,
+god-file splits, FASTQ-path tests) also remain in the audit file.

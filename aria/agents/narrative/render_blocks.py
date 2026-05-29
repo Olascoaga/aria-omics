@@ -89,13 +89,14 @@ def _render_block(block: NarrativeBlock,
             + "</ul>"
         )
     prose = html.escape(raw_prose)
+    tier_badge = _claim_tier_badge(block)
     return f"""
 <section class="narrative-block" data-block-id="{html.escape(block.id)}"
          style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">
   <h4>{html.escape(block.title)}
     <span class="badge {status_class}" style="margin-left:0.35rem">
       {html.escape(block.status)} / {html.escape(block.confidence)}
-    </span>
+    </span>{tier_badge}
   </h4>
   {f"<p>{prose}</p>" if prose else ""}
   {error_html}
@@ -105,6 +106,33 @@ def _render_block(block: NarrativeBlock,
   {figures_html}
   {tables_html}
 </section>"""
+
+
+def _claim_tier_badge(block: NarrativeBlock) -> str:
+    """X14: render the evidence-tier badge for a block's claim.
+
+    Uses the precomputed `block.metadata['claim']` when present (set by
+    annotate_claim_tiers); falls back to classifying on the fly so render is
+    correct even when called standalone (e.g. tests, offline harness).
+    """
+    claim = block.metadata.get("claim")
+    if not claim:
+        try:
+            from aria.agents.narrative.claim_compiler import classify_claim
+            claim = classify_claim(block).as_dict()
+        except Exception:
+            return ""
+    tier = claim.get("tier")
+    if not tier or tier == "descriptive":
+        return ""
+    licensed = claim.get("licensed_language", "associative")
+    label = tier.replace("_", " ")
+    title = html.escape(str(claim.get("rationale") or ""))
+    return (
+        f"<span class='badge' title='{title}' "
+        f"style='margin-left:0.35rem;background:var(--border);color:var(--muted)'>"
+        f"evidence: {html.escape(label)} · {html.escape(licensed)}</span>"
+    )
 
 
 def _render_evidence(block: NarrativeBlock) -> str:

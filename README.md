@@ -114,6 +114,8 @@ GenomeArchAgent                    scaffolded
   hic_qc_and_balance.py            done
   hic_topology.py (out-of-core)    scaffolded
 NarrativeAgent (HTML report)       done  ✓ paper theme
+  Narrative kernel (evidence cards) done — validated NarrativeBlock objects
+  Claim Compiler (evidence tiers)   done — per-claim tier + manifest (X14)
 IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
@@ -123,6 +125,14 @@ closed for practical use, publication-readiness provenance is embedded in
 reports, raw-ingestion planning/conversion is available for supported 10X
 inputs, and the report narrative is composed from validated modality blocks
 for scRNA and bulk RNA.
+
+A post-`v4.5.2` pre-ATAC integrity-and-trust pass (`aria.__version__`
+`4.5.3`, untagged) hardened the platform before new modalities: centralized
+version metadata, installer secret hygiene, a registry-integrity contract test,
+scaffold dispatch gating, typed script IPC contracts, a design-matrix validator
+before DESeq2, a synthetic ground-truth DE benchmark, and the **Claim Compiler**
+(evidence-tiered claims with per-claim manifests). See
+`memory/audit/2026-05-28_senior_audit.md` for the tracked plan.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -219,6 +229,14 @@ actionable recommendations.
 **Honest uncertainty** — Every finding carries a confidence level
 (HIGH / MEDIUM / LOW / INSUFFICIENT). ARIA tells you when data is
 ambiguous or underpowered.
+
+**Evidence-tiered claims** — A deterministic Claim Compiler classifies every
+biological claim by the structured evidence that actually supports it —
+*descriptive → associative → weak-mechanistic → strong-mechanistic →
+causal-experimental* — and caps the language the report may use. Observational
+omics is reported as association, not causation, unless the design is
+interventional; claims whose wording exceeds their evidence tier are flagged.
+Each claim ships with an evidence manifest in `methodology.json`.
 
 **Institutional memory** — Every approved parameter decision is stored
 in a local SQLite database. Over time, ARIA learns your lab's analytical
