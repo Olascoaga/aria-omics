@@ -8,7 +8,11 @@ from pathlib import Path
 
 from aria.agents.narrative.compose_prose import compose_block_prose
 from aria.agents.narrative.types import NarrativeBlock
-from aria.agents.narrative.validators import validate_blocks, find_causal_language
+from aria.agents.narrative.validators import (
+    validate_blocks,
+    find_causal_language,
+    collect_named_entities,
+)
 
 
 BLOCK_ORDER = {
@@ -72,7 +76,13 @@ def _render_block(block: NarrativeBlock,
     # slipped in (unless the block declares explicit causal evidence).
     block_warnings = list(block.warnings or [])
     if not block.metadata.get("causal_evidence"):
-        causal_hit = find_causal_language(raw_prose)
+        # B5 (audit 2026-05-29): redact external named entities (DB term names,
+        # gene symbols) that compose_prose interpolates into the prose so a GO/
+        # Reactome term like "TP53 Regulates Transcription…" does not trip the
+        # guard. Only ARIA's authored phrasing should be evaluated.
+        causal_hit = find_causal_language(
+            raw_prose, exclude=collect_named_entities(block)
+        )
         if causal_hit:
             warn = (
                 f"Associative result described with causal language "

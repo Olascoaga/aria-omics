@@ -59,16 +59,78 @@ _CAUSAL_RE = re.compile(
 )
 
 
-def find_causal_language(text: str) -> str | None:
+def find_causal_language(text: str,
+                         exclude: list[str] | None = None) -> str | None:
     """Return the first causal pattern found in ``text``, or None.
 
     Reusable so any layer (validators, renderer) can scan free text — not just
     the structured claim/evidence — for unlicensed causal phrasing.
+
+    ``exclude`` lists external named entities (database term names, gene
+    symbols) that must be removed before scanning. Their names are data ARIA is
+    reporting, not claims ARIA is asserting (audit 2026-05-29, B5): a GO/Reactome
+    term such as "TP53 Regulates Transcription of Cell Cycle Genes" contains a
+    causal verb but is not a causal claim.
     """
     if not text:
         return None
+    if exclude:
+        for name in exclude:
+            token = str(name).strip()
+            if len(token) < 2:
+                continue
+            text = re.sub(rf"\b{re.escape(token)}\b", " ", text,
+                          flags=re.IGNORECASE)
     match = _CAUSAL_RE.search(text)
     return match.group(0) if match else None
+
+
+# Evidence whose label/value carries an EXTERNAL named entity — a database
+# term/gene-set identifier or a gene symbol — rather than an assertion authored
+# by ARIA. The causal guard must read ARIA's claims, not the names of the
+# entities it reports (audit 2026-05-29, B5).
+_NAMED_ENTITY_SOURCES = {
+    "bulk_pathways",
+    "pseudobulk_pathways",
+    "gsea_preranked",
+}
+
+
+def _evidence_is_named_entity(ev) -> bool:
+    if getattr(ev, "source", None) in _NAMED_ENTITY_SOURCES:
+        return True
+    low = str(getattr(ev, "label", "") or "").lower()
+    return (
+        low.startswith("gsea term ")
+        or low.startswith("top gene ")
+        or low.endswith(" term")
+        or low.endswith(" fdr")
+    )
+
+
+def collect_named_entities(block: NarrativeBlock) -> list[str]:
+    """External identifiers (DB term names, gene symbols) carried by a block.
+
+    These must not be read as ARIA's causal assertions by the causal guard. The
+    precise token is extracted so it can be redacted from composed prose before
+    scanning.
+    """
+    names: list[str] = []
+    for ev in block.evidence:
+        label = str(ev.label or "")
+        low = label.lower()
+        if low.startswith("gsea term "):
+            names.append(label[len("GSEA term "):])
+        elif low.startswith("top gene "):
+            names.append(label[len("top gene "):])
+        elif low.endswith(" term") and ev.value is not None:
+            names.append(str(ev.value))
+        elif ev.source in _NAMED_ENTITY_SOURCES and ev.value is not None:
+            names.append(str(ev.value))
+    for row in block.metrics.get("top_pathways") or []:
+        if isinstance(row, dict) and row.get("term"):
+            names.append(str(row["term"]))
+    return [n for n in names if str(n).strip()]
 
 _CONFIDENCE_DOWN = {
     "high": "medium",
@@ -127,8 +189,13 @@ def _apply_low_confidence_warning(block: NarrativeBlock) -> None:
 
 
 def _text_for_causal_scan(block: NarrativeBlock) -> str:
+    # Scan ARIA's asserted claim plus evidence that is NOT an external named
+    # entity. DB term names and gene symbols are data ARIA reports, not claims
+    # it makes, so they must not trip the causal guard (audit 2026-05-29, B5).
     parts = [block.claim]
     for ev in block.evidence:
+        if _evidence_is_named_entity(ev):
+            continue
         parts.append(str(ev.label))
         if ev.value is not None:
             parts.append(str(ev.value))
