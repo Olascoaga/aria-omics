@@ -25,6 +25,14 @@ flowchart TD
     AUDIT2 --> SETUP[aria/agents/setup_agent.py]
     SETUP --> DISPATCH[Modality dispatch]
 
+    DISPATCH --> ICP[Internal parameter checkpoints]
+    ICP --> BASE[aria/agents/base_agent.py publish_blocking_escalation]
+    BASE --> BUS[aria/bus/message_bus.py wait_for_checkpoint_resolution]
+    BUS --> TUI_CP[aria/tui.py or aria/headless.py resolves checkpoint]
+    TUI_CP --> ORCH_CP[orchestrator_agent.on_checkpoint_resolved]
+    ORCH_CP --> BUS
+    BUS --> ICP
+
     DISPATCH --> RAW[aria/agents/raw_ingestion_agent.py]
     RAW --> RAW_UTILS[aria/utils/raw_ingestion.py]
     RAW_UTILS --> CANONICAL[canonical input files and provenance]
@@ -37,6 +45,7 @@ flowchart TD
     BULK_SCRIPT --> BULK_OUT[bulk findings: QC, DE, ORA, GSEA, figures, tables]
 
     DISPATCH --> SCRNA_AGENT[aria/agents/scrna_agent.py]
+    SCRNA_AGENT --> BASE
     SCRNA_AGENT --> SCRNA_QC[aria/scripts/rna_qc.py]
     SCRNA_AGENT --> SCRNA_CLUSTER[aria/scripts/rna_clustering.py]
     SCRNA_AGENT --> SCRNA_DA[aria/scripts/rna_diff_abundance.py]
@@ -55,6 +64,7 @@ flowchart TD
     DISPATCH --> CHROM[aria/agents/chromatin_agent.py scaffolded]
     DISPATCH --> HIC[aria/agents/genome_arch_agent.py scaffolded]
     DISPATCH --> INT[aria/agents/integration_agent.py scaffolded]
+    INT --> BASE
 
     BULK_OUT --> NARR[aria/agents/narrative_agent.py]
     SCRNA_OUT --> NARR
@@ -87,6 +97,8 @@ flowchart TD
 | `rna_pathway_viz.py` | `rna_bulk_de.py`, bulk narrative, report artifacts | It creates GSEA/ORA figures and tables that reports reference. |
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
 | `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. |
+| `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |
+| `orchestrator_agent.py` CP3 resolution | CP3 threshold tuning, internal agent parameter checkpoints, dispatch thread lifecycle | Internal CP3 messages carry `agent_parameter_checkpoint=True` and must not trigger threshold-tuning redispatch. |
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
@@ -103,6 +115,9 @@ Do not cross these boundaries casually:
 
 - Scripts should not publish bus messages or write report prose.
 - Agents should not parse generated HTML to recover results.
+- Agents that publish in-dispatch parameter checkpoints must use
+  `publish_blocking_escalation`; fire-and-forget checkpoints are invalid for
+  user-controllable parameters.
 - Narrators should not invent analyses that are absent from structured output.
 - Renderers should not create scientific claims that are not present in a
   block.
@@ -115,12 +130,14 @@ Before changing a production path, answer these questions:
 
 1. What result keys does this module produce or consume?
 2. Which checkpoint text or confirmed design fields will change?
-3. Which report sections, figures, tables, or `methodology.json` fields depend
+3. If it publishes a checkpoint from the dispatch thread, what blocks execution
+   until `on_checkpoint_resolved` records a user/headless decision?
+4. Which report sections, figures, tables, or `methodology.json` fields depend
    on it?
-4. Does the change affect replay/resume or old workspaces?
-5. Does it touch publication claims: DE, global/local FDR, power, ORA/GSEA,
+5. Does the change affect replay/resume or old workspaces?
+6. Does it touch publication claims: DE, global/local FDR, power, ORA/GSEA,
    LIANA, PAGA/DPT, provenance, or dependency locks?
-6. Which focused tests prove the contract, and which smoke test covers the
+7. Which focused tests prove the contract, and which smoke test covers the
    integration path?
 
 ## Current Narrative Rule
@@ -140,4 +157,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_pathway_viz.py`
 - scRNA narrator: `tests/test_narrator_scrna.py`
 - GEO/design mapping: `tests/test_geo_design.py`
+- Checkpoint blocking and dispatch safety:
+  `tests/test_pytest_smoke.py::test_internal_parameter_checkpoint_blocks_until_user_resolution`,
+  `tests/test_pytest_smoke.py::test_wnn_checkpoint_skip_prevents_script_execution`,
+  `tests/test_pytest_smoke.py::test_orchestrator_does_not_dispatch_on_internal_cp3_resolution`
 - Main integration smoke: `tests/test_pytest_smoke.py`
