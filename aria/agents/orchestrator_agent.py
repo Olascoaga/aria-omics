@@ -163,6 +163,15 @@ MODALITY_VALIDATION_LEVELS = {
     for modality, meta in MODALITY_VALIDATION.items()
 }
 
+INTEGRATION_VALIDATION = {
+    "level": "scaffold",
+    "dispatch_enabled": False,
+    "reason": (
+        "IntegrationAgent is scaffolded until WNN/MOFA+/peak-to-gene "
+        "validation closes."
+    ),
+}
+
 
 class OrchestratorAgent(BaseAgent):
 
@@ -171,6 +180,7 @@ class OrchestratorAgent(BaseAgent):
 
     MODALITY_TO_AGENT = MODALITY_TO_AGENT
     MODALITY_VALIDATION = MODALITY_VALIDATION
+    INTEGRATION_VALIDATION = INTEGRATION_VALIDATION
 
     def __init__(self, memory: ARIAMemory,
                  llm: LLMProvider = None,
@@ -656,7 +666,32 @@ class OrchestratorAgent(BaseAgent):
             log.info(f"{agent_name}: {result.get('status', '?')}")
 
         n_mods = len([m for m in modalities if m in MODALITY_TO_AGENT])
-        if n_mods >= 2 or plan.get("integration_needed"):
+        integration_requested = n_mods >= 2 or plan.get("integration_needed")
+        if integration_requested and not self._integration_dispatch_enabled():
+            meta = INTEGRATION_VALIDATION
+            agent_results["integration_agent"] = {
+                "status": "skipped",
+                "reason": "agent_not_validated",
+                "validation_level": meta.get("level", "unknown"),
+                "details": meta.get(
+                    "reason", "IntegrationAgent is not validated for dispatch."
+                ),
+            }
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "IntegrationAgent is scaffolded and was not dispatched."
+                    ),
+                    "agent": "integration_agent",
+                    "validation_level": meta.get("level", "unknown"),
+                    "reason": meta.get(
+                        "reason", "IntegrationAgent is not validated for dispatch."
+                    ),
+                },
+                Confidence.INSUFFICIENT,
+            )
+        elif integration_requested:
             self.publish_status(experiment_id, "Running IntegrationAgent...", 0.72)
             result = self._run_agent(
                 agent_name="integration_agent",
@@ -712,6 +747,10 @@ class OrchestratorAgent(BaseAgent):
             if meta and not meta.get("dispatch_enabled", True):
                 blocked[modality] = meta
         return blocked
+
+    @staticmethod
+    def _integration_dispatch_enabled() -> bool:
+        return bool(INTEGRATION_VALIDATION.get("dispatch_enabled", True))
 
     def _resolve_execution_order(self, steps: list) -> list:
         remaining, ordered, completed = list(steps), [], set()

@@ -77,6 +77,7 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
     from aria.agents.base_agent import BaseAgent
     from aria.agents.orchestrator_agent import (
         AGENT_REGISTRY,
+        INTEGRATION_VALIDATION,
         MODALITY_TO_AGENT,
         MODALITY_VALIDATION,
     )
@@ -119,6 +120,14 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 f"{modality}: scaffold modality is dispatch-enabled",
                 severity="warning",
             ))
+
+    if (INTEGRATION_VALIDATION.get("level") == "scaffold" and
+            INTEGRATION_VALIDATION.get("dispatch_enabled", True)):
+        issues.append(IntegrityIssue(
+            "scaffold_dispatch_enabled",
+            "integration_agent: scaffold agent is dispatch-enabled",
+            severity="warning",
+        ))
 
     for agent_name, contract in AGENT_SCRIPT_CONTRACTS.items():
         for script in _scripts(contract.get("required", ())):

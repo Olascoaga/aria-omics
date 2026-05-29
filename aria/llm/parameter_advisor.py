@@ -38,7 +38,7 @@ log = logging.getLogger("aria.params")
 class ParameterCandidate:
     """A single candidate parameter value with its evaluation."""
     value:       Any
-    metrics:     dict[str, float] = field(default_factory=dict)
+    metrics:     dict[str, Any] = field(default_factory=dict)
     flags:       list[str]        = field(default_factory=list)  # warnings
     score:       float            = 0.0
     recommended: bool             = False
@@ -111,19 +111,19 @@ class MetricEvaluator:
                     except Exception:
                         pass
 
-                # Modularity (from igraph if available)
-                modularity = 0.0
-                try:
-                    import igraph as ig
-                    # Approximate: use scanpy's connectivities
-                    pass  # full implementation in production
-                except ImportError:
-                    pass
+                modularity = MetricEvaluator._graph_modularity(
+                    adata,
+                    labels,
+                    neighbors_key=neighbors_key,
+                )
 
                 return {
                     "n_clusters":        n_clusters,
                     "silhouette":        round(sil, 4),
-                    "modularity":        round(modularity, 4),
+                    "modularity": (
+                        round(modularity, 4)
+                        if modularity is not None else None
+                    ),
                     "n_singleton_clusters": n_singletons,
                     "min_cluster_size":  min(cluster_sizes),
                     "max_cluster_size":  max(cluster_sizes),
@@ -135,9 +135,50 @@ class MetricEvaluator:
                 if "_eval_leiden" in adata.obs.columns:
                     adata.obs.drop(columns="_eval_leiden", inplace=True)
 
-        except ImportError:
-            log.warning("scanpy not available — using mock metrics")
+        except Exception as exc:
+            log.warning(
+                "In-process Leiden evaluation unavailable (%s) -- using "
+                "heuristic metrics. Production callers should prefer "
+                "data_path subprocess evaluation.",
+                exc,
+            )
             return MetricEvaluator._mock_metrics(resolution)
+
+    @staticmethod
+    def _graph_modularity(adata, labels, neighbors_key: str = "neighbors") -> float | None:
+        """Compute cluster modularity from the active Scanpy neighbor graph."""
+        try:
+            import igraph as ig
+            import numpy as np
+            from scipy import sparse
+
+            neighbors = adata.uns.get(neighbors_key, {})
+            conn_key = neighbors.get("connectivities_key", "connectivities")
+            graph = adata.obsp.get(conn_key)
+            if graph is None:
+                return None
+
+            if sparse.issparse(graph):
+                coo = sparse.triu(graph, k=1).tocoo()
+                edges = list(zip(coo.row.tolist(), coo.col.tolist()))
+                weights = coo.data.astype(float).tolist()
+            else:
+                arr = np.asarray(graph)
+                rows, cols = np.triu_indices_from(arr, k=1)
+                mask = arr[rows, cols] > 0
+                edges = list(zip(rows[mask].tolist(), cols[mask].tolist()))
+                weights = arr[rows[mask], cols[mask]].astype(float).tolist()
+            if not edges:
+                return None
+
+            label_to_id = {
+                label: idx for idx, label in enumerate(sorted(set(labels)))
+            }
+            membership = [label_to_id[label] for label in labels]
+            g = ig.Graph(n=int(adata.n_obs), edges=edges, directed=False)
+            return float(g.modularity(membership, weights=weights))
+        except Exception:
+            return None
 
     @staticmethod
     def _mock_metrics(resolution: float) -> dict:
@@ -149,7 +190,7 @@ class MetricEvaluator:
         return {
             "n_clusters":              int(n),
             "silhouette":              round(float(sil), 4),
-            "modularity":              round(float(0.6 - resolution * 0.15), 4),
+            "modularity":              None,
             "n_singleton_clusters":    int(max(0, n - 8)),
             "min_cluster_size":        int(max(5, 200 - int(resolution * 100))),
             "max_cluster_size":        int(1500),
@@ -160,35 +201,20 @@ class MetricEvaluator:
         """
         Evaluate WNN k parameter for multimodal integration.
 
-        DeepSeek P0 (addressed): This function currently returns ESTIMATED
-        metrics based on a linear heuristic, not real WNN computation.
-        This is intentional in beta: running full WNN for each k candidate
-        is expensive (minutes per k value).
-
-        The estimates are clearly labeled as such. In v0.3, this will
-        execute muon.tl.wnn() with each k and compute:
-          - Silhouette score of the joint embedding
-          - ARI between RNA-only and WNN clusters
-          - Neighbor overlap between modalities
-
-        Until then, the advisor selects k=20 as a robust default based
-        on empirical evidence from published multiome datasets, and
-        the DebateCouncil is invoked when weights appear imbalanced after
-        actual WNN execution.
+        ARIA does not run WNN repeatedly during parameter advice yet. Returning
+        synthetic RNA/ATAC weights here would create fabricated scientific
+        output, so candidates expose only non-measured advisory metadata.
+        Real modality weights are recorded only after integration_wnn.py runs.
         """
-        import logging
-        log = logging.getLogger("aria.advisor")
         log.debug(
-            f"wnn_k metrics for k={k} are estimated (beta). "
-            f"Real WNN evaluation planned for v0.3."
+            "wnn_k advice for k=%s uses prior/default metadata only; "
+            "no WNN metrics are reported before script execution.",
+            k,
         )
-        # Heuristic estimates — conservative, biased toward balanced weights
-        # Real values depend on data quality and cell type composition
         return {
-            "rna_weight":    round(max(0.40, min(0.80, 0.6 - k * 0.003)), 3),
-            "atac_weight":   round(max(0.20, min(0.60, 0.4 + k * 0.003)), 3),
-            "knn_overlap":   round(max(0.30, min(0.90, 0.7 - k * 0.008)), 3),
-            "is_estimated":  True,   # flag: these are not from real WNN runs
+            "measured": False,
+            "basis": "default_prior",
+            "prior_score": round(1.0 - abs(k - 20) / 100.0, 4),
         }
 
 
@@ -272,7 +298,7 @@ class ParameterAdvisor:
             metrics = {
                 "n_clusters":           entry.get("n_clusters", 0),
                 "silhouette":           entry.get("silhouette", 0.0),
-                "modularity":           0.0,  # not computed in subprocess yet
+                "modularity":           entry.get("modularity"),
                 "n_singleton_clusters": entry.get("n_singleton_clusters", 0),
                 "min_cluster_size":    entry.get("min_cluster_size", 0),
                 "max_cluster_size":    entry.get("max_cluster_size", 0),
@@ -559,13 +585,19 @@ class ParameterAdvisor:
         Score a Leiden candidate. Higher = better.
         Weights vary by biological intent.
         """
-        sil       = metrics.get("silhouette", 0)
-        mod       = metrics.get("modularity", 0)
+        sil       = float(metrics.get("silhouette") or 0)
+        mod_raw   = metrics.get("modularity")
+        mod       = float(mod_raw) if mod_raw is not None else None
         n_sing    = metrics.get("n_singleton_clusters", 0)
         min_size  = metrics.get("min_cluster_size", 0)
 
-        # Base score: silhouette is most reliable
-        score = sil * 0.6 + mod * 0.3
+        # Base score: use modularity only when it was measured. Missing
+        # modularity must not silently act as a fabricated zero-valued metric.
+        score = sil * 0.6
+        if mod is not None:
+            score += mod * 0.3
+        else:
+            score += sil * 0.3
 
         # Penalize singleton/tiny clusters
         score -= n_sing * 0.05
@@ -575,13 +607,16 @@ class ParameterAdvisor:
         return round(max(0, score), 4)
 
     def _score_wnn(self, metrics: dict) -> float:
-        """Score WNN k. Balanced RNA/ATAC weights are generally better."""
-        rna_w  = metrics.get("rna_weight", 0.6)
-        atac_w = metrics.get("atac_weight", 0.4)
-        # Penalize extreme imbalance
-        balance = 1.0 - abs(rna_w - atac_w)
-        overlap = metrics.get("knn_overlap", 0.5)
-        return round(balance * 0.6 + overlap * 0.4, 4)
+        """Score WNN k without reporting fabricated pre-run metrics."""
+        if metrics.get("measured") is False:
+            return float(metrics.get("prior_score", 0.0))
+        rna_w = metrics.get("rna_weight")
+        atac_w = metrics.get("atac_weight")
+        overlap = metrics.get("knn_overlap")
+        if rna_w is None or atac_w is None or overlap is None:
+            return 0.0
+        balance = 1.0 - abs(float(rna_w) - float(atac_w))
+        return round(balance * 0.6 + float(overlap) * 0.4, 4)
 
     def _flag_leiden_issues(self, resolution: float, metrics: dict) -> list[str]:
         flags = []
@@ -598,6 +633,12 @@ class ParameterAdvisor:
 
     def _flag_wnn_issues(self, k: int, metrics: dict) -> list[str]:
         flags = []
+        if metrics.get("measured") is False:
+            flags.append(
+                "No pre-run WNN metrics computed; modality weights will be "
+                "reported only after integration executes"
+            )
+            return flags
         rna_w = metrics.get("rna_weight", 0.5)
         if rna_w > 0.90:
             flags.append("ATAC contribution <10% — check ATAC data quality")

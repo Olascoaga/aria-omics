@@ -259,6 +259,130 @@ def test_wnn_checkpoint_skip_prevents_script_execution():
     assert result_holder["result"]["reason"] == "user_skipped_wnn"
 
 
+def test_wnn_advice_does_not_fabricate_pre_run_metrics():
+    from aria.llm.parameter_advisor import MetricEvaluator, ParameterAdvisor
+
+    class FakeMemory:
+        def list_wings(self):
+            return []
+
+        def store_finding(self, **_kwargs):
+            pass
+
+    class FakeLLM:
+        def complete_medium(self, **_kwargs):
+            return "Use the default WNN k prior; no pre-run weights were measured."
+
+    metrics = MetricEvaluator.wnn_k(None, 20)
+    assert metrics["measured"] is False
+    assert "rna_weight" not in metrics
+    assert "atac_weight" not in metrics
+    assert "knn_overlap" not in metrics
+
+    decision = ParameterAdvisor(FakeMemory(), FakeLLM()).advise_wnn_k(
+        multimodal_adata=None,
+        experiment_id="wnn_no_fabrication",
+        biological_context={"user_question": "integrate RNA and ATAC"},
+    )
+
+    assert decision.chosen_value == 20
+    for candidate in decision.candidates:
+        assert candidate.metrics["measured"] is False
+        assert "rna_weight" not in candidate.metrics
+        assert "atac_weight" not in candidate.metrics
+
+
+def test_wnn_checkpoint_marks_pre_run_metrics_as_not_computed():
+    from aria.agents.integration_agent import IntegrationAgent
+
+    candidate = type("C", (), {
+        "value": 20,
+        "recommended": True,
+        "metrics": {"measured": False, "basis": "default_prior"},
+    })()
+    decision = type("D", (), {
+        "candidates": [candidate],
+        "justification": "Default prior only.",
+    })()
+
+    text = IntegrationAgent.__new__(IntegrationAgent)._format_wnn_checkpoint(decision)
+
+    assert "pre_run_metrics=not_computed" in text
+    assert "RNA_weight" not in text
+    assert "ATAC_weight" not in text
+
+
+def test_leiden_subprocess_modularity_is_not_replaced_with_zero():
+    from aria.llm.parameter_advisor import ParameterAdvisor
+
+    class FakeEnv:
+        def run_in_stack(self, **_kwargs):
+            return {
+                "status": "success",
+                "candidates": [{
+                    "resolution": 0.5,
+                    "n_clusters": 4,
+                    "silhouette": 0.6,
+                    "modularity": 0.42,
+                    "n_singleton_clusters": 0,
+                    "min_cluster_size": 25,
+                    "max_cluster_size": 75,
+                }],
+            }
+
+    advisor = ParameterAdvisor(memory=object(), llm=object())
+    advisor._env = FakeEnv()
+
+    candidate = advisor._evaluate_via_subprocess(
+        "/tmp/input.h5ad",
+        [0.5],
+        {"user_question": "major cell types"},
+    )[0]
+
+    assert candidate.metrics["modularity"] == 0.42
+    assert candidate.score == advisor._score_leiden(candidate.metrics, {})
+
+
+def test_orchestrator_skips_scaffolded_integration_agent():
+    from aria.agents.orchestrator_agent import OrchestratorAgent
+
+    agent = OrchestratorAgent.__new__(OrchestratorAgent)
+    agent._experiment_plans = {"exp_integration_gate": {"intent": {}}}
+    agent._agent_results = {}
+    agent._log_handlers = {}
+    agent.memory = object()
+    agent.llm = object()
+    agent.publish_status = lambda *args, **kwargs: None
+    agent.publish_escalation = lambda *args, **kwargs: None
+    findings = []
+    agent.publish_finding = lambda exp, payload, conf: findings.append(payload)
+
+    calls = []
+
+    def fake_run_agent(agent_name, experiment_id, context):
+        calls.append(agent_name)
+        if agent_name == "raw_ingestion_agent":
+            return {"status": "done", "exp_context_updates": {}}
+        if agent_name == "narrative_agent":
+            return {"status": "done"}
+        return {"status": "done"}
+
+    agent._run_agent = fake_run_agent
+
+    agent._dispatch_agents(
+        "exp_integration_gate",
+        {"steps": [], "integration_needed": True},
+        {"modalities": {"scRNA": ["/tmp/rna.h5ad"], "bulk_RNA": ["/tmp/rna.tsv"]}},
+    )
+
+    assert "integration_agent" not in calls
+    result = agent._agent_results["exp_integration_gate"]["integration_agent"]
+    assert result["status"] == "skipped"
+    assert result["reason"] == "agent_not_validated"
+    assert result["validation_level"] == "scaffold"
+    assert any(f.get("agent") == "integration_agent" for f in findings)
+
+
 def test_orchestrator_does_not_dispatch_on_internal_cp3_resolution():
     import uuid
     from aria.agents.orchestrator_agent import OrchestratorAgent

@@ -163,10 +163,15 @@ def rna_advise_resolution(params: dict) -> dict:
         except Exception:
             pass
 
+        modularity = _graph_modularity(adata, labels)
+
         candidates.append({
             "resolution":           res_val,
             "n_clusters":           n_clusters,
             "silhouette":           round(sil, 4),
+            "modularity": (
+                round(modularity, 4) if modularity is not None else None
+            ),
             "n_singleton_clusters": n_singletons,
             "min_cluster_size":     int(min(cluster_sizes)),
             "max_cluster_size":     int(max(cluster_sizes)),
@@ -192,6 +197,40 @@ def rna_advise_resolution(params: dict) -> dict:
     except Exception:
         pass
     return result
+
+
+def _graph_modularity(adata, labels) -> float | None:
+    """Compute Leiden cluster modularity from Scanpy's neighbor connectivities."""
+    try:
+        import igraph as ig
+        import numpy as np
+        from scipy import sparse
+
+        neighbors = adata.uns.get("neighbors", {})
+        conn_key = neighbors.get("connectivities_key", "connectivities")
+        graph = adata.obsp.get(conn_key)
+        if graph is None:
+            return None
+
+        if sparse.issparse(graph):
+            coo = sparse.triu(graph, k=1).tocoo()
+            edges = list(zip(coo.row.tolist(), coo.col.tolist()))
+            weights = coo.data.astype(float).tolist()
+        else:
+            arr = np.asarray(graph)
+            rows, cols = np.triu_indices_from(arr, k=1)
+            mask = arr[rows, cols] > 0
+            edges = list(zip(rows[mask].tolist(), cols[mask].tolist()))
+            weights = arr[rows[mask], cols[mask]].astype(float).tolist()
+        if not edges:
+            return None
+
+        label_to_id = {label: idx for idx, label in enumerate(sorted(set(labels)))}
+        membership = [label_to_id[label] for label in labels]
+        graph_obj = ig.Graph(n=int(adata.n_obs), edges=edges, directed=False)
+        return float(graph_obj.modularity(membership, weights=weights))
+    except Exception:
+        return None
 
 
 if __name__ == "__main__":

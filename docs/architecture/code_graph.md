@@ -63,7 +63,8 @@ flowchart TD
 
     DISPATCH --> CHROM[aria/agents/chromatin_agent.py scaffolded]
     DISPATCH --> HIC[aria/agents/genome_arch_agent.py scaffolded]
-    DISPATCH --> INT[aria/agents/integration_agent.py scaffolded]
+    DISPATCH --> INT_GATE[Integration validation gate]
+    INT_GATE --> INT[aria/agents/integration_agent.py scaffolded]
     INT --> BASE
 
     BULK_OUT --> NARR[aria/agents/narrative_agent.py]
@@ -102,6 +103,8 @@ flowchart TD
 | `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. |
 | `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |
 | `orchestrator_agent.py` CP3 resolution | CP3 threshold tuning, internal agent parameter checkpoints, dispatch thread lifecycle | Internal CP3 messages carry `agent_parameter_checkpoint=True` and must not trigger threshold-tuning redispatch. |
+| `orchestrator_agent.py` integration validation gate | `IntegrationAgent`, multimodal report sections, registry integrity | Scaffolded WNN/MOFA+/peak-to-gene code must not dispatch until validation is closed; otherwise beta scripts can emit publication-looking integration output. |
+| `parameter_advisor.py` metric evaluators | scRNA clustering CP3, WNN k CP3, memory decisions | Candidate metrics shown to users must be measured or explicitly marked as not computed; fabricated WNN weights and zero-filled modularity are invalid. |
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
@@ -165,6 +168,12 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_pytest_smoke.py::test_internal_parameter_checkpoint_blocks_until_user_resolution`,
   `tests/test_pytest_smoke.py::test_wnn_checkpoint_skip_prevents_script_execution`,
   `tests/test_pytest_smoke.py::test_orchestrator_does_not_dispatch_on_internal_cp3_resolution`
+- Integration scaffold gate and parameter honesty:
+  `tests/test_pytest_smoke.py::test_orchestrator_skips_scaffolded_integration_agent`,
+  `tests/test_pytest_smoke.py::test_wnn_advice_does_not_fabricate_pre_run_metrics`,
+  `tests/test_pytest_smoke.py::test_wnn_checkpoint_marks_pre_run_metrics_as_not_computed`,
+  `tests/test_pytest_smoke.py::test_leiden_subprocess_modularity_is_not_replaced_with_zero`,
+  `tests/test_registry_integrity.py::test_scaffold_integration_agent_is_not_dispatched`
 - LLM deterministic provenance:
   `tests/test_pytest_smoke.py::test_llm_provider_forces_deterministic_generation`,
   `tests/test_pytest_smoke.py::test_llm_cache_key_includes_deterministic_controls`,

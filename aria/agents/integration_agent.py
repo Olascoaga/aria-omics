@@ -783,13 +783,28 @@ class IntegrationAgent(BaseAgent):
         lines.append("Candidates evaluated:\n")
         for c in k_decision.candidates:
             marker = " [RECOMMENDED]" if c.recommended else ""
-            rna_w  = c.metrics.get("rna_weight", 0)
-            atac_w = c.metrics.get("atac_weight", 0)
-            lines.append(
-                f"  k={c.value:2d}  RNA_weight={rna_w:.2f}  "
-                f"ATAC_weight={atac_w:.2f}{marker}"
-            )
+            if c.metrics.get("measured") is False:
+                basis = c.metrics.get("basis", "prior")
+                lines.append(
+                    f"  k={c.value:2d}  basis={basis}  "
+                    f"pre_run_metrics=not_computed{marker}"
+                )
+            else:
+                rna_w = c.metrics.get("rna_weight")
+                atac_w = c.metrics.get("atac_weight")
+                if rna_w is not None and atac_w is not None:
+                    lines.append(
+                        f"  k={c.value:2d}  RNA_weight={rna_w:.2f}  "
+                        f"ATAC_weight={atac_w:.2f}{marker}"
+                    )
+                else:
+                    lines.append(f"  k={c.value:2d}{marker}")
         lines.append(f"\n  {k_decision.justification}")
+        lines.append(
+            "\n  Note: RNA/ATAC modality weights are reported only after the "
+            "WNN script executes; this checkpoint does not display estimated "
+            "weights as measured metrics."
+        )
         lines.append("\nApprove k to proceed with WNN integration:")
         return "\n".join(lines)
 

@@ -28,3 +28,10 @@ def test_scaffold_chromatin_modalities_are_not_dispatched():
     for modality in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         assert MODALITY_VALIDATION[modality]["level"] == "scaffold"
         assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is False
+
+
+def test_scaffold_integration_agent_is_not_dispatched():
+    from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
+
+    assert INTEGRATION_VALIDATION["level"] == "scaffold"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
