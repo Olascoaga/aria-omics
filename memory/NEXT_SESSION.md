@@ -8,8 +8,83 @@ supersedes:
 
 # NEXT SESSION
 
+## ACTIVE MANDATE (2026-05-29) — clear the senior audit BEFORE v4.6
+
+Samael's directive: **resolve the entire `memory/audit/2026-05-29_senior_audit.md`
+tracker before starting v4.6 scATAC.** That file is the authoritative source of
+truth for these items (severity, `file:line` evidence, fixes). Do not start v4.6
+implementation until every item below is closed or explicitly deferred with
+Samael's sign-off.
+
+This audit reconciles a second independent AI static audit; `[NEW-2]` items came
+from it and were code-verified. Suggested execution order (full detail in the
+audit file):
+
+**Stage 1 — Before anything else (cheap, principle-level + live regression):**
+- ☐ **B1** — in-agent parameter checkpoints do not block (Leiden res, WNN k,
+  MOFA). Make them await resolution or move to pre-dispatch. E2E test.
+- ✅ **B8** — v4.5.4 `power` block text says "global BH-FDR" but default is
+  per-cluster → Methods is wrong for the shipped default. Branch on `fdr_strategy`.
+- ☐ **R1** — set `temperature=0` + fixed `seed` on all LLM calls; record in
+  provenance (narrative/confidence are non-deterministic today).
+- ☐ **B2/B3** — ParameterAdvisor fabricated WNN metrics shown as measured;
+  `modularity` always 0.0. Fix or stop displaying as real.
+- ☐ **B4** — gate `IntegrationAgent` by `MODALITY_VALIDATION` (scaffold) like
+  chromatin/HiC.
+
+**Stage 2 — v4.5.5 honesty/precision patch (no new modality):**
+- ☐ **B5** — causal guard over-fires on GO/ORA term names; downgrades honest
+  blocks. Distinguish "term name in evidence" from asserted claim.
+- ☐ **B10 + R7 → P-RAWCLASS** — shared raw-count classifier + hard-refuse for
+  bulk (`_load_counts` rounds any matrix to int) and pseudobulk; random-sample the
+  log-norm probe.
+- ☐ **B11** — ADR-011: remove/justify hardcoded biology (microglia/OPC aliases,
+  `ifn` token vs comment, `_mock_pathways`); document `human_markers` as an
+  explicit species-inference exception.
+- ☐ **C1** — differential abundance Poisson → NB/quasi-Poisson or propeller
+  (overdispersion; it gates the composition covariate).
+- ☐ **C2** — ORA background should be per-cluster, not global.
+- ☐ **D1** — duplicate `ADR-013` in DECISIONS.md (renumber one).
+- ☐ **D2** — memory says HEAD = tagged v4.5.4 but git is `v4.5.4-1-g482ad79`;
+  correct wording WITHOUT moving the tag.
+- ☐ **B7** — housekeeping: gitignore/remove `codigo_aria.txt`, dedupe
+  `_bh_correct`, import-time side effects.
+
+**Stage 3 — v4.6 readiness gate (MUST precede chromatin work):**
+- ☐ **C8** — DataAudit does not detect `.h5mu`; `chromatin_qc` needs fragments.
+  Add `.h5mu` detection + real MuData reader.
+- ☐ **B9** — `chromatin_qc.py` placeholder metrics (TSS via hash/size, FRiP
+  constant 0.35, `n_barcodes`≡0). Replace with real QC, don't wrap.
+- ☐ **B12** — SetupAgent ("No aliases") vs EnvironmentManager (reads
+  `env_aliases.json`, no writer exists). Wire it or remove the branch.
+
+**Stage 4 — during/after, larger or env-dependent:**
+- ☐ **R3** LLM call timeout · **R4** model-degradation provenance + refresh stale
+  default model IDs · **R5** process-group kill on subprocess timeout · **R6**
+  bus durability + per-run bus (headless reads global bus unfiltered) ·
+  **C4** ambient RNA / LISI-kBET / shrinkage / s-values · **C5** god-file splits ·
+  **C6/X10** privacy / air-gapped mode + LLM cache TTL · **C7** test gaps ·
+  **D3/B6** take `memory/` out of `.gitignore` (or private mirror) so DECISIONS/
+  audits get version history.
+- Proposals to land alongside: **P-CHK**, **P-LEDGER** (planned-vs-run manifest),
+  **P-DET**, **P-CLAIM2**, **P-DEVIL**, **P-MULTIVERSE**, **P-RAWCLASS**.
+
+**Start by:** open `memory/audit/2026-05-29_senior_audit.md`, pick Stage 1, fix
+**B1** next (highest remaining value), run the validation gates
+(`compileall` + `tests/test_pytest_smoke.py` + targeted tests), and tick the box
+here as each item closes. Mark `[NEW-2]` items as verified-fixed in the audit
+file's status legend (☐ → ✅).
+
 ## Last Completed (most recent first)
 
+- **B8 audit remediation (2026-05-29)** — pseudobulk power disclosure now follows
+  the actual `fdr_strategy`. The default per-cluster path uses per-block
+  `effective_alpha_primary` for `power_estimate_at_effective_alpha` and labels
+  `effective_alpha_global` as a secondary whole-experiment diagnostic; the global
+  strategy still uses `effective_alpha_global` as primary. Validation:
+  `aria-env` `compileall` pass; `tests/test_pytest_smoke.py` 87 passed /
+  4 skipped. The base Python smoke remains unsuitable here because it lacks
+  `litellm` and has NumPy 2 ABI conflicts in compiled scientific packages.
 - **`v4.5.4` Scientific-Honesty Hardening (2026-05-29)** — tagged + pushed on
   top of `v4.5.3`. Per-cluster FDR is now the pseudobulk default
   (`fdr_strategy`, ADR-015); power reconciled with the global-BH decision rule
@@ -39,8 +114,10 @@ supersedes:
 - `v4.3.12` tag remains at `3a0c40e`.
 - `v4.3.12.post1` tag remains at `805e0b2`.
 - Existing tags must not be moved.
-- Current HEAD is `v4.5.4` (`b7cd67f` at last verification), tagged and pushed
-  on `origin/main`. Verify the exact hash with `git log --oneline --decorate -5`.
+- Current HEAD is post-`v4.5.4` audit remediation on `origin/main`;
+  `aria.__version__` remains `4.5.4`. Tag `v4.5.4` remains at `b7cd67f` and
+  must not be moved. Verify the exact hash with
+  `git log --oneline --decorate -5`.
 - **PBMC Stage C blocker rerun reviewed.** Four blockers
   documented in `memory/roadmap/V44_PBMC_BLOCKERS.md`:
   1. ✅ CLOSED in `ba4e21e`: pseudobulk uses `replicate × condition` for

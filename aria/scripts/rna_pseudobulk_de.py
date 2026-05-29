@@ -96,6 +96,45 @@ def _global_bh(pvals):
         return _bh_correct(pvals)
 
 
+def _effective_alpha_from_significant(rows) -> float:
+    """Return the largest raw p-value among rows passing the applied rule."""
+    if rows is None or len(rows) == 0 or "pvalue" not in rows:
+        return 0.0
+    import numpy as np
+    pvals = np.asarray(rows["pvalue"], dtype=float)
+    pvals = pvals[np.isfinite(pvals)]
+    return float(pvals.max()) if pvals.size else 0.0
+
+
+def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
+    if fdr_strategy == "per_cluster":
+        return {
+            "applied_threshold": "per-cluster BH-FDR",
+            "effective_alpha_field": "effective_alpha_primary",
+            "note": (
+                "power_estimate_at_lfc_min is computed at the nominal per-test "
+                "alpha and is an UPPER BOUND. Significance is declared with "
+                "per-cluster BH-FDR; effective_alpha_primary is each block's "
+                "empirical per-test cutoff for the primary per-cluster family. "
+                "effective_alpha_global is reported only as a secondary "
+                "whole-experiment diagnostic. power_estimate_at_effective_alpha "
+                "reports power at the stricter primary cutoff when nonzero."
+            ),
+        }
+    return {
+        "applied_threshold": "global BH-FDR",
+        "effective_alpha_field": "effective_alpha_global",
+        "note": (
+            "power_estimate_at_lfc_min is computed at the nominal per-test "
+            "alpha and is an UPPER BOUND. Significance is declared with "
+            "global BH-FDR across all blocks; effective_alpha_global is the "
+            "empirical per-test cutoff for the primary global family. "
+            "power_estimate_at_effective_alpha reports power at that stricter, "
+            "actually-applied threshold."
+        ),
+    }
+
+
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
     _w.filterwarnings("ignore")
@@ -597,6 +636,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 for g, row in sig_primary.iterrows()
             ]
 
+            effective_alpha_local = _effective_alpha_from_significant(sig_local)
+            effective_alpha_primary = (
+                effective_alpha_global
+                if fdr_strategy == "global"
+                else effective_alpha_local
+            )
+
             comp.update({
                 "fdr_strategy":         fdr_strategy,
                 "n_significant":        int(len(sig_primary)),
@@ -608,18 +654,22 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "n_down":               int((sig_primary["log2FoldChange"] < 0).sum()),
                 "n_down_local":         int((sig_local["log2FoldChange"] < 0).sum()),
                 "n_down_global":        int((sig_global["log2FoldChange"] < 0).sum()),
+                "effective_alpha_local": effective_alpha_local,
+                "effective_alpha_global": effective_alpha_global,
+                "effective_alpha_primary": effective_alpha_primary,
+                "effective_alpha_strategy": fdr_strategy,
                 "top_genes":            top_records,
                 "all_sig":              all_records,
             })
 
-            # Power at the effective (global-BH) threshold, not just nominal.
-            if effective_alpha_global and effective_alpha_global > 0:
+            # Power at the effective primary threshold, not just nominal.
+            if effective_alpha_primary and effective_alpha_primary > 0:
                 nreps = comp.get("n_replicates", {}) or {}
                 comp["power_estimate_at_effective_alpha"] = pseudobulk_power_estimate(
                     n_per_group=(nreps.get("test", 0), nreps.get("ref", 0)),
                     dispersion_estimate=comp.get("dispersion_estimate") or 0.1,
                     target_log2fc=lfc_min,
-                    alpha=effective_alpha_global,
+                    alpha=effective_alpha_primary,
                     mean_expression=comp.get("mean_expression_estimate") or 100.0,
                 )
 
@@ -659,6 +709,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
     else:
         count_source = "X_counts"
 
+    power_disclosure = _power_disclosure_for_strategy(fdr_strategy)
+
     return {
         "status":                          "success",
         "n_groups":                        len(per_group),
@@ -684,23 +736,16 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
         },
-        # F-SCI-POWER (audit 2026-05-28): power is an approximate NB-Wald value
-        # at the NOMINAL per-test alpha. Significance is actually declared with
-        # global BH-FDR across all blocks, whose effective per-test threshold is
-        # far stricter, so the reported power is an UPPER BOUND on the power at
-        # the applied threshold. Disclosed so Methods can state it honestly.
+        # F-SCI-POWER/B8: power is an approximate NB-Wald value at the NOMINAL
+        # per-test alpha. The applied BH family depends on fdr_strategy, so the
+        # effective alpha and disclosure text must follow that primary family.
         "power": {
             "alpha_nominal":  padj_max,
             "effective_alpha_global": effective_alpha_global,
+            "effective_alpha_field": power_disclosure["effective_alpha_field"],
             "method":         "approximate NB-Wald (closed form)",
-            "applied_threshold": "global BH-FDR",
-            "note": (
-                "power_estimate_at_lfc_min is computed at the nominal per-test "
-                "alpha and is an UPPER BOUND. Significance is declared with "
-                "global BH-FDR across all blocks; the empirical per-test cutoff "
-                "is effective_alpha_global. power_estimate_at_effective_alpha "
-                "reports power at that stricter, actually-applied threshold."
-            ),
+            "applied_threshold": power_disclosure["applied_threshold"],
+            "note": power_disclosure["note"],
         },
         "thresholds":     {"padj_max": padj_max, "lfc_min": lfc_min,
                            "min_cells_per_pseudosample": min_cells_per_pseudosample,

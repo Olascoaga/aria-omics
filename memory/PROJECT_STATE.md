@@ -21,9 +21,10 @@ supersedes:
   (`Remove dataset-specific narrative guardrails`)
 - `v4.5.3` tag -> `bab6fbd` (the X8/X9 commit; integrity freeze X1-X9/X14/X17),
   pushed to origin.
-- Current HEAD: the v4.5.4 scientific-honesty commit on top of `bab6fbd`,
-  tagged `v4.5.4`, `aria.__version__` = `4.5.4`, = `origin/main`.
-  Verify the exact hash with `git log --oneline --decorate -5`.
+- Current HEAD: post-`v4.5.4` audit remediation on top of the tagged
+  scientific-honesty commit. `aria.__version__` remains `4.5.4`; `HEAD` is
+  expected to be ahead of tag `v4.5.4` while staying on `origin/main`. Verify the
+  exact hash with `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.4`
   (`v4.5.4 scientific-honesty hardening`; per-cluster pseudobulk FDR default,
   power-at-effective-alpha disclosure, and log-norm recovery confidence cap).
@@ -59,7 +60,7 @@ supersedes:
   - `v4.5.1` -> `a0b33dd`
   - `v4.5.2` -> `ca8b169`
   - `v4.5.3` -> `bab6fbd`
-  - `v4.5.4` -> current HEAD scientific-honesty hardening
+  - `v4.5.4` -> `b7cd67f` scientific-honesty hardening
 
 Do not move existing tags. Use a new patch tag if one is ever needed.
 
@@ -191,8 +192,11 @@ ADR-015 (FDR) and ADR-016 (power + log-norm).
   results without the key keep global wording. **Behavior change: significant
   counts differ from pre-v4.5.4 runs.**
 - **F-SCI-POWER — power reconciled with the decision rule.** Adds
-  `effective_alpha_global` (empirical global-BH cutoff) and per-block
-  `power_estimate_at_effective_alpha`; the nominal-alpha estimate is labeled an
+  strategy-aware effective-alpha disclosure: under `fdr_strategy="per_cluster"`
+  the primary cutoff is each block's `effective_alpha_primary` from the
+  per-cluster family, while `effective_alpha_global` is a secondary
+  whole-experiment diagnostic; under `fdr_strategy="global"` the primary cutoff
+  remains `effective_alpha_global`. The nominal-alpha estimate is labeled an
   upper bound.
 - **F-SCI-LOGNORM — recovered-count DE is low-trust.** When `lognorm_recovered`,
   the pseudobulk DE narrative block is capped at `confidence="low"` with a
@@ -211,7 +215,12 @@ Validation (2026-05-29):
 - `python -c "import aria; print(aria.__version__)"` -> `4.5.4`
 - `git diff --check` -> pass
 
-Tags: `v4.5.3` -> `bab6fbd` (integrity freeze, pushed); `v4.5.4` -> this commit.
+Post-`v4.5.4` B8 validation (2026-05-29): `aria-env` `compileall` pass;
+`tests/test_pytest_smoke.py` 87 passed / 4 skipped. Base Python smoke is not a
+valid gate on this machine because `litellm` is absent and compiled scientific
+packages have NumPy 2 ABI conflicts.
+
+Tags: `v4.5.3` -> `bab6fbd` (integrity freeze, pushed); `v4.5.4` -> `b7cd67f`.
 
 ## v4.3.13-v4.3.19 Maintenance Patches
 

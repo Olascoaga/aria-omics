@@ -2182,6 +2182,28 @@ def test_global_fdr_is_more_conservative_than_local_family():
     assert n_global == 0
 
 
+def test_pseudobulk_power_disclosure_tracks_primary_fdr_strategy():
+    """B8 — power disclosure must name the FDR family that actually decides DE."""
+    from aria.scripts.rna_pseudobulk_de import (
+        _effective_alpha_from_significant,
+        _power_disclosure_for_strategy,
+    )
+
+    local = _power_disclosure_for_strategy("per_cluster")
+    assert local["applied_threshold"] == "per-cluster BH-FDR"
+    assert local["effective_alpha_field"] == "effective_alpha_primary"
+    assert "global BH-FDR across all blocks" not in local["note"]
+    assert "secondary whole-experiment diagnostic" in local["note"]
+
+    global_ = _power_disclosure_for_strategy("global")
+    assert global_["applied_threshold"] == "global BH-FDR"
+    assert global_["effective_alpha_field"] == "effective_alpha_global"
+    assert "global BH-FDR across all blocks" in global_["note"]
+
+    rows = {"pvalue": [0.01, 0.03, float("nan")]}
+    assert _effective_alpha_from_significant(rows) == 0.03
+
+
 def test_pathway_ora_receives_explicit_background(tmp_path):
     """T1.4 — scRNA ORA receives the dataset-expressed gene universe, not
     only the significant DE list."""

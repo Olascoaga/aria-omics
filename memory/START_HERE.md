@@ -17,12 +17,17 @@ Read this file first in every ARIA session.
   (`Document final v4.3.12 closeout`).
 - Last pre-v4.3 maintenance baseline code change: `d3de169`
   (`Remove dataset-specific narrative guardrails`).
-- Current HEAD: the `v4.5.4` scientific-honesty commit on top of `bab6fbd`,
-  `aria.__version__` = `4.5.4`, tagged. Verify the exact hash with
-  `git log --oneline --decorate -5`.
+- Current HEAD: post-`v4.5.4` audit remediation on `main` / `origin/main`;
+  `aria.__version__` remains `4.5.4`. The `v4.5.4` tag stays at the
+  scientific-honesty commit (`b7cd67f`) and must not be moved. Verify the exact
+  HEAD hash with `git log --oneline --decorate -5`.
 - Last stable tag: `v4.5.4` (FDR/power/log-norm honesty hardening; ADR-015,
   ADR-016). Pseudobulk significance now defaults to per-cluster FDR — counts
   differ from pre-v4.5.4 runs by design.
+- Post-v4.5.4 B8 fix: pseudobulk power disclosure now branches on
+  `fdr_strategy`; under the default per-cluster FDR it reports
+  `effective_alpha_primary` from the per-cluster family and treats
+  `effective_alpha_global` only as a secondary whole-experiment diagnostic.
 - `v4.5.3` (`bab6fbd`): pre-ATAC integrity freeze (X1-X9/X14/X17), tagged+pushed.
 - Earlier stable tag: `v4.5.2`
   (`v4.5.2 narrative kernel`).
@@ -165,8 +170,11 @@ Read this file first in every ARIA session.
 ## Do Not
 
 - Do not move existing tags.
-- Before starting v4.6 scATAC, read `memory/roadmap/V46_SCATAC_PLAN.md`;
-  it inherits v4.4 and v4.5 guarantees.
+- **Do not start v4.6 scATAC until the `memory/audit/2026-05-29_senior_audit.md`
+  tracker is fully resolved.** Samael's mandate (2026-05-29): clear the entire
+  audit first. The live checklist + execution order are in `NEXT_SESSION.md`
+  under "ACTIVE MANDATE". This gate is on top of (not instead of) reading
+  `memory/roadmap/V46_SCATAC_PLAN.md`, which inherits v4.4 and v4.5 guarantees.
 - Do not add dataset-specific runtime guardrails.
 - Do not hardcode genes, perturbations, datasets, or report-rescue phrases.
 - New generic tests must also avoid hardcoded biological content; use neutral
