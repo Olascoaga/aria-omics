@@ -68,23 +68,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from aria.utils.count_classifier import classify_matrix, sample_row_indices
-
-
-def _bh_correct(pvals):
-    """Benjamini-Hochberg correction without statsmodels."""
-    import numpy as np
-    pvals = np.asarray(pvals, dtype=float)
-    n = len(pvals)
-    if n == 0:
-        return pvals
-    order = np.argsort(pvals)
-    ranked = pvals[order]
-    adj = ranked * n / (np.arange(n) + 1)
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0, 1)
-    out = np.empty(n, dtype=float)
-    out[order] = adj
-    return out
+from aria.utils.stats import bh_correct as _bh_correct
 
 
 def _global_bh(pvals):

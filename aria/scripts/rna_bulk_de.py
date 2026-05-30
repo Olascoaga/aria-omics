@@ -2190,16 +2190,16 @@ def _gseapy_organism(organism: str) -> str:
 
 
 def _mock_pathways(sig_genes: list) -> dict:
-    """Mock pathways when gseapy unavailable."""
+    """Neutral mock pathways for explicit mock mode only."""
     return {
         "GO_BP": [
-            {"term": "immune response", "padj": 0.001,
+            {"term": "mock pathway A", "padj": 0.001,
              "genes": sig_genes[:5], "overlap": "12/234"},
-            {"term": "inflammatory response", "padj": 0.003,
+            {"term": "mock pathway B", "padj": 0.003,
              "genes": sig_genes[:3], "overlap": "8/156"},
         ],
         "KEGG": [
-            {"term": "T cell receptor signaling pathway", "padj": 0.005,
+            {"term": "mock pathway C", "padj": 0.005,
              "genes": sig_genes[:4], "overlap": "6/87"},
         ],
         "note": "mock — install gseapy for real enrichment",

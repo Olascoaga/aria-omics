@@ -189,5 +189,24 @@ class MessageBus:
             return msg.payload.get("user_decision") or {}
 
 
-# Global bus instance — imported by all agents
-bus = MessageBus()
+class _LazyMessageBus:
+    """Create the process-global MessageBus only when it is first used."""
+
+    def __init__(self):
+        self._instance: MessageBus | None = None
+        self._lock = threading.Lock()
+
+    def _get(self) -> MessageBus:
+        if self._instance is None:
+            with self._lock:
+                if self._instance is None:
+                    self._instance = MessageBus()
+        return self._instance
+
+    def __getattr__(self, name: str):
+        return getattr(self._get(), name)
+
+
+# Global accessor imported by agents; construction is lazy to avoid import-time
+# broker state creation in modules that only need enum/dataclass definitions.
+bus = _LazyMessageBus()

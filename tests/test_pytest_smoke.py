@@ -45,6 +45,24 @@ def test_package_compiles():
     assert result.returncode == 0, result.stderr or result.stdout
 
 
+def test_global_bus_and_env_manager_are_lazy_accessors():
+    from aria.bus.message_bus import MessageBus, _LazyMessageBus
+    from aria.utils.environment_manager import (
+        EnvironmentManager,
+        _LazyEnvironmentManager,
+    )
+
+    lazy_bus = _LazyMessageBus()
+    assert lazy_bus._instance is None
+    assert lazy_bus.get_log() == []
+    assert isinstance(lazy_bus._instance, MessageBus)
+
+    lazy_env = _LazyEnvironmentManager()
+    assert lazy_env._instance is None
+    assert hasattr(lazy_env, "check_environments")
+    assert isinstance(lazy_env._instance, EnvironmentManager)
+
+
 def test_aria_env_loader_reads_export_file(tmp_path, monkeypatch):
     from aria.utils import env_loader
 
@@ -1119,13 +1137,13 @@ def test_marker_fallback_annotation_is_explicit_and_conservative():
     from aria.agents.scrna_agent import scRNAAgent
 
     labels = scRNAAgent._marker_based_annotation({
-        "0": ["MBP", "PLP1", "MOG", "ACTB"],
+        "0": ["gene_a", "gene_b", "gene_c"],
         "1": ["GENE_A", "GENE_B"],
     })
 
-    assert labels["0"]["cell_type"] == "Oligodendrocyte"
-    assert labels["0"]["annotation_source"] == "marker_fallback"
-    assert labels["0"]["confidence"] == "medium"
+    assert labels["0"]["cell_type"] == "Unresolved cluster 0"
+    assert labels["0"]["annotation_source"] == "unresolved_marker_fallback"
+    assert labels["0"]["confidence"] == "low"
     assert labels["1"]["cell_type"] == "Unresolved cluster 1"
     assert labels["1"]["confidence"] == "low"
 
@@ -1204,7 +1222,7 @@ def test_scrna_infers_and_materializes_cell_focus(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
     obs = pd.DataFrame(
-        {"subclass": ["OPC"] * 3 + ["Oligo"] * 4 + ["Astro"] * 5},
+        {"subclass": ["GroupA"] * 3 + ["GroupB"] * 4 + ["GroupC"] * 5},
         index=[f"c_{i}" for i in range(12)],
     )
     adata = ad.AnnData(
@@ -1212,28 +1230,28 @@ def test_scrna_infers_and_materializes_cell_focus(tmp_path):
         obs=obs,
         var=pd.DataFrame(index=[f"g_{i}" for i in range(3)]),
     )
-    h5ad_path = tmp_path / "hippo.h5ad"
+    h5ad_path = tmp_path / "neutral_focus.h5ad"
     adata.write_h5ad(h5ad_path)
 
     agent = scRNAAgent.__new__(scRNAAgent)
     agent.publish_finding = lambda *args, **kwargs: None
     exp_ctx = {
-        "user_question": "focus on oligodendrocyte trajectories from OPCs",
+        "user_question": "focus on GroupA and GroupB trajectories",
         "design": {"pseudobulk": {"groupby_col": "subclass"}},
     }
     focus = agent._prepare_focused_h5ads(
         "exp-focus",
         [str(h5ad_path)],
         exp_ctx,
-        {"summary": "OPC to oligodendrocyte lineage"},
+        {"summary": "GroupA to GroupB trajectory"},
     )
 
     assert focus["status"] == "success"
-    assert focus["values"] == ["OPC", "Oligo"]
+    assert focus["values"] == ["GroupA", "GroupB"]
     assert focus["n_cells_before"] == 12
     assert focus["n_cells_after"] == 7
     focused = ad.read_h5ad(focus["files"][0])
-    assert set(focused.obs["subclass"].astype(str)) == {"OPC", "Oligo"}
+    assert set(focused.obs["subclass"].astype(str)) == {"GroupA", "GroupB"}
     assert focused.n_obs == 7
 
 
@@ -1245,7 +1263,7 @@ def test_scrna_cell_focus_skips_when_all_groups_requested(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
     obs = pd.DataFrame(
-        {"subclass": ["OPC", "Oligo", "Astro"] * 2},
+        {"subclass": ["GroupA", "GroupB", "GroupC"] * 2},
         index=[f"c_{i}" for i in range(6)],
     )
     adata = ad.AnnData(
@@ -1259,14 +1277,14 @@ def test_scrna_cell_focus_skips_when_all_groups_requested(tmp_path):
     focus = scRNAAgent._infer_cell_focus_values(
         [str(h5ad_path)],
         "subclass",
-        {"user_question": "compare OPC Oligo and Astro"},
+        {"user_question": "compare GroupA GroupB and GroupC"},
         {"summary": ""},
     )
 
     assert focus == set()
 
 
-def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
+def test_scrna_cell_focus_does_not_expand_without_explicit_focus(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -1274,7 +1292,7 @@ def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
     obs = pd.DataFrame(
-        {"subclass": ["OPC", "Oligo", "CA1", "DG"] * 2},
+        {"subclass": ["GroupA", "GroupB", "GroupC", "GroupD"] * 2},
         index=[f"c_{i}" for i in range(8)],
     )
     adata = ad.AnnData(
@@ -1282,14 +1300,14 @@ def test_scrna_cell_focus_does_not_expand_generic_neurons(tmp_path):
         obs=obs,
         var=pd.DataFrame(index=["g1", "g2"]),
     )
-    h5ad_path = tmp_path / "hippo_neurons.h5ad"
+    h5ad_path = tmp_path / "neutral_groups.h5ad"
     adata.write_h5ad(h5ad_path)
 
     focus = scRNAAgent._infer_cell_focus_values(
         [str(h5ad_path)],
         "subclass",
-        {"user_question": "hippocampus neurons and oligodendrocytes"},
-        {"summary": "oligodendrocyte aging"},
+        {"user_question": "compare GroupA and GroupB; no narrowing requested"},
+        {"summary": "GroupA comparison"},
     )
 
     assert focus == set()
@@ -1303,7 +1321,7 @@ def test_scrna_cell_focus_uses_only_explicit_focus_clause(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 
     obs = pd.DataFrame(
-        {"subclass": ["Astro", "Oligo", "OPC"] * 2},
+        {"subclass": ["GroupA", "GroupB", "GroupC"] * 2},
         index=[f"c_{i}" for i in range(6)],
     )
     adata = ad.AnnData(
@@ -1311,7 +1329,7 @@ def test_scrna_cell_focus_uses_only_explicit_focus_clause(tmp_path):
         obs=obs,
         var=pd.DataFrame(index=["g1", "g2"]),
     )
-    h5ad_path = tmp_path / "astro_focus.h5ad"
+    h5ad_path = tmp_path / "group_focus.h5ad"
     adata.write_h5ad(h5ad_path)
 
     focus = scRNAAgent._infer_cell_focus_values(
@@ -1319,17 +1337,17 @@ def test_scrna_cell_focus_uses_only_explicit_focus_clause(tmp_path):
         "subclass",
         {
             "user_question": (
-                "Focus only on astrocytes. Do not run oligodendrocyte "
-                "trajectory analysis."
+                "Focus only on GroupA. Do not run trajectory analysis for "
+                "GroupB."
             )
         },
-        {"summary": "astrocyte aging and oligodendrocyte trajectory not needed"},
+        {"summary": "GroupA comparison and GroupB trajectory not needed"},
     )
 
-    assert focus == {"Astro"}
+    assert focus == {"GroupA"}
 
 
-def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
+def test_design_intelligence_scrna_focused_group_feasibility(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -1338,7 +1356,7 @@ def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
 
     obs = pd.DataFrame(
         {
-            "subclass": ["Microglia"] * 6 + ["Oligo"] * 6,
+            "subclass": ["GroupA"] * 6 + ["GroupB"] * 6,
             "age_group": ["20-39"] * 3 + ["80-100"] * 3
                          + ["20-39"] * 3 + ["80-100"] * 3,
             "orig.ident": ["y1", "y2", "y3", "o1", "o2", "o3"] * 2,
@@ -1350,14 +1368,14 @@ def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
     adata = ad.AnnData(
         X=np.ones((12, 3), dtype=np.float32),
         obs=obs,
-        var=pd.DataFrame(index=["APOE", "TREM2", "C1QA"]),
+        var=pd.DataFrame(index=["gene_a", "gene_b", "gene_c"]),
     )
-    h5ad_path = tmp_path / "microglia.h5ad"
+    h5ad_path = tmp_path / "focused_group.h5ad"
     adata.write_h5ad(h5ad_path)
 
     exp_ctx = {
         "modalities": {"scRNA": [str(h5ad_path)]},
-        "user_question": "focus only on microglia aging signatures",
+        "user_question": "focus only on GroupA condition signatures",
         "design": {
             "groups": {"20-39": ["y1", "y2", "y3"],
                        "80-100": ["o1", "o2", "o3"]},
@@ -1371,12 +1389,12 @@ def test_design_intelligence_scrna_microglia_feasibility(tmp_path):
     }
 
     di = DesignIntelligence().evaluate(
-        exp_ctx, {"summary": "microglia aging and ligand receptor signaling"}
+        exp_ctx, {"summary": "GroupA condition signatures and signaling"}
     )
 
     assert di["status"] == "success"
     assert any("pseudobulk" in item.lower() for item in di["recommended"])
-    assert any("Microglia" in item for item in di["recommended"])
+    assert any("GroupA" in item for item in di["recommended"])
     assert any("LIANA" in item for item in di["unsupported"])
     assert any("RNA velocity" in item for item in di["unsupported"])
 

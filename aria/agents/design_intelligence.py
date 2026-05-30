@@ -314,29 +314,10 @@ class DesignIntelligence:
         text = self._cell_focus_text(exp_context, intent)
         if not text:
             return []
-        aliases = {
-            "microglia": {"Microglia"},
-            "microglía": {"Microglia"},
-            "opc": {"OPC"},
-            "opcs": {"OPC"},
-            "oligo": {"Oligo"},
-            "oligodendrocyte": {"Oligo"},
-            "oligodendrocytes": {"Oligo"},
-            "oligodendroglial": {"OPC", "Oligo"},
-            "oligodendrocito": {"Oligo"},
-            "oligodendrocitos": {"Oligo"},
-            "astrocyte": {"Astro"},
-            "astrocytes": {"Astro"},
-            "astrocito": {"Astro"},
-            "astrocitos": {"Astro"},
-        }
         focus = set()
         for value in available:
             if re.search(rf"\b{re.escape(value.lower())}\b", text):
                 focus.add(value)
-        for token, values in aliases.items():
-            if re.search(rf"\b{re.escape(token)}\b", text):
-                focus.update(v for v in values if v in available)
         return sorted(focus) if 0 < len(focus) < len(available) else []
 
     @staticmethod

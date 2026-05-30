@@ -505,5 +505,27 @@ class EnvironmentManager:
             return False
 
 
-# Global instance — imported by all agents
-env_manager = EnvironmentManager()
+class _LazyEnvironmentManager:
+    """Create the global EnvironmentManager only when it is first used."""
+
+    def __init__(self):
+        self._instance: EnvironmentManager | None = None
+        self._lock = None
+
+    def _get(self) -> EnvironmentManager:
+        if self._instance is None:
+            import threading
+            if self._lock is None:
+                self._lock = threading.Lock()
+            with self._lock:
+                if self._instance is None:
+                    self._instance = EnvironmentManager()
+        return self._instance
+
+    def __getattr__(self, name: str):
+        return getattr(self._get(), name)
+
+
+# Global accessor imported by agents; construction is lazy to avoid import-time
+# workspace creation and environment probing.
+env_manager = _LazyEnvironmentManager()

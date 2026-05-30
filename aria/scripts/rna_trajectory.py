@@ -113,13 +113,11 @@ def rna_trajectory(params: dict) -> dict:
         #
         # Order of preference:
         #   1. Explicit `root_cell_type` from the caller (user / intent).
-        #   2. Auto-detect a progenitor-like cell type from common markers
-        #      (OPC, NSC, NPC, GMP, MPP, HSC, stem, progenitor, ...). This
-        #      avoids the v4.3.10 hippocampus failure where "min complexity"
-        #      selected mature Oligo as root and inverted OPC→Oligo lineage.
+        #   2. Auto-detect a progenitor-like cell type from generic wording
+        #      ("stem", "progenitor", "precursor") without hardcoded
+        #      tissue-specific abbreviations.
         #   3. Last-resort heuristic: cell with fewest genes ("min complexity").
         PROGENITOR_TOKENS = (
-            "opc", "nsc", "npc", "rgl", "rg ", "gmp", "mpp", "hsc",
             "stem", "progenitor", "precursor",
         )
         root_used = "auto"

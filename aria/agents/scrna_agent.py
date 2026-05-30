@@ -331,25 +331,6 @@ class scRNAAgent(BaseAgent):
         "with_condition",
     }
 
-    _FOCUS_ALIASES = {
-        "oligodendrocyte": {"Oligo"},
-        "oligodendrocytes": {"Oligo"},
-        "oligodendroglial": {"OPC", "Oligo"},
-        "oligodendroglia": {"OPC", "Oligo"},
-        "oligo": {"Oligo"},
-        "oligos": {"Oligo"},
-        "opc": {"OPC"},
-        "opcs": {"OPC"},
-        "microglia": {"Microglia"},
-        "astrocyte": {"Astro"},
-        "astrocytes": {"Astro"},
-        "astrocito": {"Astro"},
-        "astrocitos": {"Astro"},
-        "microglía": {"Microglia"},
-        "oligodendrocito": {"Oligo"},
-        "oligodendrocitos": {"Oligo"},
-    }
-
     def _prepare_focused_h5ads(self, experiment_id: str, files: list,
                                exp_ctx: dict, intent: dict) -> dict:
         """
@@ -481,9 +462,6 @@ class scRNAAgent(BaseAgent):
         for value in available:
             if re.search(rf"\b{re.escape(value.lower())}\b", text):
                 focus.add(value)
-        for token, values in cls._FOCUS_ALIASES.items():
-            if re.search(rf"\b{re.escape(token)}\b", text):
-                focus.update(v for v in values if v in available)
         return focus if 0 < len(focus) < len(available) else set()
 
     @staticmethod
@@ -1183,11 +1161,9 @@ Rules:
             log.warning(f"LLM annotation failed: {e}")
 
         if not cell_types:
-            # Fall back to raw CellTypist labels if we have them; otherwise mark
-            # clusters conservatively from canonical marker panels. The marker
-            # fallback is intentionally low/medium confidence and avoids the
-            # unhelpful all-"annotation_failed" state that breaks downstream
-            # UMAP, trajectory, and cell-communication labels.
+            # Fall back to raw CellTypist labels if we have them; otherwise keep
+            # clusters explicitly unresolved. Runtime marker panels would encode
+            # species/tissue assumptions and violate ADR-011.
             if celltypist_result.get("status") == "success":
                 cell_types = {
                     cl: {
@@ -1267,55 +1243,18 @@ Rules:
 
     @staticmethod
     def _marker_based_annotation(markers_by_cluster: dict) -> dict:
-        panels = {
-            "OPC": {"PDGFRA", "CSPG4", "VCAN", "OLIG1", "OLIG2", "SOX10"},
-            "Oligodendrocyte": {"MBP", "PLP1", "MOG", "MOBP", "MAG", "TF"},
-            "Microglia": {"P2RY12", "CX3CR1", "AIF1", "TYROBP", "C1QA",
-                          "C1QB", "CSF1R", "AOAH", "HLA-A", "B2M"},
-            "Astrocyte": {"AQP4", "GFAP", "ALDH1L1", "SLC1A3", "SLC1A2",
-                          "CLU", "APOE"},
-            "Excitatory neuron": {"SLC17A7", "SLC17A6", "CAMK2A", "SATB2",
-                                  "RBFOX3", "SNAP25", "SYT1"},
-            "Inhibitory neuron": {"GAD1", "GAD2", "SLC6A1", "DLX1", "DLX2",
-                                  "RBFOX3", "SNAP25"},
-            "Endothelial": {"CLDN5", "FLT1", "PECAM1", "VWF", "KDR"},
-            "Pericyte / vascular smooth muscle": {"PDGFRB", "RGS5", "ACTA2",
-                                                   "TAGLN", "MYH11"},
-            "Ependymal": {"FOXJ1", "TTR", "PIFO", "DNAH5"},
-        }
         out = {}
         for cluster, markers in markers_by_cluster.items():
-            marker_set = {str(g).upper() for g in (markers or [])[:30]}
-            hits = []
-            for label, genes in panels.items():
-                overlap = sorted(marker_set & genes)
-                if overlap:
-                    hits.append((label, overlap))
-            hits.sort(key=lambda x: len(x[1]), reverse=True)
-            if hits:
-                label, overlap = hits[0]
-                conf = "medium" if len(overlap) >= 2 else "low"
-                out[str(cluster)] = {
-                    "cell_type": label,
-                    "confidence": conf,
-                    "key_markers": overlap[:5],
-                    "rationale": (
-                        "Conservative marker-panel fallback; database-backed "
-                        f"annotation unavailable. Matched: {', '.join(overlap[:5])}."
-                    ),
-                    "annotation_source": "marker_fallback",
-                }
-            else:
-                out[str(cluster)] = {
-                    "cell_type": f"Unresolved cluster {cluster}",
-                    "confidence": "low",
-                    "key_markers": list(markers or [])[:5],
-                    "rationale": (
-                        "No canonical brain/glia marker panel matched the top "
-                        "cluster markers."
-                    ),
-                    "annotation_source": "marker_fallback",
-                }
+            out[str(cluster)] = {
+                "cell_type": f"Unresolved cluster {cluster}",
+                "confidence": "low",
+                "key_markers": list(markers or [])[:5],
+                "rationale": (
+                    "LLM/CellTypist unavailable; ARIA does not infer cell "
+                    "identity from hardcoded marker panels."
+                ),
+                "annotation_source": "unresolved_marker_fallback",
+            }
         return out
 
     @staticmethod

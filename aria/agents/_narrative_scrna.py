@@ -119,7 +119,11 @@ def _annotation_state(findings: dict) -> dict:
     ]
     labels = [x for x in labels if x]
     invalid = {"annotation_failed", "failed", "unknown", "nan", "none"}
-    valid = [x for x in labels if x.strip().lower() not in invalid]
+    valid = [
+        x for x in labels
+        if x.strip().lower() not in invalid
+        and not x.strip().lower().startswith("unresolved cluster")
+    ]
     source = "unknown"
     for v in (ct_block.get("cell_types", {}) or {}).values():
         if isinstance(v, dict) and v.get("annotation_source"):
@@ -132,7 +136,9 @@ def _annotation_state(findings: dict) -> dict:
         "n_unique": len(set(valid)),
         "source": source,
         "label_col": label_col,
-        "is_marker_fallback": source == "marker_fallback",
+        "is_marker_fallback": source in {
+            "marker_fallback", "unresolved_marker_fallback",
+        },
     }
 
 
@@ -496,9 +502,7 @@ def summarize_scrna_text(findings: dict) -> str:
         ann = _annotation_state(findings)
         unique = sorted(set(ann["labels"]))
         if unique:
-            qualifier = (
-                "conservative marker-based " if ann["is_marker_fallback"] else ""
-            )
+            qualifier = "unresolved fallback " if ann["is_marker_fallback"] else ""
             lines.append(
                 f"Cell-type annotation produced {len(unique)} "
                 f"{qualifier}labels "
@@ -830,8 +834,8 @@ def build_scrna_integrated_interpretation(findings: dict,
         if ann["is_marker_fallback"]:
             parts.append(
                 "Because CellTypist was unavailable, communication labels are "
-                "marker-panel annotations and should be manually curated before "
-                "being treated as definitive cell identities."
+                "unresolved fallback labels and should be manually curated before "
+                "being treated as cell identities."
             )
         parts.extend(_describe_cellcomm_context(findings, limit=5))
 
@@ -852,7 +856,7 @@ def build_scrna_integrated_interpretation(findings: dict,
             )
         if ann["is_marker_fallback"]:
             traj_txt += (
-                " Group names come from conservative marker-panel labels, so "
+                " Group names come from unresolved fallback labels, so "
                 "the trajectory section should be read as a hypothesis for "
                 "manual curation."
             )
@@ -1760,8 +1764,8 @@ def build_scrna_html_section(findings: dict,
     if ann["is_marker_fallback"]:
         parts.append(
             '<div class="warning">'
-            'Cell labels in this report use conservative marker-panel '
-            'annotation because CellTypist did not complete. Treat UMAP, '
+            'Cell labels in this report are unresolved fallback labels because '
+            'CellTypist did not complete. Treat UMAP, '
             'trajectory, and communication labels as curation targets, not '
             'final cell identities.'
             '</div>'

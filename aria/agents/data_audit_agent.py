@@ -440,6 +440,9 @@ class DataAuditAgent(BaseAgent):
         except ImportError:
             return "unknown", "unknown"
 
+        # ADR-011 exception: this compact feature-name set is used only for
+        # technical organism inference when metadata is absent, not for runtime
+        # biological claims or cell-type assignment.
         human_markers = {
             "SAMD11", "ISG15", "TMEM88B", "PRDM16", "MEGF6", "C1QA",
             "C1QB", "C1QC", "NCMAP", "C1orf141", "TNFRSF1B", "PIK3CD",
@@ -652,8 +655,7 @@ class DataAuditAgent(BaseAgent):
         if any(k in q for k in ("aging", "age group", " age ", "young", "old")):
             priority = ["age_group", "age_bin", "age", *priority]
         if any(k in q for k in ("stimulat", "stim", "vehicle", "perturb",
-                                 "agonist", "antagonist", "ifn ", "ifn-",
-                                 "ligand")):
+                                 "agonist", "antagonist", "ligand")):
             priority = ["stim", "stimulation", "stim_status", "state",
                         "perturbation", "perturb", *priority]
         if any(k in q for k in ("treat", "treatment", "drug", "dose",

@@ -5,7 +5,7 @@ Tests whether cell-type proportions differ between conditions. Run BEFORE
 pseudobulk DE so that the downstream narrative can:
 
   1. Report shifts in cell-type composition as a primary observation in
-     their own right (e.g. "microglia increased 1.8x in aged hippocampus").
+     their own right (e.g. "cell type A increased 1.8x in condition B").
   2. Pass composition_covariate=True to rna_pseudobulk_de.py whenever a
      significant abundance shift exists, so that per-cell-type expression
      contrasts are not confounded by changes in the cell-type mixture.
@@ -81,6 +81,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 from aria.scripts._base import run_script
+from aria.utils.stats import bh_correct as _bh_correct
 
 
 def rna_diff_abundance(params: dict) -> dict:
@@ -342,24 +343,6 @@ def rna_diff_abundance(params: dict) -> dict:
         "output_path":            out_path,
         "warnings":               warnings,
     }
-
-
-def _bh_correct(pvals):
-    """Benjamini-Hochberg correction without statsmodels."""
-    import numpy as np
-    pvals = np.asarray(pvals, dtype=float)
-    n = len(pvals)
-    if n == 0:
-        return pvals
-    order = np.argsort(pvals)
-    ranked = pvals[order]
-    adj = ranked * n / (np.arange(n) + 1)
-    # Monotone non-increasing from the largest down
-    adj = np.minimum.accumulate(adj[::-1])[::-1]
-    adj = np.clip(adj, 0, 1)
-    out = np.empty(n, dtype=float)
-    out[order] = adj
-    return out
 
 
 if __name__ == "__main__":
