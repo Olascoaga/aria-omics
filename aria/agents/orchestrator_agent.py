@@ -21,6 +21,7 @@ Flow:
 from __future__ import annotations
 
 import logging
+import os
 import threading
 import uuid
 from typing import Optional
@@ -154,7 +155,18 @@ MODALITY_VALIDATION = {
     },
     "HiC": {
         "level": "scaffold",
-        "dispatch_enabled": True,
+        # P0-3: Hi-C is dispatch-OFF by default. Its scripts run, but
+        # `hic_topology` emits TADs/loops (unvalidated conclusions under a
+        # scaffold level), so a default run is not publication-grade. Opt in
+        # explicitly with ARIA_ALLOW_EXPERIMENTAL_HIC=1; such runs are stamped
+        # experimental. This does not add or change any Hi-C science.
+        "dispatch_enabled": False,
+        "reason": (
+            "Hi-C E2E (TAD/loop/compartment) validation is not closed; set "
+            "ARIA_ALLOW_EXPERIMENTAL_HIC=1 to run it as experimental, "
+            "not-publication-grade output."
+        ),
+        "experimental_env_flag": "ARIA_ALLOW_EXPERIMENTAL_HIC",
     },
 }
 
@@ -603,6 +615,36 @@ class OrchestratorAgent(BaseAgent):
                     Confidence.INSUFFICIENT,
                 )
 
+        # P0-3: modalities that run ONLY because their experimental opt-in flag
+        # is set are dispatched, but the report is stamped as experimental /
+        # not publication-grade so the unvalidated conclusions are never read as
+        # final results.
+        for modality, meta in self._experimental_modalities(modalities).items():
+            exp_context = {
+                **exp_context,
+                "experimental_modalities": sorted(
+                    set(exp_context.get("experimental_modalities", []))
+                    | {modality}
+                ),
+            }
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"{modality} ran in EXPERIMENTAL mode "
+                        f"(via {meta.get('experimental_env_flag')}); its output "
+                        "is NOT publication-grade and is not validated."
+                    ),
+                    "modality": modality,
+                    "validation_level": meta.get("level", "scaffold"),
+                    "experimental": True,
+                    "reason": meta.get(
+                        "reason", "Modality is dispatch-gated; run is experimental."
+                    ),
+                },
+                Confidence.INSUFFICIENT,
+            )
+
         self.publish_status(experiment_id, "Checking computational environment...", 0.05)
         setup_result = self._run_agent(
             agent_name="setup_agent",
@@ -752,13 +794,40 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
 
     @staticmethod
-    def _blocked_modalities(modalities: dict) -> dict:
+    def _experimental_override_active(meta: dict) -> bool:
+        """A dispatch-gated modality may carry an explicit experimental opt-in
+        env flag (P0-3). The override is active only when that flag is set to a
+        truthy value; it never silently enables a modality."""
+        flag = meta.get("experimental_env_flag")
+        if not flag:
+            return False
+        return os.environ.get(flag, "").strip().lower() in {"1", "true", "yes", "on"}
+
+    @classmethod
+    def _blocked_modalities(cls, modalities: dict) -> dict:
         blocked = {}
         for modality in modalities:
             meta = MODALITY_VALIDATION.get(modality, {})
             if meta and not meta.get("dispatch_enabled", True):
+                # An explicit experimental opt-in unblocks dispatch but the run
+                # is stamped experimental (see _experimental_modalities).
+                if cls._experimental_override_active(meta):
+                    continue
                 blocked[modality] = meta
         return blocked
+
+    @classmethod
+    def _experimental_modalities(cls, modalities: dict) -> dict:
+        """Modalities that are dispatch-gated by default but allowed to run only
+        because their experimental env flag is set. These produce
+        not-publication-grade output and must be stamped as such."""
+        experimental = {}
+        for modality in modalities:
+            meta = MODALITY_VALIDATION.get(modality, {})
+            if (meta and not meta.get("dispatch_enabled", True)
+                    and cls._experimental_override_active(meta)):
+                experimental[modality] = meta
+        return experimental
 
     @staticmethod
     def _integration_dispatch_enabled() -> bool:
