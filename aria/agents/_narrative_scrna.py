@@ -289,7 +289,16 @@ def _describe_top_de_blocks(findings: dict, limit: int = 3) -> list[str]:
         if comp.get("low_power_warning"):
             caveats.append("low replicate support")
         if not comp.get("corrected_for_composition"):
-            caveats.append("no composition covariate")
+            skip_reason = str(comp.get("composition_skipped_reason") or "")
+            if "collinear" in skip_reason:
+                # C3: the covariate was deliberately dropped because it was
+                # collinear with the condition; the shift is in the DA layer.
+                caveats.append(
+                    "composition covariate dropped (collinear with condition; "
+                    "abundance shift reported separately)"
+                )
+            else:
+                caveats.append("no composition covariate")
         caveat_txt = (
             " Caveat: " + ", ".join(caveats) + "."
             if caveats else ""

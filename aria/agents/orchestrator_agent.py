@@ -205,6 +205,18 @@ class OrchestratorAgent(BaseAgent):
         except Exception as e:
             log.debug(f"Could not attach experiment log: {e}")
 
+        # R6: append-only bus durability under a per-experiment path so a
+        # mid-run crash keeps the findings/decisions of completed stages, and
+        # concurrent runs never share a log file.
+        try:
+            from pathlib import Path as _Path
+            bus.enable_persistence(
+                str(_Path.home() / ".aria" / "workspace" / experiment_id
+                    / "bus_log.jsonl")
+            )
+        except Exception as e:
+            log.debug(f"Could not enable bus persistence: {e}")
+
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
         intent = self._parse_question(context["user_question"])
         context["provenance"] = collect_provenance()

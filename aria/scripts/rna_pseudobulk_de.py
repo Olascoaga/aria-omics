@@ -120,6 +120,30 @@ def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
     }
 
 
+# C3 (audit 2026-05-29): the composition covariate is the cell type's OWN
+# log-proportion. When abundance shifts with condition — exactly when
+# scrna_agent enables it — that covariate becomes collinear with the condition
+# factor, inflating variance and absorbing the real signal (muscat/Crowell
+# handle composition by normalization / separate abundance modeling, not a
+# self-proportion covariate in the DE design). We therefore add it only when it
+# is NOT strongly collinear with the contrast; above this absolute correlation
+# the covariate is dropped and the block records why, since the shift is already
+# reported by the differential-abundance layer.
+COMPOSITION_COLLINEARITY_MAX = 0.8
+
+
+def _abs_corr(x, y) -> float | None:
+    """Absolute Pearson correlation, or None when either side has no variance."""
+    import numpy as np
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    mask = np.isfinite(x) & np.isfinite(y)
+    x, y = x[mask], y[mask]
+    if x.size < 2 or x.std() == 0 or y.std() == 0:
+        return None
+    return float(abs(np.corrcoef(x, y)[0, 1]))
+
+
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
     _w.filterwarnings("ignore")
@@ -444,13 +468,32 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     design_factors = design_factors + [replicate_col]
                     paired_donor_covariate_used = True
             block_corrected_for_composition = False
+            composition_skipped_reason = None
             if composition_covariate and COMPOSITION_COL in meta_sub.columns:
-                # Only add the covariate if it actually varies across the
-                # pseudosamples in this comparison (DESeq2 errors on a
-                # constant factor).
-                if meta_sub[COMPOSITION_COL].nunique() > 1:
-                    design_factors = design_factors + [COMPOSITION_COL]
-                    block_corrected_for_composition = True
+                if meta_sub[COMPOSITION_COL].nunique() <= 1:
+                    # DESeq2 errors on a constant factor.
+                    composition_skipped_reason = "constant_within_block"
+                else:
+                    # C3: refuse the covariate when it is collinear with the
+                    # contrast (the variance-inflation case). The abundance shift
+                    # is still reported by the differential-abundance layer.
+                    comp_vals = pd.to_numeric(
+                        meta_sub[COMPOSITION_COL], errors="coerce"
+                    ).to_numpy(dtype=float)
+                    cond_ind = (
+                        meta_sub[condition_col] == test_lvl
+                    ).to_numpy(dtype=float)
+                    comp_corr = _abs_corr(comp_vals, cond_ind)
+                    if (comp_corr is not None
+                            and comp_corr >= COMPOSITION_COLLINEARITY_MAX):
+                        composition_skipped_reason = (
+                            f"collinear_with_condition "
+                            f"(|r|={comp_corr:.2f} >= "
+                            f"{COMPOSITION_COLLINEARITY_MAX})"
+                        )
+                    else:
+                        design_factors = design_factors + [COMPOSITION_COL]
+                        block_corrected_for_composition = True
             design_check = validate_design_matrix(
                 meta_sub,
                 condition_col=condition_col,
@@ -540,6 +583,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "mean_expression_estimate":   mean_expression,
                 "power_estimate_at_lfc_min":  power_estimate,
                 "corrected_for_composition": block_corrected_for_composition,
+                "composition_covariate_requested": composition_covariate,
+                "composition_skipped_reason": composition_skipped_reason,
                 "paired_design":              paired_design,
                 "paired_donor_covariate":     paired_donor_covariate_used,
                 "design_check":               design_check,

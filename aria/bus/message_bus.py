@@ -7,12 +7,14 @@ Only NarrativeAgent outputs are decompressed for the user.
 """
 
 from __future__ import annotations
+import json
 import threading
 import logging
 from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import Any, Optional
 import uuid
 
@@ -86,7 +88,7 @@ class MessageBus:
     # 100k covers very long sessions; each Message is small (~1-2KB).
     MAX_LOG_SIZE = 100_000
 
-    def __init__(self, max_log_size: int = None):
+    def __init__(self, max_log_size: int = None, persist_path: str | None = None):
         self._subscribers: dict[str, list] = {}
         self._log: deque[Message] = deque(
             maxlen=max_log_size or self.MAX_LOG_SIZE
@@ -94,6 +96,62 @@ class MessageBus:
         self._agents: dict[str, Any] = {}
         self._lock = threading.RLock()
         self._checkpoint_condition = threading.Condition(self._lock)
+        # R6: incremental indices so the 0.5s TUI/headless polls do not scan the
+        # full (up to 100k) deque on every tick. Kept eviction-consistent with
+        # the FIFO deque.
+        self._findings_by_exp: dict[str, list[Message]] = {}
+        self._escalations: dict[str, Message] = {}
+        # R6: optional append-only durability so a mid-run crash does not lose
+        # the findings/decisions of completed stages. Per-run path keeps
+        # concurrent runs from sharing a log file.
+        self._persist_path: Path | None = (
+            Path(persist_path) if persist_path else None
+        )
+        if self._persist_path is not None:
+            try:
+                self._persist_path.parent.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                self._persist_path = None
+
+    def enable_persistence(self, persist_path: str) -> None:
+        """Turn on append-only durability at run start (R6). Safe to call on the
+        process-global bus once the run's workspace path is known."""
+        with self._lock:
+            path = Path(persist_path)
+            try:
+                path.parent.mkdir(parents=True, exist_ok=True)
+            except OSError:
+                return
+            self._persist_path = path
+
+    # ── Index maintenance (R6) ───────────────────────────────────────────
+    def _index(self, m: Message) -> None:
+        if m.type == MessageType.FINDING:
+            self._findings_by_exp.setdefault(m.experiment_id, []).append(m)
+        elif m.type == MessageType.ESCALATION:
+            self._escalations[m.id] = m
+
+    def _deindex(self, m: Message) -> None:
+        if m.type == MessageType.FINDING:
+            lst = self._findings_by_exp.get(m.experiment_id)
+            if lst:
+                try:
+                    lst.remove(m)
+                except ValueError:
+                    pass
+                if not lst:
+                    self._findings_by_exp.pop(m.experiment_id, None)
+        elif m.type == MessageType.ESCALATION:
+            self._escalations.pop(m.id, None)
+
+    def _persist(self, m: Message) -> None:
+        if self._persist_path is None:
+            return
+        try:
+            with self._persist_path.open("a", encoding="utf-8") as fh:
+                fh.write(json.dumps(m.to_dict(), default=str) + "\n")
+        except Exception:
+            log.debug("bus persistence write failed", exc_info=True)
 
     def register(self, agent_name: str, agent_instance: Any):
         with self._lock:
@@ -104,7 +162,14 @@ class MessageBus:
         # Snapshot receivers under the lock, then dispatch outside it so a
         # slow agent.receive() cannot block other publishers.
         with self._lock:
+            # Keep the indices eviction-consistent: if the deque is full, the
+            # leftmost message is about to be dropped by append().
+            if (self._log.maxlen is not None
+                    and len(self._log) == self._log.maxlen):
+                self._deindex(self._log[0])
             self._log.append(message)
+            self._index(message)
+            self._persist(message)
             receiver = message.receiver
             if receiver == "all":
                 targets = [(n, a) for n, a in self._agents.items()
@@ -136,31 +201,31 @@ class MessageBus:
         return snapshot
 
     def get_findings(self, experiment_id: str) -> list[Message]:
+        # R6: served from the per-experiment index, not a full deque scan.
         with self._lock:
-            snapshot = list(self._log)
-        return [
-            m for m in snapshot
-            if m.type == MessageType.FINDING
-            and m.experiment_id == experiment_id
-        ]
+            return list(self._findings_by_exp.get(experiment_id, []))
 
-    def get_pending_checkpoints(self) -> list[Message]:
+    def get_pending_checkpoints(
+        self, experiment_id: str | None = None
+    ) -> list[Message]:
+        # R6: scan only the (small) escalation index, and optionally scope to a
+        # single experiment so concurrent runs sharing the global bus do not
+        # read each other's pending checkpoints.
         with self._lock:
-            snapshot = list(self._log)
-        return [
-            m for m in snapshot
-            if m.type == MessageType.ESCALATION
-            and m.payload.get("resolved") is not True
-        ]
+            return [
+                m for m in self._escalations.values()
+                if m.payload.get("resolved") is not True
+                and (experiment_id is None
+                     or m.experiment_id == experiment_id)
+            ]
 
     def resolve_checkpoint(self, message_id: str, user_decision: dict) -> None:
         with self._lock:
-            for m in self._log:
-                if m.id == message_id and m.type == MessageType.ESCALATION:
-                    m.payload["resolved"]      = True
-                    m.payload["user_decision"] = user_decision
-                    self._checkpoint_condition.notify_all()
-                    break
+            m = self._escalations.get(message_id)
+            if m is not None and m.type == MessageType.ESCALATION:
+                m.payload["resolved"]      = True
+                m.payload["user_decision"] = user_decision
+                self._checkpoint_condition.notify_all()
 
     def wait_for_checkpoint_resolution(
         self,
@@ -170,11 +235,9 @@ class MessageBus:
         """Block until an escalation has a user_decision, or timeout expires."""
         with self._checkpoint_condition:
             def _resolved_message() -> Message | None:
-                for m in self._log:
-                    if m.id == message_id and m.type == MessageType.ESCALATION:
-                        if m.payload.get("resolved") is True:
-                            return m
-                        return None
+                m = self._escalations.get(message_id)
+                if m is not None and m.payload.get("resolved") is True:
+                    return m
                 return None
 
             msg = _resolved_message()
@@ -187,6 +250,34 @@ class MessageBus:
             if msg is None:
                 return None
             return msg.payload.get("user_decision") or {}
+
+    @staticmethod
+    def replay(persist_path: str, experiment_id: str | None = None) -> list[dict]:
+        """
+        Read back a persisted bus log (R6) for crash postmortem / resume. Returns
+        the message dicts in order, optionally scoped to one experiment. Missing
+        or unreadable files yield an empty list rather than raising.
+        """
+        path = Path(persist_path)
+        if not path.exists():
+            return []
+        out: list[dict] = []
+        try:
+            with path.open("r", encoding="utf-8") as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        rec = json.loads(line)
+                    except json.JSONDecodeError:
+                        continue
+                    if (experiment_id is None
+                            or rec.get("experiment_id") == experiment_id):
+                        out.append(rec)
+        except OSError:
+            return out
+        return out
 
 
 class _LazyMessageBus:

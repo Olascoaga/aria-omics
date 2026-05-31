@@ -110,6 +110,8 @@ flowchart TD
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
 | `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. DA uses quasi-Poisson (overdispersion-corrected, ADR-018); do not revert to plain Poisson — it anti-conservatively gates the composition covariate. |
 | `rna_pseudobulk_de.py` per-group `background_genes` / `scrna_agent` `background_genes_by_cluster` / `rna_pathway_per_cluster.py` universe | per-cluster ORA significance, `ScrnaNarrator` Methods + per-block background size | The ORA universe is per cell type (genes tested in that cluster's pseudobulk, ADR-018). A single global background inflates per-cluster enrichment; legacy results without per-group background fall back to the global universe. |
+| `rna_pseudobulk_de.py` composition covariate / `composition_skipped_reason` | `ScrnaNarrator` composition caveats, `scrna_agent` composition gating | The self-proportion composition covariate is dropped when collinear with the contrast (`_abs_corr` >= `COMPOSITION_COLLINEARITY_MAX`, C3/ADR-021); do not re-enable it unconditionally — it inflates variance exactly when abundance shifts with condition. |
+| `bus/message_bus.py` indices / persistence / `get_pending_checkpoints(experiment_id=...)` | TUI/headless polls, `OrchestratorAgent.run` (`enable_persistence`), checkpoint resolution, crash recovery | Findings/escalations are served from eviction-consistent indices and optionally persisted per-run (R6/ADR-021). Keep `_index`/`_deindex` in sync with the FIFO deque, keep persistence per-`experiment_id`, and scope reads by experiment so concurrent runs sharing the global bus don't cross-read. |
 | `stats.py` BH correction helper | `rna_pseudobulk_de.py`, `rna_diff_abundance.py`, FDR tests | Shared multiple-testing code must stay numerically stable; duplicating local BH implementations risks divergent significance calls. |
 | `count_classifier.py` raw-count detection | `rna_bulk_de.py` (`_load_counts` hard-refuse), `rna_pseudobulk_de.py` (integer-likeness + log-norm recovery probes), `count_source` provenance | The single detector deciding raw vs normalized input for DESeq2. Loosening `is_raw_counts` lets normalized matrices become pseudo-counts; the sampler is seeded — keep it deterministic for reproducible mode. |
 | `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |
@@ -190,6 +192,10 @@ Use these tests as impact anchors when editing the graph's major nodes:
 - LLM/subprocess reliability (call timeout, model-degradation provenance,
   current model IDs, process-group kill on timeout):
   `tests/test_llm_reliability.py`
+- Bus durability + per-run isolation + indexed reads:
+  `tests/test_bus_durability.py`
+- Composition-covariate collinearity guard:
+  `tests/test_composition_collinearity.py` (end-to-end case is pydeseq2-gated)
 - B7/B11 housekeeping and ADR-011 guards:
   `tests/test_pytest_smoke.py::test_global_bus_and_env_manager_are_lazy_accessors`,
   `tests/test_pytest_smoke.py::test_marker_fallback_annotation_is_explicit_and_conservative`,

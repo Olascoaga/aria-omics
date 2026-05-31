@@ -123,9 +123,11 @@ def drain_pending_checkpoints(orchestrator, experiment_id: str,
     decisions: list = []
     resolved_any = False
     for _ in range(max_rounds):
+        # R6: scope the pending-checkpoint read to this experiment at the bus
+        # level so a concurrent run sharing the global bus is never observed.
         pending = [
-            m for m in bus.get_pending_checkpoints()
-            if m.experiment_id == experiment_id and not m.payload.get("resolved")
+            m for m in bus.get_pending_checkpoints(experiment_id=experiment_id)
+            if not m.payload.get("resolved")
         ]
         if not pending:
             break
@@ -186,15 +188,18 @@ def run_headless(data_dir: str, question: str,
         return HeadlessResult(experiment_id, "cancelled", decisions=decisions)
 
     # Live loop: keep draining late checkpoints until narrative signals done.
-    # NOTE: poll the FULL bus log (not filtered by experiment_id) — agent
-    # STATUS messages do not always carry experiment_id, so filtering here
-    # silently hides the narrative "Report saved" completion signal. This
-    # mirrors aria.tui._live_analysis_loop, which also reads bus.get_log().
+    # NOTE: agent STATUS messages do not always carry experiment_id, so we keep
+    # reading exp-less messages (the narrative "Report saved" completion signal
+    # can arrive without one). R6: but we now DROP messages explicitly tagged to
+    # a DIFFERENT experiment, so a concurrent run sharing the global bus cannot
+    # leak its events here. This mirrors aria.tui._live_analysis_loop.
     seen: set = set()
     start = time.time()
     report_path: Optional[str] = None
     while True:
         for m in bus.get_log():
+            if m.experiment_id and m.experiment_id != experiment_id:
+                continue
             if m.id in seen:
                 continue
             seen.add(m.id)
