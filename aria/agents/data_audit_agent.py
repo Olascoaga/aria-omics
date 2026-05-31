@@ -63,8 +63,11 @@ SIGNATURES = {
         r".*_[12]\.fastq(\.gz)?$",
         r".*_[12]\.fq(\.gz)?$",
     ],
-    # Single-cell ATAC
+    # Single-cell ATAC (incl. same-cell paired RNA+ATAC MuData, the v4.6 entry
+    # path — C8, audit 2026-05-29). A `.h5mu` carries both modalities; it is
+    # routed here because the chromatin/scATAC pipeline owns its ingestion.
     "scATAC": [
+        r".*\.h5mu$",
         r"fragments\.tsv(\.gz)?$",
         r".*singlecell\.csv$",
         r".*atac.*barcodes.*",
@@ -291,7 +294,7 @@ class DataAuditAgent(BaseAgent):
             ".fastq", ".gz", ".bam", ".bai", ".sam",
             ".bed", ".narrowPeak", ".broadPeak", ".bigWig", ".bw",
             ".hic", ".cool", ".mcool", ".pairs",
-            ".h5", ".h5ad", ".loom",
+            ".h5", ".h5ad", ".h5mu", ".loom",
             ".mtx", ".tsv", ".csv", ".txt",
         }
         files = []

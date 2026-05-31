@@ -122,11 +122,10 @@ class EnvironmentManager:
         (self.workspace / "failed").mkdir(exist_ok=True)
         self._conda_ok = self._verify_conda()
         # Cache for check_environments() — enumerating conda envs spawns a
-        # subprocess, and run_in_stack used to do it on every dispatch. Cache
-        # keyed on the env-aliases file mtime so SetupAgent-created envs are
-        # still picked up when the aliases change.
+        # subprocess, and run_in_stack used to do it on every dispatch. The env
+        # set is fixed for the life of the process, so this is memoized once.
         self._env_cache: dict[str, bool] | None = None
-        self._env_cache_key: float | None = None
+        self._env_cache_key: str | None = None
 
     # ── Public interface ──────────────────────────────────────────────────
 
@@ -401,13 +400,11 @@ class EnvironmentManager:
         if not self._conda_ok:
             return {stack: False for stack in self.STACKS}
 
-        # Cache key: env-aliases mtime (0.0 if absent). A changed aliases file
-        # is the signal that SetupAgent reconfigured environments.
-        aliases_file = Path.home() / ".aria" / "env_aliases.json"
-        try:
-            cache_key = aliases_file.stat().st_mtime if aliases_file.exists() else 0.0
-        except OSError:
-            cache_key = 0.0
+        # Memoize per process (F-ENG-PERF): enumerating conda envs spawns a
+        # subprocess, and run_in_stack used to do it on every dispatch. ARIA's
+        # env set does not change mid-run (SetupAgent installs before dispatch,
+        # by name, with no aliasing — see B12), so a stable cache key is enough.
+        cache_key = "process"
         if self._env_cache is not None and self._env_cache_key == cache_key:
             return dict(self._env_cache)
 
@@ -452,29 +449,15 @@ class EnvironmentManager:
         Resolve which conda environment to use for a stack.
 
         Resolution order:
-          1. Alias set by SetupAgent (~/.aria/env_aliases.json)
-          2. Preferred env name (STACKS[stack]) if installed
-          3. FALLBACK_ENV (aria-env / base)
+          1. Preferred env name (STACKS[stack]) if installed
+          2. FALLBACK_ENV (aria-env / base)
 
-        SetupAgent handles detection of compatible envs and tool-aware
-        matching. This method just reads what SetupAgent decided.
+        SetupAgent owns ARIA's environments by name and does NOT do tool-aware
+        detection or aliasing of pre-existing user environments (B12, audit
+        2026-05-29). There is no `env_aliases.json` writer in the codebase, so
+        the former alias-resolution branch was dead; it was removed so this
+        method's behavior matches SetupAgent's documented "no aliases" policy.
         """
-        import json
-        from pathlib import Path
-
-        # Check SetupAgent aliases first
-        aliases_file = Path.home() / ".aria" / "env_aliases.json"
-        if aliases_file.exists():
-            try:
-                aliases  = json.loads(aliases_file.read_text())
-                env_name = self.STACKS.get(stack, self.FALLBACK_ENV)
-                if env_name in aliases:
-                    resolved = aliases[env_name]
-                    log.debug(f"Stack '{stack}' resolved via alias: {resolved}")
-                    return resolved
-            except Exception:
-                pass
-
         env_name  = self.STACKS.get(stack, self.FALLBACK_ENV)
         available = self.check_environments()
 

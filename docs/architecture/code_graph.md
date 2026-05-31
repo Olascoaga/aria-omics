@@ -66,7 +66,10 @@ flowchart TD
     SCRNA_CCC --> SCRNA_OUT
     SCRNA_TRAJ --> SCRNA_OUT
 
+    AUDIT --> MUDATA[aria/utils/mudata_io.py .h5mu real reader]
     DISPATCH --> CHROM[aria/agents/chromatin_agent.py scaffolded]
+    CHROM --> CHROM_QC[aria/scripts/chromatin_qc.py measured-only QC]
+    CHROM_QC --> MUDATA
     DISPATCH --> HIC[aria/agents/genome_arch_agent.py scaffolded]
     DISPATCH --> INT_GATE[Integration validation gate]
     INT_GATE --> INT[aria/agents/integration_agent.py scaffolded]
@@ -118,7 +121,9 @@ flowchart TD
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
 | `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. |
-| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. |
+| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. `_resolve_env` is preferred-env-if-installed → FALLBACK_ENV with NO aliasing (B12); do not reintroduce an `env_aliases.json` read — no writer exists and it contradicts SetupAgent's "no aliases" policy. |
+| `chromatin_qc.py` metric helpers / `mudata_io.py` `.h5mu` reader | `chromatin_agent.py`, v4.6 scATAC QC, DataAudit `.h5mu` detection | Chromatin QC must emit only measured metrics (ADR-019/ADR-002): TSS/FRiP/barcodes are real or `None`+`metrics_not_computed`, never placeholders. `.h5mu` is the detected scATAC entry; the MuData reader returns structured blockers when tooling/ATAC modality is absent — do not fabricate. |
+| `data_audit_agent.py` SIGNATURES / `_scan_directory` extensions | modality classification, CP1, `.h5mu`/chromatin routing | `.h5mu` (paired RNA+ATAC) is scanned and classified as `scATAC` (C8); changing the signature order or extension set can make the v4.6 entry input undetectable again. |
 | module-global accessors `bus` / `env_manager` | all agents and tests importing global coordination helpers | These are lazy accessors, not eagerly constructed singletons; avoid import-time workspace creation or broker state just by importing enums/classes. |
 | `memory.py` decisions schema | checkpoints, provenance, reports, resume | DB shape changes can break old sessions and audit trails. Operational `memory/` files are private local context and must stay ignored/out of GitHub. |
 
@@ -179,6 +184,9 @@ Use these tests as impact anchors when editing the graph's major nodes:
 - GEO/design mapping: `tests/test_geo_design.py`
 - Raw-count guard (DESeq2 input integrity): `tests/test_count_classifier.py`,
   `tests/test_bulk_raw_count_guard.py`
+- Chromatin v4.6 readiness (no fabricated QC, `.h5mu` detection/reader, no env
+  alias path): `tests/test_chromatin_readiness.py` (mudata-gated cases skip
+  without the chromatin stack)
 - B7/B11 housekeeping and ADR-011 guards:
   `tests/test_pytest_smoke.py::test_global_bus_and_env_manager_are_lazy_accessors`,
   `tests/test_pytest_smoke.py::test_marker_fallback_annotation_is_explicit_and_conservative`,
