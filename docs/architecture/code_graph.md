@@ -125,6 +125,7 @@ flowchart TD
 | `bus/message_bus.py` indices / persistence / `get_pending_checkpoints(experiment_id=...)` | TUI/headless polls, `OrchestratorAgent.run` (`enable_persistence`), checkpoint resolution, crash recovery | Findings/escalations are served from eviction-consistent indices and optionally persisted per-run (R6/ADR-021). Keep `_index`/`_deindex` in sync with the FIFO deque, keep persistence per-`experiment_id`, and scope reads by experiment so concurrent runs sharing the global bus don't cross-read. |
 | `stats.py` BH correction helper | `rna_pseudobulk_de.py`, `rna_diff_abundance.py`, FDR tests | Shared multiple-testing code must stay numerically stable; duplicating local BH implementations risks divergent significance calls. |
 | `count_classifier.py` raw-count detection | `rna_bulk_de.py` (`_load_counts` hard-refuse), `rna_pseudobulk_de.py` (integer-likeness + log-norm recovery probes), `count_source` provenance | The single detector deciding raw vs normalized input for DESeq2. Loosening `is_raw_counts` lets normalized matrices become pseudo-counts; the sampler is seeded — keep it deterministic for reproducible mode. |
+| `script_contracts.py` IPC field names / `ContractField.aliases` | every dispatching agent (`run_in_stack` validates params before subprocess), `rna_cellcomm.py` `groupby`, `scrna_agent._run_cell_communication` | The agent must dispatch the contract's canonical key. P0-1: cellcomm's grouping key is `groupby` (script `_resolve_groupby` reads it first, then the `cell_type_col` alias, then `cell_type`); the contract declares `aliases=("cell_type_col",)` so legacy callers still validate. When renaming any IPC param, update the agent, the script reader, and the contract together, or add an `aliases=` entry — a mismatch fails at the contract gate and the script silently never runs. |
 | `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |
 | `orchestrator_agent.py` CP3 resolution | CP3 threshold tuning, internal agent parameter checkpoints, dispatch thread lifecycle | Internal CP3 messages carry `agent_parameter_checkpoint=True` and must not trigger threshold-tuning redispatch. |
 | `orchestrator_agent.py` integration validation gate | `IntegrationAgent`, multimodal report sections, registry integrity | Scaffolded WNN/MOFA+/peak-to-gene code must not dispatch until validation is closed; otherwise beta scripts can emit publication-looking integration output. |
@@ -200,6 +201,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
 - GEO/design mapping: `tests/test_geo_design.py`
 - Raw-count guard (DESeq2 input integrity): `tests/test_count_classifier.py`,
   `tests/test_bulk_raw_count_guard.py`
+- LIANA agent↔contract param alignment (`groupby` canonical + `cell_type_col`
+  alias, P0-1): `tests/test_cellcomm_contract.py`
 - Chromatin v4.6 readiness (no fabricated QC, `.h5mu` detection/reader, no env
   alias path): `tests/test_chromatin_readiness.py` (mudata-gated cases skip
   without the chromatin stack)

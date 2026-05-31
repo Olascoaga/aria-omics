@@ -1955,7 +1955,9 @@ Rules:
             script_path="aria/scripts/rna_cellcomm.py",
             params={
                 "data_path":     clustered_h5ad,
-                "cell_type_col": cell_type_col,
+                # P0-1: canonical IPC key is `groupby` (the contract requires it);
+                # `cell_type_col` remains an accepted alias for legacy callers.
+                "groupby":       cell_type_col,
                 "organism":      exp_ctx.get("organism", "Homo sapiens"),
                 "n_perms":       1000,
                 "output_dir":    str(self._workspace(experiment_id, "cellcomm")),

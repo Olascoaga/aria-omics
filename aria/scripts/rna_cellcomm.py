@@ -9,7 +9,8 @@ Fallback:       mean-expression scoring with a curated L-R resource
 
 Input params:
     data_path:      str  — path to annotated .h5ad
-    cell_type_col:  str  (optional) — obs column with cell types (default: "cell_type")
+    groupby:        str  (optional) — obs column with cell types (default: "cell_type").
+                         Legacy alias `cell_type_col` is still accepted (P0-1).
     organism:       str  (optional) — "Homo sapiens" | "Mus musculus" (default: "Homo sapiens")
     output_dir:     str  (optional)
     n_perms:        int  (optional) — LIANA permutations (default: 1000)
@@ -30,6 +31,21 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+
+
+def _resolve_groupby(params: dict) -> str:
+    """Resolve the grouping obs column from the IPC params.
+
+    Canonical key is `groupby`; `cell_type_col` is the accepted legacy alias
+    (P0-1). Falls back to "cell_type" when neither is provided. Empty/blank
+    values are treated as absent so they do not override the alias/default.
+    """
+    for key in ("groupby", "cell_type_col"):
+        value = params.get(key)
+        if isinstance(value, str) and value.strip():
+            return value
+    return "cell_type"
+
 
 # Curated ligand-receptor pairs (conserved, high-confidence)
 _LR_PAIRS_HUMAN = [
@@ -62,7 +78,7 @@ def rna_cellcomm(params: dict) -> dict:
     from aria.utils.safe_h5ad import read_h5ad
 
     data_path     = params["data_path"]
-    cell_type_col = params.get("cell_type_col", "cell_type")
+    cell_type_col = _resolve_groupby(params)
     organism      = params.get("organism", "Homo sapiens").lower()
     output_dir    = params.get("output_dir", str(Path(data_path).parent))
     # C4: 100 permutations was too low for stable LIANA ranks in publication

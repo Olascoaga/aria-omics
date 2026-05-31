@@ -29,6 +29,10 @@ class ContractField(BaseModel):
     required: bool = True
     allow_empty: bool = True
     path_must_exist: bool = False
+    # Backward-compatible alternative keys. A payload satisfies the field if it
+    # carries `name` OR any alias (the canonical `name` takes precedence). Used
+    # to accept legacy param spellings without loosening the contract (P0-1).
+    aliases: tuple[str, ...] = ()
 
 
 class ContractIssue(BaseModel):
@@ -111,14 +115,17 @@ def _validate_fields(payload: dict[str, Any],
                      fields: tuple[ContractField, ...]) -> list[ContractIssue]:
     issues: list[ContractIssue] = []
     for field in fields:
-        if field.name not in payload:
+        # Resolve the present key: canonical name first, then any alias.
+        key = field.name if field.name in payload else next(
+            (a for a in field.aliases if a in payload), None)
+        if key is None:
             if field.required:
                 issues.append(ContractIssue(
                     field=field.name,
                     message=f"Missing required field '{field.name}'.",
                 ))
             continue
-        value = payload.get(field.name)
+        value = payload.get(key)
         if _is_empty(value) and not field.allow_empty:
             issues.append(ContractIssue(
                 field=field.name,
@@ -186,13 +193,15 @@ def _path_issues(field: ContractField, value: Any) -> list[ContractIssue]:
 
 
 def _f(name: str, type_: FieldType = "any", *, required: bool = True,
-       allow_empty: bool = True, path_must_exist: bool = False) -> ContractField:
+       allow_empty: bool = True, path_must_exist: bool = False,
+       aliases: tuple[str, ...] = ()) -> ContractField:
     return ContractField(
         name=name,
         type=type_,
         required=required,
         allow_empty=allow_empty,
         path_must_exist=path_must_exist,
+        aliases=aliases,
     )
 
 
@@ -275,7 +284,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         validation_level="beta",
         inputs=(
             _f("data_path", "path", allow_empty=False, path_must_exist=True),
-            _f("groupby", "str", allow_empty=False),
+            _f("groupby", "str", allow_empty=False, aliases=("cell_type_col",)),
         ),
         success_outputs=(
             _f("n_interactions", "int", required=False),
