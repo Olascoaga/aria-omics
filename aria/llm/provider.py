@@ -190,7 +190,17 @@ class LLMProvider:
 
         Returns the response text.
         """
-        candidates = self.models.get(tier, self.models[TaskTier.MEDIUM])
+        # P0-2: resolve lazily. `self.models.get(tier, self.models[MEDIUM])`
+        # evaluated the default eagerly, so a config without a MEDIUM tier raised
+        # KeyError on EVERY call — even for a tier that IS configured. Fall back
+        # to MEDIUM only if needed, then fail with an explicit, actionable error.
+        candidates = self.models.get(tier) or self.models.get(TaskTier.MEDIUM)
+        if not candidates:
+            raise RuntimeError(
+                f"No model is configured for tier {tier.value} and no MEDIUM "
+                f"fallback tier is available. Configure at least the MEDIUM tier "
+                f"(or this tier) in config.yaml / LLMProvider(models=...)."
+            )
         if self._air_gapped:
             candidates = [c for c in candidates if c.is_local]
             if not candidates:
