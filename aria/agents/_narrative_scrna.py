@@ -77,6 +77,19 @@ def _fdr_primary_clause(pb: dict) -> str:
     return "padj_local (per-cluster BH)" if strategy == "per_cluster" else "padj_global"
 
 
+def _lfc_shrinkage_clause(pb: dict) -> str:
+    """Disclose apeGLM LFC shrinkage when it was requested (C4)."""
+    shrink = (pb or {}).get("lfc_shrinkage") or {}
+    if not shrink.get("requested"):
+        return ""
+    return (
+        "Reported log2 fold changes are apeGLM-shrunken estimates (pydeseq2 "
+        "lfc_shrink); the effect-size threshold is applied to the shrunken "
+        "value while p-values are unchanged, and the unshrunken MLE is kept as "
+        "log2fc_raw. "
+    )
+
+
 def _fmt_stat(value) -> str:
     """Compact numeric display that preserves very small nonzero values."""
     if not isinstance(value, (int, float)):
@@ -1025,6 +1038,7 @@ def build_scrna_methods(findings: dict) -> str:
             f"Significance for narrative summaries and ORA input used "
             f"{_fdr_primary_clause(pb)} &lt; {thr.get('padj_max', 0.05)} and "
             f"|log2FC| &gt; {thr.get('lfc_min', 0.5)}. "
+            f"{_lfc_shrinkage_clause(pb)}"
             f"For Seurat-derived h5ads with log-normalised raw.X, counts were "
             f"recovered as expm1(x) × nCount_RNA / 10000 prior to aggregation."
             f"{power_clause}"

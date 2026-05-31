@@ -51,8 +51,11 @@ Output:
                       "n_significant": int,
                       "n_up":         int,
                       "n_down":       int,
-                      "top_genes":    [ {gene, log2fc, padj}, ... ],
-                      "all_sig":      [ {gene, log2fc, padj}, ... ],
+                      "top_genes":    [ {gene, log2fc, log2fc_raw, padj}, ... ],
+                      "all_sig":      [ {gene, log2fc, log2fc_raw, padj}, ... ],
+                      # log2fc is the apeGLM-shrunken estimate (effect-size gate
+                      # uses it); log2fc_raw is the unshrunken MLE. Significance
+                      # (padj) is from the Wald test and is unchanged by shrinkage.
                   },
                   ...
               }
@@ -132,6 +135,26 @@ def _power_disclosure_for_strategy(fdr_strategy: str) -> dict:
 COMPOSITION_COLLINEARITY_MAX = 0.8
 
 
+def _shrink_coeff(dds, condition_col: str, test_lvl: str) -> str | None:
+    """Find the apeGLM LFC coefficient column for test-vs-ref (C4 shrinkage).
+
+    pydeseq2 names coefficients patsy-style, e.g. ``condition[T.treat]``. With the
+    dds reference fixed to the contrast's ref level, the only non-reference level
+    is ``test_lvl``, so that column is exactly the test-vs-ref effect.
+    """
+    try:
+        cols = [str(c) for c in dds.varm["LFC"].columns]
+    except Exception:
+        return None
+    exact = f"{condition_col}[T.{test_lvl}]"
+    if exact in cols:
+        return exact
+    for c in cols:
+        if c.startswith(str(condition_col)) and str(test_lvl) in c:
+            return c
+    return None
+
+
 def _abs_corr(x, y) -> float | None:
     """Absolute Pearson correlation, or None when either side has no variance."""
     import numpy as np
@@ -185,6 +208,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
     padj_max                      = float(params.get("padj_max", 0.05))
     lfc_min                       = float(params.get("lfc_min", 0.5))
     top_n                         = int(params.get("top_n", 50))
+    # C4 (audit 2026-05-29): apeGLM LFC shrinkage. Raw MLE log2 fold changes are
+    # noisy/overestimated for low-count or high-dispersion genes. pydeseq2's
+    # lfc_shrink applies a heavy-tailed apeGLM prior and leaves p-values
+    # unchanged, so significance is from the Wald test while the reported and
+    # effect-size-thresholded LFC is the shrunken, reliable estimate. The raw MLE
+    # LFC is preserved per gene as log2fc_raw for audit.
+    lfc_shrink_enabled            = bool(params.get("lfc_shrink", True))
     # F-SCI-FDR (audit 2026-05-28): which BH family defines "significant".
     # 'per_cluster' = per-block BH (field standard, e.g. muscat/Crowell 2020;
     # decouples unrelated cell types). 'global' = one BH family pooled across
@@ -529,14 +559,19 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     alpha=padj_max,
                     mean_expression=mean_expression,
                 )
+                dds_params = inspect.signature(DeseqDataSet).parameters
                 dds_kwargs = {
                     "counts": counts_sub.T,    # samples × genes
                     "metadata": meta_sub,
                     "design_factors": design_factors,
                     "refit_cooks": True,
                 }
-                if continuous_factors and "continuous_factors" in inspect.signature(DeseqDataSet).parameters:
+                if continuous_factors and "continuous_factors" in dds_params:
                     dds_kwargs["continuous_factors"] = continuous_factors
+                # Fix the reference to the contrast's ref level so the apeGLM
+                # coefficient (condition[T.test]) is exactly test-vs-ref.
+                if lfc_shrink_enabled and "ref_level" in dds_params:
+                    dds_kwargs["ref_level"] = [condition_col, ref_lvl]
                 dds = DeseqDataSet(**dds_kwargs)
                 dds.deseq2()
                 stat_res = DeseqStats(
@@ -544,7 +579,28 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     contrast=[condition_col, test_lvl, ref_lvl],
                 )
                 stat_res.summary()
+
+                # C4: apeGLM shrinkage. Keep the raw MLE LFC, shrink in place,
+                # fall back to raw if the coefficient is unavailable or shrinkage
+                # raises (never break the DE).
+                shrink_applied = False
+                shrink_reason = None
+                raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+                if lfc_shrink_enabled:
+                    coeff = _shrink_coeff(dds, condition_col, test_lvl)
+                    if coeff is None:
+                        shrink_reason = "apeGLM coefficient not found"
+                    else:
+                        try:
+                            stat_res.lfc_shrink(coeff=coeff)
+                            shrink_applied = True
+                        except Exception as _sx:
+                            shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
+                else:
+                    shrink_reason = "disabled"
+
                 res = stat_res.results_df.dropna(subset=["pvalue"]).copy()
+                res["log2FoldChange_raw"] = raw_lfc.reindex(res.index)
                 res["padj_local"] = res.get("padj")
             except Exception as e:
                 per_group_entry["per_comparison"][comp_key] = {
@@ -585,6 +641,11 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "corrected_for_composition": block_corrected_for_composition,
                 "composition_covariate_requested": composition_covariate,
                 "composition_skipped_reason": composition_skipped_reason,
+                "lfc_shrinkage": {
+                    "applied": shrink_applied,
+                    "method":  "apeGLM" if shrink_applied else None,
+                    "reason":  shrink_reason,
+                },
                 "paired_design":              paired_design,
                 "paired_donor_covariate":     paired_donor_covariate_used,
                 "design_check":               design_check,
@@ -652,9 +713,18 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 sig_primary = sig_local
                 primary_padj_col = "padj_local"
 
+            def _raw_lfc(row):
+                v = row.get("log2FoldChange_raw")
+                try:
+                    v = float(v)
+                    return round(v, 3) if v == v else None   # NaN -> None
+                except (TypeError, ValueError):
+                    return None
+
             top_records = [
                 {"gene":        str(g),
                  "log2fc":      round(float(row["log2FoldChange"]), 3),
+                 "log2fc_raw":  _raw_lfc(row),
                  "pvalue":      float(row["pvalue"]),
                  "padj":        float(row[primary_padj_col]),
                  "padj_local":  float(row["padj_local"]),
@@ -665,6 +735,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
             all_records = [
                 {"gene":        str(g),
                  "log2fc":      round(float(row["log2FoldChange"]), 3),
+                 "log2fc_raw":  _raw_lfc(row),
                  "pvalue":      float(row["pvalue"]),
                  "padj":        float(row[primary_padj_col]),
                  "padj_local":  float(row["padj_local"]),
@@ -715,6 +786,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "comparison":  block["comparison"],
                     "gene":        r["gene"],
                     "log2fc":      r["log2fc"],
+                    "log2fc_raw":  r.get("log2fc_raw"),
                     "pvalue":      r["pvalue"],
                     "padj":        r["padj"],
                     "padj_local":  r["padj_local"],
@@ -730,7 +802,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     else:
         # Empty marker file so callers don't trip on a missing path
         pd.DataFrame(columns=[
-            "group", "comparison", "gene", "log2fc", "pvalue",
+            "group", "comparison", "gene", "log2fc", "log2fc_raw", "pvalue",
             "padj", "padj_local", "padj_global",
         ]) \
           .to_csv(csv_path, index=False)
@@ -759,6 +831,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "norm_scale_factor_used":          (norm_scale_factor if needs_recovery else None),
         "lognorm_lib_size_col":            (lib_size_col if needs_recovery else None),
         "composition_covariate_requested": composition_covariate,
+        "lfc_shrinkage": {
+            "requested": lfc_shrink_enabled,
+            "method": "apeGLM (pydeseq2 lfc_shrink, p-values unchanged)",
+            "effect": ("reported log2fc is the shrunken estimate; log2fc_raw is "
+                       "the unshrunken MLE; the |log2fc| > lfc_min effect-size "
+                       "gate uses the shrunken value"),
+        },
         "paired_design":                   paired_design,
         "auto_paired_donor_covariate":      auto_paired_donor_covariate,
         "background_genes": background_genes,
