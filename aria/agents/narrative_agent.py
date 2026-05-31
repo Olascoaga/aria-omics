@@ -1364,6 +1364,25 @@ for small-effect genes."
         self._stage_artifacts(agent_results, report_dir)
         narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
 
+        # P-DEVIL: run the deterministic devil's advocate before rendering so its
+        # info caveats appear in the HTML blocks (claim tiers were annotated when
+        # the blocks were collected). P-LEDGER: build the planned-vs-run manifest
+        # for the provenance section.
+        try:
+            from aria.agents.narrative.devils_advocate import build_devils_advocate
+            devils_advocate = build_devils_advocate(
+                narrative_blocks, agent_results, exp_ctx
+            )
+        except Exception as exc:
+            log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
+            devils_advocate = []
+        try:
+            from aria.agents.narrative.run_ledger import build_run_ledger
+            run_ledger = build_run_ledger(exp_ctx, agent_results)
+        except Exception as exc:
+            log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
+            run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
+
         # Findings table rows
         findings_rows = self._build_findings_table(grouped_findings)
 
@@ -1386,6 +1405,7 @@ for small-effect genes."
             input_files=exp_ctx.get("input_files", []),
             agent_results=agent_results,
             llm_usage=llm_usage,
+            run_ledger=run_ledger,
         )
         findings_html = self._build_findings_section(
             findings_sections,
@@ -1657,6 +1677,8 @@ for small-effect genes."
                     decisions=decisions,
                     llm_usage=llm_usage,
                     narrative_blocks=narrative_blocks,
+                    run_ledger=run_ledger,
+                    devils_advocate=devils_advocate,
                 ),
                 indent=2,
                 sort_keys=True,
@@ -1683,7 +1705,9 @@ for small-effect genes."
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
                                 agent_results: dict, decisions: list,
                                 llm_usage: dict | None = None,
-                                narrative_blocks: list | None = None) -> dict:
+                                narrative_blocks: list | None = None,
+                                run_ledger: dict | None = None,
+                                devils_advocate: list | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -1717,6 +1741,28 @@ for small-effect genes."
         except Exception as exc:
             log.warning(f"Claim manifest compilation failed: {exc}", exc_info=True)
             claims = []
+        # P-DEVIL: deterministic devil's advocate over associative+ claims
+        # (annotate_claim_tiers ran inside compile_claims, so tiers exist). The
+        # build pass is idempotent, so recomputing here when a caller did not
+        # pass it is safe.
+        if devils_advocate is None:
+            try:
+                from aria.agents.narrative.devils_advocate import build_devils_advocate
+                devils_advocate = build_devils_advocate(
+                    list(narrative_blocks or []), agent_results, exp_ctx
+                )
+            except Exception as exc:
+                log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
+                devils_advocate = []
+        # P-LEDGER: deterministic planned-vs-run manifest.
+        if run_ledger is None:
+            try:
+                from aria.agents.narrative.run_ledger import build_run_ledger
+                run_ledger = build_run_ledger(exp_ctx, agent_results)
+            except Exception as exc:
+                log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
+                run_ledger = {"entries": [], "divergences": [],
+                              "n_divergences": 0}
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
@@ -1725,6 +1771,8 @@ for small-effect genes."
                 block.to_dict() for block in narrative_blocks or []
             ],
             "claims": claims,
+            "devils_advocate": devils_advocate,
+            "run_ledger": run_ledger,
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,
@@ -1818,7 +1866,8 @@ for small-effect genes."
     def _build_provenance_section(self, provenance: dict,
                                   input_files: list,
                                   agent_results: dict,
-                                  llm_usage: dict | None = None) -> str:
+                                  llm_usage: dict | None = None,
+                                  run_ledger: dict | None = None) -> str:
         rows = []
         for key in [
             "aria_version", "git_sha", "git_dirty", "python_version",
@@ -1874,6 +1923,7 @@ for small-effect genes."
             agent_results=agent_results,
             exp_ctx_records=[]
         )
+        ledger_html = self._build_run_ledger_section(run_ledger)
         return (
             "<div class='card'>"
             "<h3>Runtime</h3>"
@@ -1893,9 +1943,45 @@ for small-effect genes."
             + "<table><tr><th>Field</th><th>Value</th></tr>"
             + "".join(llm_rows)
             + "</table>"
+            + ledger_html
             + "<h3>Conda Lockfiles</h3>"
             + self._build_lockfile_section()
             + "</div>"
+        )
+
+    @staticmethod
+    def _build_run_ledger_section(run_ledger: dict | None) -> str:
+        """P-LEDGER: render the planned-vs-run manifest. Any analysis the plan
+        called for that did not run is flagged as a divergence."""
+        entries = (run_ledger or {}).get("entries", []) or []
+        if not entries:
+            return ""
+        n_div = (run_ledger or {}).get("n_divergences", 0)
+        rows = []
+        for e in entries:
+            planned = "yes" if e.get("planned") else "no"
+            status = str(e.get("status", ""))
+            reason = e.get("reason")
+            flag = " ⚠ planned but not run" if e.get("divergence") else ""
+            detail = f" ({_html.escape(str(reason))})" if reason else ""
+            rows.append(
+                "<tr>"
+                f"<td>{_html.escape(str(e.get('label', e.get('analysis', ''))))}</td>"
+                f"<td>{_html.escape(planned)}</td>"
+                f"<td><code>{_html.escape(status)}</code>{detail}"
+                f"{_html.escape(flag)}</td>"
+                "</tr>"
+            )
+        header = (
+            f"<h3>Run Ledger (planned vs executed)</h3>"
+            f"<p><em>{n_div} plan/execution divergence(s).</em></p>"
+        )
+        return (
+            header
+            + "<table><tr><th>Analysis</th><th>Planned</th>"
+              "<th>Status</th></tr>"
+            + "".join(rows)
+            + "</table>"
         )
 
     @staticmethod

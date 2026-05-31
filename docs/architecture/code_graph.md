@@ -81,6 +81,11 @@ flowchart TD
     HIC --> NARR
     INT --> NARR
 
+    NARR --> LEDGER[aria/agents/narrative/run_ledger.py planned-vs-run]
+    NARR --> DEVIL[aria/agents/narrative/devils_advocate.py]
+    DEVIL --> BLOCKS
+    LEDGER --> METHODOLOGY
+    DEVIL --> METHODOLOGY
     NARR --> REGISTRY[aria/agents/narrative/registry.py]
     REGISTRY --> BULK_NARR[aria/agents/narrative/narrators/bulk_rna.py]
     REGISTRY --> SCRNA_NARR[aria/agents/narrative/narrators/scrna.py]
@@ -120,6 +125,8 @@ flowchart TD
 | `parameter_advisor.py` metric evaluators | scRNA clustering CP3, WNN k CP3, memory decisions | Candidate metrics shown to users must be measured or explicitly marked as not computed; fabricated WNN weights and zero-filled modularity are invalid. |
 | `scrna_agent.py` focus or annotation fallback logic | DesignIntelligence, focused h5ad materialization, report labels | Runtime logic must match explicit obs values or external annotation output; do not reintroduce tissue/cell-type alias maps or hardcoded marker panels under ADR-011. |
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
+| `narrative/run_ledger.py` plan/finding keyword maps | report Run Ledger table, `methodology.json["run_ledger"]`, dispatch-integrity | The planned-vs-run reconciliation (P-LEDGER/ADR-022). If a new analysis is added, give it a `plan_kw`/`finding_keys` entry or it will read as a divergence. Technical vocabulary only (ADR-011). |
+| `narrative/devils_advocate.py` confounder catalog | block `info` caveats, `methodology.json["devils_advocate"]`, claim tiers | The deterministic adversarial pass on the validated path (R2/P-DEVIL/ADR-022). Must run AFTER `annotate_claim_tiers`; it is idempotent (safe to call before render and during methodology). Confounders are a fixed technical checklist, not biology. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
 | `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. Every call is time-bounded (`timeout`, R3) and tier fallbacks are recorded as degradation (`is_fallback`/`fallback_*` → `collect_llm_usage` `degraded`/`fallback_calls`, R4/ADR-020) — keep these fields flowing to the report. |
@@ -196,6 +203,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_bus_durability.py`
 - Composition-covariate collinearity guard:
   `tests/test_composition_collinearity.py` (end-to-end case is pydeseq2-gated)
+- Planned-vs-run ledger + deterministic devil's advocate:
+  `tests/test_run_ledger_and_devils.py`
 - B7/B11 housekeeping and ADR-011 guards:
   `tests/test_pytest_smoke.py::test_global_bus_and_env_manager_are_lazy_accessors`,
   `tests/test_pytest_smoke.py::test_marker_fallback_annotation_is_explicit_and_conservative`,
