@@ -162,6 +162,9 @@ class BulkRNAAgent(BaseAgent):
                 "files":          files,
                 "design_factor":  design_factor,
                 "contrasts":      contrasts,
+                # P0-4: forward confirmed covariates (e.g. batch) so DESeq2 fits
+                # `~ batch + condition`, not a bare `~ condition`.
+                "covariates":     self._design_covariates(design) if design else [],
                 "organism":       exp_ctx.get("organism", "Homo sapiens"),
                 "genome":         exp_ctx.get("genome", "hg38"),
                 "output_dir":     self._output_dir(files),
@@ -319,6 +322,20 @@ class BulkRNAAgent(BaseAgent):
         by_group = {}
         for sample, label in groups.items(): by_group.setdefault(label, []).append(sample)
         return sample_names, by_group
+
+    @staticmethod
+    def _design_covariates(design: dict) -> list[str]:
+        """Covariates confirmed at DesignAgent CHECKPOINT 2.4, forwarded to the
+        DESeq2 design (P0-4). The confirmed batch covariate plus any explicit
+        covariates list, deduped and order-preserving."""
+        covariates: list[str] = []
+        batch = (design or {}).get("batch_covariate")
+        if batch:
+            covariates.append(batch)
+        for cov in (design or {}).get("covariates", []) or []:
+            if cov:
+                covariates.append(cov)
+        return list(dict.fromkeys(covariates))
 
     @staticmethod
     def _read_sample_names(path: str) -> list[str]:

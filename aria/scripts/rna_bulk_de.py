@@ -82,6 +82,8 @@ def bulk_rna_de(params: dict) -> dict:
     files          = params.get("files", [])
     metadata_file  = params.get("metadata_file", "")
     design_factor  = params.get("design_factor", "condition")
+    # P0-4: covariates confirmed at DesignAgent CHECKPOINT 2.4 (e.g. batch).
+    covariates     = params.get("covariates", []) or []
 
     # v3: accept list of contrasts OR single comparison (backward compat)
     contrasts_in   = params.get("contrasts", [])
@@ -238,6 +240,7 @@ def bulk_rna_de(params: dict) -> dict:
             num, den, padj_thr, lfc_thr,
             allow_mock=allow_mock,
             min_replicates_per_condition=min_reps,
+            covariates=covariates,
         )
 
         if de_result.get("status") == "error":
@@ -395,6 +398,11 @@ def bulk_rna_de(params: dict) -> dict:
             "mean_expression_estimate": de_result.get("mean_expression_estimate"),
             "power_estimate_at_lfc_min": de_result.get("power_estimate_at_lfc_min"),
             "design_check":       de_result.get("design_check"),
+            # P0-4: the design actually fitted by DESeq2 (covariate-adjusted),
+            # surfaced so the report Methods can state it verbatim.
+            "fitted_design_formula": de_result.get("fitted_design_formula"),
+            "covariates_adjusted":   de_result.get("covariates_adjusted", []),
+            "covariates_dropped":    de_result.get("covariates_dropped", []),
             "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
@@ -1481,11 +1489,43 @@ def _prune_outliers_for_design(outliers: list, metadata,
 
 # ── DESeq2 ────────────────────────────────────────────────────────────────────
 
+def _build_design_formula(design_factor: str, covariates: list) -> str:
+    """Build a DESeq2 design with covariates first and the factor of interest
+    last (DESeq2/pydeseq2 convention). Covariates are deduped and never repeat
+    the factor of interest. P0-4: honors the confirmed `~ batch + condition`
+    design instead of a hardcoded `~ condition`."""
+    terms = [c for c in dict.fromkeys(covariates or []) if c and c != design_factor]
+    return "~ " + " + ".join(terms + [design_factor])
+
+
+def _resolve_covariates(metadata, design_factor: str, covariates: list) -> tuple:
+    """Keep only covariates usable in this contrast subset: present as a column,
+    distinct from the factor of interest, and varying (>=2 non-null levels).
+    Returns (usable, dropped) where dropped is a list of (name, reason). A
+    confirmed-but-unusable covariate is DISCLOSED, never silently ignored."""
+    usable: list = []
+    dropped: list = []
+    for cov in dict.fromkeys(covariates or []):
+        if not cov or cov == design_factor:
+            continue
+        if cov not in metadata.columns:
+            dropped.append((cov, "not present in the sample metadata"))
+            continue
+        if metadata[cov].dropna().nunique() < 2:
+            dropped.append(
+                (cov, "constant within the contrast (no levels to adjust for)")
+            )
+            continue
+        usable.append(cov)
+    return usable, dropped
+
+
 def _run_deseq2(counts, metadata, design_factor: str,
                 numerator: str, denominator: str,
                 padj_thr: float, lfc_thr: float,
                 allow_mock: bool = False,
-                min_replicates_per_condition: int = 3) -> tuple:
+                min_replicates_per_condition: int = 3,
+                covariates: list = None) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -1519,11 +1559,22 @@ def _run_deseq2(counts, metadata, design_factor: str,
             ),
         }, warnings
 
+    # P0-4: honor confirmed covariates (e.g. batch). Keep only those usable in
+    # this subset; disclose any confirmed covariate we cannot adjust for.
+    usable_covariates, dropped_covariates = _resolve_covariates(
+        meta_sub, design_factor, covariates
+    )
+    for cov, reason in dropped_covariates:
+        warnings.append(
+            f"Confirmed covariate '{cov}' was NOT adjusted for: {reason}. "
+            f"The fitted model does not control for it."
+        )
+
     from aria.utils.design_matrix import validate_design_matrix
     design_check = validate_design_matrix(
         meta_sub,
         condition_col=design_factor,
-        covariates=[],
+        covariates=usable_covariates,
         min_replicates_per_condition=min_replicates_per_condition,
     )
     warnings.extend(
@@ -1566,13 +1617,17 @@ def _run_deseq2(counts, metadata, design_factor: str,
             alpha=padj_thr,
         )
 
+        # P0-4: fit the covariate-adjusted design (covariates first, factor of
+        # interest last). The contrast still names `design_factor` explicitly.
+        design_formula = _build_design_formula(design_factor, usable_covariates)
+
         # pydeseq2 expects samples × genes. The public API changed from
         # design_factors=... to design="~ factor"; support both.
         try:
             dds = DeseqDataSet(
                 counts=counts_sub.T,
                 metadata=meta_sub,
-                design=f"~ {design_factor}",
+                design=design_formula,
                 refit_cooks=True,
                 quiet=True,
             )
@@ -1580,7 +1635,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
             dds = DeseqDataSet(
                 counts=counts_sub.T,
                 metadata=meta_sub,
-                design_factors=design_factor,
+                design_factors=usable_covariates + [design_factor],
                 refit_cooks=True,
             )
         dds.deseq2()
@@ -1638,6 +1693,11 @@ def _run_deseq2(counts, metadata, design_factor: str,
             "mean_expression_estimate": mean_expression,
             "power_estimate_at_lfc_min": power_estimate,
             "design_check":      design_check,
+            "fitted_design_formula": design_formula,
+            "covariates_adjusted":   usable_covariates,
+            "covariates_dropped":    [
+                {"covariate": c, "reason": r} for c, r in dropped_covariates
+            ],
         }, warnings
 
     except ImportError:

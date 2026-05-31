@@ -46,14 +46,33 @@ class BulkRnaNarrator:
         contrasts = findings.get("contrasts", []) or []
         if not contrasts and not findings:
             return []
+        # P0-4: report the design DESeq2 actually fitted (covariate-adjusted),
+        # not a hardcoded "~condition". Prefer the per-contrast fitted formula.
         design = findings.get("design_used", "~condition")
+        for contrast in contrasts:
+            fitted = contrast.get("fitted_design_formula")
+            if fitted:
+                design = fitted
+                break
         padj = findings.get("padj_threshold", 0.05)
         lfc = findings.get("lfc_threshold", 1.0)
-        return [
+        lines = [
             "Bulk RNA-seq differential expression used DESeq2/pyDESeq2 "
             f"with design {design}; significance used adjusted p-value < "
             f"{padj} and |log2FC| > {lfc}."
         ]
+        dropped = [
+            d.get("covariate")
+            for c in contrasts
+            for d in (c.get("covariates_dropped", []) or [])
+            if d.get("covariate")
+        ]
+        if dropped:
+            lines.append(
+                "Confirmed covariate(s) not adjusted for (absent or constant in "
+                f"the sample metadata): {', '.join(sorted(set(dropped)))}."
+            )
+        return lines
 
     def figures(self, agent_name: str, agent_result: dict,
                 report_dir: Path | None = None) -> list[dict]:
