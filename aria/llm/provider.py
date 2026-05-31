@@ -71,10 +71,10 @@ class ModelConfig:
 
 DEFAULT_MODELS: dict[TaskTier, list[ModelConfig]] = {
     TaskTier.HEAVY: [
-        ModelConfig("anthropic", "claude-opus-4-7",            200_000),
+        ModelConfig("anthropic", "claude-opus-4-8",            200_000),
         ModelConfig("anthropic", "claude-sonnet-4-6",          200_000),
         ModelConfig("openai",    "gpt-4o",                     128_000),
-        ModelConfig("gemini",    "gemini/gemini-1.5-pro",      1_000_000),
+        ModelConfig("gemini",    "gemini/gemini-2.5-pro",      1_000_000),
         ModelConfig("ollama",    "ollama/llama3:70b",           8_000,  is_local=True,
                     api_base="http://localhost:11434"),
     ],
@@ -113,6 +113,10 @@ class LLMProvider:
 
     DETERMINISTIC_TEMPERATURE = 0.0
     DETERMINISTIC_SEED = 0
+    # R3 (audit 2026-05-29): every LLM call gets a wall-clock timeout so a hung
+    # provider cannot block the dispatch thread forever. Overridable via
+    # ARIA_LLM_TIMEOUT (seconds). A hit timeout raises and the tier falls back.
+    DEFAULT_TIMEOUT_S = 120.0
 
     def __init__(
         self,
@@ -123,6 +127,14 @@ class LLMProvider:
         load_aria_env()
         self.models   = models or DEFAULT_MODELS
         self.api_keys = api_keys or {}
+        # R3: per-call timeout (seconds). Env override, clamped to a sane floor.
+        try:
+            self._timeout_s = max(
+                5.0, float(os.environ.get("ARIA_LLM_TIMEOUT",
+                                          self.DEFAULT_TIMEOUT_S))
+            )
+        except (TypeError, ValueError):
+            self._timeout_s = self.DEFAULT_TIMEOUT_S
         self._context_managers: dict[str, ContextManager] = {}
         self._inject_api_keys()
         # File-backed prompt cache. Disabled when ARIA_LLM_CACHE=0.
@@ -161,10 +173,20 @@ class LLMProvider:
         candidates = self.models.get(tier, self.models[TaskTier.MEDIUM])
 
         last_error = None
-        for model_cfg in candidates:
+        for attempt, model_cfg in enumerate(candidates):
             try:
-                return self._call(model_cfg, prompt, system,
-                                  max_tokens, messages, tier=tier)
+                # R4: when a later candidate answers, the call is a degraded
+                # fallback — record which model it replaced and why so the
+                # report can disclose that the section did not run on the
+                # primary model.
+                return self._call(
+                    model_cfg, prompt, system, max_tokens, messages, tier=tier,
+                    attempt=attempt,
+                    fallback_from=(candidates[attempt - 1].model
+                                   if attempt else None),
+                    fallback_reason=(str(last_error)[:200]
+                                     if last_error else None),
+                )
             except Exception as e:
                 log.warning(
                     f"Model {model_cfg.model} failed: {e}. "
@@ -208,8 +230,21 @@ class LLMProvider:
         max_tokens: int,
         messages:   list = None,
         tier:       TaskTier = TaskTier.MEDIUM,
+        attempt:    int = 0,
+        fallback_from: Optional[str] = None,
+        fallback_reason: Optional[str] = None,
     ) -> str:
         """Execute a single LiteLLM call with context management."""
+
+        # R4: degradation provenance — stamped on every usage event (cache hit
+        # or live) so the report can show whether a section ran on the primary
+        # model or a fallback, and why the primary was skipped.
+        degradation = {
+            "is_fallback": bool(attempt),
+            "fallback_attempt": int(attempt),
+            "fallback_from": fallback_from,
+            "fallback_reason": fallback_reason,
+        }
 
         # Cache lookup (only for single-prompt calls — multi-turn histories
         # are skipped because the cache key would explode in size).
@@ -239,6 +274,7 @@ class LLMProvider:
                     "completion_tokens": 0,
                     "total_tokens": 0,
                     "estimated_cost_usd": 0.0,
+                    **degradation,
                 })
                 return cached
 
@@ -268,6 +304,7 @@ class LLMProvider:
             max_tokens=max_tokens,
             temperature=self.DETERMINISTIC_TEMPERATURE,
             seed=self.DETERMINISTIC_SEED,
+            timeout=self._timeout_s,   # R3: bound a hung provider
         )
 
         # Inject API base for local models
@@ -306,6 +343,7 @@ class LLMProvider:
             "completion_tokens": completion_tokens,
             "total_tokens": total_tokens,
             "estimated_cost_usd": cost,
+            **degradation,
         })
         if cache_key is not None and text:
             self._cache_put(cache_key, text)

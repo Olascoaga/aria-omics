@@ -1861,6 +1861,7 @@ for small-effect genes."
         for key in (
             "calls", "cache_hits", "prompt_tokens", "completion_tokens",
             "total_tokens", "estimated_cost_usd", "deterministic",
+            "degraded", "fallback_calls",
             "temperature", "seed", "models", "tiers",
         ):
             llm_rows.append(

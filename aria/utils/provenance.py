@@ -96,6 +96,11 @@ def collect_llm_usage(
         "temperature": None,
         "seed": None,
         "deterministic": True,
+        # R4: model-degradation provenance. `degraded` is True if any section
+        # ran on a tier fallback instead of the primary model.
+        "fallback_calls": 0,
+        "degraded": False,
+        "fallbacks": [],
     }
     models_seen = set()
     tiers_seen = set()
@@ -150,6 +155,15 @@ def collect_llm_usage(
                     totals["deterministic"] = False
                 if event.get("cache_hit"):
                     totals["cache_hits"] += 1
+                if event.get("is_fallback"):
+                    totals["fallback_calls"] += 1
+                    totals["degraded"] = True
+                    totals["fallbacks"].append({
+                        "model": model,
+                        "tier": tier,
+                        "fallback_from": event.get("fallback_from"),
+                        "fallback_reason": event.get("fallback_reason"),
+                    })
                 for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
                     totals[key] += int(event.get(key) or 0)
                 totals["estimated_cost_usd"] += float(

@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import shutil
+import signal
 import subprocess
 import uuid
 import fcntl
@@ -214,12 +216,32 @@ class EnvironmentManager:
             log.debug(f"Running {resolved_script.name} in {env_name} "
                       f"(timeout={max_time}s)")
 
-            # 3. Execute
-            process = subprocess.run(
+            # 3. Execute in a NEW SESSION so the whole process tree can be killed
+            # on timeout (R5, audit 2026-05-29). `conda run` spawns `python`,
+            # which spawns BLAS/numba threads; `subprocess.run(timeout=)` only
+            # kills the direct child (`conda run`), orphaning the grandchildren
+            # on large datasets. start_new_session makes the child a process
+            # group leader so a timeout can reap the entire group.
+            proc = subprocess.Popen(
                 cmd,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
-                timeout=max_time,
+                start_new_session=True,
+            )
+            try:
+                stdout, stderr = proc.communicate(timeout=max_time)
+            except subprocess.TimeoutExpired:
+                self._terminate_process_tree(proc)
+                # Drain whatever the killed tree already wrote, then surface the
+                # timeout through the handler below.
+                try:
+                    proc.communicate(timeout=10)
+                except Exception:
+                    pass
+                raise
+            process = subprocess.CompletedProcess(
+                cmd, proc.returncode, stdout, stderr
             )
 
             # 4. Check for subprocess failure
@@ -470,6 +492,42 @@ class EnvironmentManager:
             return self.FALLBACK_ENV
 
         return env_name
+
+    @staticmethod
+    def _terminate_process_tree(proc: "subprocess.Popen") -> None:
+        """
+        Kill the entire process group led by `proc` (R5). The child was started
+        with `start_new_session=True`, so it is its own group leader and
+        `os.killpg` reaches `conda run` plus the real `python` and its
+        BLAS/numba threads. SIGTERM first, then SIGKILL if it lingers; falls
+        back to killing the direct child if the group is already gone.
+        """
+        try:
+            pgid = os.getpgid(proc.pid)
+        except (ProcessLookupError, OSError):
+            pgid = None
+
+        if pgid is not None:
+            try:
+                os.killpg(pgid, signal.SIGTERM)
+                try:
+                    proc.wait(timeout=5)
+                    return
+                except subprocess.TimeoutExpired:
+                    os.killpg(pgid, signal.SIGKILL)
+                    try:
+                        proc.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        pass
+                    return
+            except (ProcessLookupError, PermissionError, OSError):
+                pass
+
+        # Fallback: at least kill the direct child.
+        try:
+            proc.kill()
+        except Exception:
+            pass
 
     def _verify_conda(self) -> bool:
         """Check that conda is installed and accessible in PATH."""

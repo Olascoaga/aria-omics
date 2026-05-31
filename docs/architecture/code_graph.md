@@ -120,8 +120,8 @@ flowchart TD
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
-| `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. |
-| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. `_resolve_env` is preferred-env-if-installed → FALLBACK_ENV with NO aliasing (B12); do not reintroduce an `env_aliases.json` read — no writer exists and it contradicts SetupAgent's "no aliases" policy. |
+| `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. Every call is time-bounded (`timeout`, R3) and tier fallbacks are recorded as degradation (`is_fallback`/`fallback_*` → `collect_llm_usage` `degraded`/`fallback_calls`, R4/ADR-020) — keep these fields flowing to the report. |
+| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. Scripts run under `Popen(start_new_session=True)`; a timeout reaps the whole process group via `_terminate_process_tree`/`os.killpg` (R5/ADR-020) — do not revert to bare `subprocess.run`, which orphans BLAS/numba grandchildren. `_resolve_env` is preferred-env-if-installed → FALLBACK_ENV with NO aliasing (B12); do not reintroduce an `env_aliases.json` read — no writer exists and it contradicts SetupAgent's "no aliases" policy. |
 | `chromatin_qc.py` metric helpers / `mudata_io.py` `.h5mu` reader | `chromatin_agent.py`, v4.6 scATAC QC, DataAudit `.h5mu` detection | Chromatin QC must emit only measured metrics (ADR-019/ADR-002): TSS/FRiP/barcodes are real or `None`+`metrics_not_computed`, never placeholders. `.h5mu` is the detected scATAC entry; the MuData reader returns structured blockers when tooling/ATAC modality is absent — do not fabricate. |
 | `data_audit_agent.py` SIGNATURES / `_scan_directory` extensions | modality classification, CP1, `.h5mu`/chromatin routing | `.h5mu` (paired RNA+ATAC) is scanned and classified as `scATAC` (C8); changing the signature order or extension set can make the v4.6 entry input undetectable again. |
 | module-global accessors `bus` / `env_manager` | all agents and tests importing global coordination helpers | These are lazy accessors, not eagerly constructed singletons; avoid import-time workspace creation or broker state just by importing enums/classes. |
@@ -187,6 +187,9 @@ Use these tests as impact anchors when editing the graph's major nodes:
 - Chromatin v4.6 readiness (no fabricated QC, `.h5mu` detection/reader, no env
   alias path): `tests/test_chromatin_readiness.py` (mudata-gated cases skip
   without the chromatin stack)
+- LLM/subprocess reliability (call timeout, model-degradation provenance,
+  current model IDs, process-group kill on timeout):
+  `tests/test_llm_reliability.py`
 - B7/B11 housekeeping and ADR-011 guards:
   `tests/test_pytest_smoke.py::test_global_bus_and_env_manager_are_lazy_accessors`,
   `tests/test_pytest_smoke.py::test_marker_fallback_annotation_is_explicit_and_conservative`,
