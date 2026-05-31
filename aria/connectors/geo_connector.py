@@ -123,6 +123,26 @@ class GEOConnector:
         files = self._download_supplementary(gse_id, local_dir, status_cb)
 
         organism, genome = _resolve_organism(metadata.get("organism", ""))
+
+        # When multiple organisms appear in the SOFT (e.g. spike-in experiments),
+        # use gene symbol style in the count matrix to identify the experimental organism.
+        sample_organisms = {
+            s.get("organism", "").lower()
+            for s in metadata.get("samples", [])
+            if s.get("organism")
+        }
+        if len(sample_organisms) > 1:
+            count_files = files.get("counts", []) or files.get("h5ad", [])
+            if count_files:
+                sym_org = _organism_from_gene_symbols(count_files[0])
+                if sym_org:
+                    sym_resolved, sym_genome = _resolve_organism(sym_org)
+                    if sym_resolved.lower() != organism.lower():
+                        _cb(status_cb,
+                            f"[GEO] Multiple organisms in metadata ({', '.join(sample_organisms)}); "
+                            f"gene symbols in matrix suggest {sym_resolved} — using that.")
+                        organism, genome = sym_resolved, sym_genome
+
         design = _infer_design(metadata)
         design["organism"] = organism
         design["genome"]   = genome
@@ -548,6 +568,56 @@ def _infer_design(metadata: dict) -> dict:
             "No multi-level GEO/SRA characteristic was suitable for grouping."
         ),
     }
+
+
+def _organism_from_gene_symbols(count_path: str) -> str:
+    """
+    Peek at gene IDs in a count matrix (first column, first 200 rows) to
+    infer organism by symbol style.  Returns a lowercase string suitable
+    for _resolve_organism(), or "" if uncertain.
+
+    Patterns:
+      Human (HGNC): ALL-CAPS 2-10 chars — CXCL1, IL6, TP53, GAPDH
+      Mouse  (MGI):  Title-case 2-10 chars — Cxcl1, Il6, Trp53
+      Fly (FlyBase): CG numbers — CG1234, CG9870
+      Ensembl:       ENSG / ENSMUSG / FBgn prefixes
+    """
+    try:
+        path = Path(count_path)
+        opener = gzip.open if str(path).endswith(".gz") else open
+        with opener(path, "rt", encoding="utf-8", errors="replace") as fh:
+            fh.readline()          # skip header
+            genes = []
+            for _ in range(200):
+                line = fh.readline()
+                if not line:
+                    break
+                sep  = "\t" if "\t" in line else ","
+                gene = line.split(sep)[0].strip().strip('"').strip("'")
+                if gene:
+                    genes.append(gene)
+    except Exception:
+        return ""
+
+    if not genes:
+        return ""
+
+    n = len(genes)
+
+    # Ensembl / FlyBase IDs are unambiguous
+    if sum(1 for g in genes if g.startswith("ENSG"))   / n > 0.3: return "homo sapiens"
+    if sum(1 for g in genes if g.startswith("ENSMUS")) / n > 0.3: return "mus musculus"
+    if sum(1 for g in genes if g.startswith("FBgn"))   / n > 0.3: return "drosophila melanogaster"
+    if sum(1 for g in genes if re.match(r"^CG\d+$", g))/ n > 0.2: return "drosophila melanogaster"
+
+    # Symbol-style heuristics
+    human_like = sum(1 for g in genes if re.match(r"^[A-Z][A-Z0-9][A-Z0-9\-\.]{0,8}$", g))
+    mouse_like = sum(1 for g in genes if re.match(r"^[A-Z][a-z][a-z0-9\-]{0,8}$",      g))
+
+    if human_like / n > 0.4: return "homo sapiens"
+    if mouse_like / n > 0.4: return "mus musculus"
+
+    return ""
 
 
 def _infer_data_type(metadata: dict, files: dict) -> str:

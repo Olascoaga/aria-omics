@@ -282,6 +282,20 @@ class BulkRNAAgent(BaseAgent):
                 for i, col in enumerate(ordered_cols):
                     group_labels[col] = sample_stems[ordered_samples[i]]
 
+        # Step 4: column-name inference when GEO sample count mismatches matrix columns
+        # (e.g. spike-in experiments where only a subset of GEO samples is in the matrix)
+        if not group_labels or len(set(group_labels.values())) < 2:
+            col_groups = self._infer_col_groups(ordered_cols)
+            if len(set(col_groups.values())) >= 2:
+                log.warning(
+                    f"GEO design has {len(sample_stems)} samples but matrix has "
+                    f"{len(ordered_cols)} columns — using column-name group inference."
+                )
+                group_labels = col_groups
+                groups = {}
+                for col, grp in col_groups.items():
+                    groups.setdefault(grp, []).append(col)
+
         if not group_labels or len(set(group_labels.values())) < 2:
             raise ValueError(
                 f"Could not map design groups to count matrix columns. "
@@ -343,7 +357,7 @@ class BulkRNAAgent(BaseAgent):
             p = Path(path)
             if not p.exists(): return []
             with (gzip.open if str(p).endswith(".gz") else open)(p, "rt") as f: header = f.readline().rstrip("\n")
-            return [c for c in header.split("\t" if "\t" in header else ",") if c.lower().strip() not in {"gene_id", "geneid", "", "chr", "start", "end", "strand", "length", "gene_name", "symbol", "feature", "ensembl", "ensembl_id", "entrez", "entrez_id"}]
+            return [c for c in header.split("\t" if "\t" in header else ",") if c.lower().strip() not in {"gene_id", "geneid", "gene", "", "chr", "start", "end", "strand", "length", "gene_name", "symbol", "feature", "ensembl", "ensembl_id", "entrez", "entrez_id"}]
         except Exception as e: return []
 
     @staticmethod
@@ -354,6 +368,23 @@ class BulkRNAAgent(BaseAgent):
         if all("_" in s for s in samples):
             gr = {s: "_".join(s.split("_")[:-1]) for s in samples}
             if len(set(gr.values())) >= 2: return gr
+        return {}
+
+    @staticmethod
+    def _infer_col_groups(cols: list[str]) -> dict:
+        """Infer group labels from column names using the same patterns as rna_bulk_de.py."""
+        for pattern in [
+            r'^([A-Za-z][A-Za-z0-9]+)[_\-](\d+)$',
+            r'^([A-Za-z][A-Za-z0-9]+)[_\-]([Rr]ep\d+|[A-Za-z]\d*)$',
+            r'^([A-Za-z][A-Za-z0-9\-]*?)(\d.*)$',
+        ]:
+            m = {c: match.group(1).rstrip("_-") for c in cols if (match := re.compile(pattern).match(c))}
+            if len(m) == len(cols) and len(set(m.values())) >= 2:
+                return m
+        if all("_" in c for c in cols):
+            gr = {c: "_".join(c.split("_")[:-1]) for c in cols}
+            if len(set(gr.values())) >= 2:
+                return gr
         return {}
 
     def _build_contrasts(self, intent: dict, group_labels: dict, experiment_id: str) -> tuple[str, list]:
@@ -427,10 +458,10 @@ class BulkRNAAgent(BaseAgent):
 
     @staticmethod
     def _identify_control(group_names: list) -> str | None:
-        for keyword in ["wt", "wildtype", "control", "ctrl", "vehicle", "dmso", "untreated", "scramble", "mock", "normal", "healthy", "baseline"]:
+        for keyword in ["wt", "wildtype", "control", "ctrl", "ctr", "vehicle", "dmso", "untreated", "scramble", "mock", "normal", "healthy", "baseline"]:
             for label in group_names:
                 if label.lower() == keyword: return label
-        for keyword in ["wt", "wildtype", "control", "ctrl", "vehicle", "dmso", "untreated", "scramble", "mock", "normal", "healthy", "baseline"]:
+        for keyword in ["wt", "wildtype", "control", "ctrl", "ctr", "vehicle", "dmso", "untreated", "scramble", "mock", "normal", "healthy", "baseline"]:
             for label in group_names:
                 if keyword in label.lower(): return label
         return None

@@ -243,6 +243,10 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_hic_dispatch_gate.py`
 - Bulk DE covariate/batch adjustment (fitted formula, dropped-covariate
   disclosure, P0-4): `tests/test_bulk_covariates.py` (e2e case is pydeseq2-gated)
+- GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
+  (`geo_connector._organism_from_gene_symbols`, a technical species detection /
+  ADR-011 exception like `human_markers`) and column-name group recovery
+  (`BulkRNAAgent._infer_col_groups`): `tests/test_geo_spikein_inference.py`
 - LLM deterministic provenance:
   `tests/test_pytest_smoke.py::test_llm_provider_forces_deterministic_generation`,
   `tests/test_pytest_smoke.py::test_llm_cache_key_includes_deterministic_controls`,

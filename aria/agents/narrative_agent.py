@@ -783,14 +783,14 @@ for small-effect genes."
                         f"Contrasts tested: {'; '.join(contrast_names)}. "
                         f"Each contrast was analyzed independently using "
                         f"the Wald test with the design {design_used}. "
-                        f"Significance thresholds: adjusted p-value < {padj_thr_used} "
-                        f"(Benjamini–Hochberg) and |log2 fold-change| > "
+                        f"Significance thresholds: adjusted p-value &lt; {padj_thr_used} "
+                        f"(Benjamini–Hochberg) and |log2 fold-change| &gt; "
                         f"{lfc_thr}."
                     )
                 else:
                     lines.append(
-                        f"Significance thresholds: adjusted p-value < {padj_thr_used} "
-                        f"and |log2 fold-change| > {lfc_thr}."
+                        f"Significance thresholds: adjusted p-value &lt; {padj_thr_used} "
+                        f"and |log2 fold-change| &gt; {lfc_thr}."
                     )
 
                 if lfc_thr < 0.8:
@@ -2688,6 +2688,7 @@ for small-effect genes."
 
 
     def _build_findings_table(self, grouped: dict) -> str:
+        import html as _html
         rows = []
         conf_order = [
             ("high", "HIGH", "high"),
@@ -2697,7 +2698,7 @@ for small-effect genes."
         ]
         for key, label, css in conf_order:
             for f in grouped[key]:
-                summary = self._format_finding_summary(f)
+                summary = _html.escape(self._format_finding_summary(f))
                 agent   = _html.escape(str(f.get("agent", "")))
                 rows.append(
                     f'<tr><td><span class="badge {css}">{label}</span></td>'
@@ -2769,6 +2770,7 @@ for small-effect genes."
         return guarded
 
     def _build_decisions_table(self, decisions: list) -> str:
+        import html as _html
         if not decisions:
             return '<tr><td colspan="4">No decisions recorded.</td></tr>'
         rows = []
