@@ -22,6 +22,7 @@ memory/
 data/
 aria-data/
 cache/
+graphify-out/
 
 # ARIA — artefactos locales de análisis
 audit.txt

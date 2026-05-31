@@ -8,6 +8,12 @@ polishing existing behavior.
 Use it before changing shared agents, script result schemas, report rendering,
 or checkpoint/design logic.
 
+For repository-wide exploration, use the generated Graphify map in
+[`docs/architecture/graphify/`](graphify/README.md). That artifact is built from
+a clean tracked snapshot and provides `graph.json`, `graph.html`,
+`GRAPH_TREE.html`, and `GRAPH_REPORT.md`. This document remains the curated
+impact map; Graphify is the broader navigational index.
+
 ## RNA And Reporting Flow
 
 ```mermaid

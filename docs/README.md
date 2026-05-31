@@ -8,6 +8,7 @@ roadmap modules.
 
 - [Architecture Overview](architecture/overview.md)
 - [Code Dependency Graph](architecture/code_graph.md)
+- [Generated Graphify Map](architecture/graphify/README.md)
 - [Design Principles](architecture/design_principles.md)
 - [Reporting and Outputs](architecture/reporting_and_outputs.md)
 - [Installation Guide](INSTALLATION.md)
