@@ -115,6 +115,7 @@ flowchart TD
 | `design_agent.py` design dict | `bulk_rna_agent.py`, `scrna_agent.py`, `design_intelligence.py`, methods/provenance | `groups`, `main_factor`, covariates, aliases, and pseudobulk settings are consumed downstream. |
 | `bulk_rna_agent.py` | `rna_bulk_de.py`, narrative bulk narrator, methods, release validation | It maps confirmed design onto count matrix columns and owns bulk result shape. |
 | `rna_bulk_de.py` result schema | `BulkRnaNarrator`, `NarrativeAgent`, bulk workflow docs, tests | Report claims, figures, tables, ORA, GSEA, and methodology depend on specific keys. |
+| bulk/scRNA DE contrast plumbing (`plan_contrasts`, `contrasts`, `comparisons`, `_suggest_contrasts`, `_normalise_explicit_contrasts`, `_normalise_pseudobulk_comparisons`) | `BulkRNAAgent`, `rna_bulk_de.py`, `scRNAAgent._run_pseudobulk`, `rna_diff_abundance.py`, `rna_pseudobulk_de.py`, report contrast claims | P0-5: DE must never choose a denominator/reference from sorted group names. Bulk script calls without explicit numerator+denominator return `ExplicitContrastRequired` and display-only suggestions. BulkRNAAgent runs only confirmed plan/design contrasts; otherwise it publishes `bulk.contrast` and returns insufficient. scRNA pseudobulk requires `pb_cfg["comparisons"]`; missing comparisons publish `scrna.pseudobulk.contrast` and skip DA/DE. Do not restore `_auto_contrasts`/alphabetical pairs as executable defaults. |
 | `rna_bulk_de.py` covariate/design plumbing (`_build_design_formula`, `_resolve_covariates`, `_run_deseq2(covariates=...)`, `fitted_design_formula`/`covariates_adjusted`/`covariates_dropped`) | `BulkRNAAgent._design_covariates` → `params["covariates"]`, `validate_design_matrix`, `BulkRnaNarrator.methods()` | P0-4: bulk DESeq2 fits the confirmed `~ batch + condition`, not a hardcoded `~ condition`. Covariates flow agent → params → script; only metadata-present, varying, non-factor covariates are used and the validator receives them; a confirmed-but-unusable covariate is DISCLOSED (warning + `covariates_dropped`), never silently dropped. The narrator Methods must state `fitted_design_formula`. Do not revert to `~ {factor}` or pass `covariates=[]` to the validator. |
 | `rna_pathway_viz.py` | `rna_bulk_de.py`, bulk narrative, report artifacts | It creates GSEA/ORA figures and tables that reports reference. |
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
@@ -243,6 +244,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_hic_dispatch_gate.py`
 - Bulk DE covariate/batch adjustment (fitted formula, dropped-covariate
   disclosure, P0-4): `tests/test_bulk_covariates.py` (e2e case is pydeseq2-gated)
+- Explicit DE contrast/reference gate (no alphabetical reference, P0-5):
+  `tests/test_explicit_contrast_gate.py`
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery

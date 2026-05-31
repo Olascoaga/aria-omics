@@ -102,8 +102,6 @@ class BulkRNAAgent(BaseAgent):
             try:
                 sample_names, group_labels, design_factor, contrasts = \
                     self._apply_design(design, files, experiment_id)
-                if not contrasts:
-                    raise ValueError("No contrasts built from design")
                 # Record the design fact
                 self.memory.store_decision(
                     decision_id=f"{experiment_id[:8]}-design-01",
@@ -129,22 +127,15 @@ class BulkRNAAgent(BaseAgent):
                     {"summary": "Could not infer experimental groups from sample names."},
                     Confidence.INSUFFICIENT)
                 return {"status": "failed", "reason": "group_inference_failed"}
-            design_factor, contrasts = self._build_contrasts(intent, group_labels, experiment_id)
+            design_factor = self._infer_design_factor(intent)
+            contrasts = []
         # ────────────────────────────────────────────────────────────────────
 
         self.publish_status(experiment_id, f"Detected groups: {list(group_labels.keys())}", 0.68)
-        # Add plan contrasts if available
-        if design and design.get("plan_contrasts"):
-            existing = set(
-                (c["numerator"].lower(), c["denominator"].lower()) for c in contrasts
+        if not contrasts:
+            return self._block_for_explicit_contrast(
+                experiment_id, design_factor, group_labels
             )
-            for pc in design["plan_contrasts"]:
-                num, den = pc["numerator"], pc["denominator"]
-                if (num.lower(), den.lower()) not in existing \
-                        and (den.lower(), num.lower()) not in existing:
-                    contrasts.append(pc)
-                    existing.add((num.lower(), den.lower()))
-
 
         padj_thr = exp_ctx.get("global_padj", 0.05)
         lfc_thr  = exp_ctx.get("global_lfc", _infer_lfc_threshold(intent))
@@ -303,27 +294,12 @@ class BulkRNAAgent(BaseAgent):
             )
 
         sample_names = list(group_labels.keys())
-        control = self._identify_control(list(groups.keys()))
-        if not control:
-            control = sorted(groups.keys())[0]
-
-        non_ctrl = sorted(g for g in groups.keys() if g != control)
-        contrasts = []
-        # X vs control for every treatment group
-        for grp in non_ctrl:
-            contrasts.append({
-                "numerator":   grp,
-                "denominator": control,
-                "name":        f"{grp} vs {control}",
-            })
-        # All pairwise among non-control groups.
-        for i in range(len(non_ctrl)):
-            for j in range(i + 1, len(non_ctrl)):
-                contrasts.append({
-                    "numerator":   non_ctrl[i],
-                    "denominator": non_ctrl[j],
-                    "name":        f"{non_ctrl[i]} vs {non_ctrl[j]}",
-                })
+        contrasts = self._normalise_explicit_contrasts(
+            design.get("plan_contrasts")
+            or design.get("contrasts")
+            or design.get("comparisons"),
+            groups.keys(),
+        )
         return sample_names, group_labels, factor, contrasts
 
     # ── Legacy inference (unchanged) ────────────────────────────────────
@@ -350,6 +326,124 @@ class BulkRNAAgent(BaseAgent):
             if cov:
                 covariates.append(cov)
         return list(dict.fromkeys(covariates))
+
+    @staticmethod
+    def _normalise_explicit_contrasts(raw, available_groups) -> list[dict]:
+        """Return only caller-confirmed contrasts with valid test/ref levels."""
+        if not raw:
+            return []
+        available = {str(g) for g in available_groups}
+        contrasts: list[dict] = []
+        for comp in raw:
+            if isinstance(comp, dict):
+                num = comp.get("numerator") or comp.get("test") or comp.get("case")
+                den = (
+                    comp.get("denominator")
+                    or comp.get("reference")
+                    or comp.get("ref")
+                    or comp.get("control")
+                )
+                name = comp.get("name")
+            elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
+                num, den = comp[0], comp[1]
+                name = None
+            else:
+                continue
+            num = str(num or "").strip()
+            den = str(den or "").strip()
+            if not num or not den or num not in available or den not in available:
+                continue
+            contrasts.append({
+                "numerator": num,
+                "denominator": den,
+                "name": str(name or f"{num} vs {den}"),
+            })
+        return contrasts
+
+    @staticmethod
+    def _suggest_contrasts_from_groups(group_labels: dict) -> list[dict]:
+        """Suggest candidate contrasts; suggestions do not authorize DE."""
+        if not group_labels:
+            return []
+        values = list(group_labels.values())
+        if values and all(isinstance(v, (list, tuple, set)) for v in values):
+            groups = sorted(str(g) for g in group_labels.keys())
+        else:
+            groups = sorted({str(g) for g in values})
+        if len(groups) < 2:
+            return []
+        control = BulkRNAAgent._identify_control(groups)
+        contrasts = []
+        if control:
+            for grp in groups:
+                if grp != control:
+                    contrasts.append({
+                        "numerator": grp,
+                        "denominator": control,
+                        "name": f"{grp} vs {control}",
+                    })
+        else:
+            for i, ref in enumerate(groups):
+                for test in groups[i + 1:]:
+                    contrasts.append({
+                        "numerator": test,
+                        "denominator": ref,
+                        "name": f"{test} vs {ref}",
+                    })
+        return contrasts
+
+    def _block_for_explicit_contrast(
+        self, experiment_id: str, design_factor: str, group_labels: dict
+    ) -> dict:
+        suggestions = self._suggest_contrasts_from_groups(group_labels)
+        self.publish_finding(
+            experiment_id,
+            {
+                "summary": (
+                    "Bulk DE was not run because no explicit numerator/reference "
+                    "contrast was confirmed."
+                ),
+                "design_factor": design_factor,
+                "suggested_contrasts": suggestions,
+            },
+            Confidence.INSUFFICIENT,
+        )
+        options = ["Skip bulk DE until a contrast is confirmed"]
+        options.extend(
+            f"Run {c['numerator']} vs {c['denominator']} "
+            f"(reference={c['denominator']})"
+            for c in suggestions[:6]
+        )
+        self.publish_escalation(
+            experiment_id=experiment_id,
+            checkpoint="bulk.contrast",
+            question=(
+                "Bulk differential expression requires an explicit contrast. "
+                "Choose the numerator/test level and denominator/reference "
+                "level before ARIA runs DE."
+            ),
+            options=options,
+            context={
+                "analysis_type": "bulk_differential_expression",
+                "parameter_name": "contrast",
+                "suggested_contrasts": suggestions,
+                "design_factor": design_factor,
+            },
+        )
+        return {
+            "status": "failed",
+            "reason": "explicit_contrast_required",
+            "findings": {
+                "status": "error",
+                "error_type": "ExplicitContrastRequired",
+                "details": (
+                    "Confirm a contrast with explicit numerator/test and "
+                    "denominator/reference levels before running DE."
+                ),
+                "design_factor": design_factor,
+                "suggested_contrasts": suggestions,
+            },
+        }
 
     @staticmethod
     def _read_sample_names(path: str) -> list[str]:
@@ -388,34 +482,11 @@ class BulkRNAAgent(BaseAgent):
         return {}
 
     def _build_contrasts(self, intent: dict, group_labels: dict, experiment_id: str) -> tuple[str, list]:
-        design_factor, group_names = self._infer_design_factor(intent), list(group_labels.keys())
-        entity_to_label = self._map_entities_to_labels(intent.get("biological_entities", []), group_names, intent)
-        control, contrasts = self._identify_control(group_names), []
-        
-        if control:
-            non_ctrl = sorted(l for l in group_names if l != control)
-            # X vs control for every treatment group
-            contrasts = [
-                {"numerator": l, "denominator": control,
-                 "name": self._humanize_contrast(l, control, entity_to_label)}
-                for l in non_ctrl
-            ]
-            # All pairwise among non-control groups.
-            for i in range(len(non_ctrl)):
-                for j in range(i + 1, len(non_ctrl)):
-                    contrasts.append({
-                        "numerator":   non_ctrl[i],
-                        "denominator": non_ctrl[j],
-                        "name": self._humanize_contrast(
-                            non_ctrl[i], non_ctrl[j], entity_to_label
-                        ),
-                    })
-        else:
-            sorted_g = sorted(group_names)
-            contrasts = [{"numerator": sorted_g[i], "denominator": b, "name": f"{sorted_g[i]} vs {b}"} for i in range(len(sorted_g)) for b in sorted_g[i+1:]]
-
-        if entity_to_label: self.publish_finding(experiment_id, {"summary": f"Entity-to-label mapping: {', '.join(f'{e}→{l}' for e,l in entity_to_label.items())}. Contrasts: {[c['name'] for c in contrasts]}"}, Confidence.HIGH)
-        return design_factor, contrasts
+        design_factor = self._infer_design_factor(intent)
+        # P0-5: this legacy helper no longer authorizes executable contrasts.
+        # The run path emits a confirmation checkpoint via
+        # _block_for_explicit_contrast when no plan/design contrast is present.
+        return design_factor, []
 
     @staticmethod
     def _infer_design_factor(intent: dict) -> str:

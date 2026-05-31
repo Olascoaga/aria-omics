@@ -203,27 +203,37 @@ def bulk_rna_de(params: dict) -> dict:
             f"(< 10 counts in < {min_samples} samples)."
         )
 
-    # ── 5. If no contrasts provided, auto-generate from groups ──────────
+    # ── 5. Require explicit contrasts ───────────────────────────────────
     if not contrasts_in:
-        contrasts_in, auto_warn = _auto_contrasts(
-            metadata, design_factor
-        )
-        warnings.extend(auto_warn)
-        if not contrasts_in:
-            return {
-                "status":     "error",
-                "error_type": "NoContrastsBuildable",
-                "details":    f"Could not build contrasts from "
-                              f"{design_factor}={list(metadata[design_factor].unique())}",
-            }
+        suggestions = _suggest_contrasts(metadata, design_factor)
+        return {
+            "status":     "error",
+            "error_type": "ExplicitContrastRequired",
+            "details": (
+                "Differential expression requires an explicit contrast with "
+                "both numerator/test level and denominator/reference level. "
+                "ARIA will not choose the reference level from group order."
+            ),
+            "design_factor": design_factor,
+            "available_groups": sorted(str(g) for g in metadata[design_factor].unique()),
+            "suggested_contrasts": suggestions,
+            "warnings": warnings,
+        }
 
     # ── 6. Run each contrast ─────────────────────────────────────────────
     contrast_results = []
 
     for contrast in contrasts_in:
-        num  = contrast.get("numerator",   "")
-        den  = contrast.get("denominator", "")
+        num  = str(contrast.get("numerator",   "")).strip()
+        den  = str(contrast.get("denominator", "")).strip()
         name = contrast.get("name", f"{num} vs {den}")
+
+        if not num or not den:
+            warnings.append(
+                f"Skipping contrast '{name}': numerator and denominator "
+                "must both be explicit."
+            )
+            continue
 
         # Validate groups exist in metadata
         available_groups = list(metadata[design_factor].unique())
@@ -549,16 +559,16 @@ def _format_top_genes(de_result: dict, symbol_map: dict = None) -> list:
     return top
 
 
-def _auto_contrasts(metadata, design_factor: str) -> tuple:
-    """Generate contrasts when none provided — each group vs control."""
-    warnings = []
+def _suggest_contrasts(metadata, design_factor: str) -> list[dict]:
+    """Suggest candidate contrasts without authorizing execution.
+
+    P0-5: suggestions are display-only. The caller must pass one or more of
+    them back explicitly as ``contrasts`` before DE can run.
+    """
     groups = sorted(metadata[design_factor].unique())
 
     if len(groups) < 2:
-        return [], [
-            f"Only one group in '{design_factor}': {groups}. "
-            f"Cannot run differential expression."
-        ]
+        return []
 
     # Identify control
     ctrl_keywords = ["wt", "wildtype", "control", "ctrl",
@@ -592,7 +602,7 @@ def _auto_contrasts(metadata, design_factor: str) -> tuple:
                 "name":        f"{g} vs {control}",
             })
     else:
-        # Alphabetical pairwise (only first vs rest to limit explosion)
+        # Pairwise suggestions only. Do not claim a reference was selected.
         ref = groups[0]
         for g in groups[1:]:
             contrasts.append({
@@ -600,12 +610,22 @@ def _auto_contrasts(metadata, design_factor: str) -> tuple:
                 "denominator": ref,
                 "name":        f"{g} vs {ref}",
             })
-        warnings.append(
-            f"No control group identified in {groups}. "
-            f"Using '{ref}' as reference."
-        )
 
-    return contrasts, warnings
+    return contrasts
+
+
+def _auto_contrasts(metadata, design_factor: str) -> tuple:
+    """Backward-compatible wrapper returning suggestions, not executable DE.
+
+    Kept for legacy diagnostics that import the helper. Production execution
+    must call ``bulk_rna_de`` with explicit ``contrasts``.
+    """
+    suggestions = _suggest_contrasts(metadata, design_factor)
+    warning = (
+        "Automatic contrast generation is disabled for production DE. "
+        "Use these suggestions only after explicit user confirmation."
+    )
+    return suggestions, [warning] if suggestions else []
 
 
 def _contrast_overlap(contrast_results: list) -> dict:
@@ -852,7 +872,7 @@ def _resolve_comparison(metadata, design_factor: str,
                           comparison: dict) -> tuple:
     """
     Resolve which groups to compare.
-    If comparison not specified, infer from available groups.
+    P0-5: never infer or substitute numerator/reference levels.
     """
     warnings = []
     groups   = sorted(metadata[design_factor].unique())
@@ -866,52 +886,17 @@ def _resolve_comparison(metadata, design_factor: str,
     num = comparison.get("numerator",   "")
     den = comparison.get("denominator", "")
 
-    if num and den:
-        if num not in groups:
-            warnings.append(
-                f"Numerator '{num}' not in {groups}. "
-                f"Using '{groups[-1]}' instead."
-            )
-            num = groups[-1]
-        if den not in groups:
-            warnings.append(
-                f"Denominator '{den}' not in {groups}. "
-                f"Using '{groups[0]}' instead."
-            )
-            den = groups[0]
-    else:
-        # Infer: common patterns
-        TREATED_KEYWORDS = {"treat", "treated", "mut", "mutant", "ko",
-                             "knockdown", "kd", "overexpression", "oe",
-                             "infected", "stimulated", "high", "disease"}
-        CTRL_KEYWORDS    = {"ctrl", "control", "wt", "wildtype",
-                             "scramble", "vehicle", "untreated",
-                             "healthy", "low", "normal"}
+    if not num or not den:
+        warnings.append(
+            "Explicit numerator and denominator are required; no comparison "
+            "was inferred from group names."
+        )
+        return {"numerator": "", "denominator": ""}, warnings
 
-        def score(g, keywords):
-            return sum(1 for k in keywords if k in g.lower())
-
-        ctrl_scores = {g: score(g, CTRL_KEYWORDS)   for g in groups}
-        trt_scores  = {g: score(g, TREATED_KEYWORDS) for g in groups}
-
-        best_ctrl = max(ctrl_scores, key=ctrl_scores.get)
-        best_trt  = max(trt_scores,  key=trt_scores.get)
-
-        if best_ctrl == best_trt or (ctrl_scores[best_ctrl] == 0
-                                     and trt_scores[best_trt] == 0):
-            # Fallback: use alphabetical order
-            den, num = sorted(groups)[:2]
-            warnings.append(
-                f"Could not infer comparison direction from group names {groups}. "
-                f"Using alphabetical order: {num} vs {den}. "
-                f"Specify comparison explicitly if this is wrong."
-            )
-        else:
-            num, den = best_trt, best_ctrl
-            warnings.append(
-                f"Comparison inferred: {num} (treated) vs {den} (control). "
-                f"Verify this matches your experimental design."
-            )
+    if num not in groups:
+        warnings.append(f"Numerator '{num}' not in {groups}.")
+    if den not in groups:
+        warnings.append(f"Denominator '{den}' not in {groups}.")
 
     return {"numerator": num, "denominator": den}, warnings
 

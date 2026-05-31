@@ -74,6 +74,7 @@ def test_bulk_design_maps_geo_ids_and_title_aliases_to_count_columns(tmp_path):
             "KO": ["GSM0003", "GSM0004"],
         },
         "main_factor": "genotype",
+        "plan_contrasts": [{"numerator": "KO", "denominator": "WT"}],
         "sample_aliases": {
             "GSM0001": ["GSM0001", "Control replicate 1"],
             "GSM0002": ["GSM0002", "Control replicate 2"],

@@ -1574,13 +1574,44 @@ Rules:
             pb_cfg.get("comparisons")
         )
         if not comparisons:
-            # Pairwise comparisons (alphabetical pairs, smaller=ref by default)
-            group_names = sorted(groups.keys())
-            for i, a in enumerate(group_names):
-                for b in group_names[i + 1:]:
-                    comparisons.append([b, a])  # test=b, ref=a
-        if not comparisons:
-            return {"status": "skipped", "reason": "no_comparisons"}
+            suggestions = self._suggest_pseudobulk_comparisons(groups)
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "Pseudobulk DE was not run because no explicit "
+                        "test/reference comparison was confirmed."
+                    ),
+                    "suggested_comparisons": suggestions,
+                },
+                Confidence.INSUFFICIENT,
+            )
+            self.publish_escalation(
+                experiment_id=experiment_id,
+                checkpoint="scrna.pseudobulk.contrast",
+                question=(
+                    "Pseudobulk differential expression requires an explicit "
+                    "comparison. Choose the test level and reference level "
+                    "before ARIA runs DE."
+                ),
+                options=[
+                    "Skip pseudobulk DE until a comparison is confirmed",
+                    *[
+                        f"Run {test} vs {ref} (reference={ref})"
+                        for test, ref in suggestions[:6]
+                    ],
+                ],
+                context={
+                    "analysis_type": "scrna_pseudobulk_de",
+                    "parameter_name": "comparison",
+                    "suggested_comparisons": suggestions,
+                },
+            )
+            return {
+                "status": "skipped",
+                "reason": "explicit_comparison_required",
+                "suggested_comparisons": suggestions,
+            }
 
         # 1. Prefer h5ad-native obs design when CP1 inferred one. Otherwise
         # inject condition obs from sample → group mapping.
@@ -1852,6 +1883,18 @@ Rules:
             elif isinstance(comp, (list, tuple)) and len(comp) >= 2:
                 comparisons.append([str(comp[0]), str(comp[1])])
         return comparisons
+
+    @staticmethod
+    def _suggest_pseudobulk_comparisons(groups: dict) -> list[list[str]]:
+        names = sorted(str(g) for g in (groups or {}).keys())
+        if len(names) < 2:
+            return []
+        lower = {g.lower(): g for g in names}
+        for ref_key in ("control", "ctrl", "wt", "wildtype", "healthy", "untreated", "baseline"):
+            if ref_key in lower:
+                ref = lower[ref_key]
+                return [[g, ref] for g in names if g != ref]
+        return [[test, ref] for i, ref in enumerate(names) for test in names[i + 1:]]
 
     # ── Trajectory ────────────────────────────────────────────────────────
 
