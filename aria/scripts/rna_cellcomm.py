@@ -12,7 +12,7 @@ Input params:
     cell_type_col:  str  (optional) — obs column with cell types (default: "cell_type")
     organism:       str  (optional) — "Homo sapiens" | "Mus musculus" (default: "Homo sapiens")
     output_dir:     str  (optional)
-    n_perms:        int  (optional) — LIANA permutations (default: 100)
+    n_perms:        int  (optional) — LIANA permutations (default: 1000)
 
 Output:
     {
@@ -65,7 +65,9 @@ def rna_cellcomm(params: dict) -> dict:
     cell_type_col = params.get("cell_type_col", "cell_type")
     organism      = params.get("organism", "Homo sapiens").lower()
     output_dir    = params.get("output_dir", str(Path(data_path).parent))
-    n_perms       = int(params.get("n_perms", 100))
+    # C4: 100 permutations was too low for stable LIANA ranks in publication
+    # reports. Keep it configurable, but default to 1000.
+    n_perms       = int(params.get("n_perms", 1000))
 
     adata = read_h5ad(data_path)
 

@@ -1763,6 +1763,12 @@ for small-effect genes."
                 log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
                 run_ledger = {"entries": [], "divergences": [],
                               "n_divergences": 0}
+        try:
+            from aria.agents.narrative.robustness import build_robustness_multiverse
+            robustness_multiverse = build_robustness_multiverse(agent_results)
+        except Exception as exc:
+            log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
+            robustness_multiverse = {"status": "error", "details": str(exc)}
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
@@ -1773,6 +1779,7 @@ for small-effect genes."
             "claims": claims,
             "devils_advocate": devils_advocate,
             "run_ledger": run_ledger,
+            "robustness_multiverse": robustness_multiverse,
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,

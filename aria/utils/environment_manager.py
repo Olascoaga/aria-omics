@@ -29,6 +29,7 @@ import fcntl
 from pathlib import Path
 from typing import Any
 from aria.utils.provenance import hash_params
+from aria.utils.privacy import redact_sensitive_params
 from aria.utils.script_contracts import ContractIssue, contract_for_script
 
 shutil_rmtree = shutil.rmtree
@@ -195,9 +196,15 @@ class EnvironmentManager:
                     )
                     return result
 
-            # 2. Write parameters to input file after schema validation.
+            # 2. Write parameters to input file after schema validation. The
+            # live IPC file needs real paths, but failed-run archives redact it
+            # by default below (C6/X10 privacy).
             with open(input_file, "w") as f:
                 json.dump(params, f)
+            try:
+                input_file.chmod(0o600)
+            except OSError:
+                pass
             (self.workspace / f"params_{run_id}.sha256").write_text(
                 params_sha256 + "\n"
             )
@@ -376,7 +383,30 @@ class EnvironmentManager:
         try:
             run_dir.mkdir(parents=True, exist_ok=True)
             if input_file.exists():
-                input_file.replace(run_dir / "input.json")
+                preserve_raw = (
+                    os.environ.get("ARIA_PRESERVE_FAILED_INPUTS", "0")
+                    .strip().lower() in {"1", "true", "yes", "on"}
+                )
+                if preserve_raw:
+                    input_file.replace(run_dir / "input.json")
+                else:
+                    try:
+                        with input_file.open("r", encoding="utf-8") as fh:
+                            raw_params = json.load(fh)
+                        redacted = redact_sensitive_params(raw_params)
+                        (run_dir / "input.redacted.json").write_text(
+                            json.dumps(redacted, indent=2),
+                            encoding="utf-8",
+                        )
+                    except Exception:
+                        (run_dir / "input.redacted.json").write_text(
+                            json.dumps({"redacted": True}, indent=2),
+                            encoding="utf-8",
+                        )
+                    try:
+                        input_file.unlink()
+                    except OSError:
+                        pass
             if output_file.exists():
                 output_file.replace(run_dir / "output.json")
             # Drop the error summary next to the JSON for easy triage.

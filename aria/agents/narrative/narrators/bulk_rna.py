@@ -182,6 +182,10 @@ class BulkRnaNarrator:
                     "n_significant": n_sig,
                     "n_upregulated": contrast.get("n_upregulated", 0),
                     "n_downregulated": contrast.get("n_downregulated", 0),
+                    "low_power_warning": bool(contrast.get("low_power_warning")),
+                    "power_estimate_at_lfc_min": contrast.get(
+                        "power_estimate_at_lfc_min"
+                    ),
                 },
             ))
             blocks.extend(self._pathway_blocks_for_contrast(contrast))

@@ -31,8 +31,10 @@ from typing import Optional
 import litellm
 from litellm import completion
 
+from aria.version import __version__ as ARIA_VERSION
 from aria.llm.context_manager import ContextManager, ModelProfile
 from aria.utils.env_loader import load_aria_env
+from aria.utils.privacy import air_gapped_enabled
 from aria.utils.provenance import record_llm_usage
 
 log = logging.getLogger("aria.llm")
@@ -125,7 +127,14 @@ class LLMProvider:
         cache_dir:   Optional[str] = None,
     ):
         load_aria_env()
-        self.models   = models or DEFAULT_MODELS
+        self._air_gapped = air_gapped_enabled()
+        configured_models = models or DEFAULT_MODELS
+        if self._air_gapped:
+            configured_models = {
+                tier: [m for m in cfgs if m.is_local]
+                for tier, cfgs in configured_models.items()
+            }
+        self.models   = configured_models
         self.api_keys = api_keys or {}
         # R3: per-call timeout (seconds). Env override, clamped to a sane floor.
         try:
@@ -139,8 +148,19 @@ class LLMProvider:
         self._inject_api_keys()
         # File-backed prompt cache. Disabled when ARIA_LLM_CACHE=0.
         # Cache key: sha256(model + system + prompt + max_tokens + deterministic
-        # generation controls).
+        # generation controls + ARIA/cache salt). C6/X10: cache entries expire
+        # after ARIA_LLM_CACHE_TTL_DAYS (default 30); set <=0 to disable expiry.
         self._cache_enabled = os.environ.get("ARIA_LLM_CACHE", "1") != "0"
+        self._cache_version_salt = os.environ.get(
+            "ARIA_LLM_CACHE_SALT", f"aria-{ARIA_VERSION}"
+        )
+        try:
+            self._cache_ttl_s = int(
+                float(os.environ.get("ARIA_LLM_CACHE_TTL_DAYS", "30"))
+                * 86400
+            )
+        except (TypeError, ValueError):
+            self._cache_ttl_s = 30 * 86400
         if self._cache_enabled:
             base = cache_dir or os.environ.get("ARIA_LLM_CACHE_DIR") \
                    or str(Path.home() / ".aria" / "llm_cache")
@@ -171,6 +191,13 @@ class LLMProvider:
         Returns the response text.
         """
         candidates = self.models.get(tier, self.models[TaskTier.MEDIUM])
+        if self._air_gapped:
+            candidates = [c for c in candidates if c.is_local]
+            if not candidates:
+                raise RuntimeError(
+                    f"ARIA_AIR_GAPPED is enabled and no local model is "
+                    f"configured for tier {tier.value}."
+                )
 
         last_error = None
         for attempt, model_cfg in enumerate(candidates):
@@ -235,6 +262,11 @@ class LLMProvider:
         fallback_reason: Optional[str] = None,
     ) -> str:
         """Execute a single LiteLLM call with context management."""
+        if self._air_gapped and not cfg.is_local:
+            raise RuntimeError(
+                "ARIA_AIR_GAPPED is enabled; refusing cloud LLM call to "
+                f"{cfg.provider}/{cfg.model}."
+            )
 
         # R4: degradation provenance — stamped on every usage event (cache hit
         # or live) so the report can show whether a section ran on the primary
@@ -257,6 +289,7 @@ class LLMProvider:
                 max_tokens,
                 self.DETERMINISTIC_TEMPERATURE,
                 self.DETERMINISTIC_SEED,
+                self._cache_version_salt,
             )
             cached = self._cache_get(cache_key)
             if cached is not None:
@@ -359,6 +392,7 @@ class LLMProvider:
         max_tokens: int,
         temperature: float,
         seed: int,
+        version_salt: str = "",
     ) -> str:
         blob = json.dumps(
             {
@@ -368,6 +402,7 @@ class LLMProvider:
                 "t": max_tokens,
                 "temperature": temperature,
                 "seed": seed,
+                "version_salt": version_salt,
             },
             sort_keys=True,
         )
@@ -383,7 +418,18 @@ class LLMProvider:
             if not path.exists():
                 return None
             with open(path, "r", encoding="utf-8") as f:
-                return json.load(f).get("text")
+                payload = json.load(f)
+            if self._cache_ttl_s > 0:
+                created = float(payload.get("created_unix", 0) or 0)
+                if created <= 0 or time.time() - created > self._cache_ttl_s:
+                    try:
+                        path.unlink()
+                    except OSError:
+                        pass
+                    return None
+            if payload.get("version_salt") not in {None, self._cache_version_salt}:
+                return None
+            return payload.get("text")
         except (OSError, json.JSONDecodeError):
             return None
 
@@ -393,7 +439,11 @@ class LLMProvider:
             path.parent.mkdir(parents=True, exist_ok=True)
             tmp = path.with_suffix(".tmp")
             with open(tmp, "w", encoding="utf-8") as f:
-                json.dump({"text": text}, f)
+                json.dump({
+                    "text": text,
+                    "created_unix": time.time(),
+                    "version_salt": self._cache_version_salt,
+                }, f)
             tmp.replace(path)
         except OSError:
             pass  # cache is best-effort

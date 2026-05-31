@@ -83,9 +83,11 @@ flowchart TD
 
     NARR --> LEDGER[aria/agents/narrative/run_ledger.py planned-vs-run]
     NARR --> DEVIL[aria/agents/narrative/devils_advocate.py]
+    NARR --> ROBUST[aria/agents/narrative/robustness.py multiverse manifest]
     DEVIL --> BLOCKS
     LEDGER --> METHODOLOGY
     DEVIL --> METHODOLOGY
+    ROBUST --> METHODOLOGY
     NARR --> REGISTRY[aria/agents/narrative/registry.py]
     REGISTRY --> BULK_NARR[aria/agents/narrative/narrators/bulk_rna.py]
     REGISTRY --> SCRNA_NARR[aria/agents/narrative/narrators/scrna.py]
@@ -99,6 +101,8 @@ flowchart TD
     NARR --> LLM[aria/llm/provider.py]
     LLM --> LLM_USAGE[llm_usage.jsonl deterministic controls and cost]
     LLM_USAGE --> METHODOLOGY
+    ENV --> PRIV[aria/utils/privacy.py redacted failed-run archives]
+    LLM --> PRIV
     NARR --> METHODOLOGY[methodology.json]
 ```
 
@@ -117,6 +121,7 @@ flowchart TD
 | `rna_pseudobulk_de.py` per-group `background_genes` / `scrna_agent` `background_genes_by_cluster` / `rna_pathway_per_cluster.py` universe | per-cluster ORA significance, `ScrnaNarrator` Methods + per-block background size | The ORA universe is per cell type (genes tested in that cluster's pseudobulk, ADR-018). A single global background inflates per-cluster enrichment; legacy results without per-group background fall back to the global universe. |
 | `rna_pseudobulk_de.py` composition covariate / `composition_skipped_reason` | `ScrnaNarrator` composition caveats, `scrna_agent` composition gating | The self-proportion composition covariate is dropped when collinear with the contrast (`_abs_corr` >= `COMPOSITION_COLLINEARITY_MAX`, C3/ADR-021); do not re-enable it unconditionally — it inflates variance exactly when abundance shifts with condition. |
 | `rna_pseudobulk_de.py` apeGLM shrinkage (`lfc_shrink`, `log2fc_raw`, `lfc_shrinkage`) | `ScrnaNarrator` Methods (`_lfc_shrinkage_clause`), `pseudobulk_de.csv`, effect-size gate, synthetic-DE benchmark | Reported `log2fc` is the apeGLM-shrunken estimate and the `|log2fc|>lfc_min` gate uses it (C4/ADR-023); p-values are unchanged. The dds reference must be fixed to the contrast ref level for the coefficient to be test-vs-ref. Keep `log2fc_raw` (MLE) for audit; do not gate significance on the shrunken value. |
+| `rna_pseudobulk_de.py` `robustness_multiverse` | `aria/agents/narrative/robustness.py`, `methodology.json["robustness_multiverse"]` | The P-MULTIVERSE closeout records FDR-family stability from local/global BH calls already computed in the run. It must not imply a hidden composition on/off rerun; the manifest reports the realized composition-covariate state per block. |
 | `bus/message_bus.py` indices / persistence / `get_pending_checkpoints(experiment_id=...)` | TUI/headless polls, `OrchestratorAgent.run` (`enable_persistence`), checkpoint resolution, crash recovery | Findings/escalations are served from eviction-consistent indices and optionally persisted per-run (R6/ADR-021). Keep `_index`/`_deindex` in sync with the FIFO deque, keep persistence per-`experiment_id`, and scope reads by experiment so concurrent runs sharing the global bus don't cross-read. |
 | `stats.py` BH correction helper | `rna_pseudobulk_de.py`, `rna_diff_abundance.py`, FDR tests | Shared multiple-testing code must stay numerically stable; duplicating local BH implementations risks divergent significance calls. |
 | `count_classifier.py` raw-count detection | `rna_bulk_de.py` (`_load_counts` hard-refuse), `rna_pseudobulk_de.py` (integer-likeness + log-norm recovery probes), `count_source` provenance | The single detector deciding raw vs normalized input for DESeq2. Loosening `is_raw_counts` lets normalized matrices become pseudo-counts; the sampler is seeded — keep it deterministic for reproducible mode. |
@@ -128,10 +133,11 @@ flowchart TD
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `narrative/run_ledger.py` plan/finding keyword maps | report Run Ledger table, `methodology.json["run_ledger"]`, dispatch-integrity | The planned-vs-run reconciliation (P-LEDGER/ADR-022). If a new analysis is added, give it a `plan_kw`/`finding_keys` entry or it will read as a divergence. Technical vocabulary only (ADR-011). |
 | `narrative/devils_advocate.py` confounder catalog | block `info` caveats, `methodology.json["devils_advocate"]`, claim tiers | The deterministic adversarial pass on the validated path (R2/P-DEVIL/ADR-022). Must run AFTER `annotate_claim_tiers`; it is idempotent (safe to call before render and during methodology). Confounders are a fixed technical checklist, not biology. |
+| `claim_compiler.py` quantitative stats gate | every block-backed report claim, `methodology.json["claims"]`, devil's advocate scope | P-CLAIM2 downgrades DE claims when numeric support is weak (`n_significant`, effective-alpha power, low-power warning, log-norm recovery). Keep the gate based on structured metrics/caveats, not prose. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
-| `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. Every call is time-bounded (`timeout`, R3) and tier fallbacks are recorded as degradation (`is_fallback`/`fallback_*` → `collect_llm_usage` `degraded`/`fallback_calls`, R4/ADR-020) — keep these fields flowing to the report. |
-| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. Scripts run under `Popen(start_new_session=True)`; a timeout reaps the whole process group via `_terminate_process_tree`/`os.killpg` (R5/ADR-020) — do not revert to bare `subprocess.run`, which orphans BLAS/numba grandchildren. `_resolve_env` is preferred-env-if-installed → FALLBACK_ENV with NO aliasing (B12); do not reintroduce an `env_aliases.json` read — no writer exists and it contradicts SetupAgent's "no aliases" policy. |
+| `llm/provider.py` or `utils/provenance.py` LLM usage schema | `NarrativeAgent` report provenance, `methodology.json`, prompt cache behavior | Narrative confidence/prose must remain reproducible: deterministic controls, model tier, token counts, and cache semantics are part of audit provenance. Every call is time-bounded (`timeout`, R3) and tier fallbacks are recorded as degradation (`is_fallback`/`fallback_*` → `collect_llm_usage` `degraded`/`fallback_calls`, R4/ADR-020). C6/X10 adds `ARIA_AIR_GAPPED` local-only routing and cache TTL/version salt; do not bypass those controls for cloud calls or prompt-cache reuse. |
+| `environment_manager.py` | all script-running agents | It controls conda stack execution and JSON IPC boundaries. Scripts run under `Popen(start_new_session=True)`; a timeout reaps the whole process group via `_terminate_process_tree`/`os.killpg` (R5/ADR-020). `_resolve_env` is preferred-env-if-installed → FALLBACK_ENV with NO aliasing (B12). Failed-run input archives are redacted by default (`input.redacted.json` + params hash); only `ARIA_PRESERVE_FAILED_INPUTS=1` keeps raw input JSON for local debugging. |
 | `chromatin_qc.py` metric helpers / `mudata_io.py` `.h5mu` reader | `chromatin_agent.py`, v4.6 scATAC QC, DataAudit `.h5mu` detection | Chromatin QC must emit only measured metrics (ADR-019/ADR-002): TSS/FRiP/barcodes are real or `None`+`metrics_not_computed`, never placeholders. `.h5mu` is the detected scATAC entry; the MuData reader returns structured blockers when tooling/ATAC modality is absent — do not fabricate. |
 | `data_audit_agent.py` SIGNATURES / `_scan_directory` extensions | modality classification, CP1, `.h5mu`/chromatin routing | `.h5mu` (paired RNA+ATAC) is scanned and classified as `scATAC` (C8); changing the signature order or extension set can make the v4.6 entry input undetectable again. |
 | module-global accessors `bus` / `env_manager` | all agents and tests importing global coordination helpers | These are lazy accessors, not eagerly constructed singletons; avoid import-time workspace creation or broker state just by importing enums/classes. |
@@ -206,6 +212,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_composition_collinearity.py` (end-to-end case is pydeseq2-gated)
 - Planned-vs-run ledger + deterministic devil's advocate:
   `tests/test_run_ledger_and_devils.py`
+- Stage 4 closeout privacy / stats-gate / multiverse:
+  `tests/test_stage4_closeout.py`
 - apeGLM LFC shrinkage (pseudobulk effect sizes):
   `tests/test_lfc_shrinkage.py` (end-to-end cases are pydeseq2-gated)
 - B7/B11 housekeeping and ADR-011 guards:

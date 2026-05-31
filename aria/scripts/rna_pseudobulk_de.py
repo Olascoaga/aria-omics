@@ -767,6 +767,29 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 "effective_alpha_strategy": fdr_strategy,
                 "top_genes":            top_records,
                 "all_sig":              all_records,
+                "robustness_multiverse": {
+                    "axes": {
+                        "fdr_strategy": ["per_cluster", "global"],
+                        "composition_covariate": [
+                            "included" if block_corrected_for_composition
+                            else "not_included"
+                        ],
+                    },
+                    "composition_axis_rerun": False,
+                    "stable_significant_genes": int(
+                        len(set(map(str, sig_local.index))
+                            & set(map(str, sig_global.index)))
+                    ),
+                    "n_local": int(len(sig_local)),
+                    "n_global": int(len(sig_global)),
+                    "note": (
+                        "FDR-family robustness is computed from the two "
+                        "adjusted-p-value families already produced in this "
+                        "run. Composition on/off is reported as the realized "
+                        "design state; ARIA does not silently rerun a second "
+                        "DESeq2 model inside this summary."
+                    ),
+                },
             })
 
             # Power at the effective primary threshold, not just nominal.
@@ -850,6 +873,12 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
+        },
+        "robustness_multiverse": {
+            "method": "per-block FDR-family stability over local/global BH",
+            "composition_axis": (
+                "reported realized state per block; no hidden on/off rerun"
+            ),
         },
         # F-SCI-POWER/B8: power is an approximate NB-Wald value at the NOMINAL
         # per-test alpha. The applied BH family depends on fdr_strategy, so the

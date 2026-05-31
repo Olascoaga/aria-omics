@@ -73,6 +73,8 @@ _ASSOCIATIVE = {
 }
 # Evidence categories that count as independent mechanistic lines.
 _MECHANISTIC = {"regulatory"}
+_STATS_GATE_ANALYSES = {"pseudobulk_de", "differential_expression"}
+_POWER_MIN = 0.5
 
 
 @dataclass
@@ -134,6 +136,54 @@ def _block_subject(block: NarrativeBlock) -> str:
     return str(block.id)
 
 
+def _numeric_metric(block: NarrativeBlock, *names: str) -> float | None:
+    for name in names:
+        value = (block.metrics or {}).get(name)
+        if value is None:
+            continue
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            continue
+    return None
+
+
+def _flag_metric(block: NarrativeBlock, name: str) -> bool:
+    if name in (block.metrics or {}):
+        return bool(block.metrics.get(name))
+    text = " ".join(c.text for c in (block.caveats or [])).lower()
+    if name == "low_power_warning":
+        return "low replicate" in text or "low power" in text
+    if name == "lognorm_recovered":
+        return "log-normalized" in text or "reverse-engineered" in text
+    return False
+
+
+def _quantitative_stats_gate(block: NarrativeBlock) -> tuple[bool, list[str]]:
+    """P-CLAIM2: DE claims need numerical support, not only analysis type."""
+    if block.analysis not in _STATS_GATE_ANALYSES:
+        return True, []
+    failures: list[str] = []
+    n_sig = _numeric_metric(
+        block, "n_significant", "n_significant_global", "n_significant_local"
+    )
+    if n_sig is not None and n_sig <= 0:
+        failures.append("no significant features passed the selected FDR rule")
+    power = _numeric_metric(
+        block, "power_estimate_at_effective_alpha",
+        "power_estimate_at_lfc_min",
+    )
+    if power is not None and power < _POWER_MIN:
+        failures.append(
+            f"estimated power ({power:.2f}) is below {_POWER_MIN:.2f}"
+        )
+    if _flag_metric(block, "low_power_warning"):
+        failures.append("low replicate/power warning is active")
+    if _flag_metric(block, "lognorm_recovered"):
+        failures.append("DE used recovered log-normalized counts")
+    return not failures, failures
+
+
 def classify_claim(block: NarrativeBlock,
                    *,
                    interventional: bool = False,
@@ -193,6 +243,18 @@ def classify_claim(block: NarrativeBlock,
         limitations.append(
             "Observational association only; no mechanistic or interventional "
             "evidence supports a causal interpretation.")
+
+    stats_ok, stats_failures = _quantitative_stats_gate(block)
+    if not stats_ok and tier != "causal_experimental":
+        tier = "descriptive"
+        licensed = "descriptive"
+        rationale = (
+            "Quantitative stats-evidence gate did not license an associative "
+            "claim for this DE result."
+        )
+        limitations.append(
+            "Stats-evidence gate: " + "; ".join(stats_failures) + "."
+        )
 
     return _finalize(block, tier, licensed, sorted(categories), rationale,
                      limitations, interventional)

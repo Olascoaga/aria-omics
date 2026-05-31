@@ -328,7 +328,9 @@ class ScrnaNarrator:
                     evidence=evidence,
                     caveats=caveats,
                     metrics={
-                        "n_significant_global": n_sig,
+                        "n_significant_global": comp.get(
+                            "n_significant_global", n_sig
+                        ),
                         "n_significant_local": comp.get(
                             "n_significant_local", comp.get("n_significant", 0)
                         ),
@@ -338,6 +340,9 @@ class ScrnaNarrator:
                         "power_estimate_at_effective_alpha": comp.get(
                             "power_estimate_at_effective_alpha"
                         ),
+                        "n_significant": n_sig,
+                        "low_power_warning": bool(comp.get("low_power_warning")),
+                        "lognorm_recovered": lognorm_recovered,
                         "corrected_for_composition": bool(
                             comp.get("corrected_for_composition")
                         ),

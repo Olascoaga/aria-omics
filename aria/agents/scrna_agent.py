@@ -1943,7 +1943,7 @@ Rules:
             experiment_id,
             checkpoint="scRNA",
             question="Cell-cell communication grouping",
-            decision=f"LIANA grouped by {cell_type_col}; n_perms=100",
+            decision=f"LIANA grouped by {cell_type_col}; n_perms=1000",
             rationale=(
                 "Ligand-receptor analysis requires annotated sender and "
                 "receiver groups; ARIA reused the trusted grouping column."
@@ -1957,7 +1957,7 @@ Rules:
                 "data_path":     clustered_h5ad,
                 "cell_type_col": cell_type_col,
                 "organism":      exp_ctx.get("organism", "Homo sapiens"),
-                "n_perms":       100,
+                "n_perms":       1000,
                 "output_dir":    str(self._workspace(experiment_id, "cellcomm")),
             },
         )
