@@ -313,9 +313,13 @@ def _describe_pathway_support(findings: dict, limit: int = 3) -> list[str]:
         terms = _top_pathway_terms(block, limit=3)
         if not terms:
             continue
+        # C2 (audit 2026-05-29): prefer this cluster's own ORA universe size
+        # (genes tested in its pseudobulk); fall back to the aggregate only for
+        # legacy results that lack a per-cluster background.
+        bg_size = block.get("background_size") or pwp.get("background_size")
         bg = (
-            f" against {_fmt_int(pwp.get('background_size'))} expressed genes"
-            if pwp.get("background_size") else ""
+            f" against {_fmt_int(bg_size)} expressed genes in this cell type"
+            if bg_size else ""
         )
         lines.append(
             f"Pathway support for {str(block_key).replace('::', ' ')}: "
@@ -668,11 +672,14 @@ def summarize_scrna_text(findings: dict) -> str:
             1 for b in pwp["per_cluster"].values()
             if b.get("n_significant", 0) > 0
         )
-        bg_summary = (
-            f" using {_fmt_int(pwp.get('background_size'))} "
-            f"dataset-expressed genes as background"
-            if pwp.get("background_size") else ""
-        )
+        if pwp.get("background_source") == "per_cluster_expressed_genes":
+            bg_summary = (" using each cell type's own pseudobulk-expressed "
+                          "genes as the ORA universe")
+        elif pwp.get("background_size"):
+            bg_summary = (f" using {_fmt_int(pwp.get('background_size'))} "
+                          f"dataset-expressed genes as background")
+        else:
+            bg_summary = ""
         lines.append(
             f"Pathway over-representation (Enrichr) on top-200 DE genes per "
             f"(group × comparison): {n_sig_blocks}/{n_blocks} blocks "
@@ -1019,13 +1026,23 @@ def build_scrna_methods(findings: dict) -> str:
         dbs = list((pwp.get("databases") or {}).keys()) or [
             "GO_BP", "KEGG", "Reactome"
         ]
-        bg_clause = (
-            f" The ORA background was {pwp.get('background_size')} genes "
-            f"detected in the analyzed dataset."
-            if pwp.get("background_size") else
-            " The ORA background was Enrichr's default universe because no "
-            "dataset-expressed background was available."
-        )
+        if pwp.get("background_source") == "per_cluster_expressed_genes":
+            bg_clause = (
+                " The ORA universe was cell-type-specific: for each cell type "
+                "the genes detected in its own pseudobulk, which avoids the "
+                "enrichment inflation a single global background causes "
+                "(per-cluster sizes are reported per block)."
+            )
+        elif pwp.get("background_size"):
+            bg_clause = (
+                f" The ORA background was {pwp.get('background_size')} genes "
+                f"detected in the analyzed dataset."
+            )
+        else:
+            bg_clause = (
+                " The ORA background was Enrichr's default universe because no "
+                "dataset-expressed background was available."
+            )
         lines.append(
             f"Over-representation analysis (gseapy / Enrichr endpoint) was "
             f"run on the top-200 DE genes per (group × comparison) against "

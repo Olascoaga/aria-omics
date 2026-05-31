@@ -781,7 +781,7 @@ def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
                 # covariate defaults to OFF for this test.
                 return {
                     "status": "success",
-                    "method": "poisson_offset_glm",
+                    "method": "quasipoisson_offset_glm",
                     "groupby": kwargs["params"]["groupby"],
                     "condition_col": kwargs["params"]["condition_col"],
                     "replicate_col": kwargs["params"]["replicate_col"],
@@ -2406,7 +2406,7 @@ def test_pseudobulk_de_passes_composition_covariate_when_da_significant(tmp_path
             if script.endswith("rna_diff_abundance.py"):
                 return {
                     "status": "success",
-                    "method": "poisson_offset_glm",
+                    "method": "quasipoisson_offset_glm",
                     "groupby": kwargs["params"]["groupby"],
                     "condition_col": kwargs["params"]["condition_col"],
                     "replicate_col": kwargs["params"]["replicate_col"],

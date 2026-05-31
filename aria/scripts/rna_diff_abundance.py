@@ -20,13 +20,19 @@ abundance separately and (b) include a composition covariate in the DE
 design when abundance is shifting.
 
 Method.
-  Primary: Poisson GLM with offset(log total_cells_per_replicate),
-           Wald p-value on the condition coefficient, BH correction
-           across all cell types tested in the comparison. statsmodels.
+  Primary: quasi-Poisson GLM with offset(log total_cells_per_replicate).
+           Cell-type counts across biological replicates are overdispersed
+           (variance > mean), so a plain Poisson GLM is anti-conservative
+           and over-calls significance (C1, audit 2026-05-29). We fit the
+           Poisson mean model and scale inference by the estimated Pearson
+           dispersion (quasi-Poisson, scale="X2") with t-distributed Wald
+           tests on the residual df — the field-standard overdispersion
+           correction. BH correction across all cell types tested in the
+           comparison. statsmodels.
   Fallback: Fisher's exact test per cell type on a 2x2 table of
            (cells_in_type, cells_in_other_types) x (test, ref) with
            BH correction. Only used when statsmodels is missing or the
-           Poisson GLM fails (e.g. perfect separation).
+           GLM fails (e.g. perfect separation).
 
 Input params:
     data_path:        str — path to annotated .h5ad
@@ -44,7 +50,7 @@ Input params:
 Output:
     {
       "status": "success",
-      "method": "poisson_offset_glm" | "fisher_exact_fallback",
+      "method": "quasipoisson_offset_glm" | "fisher_exact_fallback",
       "groupby": str,
       "condition_col": str,
       "replicate_col": str,
@@ -61,6 +67,9 @@ Output:
              "prop_ref":  float,
              "log2_fold_change": float,  // log2(prop_test / prop_ref)
              "pval": float,
+             "dispersion": float,   // estimated quasi-Poisson Pearson
+                                    // dispersion (>1 = overdispersed);
+                                    // NaN for the Fisher fallback path
              "padj": float,         // BH within this comparison
              "direction": "up"|"down"|"none",
              "significant": bool},
@@ -152,7 +161,7 @@ def rna_diff_abundance(params: dict) -> dict:
                          .set_index("_aria_pseudosample_key")[covariates]
                          .to_dict(orient="index"))
 
-    method = "poisson_offset_glm"
+    method = "quasipoisson_offset_glm"
     try:
         import statsmodels.api as sm
         from statsmodels.stats.multitest import multipletests
@@ -163,7 +172,8 @@ def rna_diff_abundance(params: dict) -> dict:
         warnings.append(
             "statsmodels not available; falling back to per-cell-type "
             "Fisher's exact + manual BH. Install statsmodels for the "
-            "primary Poisson-GLM-with-offset method."
+            "primary quasi-Poisson-GLM-with-offset method (overdispersion "
+            "corrected)."
         )
 
     per_comparison: dict = {}
@@ -224,6 +234,7 @@ def rna_diff_abundance(params: dict) -> dict:
             log2fc = float(math.log2((prop_t + 1e-9) / (prop_r + 1e-9)))
 
             pval = float("nan")
+            dispersion = float("nan")
 
             if sm is not None:
                 try:
@@ -244,15 +255,23 @@ def rna_diff_abundance(params: dict) -> dict:
                         exposure=np.clip(total, 1, None),
                         family=sm.families.Poisson(),
                     )
-                    fit = model.fit(disp=False, maxiter=200)
+                    # Quasi-Poisson (C1, audit 2026-05-29): estimate the Pearson
+                    # dispersion (scale="X2") and scale the Wald standard errors
+                    # by it, with t-distributed inference on the residual df.
+                    # This corrects the overdispersion that makes a plain
+                    # Poisson GLM anti-conservative for replicate-level
+                    # cell-type counts.
+                    fit = model.fit(disp=False, maxiter=200,
+                                    scale="X2", use_t=True)
+                    dispersion = float(getattr(fit, "scale", float("nan")))
                     pval = float(fit.pvalues.get("is_test", float("nan")))
                 except Exception as exc:
                     # Perfect separation / singular X / convergence failure:
                     # surface via warning and fall through to Fisher for this
                     # cell type.
                     warnings.append(
-                        f"[{comp_key}/{ct}] Poisson GLM failed ({exc!s:.120}); "
-                        f"using Fisher exact for this cell type."
+                        f"[{comp_key}/{ct}] quasi-Poisson GLM failed "
+                        f"({exc!s:.120}); using Fisher exact for this cell type."
                     )
                     pval = float("nan")
 
@@ -280,6 +299,7 @@ def rna_diff_abundance(params: dict) -> dict:
                 "prop_ref":         prop_r,
                 "log2_fold_change": log2fc,
                 "pval":             pval,
+                "dispersion":       dispersion,
             })
             pvals.append(pval)
 

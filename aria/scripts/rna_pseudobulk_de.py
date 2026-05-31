@@ -391,9 +391,19 @@ def rna_pseudobulk_de(params: dict) -> dict:
             columns=sample_order,
         )
 
+        # C2 (audit 2026-05-29): the ORA universe for this cell type is the set
+        # of genes actually detected/tested in this cell type's pseudobulk, not
+        # the whole-dataset expressed set. A global background inflates
+        # per-cluster enrichment. counts_df.index is exactly that per-cluster
+        # tested universe (genes with nonzero pseudobulk counts in this group).
+        cluster_background = [str(g) for g in counts_df.index]
+
         per_group_entry: dict = {
             "n_pseudosamples":     len(sample_order),
             "pseudosample_sizes":  rep_to_n,
+            "background_genes":    cluster_background,
+            "background_size":     len(cluster_background),
+            "background_source":   "cluster_expressed_genes",
             "per_comparison":      {},
         }
 

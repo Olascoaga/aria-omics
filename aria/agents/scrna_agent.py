@@ -1724,16 +1724,24 @@ Rules:
         # 4. Pathway ORA per (group × comparison) — reuse the per-cluster
         # ORA script with synthetic cluster IDs like "Astro::old_vs_young".
         de_for_ora: dict = {}
+        # C2 (audit 2026-05-29): give each per-cluster ORA its own universe —
+        # the genes tested in that cell type's pseudobulk — instead of the
+        # whole-dataset expressed set, which inflates per-cluster enrichment.
+        background_by_cluster: dict = {}
         for group, info in (pb.get("per_group") or {}).items():
             if info.get("status") == "skipped":
                 continue
+            grp_bg = info.get("background_genes") or []
             for comp_key, comp in (info.get("per_comparison") or {}).items():
                 if comp.get("status") != "success" or not comp.get("all_sig"):
                     continue
-                de_for_ora[f"{group}::{comp_key}"] = [
+                cluster_id = f"{group}::{comp_key}"
+                de_for_ora[cluster_id] = [
                     {"gene": r["gene"], "log2fc": r["log2fc"], "padj": r["padj"]}
                     for r in comp["all_sig"]
                 ]
+                if grp_bg:
+                    background_by_cluster[cluster_id] = grp_bg
 
         pw_findings = None
         if de_for_ora:
@@ -1746,6 +1754,7 @@ Rules:
                                                           "Homo sapiens"),
                     "top_genes_per_cluster": 200,
                     "background_genes":       pb.get("background_genes", []),
+                    "background_genes_by_cluster": background_by_cluster,
                     "padj_db_max":           0.05,
                     "output_dir":            str(workspace),
                 },

@@ -49,12 +49,13 @@ flowchart TD
     SCRNA_AGENT --> BASE
     SCRNA_AGENT --> SCRNA_QC[aria/scripts/rna_qc.py]
     SCRNA_AGENT --> SCRNA_CLUSTER[aria/scripts/rna_clustering.py]
-    SCRNA_AGENT --> SCRNA_DA[aria/scripts/rna_diff_abundance.py]
+    SCRNA_AGENT --> SCRNA_DA[aria/scripts/rna_diff_abundance.py quasi-Poisson DA]
     SCRNA_AGENT --> SCRNA_PB[aria/scripts/rna_pseudobulk_de.py]
     STATS[aria/utils/stats.py shared statistical helpers] --> SCRNA_DA
     STATS --> SCRNA_PB
     SCRNA_PB --> CLASSIFIER
     SCRNA_AGENT --> SCRNA_PW[aria/scripts/rna_pathway_per_cluster.py]
+    SCRNA_PB -->|per-cluster ORA universe| SCRNA_PW
     SCRNA_AGENT --> SCRNA_CCC[aria/scripts/rna_cellcomm.py]
     SCRNA_AGENT --> SCRNA_TRAJ[aria/scripts/rna_trajectory.py]
     SCRNA_QC --> SCRNA_OUT[scRNA findings]
@@ -104,7 +105,8 @@ flowchart TD
 | `rna_bulk_de.py` result schema | `BulkRnaNarrator`, `NarrativeAgent`, bulk workflow docs, tests | Report claims, figures, tables, ORA, GSEA, and methodology depend on specific keys. |
 | `rna_pathway_viz.py` | `rna_bulk_de.py`, bulk narrative, report artifacts | It creates GSEA/ORA figures and tables that reports reference. |
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
-| `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. |
+| `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. DA uses quasi-Poisson (overdispersion-corrected, ADR-018); do not revert to plain Poisson — it anti-conservatively gates the composition covariate. |
+| `rna_pseudobulk_de.py` per-group `background_genes` / `scrna_agent` `background_genes_by_cluster` / `rna_pathway_per_cluster.py` universe | per-cluster ORA significance, `ScrnaNarrator` Methods + per-block background size | The ORA universe is per cell type (genes tested in that cluster's pseudobulk, ADR-018). A single global background inflates per-cluster enrichment; legacy results without per-group background fall back to the global universe. |
 | `stats.py` BH correction helper | `rna_pseudobulk_de.py`, `rna_diff_abundance.py`, FDR tests | Shared multiple-testing code must stay numerically stable; duplicating local BH implementations risks divergent significance calls. |
 | `count_classifier.py` raw-count detection | `rna_bulk_de.py` (`_load_counts` hard-refuse), `rna_pseudobulk_de.py` (integer-likeness + log-norm recovery probes), `count_source` provenance | The single detector deciding raw vs normalized input for DESeq2. Loosening `is_raw_counts` lets normalized matrices become pseudo-counts; the sampler is seeded — keep it deterministic for reproducible mode. |
 | `message_bus.py`, `BaseAgent.publish_blocking_escalation`, or checkpoint handling in `tui.py` / `headless.py` | `scrna_agent.py` Leiden resolution, `integration_agent.py` WNN/MOFA, `orchestrator_agent.py` CP3 handling | Internal parameter checkpoints must block script execution until user/headless resolution; otherwise custom/skip choices are decorative. |

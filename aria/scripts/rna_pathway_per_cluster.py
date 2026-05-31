@@ -14,6 +14,14 @@ Input params:
     background_genes:     list[str] (optional) — expressed/detectable genes
                           in the analyzed dataset. Used as the ORA universe
                           instead of Enrichr's default all-database universe.
+                          Acts as the fallback universe when a cluster has no
+                          entry in background_genes_by_cluster.
+    background_genes_by_cluster: {cluster_id: [str]} (optional) — per-cluster
+                          ORA universe (C2, audit 2026-05-29). When present for
+                          a cluster, the genes tested in THAT cell type's
+                          pseudobulk are the universe, instead of the global
+                          dataset background, which inflates per-cluster
+                          enrichment.
     padj_db_max:         float (optional) — filter Enrichr hits (default: 0.05)
     output_dir:          str (optional) — CSV destination
 
@@ -88,6 +96,7 @@ def rna_pathway_per_cluster(params: dict) -> dict:
     organism             = params.get("organism", "Homo sapiens")
     top_n                = int(params.get("top_genes_per_cluster", 200))
     background_genes_in  = params.get("background_genes") or []
+    background_by_cluster_in = params.get("background_genes_by_cluster") or {}
     padj_db_max          = float(params.get("padj_db_max", 0.05))
     output_dir           = params.get("output_dir") or "."
 
@@ -106,12 +115,17 @@ def rna_pathway_per_cluster(params: dict) -> dict:
 
     gene_sets   = _get_gene_sets(organism)
     enrichr_org = _gseapy_organism(organism)
-    background_genes = sorted({
-        str(g) for g in background_genes_in
-        if g and str(g).lower() != "nan"
-    })
-    background_set = set(background_genes)
-    background_source = (
+
+    def _clean_genes(genes) -> list:
+        return sorted({
+            str(g) for g in (genes or [])
+            if g and str(g).lower() != "nan"
+        })
+
+    # Global/default universe — used as the fallback when a cluster has no
+    # per-cluster universe in background_genes_by_cluster.
+    background_genes = _clean_genes(background_genes_in)
+    default_background_source = (
         "dataset_expressed_genes"
         if background_genes else
         "enrichr_default_universe"
@@ -124,13 +138,25 @@ def rna_pathway_per_cluster(params: dict) -> dict:
     # cartesian product.
     first_call = True
     for cluster_id, gene_records in de_by_cluster.items():
+        # C2 (audit 2026-05-29): resolve THIS cluster's ORA universe. A
+        # per-cluster universe (genes tested in that cell type's pseudobulk)
+        # avoids the enrichment inflation a global background causes.
+        cl_bg_in = background_by_cluster_in.get(cluster_id)
+        if cl_bg_in:
+            cl_background = _clean_genes(cl_bg_in)
+            cl_background_source = "cluster_expressed_genes"
+        else:
+            cl_background = background_genes
+            cl_background_source = default_background_source
+        cl_background_set = set(cl_background)
+
         if not gene_records:
             per_cluster[cluster_id] = {
                 "n_input_genes": 0,
                 "results":       {},
                 "n_significant": 0,
-                "background_size": len(background_genes),
-                "background_source": background_source,
+                "background_size": len(cl_background),
+                "background_source": cl_background_source,
             }
             continue
 
@@ -147,15 +173,15 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             for r in sorted_records[:top_n]
             if r.get("gene") and str(r["gene"]) not in ("nan", "")
         ]
-        if background_set:
-            symbols = [g for g in symbols if g in background_set]
+        if cl_background_set:
+            symbols = [g for g in symbols if g in cl_background_set]
         if not symbols:
             per_cluster[cluster_id] = {
                 "n_input_genes": 0,
                 "results":       {},
                 "n_significant": 0,
-                "background_size": len(background_genes),
-                "background_source": background_source,
+                "background_size": len(cl_background),
+                "background_source": cl_background_source,
             }
             continue
 
@@ -173,8 +199,8 @@ def rna_pathway_per_cluster(params: dict) -> dict:
                     "outdir": None,
                     "verbose": False,
                 }
-                if background_genes:
-                    enrichr_kwargs["background"] = background_genes
+                if cl_background:
+                    enrichr_kwargs["background"] = cl_background
                 try:
                     enr = gp.enrichr(**enrichr_kwargs)
                 except TypeError as exc:
@@ -218,8 +244,8 @@ def rna_pathway_per_cluster(params: dict) -> dict:
             "n_input_genes": len(symbols),
             "results":       cluster_results,
             "n_significant": cluster_n_sig,
-            "background_size": len(background_genes),
-            "background_source": background_source,
+            "background_size": len(cl_background),
+            "background_source": cl_background_source,
         }
 
     csv_path = None
@@ -229,12 +255,19 @@ def rna_pathway_per_cluster(params: dict) -> dict:
     except Exception:
         csv_path = None
 
+    # Top-level disclosure: when per-cluster universes were supplied, the ORA
+    # universe is cell-type-specific, so report that rather than a single global
+    # size. The per_cluster entries carry each cluster's exact universe.
+    used_per_cluster_bg = bool(background_by_cluster_in)
     return {
         "status":       "success",
         "organism":     organism,
         "databases":    gene_sets,
-        "background_size": len(background_genes),
-        "background_source": background_source,
+        "background_size": (None if used_per_cluster_bg
+                            else len(background_genes)),
+        "background_source": ("per_cluster_expressed_genes"
+                              if used_per_cluster_bg
+                              else default_background_source),
         "per_cluster":  per_cluster,
         "output_csv":   csv_path,
     }
