@@ -87,17 +87,20 @@ jobs:
         run: python -m pytest -q tests/test_pytest_smoke.py
 
   # ── Tier 2 (main only): heavy conda lane — BLOCKING ──────────────────────
-  # Runs the real pydeseq2 stack. No continue-on-error: if the env does not
-  # solve or a numerical-recovery test regresses, the build is red.
+  # Runs the real pyDESeq2 numerical-recovery gates in a SLIM scanpy+pydeseq2
+  # env (envs/aria-rna-ci.yml). The FULL env solve is validated by the release
+  # lane's Docker build. No continue-on-error: a failed solve or a numerical
+  # regression is red.
   rna-env-tests:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: mamba-org/setup-micromamba@v1
+      - uses: mamba-org/setup-micromamba@v2
         with:
-          environment-file: envs/aria-rna-env.yml
+          environment-file: envs/aria-rna-ci.yml
+          init-shell: bash
           cache-environment: true
 
       - name: Run pydeseq2-gated science gates

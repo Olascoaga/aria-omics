@@ -1,0 +1,38 @@
+name: aria-rna-ci
+
+# Slim CI env for the heavy lane's pyDESeq2 numerical-recovery gates. It is the
+# DE/scanpy subset of envs/aria-rna-env.yml WITHOUT the heavy spatial /
+# deconvolution stack (squidpy, cell2location -> torch, scrublet, decoupler,
+# blitzgsea, seaborn), which is slow and fragile to solve on a CI runner and is
+# not exercised by the heavy-lane tests. The FULL env's solve is validated by the
+# release lane's Docker build (which uses aria-rna-env.yml). Keep this in sync
+# with the DE-relevant pins in aria-rna-env.yml.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.11
+
+  # numpy <2.0.0 is REQUIRED — numpy 2.x breaks scanpy/pydeseq2.
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
+  - scipy>=1.11
+  - scikit-learn>=1.3
+  - h5py>=3.9
+  - hdf5
+
+  # scanpy UMAP/Leiden chain (rna_pseudobulk_de imports scanpy).
+  - numba>=0.58,<0.62
+  - llvmlite>=0.41,<0.45
+  - umap-learn>=0.5.4,<0.6
+  - scanpy>=1.9.6,<2.0
+  - anndata>=0.10,<0.11
+  - leidenalg>=0.10
+  - python-igraph>=0.11
+  - matplotlib>=3.7
+
+  - pip:
+    - pydeseq2>=0.4
