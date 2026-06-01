@@ -135,7 +135,7 @@ def find_pbmc_data(data_dir: Path) -> Path:
 
 # ── Pipeline tests ────────────────────────────────────────────────────────────
 
-def test_data_audit(data_dir: Path, experiment_id: str) -> dict:
+def _stage_data_audit(data_dir: Path, experiment_id: str) -> dict:
     """Test DataAuditAgent automatic detection and classification."""
     section("Test 1 -- DataAuditAgent (automatic detection)")
 
@@ -195,7 +195,7 @@ def test_data_audit(data_dir: Path, experiment_id: str) -> dict:
         return {}
 
 
-def test_scrna_qc(data_dir: Path, exp_ctx: dict,
+def _stage_scrna_qc(data_dir: Path, exp_ctx: dict,
                   experiment_id: str) -> dict:
     """Test scRNA-seq QC pipeline."""
     section("Test 2 -- scRNA-seq QC")
@@ -254,7 +254,7 @@ def test_scrna_qc(data_dir: Path, exp_ctx: dict,
     return {"adata": adata, "n_cells": n_after}
 
 
-def test_parameter_advisor(adata_result: dict,
+def _stage_parameter_advisor(adata_result: dict,
                             experiment_id: str,
                             has_api: bool) -> dict:
     """Test ParameterAdvisor 3-layer decision for Leiden clustering."""
@@ -339,7 +339,7 @@ def test_parameter_advisor(adata_result: dict,
     return {"decision": decision, "adata": adata}
 
 
-def test_clustering_annotation(param_result: dict,
+def _stage_clustering_annotation(param_result: dict,
                                 experiment_id: str,
                                 has_api: bool) -> dict:
     """Test clustering and LLM-assisted cell type annotation."""
@@ -435,7 +435,7 @@ Return JSON only: {{"cluster_id": "cell_type"}}
     return {"n_clusters": n_clusters, "adata": adata}
 
 
-def test_memory_persistence(experiment_id: str):
+def _stage_memory_persistence(experiment_id: str):
     """Verify all decisions were stored in persistent memory."""
     section("Test 5 -- Memory persistence")
 
@@ -464,7 +464,7 @@ def test_memory_persistence(experiment_id: str):
     memory.close()
 
 
-def test_message_bus_summary(experiment_id: str):
+def _stage_message_bus_summary(experiment_id: str):
     """Summarize all findings published during the test."""
     section("Test 6 -- MessageBus summary")
 
@@ -484,6 +484,46 @@ def test_message_bus_summary(experiment_id: str):
     for conf, count in conf_counts.items():
         color = GRN if conf == "high" else YLW if conf == "medium" else RED
         print(f"      {color}* {conf.upper()}{RST}: {count} finding(s)")
+
+
+# ── Native pytest entry ─────────────────────────────────────────────────────
+
+def _find_pbmc_dataset():
+    for c in (Path.home() / "aria-data" / "pbmc3k_test",
+              Path.home() / "aria-data" / "pbmc3k_test" / "hg19"):
+        if c.exists() and list(c.rglob("*.mtx*")):
+            return c
+    return None
+
+
+def test_pbmc_e2e_pipeline():
+    """Native pytest entry (P1-11 follow-up). The `_stage_*` helpers are no
+    longer named `test_*`, so pytest stops mis-collecting them as fixture-taking
+    tests (the historical 6 collection errors). This drives the full pipeline
+    only when scanpy + litellm + the PBMC 3k dataset are present; otherwise it
+    skips cleanly instead of erroring or hitting the script's sys.exit path."""
+    import os
+    import uuid as _uuid
+    import pytest
+
+    pytest.importorskip("scanpy")
+    pytest.importorskip("litellm")
+    data_dir = _find_pbmc_dataset()
+    if data_dir is None:
+        pytest.skip("PBMC 3k dataset not present (run install.sh to download)")
+
+    has_api = bool(os.environ.get("ANTHROPIC_API_KEY")
+                   or os.environ.get("GEMINI_API_KEY"))
+    experiment_id = f"pbmc3k_{_uuid.uuid4().hex[:8]}"
+
+    exp_ctx   = _stage_data_audit(data_dir, experiment_id)
+    qc_result = _stage_scrna_qc(data_dir, exp_ctx, experiment_id)
+    param_res = _stage_parameter_advisor(qc_result, experiment_id, has_api)
+    _stage_clustering_annotation(param_res, experiment_id, has_api)
+    _stage_memory_persistence(experiment_id)
+    _stage_message_bus_summary(experiment_id)
+
+    assert qc_result.get("n_cells", 0) > 0
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -510,12 +550,12 @@ def main():
 
     t_total = time.time()
 
-    exp_ctx   = test_data_audit(data_dir, experiment_id)
-    qc_result = test_scrna_qc(data_dir, exp_ctx, experiment_id)
-    param_res = test_parameter_advisor(qc_result, experiment_id, has_api)
-    clust_res = test_clustering_annotation(param_res, experiment_id, has_api)
-    test_memory_persistence(experiment_id)
-    test_message_bus_summary(experiment_id)
+    exp_ctx   = _stage_data_audit(data_dir, experiment_id)
+    qc_result = _stage_scrna_qc(data_dir, exp_ctx, experiment_id)
+    param_res = _stage_parameter_advisor(qc_result, experiment_id, has_api)
+    clust_res = _stage_clustering_annotation(param_res, experiment_id, has_api)
+    _stage_memory_persistence(experiment_id)
+    _stage_message_bus_summary(experiment_id)
 
     total_time = time.time() - t_total
     n_clusters = clust_res.get("n_clusters", "?")

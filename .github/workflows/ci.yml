@@ -88,6 +88,16 @@ jobs:
             tests/test_headless_design_e2e.py \
             tests/test_env_manager_cache.py
 
+      - name: Converted legacy native tests (P1-11, dep-gated)
+        # Native conversions of the former script-style harnesses. Light/source
+        # checks run here; scanpy marker/DE + pydeseq2 e2e + dataset-gated cases
+        # skip in this pip lane and run in the heavy/dev lanes.
+        run: |
+          python -m pytest -q \
+            tests/test_scrna.py \
+            tests/test_environment_manager.py \
+            tests/test_pbmc_e2e.py
+
       - name: Integration smoke suite (importorskip-gated)
         run: python -m pytest -q tests/test_pytest_smoke.py
 
@@ -119,7 +129,8 @@ jobs:
             tests/test_lfc_shrinkage.py \
             tests/test_composition_collinearity.py \
             tests/test_bulk_covariates.py \
-            tests/test_bulk_rna.py
+            tests/test_bulk_rna.py \
+            tests/test_scrna.py
 
   # ── Tier 3 (tags v* only): release reproducibility ───────────────────────
   # Validates the published Docker image solves the env and runs a real
