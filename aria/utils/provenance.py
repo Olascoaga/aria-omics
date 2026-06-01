@@ -6,7 +6,6 @@ import hashlib
 import json
 import os
 import platform
-import subprocess
 import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
@@ -15,33 +14,26 @@ from typing import Any
 USAGE_LOG = Path.home() / ".aria" / "llm_usage.jsonl"
 
 
-def _git(args: list[str]) -> str:
-    try:
-        result = subprocess.run(
-            ["git", *args],
-            capture_output=True,
-            text=True,
-            timeout=5,
-            check=False,
-        )
-        if result.returncode == 0:
-            return result.stdout.strip()
-    except Exception:
-        pass
-    return "unknown"
-
-
 def collect_provenance() -> dict[str, Any]:
     """Collect runtime provenance for a report."""
     try:
-        from aria import __version__ as aria_version
+        from aria.version import collect_version_metadata
+        version_metadata = collect_version_metadata()
     except Exception:
-        aria_version = "unknown"
-    porcelain = _git(["status", "--porcelain"])
+        version_metadata = {
+            "aria_version": "unknown",
+            "version": "unknown",
+            "version_source": "aria.version.__version__",
+            "git_sha": "unknown",
+            "git_commit": "unknown",
+            "git_dirty": False,
+            "git_tree_sha": "unknown",
+            "git_describe": "unknown",
+            "workflow_hash": "unknown",
+            "workflow_hash_algorithm": "unknown",
+        }
     return {
-        "aria_version": aria_version,
-        "git_sha": _git(["rev-parse", "HEAD"]),
-        "git_dirty": bool(porcelain and porcelain != "unknown"),
+        **version_metadata,
         "python_version": sys.version.replace("\n", " "),
         "platform": platform.platform(),
         "conda_env": os.environ.get("CONDA_PREFIX", ""),
