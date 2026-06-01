@@ -72,6 +72,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 from aria.utils.count_classifier import classify_matrix, sample_row_indices
 from aria.utils.stats import bh_correct as _bh_correct
+from aria.utils.stats import (
+    assert_fdr_family_not_post_hoc,
+    preregister_fdr_family,
+    primary_fdr_column,
+)
 
 
 def _global_bh(pvals):
@@ -221,9 +226,12 @@ def rna_pseudobulk_de(params: dict) -> dict:
     # gene x cell-type x contrast (whole-experiment FDR control, conservative).
     # Both adjusted p-values are always computed and reported; this selects the
     # primary significance call only. Default per_cluster.
-    fdr_strategy                  = str(params.get("fdr_strategy", "per_cluster")).lower()
-    if fdr_strategy not in ("per_cluster", "global"):
-        fdr_strategy = "per_cluster"
+    # P1-2: pre-register the FDR family BEFORE any p-values are computed, so the
+    # per-cluster vs global choice is not a post-hoc, discovery-maximizing one.
+    fdr_preregistration           = preregister_fdr_family(
+        params.get("fdr_strategy", "per_cluster")
+    )
+    fdr_strategy                  = fdr_preregistration["fdr_strategy"]
     output_dir                    = params.get("output_dir")
     auto_paired_donor_covariate   = bool(
         params.get("auto_paired_donor_covariate", True)
@@ -706,12 +714,13 @@ def rna_pseudobulk_de(params: dict) -> dict:
             # record mirrors the primary adjusted p-value so downstream ORA and
             # narrative use the chosen family; padj_local/padj_global are always
             # carried for audit.
-            if fdr_strategy == "global":
-                sig_primary = sig_global
-                primary_padj_col = "padj_global"
-            else:
-                sig_primary = sig_local
-                primary_padj_col = "padj_local"
+            # P1-2: the primary family is derived ONLY from the pre-registered
+            # strategy (never from which family yields more hits), and the guard
+            # fails loudly if those ever diverge.
+            primary_padj_col = primary_fdr_column(fdr_strategy)
+            assert_fdr_family_not_post_hoc(fdr_strategy, primary_padj_col)
+            sig_primary = sig_global if primary_padj_col == "padj_global" \
+                else sig_local
 
             def _raw_lfc(row):
                 v = row.get("log2FoldChange_raw")
@@ -870,6 +879,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "fdr_strategy":   fdr_strategy,
             "primary_family": ("per-cluster BH" if fdr_strategy == "per_cluster"
                                else "global pooled BH"),
+            "primary_padj_column": primary_fdr_column(fdr_strategy),
+            "fdr_preregistration": fdr_preregistration,
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
