@@ -236,6 +236,11 @@ class ParameterAdvisor:
         # User approves at Checkpoint 3
     """
 
+    # P1-14: the historical-approval bonus only breaks near-ties; it is capped
+    # so it can never override a real difference in the measured objective score.
+    HISTORICAL_BONUS_PER_HIT = 0.02
+    HISTORICAL_BONUS_CAP     = 0.05
+
     def __init__(self, memory: ARIAMemory, llm: LLMProvider):
         self.memory = memory
         self.llm    = llm
@@ -272,19 +277,13 @@ class ParameterAdvisor:
                 f"({result.get('error_type', '?')}): "
                 f"{result.get('details', result.get('reason', ''))[:200]}"
             )
-            # Fall back to mock metrics so the user still sees a CP3
-            # instead of a hard crash.
-            return [
-                ParameterCandidate(
-                    value=val,
-                    metrics=MetricEvaluator._mock_metrics(val),
-                    flags=["subprocess evaluation failed — using heuristic"],
-                    score=self._score_leiden(
-                        MetricEvaluator._mock_metrics(val), biological_context
-                    ),
-                )
-                for val in resolutions
-            ]
+            # P1-14: the subprocess could not measure any clustering metric.
+            # Do NOT fabricate silhouette/modularity numbers as a "comparable"
+            # substitute — that would let an unmeasured guess look like data.
+            # Emit honest not-measured candidates ranked by a neutral prior only
+            # (mid-range resolution), with a loud flag so the report and the
+            # checkpoint disclose that nothing was measured.
+            return self._unmeasured_leiden_candidates(list(resolutions))
 
         candidates: list[ParameterCandidate] = []
         common_flags = []
@@ -311,6 +310,39 @@ class ParameterAdvisor:
                 metrics=metrics, flags=flags, score=score,
             ))
         return candidates
+
+    @staticmethod
+    def _unmeasured_leiden_candidates(resolutions: list[float]) -> list["ParameterCandidate"]:
+        """Honest fallback when no clustering metric could be measured (P1-14).
+
+        Each candidate carries `measured=False` and NO fabricated
+        silhouette/modularity — only a neutral mid-range prior used to break the
+        tie, plus a flag stating metrics were not measured. The report renders
+        these as `not measured`, never as comparable data."""
+        if not resolutions:
+            return []
+        lo, hi = min(resolutions), max(resolutions)
+        span = (hi - lo) or 1.0
+        mid = resolutions[len(resolutions) // 2]
+        out = []
+        for val in resolutions:
+            prior = round(max(0.0, 0.5 - abs(val - mid) / span * 0.5), 4)
+            out.append(ParameterCandidate(
+                value=val,
+                metrics={
+                    "measured": False,
+                    "basis": "subprocess_unavailable",
+                    "prior_score": prior,
+                },
+                flags=[
+                    "Metrics NOT measured — clustering-quality evaluation failed; "
+                    "selection uses a neutral mid-range prior only, not data. "
+                    "Provide a readable data_path so silhouette/modularity can be "
+                    "computed."
+                ],
+                score=prior,
+            ))
+        return out
 
     # ── Public advisors ───────────────────────────────────────────────────
 
@@ -498,15 +530,21 @@ class ParameterAdvisor:
             marker = "  ★ " if c.recommended else "    "
             flags  = " ⚠️ " + ", ".join(c.flags) if c.flags else ""
             
-            # Format key metrics
+            # Format key metrics. P1-14: never render absent metrics as data —
+            # an unmeasured candidate is shown as "metrics not measured".
             key_metrics = []
-            if "silhouette" in c.metrics:
-                key_metrics.append(f"sil={c.metrics['silhouette']:.3f}")
-            if "n_clusters" in c.metrics:
-                key_metrics.append(f"k={c.metrics['n_clusters']}")
-            if "modularity" in c.metrics and c.metrics["modularity"] > 0:
-                key_metrics.append(f"mod={c.metrics['modularity']:.3f}")
-            
+            if c.metrics.get("measured") is False:
+                key_metrics.append("metrics not measured")
+            else:
+                sil = c.metrics.get("silhouette")
+                if sil is not None:
+                    key_metrics.append(f"sil={float(sil):.3f}")
+                if c.metrics.get("n_clusters") is not None:
+                    key_metrics.append(f"k={c.metrics['n_clusters']}")
+                mod = c.metrics.get("modularity")
+                if mod is not None and mod > 0:
+                    key_metrics.append(f"mod={float(mod):.3f}")
+
             metrics_str = "  " + " | ".join(key_metrics) if key_metrics else ""
             lines.append(
                 f"{marker}{decision.parameter_name}={c.value}"
@@ -585,6 +623,11 @@ class ParameterAdvisor:
         Score a Leiden candidate. Higher = better.
         Weights vary by biological intent.
         """
+        # P1-14: when nothing was measured, score on the declared neutral prior
+        # only — never fabricate a metric-based score from absent silhouette.
+        if metrics.get("measured") is False:
+            return float(metrics.get("prior_score", 0.0))
+
         sil       = float(metrics.get("silhouette") or 0)
         mod_raw   = metrics.get("modularity")
         mod       = float(mod_raw) if mod_raw is not None else None
@@ -656,13 +699,25 @@ class ParameterAdvisor:
     ) -> list[dict]:
         """
         Query ARIAMemory for approved decisions on similar analyses.
-        Returns decisions sorted by recency.
+
+        P1-14: recall is conditioned on `bio_context`, not just an
+        `analysis_type` substring. A past decision is only relevant when it came
+        from the SAME organism (the strongest available context axis); a
+        human-PBMC resolution must not be recommended from a mouse-brain run.
+        When the current organism is unknown, the organism gate is not applied
+        (we cannot claim relevance, so we fall back to the analysis-type match).
         """
         try:
+            cur_organism = str(bio_context.get("organism", "")).strip().lower()
             all_wings = self.memory.list_wings()
             similar   = []
 
             for wing in all_wings:
+                wing_organism = str(wing.get("organism", "") or "").strip().lower()
+                # Organism gate: when both organisms are known and differ, the
+                # decision is not from a comparable context — skip it.
+                if cur_organism and wing_organism and wing_organism != cur_organism:
+                    continue
                 decisions = self.memory.get_decisions(wing["id"])
                 for d in decisions:
                     if (analysis_type.lower() in d.get("question", "").lower()
@@ -685,7 +740,12 @@ class ParameterAdvisor:
         """
         Choose the best candidate, weighted by:
           - objective score (primary)
-          - historical approval frequency (secondary bonus)
+          - historical approval frequency (secondary, strictly BOUNDED bonus)
+
+        P1-14: the historical bonus is capped (`HISTORICAL_BONUS_CAP`) so it can
+        only break a near-tie — it can never dominate a real difference in the
+        measured objective score (a value approved many times must not override
+        a clearly better-scoring candidate).
         """
         # Build historical value frequency
         hist_values = {}
@@ -701,10 +761,15 @@ class ParameterAdvisor:
 
         for c in candidates:
             adjusted = c.score
-            # Small bonus for historically approved values
+            # Bounded bonus for historically approved values: grows with
+            # frequency but saturates at HISTORICAL_BONUS_CAP.
             try:
-                if float(c.value) in hist_values:
-                    adjusted += 0.05 * hist_values[float(c.value)]
+                count = hist_values.get(float(c.value), 0)
+                if count:
+                    adjusted += min(
+                        self.HISTORICAL_BONUS_CAP,
+                        self.HISTORICAL_BONUS_PER_HIT * count,
+                    )
             except (ValueError, TypeError):
                 pass
 
@@ -771,6 +836,13 @@ Do NOT hedge. Be direct. Use scientific language appropriate for a methods secti
             )
         except Exception as e:
             log.warning(f"LLM justification failed: {e}. Using fallback.")
+            if chosen.metrics.get("measured") is False:
+                return (
+                    f"{parameter_name}={chosen.value} selected by a neutral "
+                    f"mid-range prior only — clustering-quality metrics were "
+                    f"NOT measured for any of the {len(all_candidates)} "
+                    f"candidates (subprocess evaluation unavailable)."
+                )
             return (
                 f"{parameter_name}={chosen.value} selected based on highest "
                 f"silhouette score ({chosen.metrics.get('silhouette', '?')}) "
