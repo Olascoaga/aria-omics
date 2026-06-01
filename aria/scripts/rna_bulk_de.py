@@ -2072,6 +2072,18 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
         )
         return {}, warnings
 
+    # W-PRIV (P1-7/P1-8): Enrichr ships the gene list to an external server.
+    # Under air-gapped mode, refuse the egress and skip ORA with a clear caveat
+    # rather than leaking. The DE results are unaffected.
+    from aria.utils.privacy import egress_allowed
+    if not egress_allowed():
+        warnings.append(
+            "Pathway ORA via Enrichr was skipped: ARIA_AIR_GAPPED is enabled and "
+            "Enrichr requires sending the gene list to an external server. "
+            "Disable air-gapped mode or use a local GMT-based ORA to enable it."
+        )
+        return {}, warnings
+
     try:
         import gseapy as gp
         import time as _time

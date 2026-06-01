@@ -31,6 +31,27 @@ def air_gapped_enabled() -> bool:
     }
 
 
+class EgressBlocked(RuntimeError):
+    """Raised when a network egress is attempted under air-gapped mode."""
+
+
+def egress_allowed() -> bool:
+    """W-PRIV: network egress (Enrichr ORA, GEO/SRA fetch, …) is allowed only
+    when ARIA is not air-gapped. Air-gapped governs ALL egress, not just the LLM
+    layer, so a sensitive run never ships gene lists or fetches remote data."""
+    return not air_gapped_enabled()
+
+
+def assert_egress_allowed(channel: str) -> None:
+    """Refuse a network egress when air-gapped. `channel` names the destination
+    (e.g. 'enrichr', 'GEO/SRA') for the error message."""
+    if not egress_allowed():
+        raise EgressBlocked(
+            f"ARIA_AIR_GAPPED is enabled; refusing network egress to '{channel}'. "
+            f"Disable air-gapped mode to allow it, or use a local alternative."
+        )
+
+
 def _redact_scalar(value: Any) -> Any:
     if isinstance(value, (str, os.PathLike)):
         text = str(value)

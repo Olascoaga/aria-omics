@@ -104,6 +104,19 @@ def rna_pathway_per_cluster(params: dict) -> dict:
         return {"status": "skipped",
                 "reason": "no de_genes_by_cluster provided"}
 
+    # W-PRIV (P1-7/P1-8): Enrichr egress is refused under air-gapped mode.
+    from aria.utils.privacy import egress_allowed
+    if not egress_allowed():
+        return {
+            "status": "skipped",
+            "reason": "air_gapped_egress_blocked",
+            "details": (
+                "Per-cluster ORA via Enrichr was skipped: ARIA_AIR_GAPPED is "
+                "enabled and Enrichr requires sending gene lists to an external "
+                "server."
+            ),
+        }
+
     try:
         import gseapy as gp
     except ImportError:

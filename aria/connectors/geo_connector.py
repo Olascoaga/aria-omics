@@ -98,6 +98,11 @@ class GEOConnector:
               "geo_metadata":    dict,
             }
         """
+        # W-PRIV (P1-7/P1-8): fetching a public accession is network egress to
+        # NCBI; refuse it under air-gapped mode instead of leaking the request.
+        from aria.utils.privacy import assert_egress_allowed
+        assert_egress_allowed("GEO/SRA")
+
         acc = accession.strip().upper()
         if acc.startswith("GSE"):
             return self._fetch_gse(acc, status_callback)
