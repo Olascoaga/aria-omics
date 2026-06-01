@@ -323,4 +323,185 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_peaks", "int", required=False),
         ),
     ),
+
+    # ── P1-12: contracts for the remaining dispatchable scripts ──────────────
+    # scRNA helper scripts (validated path).
+    "aria/scripts/rna_apply_cluster_labels.py": ScriptContract(
+        script_path="aria/scripts/rna_apply_cluster_labels.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("label_col", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_celltypist.py": ScriptContract(
+        script_path="aria/scripts/rna_celltypist.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("output_path", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_concat.py": ScriptContract(
+        script_path="aria/scripts/rna_concat.py",
+        validation_level="production",
+        inputs=(
+            _f("samples", "list", required=False),
+            _f("output_dir", "str", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_de_per_cluster.py": ScriptContract(
+        script_path="aria/scripts/rna_de_per_cluster.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("de_genes_by_cluster", "dict", required=False),
+        ),
+    ),
+    "aria/scripts/rna_inject_condition.py": ScriptContract(
+        script_path="aria/scripts/rna_inject_condition.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+            _f("output_path", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("condition_col", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_integration.py": ScriptContract(
+        script_path="aria/scripts/rna_integration.py",
+        validation_level="production",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("output_path", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_figure_umap.py": ScriptContract(
+        script_path="aria/scripts/rna_figure_umap.py",
+        validation_level="production",
+        inputs=(
+            _f("output_dir", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("embedding_key", "str", required=False),
+        ),
+    ),
+    "aria/scripts/rna_figure_paga.py": ScriptContract(
+        script_path="aria/scripts/rna_figure_paga.py",
+        validation_level="production",
+        inputs=(
+            _f("output_dir", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("figures", "dict", required=False),
+        ),
+    ),
+    # FASTQ preprocessing flow (beta).
+    "aria/scripts/rna_fastq_qc.py": ScriptContract(
+        script_path="aria/scripts/rna_fastq_qc.py",
+        validation_level="beta",
+        inputs=(
+            _f("fastq_dir", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("n_reads_raw", "int", required=False),
+        ),
+    ),
+    "aria/scripts/rna_align.py": ScriptContract(
+        script_path="aria/scripts/rna_align.py",
+        validation_level="beta",
+        inputs=(
+            _f("samples", "list", allow_empty=False),
+            _f("genome_dir", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("bam_files", "list", required=False),
+        ),
+    ),
+    "aria/scripts/rna_quantify.py": ScriptContract(
+        script_path="aria/scripts/rna_quantify.py",
+        validation_level="beta",
+        inputs=(
+            _f("bam_files", "list", allow_empty=False),
+            _f("gtf_file", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("counts_matrix", "any", required=False),
+        ),
+    ),
+    # Scaffold modalities (dispatch-gated; contract present for completeness).
+    "aria/scripts/integration_wnn.py": ScriptContract(
+        script_path="aria/scripts/integration_wnn.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("rna_files", "list", required=False),
+            _f("atac_files", "list", required=False),
+        ),
+        success_outputs=(
+            _f("n_cells", "int", required=False),
+        ),
+    ),
+    "aria/scripts/integration_mofa.py": ScriptContract(
+        script_path="aria/scripts/integration_mofa.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("output_dir", "str", required=False),
+        ),
+        success_outputs=(
+            _f("factor_id", "any", required=False),
+        ),
+    ),
+    "aria/scripts/integration_peak2gene.py": ScriptContract(
+        script_path="aria/scripts/integration_peak2gene.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("rna_files", "list", required=False),
+            _f("atac_files", "list", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "str", required=False),
+        ),
+    ),
+    "aria/scripts/hic_inspect.py": ScriptContract(
+        script_path="aria/scripts/hic_inspect.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("files", "list", required=False),
+        ),
+        success_outputs=(
+            _f("chromosomes", "list", required=False),
+        ),
+    ),
+    "aria/scripts/hic_qc_and_balance.py": ScriptContract(
+        script_path="aria/scripts/hic_qc_and_balance.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("files", "list", required=False),
+        ),
+        success_outputs=(
+            _f("cis_trans_ratio", "float", required=False),
+        ),
+    ),
+    "aria/scripts/hic_topology.py": ScriptContract(
+        script_path="aria/scripts/hic_topology.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("files", "list", required=False),
+        ),
+        success_outputs=(
+            _f("algorithm", "str", required=False),
+        ),
+    ),
 }
