@@ -73,3 +73,95 @@ def assert_fdr_family_not_post_hoc(declared_strategy, applied_column) -> None:
             f"'{declared_strategy}' maps to '{expected}', but the applied "
             f"primary column is '{applied_column}' (post-hoc switch)."
         )
+
+
+# ── FDR across the bulk contrast family (P1-1c) ──────────────────────────────
+# Bulk DE controls FDR within each contrast. When several contrasts are tested
+# together, the family-wise error across the contrast family is not controlled.
+# A pooled BH across all contrasts does, with the family pre-registered.
+
+_VALID_CONTRAST_FAMILIES = ("per_contrast", "global")
+
+
+def preregister_contrast_family(strategy) -> dict:
+    """Pre-register the bulk contrast-FDR family before results are seen (P1-1c):
+    `per_contrast` (BH within each contrast) or `global` (pooled BH across the
+    contrast family). Unknown/empty falls back to the conservative-by-default
+    `per_contrast`."""
+    s = str(strategy or "per_contrast").strip().lower()
+    if s not in _VALID_CONTRAST_FAMILIES:
+        s = "per_contrast"
+    return {
+        "fdr_family": s,
+        "preregistered": True,
+        "selected_before_results": True,
+        "note": (
+            "The bulk FDR family (per-contrast vs global BH across the contrast "
+            "family) is fixed from the analysis plan before any p-values are "
+            "computed; it is not chosen post-hoc to maximize significant genes."
+        ),
+    }
+
+
+def pooled_bh_across_groups(group_pvalues: dict) -> dict:
+    """Pool p-values across groups (e.g. DE contrasts) and apply ONE BH
+    correction over the whole family, mapping the adjusted values back per
+    group. Controls FDR across the family rather than within each group.
+
+    `group_pvalues`: {group: {gene: pvalue}}. Returns the same shape with
+    pooled-BH adjusted p-values.
+    """
+    keys: list = []
+    pvals: list = []
+    for grp, genes in (group_pvalues or {}).items():
+        for gene, p in (genes or {}).items():
+            if p is None:
+                continue
+            keys.append((grp, gene))
+            pvals.append(float(p))
+    out: dict = {grp: {} for grp in (group_pvalues or {})}
+    if not pvals:
+        return out
+    adj = bh_correct(pvals)
+    for (grp, gene), a in zip(keys, adj):
+        out[grp][gene] = float(a)
+    return out
+
+
+def contrast_family_significance(group_stats: dict, *, padj_max: float,
+                                 lfc_min: float) -> dict:
+    """Derive each contrast's family-significant set under pooled BH (P1-1c).
+
+    `group_stats`: {contrast: {gene: {"pvalue": p, "log2fc": l}}}. Applies one
+    pooled BH across the family, then calls a gene significant when its
+    family-adjusted p-value < `padj_max` AND |log2fc| > `lfc_min`. Returns
+    {contrast: {"padj_family", "sig_genes", "n_sig", "n_up", "n_down"}}.
+    """
+    pvals = {
+        c: {g: s.get("pvalue") for g, s in (genes or {}).items()
+            if s.get("pvalue") is not None}
+        for c, genes in (group_stats or {}).items()
+    }
+    family_padj = pooled_bh_across_groups(pvals)
+
+    out: dict = {}
+    for c, genes in (group_stats or {}).items():
+        fp = family_padj.get(c, {})
+        sig, n_up, n_down = [], 0, 0
+        for g, s in (genes or {}).items():
+            lfc = s.get("log2fc")
+            if (fp.get(g, 1.0) < padj_max and lfc is not None
+                    and abs(lfc) > lfc_min):
+                sig.append(g)
+                if lfc > 0:
+                    n_up += 1
+                elif lfc < 0:
+                    n_down += 1
+        out[c] = {
+            "padj_family": fp,
+            "sig_genes": sig,
+            "n_sig": len(sig),
+            "n_up": n_up,
+            "n_down": n_down,
+        }
+    return out

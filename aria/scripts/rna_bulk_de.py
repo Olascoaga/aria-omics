@@ -51,6 +51,10 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
 from aria.utils.count_classifier import classify_matrix
+from aria.utils.stats import (
+    contrast_family_significance,
+    preregister_contrast_family,
+)
 from pathlib import Path
 
 # ── Paper theme — applied to every plot in this module ────────────────────────
@@ -86,6 +90,8 @@ def bulk_rna_de(params: dict) -> dict:
     covariates     = params.get("covariates", []) or []
     # P1-1/ADR-023: apeGLM LFC shrinkage on by default (bulk = pseudobulk rigor).
     lfc_shrink     = bool(params.get("lfc_shrink", True))
+    # P1-1c: pre-register the contrast-FDR family before any p-values are seen.
+    fdr_family     = preregister_contrast_family(params.get("fdr_family", "per_contrast"))
 
     # v3: accept list of contrasts OR single comparison (backward compat)
     contrasts_in   = params.get("contrasts", [])
@@ -224,6 +230,8 @@ def bulk_rna_de(params: dict) -> dict:
 
     # ── 6. Run each contrast ─────────────────────────────────────────────
     contrast_results = []
+    # P1-1c: per-contrast (gene -> pvalue, log2fc) for the pooled contrast-family BH.
+    family_stats: dict = {}
 
     for contrast in contrasts_in:
         num  = str(contrast.get("numerator",   "")).strip()
@@ -434,6 +442,16 @@ def bulk_rna_de(params: dict) -> dict:
             "tables_dir":        str(tables_dir),
         })
 
+        # P1-1c: stash this contrast's per-gene p-value + shrunken log2fc for the
+        # pooled contrast-family BH computed once all contrasts have run.
+        rdf = de_result.get("results")
+        if rdf is not None and len(rdf) > 0:
+            family_stats[name] = {
+                str(g): {"pvalue": float(row["pvalue"]),
+                         "log2fc": float(row["log2FoldChange"])}
+                for g, row in rdf.dropna(subset=["pvalue"]).iterrows()
+            }
+
     if not contrast_results:
         return {
             "status":     "error",
@@ -441,6 +459,30 @@ def bulk_rna_de(params: dict) -> dict:
             "details":    "No contrasts produced valid results.",
             "warnings":   warnings,
         }
+
+    # ── 6b. Contrast-family FDR (P1-1c) ──────────────────────────────────
+    # Always compute the pooled BH across the contrast family for audit; when the
+    # pre-registered family is "global", the primary significance call follows it.
+    n_tests_family = sum(len(v) for v in family_stats.values())
+    fam = contrast_family_significance(
+        family_stats, padj_max=padj_thr, lfc_min=lfc_thr)
+    for cr in contrast_results:
+        if cr.get("status") != "success":
+            continue
+        f = fam.get(cr["name"])
+        if not f:
+            continue
+        cr["n_significant_contrast_family"] = f["n_sig"]
+        cr["sig_genes_contrast_family"] = [str(g) for g in f["sig_genes"]]
+        if fdr_family["fdr_family"] == "global":
+            # Primary follows the pre-registered global contrast-family BH.
+            cr["n_significant"]   = f["n_sig"]
+            cr["n_upregulated"]   = f["n_up"]
+            cr["n_downregulated"] = f["n_down"]
+            cr["all_sig_genes"]   = (
+                _to_symbols(f["sig_genes"], symbol_map) if symbol_map
+                else [str(g) for g in f["sig_genes"]]
+            )
 
     # ── 7. Aggregate summary ─────────────────────────────────────────────
     total_sig  = sum(c.get("n_significant",   0) for c in contrast_results)
@@ -526,6 +568,8 @@ def bulk_rna_de(params: dict) -> dict:
         "design_used":      f"~{design_factor}",
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
+        # P1-1c: pre-registered contrast-FDR family + the pooled-BH family size.
+        "fdr_family":       {**fdr_family, "n_tests_family": n_tests_family},
         "overlap":          overlap_info,
         "methodology":      methodology,
         "count_source":     count_source,

@@ -79,6 +79,14 @@ class BulkRnaNarrator:
                 "estimates (the raw MLE is preserved as log2FoldChange_raw); "
                 "p-values are unchanged by shrinkage."
             )
+        # P1-1c: disclose the pre-registered contrast-FDR family.
+        fam = findings.get("fdr_family") or {}
+        if fam.get("fdr_family") == "global":
+            lines.append(
+                "Multiple testing was controlled across the contrast family "
+                "(one pooled Benjamini–Hochberg correction over all contrasts), "
+                "pre-registered before results were seen."
+            )
         return lines
 
     def figures(self, agent_name: str, agent_result: dict,
