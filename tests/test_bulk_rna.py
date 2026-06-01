@@ -245,8 +245,9 @@ except Exception as e:
     fail("Gene set selection", str(e))
 
 try:
-    # Pathway enrichment with real or mock
-    pw, pw_warn = _run_pathway_enrichment(
+    # Pathway enrichment (P1-7: now returns (pathways, warnings, ora_meta);
+    # local hypergeometric by default, Enrichr opt-in only)
+    pw, pw_warn, pw_meta = _run_pathway_enrichment(
         sig_genes=["CD3E","CD8A","PDCD1","TOX","LAG3",
                    "HAVCR2","IL2","IFNG","TNF","GZMB",
                    "PRF1","NKG7","GNLY","CTLA4","TIGIT"],
@@ -257,7 +258,8 @@ try:
         allow_mock=True,
     )
     assert isinstance(pw, dict)
-    ok(f"Pathway enrichment ran: {list(pw.keys())}")
+    assert isinstance(pw_meta, dict) and "method" in pw_meta
+    ok(f"Pathway enrichment ran: method={pw_meta['method']}, dbs={list(pw.keys())}")
     if pw_warn:
         ok(f"  Warnings: {pw_warn[0][:60]}")
 except Exception as e:

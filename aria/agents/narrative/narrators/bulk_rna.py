@@ -250,6 +250,28 @@ class BulkRnaNarrator:
             if row.get("adjusted_p") is not None:
                 evidence.append(_evidence(f"{term} FDR", row.get("adjusted_p"),
                                           "bulk_pathways"))
+
+        # P1-7/W-PRIV: surface the ORA engine + exact versioned gene-set release
+        # per database so methodology.json records reproducible provenance and
+        # the offline/opt-in posture is auditable.
+        ora_meta = contrast.get("pathway_ora", {}) or {}
+        versions = ora_meta.get("gene_set_versions", {}) or {}
+        gene_set_releases = {
+            db: (v.get("library"), v.get("release"))
+            for db, v in versions.items()
+        }
+        caveats = [Caveat(
+            "ORA/GSEA terms summarize DE gene sets and are not causal "
+            "pathway proof.",
+            "info",
+        )]
+        method = ora_meta.get("method")
+        if method == "local_hypergeometric":
+            caveats.append(Caveat(
+                "ORA computed locally (hypergeometric) against versioned gene "
+                "sets; the gene list did not leave the machine (W-PRIV).",
+                "info",
+            ))
         blocks.append(NarrativeBlock(
             id=f"bulk.pathway.{_safe_id(name)}",
             modality="bulk RNA-seq",
@@ -260,12 +282,12 @@ class BulkRnaNarrator:
             confidence="medium",
             claim=f"Pathway enrichment found {len(terms)} term(s) for {name}.",
             evidence=evidence,
-            caveats=[Caveat(
-                "ORA/GSEA terms summarize DE gene sets and are not causal "
-                "pathway proof.",
-                "info",
-            )],
-            metrics={"n_terms": len(terms)},
+            caveats=caveats,
+            metrics={
+                "n_terms": len(terms),
+                "ora_method": method,
+                "gene_set_versions": gene_set_releases,
+            },
         ))
         return blocks
 

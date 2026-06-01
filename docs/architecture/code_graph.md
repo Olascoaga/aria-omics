@@ -49,6 +49,8 @@ flowchart TD
     ENV --> BULK_SCRIPT[aria/scripts/rna_bulk_de.py]
     BULK_SCRIPT --> CLASSIFIER[aria/utils/count_classifier.py raw-count guard]
     BULK_SCRIPT --> PATHWAY_VIZ[aria/scripts/rna_pathway_viz.py]
+    BULK_SCRIPT --> ORA[aria/utils/ora.py local hypergeometric ORA + versioned GMTs]
+    ORA --> GMT[(ARIA_GMT_DIR versioned .gmt + manifest)]
     BULK_SCRIPT --> BULK_OUT[bulk findings: QC, DE, ORA, GSEA, figures, tables]
 
     DISPATCH --> SCRNA_AGENT[aria/agents/scrna_agent.py]
@@ -62,6 +64,7 @@ flowchart TD
     SCRNA_PB --> CLASSIFIER
     SCRNA_AGENT --> SCRNA_PW[aria/scripts/rna_pathway_per_cluster.py]
     SCRNA_PB -->|per-cluster ORA universe| SCRNA_PW
+    SCRNA_PW --> ORA
     SCRNA_AGENT --> SCRNA_CCC[aria/scripts/rna_cellcomm.py]
     SCRNA_AGENT --> SCRNA_TRAJ[aria/scripts/rna_trajectory.py]
     SCRNA_QC --> SCRNA_OUT[scRNA findings]
@@ -126,6 +129,7 @@ flowchart TD
 | `rna_bulk_de.py` covariate/design plumbing (`_build_design_formula`, `_resolve_covariates`, `_run_deseq2(covariates=...)`, `fitted_design_formula`/`covariates_adjusted`/`covariates_dropped`) | `BulkRNAAgent._design_covariates` → `params["covariates"]`, `validate_design_matrix`, `BulkRnaNarrator.methods()` | P0-4: bulk DESeq2 fits the confirmed `~ batch + condition`, not a hardcoded `~ condition`. Covariates flow agent → params → script; only metadata-present, varying, non-factor covariates are used and the validator receives them; a confirmed-but-unusable covariate is DISCLOSED (warning + `covariates_dropped`), never silently dropped. The narrator Methods must state `fitted_design_formula`. Do not revert to `~ {factor}` or pass `covariates=[]` to the validator. |
 | `rna_bulk_de.py` apeGLM + Wald LFC threshold (`_shrink_coeff`, `_run_deseq2(lfc_shrink=...)`, `DeseqStats(lfc_null=..., alt_hypothesis="greaterAbs")`, `log2FoldChange_raw`, `lfc_shrinkage`, `lfc_threshold_test`) | bulk contrast result, `BulkRnaNarrator.methods()`, DE table, ORA gene set, volcano coloring | P1-1(a,b)/ADR-023: bulk mirrors pseudobulk for apeGLM but moves the effect-size threshold into the Wald test. Reported `log2FoldChange` is the apeGLM-shrunken estimate, raw MLE is kept as `log2FoldChange_raw`, and significance is now `padj < threshold` because `pvalue/padj` already test the null `|LFC| <= lfc_threshold` (`greaterAbs`). Do not reintroduce a second post-hoc `abs(log2FC) > lfc_thr` gate for primary calls/ORA/volcano; do not drop `lfc_threshold_test` provenance. `ref_level` stays fixed to the contrast denominator when shrinkage is on; the apeGLM coefficient must be `design_factor[T.numerator]`. |
 | `rna_pathway_viz.py` | `rna_bulk_de.py`, bulk narrative, report artifacts | It creates GSEA/ORA figures and tables that reports reference. |
+| `utils/ora.py` local ORA engine / `ARIA_GMT_DIR` / `ARIA_ALLOW_ENRICHR` | `rna_bulk_de._run_pathway_enrichment`, `rna_pathway_per_cluster`, `pathway_ora`/`gene_set_versions` in results + `methodology.json`, `scripts/fetch_genesets.py` | P1-7/W-PRIV: pathway ORA is a LOCAL hypergeometric test (offline — gene lists never leave the machine) against versioned GMTs in `ARIA_GMT_DIR` (default `~/.aria/genesets/<library>/<library>.gmt` + `manifest.json`). It is the DEFAULT and runs even air-gapped. Enrichr (network) is used ONLY for databases lacking a local GMT AND only when `ARIA_ALLOW_ENRICHR=1` AND egress is allowed; otherwise those databases are SKIPPED honestly (no fabrication), never auto-fetched. The local path has no `[:500]` submission cap. Output dicts keep the Enrichr schema (`term/padj/overlap/odds_ratio/combined_score/genes`) so `rna_pathway_viz` and the narrators are unaffected; `gene_set_versions` records the exact release per database for reproducibility. Bootstrap GMTs once (online) via `python scripts/fetch_genesets.py`. |
 | `scrna_agent.py` result schema | `_narrative_scrna.py`, `ScrnaNarrator`, scRNA workflow docs | scRNA reports assume stable keys for QC, composition, pseudobulk, pathways, LIANA, and trajectory. |
 | `rna_pseudobulk_de.py` or `rna_diff_abundance.py` | `scrna_agent.py`, `ScrnaNarrator`, FDR-strategy and power report text | These scripts drive publication-facing inferential claims. DA uses quasi-Poisson (overdispersion-corrected, ADR-018); do not revert to plain Poisson — it anti-conservatively gates the composition covariate. |
 | `rna_pseudobulk_de.py` per-group `background_genes` / `scrna_agent` `background_genes_by_cluster` / `rna_pathway_per_cluster.py` universe | per-cluster ORA significance, `ScrnaNarrator` Methods + per-block background size | The ORA universe is per cell type (genes tested in that cluster's pseudobulk, ADR-018). A single global background inflates per-cluster enrichment; legacy results without per-group background fall back to the global universe. |

@@ -353,6 +353,13 @@ class ScrnaNarrator:
     def _pathway_blocks(self, findings: dict) -> list[NarrativeBlock]:
         pwp = findings.get("pseudobulk_pathways") or {}
         blocks = []
+        # P1-7/W-PRIV: ORA engine + versioned gene-set release (shared across
+        # clusters) recorded on each block so methodology.json is reproducible.
+        ora_method = pwp.get("ora_method")
+        gene_set_releases = {
+            db: (v.get("library"), v.get("release"))
+            for db, v in (pwp.get("gene_set_versions", {}) or {}).items()
+        }
         for block_key, block in (pwp.get("per_cluster", {}) or {}).items():
             if block.get("status") and block.get("status") != "success":
                 continue
@@ -397,8 +404,17 @@ class ScrnaNarrator:
                     "ORA is an over-representation summary of DE genes, not "
                     "proof of pathway activity.",
                     "info",
-                )],
-                metrics={"n_significant": block.get("n_significant", len(terms))},
+                )] + ([Caveat(
+                    "ORA computed locally (hypergeometric) against versioned "
+                    "gene sets; the gene list did not leave the machine "
+                    "(W-PRIV).",
+                    "info",
+                )] if ora_method == "local_hypergeometric" else []),
+                metrics={
+                    "n_significant": block.get("n_significant", len(terms)),
+                    "ora_method": ora_method,
+                    "gene_set_versions": gene_set_releases,
+                },
             ))
         return blocks
 

@@ -290,8 +290,9 @@ def bulk_rna_de(params: dict) -> dict:
 
         # Pathway enrichment per contrast
         pathways = {}
+        ora_meta = {"method": "none", "gene_set_versions": {}}
         if run_pathways and de_result.get("sig_genes"):
-            pathways, pw_warn = _run_pathway_enrichment(
+            pathways, pw_warn, ora_meta = _run_pathway_enrichment(
                 sig_genes=de_result["sig_genes"],
                 up_genes=de_result.get("up_genes", []),
                 down_genes=de_result.get("down_genes", []),
@@ -439,6 +440,10 @@ def bulk_rna_de(params: dict) -> dict:
                 "background_size": len(background_symbols),
                 "background_source": "dataset_expressed_genes",
             },
+            # P1-7/W-PRIV: ORA engine + the exact versioned gene-set release per
+            # database, so methodology.json records reproducible provenance and
+            # discloses any database skipped for privacy/availability reasons.
+            "pathway_ora": ora_meta,
             "plots":             plots,
             "contrast_dir":      str(contrast_dir),
             "figures_dir":       str(figures_dir),
@@ -537,9 +542,9 @@ def bulk_rna_de(params: dict) -> dict:
             {
                 "step":           "Pathway enrichment (ORA)",
                 "input":          "DE gene symbols",
-                "normalization":  "Enrichr Fisher's exact test",
+                "normalization":  "Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in)",
                 "gene_filter":    "padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-                "justification":  "Standard over-representation for discrete gene lists using the dataset-expressed background rather than Enrichr's default all-database universe.",
+                "justification":  "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
             },
             {
                 "step":           "GSEA (pre-ranked)",
@@ -2153,25 +2158,125 @@ def _to_symbols(gene_ids: list, symbol_map: dict) -> list:
     return out
 
 
+def _enrichr_enrichment(sig_symbols: list, db_labels: list, gene_sets: dict,
+                        organism: str, background_symbols: list,
+                        allow_mock: bool, original_sig_genes: list) -> tuple:
+    """Enrichr ORA for the given database labels (opt-in, network egress).
+
+    Only invoked for databases that have no local versioned GMT, and only when
+    the caller already confirmed ARIA_ALLOW_ENRICHR + egress is allowed. The
+    [:500] submission cap is an Enrichr server-side practicality (its URL/GET
+    payload is bounded); the local hypergeometric path has no such cap."""
+    pathways: dict = {}
+    warnings:  list = []
+    try:
+        import gseapy as gp
+        import time as _time
+
+        for i, db in enumerate(db_labels):
+            db_name = gene_sets[db]
+            # Rate-limit: Enrichr blocks aggressive callers (~5-15s between calls).
+            if i > 0:
+                _time.sleep(8)
+            try:
+                enrichr_kwargs = {
+                    "gene_list": sig_symbols[:500],
+                    "gene_sets": db_name,
+                    "organism": _gseapy_organism(organism),
+                    "outdir": None,
+                    "verbose": False,
+                }
+                if background_symbols:
+                    enrichr_kwargs["background"] = background_symbols
+                try:
+                    enr = gp.enrichr(**enrichr_kwargs)
+                except TypeError as exc:
+                    if "background" not in str(exc):
+                        raise
+                    enrichr_kwargs.pop("background", None)
+                    enr = gp.enrichr(**enrichr_kwargs)
+                results = enr.results
+
+                if results is not None and not results.empty:
+                    sig_pw = results[results["Adjusted P-value"] < 0.05]
+                    sig_pw = sig_pw.sort_values("Adjusted P-value")
+                    pathways[db] = [
+                        {
+                            "term":    row["Term"],
+                            "padj":    round(float(row["Adjusted P-value"]), 5),
+                            "overlap": row.get("Overlap", ""),
+                            "odds_ratio": round(float(row.get("Odds Ratio", 1)), 2),
+                            "combined_score": round(float(row.get("Combined Score", 0)), 1),
+                            "genes":   row.get("Genes", "").split(";")[:10],
+                        }
+                        for _, row in sig_pw.head(20).iterrows()
+                    ]
+                    if not pathways[db]:
+                        warnings.append(
+                            f"No significant {db} pathways at padj < 0.05 "
+                            f"({len(results)} terms tested via Enrichr)."
+                        )
+                else:
+                    warnings.append(
+                        f"{db} returned empty results from Enrichr "
+                        f"(0 of {len(sig_symbols)} symbols matched)."
+                    )
+            except Exception as e:
+                warnings.append(
+                    f"{db} Enrichr ERROR: {str(e)[:200]}. "
+                    f"(Sent {len(sig_symbols)} symbols, organism="
+                    f"{_gseapy_organism(organism)}.)"
+                )
+    except ImportError:
+        if allow_mock:
+            warnings.append(
+                "gseapy not installed — returning mock pathway enrichment "
+                "(explicit mock mode)."
+            )
+            pathways = _mock_pathways(original_sig_genes)
+        else:
+            warnings.append(
+                "gseapy not installed — Enrichr pathway enrichment skipped. "
+                "No simulated pathway terms were generated."
+            )
+    return pathways, warnings
+
+
 def _run_pathway_enrichment(sig_genes: list, up_genes: list,
                               down_genes: list, organism: str,
                               output_dir: str,
                               symbol_map: dict = None,
                               background_genes: list | None = None,
                               allow_mock: bool = False) -> tuple:
-    """
-    Run pathway enrichment via gseapy.
-    Tests GO Biological Process, KEGG, and Reactome.
+    """Pathway over-representation analysis (ORA).
 
-    If symbol_map is provided, Ensembl IDs are converted to HGNC symbols
-    before sending to Enrichr (which requires symbols).
+    P1-7 / W-PRIV: the DEFAULT engine is a LOCAL hypergeometric test against
+    versioned GMT libraries and the dataset's expressed-gene background, so the
+    DE gene list never leaves the machine. Enrichr (which ships the list to an
+    external server) is used ONLY for databases lacking a local GMT and ONLY
+    when the user opts in (ARIA_ALLOW_ENRICHR=1) AND air-gapped mode is off;
+    otherwise those databases are skipped with an explicit caveat (no
+    fabrication). The local path imposes no [:500] submission cap.
+
+    Returns (pathways, warnings, ora_meta). `ora_meta` records the method and
+    the exact gene-set release per database for `methodology.json`.
     """
+    from aria.utils import ora as _ora
+    from aria.utils.privacy import egress_allowed
+
     warnings  = []
     pathways  = {}
-    gene_sets = _get_gene_sets(organism)
+    gene_sets = _get_gene_sets(organism)   # {label: enrichr/GMT library name}
+    ora_meta  = {
+        "method": "none",
+        "gene_set_versions": {},
+        "databases_local": [],
+        "databases_enrichr": [],
+        "databases_skipped": [],
+    }
 
     if not sig_genes:
-        return {}, ["No significant genes for pathway enrichment."]
+        return {}, ["No significant genes for pathway enrichment."], ora_meta
 
     # Convert IDs → symbols if we have a mapping
     sig_symbols  = _to_symbols(sig_genes,  symbol_map or {})
@@ -2198,137 +2303,64 @@ def _run_pathway_enrichment(sig_genes: list, up_genes: list,
             "No valid gene symbols to enrich — check that GTF gene_name "
             "annotations are present."
         )
-        return {}, warnings
+        return {}, warnings, ora_meta
 
-    # W-PRIV (P1-7/P1-8): Enrichr ships the gene list to an external server.
-    # Under air-gapped mode, refuse the egress and skip ORA with a clear caveat
-    # rather than leaking. The DE results are unaffected.
-    from aria.utils.privacy import egress_allowed
-    if not egress_allowed():
-        warnings.append(
-            "Pathway ORA via Enrichr was skipped: ARIA_AIR_GAPPED is enabled and "
-            "Enrichr requires sending the gene list to an external server. "
-            "Disable air-gapped mode or use a local GMT-based ORA to enable it."
-        )
-        return {}, warnings
+    # 1) Local hypergeometric ORA (default; offline; works even air-gapped).
+    local_results, versions, missing = _ora.local_ora_for_databases(
+        sig_symbols, gene_sets, background_symbols, padj_max=0.05, top=20,
+    )
+    for db, terms in local_results.items():
+        pathways[db] = terms
+        ora_meta["databases_local"].append(db)
+        ora_meta["gene_set_versions"][db] = versions[db]
+        if not terms:
+            warnings.append(
+                f"No significant {db} pathways at padj < 0.05 (local ORA)."
+            )
+    if local_results:
+        ora_meta["method"] = "local_hypergeometric"
 
-    try:
-        import gseapy as gp
-        import time as _time
-
-        for i, (db, db_name) in enumerate(gene_sets.items()):
-            # Rate-limit: Enrichr blocks aggressive callers. Pattern from
-            # production scripts: ~5-15 sec between calls (we use 8 — enough
-            # to avoid throttling but tolerable for 3 databases).
-            if i > 0:
-                _time.sleep(8)
-
-            try:
-                enrichr_kwargs = {
-                    "gene_list": sig_symbols[:500],
-                    "gene_sets": db_name,
-                    "organism": _gseapy_organism(organism),
-                    "outdir": None,
-                    "verbose": False,
-                }
-                if background_symbols:
-                    enrichr_kwargs["background"] = background_symbols
-                try:
-                    enr = gp.enrichr(**enrichr_kwargs)
-                except TypeError as exc:
-                    if "background" not in str(exc):
-                        raise
-                    enrichr_kwargs.pop("background", None)
-                    enr = gp.enrichr(**enrichr_kwargs)
-                results = enr.results
-
-                if results is not None and not results.empty:
-                    sig_pw = results[results["Adjusted P-value"] < 0.05]
-                    sig_pw = sig_pw.sort_values("Adjusted P-value")
-
-                    pathways[db] = [
-                        {
-                            "term":    row["Term"],
-                            "padj":    round(float(row["Adjusted P-value"]), 5),
-                            "overlap": row.get("Overlap", ""),
-                            "odds_ratio": round(float(row.get("Odds Ratio", 1)), 2),
-                            "combined_score": round(float(row.get("Combined Score", 0)), 1),
-                            "genes":   row.get("Genes", "").split(";")[:10],
-                        }
-                        for _, row in sig_pw.head(20).iterrows()
-                    ]
-
-                    if not pathways[db]:
-                        warnings.append(
-                            f"No significant {db} pathways at padj < 0.05 "
-                            f"({len(results)} terms tested)."
-                        )
-                else:
-                    warnings.append(
-                        f"{db} returned empty results from Enrichr "
-                        f"(0 of {len(sig_symbols)} symbols matched)."
-                    )
-            except Exception as e:
-                # Capture the REAL error so the LLM doesn't need to
-                # invent a cause (and bad explanations won't poison
-                # the report).
-                err_msg = str(e)[:200]
-                warnings.append(
-                    f"{db} enrichment ERROR: {err_msg}. "
-                    f"(Sent {len(sig_symbols)} symbols, organism="
-                    f"{_gseapy_organism(organism)}.)"
+    # 2) Databases with no local GMT: Enrichr only when opted in + egress allowed.
+    if missing:
+        if _ora.enrichr_opt_in() and egress_allowed():
+            enr_pw, enr_warn = _enrichr_enrichment(
+                sig_symbols, missing, gene_sets, organism,
+                background_symbols, allow_mock, sig_genes,
+            )
+            pathways.update(enr_pw)
+            warnings.extend(enr_warn)
+            ora_meta["databases_enrichr"] = list(enr_pw.keys())
+            if enr_pw:
+                ora_meta["method"] = (
+                    "mixed_local_enrichr" if local_results else "enrichr"
                 )
-
-    except ImportError:
-        if allow_mock:
-            warnings.append(
-                "gseapy not installed — returning mock pathway enrichment "
-                "(explicit mock mode)."
-            )
-            pathways = _mock_pathways(sig_genes)
         else:
+            ora_meta["databases_skipped"] = list(missing)
+            if _ora.enrichr_opt_in() and not egress_allowed():
+                reason = "ARIA_AIR_GAPPED is enabled (Enrichr egress refused)"
+            else:
+                reason = ("no local versioned GMT is available and Enrichr is "
+                          "opt-in")
             warnings.append(
-                "gseapy not installed — pathway enrichment skipped. "
-                "No simulated pathway terms were generated."
+                f"Pathway ORA skipped for {', '.join(missing)}: {reason}. "
+                f"Provision versioned GMTs (python scripts/fetch_genesets.py) "
+                f"or set ARIA_ALLOW_ENRICHR=1 to use Enrichr."
             )
 
-    # Directional enrichment: up vs down separately (uses symbols)
-    if up_symbols and down_symbols:
-        try:
-            import gseapy as gp
-            for direction, genes in [("up", up_symbols[:200]),
-                                      ("down", down_symbols[:200])]:
-                enrichr_kwargs = {
-                    "gene_list": genes,
-                    "gene_sets": "KEGG_2021_Human"
-                                 if "sapiens" in organism.lower()
-                                 else "KEGG_2019_Mouse",
-                    "organism": _gseapy_organism(organism),
-                    "outdir": None,
-                    "verbose": False,
-                }
-                if background_symbols:
-                    enrichr_kwargs["background"] = background_symbols
-                try:
-                    enr = gp.enrichr(**enrichr_kwargs)
-                except TypeError as exc:
-                    if "background" not in str(exc):
-                        raise
-                    enrichr_kwargs.pop("background", None)
-                    enr = gp.enrichr(**enrichr_kwargs)
-                if enr.results is not None and not enr.results.empty:
-                    sig_pw = enr.results[
-                        enr.results["Adjusted P-value"] < 0.1
-                    ].head(10)
-                    pathways[f"KEGG_{direction}"] = [
-                        {"term": row["Term"],
-                         "padj": round(float(row["Adjusted P-value"]), 5)}
-                        for _, row in sig_pw.iterrows()
-                    ]
-        except Exception:
-            pass
+    # 3) Directional KEGG (up vs down) — local-only, complementary to combined.
+    kegg_lib = gene_sets.get("KEGG")
+    if kegg_lib and up_symbols and down_symbols:
+        loaded = _ora.load_local_library(kegg_lib)
+        if loaded:
+            kegg_sets, _ = loaded
+            for direction, genes in [("up", up_symbols), ("down", down_symbols)]:
+                terms = _ora.run_ora(
+                    genes, kegg_sets, background_symbols, padj_max=0.1, top=10,
+                )
+                if terms:
+                    pathways[f"KEGG_{direction}"] = terms
 
-    return pathways, warnings
+    return pathways, warnings, ora_meta
 
 
 def _get_gene_sets(organism: str) -> dict:

@@ -1383,9 +1383,9 @@ Rules:
                 "padj_db_max":           0.05,
                 "output_dir":            str(self._workspace(experiment_id, "pathways")),
             },
-            # Pathway enrichment hits Enrichr with rate limits; for a 10-cluster
-            # × 3-database dataset that's 30 calls × 8s sleep = ~4 min minimum.
-            # Allow up to 30 min so very dense datasets don't time out.
+            # P1-7/W-PRIV: ORA runs locally (hypergeometric) by default and is
+            # fast. The opt-in Enrichr fallback is rate-limited (~8s/call), so
+            # keep a generous 30 min ceiling for dense datasets in that mode.
             timeout=1800,
         )
 
