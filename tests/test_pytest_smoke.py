@@ -612,6 +612,7 @@ def test_data_audit_infers_hg38_from_homo_sapiens_question(tmp_path):
 
 
 def test_umap_figure_falls_back_to_tsne(tmp_path):
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -851,6 +852,7 @@ def test_scrna_pseudobulk_uses_h5ad_obs_design(tmp_path):
 
 
 def test_rna_qc_uses_existing_h5ad_obs_metrics_for_processed_input(tmp_path, monkeypatch):
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -893,6 +895,7 @@ def test_rna_qc_uses_existing_h5ad_obs_metrics_for_processed_input(tmp_path, mon
 
 
 def test_rna_qc_empty_h5ad_returns_structured_error(tmp_path, monkeypatch):
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -1517,6 +1520,7 @@ def test_clustering_skip_leiden_when_cluster_col_provided():
 
 
 def test_clustering_predefined_groupby_keeps_all_cells(tmp_path, monkeypatch):
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -1907,6 +1911,7 @@ def test_findings_table_formats_raw_error_dicts():
 
 
 def test_apply_cluster_labels_writes_real_obs_column(tmp_path):
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -2305,6 +2310,7 @@ def test_diff_abundance_detects_2x_shift(tmp_path):
     """T1.1 — when a cell type's abundance doubles in one condition, the
     Poisson-offset GLM (or Fisher-exact fallback) must flag it as
     significant and assign direction='up'."""
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")
@@ -2371,6 +2377,7 @@ def test_diff_abundance_detects_2x_shift(tmp_path):
 def test_diff_abundance_no_signal_returns_none_significant(tmp_path):
     """T1.1 — flat data must yield no significant shifts and the agent's
     decision logic relies on this to keep composition_covariate OFF."""
+    pytest.importorskip("scanpy")
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")
     pd = pytest.importorskip("pandas")

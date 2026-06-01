@@ -95,6 +95,7 @@ def test_deseq2_fits_and_reports_the_covariate_adjusted_formula():
 # ── Report Methods state the actually-fitted formula ─────────────────────────
 
 def test_bulk_methods_report_the_fitted_covariate_formula():
+    pytest.importorskip("litellm")  # narrator import chain pulls aria.llm.provider
     from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
     agent_result = {"findings": {"contrasts": [{
         "name": "treat vs ctrl",
@@ -108,6 +109,7 @@ def test_bulk_methods_report_the_fitted_covariate_formula():
 
 
 def test_bulk_methods_disclose_a_dropped_covariate():
+    pytest.importorskip("litellm")  # narrator import chain pulls aria.llm.provider
     from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
     agent_result = {"findings": {"contrasts": [{
         "name": "treat vs ctrl",

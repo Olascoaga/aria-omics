@@ -76,6 +76,7 @@ def test_shrinkage_can_be_disabled():
 
 
 def test_shrinkage_clause_in_narrative():
+    pytest.importorskip("litellm")  # narrative import chain pulls aria.llm.provider
     from aria.agents._narrative_scrna import _lfc_shrinkage_clause
     assert "apeGLM" in _lfc_shrinkage_clause({"lfc_shrinkage": {"requested": True}})
     assert _lfc_shrinkage_clause({"lfc_shrinkage": {"requested": False}}) == ""
