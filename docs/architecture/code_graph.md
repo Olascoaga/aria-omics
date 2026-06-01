@@ -140,6 +140,7 @@ flowchart TD
 | `orchestrator_agent.py` integration validation gate | `IntegrationAgent`, multimodal report sections, registry integrity | Scaffolded WNN/MOFA+/peak-to-gene code must not dispatch until validation is closed; otherwise beta scripts can emit publication-looking integration output. |
 | `orchestrator_agent.py` `MODALITY_VALIDATION` / `_blocked_modalities` / `_experimental_modalities` | modality dispatch, blocked/experimental findings, `genome_arch_agent`, registry integrity, ADR-012 | All scaffold modalities (incl. Hi-C since P0-3/ADR-025) are `dispatch_enabled=False`. A modality with an `experimental_env_flag` (Hi-C → `ARIA_ALLOW_EXPERIMENTAL_HIC`) is unblocked ONLY when that env var is truthy, and then it is stamped with an INSUFFICIENT "EXPERIMENTAL / not publication-grade" finding and recorded in `exp_context["experimental_modalities"]`. Do not re-enable a scaffold by default or drop the experimental stamp; do not let the flag unblock unrelated modalities. |
 | `parameter_advisor.py` metric evaluators | scRNA clustering CP3, WNN k CP3, memory decisions | Candidate metrics shown to users must be measured or explicitly marked as not computed; fabricated WNN weights and zero-filled modularity are invalid. |
+| `scripts/integration_wnn.py` (scaffold — v4.7, dispatch-gated) | `integration_agent.py`, `test_integration_agent.py` (fan-in=1) | P0-8: this is a SCAFFOLD WITH A STRUCTURAL BLOCKER — do not edit it as real. `_load_atac` raises `NotImplementedError` (real peak matrix = snapatac2/episcanpy) → `error_type="NotImplemented"`/`validation_level="scaffold"`; there is NO `_mock_wnn` and NO hardcoded modality weights (unavailable weights are `None`, not `0.6/0.4`). When v4.7 implements real WNN, replace the blocker — never reintroduce a placeholder matrix or fabricated success (ADR-002). |
 | `scrna_agent.py` focus or annotation fallback logic | DesignIntelligence, focused h5ad materialization, report labels | Runtime logic must match explicit obs values or external annotation output; do not reintroduce tissue/cell-type alias maps or hardcoded marker panels under ADR-011. |
 | `NarrativeBlock` schema | every modality narrator, validators, renderer, `methodology.json` | This is the report evidence contract. |
 | `narrative/run_ledger.py` plan/finding keyword maps | report Run Ledger table, `methodology.json["run_ledger"]`, dispatch-integrity | The planned-vs-run reconciliation (P-LEDGER/ADR-022). If a new analysis is added, give it a `plan_kw`/`finding_keys` entry or it will read as a divergence. Technical vocabulary only (ADR-011). |
@@ -255,6 +256,8 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_explicit_contrast_gate.py`
 - Filename-fallback design gate (production stop, `ARIA_ALLOW_FILENAME_FALLBACK`
   opt-in, P0-6): `tests/test_filename_fallback_gate.py`
+- WNN no-fabrication (NotImplemented blocker, no `_mock_wnn`, no hardcoded weights,
+  P0-8): `tests/test_wnn_no_fabrication.py`
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery

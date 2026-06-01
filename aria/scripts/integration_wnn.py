@@ -46,7 +46,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import mocks_allowed, run_script
+from aria.scripts._base import run_script
 
 
 def integration_wnn(params: dict) -> dict:
@@ -59,7 +59,6 @@ def integration_wnn(params: dict) -> dict:
     organism    = params.get("organism", "Homo sapiens")
     k           = int(params.get("k", 20))
     output_dir  = params.get("output_dir", "/tmp/aria_wnn")
-    allow_mock  = mocks_allowed(params)
     warnings    = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -171,15 +170,16 @@ def integration_wnn(params: dict) -> dict:
             mean_atac_w = float(atac_weights.mean()) if atac_weights is not None \
                           else 1.0 - mean_rna_w
         else:
-            # Fallback: estimate from neighbor overlap
-            mean_rna_w  = 0.6
-            mean_atac_w = 0.4
+            # P0-8: do NOT fabricate modality weights when muon did not expose
+            # them. Report them as not computed rather than inventing 0.6/0.4.
+            mean_rna_w  = None
+            mean_atac_w = None
             warnings.append(
-                "WNN modality weights not directly available. "
-                "Using default estimate (RNA=0.6, ATAC=0.4)."
+                "WNN modality weights were not exposed by muon and were not "
+                "computed; they are reported as null (not estimated)."
             )
 
-        if mean_rna_w > 0.85:
+        if mean_rna_w is not None and mean_rna_w > 0.85:
             warnings.append(
                 f"RNA dominates WNN (weight={mean_rna_w:.2f}). "
                 f"Check ATAC data quality (FRiP, TSS enrichment)."
@@ -214,8 +214,10 @@ def integration_wnn(params: dict) -> dict:
         return {
             "status":                "success",
             "n_cells":               int(n_cells),
-            "mean_rna_weight":       round(float(mean_rna_w), 4),
-            "mean_atac_weight":      round(float(mean_atac_w), 4),
+            "mean_rna_weight":       round(float(mean_rna_w), 4)
+                                     if mean_rna_w is not None else None,
+            "mean_atac_weight":      round(float(mean_atac_w), 4)
+                                     if mean_atac_w is not None else None,
             "n_joint_clusters":      n_joint_clusters,
             "n_rna_only_clusters":   n_rna_clusters,
             "n_discordant_clusters": int(n_discordant),
@@ -223,9 +225,18 @@ def integration_wnn(params: dict) -> dict:
             "warnings":              warnings,
         }
 
+    except NotImplementedError as e:
+        # P0-8: an unimplemented scaffold step (e.g. ATAC peak-matrix build)
+        # surfaces as an explicit structural blocker, never a fabricated result.
+        return {
+            "status":           "error",
+            "error_type":       "NotImplemented",
+            "details":          str(e)[:500],
+            "validation_level": "scaffold",
+            "warnings":         warnings,
+        }
+
     except ImportError as e:
-        if allow_mock:
-            return _mock_wnn(n_cells=5000, k=k, reason=str(e))
         return {
             "status":     "error",
             "error_type": "MissingDependency",
@@ -259,43 +270,28 @@ def _load_rna(path: str):
 
 
 def _load_atac(files: list, genome: str, organism: str):
-    """Load scATAC-seq data from fragment files."""
-    try:
-        import muon as mu
-        import episcanpy as epi
-        import anndata as ad
-        import numpy as np
-        from pathlib import Path
+    """Build the scATAC peak matrix for WNN.
 
-        frag_files = [f for f in files if "fragment" in f.lower()
-                      or f.endswith(".tsv.gz")]
-        if not frag_files:
-            return None
+    P0-8 (ADR-002/ADR-025): the real peak-matrix construction
+    (snapatac2 / episcanpy `count_fragments_in_peaks`) is NOT implemented — WNN
+    is a v4.7 scaffold. This used to return an empty `AnnData()` as a fake peak
+    matrix, which would silently feed a fabricated matrix into TF-IDF/LSI/WNN.
+    It now raises an explicit structural blocker so a future build replaces it
+    with real science instead of inheriting a fabrication. Do NOT return a
+    placeholder matrix here.
+    """
+    from pathlib import Path
 
-        # In production: use snapatac2 or muon to create peak matrix
-        # Here: create a minimal AnnData from fragment counts
-        # Full implementation uses episcanpy.count_fragments_in_peaks()
-        atac = ad.AnnData()
-        return atac
-
-    except Exception:
+    frag_files = [f for f in files if "fragment" in f.lower()
+                  or f.endswith(".tsv.gz")]
+    if not frag_files:
         return None
 
-
-def _mock_wnn(n_cells: int, k: int, reason: str) -> dict:
-    """Mock WNN result when muon/episcanpy not available."""
-    return {
-        "status":                "success",
-        "n_cells":               int(n_cells),
-        "mean_rna_weight":       0.62,
-        "mean_atac_weight":      0.38,
-        "n_joint_clusters":      9,
-        "n_rna_only_clusters":   8,
-        "n_discordant_clusters": 2,
-        "output_path":           None,
-        "warnings":              [f"Mock WNN — install aria-integration-env. ({reason})"],
-        "note":                  f"Mock WNN — {reason}",
-    }
+    raise NotImplementedError(
+        "scATAC peak-matrix construction for WNN is not implemented "
+        "(needs snapatac2/episcanpy count_fragments_in_peaks). WNN is a v4.7 "
+        "scaffold; ARIA refuses to fabricate a peak matrix."
+    )
 
 
 if __name__ == "__main__":
