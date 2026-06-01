@@ -1,21 +1,25 @@
 name: ARIA CI
 
-# Closes part of F-ENG-REPRO (senior audit 2026-05-28): the "publication-grade
-# reproducibility" claim was documented but not enforced. This workflow turns
-# the local validation gates into checks that run on every push / PR.
+# P1-10 (master audit pre-4.6): a blocking, 3-tier gate.
+#   PR      -> lint + unit + contracts + guards (pure-Python, importorskip-gated)
+#   main    -> the above + the heavy pydeseq2 conda lane + recent closeout tests
+#   release -> Docker build + conda env solve + a real mini DE benchmark
+# No lane is `continue-on-error`: a red lane is a real failure signal. Closes
+# F-ENG-REPRO / the master plan's "CI no bloqueante" finding.
 
 on:
   push:
     branches: [ main ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  # ── Fast lane: pure-Python tests that do not need the heavy conda stack ──
-  # The smoke suite uses pytest.importorskip, so it runs the subset that the
-  # lightweight pip env supports and skips the rest.
-  lint-and-light-tests:
+  # ── Tier 1 (PR + main): lint + unit + contracts + guards ─────────────────
+  # Pure-Python lane. Tests that need scanpy/pydeseq2 self-skip via
+  # pytest.importorskip, so this lane runs the subset the pip env supports.
+  pr-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,14 +31,41 @@ jobs:
       - name: Install package + light test deps
         run: |
           python -m pip install --upgrade pip
-          # Core runtime deps + the libraries the pure-Python tests import.
           pip install -e .
           pip install pytest numpy pandas scipy anndata scikit-learn
 
       - name: Byte-compile the package
         run: python -m compileall -q aria
 
-      - name: Run audit-gate tests (no pydeseq2 required)
+      - name: Governance guards (anti-fabrication + IPC contract coverage)
+        # Two test_script_contracts cases drive a real `conda run` subprocess and
+        # need the full RNA env (covered by the heavy lane / Docker); deselect
+        # them here so the pure-Python contract checks still gate the PR.
+        run: |
+          python -m pytest -q \
+            tests/test_no_fabrication_guard.py \
+            tests/test_dispatchable_contracts.py \
+            tests/test_registry_integrity.py \
+            tests/test_script_contracts.py \
+            tests/test_cellcomm_contract.py \
+            --deselect tests/test_script_contracts.py::test_environment_manager_validates_script_output_contract \
+            --deselect tests/test_script_contracts.py::test_environment_manager_attaches_contract_metadata_on_success
+
+      - name: Sprint-0 / Sprint-1 correctness gates
+        run: |
+          python -m pytest -q \
+            tests/test_llm_partial_config.py \
+            tests/test_hic_dispatch_gate.py \
+            tests/test_filename_fallback_gate.py \
+            tests/test_wnn_no_fabrication.py \
+            tests/test_analysis_thresholds.py \
+            tests/test_explicit_contrast_gate.py \
+            tests/test_pseudobulk_gate.py \
+            tests/test_bulk_covariates.py \
+            tests/test_geo_design.py \
+            tests/test_geo_spikein_inference.py
+
+      - name: Narrative kernel + claim/causal + closeout
         run: |
           python -m pytest -q \
             tests/test_narrative_types.py \
@@ -43,18 +74,24 @@ jobs:
             tests/test_narrator_bulk.py \
             tests/test_narrative_render_blocks.py \
             tests/test_causal_guard.py \
+            tests/test_claim_compiler.py \
+            tests/test_run_ledger_and_devils.py \
+            tests/test_stage4_closeout.py \
+            tests/test_lfc_shrinkage.py \
+            tests/test_pathway_viz.py \
+            tests/test_doctor.py \
             tests/test_headless_design_e2e.py \
             tests/test_env_manager_cache.py
 
-      - name: Run integration smoke suite (importorskip-gated)
+      - name: Integration smoke suite (importorskip-gated)
         run: python -m pytest -q tests/test_pytest_smoke.py
 
-  # ── Heavy lane: the full RNA conda env for pydeseq2-gated tests. ─────────
-  # Allowed to fail until the env is containerized in CI (the local lockfile
-  # is linux-64 snapshot-from-installed); kept as a tracking signal.
+  # ── Tier 2 (main only): heavy conda lane — BLOCKING ──────────────────────
+  # Runs the real pydeseq2 stack. No continue-on-error: if the env does not
+  # solve or a numerical-recovery test regresses, the build is red.
   rna-env-tests:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
@@ -63,12 +100,32 @@ jobs:
           environment-file: envs/aria-rna-env.yml
           cache-environment: true
 
-      - name: Run pydeseq2-gated tests
+      - name: Run pydeseq2-gated science gates
         shell: bash -el {0}
         env:
           NUMBA_CACHE_DIR: /tmp/numba_cache
         run: |
           pip install -e .
           python -m pytest -q \
-            tests/test_pytest_smoke.py::test_scrna_pseudobulk_uses_h5ad_obs_design \
-            || echo "rna-env gated tests need the full stack; tracked, non-blocking"
+            tests/test_benchmark_synthetic_de.py \
+            tests/test_lfc_shrinkage.py \
+            tests/test_composition_collinearity.py \
+            tests/test_bulk_covariates.py
+
+  # ── Tier 3 (tags v* only): release reproducibility ───────────────────────
+  # Validates the published Docker image solves the env and runs a real
+  # bulk+pseudobulk DE recovery benchmark inside the container.
+  release-repro:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build the reproducible RNA image (validates conda env solve)
+        run: docker build -t aria-rna:ci .
+
+      - name: Real synthetic-DE recovery benchmark inside the image
+        run: |
+          docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-rna:ci \
+            python -m pytest -q \
+              /opt/aria/tests/test_benchmark_synthetic_de.py
