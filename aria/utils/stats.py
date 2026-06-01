@@ -129,12 +129,14 @@ def pooled_bh_across_groups(group_pvalues: dict) -> dict:
 
 
 def contrast_family_significance(group_stats: dict, *, padj_max: float,
-                                 lfc_min: float) -> dict:
+                                 lfc_min: float | None) -> dict:
     """Derive each contrast's family-significant set under pooled BH (P1-1c).
 
     `group_stats`: {contrast: {gene: {"pvalue": p, "log2fc": l}}}. Applies one
     pooled BH across the family, then calls a gene significant when its
-    family-adjusted p-value < `padj_max` AND |log2fc| > `lfc_min`. Returns
+    family-adjusted p-value < `padj_max` and, when `lfc_min` is not None,
+    |log2fc| > `lfc_min`. Use `lfc_min=None` when the upstream Wald p-value
+    already tested against an effect-size null (P1-1b). Returns
     {contrast: {"padj_family", "sig_genes", "n_sig", "n_up", "n_down"}}.
     """
     pvals = {
@@ -150,12 +152,14 @@ def contrast_family_significance(group_stats: dict, *, padj_max: float,
         sig, n_up, n_down = [], 0, 0
         for g, s in (genes or {}).items():
             lfc = s.get("log2fc")
-            if (fp.get(g, 1.0) < padj_max and lfc is not None
-                    and abs(lfc) > lfc_min):
+            passes_lfc = True if lfc_min is None else (
+                lfc is not None and abs(lfc) > lfc_min
+            )
+            if fp.get(g, 1.0) < padj_max and passes_lfc:
                 sig.append(g)
-                if lfc > 0:
+                if lfc is not None and lfc > 0:
                     n_up += 1
-                elif lfc < 0:
+                elif lfc is not None and lfc < 0:
                     n_down += 1
         out[c] = {
             "padj_family": fp,

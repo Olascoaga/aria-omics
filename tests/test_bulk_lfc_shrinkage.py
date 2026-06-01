@@ -57,3 +57,29 @@ def test_bulk_shrinkage_can_be_disabled():
     # With shrinkage off, the reported LFC equals the raw MLE.
     both = rdf.dropna(subset=["log2FoldChange", "log2FoldChange_raw"])
     assert np.allclose(both["log2FoldChange"], both["log2FoldChange_raw"])
+
+
+def test_bulk_lfc_threshold_is_inside_wald_test():
+    pytest.importorskip("pydeseq2")
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    counts, meta = _bulk_inputs()
+    res0, _w0 = _run_deseq2(counts, meta, "condition", "treat", "ctrl",
+                            padj_thr=0.1, lfc_thr=0.0)
+    res1, _w1 = _run_deseq2(counts, meta, "condition", "treat", "ctrl",
+                            padj_thr=0.1, lfc_thr=1.0)
+    assert res0["status"] == "success", res0
+    assert res1["status"] == "success", res1
+    assert res0["lfc_threshold_test"]["applied"] is False
+    assert res1["lfc_threshold_test"]["applied"] is True
+    assert res1["lfc_threshold_test"]["lfc_null"] == 1.0
+    assert res1["lfc_threshold_test"]["alt_hypothesis"] == "greaterAbs"
+
+    # P1-1b: changing lfc_thr changes the Wald null and therefore p-values/padj;
+    # significance is then simply padj-thresholded, with no second |LFC| gate.
+    common = res0["results"].index.intersection(res1["results"].index)
+    padj0 = res0["results"].loc[common, "padj"].dropna()
+    padj1 = res1["results"].loc[padj0.index, "padj"].dropna()
+    assert not np.allclose(padj0.loc[padj1.index], padj1)
+    expected = set(res1["results"].index[res1["results"]["padj"] < 0.1])
+    assert set(res1["sig_genes"]) == expected

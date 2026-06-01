@@ -63,6 +63,17 @@ def test_contrast_family_significance_pools_and_gates_on_lfc():
     assert fam["B_vs_A"]["padj_family"]["g1"] >= 1e-6
 
 
+def test_contrast_family_can_skip_lfc_gate_when_wald_test_used_lfc_null():
+    group_stats = {
+        "B_vs_A": {
+            "g1": {"pvalue": 1e-6, "log2fc": 3.0},
+            "g2": {"pvalue": 1e-6, "log2fc": 0.1},
+        },
+    }
+    fam = contrast_family_significance(group_stats, padj_max=0.05, lfc_min=None)
+    assert fam["B_vs_A"]["sig_genes"] == ["g1", "g2"]
+
+
 def test_bulk_de_global_contrast_family_is_recorded(tmp_path):
     pytest.importorskip("pydeseq2")
     import numpy as np

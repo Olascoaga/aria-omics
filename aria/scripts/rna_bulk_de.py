@@ -427,6 +427,9 @@ def bulk_rna_de(params: dict) -> dict:
             # P1-1/ADR-023: reported log2fc is the apeGLM-shrunken estimate; the
             # raw MLE is preserved per gene as log2fc_raw and in the DE table.
             "lfc_shrinkage":     de_result.get("lfc_shrinkage"),
+            # P1-1b: padj comes from a Wald test against |LFC| > lfc_threshold,
+            # so significance no longer applies a second post-hoc LFC filter.
+            "lfc_threshold_test": de_result.get("lfc_threshold_test"),
             "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
@@ -465,7 +468,7 @@ def bulk_rna_de(params: dict) -> dict:
     # pre-registered family is "global", the primary significance call follows it.
     n_tests_family = sum(len(v) for v in family_stats.values())
     fam = contrast_family_significance(
-        family_stats, padj_max=padj_thr, lfc_min=lfc_thr)
+        family_stats, padj_max=padj_thr, lfc_min=None)
     for cr in contrast_results:
         if cr.get("status") != "success":
             continue
@@ -535,7 +538,7 @@ def bulk_rna_de(params: dict) -> dict:
                 "step":           "Pathway enrichment (ORA)",
                 "input":          "DE gene symbols",
                 "normalization":  "Enrichr Fisher's exact test",
-                "gene_filter":    "padj<0.05 and |log2FC|>threshold; ORA universe = genes retained after expression filtering",
+                "gene_filter":    "padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
                 "justification":  "Standard over-representation for discrete gene lists using the dataset-expressed background rather than Enrichr's default all-database universe.",
             },
             {
@@ -1704,10 +1707,32 @@ def _run_deseq2(counts, metadata, design_factor: str,
             )
         dds.deseq2()
 
-        stat_res = DeseqStats(
-            dds,
-            contrast=[design_factor, numerator, denominator],
-        )
+        # P1-1b: put the biological effect-size threshold inside the Wald test
+        # instead of filtering |log2FC| after BH. This makes pvalue/padj answer
+        # the null |LFC| <= lfc_thr directly, matching DESeq2's lfcThreshold.
+        wald_kwargs = {
+            "contrast": [design_factor, numerator, denominator],
+            "alpha": padj_thr,
+            "quiet": True,
+        }
+        lfc_threshold_test = {
+            "requested": float(lfc_thr),
+            "applied": False,
+            "alt_hypothesis": None,
+            "lfc_null": 0.0,
+            "significance_rule": "padj < threshold",
+        }
+        if float(lfc_thr) > 0:
+            wald_kwargs.update({
+                "lfc_null": float(lfc_thr),
+                "alt_hypothesis": "greaterAbs",
+            })
+            lfc_threshold_test.update({
+                "applied": True,
+                "alt_hypothesis": "greaterAbs",
+                "lfc_null": float(lfc_thr),
+            })
+        stat_res = DeseqStats(dds, **wald_kwargs)
         stat_res.summary()
 
         # P1-1/ADR-023: apeGLM LFC shrinkage. Keep the raw MLE LFC, shrink in
@@ -1732,10 +1757,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
         results_df = stat_res.results_df.dropna(subset=["padj"])
         results_df["log2FoldChange_raw"] = raw_lfc.reindex(results_df.index)
 
-        sig = results_df[
-            (results_df["padj"]             < padj_thr) &
-            (results_df["log2FoldChange"].abs() > lfc_thr)
-        ]
+        sig = results_df[results_df["padj"] < padj_thr]
         # Sort by padj ascending (most significant first) so that
         # downstream "top N" slicing returns the most reliable hits,
         # not the most extreme log2FC (which can be noisy at low counts).
@@ -1788,6 +1810,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 "method":    "apeGLM" if shrink_applied else None,
                 "reason":    shrink_reason,
             },
+            "lfc_threshold_test": lfc_threshold_test,
         }, warnings
 
     except ImportError:
@@ -2395,10 +2418,7 @@ def _generate_plots(de_result: dict, sample_qc: dict,
             neg_log_p = -np.log10(results_df["padj"].clip(1e-300, 1) + 1e-300)
 
             # Color by significance
-            sig_mask = (
-                (results_df["padj"] < padj_thr) &
-                (results_df["log2FoldChange"].abs() > lfc_thr)
-            )
+            sig_mask = results_df["padj"] < padj_thr
             up_mask   = sig_mask & (results_df["log2FoldChange"] > 0)
             down_mask = sig_mask & (results_df["log2FoldChange"] < 0)
 

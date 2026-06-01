@@ -59,7 +59,7 @@ class BulkRnaNarrator:
         lines = [
             "Bulk RNA-seq differential expression used DESeq2/pyDESeq2 "
             f"with design {design}; significance used adjusted p-value < "
-            f"{padj} and |log2FC| > {lfc}."
+            f"{padj} from a Wald test against |log2FC| > {lfc}."
         ]
         dropped = [
             d.get("covariate")
@@ -78,6 +78,12 @@ class BulkRnaNarrator:
                 "Reported log2 fold changes are apeGLM-shrunken effect-size "
                 "estimates (the raw MLE is preserved as log2FoldChange_raw); "
                 "p-values are unchanged by shrinkage."
+            )
+        if any((c.get("lfc_threshold_test") or {}).get("applied")
+               for c in contrasts):
+            lines.append(
+                "The log2FC threshold was applied inside the Wald test "
+                "(DESeq2 lfcThreshold/greaterAbs), not as a post-hoc filter."
             )
         # P1-1c: disclose the pre-registered contrast-FDR family.
         fam = findings.get("fdr_family") or {}
