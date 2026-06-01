@@ -351,6 +351,38 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "cancelled"}
 
         exp_context = msg.payload.get("context", {}).get("exp_context", {})
+
+        # P1-8a / W-PRIV: honor the user's air-gapped choice from the sensitivity
+        # checkpoint. Enabling it here (before design/dispatch) makes BOTH the
+        # in-process LLM and every dispatched subprocess refuse network egress.
+        from aria.utils.sensitivity import decision_enables_air_gapped
+        if decision_enables_air_gapped(decision):
+            from aria.utils.privacy import enable_air_gapped_runtime
+            enable_air_gapped_runtime(reason="sensitivity_checkpoint")
+            exp_context["air_gapped"] = True
+            sensitivity = (msg.payload.get("context", {}) or {}).get("sensitivity", {})
+            self.publish_finding(
+                experiment_id,
+                {"summary": (
+                    "Air-gapped mode enabled at the sensitivity checkpoint: ALL "
+                    "network egress (cloud LLM, Enrichr ORA, GEO/SRA) is blocked "
+                    f"for this run (sensitivity={sensitivity.get('level', 'n/a')})."
+                )},
+                Confidence.HIGH,
+            )
+            self.memory.store_decision(
+                decision_id=str(uuid.uuid4())[:8],
+                wing_id=experiment_id,
+                checkpoint=1,
+                question="Data sensitivity / egress policy",
+                decision=decision,
+                rationale=(
+                    "User enabled air-gapped mode for a sensitive input; ARIA "
+                    "blocks all network egress for the run."
+                ),
+                made_by="user",
+            )
+
         self.memory.store_decision(
             decision_id=str(uuid.uuid4())[:8],
             wing_id=experiment_id,

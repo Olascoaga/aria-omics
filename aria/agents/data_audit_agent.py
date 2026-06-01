@@ -265,17 +265,40 @@ class DataAuditAgent(BaseAgent):
             inferred_design=exp_context.get("inferred_design", {}),
         )
 
+        # P1-8a / W-PRIV: classify input sensitivity and surface it at CP1 so the
+        # user can opt into air-gapped mode (block ALL egress). ARIA never flips
+        # air-gapped on by itself — it classifies, recommends, and offers a choice.
+        from aria.utils.sensitivity import (
+            annotate_checkpoint_question,
+            checkpoint_options,
+            classify_sensitivity,
+        )
+        sensitivity = classify_sensitivity(
+            organism=organism,
+            field_names=self._collect_sensitivity_fields(exp_context),
+            path_hints=[data_dir.name] + [p.name for p in all_files[:50]],
+        )
+        exp_context["sensitivity"] = sensitivity
+
+        # 'Confirm and continue' stays first so the default (incl. headless) is
+        # unchanged — ARIA never flips air-gapped on without the user's explicit
+        # choice; the air-gapped option is always available and recommended in the
+        # text when the input looks sensitive.
+        checkpoint_msg = annotate_checkpoint_question(checkpoint_msg, sensitivity)
+        options = checkpoint_options(sensitivity)
+
         self.publish_escalation(
             experiment_id=experiment_id,
             checkpoint=1,
             question=checkpoint_msg,
-            options=["Confirm and continue", "Correct metadata", "Cancel"],
+            options=options,
             context={
                 "classified":  classified,
                 "genome":      genome,
                 "organism":    organism,
                 "warnings":    warnings,
                 "file_count":  len(all_files),
+                "sensitivity": sensitivity,
                 "exp_context": exp_context,
             }
         )
@@ -287,6 +310,26 @@ class DataAuditAgent(BaseAgent):
         }
 
     # ── PRIVATE METHODS ──────────────────────────────────────────────────
+
+    @staticmethod
+    def _collect_sensitivity_fields(exp_context: dict) -> list[str]:
+        """Gather obs/design field names that feed the sensitivity classifier
+        (P1-8a). Uses metadata column NAMES only — never cell-level values."""
+        design = exp_context.get("inferred_design", {}) or {}
+        fields: list[str] = []
+        obs_cols = design.get("obs_columns") or {}
+        if isinstance(obs_cols, dict):
+            for cols in obs_cols.values():
+                fields.extend(str(c) for c in (cols or []))
+        elif isinstance(obs_cols, list):
+            fields.extend(str(c) for c in obs_cols)
+        for key in ("condition_col", "replicate_col", "groupby_col", "main_factor"):
+            if design.get(key):
+                fields.append(str(design[key]))
+        covs = design.get("covariates") or []
+        if isinstance(covs, (list, tuple)):
+            fields.extend(str(c) for c in covs)
+        return fields
 
     def _scan_directory(self, data_dir: Path) -> list[Path]:
         """Recursively scan directory for all files."""

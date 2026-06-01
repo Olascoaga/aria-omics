@@ -31,6 +31,29 @@ def air_gapped_enabled() -> bool:
     }
 
 
+# Tracks whether air-gapped mode was turned on at runtime (vs. preset in the
+# environment), purely for honest report/methodology disclosure.
+_runtime_air_gapped_reason: str | None = None
+
+
+def enable_air_gapped_runtime(reason: str = "user_decision") -> None:
+    """Turn on air-gapped mode for the rest of the run (P1-8a).
+
+    Sets ``ARIA_AIR_GAPPED`` in the process environment so BOTH in-process egress
+    (LLM) and dispatched subprocesses (which inherit the env via ``conda run``)
+    refuse network egress. Used when the user opts into air-gapped at the
+    sensitivity checkpoint; ARIA never flips this on without the user's choice.
+    """
+    global _runtime_air_gapped_reason
+    os.environ["ARIA_AIR_GAPPED"] = "1"
+    _runtime_air_gapped_reason = reason
+
+
+def air_gapped_runtime_reason() -> str | None:
+    """Reason air-gapped was enabled at runtime, or None if preset/off."""
+    return _runtime_air_gapped_reason
+
+
 class EgressBlocked(RuntimeError):
     """Raised when a network egress is attempted under air-gapped mode."""
 

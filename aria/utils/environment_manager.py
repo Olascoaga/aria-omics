@@ -380,24 +380,40 @@ class EnvironmentManager:
         """
         failed_dir = self.workspace / "failed"
         run_dir    = failed_dir / f"{stack}_{run_id}"
+        # P1-8 (c) / ADR-024: archived failed-run artifacts are redacted by
+        # default so a sensitive run never leaves raw paths/params/outputs on
+        # disk. The same opt-in that preserves raw inputs preserves raw
+        # output/error for debugging.
+        preserve_raw = (
+            os.environ.get("ARIA_PRESERVE_FAILED_INPUTS", "0")
+            .strip().lower() in {"1", "true", "yes", "on"}
+        )
+
+        def _archive_json(payload, dest_raw: Path, dest_redacted: Path):
+            """Write `payload` redacted (default) or raw (opt-in)."""
+            if preserve_raw:
+                dest_raw.write_text(json.dumps(payload, indent=2),
+                                    encoding="utf-8")
+                return
+            try:
+                redacted = redact_sensitive_params(payload)
+                dest_redacted.write_text(json.dumps(redacted, indent=2),
+                                         encoding="utf-8")
+            except Exception:
+                dest_redacted.write_text(json.dumps({"redacted": True}, indent=2),
+                                         encoding="utf-8")
+
         try:
             run_dir.mkdir(parents=True, exist_ok=True)
             if input_file.exists():
-                preserve_raw = (
-                    os.environ.get("ARIA_PRESERVE_FAILED_INPUTS", "0")
-                    .strip().lower() in {"1", "true", "yes", "on"}
-                )
                 if preserve_raw:
                     input_file.replace(run_dir / "input.json")
                 else:
                     try:
                         with input_file.open("r", encoding="utf-8") as fh:
                             raw_params = json.load(fh)
-                        redacted = redact_sensitive_params(raw_params)
-                        (run_dir / "input.redacted.json").write_text(
-                            json.dumps(redacted, indent=2),
-                            encoding="utf-8",
-                        )
+                        _archive_json(raw_params, run_dir / "input.json",
+                                      run_dir / "input.redacted.json")
                     except Exception:
                         (run_dir / "input.redacted.json").write_text(
                             json.dumps({"redacted": True}, indent=2),
@@ -408,9 +424,27 @@ class EnvironmentManager:
                     except OSError:
                         pass
             if output_file.exists():
-                output_file.replace(run_dir / "output.json")
-            # Drop the error summary next to the JSON for easy triage.
-            (run_dir / "error.json").write_text(json.dumps(result, indent=2))
+                if preserve_raw:
+                    output_file.replace(run_dir / "output.json")
+                else:
+                    try:
+                        with output_file.open("r", encoding="utf-8") as fh:
+                            raw_output = json.load(fh)
+                        _archive_json(raw_output, run_dir / "output.json",
+                                      run_dir / "output.redacted.json")
+                    except Exception:
+                        (run_dir / "output.redacted.json").write_text(
+                            json.dumps({"redacted": True}, indent=2),
+                            encoding="utf-8",
+                        )
+                    try:
+                        output_file.unlink()
+                    except OSError:
+                        pass
+            # Drop the error summary next to the JSON for easy triage (redacted
+            # by default — the result dict can echo paths/params).
+            _archive_json(result, run_dir / "error.json",
+                          run_dir / "error.redacted.json")
             sha_file = self.workspace / f"params_{run_id}.sha256"
             if sha_file.exists():
                 sha_file.replace(run_dir / "params.sha256")
