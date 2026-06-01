@@ -1,0 +1,34 @@
+{
+  "description": "Golden bulk DE mini-dataset (P1-11): 20 planted up-DE genes in treat vs ctrl over a shared per-gene Poisson baseline (correlated replicates). Versioned ground truth for deterministic DE recovery.",
+  "design_factor": "condition",
+  "contrast": {
+    "numerator": "treat",
+    "denominator": "ctrl",
+    "name": "treat vs ctrl"
+  },
+  "planted_up_genes": [
+    "GENE_0000",
+    "GENE_0001",
+    "GENE_0002",
+    "GENE_0003",
+    "GENE_0004",
+    "GENE_0005",
+    "GENE_0006",
+    "GENE_0007",
+    "GENE_0008",
+    "GENE_0009",
+    "GENE_0010",
+    "GENE_0011",
+    "GENE_0012",
+    "GENE_0013",
+    "GENE_0014",
+    "GENE_0015",
+    "GENE_0016",
+    "GENE_0017",
+    "GENE_0018",
+    "GENE_0019"
+  ],
+  "min_recall": 0.8,
+  "max_false_up_among_null": 6,
+  "min_replicates_per_condition": 3
+}

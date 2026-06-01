@@ -8,7 +8,7 @@ pytest wrappers for the scripts we want in CI.
 """
 
 collect_ignore = [
-    "test_bulk_rna.py",
+    # test_bulk_rna.py converted to native pytest (P1-11) — collected directly.
     "test_chromatin_agent.py",
     "test_debate_council.py",
     "test_environment_manager.py",

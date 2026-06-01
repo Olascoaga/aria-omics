@@ -507,20 +507,6 @@ def test_llm_cache_key_includes_deterministic_controls():
     assert key_a != key_c
 
 
-def test_bulk_rna_legacy_script_passes():
-    env = os.environ.copy()
-    env["ARIA_ALLOW_MOCKS"] = "1"
-    result = subprocess.run(
-        [sys.executable, "tests/test_bulk_rna.py"],
-        cwd=ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=180,
-    )
-    _assert_legacy_script_passed(result)
-
-
 def test_h5ad_obs_design_inference(tmp_path):
     ad = pytest.importorskip("anndata")
     np = pytest.importorskip("numpy")

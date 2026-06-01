@@ -67,7 +67,8 @@ jobs:
             tests/test_local_ora.py \
             tests/test_egress_governance.py \
             tests/test_sensitivity_privacy.py \
-            tests/test_parameter_advisor_honesty.py
+            tests/test_parameter_advisor_honesty.py \
+            tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout
         run: |
@@ -117,7 +118,8 @@ jobs:
             tests/test_benchmark_synthetic_de.py \
             tests/test_lfc_shrinkage.py \
             tests/test_composition_collinearity.py \
-            tests/test_bulk_covariates.py
+            tests/test_bulk_covariates.py \
+            tests/test_bulk_rna.py
 
   # ── Tier 3 (tags v* only): release reproducibility ───────────────────────
   # Validates the published Docker image solves the env and runs a real
