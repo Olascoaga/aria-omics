@@ -149,6 +149,157 @@ def simulate_pseudobulk_dataset(
     )
 
 
+@dataclass
+class SyntheticBulkDEDataset:
+    """A simulated bulk RNA-seq count matrix plus its ground truth."""
+    counts: Any                             # DataFrame (genes x samples), integer counts
+    metadata: Any                           # DataFrame (samples x design), with "condition"
+    de_genes: dict[str, str]                # gene -> "up" | "down" (truth in COND_B vs COND_A)
+    null_genes: list[str]                   # genes with no true effect
+    params: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def n_de(self) -> int:
+        return len(self.de_genes)
+
+
+def simulate_bulk_dataset(
+    *,
+    n_genes: int = 2000,
+    n_de: int = 200,
+    replicates_per_condition: int = 5,
+    dispersion: float = 0.2,
+    min_abs_log2fc: float = 1.0,
+    max_abs_log2fc: float = 2.5,
+    seed: int = 11,
+) -> SyntheticBulkDEDataset:
+    """Simulate a two-condition bulk RNA-seq count matrix (genes x samples).
+
+    Negative binomial counts (Gamma-Poisson) at bulk sequencing depth, with one
+    sample per biological replicate (the replication unit for bulk DESeq2).
+    ``n_de`` genes get a fold change in COND_B; the rest are null. Deterministic
+    for a given seed. Neutral labels only (ADR-011).
+    """
+    import numpy as np
+    import pandas as pd
+
+    rng = np.random.default_rng(seed)
+
+    gene_names = [f"GENE_{i:04d}" for i in range(n_genes)]
+    # Bulk depth: a higher base mean than the single-cell simulator.
+    base_mean = np.clip(np.exp(rng.normal(3.0, 1.0, size=n_genes)), 5.0, None)
+
+    de_idx = rng.choice(n_genes, size=n_de, replace=False)
+    de_mask = np.zeros(n_genes, dtype=bool)
+    de_mask[de_idx] = True
+    log2fc = np.zeros(n_genes, dtype=float)
+    signs = rng.choice([-1.0, 1.0], size=n_de)
+    mags = rng.uniform(min_abs_log2fc, max_abs_log2fc, size=n_de)
+    log2fc[de_idx] = signs * mags
+    cond_b_fc = np.power(2.0, log2fc)
+
+    sample_cols, sample_names, conds = [], [], []
+    for cond in ("COND_A", "COND_B"):
+        fc = cond_b_fc if cond == "COND_B" else np.ones(n_genes)
+        for r in range(replicates_per_condition):
+            sample = f"{cond}_r{r}"
+            # Per-sample size factor for realistic between-replicate variation.
+            sf = float(np.exp(rng.normal(0.0, 0.15)))
+            gene_mean = base_mean * fc * sf
+            shape = 1.0 / dispersion
+            gamma = rng.gamma(shape=shape, scale=gene_mean * dispersion)
+            sample_cols.append(rng.poisson(gamma).astype(np.int64))
+            sample_names.append(sample)
+            conds.append(cond)
+
+    counts = pd.DataFrame(
+        np.array(sample_cols).T, index=gene_names, columns=sample_names)
+    metadata = pd.DataFrame({"condition": conds}, index=sample_names)
+
+    de_genes = {gene_names[i]: ("up" if log2fc[i] > 0 else "down") for i in de_idx}
+    null_genes = [gene_names[i] for i in range(n_genes) if not de_mask[i]]
+
+    return SyntheticBulkDEDataset(
+        counts=counts,
+        metadata=metadata,
+        de_genes=de_genes,
+        null_genes=null_genes,
+        params={
+            "n_genes": n_genes, "n_de": n_de,
+            "replicates_per_condition": replicates_per_condition,
+            "dispersion": dispersion,
+            "min_abs_log2fc": min_abs_log2fc,
+            "max_abs_log2fc": max_abs_log2fc,
+            "seed": seed,
+        },
+    )
+
+
+def run_bulk_de_benchmark(
+    dataset: SyntheticBulkDEDataset | None = None,
+    *,
+    min_recall: float = 0.5,
+    max_empirical_fdr: float = 0.2,
+    padj_max: float = 0.05,
+    lfc_min: float = 0.5,
+    lfc_shrink: bool = True,
+    **sim_kwargs,
+) -> DEBenchmarkResult:
+    """Run ARIA's real bulk DE (`_run_deseq2`, incl. apeGLM) on the synthetic
+    matrix and score recovery — the bulk analog of the pseudobulk benchmark.
+
+    Requires pydeseq2. Returns a :class:`DEBenchmarkResult`; ``status`` is "pass"
+    only when recall and empirical FDR are within tolerance.
+    """
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    if dataset is None:
+        dataset = simulate_bulk_dataset(**sim_kwargs)
+
+    tolerances = {"min_recall": min_recall, "max_empirical_fdr": max_empirical_fdr}
+    result, _warnings = _run_deseq2(
+        dataset.counts, dataset.metadata, "condition", "COND_B", "COND_A",
+        padj_thr=padj_max, lfc_thr=lfc_min, lfc_shrink=lfc_shrink,
+    )
+
+    if result.get("status") != "success":
+        return DEBenchmarkResult(
+            status="error", recall=0.0, empirical_fdr=1.0,
+            n_true_de=dataset.n_de, n_called=0,
+            n_true_positive=0, n_false_positive=0,
+            tolerances=tolerances,
+            messages=[f"bulk DE did not succeed: {result.get('error_type')} "
+                      f"{result.get('details', '')}"],
+        )
+
+    called = set(result.get("sig_genes", []) or [])
+    true_de = set(dataset.de_genes)
+    null = set(dataset.null_genes)
+    tp = called & true_de
+    fp = called & null
+    recall = len(tp) / max(len(true_de), 1)
+    empirical_fdr = len(fp) / max(len(called), 1)
+
+    messages = [
+        f"recall={recall:.3f} (>= {min_recall}); "
+        f"empirical_fdr={empirical_fdr:.3f} (<= {max_empirical_fdr}); "
+        f"called={len(called)}, true_de={len(true_de)}",
+    ]
+    status = "pass" if (recall >= min_recall and empirical_fdr <= max_empirical_fdr) else "fail"
+
+    return DEBenchmarkResult(
+        status=status,
+        recall=recall,
+        empirical_fdr=empirical_fdr,
+        n_true_de=len(true_de),
+        n_called=len(called),
+        n_true_positive=len(tp),
+        n_false_positive=len(fp),
+        tolerances=tolerances,
+        messages=messages,
+    )
+
+
 def run_pseudobulk_de_benchmark(
     dataset: SyntheticDEDataset | None = None,
     *,

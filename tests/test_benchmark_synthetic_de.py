@@ -63,3 +63,40 @@ def test_pseudobulk_de_recovers_ground_truth():
     assert res.status == "pass", res.as_dict()
     assert res.recall >= 0.5, res.as_dict()
     assert res.empirical_fdr <= 0.2, res.as_dict()
+
+
+# ── W-CALIB: the same ground-truth gate for the BULK path ────────────────────
+
+def test_bulk_simulator_is_deterministic_and_labels_truth():
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("pandas")
+    from aria.benchmarks.synthetic_de import simulate_bulk_dataset
+
+    ds1 = simulate_bulk_dataset(n_genes=300, n_de=30, replicates_per_condition=5, seed=1)
+    ds2 = simulate_bulk_dataset(n_genes=300, n_de=30, replicates_per_condition=5, seed=1)
+
+    assert np.array_equal(ds1.counts.values, ds2.counts.values)   # deterministic
+    assert ds1.n_de == 30
+    assert len(ds1.null_genes) == 300 - 30
+    assert set(ds1.de_genes).isdisjoint(set(ds1.null_genes))
+    # genes x samples, 5 + 5 samples, integer counts.
+    assert ds1.counts.shape == (300, 10)
+    assert set(ds1.metadata["condition"].unique()) == {"COND_A", "COND_B"}
+    assert str(ds1.counts.values.dtype).startswith("int")
+
+
+def test_bulk_de_recovers_ground_truth():
+    """ARIA's real bulk DE (_run_deseq2, with apeGLM) must recover the planted
+    truth within tolerance while controlling empirical FDR — the bulk analog of
+    the pseudobulk gate. Protects the deferred P1-1 (b)/(c) changes."""
+    pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import run_bulk_de_benchmark
+
+    res = run_bulk_de_benchmark(
+        n_genes=1000, n_de=120, replicates_per_condition=6, seed=11,
+        min_recall=0.5, max_empirical_fdr=0.2,
+    )
+    assert res.status == "pass", res.as_dict()
+    assert res.recall >= 0.5, res.as_dict()
+    assert res.empirical_fdr <= 0.2, res.as_dict()

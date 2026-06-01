@@ -8,14 +8,20 @@ caught, not just flow regressions.
 
 from aria.benchmarks.synthetic_de import (
     SyntheticDEDataset,
+    SyntheticBulkDEDataset,
     DEBenchmarkResult,
     simulate_pseudobulk_dataset,
+    simulate_bulk_dataset,
     run_pseudobulk_de_benchmark,
+    run_bulk_de_benchmark,
 )
 
 __all__ = [
     "SyntheticDEDataset",
+    "SyntheticBulkDEDataset",
     "DEBenchmarkResult",
     "simulate_pseudobulk_dataset",
+    "simulate_bulk_dataset",
     "run_pseudobulk_de_benchmark",
+    "run_bulk_de_benchmark",
 ]

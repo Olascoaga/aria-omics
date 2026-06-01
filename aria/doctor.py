@@ -90,27 +90,39 @@ def _run_synthetic_de_benchmark() -> list[IntegrityIssue]:
             "Run in aria-rna-env (or CI) to exercise numerical-accuracy recovery.",
             severity="warning",
         )]
+    issues: list[IntegrityIssue] = []
+    # Small/fast configs for the doctor; the pytest gate uses larger ones.
     try:
-        from aria.benchmarks.synthetic_de import run_pseudobulk_de_benchmark
-        # Small/fast config for the doctor; the pytest gate uses a larger one.
-        res = run_pseudobulk_de_benchmark(
-            n_genes=400, n_de=40, donors_per_condition=4, cells_per_donor=30,
-            seed=11, min_recall=0.5, max_empirical_fdr=0.25,
+        from aria.benchmarks.synthetic_de import (
+            run_bulk_de_benchmark,
+            run_pseudobulk_de_benchmark,
         )
+        runs = {
+            "pseudobulk": run_pseudobulk_de_benchmark(
+                n_genes=400, n_de=40, donors_per_condition=4, cells_per_donor=30,
+                seed=11, min_recall=0.5, max_empirical_fdr=0.25,
+            ),
+            "bulk": run_bulk_de_benchmark(
+                n_genes=400, n_de=40, replicates_per_condition=5,
+                seed=11, min_recall=0.5, max_empirical_fdr=0.25,
+            ),
+        }
     except Exception as exc:  # never let doctor crash on the benchmark
         return [IntegrityIssue(
             "benchmark_error",
             f"Synthetic DE benchmark could not run: {exc}",
             severity="warning",
         )]
-    if res.status != "pass":
-        return [IntegrityIssue(
-            "benchmark_failed",
-            f"Synthetic DE recovery out of tolerance: {res.messages[0] if res.messages else res.as_dict()}",
-            severity="error",
-        )]
+    for path, res in runs.items():
+        if res.status != "pass":
+            issues.append(IntegrityIssue(
+                "benchmark_failed",
+                f"Synthetic {path} DE recovery out of tolerance: "
+                f"{res.messages[0] if res.messages else res.as_dict()}",
+                severity="error",
+            ))
     # Pass: clean (no issue). The pytest gate records the positive metrics.
-    return []
+    return issues
 
 
 def _check_synthetic_assets() -> list[IntegrityIssue]:

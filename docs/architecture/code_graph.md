@@ -278,6 +278,10 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `tests/test_fdr_preregistration.py` (e2e case is pydeseq2-gated)
 - Bulk apeGLM LFC shrinkage (bulk = pseudobulk rigor, P1-1a):
   `tests/test_bulk_lfc_shrinkage.py` (pydeseq2-gated)
+- Synthetic-DE ground-truth recovery for BOTH pseudobulk and bulk (recall /
+  empirical FDR, W-CALIB): `tests/test_benchmark_synthetic_de.py`
+  (`aria/benchmarks/synthetic_de.py`; recovery cases pydeseq2-gated; also run by
+  `aria doctor --benchmark`). Numerical safety net for any DE-math change.
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery
