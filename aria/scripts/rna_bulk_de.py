@@ -84,6 +84,8 @@ def bulk_rna_de(params: dict) -> dict:
     design_factor  = params.get("design_factor", "condition")
     # P0-4: covariates confirmed at DesignAgent CHECKPOINT 2.4 (e.g. batch).
     covariates     = params.get("covariates", []) or []
+    # P1-1/ADR-023: apeGLM LFC shrinkage on by default (bulk = pseudobulk rigor).
+    lfc_shrink     = bool(params.get("lfc_shrink", True))
 
     # v3: accept list of contrasts OR single comparison (backward compat)
     contrasts_in   = params.get("contrasts", [])
@@ -251,6 +253,7 @@ def bulk_rna_de(params: dict) -> dict:
             allow_mock=allow_mock,
             min_replicates_per_condition=min_reps,
             covariates=covariates,
+            lfc_shrink=lfc_shrink,
         )
 
         if de_result.get("status") == "error":
@@ -413,6 +416,9 @@ def bulk_rna_de(params: dict) -> dict:
             "fitted_design_formula": de_result.get("fitted_design_formula"),
             "covariates_adjusted":   de_result.get("covariates_adjusted", []),
             "covariates_dropped":    de_result.get("covariates_dropped", []),
+            # P1-1/ADR-023: reported log2fc is the apeGLM-shrunken estimate; the
+            # raw MLE is preserved per gene as log2fc_raw and in the DE table.
+            "lfc_shrinkage":     de_result.get("lfc_shrinkage"),
             "top_genes":         top_genes,
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
@@ -1505,12 +1511,33 @@ def _resolve_covariates(metadata, design_factor: str, covariates: list) -> tuple
     return usable, dropped
 
 
+def _shrink_coeff(dds, condition_col: str, test_lvl: str):
+    """Find the apeGLM LFC coefficient column for test-vs-ref (P1-1 / ADR-023).
+
+    pydeseq2 names coefficients patsy-style, e.g. ``condition[T.treat]``. With the
+    dds reference fixed to the contrast's ref level, the only non-reference level
+    is ``test_lvl``, so that column is exactly the test-vs-ref effect.
+    """
+    try:
+        cols = [str(c) for c in dds.varm["LFC"].columns]
+    except Exception:
+        return None
+    exact = f"{condition_col}[T.{test_lvl}]"
+    if exact in cols:
+        return exact
+    for c in cols:
+        if c.startswith(str(condition_col)) and str(test_lvl) in c:
+            return c
+    return None
+
+
 def _run_deseq2(counts, metadata, design_factor: str,
                 numerator: str, denominator: str,
                 padj_thr: float, lfc_thr: float,
                 allow_mock: bool = False,
                 min_replicates_per_condition: int = 3,
-                covariates: list = None) -> tuple:
+                covariates: list = None,
+                lfc_shrink: bool = True) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -1606,6 +1633,12 @@ def _run_deseq2(counts, metadata, design_factor: str,
         # interest last). The contrast still names `design_factor` explicitly.
         design_formula = _build_design_formula(design_factor, usable_covariates)
 
+        # P1-1/ADR-023: fix the reference to the contrast's denominator so the
+        # apeGLM coefficient (design_factor[T.numerator]) is exactly the
+        # numerator-vs-denominator effect we shrink. Only when shrinkage is on,
+        # so the disabled path is byte-identical to the legacy behavior.
+        ref_kwargs = {"ref_level": [design_factor, denominator]} if lfc_shrink else {}
+
         # pydeseq2 expects samples × genes. The public API changed from
         # design_factors=... to design="~ factor"; support both.
         try:
@@ -1615,6 +1648,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 design=design_formula,
                 refit_cooks=True,
                 quiet=True,
+                **ref_kwargs,
             )
         except TypeError:
             dds = DeseqDataSet(
@@ -1622,6 +1656,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 metadata=meta_sub,
                 design_factors=usable_covariates + [design_factor],
                 refit_cooks=True,
+                **ref_kwargs,
             )
         dds.deseq2()
 
@@ -1631,7 +1666,27 @@ def _run_deseq2(counts, metadata, design_factor: str,
         )
         stat_res.summary()
 
+        # P1-1/ADR-023: apeGLM LFC shrinkage. Keep the raw MLE LFC, shrink in
+        # place, and fall back to raw if the coefficient is unavailable or
+        # shrinkage raises (never break the DE). apeGLM leaves p-values unchanged.
+        shrink_applied = False
+        shrink_reason = None
+        raw_lfc = stat_res.results_df["log2FoldChange"].copy()
+        if lfc_shrink:
+            coeff = _shrink_coeff(dds, design_factor, numerator)
+            if coeff is None:
+                shrink_reason = "apeGLM coefficient not found"
+            else:
+                try:
+                    stat_res.lfc_shrink(coeff=coeff)
+                    shrink_applied = True
+                except Exception as _sx:
+                    shrink_reason = f"lfc_shrink failed: {str(_sx)[:120]}"
+        else:
+            shrink_reason = "disabled"
+
         results_df = stat_res.results_df.dropna(subset=["padj"])
+        results_df["log2FoldChange_raw"] = raw_lfc.reindex(results_df.index)
 
         sig = results_df[
             (results_df["padj"]             < padj_thr) &
@@ -1683,6 +1738,12 @@ def _run_deseq2(counts, metadata, design_factor: str,
             "covariates_dropped":    [
                 {"covariate": c, "reason": r} for c, r in dropped_covariates
             ],
+            "lfc_shrinkage": {
+                "requested": bool(lfc_shrink),
+                "applied":   shrink_applied,
+                "method":    "apeGLM" if shrink_applied else None,
+                "reason":    shrink_reason,
+            },
         }, warnings
 
     except ImportError:

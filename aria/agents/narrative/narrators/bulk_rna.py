@@ -72,6 +72,13 @@ class BulkRnaNarrator:
                 "Confirmed covariate(s) not adjusted for (absent or constant in "
                 f"the sample metadata): {', '.join(sorted(set(dropped)))}."
             )
+        # P1-1/ADR-023: disclose apeGLM effect-size shrinkage when it was applied.
+        if any((c.get("lfc_shrinkage") or {}).get("applied") for c in contrasts):
+            lines.append(
+                "Reported log2 fold changes are apeGLM-shrunken effect-size "
+                "estimates (the raw MLE is preserved as log2FoldChange_raw); "
+                "p-values are unchanged by shrinkage."
+            )
         return lines
 
     def figures(self, agent_name: str, agent_result: dict,
