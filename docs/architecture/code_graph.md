@@ -262,6 +262,10 @@ Use these tests as impact anchors when editing the graph's major nodes:
   P0-8): `tests/test_wnn_no_fabrication.py`
 - Confirmed-threshold propagation (`AnalysisThresholds`, pseudobulk dispatch, P0-7):
   `tests/test_analysis_thresholds.py`
+- Repo-wide anti-fabrication guard (P-FAKE-GUARD / ADR-002 mechanized, P1-13):
+  `tests/test_no_fabrication_guard.py` — AST scan of `aria/scripts` + `aria/agents`
+  for empty-`AnnData()` returns, ungated `_mock_*` success, and `hash()`-derived
+  returned metrics; deliberate exceptions go in its `_ALLOWLIST`.
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery
