@@ -1726,6 +1726,16 @@ Rules:
         )
         min_replicates = 2 if low_power_optional else 3
 
+        # P0-7: propagate the user-confirmed CP3 thresholds instead of
+        # hardcoding padj/lfc here. The orchestrator records them in
+        # exp_ctx["global_padj"]/["global_lfc"]; AnalysisThresholds resolves them
+        # (scRNA pseudobulk keeps lfc default 0.5 when none was confirmed).
+        from aria.utils.thresholds import AnalysisThresholds
+        thresholds = AnalysisThresholds.from_exp_context(
+            exp_ctx, modality="scRNA",
+            log2fc_default=0.5, min_cells=10, min_replicates=min_replicates,
+        )
+
         # 3. Run pseudobulk DE
         pb = self.env.run_in_stack(
             stack="rna",
@@ -1738,10 +1748,7 @@ Rules:
                 "comparisons":   comparisons,
                 "covariates":    covariates,
                 "composition_covariate": da_significant,
-                "min_cells_per_pseudosample":   10,
-                "min_replicates_per_condition": min_replicates,
-                "padj_max":      0.05,
-                "lfc_min":       0.5,
+                **thresholds.as_pseudobulk_params(),
                 "top_n":         50,
                 "auto_paired_donor_covariate": True,
                 "output_dir":    str(workspace),
