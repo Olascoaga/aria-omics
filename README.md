@@ -33,11 +33,17 @@ decisions, and writes a report grounded in real output files.
 **ARIA produces:**
 
 - Pre-analysis quality audit with actionable warnings before expensive compute
-- Differential expression with all pairwise contrasts (not just vs control)
-- Pathway enrichment (ORA + GSEA) per contrast
+- Differential expression with explicitly confirmed contrasts (never an
+  alphabetically guessed reference), covariate/batch-adjusted DESeq2 designs
+- Pathway enrichment (ORA + GSEA) per contrast, with explicit gene-set background
 - Publication-ready figures: volcano plots, PCA/MDS, ORA dotplots, GSEA running sums
 - HTML report in paper/publication style with embedded figures
-- Manuscript-ready methods section with exact parameters used
+- Manuscript-ready methods section with the exact fitted design and parameters
+- Evidence-tiered claims with a per-claim manifest and an adversarial caveat pass
+- A planned-vs-run ledger so a partial run is visible, not silent
+- Full provenance: version + git commit + dirty state + input SHA-256 + per-stage
+  parameter hashes + dependency lockfiles + LLM usage, in HTML and
+  `methodology.json`
 - Reproducible decision log (every threshold choice stored in SQLite)
 
 ---
@@ -77,12 +83,14 @@ Diagrams are stored as Mermaid files under [docs/diagrams](docs/diagrams/).
 ```
 INFRASTRUCTURE                     STATUS
 ────────────────────────────────────────────────────
-MessageBus + compact wire format   done
+MessageBus (durable, per-run replay) done
 ARIAMemory (SQLite hierarchical)   done
-LLMProvider + ContextManager       done
+LLMProvider (deterministic+airgap) done — temp=0, fixed seed, local-only mode
 ParameterAdvisor (3-layer)         done
-EnvironmentManager (IPC/JSON)      done
-DebateCouncil (peer review)        done
+EnvironmentManager (typed IPC/JSON) done — contract for every dispatchable script
+Anti-fabrication guard (CI gate)   done — no placeholder/mock/hash-derived output
+Provenance stamping (single source) done — version + commit + dirty + workflow hash
+DebateCouncil + devil's advocate   done — deterministic adversarial review
 
 AGENTS                             STATUS
 ────────────────────────────────────────────────────
@@ -106,17 +114,20 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_pathway_per_cluster.py       done — also used for per (group, comp) ORA
   rna_trajectory.py (PAGA+DPT)     beta — validated on hippocampus subset
   rna_cellcomm.py (LIANA)          beta — validated on GSE278576
-ChromatinAgent                     scaffolded
-  chromatin_qc.py                  done
+ChromatinAgent                     scaffolded — dispatch-gated until v4.6
+  chromatin_qc.py                  done — measured-only QC (no fabricated TSS/FRiP)
   chromatin_peaks.py (MACS3)       scaffolded
-GenomeArchAgent                    scaffolded
-  hic_inspect.py                   done
-  hic_qc_and_balance.py            done
+GenomeArchAgent                    scaffolded — dispatch OFF by default
+  hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
+  hic_qc_and_balance.py            done — runs are stamped not-publication-grade
   hic_topology.py (out-of-core)    scaffolded
 NarrativeAgent (HTML report)       done  ✓ paper theme
   Narrative kernel (evidence cards) done — validated NarrativeBlock objects
   Claim Compiler (evidence tiers)   done — per-claim tier + manifest (X14)
-IntegrationAgent (WNN + MOFA+)     scaffolded — pending end-to-end validation
+  Run ledger (planned vs executed)  done — partial runs surfaced, not silent
+  Devil's advocate (deterministic)  done — confounder check per claim
+IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
+                                   fabricated output (explicit NotImplemented)
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
@@ -135,6 +146,36 @@ defaults to per-cluster FDR while still reporting global FDR, power is reported
 against the effective global-BH threshold, and log-normalized count recovery is
 visibly low-confidence. Pseudobulk significant-gene counts can differ from
 pre-`v4.5.4` reports by design.
+
+Since `v4.5.4`, ARIA has been in a focused reliability, governance, and
+reproducibility hardening pass on the validated RNA baseline before the next
+modality (scATAC) begins. Shipped so far:
+
+- **Deterministic, auditable narrative** — every LLM call runs at
+  `temperature=0` with a fixed seed, and each report records which model/tier
+  answered and whether it was a cache hit or a degraded fallback. A
+  deterministic *devil's advocate* challenges every associative-or-stronger
+  claim with the standard technical confounders (batch, ambient RNA, doublets,
+  composition shift, low replication) and records which were addressed.
+- **Planned-vs-run ledger** — every report reconciles the analyses the plan
+  called for against the ones that actually executed, so a partial run is
+  visible instead of silent.
+- **Single-source provenance** — each report stamps the exact version, git
+  commit, dirty state, and workflow hash, all derived from one version source.
+- **Design honesty** — bulk DE now honors confirmed batch/covariates in the
+  fitted DESeq2 formula, refuses to pick a reference contrast by alphabetical
+  order, refuses to silently infer the design from file names, and propagates
+  the user's confirmed significance thresholds end-to-end.
+- **No fabricated science** — a repo-wide guard fails the build if any script
+  returns placeholder matrices, ungated mock "successes", or hash-derived
+  metrics; every dispatchable analysis script carries a typed IPC contract; and
+  Hi-C / integration scaffolds cannot emit publication-looking output by
+  default (Hi-C requires an explicit `ARIA_ALLOW_EXPERIMENTAL_HIC=1` opt-in and
+  is stamped not-publication-grade).
+- **Governed execution** — a blocking three-tier CI (PR / main / release) runs
+  the guards, the real pyDESeq2 numerical-recovery benchmark, and a Docker
+  env-solve; an air-gapped mode (`ARIA_AIR_GAPPED=1`) keeps sensitive runs
+  local-only and redacts failed-run archives.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -199,9 +240,9 @@ in the Methods section as the path to enable it.
 **Cell-cell communication (LIANA)** (v4.3.7) — dispatch with
 `--cellcomm-h5ad PATH --cellcomm-groupby cell_type_celltypist`.
 Validated on the GSE278576 multi-sample annotated h5ad (9 cell types):
-LIANA `rank_aggregate` with n_perms=50 runs in 7 s. Autocrine pairs
-(source == target) are excluded a priori (~1.5k of ~13.5k rows on this
-dataset). The script auto-falls back to `specificity_rank` when LIANA
+LIANA `rank_aggregate` (now `n_perms=1000` by default for stable
+publication-grade ranks). Autocrine pairs (source == target) are excluded a
+priori (~1.5k of ~13.5k rows on this dataset). The script auto-falls back to `specificity_rank` when LIANA
 emits all-NaN `magnitude_rank` (a recent-version quirk). Top non-
 autocrine hits recovered are classical glia-neuron signaling axes:
 APOE → TREM2 (Astro → Micro), C3 → NRP1 (Micro → L2-3 neurons),
@@ -213,7 +254,9 @@ L-R bar chart, and a sortable table with CellPhone p-values.
 
 ## Design Principles
 
-**Local-first** — Your data never leaves your machine.
+**Local-first** — Your data never leaves your machine. An air-gapped mode
+(`ARIA_AIR_GAPPED=1`) restricts the LLM layer to local models, refuses cloud
+calls when no local model is configured, and redacts failed-run input archives.
 
 **Language as interface** — Ask a biological question. ARIA translates it
 into an analysis plan, executes it, and explains what it found.
@@ -239,6 +282,12 @@ causal-experimental* — and caps the language the report may use. Observational
 omics is reported as association, not causation, unless the design is
 interventional; claims whose wording exceeds their evidence tier are flagged.
 Each claim ships with an evidence manifest in `methodology.json`.
+
+**Reproducible by construction** — The narrative is deterministic
+(`temperature=0`, fixed seed), every report stamps its exact version, git
+commit, dirty state, input hashes, and dependency lockfiles, and a blocking CI
+runs a real numerical-recovery benchmark plus an anti-fabrication guard on every
+change. Nothing reaches a report that the code cannot reproduce.
 
 **Institutional memory** — Every approved parameter decision is stored
 in a local SQLite database. Over time, ARIA learns your lab's analytical
@@ -283,9 +332,10 @@ ARIA
   ContextManager    4-step degradation cascade for local models
   ParameterAdvisor  3-layer hyperparameter decisions + institutional memory
   EnvironmentManager IPC via JSON, isolated Conda stacks per modality
-  DebateCouncil     Internal peer review: Proposer vs Critic (2–3 rounds)
+  Claim Compiler    Deterministic evidence-tiering + adversarial caveat pass
+  DebateCouncil     Internal LLM peer review: Proposer vs Critic (2–3 rounds)
   ARIAMemory        Hierarchical SQLite: Wings / Halls / Rooms / Findings
-  MessageBus        Inter-agent pub/sub with compact internal messages
+  MessageBus        Durable per-run pub/sub with compact internal messages
   TUI               Terminal interface (Rich)
 ```
 
@@ -363,10 +413,18 @@ aria
 
 ---
 
-## The DebateCouncil in action
+## Adversarial review of every claim
 
-Every biological interpretation with MEDIUM or LOW confidence goes
-through internal peer review before reaching the user:
+On the validated RNA path, every associative-or-stronger claim is challenged by
+a deterministic, LLM-free *devil's advocate* that enumerates the standard
+technical confounders (batch effect, ambient RNA, doublets, composition shift,
+low replication) and marks — from the run's own structured evidence — which were
+addressed and which remain open. Unaddressed alternatives are attached to the
+report as caveats. This makes adversarial review reproducible: the same evidence
+always yields the same challenges.
+
+For interpretation-heavy, lower-confidence contexts ARIA can additionally run a
+multi-round LLM **DebateCouncil** (Proposer vs Critic):
 
 ```
 Proposer:  "Cluster 3 represents terminally exhausted CD8+ T cells
@@ -454,6 +512,13 @@ v4.4     done     Publication readiness — composition correction, global
                   lockfiles, methodology.json, reproducible mode
 v4.5     done     Raw ingestion bridge — deterministic 10X matrix-triplet
                   ingestion and gated FASTQ/kb planning/execution
+v4.5.x   active   Reliability, governance & reproducibility hardening before
+                  scATAC — deterministic narrative + devil's advocate,
+                  planned-vs-run ledger, single-source provenance stamping,
+                  design honesty (covariates / explicit contrasts / no
+                  filename fallback / propagated thresholds), anti-fabrication
+                  guard, complete IPC contracts, blocking 3-tier CI,
+                  air-gapped mode
 v4.6     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
                   chromatin_peaks already scaffolded; need LSI clustering
                   + differential accessibility + motifs + narrative module
