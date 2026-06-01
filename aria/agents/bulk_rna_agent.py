@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import gzip
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -97,6 +98,7 @@ class BulkRNAAgent(BaseAgent):
 
         # ── v4.0: Attempt to apply DesignAgent output; fallback to legacy if fails ──
         design = exp_ctx.get("design")
+        design_application_failed = False
         if design and design.get("groups"):
             self.publish_status(experiment_id, "Applying confirmed experimental design...", 0.65)
             try:
@@ -113,14 +115,41 @@ class BulkRNAAgent(BaseAgent):
                     made_by="user"
                 )
             except Exception as e:
-                log.warning(f"Design application failed ({e}), falling back to inference")
-                self.publish_finding(experiment_id,
-                    {"summary": f"Could not apply design: {e}. Using automatic inference."},
-                    Confidence.MEDIUM)
-                # Fallback to legacy
+                log.warning(f"Design application failed ({e})")
+                design_application_failed = True
                 design = None
         if not design or not design.get("groups"):
-            # ── Legacy inference (fallback) ────────────────────────────
+            # P0-6: filename/column-name group inference is a GUESS, not a
+            # confirmed design. In production it is gated: a confirmed design
+            # that failed to apply must STOP (never silently degrade to
+            # guessing), and a run with no confirmed design at all also stops.
+            # Opt in explicitly with ARIA_ALLOW_FILENAME_FALLBACK=1.
+            if not self._filename_fallback_allowed():
+                reason = ("design_application_failed" if design_application_failed
+                          else "no_confirmed_design")
+                detail = (
+                    "the confirmed experimental design could not be applied to "
+                    "the count matrix" if design_application_failed
+                    else "no confirmed experimental design was provided"
+                )
+                self.publish_finding(experiment_id,
+                    {"summary": (
+                        f"Bulk DE stopped: {detail}. ARIA refuses to infer the "
+                        "design from file/column names in production (it would "
+                        "run DE on a guessed design). Provide a confirmed design, "
+                        "or set ARIA_ALLOW_FILENAME_FALLBACK=1 to allow "
+                        "name-based inference (NOT publication-grade)."
+                    ), "reason": reason},
+                    Confidence.INSUFFICIENT)
+                return {"status": "failed", "reason": reason}
+            # ── Legacy inference (explicit opt-in only) ────────────────
+            self.publish_finding(experiment_id,
+                {"summary": (
+                    "ARIA_ALLOW_FILENAME_FALLBACK=1: inferring experimental "
+                    "groups from file/column names. This is a GUESS, not a "
+                    "confirmed design — results are not publication-grade."
+                )},
+                Confidence.LOW)
             sample_names, group_labels = self._discover_groups(files)
             if not group_labels:
                 self.publish_finding(experiment_id,
@@ -312,6 +341,15 @@ class BulkRNAAgent(BaseAgent):
         by_group = {}
         for sample, label in groups.items(): by_group.setdefault(label, []).append(sample)
         return sample_names, by_group
+
+    @staticmethod
+    def _filename_fallback_allowed() -> bool:
+        """P0-6: inferring the experimental design from file/column names is a
+        guess and is OFF in production. It is allowed only when
+        ARIA_ALLOW_FILENAME_FALLBACK is explicitly set to a truthy value."""
+        return os.environ.get(
+            "ARIA_ALLOW_FILENAME_FALLBACK", ""
+        ).strip().lower() in {"1", "true", "yes", "on"}
 
     @staticmethod
     def _design_covariates(design: dict) -> list[str]:
