@@ -166,6 +166,7 @@ flowchart TD
 | `narrative/run_ledger.py` plan/finding keyword maps | report Run Ledger table, `methodology.json["run_ledger"]`, dispatch-integrity | The planned-vs-run reconciliation (P-LEDGER/ADR-022). If a new analysis is added, give it a `plan_kw`/`finding_keys` entry or it will read as a divergence. Technical vocabulary only (ADR-011). |
 | `narrative/devils_advocate.py` confounder catalog | block `info` caveats, `methodology.json["devils_advocate"]`, claim tiers | The deterministic adversarial pass on the validated path (R2/P-DEVIL/ADR-022). Must run AFTER `annotate_claim_tiers`; it is idempotent (safe to call before render and during methodology). Confounders are a fixed technical checklist, not biology. |
 | `claim_compiler.py` quantitative stats gate | every block-backed report claim, `methodology.json["claims"]`, devil's advocate scope | P-CLAIM2 downgrades DE claims when numeric support is weak (`n_significant`, effective-alpha power, low-power warning, log-norm recovery). Keep the gate based on structured metrics/caveats, not prose. |
+| `narrative/evidence_verifier.py` claim-to-evidence gate | `render_blocks.py`, `claim_compiler.compile_claim_manifest`, `methodology.json["claims"]`, report HTML | P1-9/W-CLAIM: every ARIA-authored block claim and rendered prose sentence must be supported by the block evidence card (evidence, metrics, tables, figures, id/title/analysis metadata). `render_blocks` is STRICT and raises `NarrativeValidationError` on unsupported numbers/entities/analysis-family assertions or unlicensed causal language, so report HTML cannot carry orphan claims. `compile_claim_manifest` is non-strict and records `verification` + `evidence_card_id` for audit. When adding a narrator/composer sentence, add the corresponding structured evidence/metric/table/figure support or the render gate will fail. |
 | `validators.py` | all report generation | Validators are the last integrity gate before claims reach HTML. The causal guard scans ARIA's authored claim, not external named entities (DB term names, gene symbols) carried in evidence; `collect_named_entities` is also reused by the render-level prose scan. |
 | `compose_prose.py` or `render_blocks.py` | HTML findings for all block-backed modalities | Rendering changes can turn valid results into cryptic or misleading reports. |
 | `version.py` / `utils/provenance.py` version stamp | README badge, release notes guard, `NarrativeAgent` report provenance, `methodology.json` | P0-9: `aria/version.py` is the single version source (`__version__`, badge URL, version metadata, workflow hash). `collect_provenance()` must reuse `collect_version_metadata()` so every report stamps version, git commit, dirty state, git tree/describe, and `workflow_hash`; `scripts/update_version_metadata.py` keeps the README badge derived from `version.py` and fails if current-version release notes are missing. Do not add another hardcoded version source. |
@@ -219,8 +220,10 @@ Before changing a production path, answer these questions:
 
 For modalities backed by `NarrativeBlock`, prose is the primary report
 presentation. Structured evidence tables, figures, and file links are audit
-support. A report that only exposes claim rows and evidence tables is not
-considered sufficiently narrative.
+support. P1-9 adds a render-time evidence gate: every ARIA-authored claim/prose
+sentence must be backed by a structured evidence card, and unsupported prose
+blocks HTML generation. A report that only exposes claim rows and evidence tables
+is not considered sufficiently narrative.
 
 ## Test Anchors
 

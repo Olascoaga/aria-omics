@@ -10,8 +10,13 @@ from aria.agents.narrative.compose_prose import compose_block_prose
 from aria.agents.narrative.types import NarrativeBlock
 from aria.agents.narrative.validators import (
     validate_blocks,
+    NarrativeValidationError,
     find_causal_language,
     collect_named_entities,
+)
+from aria.agents.narrative.evidence_verifier import (
+    EvidenceVerificationError,
+    verify_block_claim_support,
 )
 
 
@@ -99,6 +104,12 @@ def _render_block(block: NarrativeBlock,
             + "</ul>"
         )
     prose = html.escape(raw_prose)
+    try:
+        block.metadata["claim_verification"] = verify_block_claim_support(
+            block, raw_prose, strict=True
+        )
+    except EvidenceVerificationError as exc:
+        raise NarrativeValidationError(str(exc)) from exc
     tier_badge = _claim_tier_badge(block)
     return f"""
 <section class="narrative-block" data-block-id="{html.escape(block.id)}"

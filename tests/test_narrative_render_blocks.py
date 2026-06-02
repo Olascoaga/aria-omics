@@ -43,6 +43,56 @@ def test_render_blocks_shows_claim_evidence_caveats_and_validates_files(tmp_path
         render_blocks([block], report_dir=tmp_path)
 
 
+def test_render_blocks_fails_on_unsupported_claim_sentence():
+    import pytest
+    from aria.agents.narrative.claim_compiler import annotate_claim_tiers
+    from aria.agents.narrative.render_blocks import render_blocks
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+    from aria.agents.narrative.validators import NarrativeValidationError
+
+    block = NarrativeBlock(
+        id="scrna.pseudobulk.Monocytes.STIM_vs_CTRL",
+        modality="scRNA-seq",
+        analysis="pseudobulk_de",
+        block_type="result",
+        title="Monocytes STIM_vs_CTRL",
+        status="success",
+        confidence="medium",
+        claim="Monocytes had 140 global-FDR DE genes and IFNG drives response.",
+        evidence=[EvidenceItem("global-FDR DE genes", 12, "pseudobulk_de")],
+        metrics={"n_significant_global": 12},
+    )
+    annotate_claim_tiers([block], exp_ctx={})
+
+    with pytest.raises(NarrativeValidationError, match="unsupported claim sentence"):
+        render_blocks([block])
+
+
+def test_render_blocks_stores_claim_verification_metadata():
+    from aria.agents.narrative.render_blocks import render_blocks
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+
+    block = NarrativeBlock(
+        id="scrna.pseudobulk.Monocytes.STIM_vs_CTRL",
+        modality="scRNA-seq",
+        analysis="pseudobulk_de",
+        block_type="result",
+        title="Monocytes STIM_vs_CTRL",
+        status="success",
+        confidence="medium",
+        claim="Monocytes had 12 global-FDR DE genes.",
+        evidence=[EvidenceItem("global-FDR DE genes", 12, "pseudobulk_de")],
+        metrics={"n_significant_global": 12},
+    )
+
+    render_blocks([block])
+    verification = block.metadata["claim_verification"]
+    assert verification["status"] == "supported"
+    assert verification["evidence_card"]["evidence_card_id"] == (
+        "scrna.pseudobulk.Monocytes.STIM_vs_CTRL#evidence"
+    )
+
+
 def test_narrative_agent_composes_scrna_from_blocks_and_persists_json(tmp_path):
     from aria.agents.narrative_agent import NarrativeAgent
 

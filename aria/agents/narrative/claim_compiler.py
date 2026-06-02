@@ -34,6 +34,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from aria.agents.narrative.types import NarrativeBlock
+from aria.agents.narrative.evidence_verifier import verify_block_claim_support
 from aria.agents.narrative.validators import find_causal_language
 
 
@@ -327,6 +328,10 @@ def annotate_claim_tiers(blocks: list[NarrativeBlock],
 def compile_claim_manifest(block: NarrativeBlock) -> dict[str, Any]:
     """Build a per-claim evidence manifest for methodology.json."""
     claim_meta = block.metadata.get("claim") or {}
+    verification = block.metadata.get("claim_verification")
+    if not verification:
+        verification = verify_block_claim_support(block, strict=False)
+        block.metadata["claim_verification"] = verification
     evidence = []
     for ev in block.evidence or []:
         evidence.append({
@@ -350,6 +355,11 @@ def compile_claim_manifest(block: NarrativeBlock) -> dict[str, Any]:
         "rationale": claim_meta.get("rationale"),
         "limitations": claim_meta.get("limitations", []),
         "language_violation": claim_meta.get("language_violation"),
+        "verification": verification,
+        "evidence_card_id": (
+            verification.get("evidence_card", {}).get("evidence_card_id")
+            if isinstance(verification, dict) else None
+        ),
         "evidence": evidence,
         "tables": tables,
         "figures": figures,

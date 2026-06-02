@@ -74,7 +74,7 @@ def test_causal_language_above_tier_is_flagged():
 def test_annotate_and_compile_claims_roundtrip():
     blocks = [
         _block("qc", "Retained cells.", block_type="qc", bid="scrna.qc"),
-        _block("pseudobulk_de", "GroupA condA_vs_condB had 120 DE genes."),
+        _block("pseudobulk_de", "GroupA condA_vs_condB had 10 DE genes."),
         _block("cell_communication", "50 L-R interactions.", bid="scrna.cellcomm"),
     ]
     annotate_claim_tiers(blocks, exp_ctx={})
@@ -90,6 +90,20 @@ def test_annotate_and_compile_claims_roundtrip():
     assert de["tier"] == "associative"
     assert de["claim_id"].startswith("scrna.pseudobulk")
     assert "evidence" in de and isinstance(de["evidence"], list)
+    assert de["evidence_card_id"] == f"{de['claim_id']}#evidence"
+    assert de["verification"]["status"] == "supported"
+    assert de["verification"]["evidence_card"]["n_refs"] >= 1
+
+
+def test_claim_manifest_marks_unsupported_claim_text_without_throwing():
+    block = _block(
+        "pseudobulk_de",
+        "GroupA condA_vs_condB had 120 DE genes.",
+    )
+    block.evidence[0].value = 10
+    manifest = compile_claims([block], exp_ctx={})[0]
+    assert manifest["verification"]["status"] == "unsupported"
+    assert "120" in manifest["verification"]["unsupported"][0]["reason"]
 
 
 def test_design_is_interventional_is_conservative():
