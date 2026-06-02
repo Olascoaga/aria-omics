@@ -93,6 +93,21 @@ class BulkRnaNarrator:
                 "(one pooled Benjamini–Hochberg correction over all contrasts), "
                 "pre-registered before results were seen."
             )
+        outlier_sensitivity = findings.get("outlier_sensitivity") or {}
+        if outlier_sensitivity.get("status") == "success":
+            removed = outlier_sensitivity.get("removed_samples", []) or []
+            robust = outlier_sensitivity.get("conclusion_robust")
+            robust_text = (
+                "robust" if robust is True else
+                "not robust" if robust is False else
+                "not determined"
+            )
+            lines.append(
+                "Sample outliers were retained in the primary DE analysis; "
+                f"a sensitivity rerun removed {len(removed)} flagged sample(s) "
+                f"where the design allowed it, and the conclusion was "
+                f"{robust_text} to that decision."
+            )
         return lines
 
     def figures(self, agent_name: str, agent_result: dict,
@@ -141,17 +156,24 @@ class BulkRnaNarrator:
         n_samples = sqc.get("n_samples") or (preprocessing.get("qc", {}) or {}).get(
             "n_samples"
         )
-        outliers = sqc.get("outliers", []) or []
+        outliers = sqc.get("candidate_outliers", sqc.get("outliers", [])) or []
+        removed_primary = sqc.get("outliers_removed_primary", []) or []
+        removed_sensitivity = sqc.get("sensitivity_outliers_removed", []) or []
         evidence = []
         if n_samples is not None:
             evidence.append(_evidence("samples", n_samples, "sample_qc"))
         if sqc.get("size_ratio") is not None:
             evidence.append(_evidence("library-size range", sqc.get("size_ratio"),
                                       "sample_qc"))
-        evidence.append(_evidence("outliers removed", len(outliers), "sample_qc"))
+        evidence.append(_evidence("outliers flagged", len(outliers), "sample_qc"))
+        evidence.append(_evidence("outliers removed primary",
+                                  len(removed_primary), "sample_qc"))
+        evidence.append(_evidence("outliers removed sensitivity",
+                                  len(removed_sensitivity), "sample_qc"))
         claim = (
             f"Bulk RNA sample QC evaluated {n_samples} samples with "
-            f"{len(outliers)} outlier(s) removed."
+            f"{len(outliers)} outlier(s) flagged; primary DE retained all "
+            f"samples and sensitivity removed {len(removed_sensitivity)}."
         )
         return [NarrativeBlock(
             id="bulk.qc",
@@ -163,7 +185,12 @@ class BulkRnaNarrator:
             confidence="high",
             claim=claim,
             evidence=evidence or [_evidence("QC status", "completed", "sample_qc")],
-            metrics={"n_samples": n_samples, "n_outliers": len(outliers)},
+            metrics={
+                "n_samples": n_samples,
+                "n_outliers": len(outliers),
+                "n_outliers_removed_primary": len(removed_primary),
+                "n_outliers_removed_sensitivity": len(removed_sensitivity),
+            },
         )]
 
     def _contrast_blocks(self, findings: dict) -> list[NarrativeBlock]:
@@ -207,6 +234,19 @@ class BulkRnaNarrator:
                     contrast.get("low_power_reason")
                     or "Low replicate support; interpret cautiously."
                 ))
+            outlier_sens = contrast.get("outlier_sensitivity") or {}
+            if outlier_sens.get("status") == "success":
+                if outlier_sens.get("conclusion_robust") is False:
+                    caveats.append(Caveat(
+                        "Outlier-removal sensitivity changed the significant "
+                        "gene set; the primary result retained all samples."
+                    ))
+                elif outlier_sens.get("conclusion_robust") is True:
+                    evidence.append(_evidence(
+                        "outlier sensitivity robust",
+                        True,
+                        "outlier_sensitivity",
+                    ))
             blocks.append(NarrativeBlock(
                 id=block_id,
                 modality="bulk RNA-seq",

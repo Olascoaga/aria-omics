@@ -6,7 +6,8 @@ Full bulk RNA-seq pipeline executed inside aria-rna-env by EnvironmentManager.
 Fixes vs old inline implementation:
   1. Design factor extracted from biological intent (not hardcoded "sample")
   2. Robust metadata parsing: detects groups from column names automatically
-  3. Sample outlier detection (PCA-based) before running DESeq2
+  3. Sample outlier detection (PCA-based) before running DESeq2; primary DE
+     retains all samples and outlier removal is reported as sensitivity only
   4. Pathway enrichment via gseapy after DE (GO BP, KEGG, Reactome)
   5. Visualizations saved as SVG (volcano, sample PCA, heatmap)
   6. Runs in aria-rna-env (isolated) not in aria-env (base)
@@ -169,17 +170,22 @@ def bulk_rna_de(params: dict) -> dict:
 
     # ── 3. Sample QC (shared across contrasts) ───────────────────────────
     sample_qc = _sample_qc(counts, metadata, output_dir, warnings,
-                              biotype_map=biotype_map)
+                           biotype_map=biotype_map)
+    flagged_outliers = list(sample_qc.get("outliers", []) or [])
     outlier_samples = _prune_outliers_for_design(
         sample_qc.get("outliers", []), metadata, design_factor, warnings
     )
-    sample_qc["outliers"] = outlier_samples
+    sample_qc["outliers"] = flagged_outliers
+    sample_qc["candidate_outliers"] = flagged_outliers
+    sample_qc["outliers_removed_primary"] = []
+    sample_qc["sensitivity_outliers_removed"] = outlier_samples
+    sample_qc["outlier_policy"] = (
+        "primary_includes_all_samples; sensitivity_removes_flagged_outliers_when_design_allows"
+    )
     if outlier_samples:
-        counts   = counts.drop(columns=outlier_samples, errors="ignore")
-        metadata = metadata.drop(index=outlier_samples, errors="ignore")
         warnings.append(
-            f"Sample outliers removed: {outlier_samples}. "
-            f"Clustered away from group centroid in PCA."
+            f"Sample outliers retained in primary DE and removed only in "
+            f"sensitivity analysis when design support allows: {outlier_samples}."
         )
 
     # ── 3b. TPM supplementary table ──────────────────────────────────────
@@ -433,6 +439,7 @@ def bulk_rna_de(params: dict) -> dict:
             # Full DE list for cross-contrast overlap (in symbols when available,
             # else Ensembl IDs — both work for set intersection)
             "all_sig_genes":     all_sig_symbols,
+            "all_sig_gene_ids":   [str(g) for g in all_sig],
             "pathways":          pathways,
             "pathway_background": {
                 "background_size": len(background_symbols),
@@ -489,6 +496,29 @@ def bulk_rna_de(params: dict) -> dict:
                 _to_symbols(f["sig_genes"], symbol_map) if symbol_map
                 else [str(g) for g in f["sig_genes"]]
             )
+            cr["all_sig_gene_ids"] = [str(g) for g in f["sig_genes"]]
+
+    # ── 6c. Primary + outlier sensitivity (P1-5) ────────────────────────
+    # Primary DE above deliberately used all samples. If QC flagged outliers and
+    # removal does not break the design, rerun DE on the pruned matrix and record
+    # whether the conclusion changes. Sensitivity never replaces primary calls.
+    outlier_sensitivity = _run_outlier_sensitivity(
+        counts=counts,
+        metadata=metadata,
+        design_factor=design_factor,
+        contrasts_in=contrasts_in,
+        flagged_outliers=flagged_outliers,
+        removable_outliers=outlier_samples,
+        primary_contrasts=contrast_results,
+        padj_thr=padj_thr,
+        lfc_thr=lfc_thr,
+        allow_mock=allow_mock,
+        min_reps=min_reps,
+        covariates=covariates,
+        lfc_shrink=lfc_shrink,
+        fdr_family=fdr_family,
+        warnings=warnings,
+    )
 
     # ── 7. Aggregate summary ─────────────────────────────────────────────
     total_sig  = sum(c.get("n_significant",   0) for c in contrast_results)
@@ -515,6 +545,13 @@ def bulk_rna_de(params: dict) -> dict:
                 "normalization":  "DESeq2 median-of-ratios (internal)",
                 "gene_filter":    f"≥10 counts in ≥{max(2, metadata.shape[0] // 4)} samples",
                 "justification":  "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
+            },
+            {
+                "step":           "Sample outliers",
+                "input":          "All count-matrix samples",
+                "normalization":  "Primary DE retains all samples",
+                "gene_filter":    "Design-safe removal is evaluated only as sensitivity",
+                "justification":  "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
             },
             {
                 "step":           "PCA + MDS (sample-level structure)",
@@ -571,6 +608,7 @@ def bulk_rna_de(params: dict) -> dict:
         "n_upregulated":    total_up,
         "n_downregulated":  total_down,
         "sample_qc":        sample_qc_clean,
+        "outlier_sensitivity": outlier_sensitivity,
         "design_used":      f"~{design_factor}",
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
@@ -1193,7 +1231,7 @@ def _sample_qc(counts, metadata, output_dir: str,
           outliers (could be wrong condition assignment, batch effect).
 
     A sample is reported as "outlier" if it fails BOTH (more conservative).
-    Outliers are removed from downstream DE.
+    Primary DE retains flagged outliers; removal is a sensitivity analysis only.
     """
     try:
         import pandas as pd
@@ -1332,8 +1370,18 @@ def _sample_qc(counts, metadata, output_dir: str,
 
     except Exception as e:
         warnings.append(f"Sample QC failed: {e}")
+        try:
+            lib_sizes = counts.sum(axis=0)
+            lib_range = [int(lib_sizes.min()), int(lib_sizes.max())]
+            size_ratio = round(
+                float(lib_sizes.max() / max(lib_sizes.min(), 1)), 1
+            )
+        except Exception:
+            lib_range = []
+            size_ratio = None
         return {"n_samples": int(counts.shape[1]), "outliers": [],
-                "pca_variance": [], "error": str(e)}
+                "pca_variance": [], "lib_size_range": lib_range,
+                "size_ratio": size_ratio, "error": str(e)}
 
 
 def _prune_outliers_for_design(outliers: list, metadata,
@@ -1373,6 +1421,201 @@ def _prune_outliers_for_design(outliers: list, metadata,
         )
 
     return kept
+
+
+def _run_outlier_sensitivity(
+    *,
+    counts,
+    metadata,
+    design_factor: str,
+    contrasts_in: list,
+    flagged_outliers: list,
+    removable_outliers: list,
+    primary_contrasts: list,
+    padj_thr: float,
+    lfc_thr: float,
+    allow_mock: bool,
+    min_reps: int,
+    covariates: list,
+    lfc_shrink: bool,
+    fdr_family: dict,
+    warnings: list,
+) -> dict:
+    """Run P1-5 outlier sensitivity without changing primary DE results."""
+    flagged = [str(s) for s in (flagged_outliers or []) if s in metadata.index]
+    removable = [str(s) for s in (removable_outliers or []) if s in metadata.index]
+    policy = (
+        "primary_includes_all_samples; sensitivity_removes_flagged_outliers_when_design_allows"
+    )
+    summary = {
+        "status": "not_applicable",
+        "policy": policy,
+        "flagged_samples": flagged,
+        "removed_samples": removable,
+        "contrasts": [],
+    }
+    if not flagged:
+        summary["reason"] = "no_qc_outliers_flagged"
+        return summary
+    if not removable:
+        summary["status"] = "skipped"
+        summary["reason"] = "flagged_outliers_protected_by_design"
+        return summary
+
+    counts_s = counts.drop(columns=removable, errors="ignore")
+    metadata_s = metadata.drop(index=removable, errors="ignore")
+    min_samples = max(2, metadata_s.shape[0] // 4)
+    keep = (counts_s > 10).sum(axis=1) >= min_samples
+    counts_s_filt = counts_s[keep]
+    if counts_s_filt.empty:
+        summary["status"] = "error"
+        summary["reason"] = "no_genes_after_sensitivity_filter"
+        warnings.append(
+            "Outlier sensitivity skipped: no genes remained after low-count "
+            "filtering on the pruned sample set."
+        )
+        return summary
+
+    primary_by_name = {
+        c.get("name"): c for c in primary_contrasts
+        if c.get("status") == "success"
+    }
+    sensitivity_results = []
+    sensitivity_family_stats: dict = {}
+
+    for contrast in contrasts_in:
+        num = str(contrast.get("numerator", "")).strip()
+        den = str(contrast.get("denominator", "")).strip()
+        name = contrast.get("name", f"{num} vs {den}")
+        primary = primary_by_name.get(name)
+        if not primary:
+            continue
+
+        available_groups = list(metadata_s[design_factor].unique())
+        if num not in available_groups or den not in available_groups:
+            sensitivity_results.append({
+                "name": name,
+                "status": "skipped",
+                "reason": "contrast_group_removed_by_outlier_sensitivity",
+            })
+            continue
+
+        de_result, de_warn = _run_deseq2(
+            counts_s_filt,
+            metadata_s,
+            design_factor,
+            num,
+            den,
+            padj_thr,
+            lfc_thr,
+            allow_mock=allow_mock,
+            min_replicates_per_condition=min_reps,
+            covariates=covariates,
+            lfc_shrink=lfc_shrink,
+        )
+        warnings.extend([f"[{name} sensitivity] {w}" for w in de_warn])
+        if de_result.get("status") == "error":
+            sensitivity_results.append({
+                "name": name,
+                "status": "error",
+                "reason": de_result.get("details", ""),
+                "removed_samples": removable,
+            })
+            continue
+
+        sig_ids = [str(g) for g in (de_result.get("sig_genes", []) or [])]
+        sensitivity_results.append({
+            "name": name,
+            "status": "success",
+            "removed_samples": removable,
+            "n_genes_tested": int(counts_s_filt.shape[0]),
+            "n_significant_sensitivity": int(de_result.get("n_sig", 0)),
+            "n_upregulated_sensitivity": int(de_result.get("n_up", 0)),
+            "n_downregulated_sensitivity": int(de_result.get("n_down", 0)),
+            "sig_gene_ids_sensitivity": sig_ids,
+            "fitted_design_formula": de_result.get("fitted_design_formula"),
+            "covariates_adjusted": de_result.get("covariates_adjusted", []),
+            "covariates_dropped": de_result.get("covariates_dropped", []),
+        })
+
+        rdf = de_result.get("results")
+        if rdf is not None and len(rdf) > 0:
+            sensitivity_family_stats[name] = {
+                str(g): {"pvalue": float(row["pvalue"]),
+                         "log2fc": float(row["log2FoldChange"])}
+                for g, row in rdf.dropna(subset=["pvalue"]).iterrows()
+            }
+
+    if fdr_family.get("fdr_family") == "global" and sensitivity_family_stats:
+        fam = contrast_family_significance(
+            sensitivity_family_stats, padj_max=padj_thr, lfc_min=None
+        )
+        for sens in sensitivity_results:
+            if sens.get("status") != "success":
+                continue
+            f = fam.get(sens["name"])
+            if not f:
+                continue
+            sig_ids = [str(g) for g in f["sig_genes"]]
+            sens["n_significant_sensitivity"] = int(f["n_sig"])
+            sens["n_upregulated_sensitivity"] = int(f["n_up"])
+            sens["n_downregulated_sensitivity"] = int(f["n_down"])
+            sens["sig_gene_ids_sensitivity"] = sig_ids
+
+    robust_values = []
+    for sens in sensitivity_results:
+        if sens.get("status") != "success":
+            continue
+        primary = primary_by_name.get(sens["name"], {})
+        primary_ids = set(
+            str(g) for g in (
+                primary.get("all_sig_gene_ids")
+                or primary.get("all_sig_genes")
+                or []
+            )
+        )
+        sensitivity_ids = set(sens.get("sig_gene_ids_sensitivity") or [])
+        primary_only = sorted(primary_ids - sensitivity_ids)
+        sensitivity_only = sorted(sensitivity_ids - primary_ids)
+        robust = not primary_only and not sensitivity_only
+        robust_values.append(robust)
+        sens.update({
+            "n_significant_primary": int(primary.get("n_significant", 0)),
+            "sig_gene_ids_primary": sorted(primary_ids),
+            "overlap_n": len(primary_ids & sensitivity_ids),
+            "primary_only_n": len(primary_only),
+            "sensitivity_only_n": len(sensitivity_only),
+            "primary_only_gene_ids": primary_only[:50],
+            "sensitivity_only_gene_ids": sensitivity_only[:50],
+            "conclusion_robust": robust,
+            "interpretation": (
+                "Outlier removal did not change the significant gene set."
+                if robust else
+                "Outlier removal changed the significant gene set; primary "
+                "results should be interpreted with this sensitivity caveat."
+            ),
+        })
+        primary["outlier_sensitivity"] = {
+            k: sens[k] for k in (
+                "status",
+                "removed_samples",
+                "n_significant_primary",
+                "n_significant_sensitivity",
+                "overlap_n",
+                "primary_only_n",
+                "sensitivity_only_n",
+                "conclusion_robust",
+                "interpretation",
+            ) if k in sens
+        }
+
+    summary["status"] = "success" if sensitivity_results else "skipped"
+    summary["reason"] = (
+        "completed" if sensitivity_results else "no_primary_contrast_to_compare"
+    )
+    summary["contrasts"] = sensitivity_results
+    summary["conclusion_robust"] = all(robust_values) if robust_values else None
+    return summary
 
 
 # ── DESeq2 ────────────────────────────────────────────────────────────────────

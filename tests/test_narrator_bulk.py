@@ -75,6 +75,21 @@ def test_bulk_narrator_methods_are_generic_and_auditable():
     assert "adjusted p-value < 0.05" in methods[0]
 
 
+def test_bulk_narrator_methods_disclose_outlier_sensitivity():
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+
+    findings = _bulk_findings()
+    findings["outlier_sensitivity"] = {
+        "status": "success",
+        "removed_samples": ["ctrl_1"],
+        "conclusion_robust": False,
+    }
+    agent_result = {"status": "done", "findings": findings}
+    methods = BulkRnaNarrator().methods("bulk_rna_agent", agent_result)
+    assert any("retained in the primary DE analysis" in line for line in methods)
+    assert any("not robust" in line for line in methods)
+
+
 def test_bulk_narrator_surfaces_gsea_as_narrative_block(tmp_path):
     from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
     from aria.agents.narrative.validators import validate_blocks

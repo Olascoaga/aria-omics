@@ -475,10 +475,17 @@ for small-effect genes."
                 # Sample QC
                 sqc = findings.get("sample_qc", {}) or {}
                 if sqc.get("n_samples"):
+                    outliers = sqc.get("candidate_outliers",
+                                       sqc.get("outliers", []))
+                    sensitivity_removed = sqc.get(
+                        "sensitivity_outliers_removed", []
+                    )
                     lines.append(
                         f"  • Sample QC: {sqc['n_samples']} samples, "
                         f"library-size range {sqc.get('size_ratio', 0)}×, "
-                        f"{len(sqc.get('outliers', []))} outliers removed."
+                        f"{len(outliers)} outliers flagged; primary retained "
+                        f"all samples; sensitivity removed "
+                        f"{len(sensitivity_removed)}."
                     )
             else:
                 lines.append("BULK RNA-seq: ran but no successful contrasts.")
@@ -971,19 +978,21 @@ for small-effect genes."
         sqc = findings.get("sample_qc", {})
         if sqc:
             n_samples = sqc.get("n_samples", "?")
-            outliers  = sqc.get("outliers", [])
+            outliers  = sqc.get("candidate_outliers", sqc.get("outliers", []))
+            sensitivity_removed = sqc.get("sensitivity_outliers_removed", [])
             lib_range = sqc.get("size_ratio", 1)
             if outliers:
                 parts.append(
                     f"PCA-based QC on {n_samples} samples identified "
-                    f"outliers: {outliers}, which were excluded from "
-                    f"differential expression."
+                    f"outliers: {outliers}. Primary differential expression "
+                    f"retained all samples; sensitivity removed "
+                    f"{sensitivity_removed} where design support allowed."
                 )
             else:
                 parts.append(
                     f"PCA-based QC on {n_samples} samples passed; "
                     f"library size range {lib_range:.1f}× "
-                    f"(no outliers removed)."
+                    f"(no outliers flagged for sensitivity removal)."
                 )
 
         # Multi-contrast results
@@ -1936,13 +1945,15 @@ for small-effect genes."
             if bulk.get("status") == "done":
                 sqc = bulk.get("findings", {}).get("sample_qc", {}) or {}
                 n   = sqc.get("n_samples", "?")
-                out = sqc.get("outliers", [])
+                out = sqc.get("candidate_outliers", sqc.get("outliers", []))
+                sens_out = sqc.get("sensitivity_outliers_removed", [])
                 ratio = sqc.get("size_ratio", "")
                 ratio_str = (f" · library-size range {ratio:.1f}×"
                              if isinstance(ratio, float) else "")
                 out_str = (f" · <span style='color:var(--amber)'>"
-                           f"{len(out)} outlier(s) removed</span>"
-                           if out else " · no outliers removed")
+                           f"{len(out)} outlier(s) flagged; "
+                           f"{len(sens_out)} removed in sensitivity</span>"
+                           if out else " · no outliers flagged")
                 rows.append(
                     f"<tr><td>Bulk RNA-seq</td>"
                     f"<td>{n} samples{ratio_str}{out_str}</td></tr>"

@@ -49,16 +49,30 @@ def _compose_qc(block: NarrativeBlock) -> str:
     before = _ev(block, "cells before QC")
     after = _ev(block, "cells after QC")
     removed = _ev(block, "outliers removed")
+    flagged = _ev(block, "outliers flagged")
+    removed_primary = _ev(block, "outliers removed primary")
+    removed_sensitivity = _ev(block, "outliers removed sensitivity")
     if before is not None and after is not None:
         return (
             f"{block.title} retained {after} of {before} cells for downstream "
             "analysis, so later sections should be read as post-QC results."
         )
     if samples is not None:
-        outlier_text = (
-            f" and removed {removed} outlier sample(s)"
-            if removed is not None else ""
-        )
+        if flagged is not None:
+            outlier_text = (
+                f", flagged {flagged} outlier sample(s), removed "
+                f"{removed_primary if removed_primary is not None else 0} "
+                "in the primary analysis"
+            )
+            if removed_sensitivity is not None:
+                outlier_text += (
+                    f", and removed {removed_sensitivity} in sensitivity"
+                )
+        else:
+            outlier_text = (
+                f" and removed {removed} outlier sample(s)"
+                if removed is not None else ""
+            )
         return (
             f"{block.title} evaluated {samples} sample(s){outlier_text} before "
             "differential analysis."

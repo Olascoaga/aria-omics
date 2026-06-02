@@ -18,6 +18,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
+import aria.scripts.rna_bulk_de as rbd
 # rna_bulk_de is a plain script (no litellm) — safe to import in every lane.
 from aria.scripts.rna_bulk_de import (
     bulk_rna_de,
@@ -167,6 +168,110 @@ def test_run_pathway_enrichment_returns_triple():
     assert isinstance(pw, dict)
     assert isinstance(warnings, list)
     assert isinstance(meta, dict) and "method" in meta
+
+
+# ── P1-5: primary DE + outlier sensitivity ──────────────────────────────────
+
+def _patch_light_bulk_de(monkeypatch, primary_sig, sensitivity_sig):
+    calls = []
+
+    def fake_sample_qc(counts, metadata, output_dir, warnings, biotype_map=None):
+        return {
+            "n_samples": int(counts.shape[1]),
+            "outliers": ["ctrl_1"],
+            "pca_variance": [0.7, 0.2],
+            "lib_size_range": [1000, 2000],
+            "size_ratio": 2.0,
+        }
+
+    def fake_run_deseq2(
+        counts, metadata, design_factor, numerator, denominator,
+        padj_thr, lfc_thr, allow_mock=False,
+        min_replicates_per_condition=3, covariates=None, lfc_shrink=True,
+    ):
+        calls.append(list(metadata.index))
+        is_sensitivity = "ctrl_1" not in metadata.index
+        sig = sensitivity_sig if is_sensitivity else primary_sig
+        genes = [f"GENE_{i:04d}" for i in range(8)]
+        df = pd.DataFrame({
+            "log2FoldChange": [2.0 if g in sig else 0.1 for g in genes],
+            "pvalue": [0.001 if g in sig else 0.5 for g in genes],
+            "padj": [0.01 if g in sig else 0.8 for g in genes],
+            "baseMean": [100.0] * len(genes),
+        }, index=genes)
+        return {
+            "status": "success",
+            "results": df,
+            "n_sig": len(sig),
+            "n_up": len(sig),
+            "n_down": 0,
+            "sig_genes": list(sig),
+            "up_genes": list(sig),
+            "down_genes": [],
+            "n_replicates": {"test": 3, "ref": 2 if is_sensitivity else 3},
+            "fitted_design_formula": "~ condition",
+            "covariates_adjusted": [],
+            "covariates_dropped": [],
+            "lfc_shrinkage": {"requested": False, "applied": False},
+            "lfc_threshold_test": {"applied": True},
+        }, []
+
+    monkeypatch.setattr(rbd, "_sample_qc", fake_sample_qc)
+    monkeypatch.setattr(rbd, "_run_deseq2", fake_run_deseq2)
+    monkeypatch.setattr(rbd, "_generate_plots", lambda **kwargs: {})
+    monkeypatch.setattr(rbd, "_load_symbol_map", lambda files, warnings: {})
+    monkeypatch.setattr(rbd, "_load_gene_annotation", lambda files, warnings: {})
+    return calls
+
+
+def test_outlier_sensitivity_keeps_primary_unpruned(monkeypatch):
+    calls = _patch_light_bulk_de(
+        monkeypatch,
+        primary_sig=["GENE_0001"],
+        sensitivity_sig=["GENE_0001"],
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        result = _run_bulk(
+            make_counts(80),
+            [{"numerator": "treat", "denominator": "ctrl", "name": "treat vs ctrl"}],
+            tmp,
+            min_replicates_per_condition=2,
+            lfc_shrink=False,
+        )
+
+    assert result["status"] == "success", result.get("details", "")
+    assert "ctrl_1" in calls[0]
+    assert "ctrl_1" not in calls[1]
+    sqc = result["sample_qc"]
+    assert sqc["candidate_outliers"] == ["ctrl_1"]
+    assert sqc["outliers_removed_primary"] == []
+    assert sqc["sensitivity_outliers_removed"] == ["ctrl_1"]
+    sens = result["outlier_sensitivity"]
+    assert sens["status"] == "success"
+    assert sens["contrasts"][0]["conclusion_robust"] is True
+
+
+def test_outlier_sensitivity_does_not_replace_primary(monkeypatch):
+    _patch_light_bulk_de(
+        monkeypatch,
+        primary_sig=[],
+        sensitivity_sig=["GENE_0002", "GENE_0003"],
+    )
+    with tempfile.TemporaryDirectory() as tmp:
+        result = _run_bulk(
+            make_counts(80),
+            [{"numerator": "treat", "denominator": "ctrl", "name": "treat vs ctrl"}],
+            tmp,
+            min_replicates_per_condition=2,
+            lfc_shrink=False,
+        )
+
+    contrast = result["contrasts"][0]
+    sens = result["outlier_sensitivity"]["contrasts"][0]
+    assert contrast["n_significant"] == 0
+    assert sens["n_significant_sensitivity"] == 2
+    assert sens["sensitivity_only_n"] == 2
+    assert sens["conclusion_robust"] is False
 
 
 # ── End-to-end (real DESeq2) ─────────────────────────────────────────────────
