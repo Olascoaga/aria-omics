@@ -18,6 +18,10 @@ Input params:
     min_genes:       int  (optional) — min genes per cell (default: 200)
     min_cells:       int  (optional) — min cells per gene (default: 3)
     run_scrublet:    bool (optional) — disable doublet detection (default: True)
+    run_ambient:     bool (optional) — opt-in ambient-RNA decontamination
+                                        (SoupX/decontX). Default False; honest
+                                        no-op (records reason) when no backend.
+    ambient_method:  str  (optional) — "auto"|"decontx"|"soupx" (default: auto)
     expected_doublet_rate: float (optional) — 10x rate-of-thumb (default: 0.06)
     biological_context: dict (optional) — from OrchestratorAgent intent
                                           used to adjust thresholds for
@@ -60,6 +64,53 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _run_ambient_decontamination(adata, params: dict) -> dict:
+    """Optional, OPT-IN ambient-RNA decontamination (SoupX/decontX).
+
+    P1-4: this is the documented optional decontamination step. It is honest by
+    design (ADR-002): if no supported backend is importable, or no validated
+    ARIA wrapper exists for an importable one, it reports ``ran=False`` with the
+    reason and NEVER fabricates a corrected matrix. ARIA does not silently alter
+    counts; building/validating a real SoupX/decontX wrapper is deferred
+    modality work, so until then the step records why it did not run rather than
+    inventing a result.
+    """
+    import importlib
+
+    method = str(params.get("ambient_method", "auto")).lower()
+    # Supported backends are heavy/optional and not bundled by default.
+    candidates = []
+    if method in ("auto", "decontx"):
+        candidates.append(("decontx", "decontx"))
+    if method in ("auto", "soupx"):
+        candidates.append(("soupx", "SoupX"))
+
+    for mod, label in candidates:
+        try:
+            importlib.import_module(mod)
+        except Exception:
+            continue
+        # A backend is present, but we will not fabricate a correction without a
+        # validated wrapper — report honestly that it was not applied.
+        return {
+            "ran": False,
+            "method": None,
+            "available_backend": mod,
+            "reason": (f"{label} is importable but ARIA has no validated "
+                       f"decontamination wrapper yet; counts were left "
+                       f"uncorrected (no fabricated correction)."),
+        }
+
+    return {
+        "ran": False,
+        "method": None,
+        "available_backend": None,
+        "reason": ("no supported ambient-correction backend installed "
+                   "(decontx/SoupX); install one and rerun with "
+                   "run_ambient=True to enable decontamination."),
+    }
+
+
 def _cache_params(params: dict) -> dict:
     bio_ctx = params.get("biological_context") or {}
     return {
@@ -73,6 +124,8 @@ def _cache_params(params: dict) -> dict:
         "initial_min_genes": int(params.get("initial_min_genes", 200)),
         "initial_min_cells": int(params.get("initial_min_cells", 3)),
         "run_scrublet": bool(params.get("run_scrublet", True)),
+        "run_ambient": bool(params.get("run_ambient", False)),
+        "ambient_method": str(params.get("ambient_method", "auto")),
         "expected_doublet_rate": float(params.get("expected_doublet_rate", 0.06)),
         "sample_id": None if params.get("sample_id") is None else str(params.get("sample_id")),
         "user_question": str(bio_ctx.get("user_question", "")),
@@ -80,7 +133,7 @@ def _cache_params(params: dict) -> dict:
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 2 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 3 and cached.get("cache_params") == expected
 
 
 def rna_qc(params: dict) -> dict:
@@ -185,6 +238,20 @@ def rna_qc(params: dict) -> dict:
         adata.obs["batch"]     = str(sample_id)
 
     warnings_list  = []
+
+    # ── Optional ambient-RNA decontamination (P1-4, opt-in) ───────────────
+    # Off by default. Runs on raw counts before downstream steps. Honest: if no
+    # supported backend is available it records why it did not run and leaves
+    # counts untouched (never fabricates a correction).
+    ambient_report = {"ran": False, "method": None, "reason": "not_requested"}
+    if bool(params.get("run_ambient", False)):
+        ambient_report = _run_ambient_decontamination(adata, params)
+        if not ambient_report.get("ran"):
+            warnings_list.append(
+                f"Ambient-RNA decontamination requested but not applied: "
+                f"{ambient_report.get('reason', 'unavailable')}"
+            )
+
     n_barcodes_raw = adata.n_obs
     existing_gene_col = next(
         (c for c in ("nFeature_RNA", "n_genes_by_counts", "n_genes")
@@ -465,6 +532,7 @@ def rna_qc(params: dict) -> dict:
         "mt_threshold_used": float(mt_threshold),
         "min_genes_used":    int(min_genes),
         "stress_context":    bool(is_stress_context),
+        "ambient_correction": ambient_report,
         "scrublet":          scrublet_report,
         "warnings":          warnings_list,
         "output_path":       str(output_path),
@@ -472,7 +540,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 2,
+        "cache_version": 3,
         "cache_params": cache_params,
     }
     try:

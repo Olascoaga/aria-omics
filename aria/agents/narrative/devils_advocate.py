@@ -63,11 +63,20 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
     covariates = [str(c).lower()
                   for c in ((exp_ctx or {}).get("design", {}) or {}).get(
                       "covariates", []) or []]
+    # P1-4: ambient correction is read from the STRUCTURED QC flag, not a blob
+    # text scan — the new ambient-RNA *detector* finding contains the word
+    # "ambient" and must not be mistaken for an applied correction.
+    qc = f.get("qc") or {}
+    amb = qc.get("ambient_correction")
+    if isinstance(amb, dict):
+        ambient_corrected = bool(amb.get("ran"))
+    else:
+        ambient_corrected = _contains(qc, "soupx", "decontx")
     return {
         "integration_clean": integration_ran and not integration_issue,
         "integration_ran": integration_ran,
         "doublets_handled": _contains(f.get("qc") or {}, "doublet", "scrublet"),
-        "ambient_corrected": _contains(f, "soupx", "decontx", "ambient"),
+        "ambient_corrected": ambient_corrected,
         "da_ran": _ran(da),
         "da_significant": bool(da.get("any_significant")),
         "batch_covariate": any("batch" in c for c in covariates),

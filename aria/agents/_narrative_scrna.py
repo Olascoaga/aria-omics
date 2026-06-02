@@ -941,6 +941,20 @@ def build_scrna_methods(findings: dict) -> str:
             f"flagged with Scrublet. Counts were normalised to 10,000 "
             f"per cell and log1p-transformed."
         )
+        amb = qc.get("ambient_correction") or {}
+        if amb.get("ran"):
+            lines.append(
+                f"Ambient-RNA decontamination was applied "
+                f"({amb.get('method', 'SoupX/decontX')}) before downstream "
+                f"analysis."
+            )
+        else:
+            lines.append(
+                "Ambient-RNA decontamination (SoupX/decontX) is available as an "
+                "optional step and was not applied in this run; potential "
+                "ambient contamination was instead screened by a cross-cluster "
+                "marker-ubiquity check."
+            )
 
     integ = findings.get("integration") or {}
     if integ.get("status") in ("done", "success"):

@@ -1083,12 +1083,17 @@ def test_qc_cache_requires_matching_parameters():
     expected = _cache_params(params)
 
     assert _cache_matches(
-        {"cache_version": 2, "cache_params": expected},
+        {"cache_version": 3, "cache_params": expected},
         expected,
     )
     stale = {**expected, "min_genes": 500}
     assert not _cache_matches(
-        {"cache_version": 2, "cache_params": stale},
+        {"cache_version": 3, "cache_params": stale},
+        expected,
+    )
+    # An older cache schema must not be reused after the run_ambient bump.
+    assert not _cache_matches(
+        {"cache_version": 2, "cache_params": expected},
         expected,
     )
 

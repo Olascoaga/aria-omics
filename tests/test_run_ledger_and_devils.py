@@ -112,6 +112,35 @@ def test_devils_advocate_addresses_confounders_with_evidence():
     assert challenges["ambient_rna"] is False       # still not in the pipeline
 
 
+def test_devils_advocate_ambient_detector_is_not_a_correction():
+    # P1-4: the ambient-RNA *detector* finding contains the word "ambient" but
+    # is NOT an applied correction — it must not flip ambient_rna to addressed.
+    block = _assoc_block()
+    agent_results = {"scrna_agent": {"findings": {
+        "qc": {"status": "success",
+               "ambient_correction": {"ran": False, "reason": "not_requested"}},
+        "ambient_qc": {"status": "warnings", "issues": [
+            {"check": "possible_ambient_contamination",
+             "message": "ambient (soup) RNA signature", "severity": "warning",
+             "recommendation": "consider decontamination"}]},
+    }}}
+    manifest = build_devils_advocate([block], agent_results, {})
+    challenges = {c["alternative"]: c["addressed"] for c in manifest[0]["challenges"]}
+    assert challenges["ambient_rna"] is False
+
+
+def test_devils_advocate_ambient_addressed_when_correction_ran():
+    # P1-4: a real applied decontamination (ran=True) DOES address ambient_rna.
+    block = _assoc_block()
+    agent_results = {"scrna_agent": {"findings": {
+        "qc": {"status": "success",
+               "ambient_correction": {"ran": True, "method": "decontx"}},
+    }}}
+    manifest = build_devils_advocate([block], agent_results, {})
+    challenges = {c["alternative"]: c["addressed"] for c in manifest[0]["challenges"]}
+    assert challenges["ambient_rna"] is True
+
+
 def test_devils_advocate_skips_descriptive_claims():
     qc = NarrativeBlock(
         id="scrna.qc", modality="scRNA", analysis="qc", block_type="qc",

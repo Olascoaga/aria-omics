@@ -202,6 +202,33 @@ class scRNAAgent(BaseAgent):
             except Exception as exc:
                 log.warning(f"Integration QC assessment failed: {exc}")
 
+        # P1-4: hidden (unmodeled) batch red-flags. Warns when a technical/batch
+        # obs column is present but was neither declared, corrected, nor modeled
+        # — the case integration_qc cannot see because integration never ran on
+        # it. Name + design based, no cell-level values, no correction.
+        try:
+            from aria.utils.batch_qc import assess_hidden_batch
+            inferred = (exp_ctx or {}).get("inferred_design", {}) or {}
+            obs_cols_map = inferred.get("obs_columns") or {}
+            obs_columns: list[str] = []
+            if isinstance(obs_cols_map, dict):
+                for cols in obs_cols_map.values():
+                    obs_columns.extend(str(c) for c in (cols or []))
+            elif isinstance(obs_cols_map, list):
+                obs_columns = [str(c) for c in obs_cols_map]
+            pb_cfg = design.get("pseudobulk", {}) or {}
+            findings["batch_qc"] = assess_hidden_batch(
+                sorted(set(obs_columns)),
+                condition_col=(pb_cfg.get("condition_col")
+                               or design.get("main_factor")),
+                replicate_col=pb_cfg.get("replicate_col"),
+                declared_batch=(self._resolve_batch_column(design)
+                                or qc.get("batch_col")),
+                integration_ran=(integ.get("status") == "success"),
+            )
+        except Exception as exc:
+            log.warning(f"Hidden-batch QC assessment failed: {exc}")
+
         # 4. Annotation ───────────────────────────────────────────────────
         # When clustering used a pre-existing cell-type col, the annotation
         # IS that column — we skip CellTypist and synthesise the findings.
@@ -246,6 +273,17 @@ class scRNAAgent(BaseAgent):
             )
         except Exception as exc:
             log.warning(f"Annotation QC assessment failed: {exc}")
+
+        # P1-4: ambient-RNA contamination red-flag. Data-driven cross-cluster
+        # top-marker ubiquity (no hardcoded genes, no correction); only
+        # meaningful with computed per-cluster markers.
+        try:
+            from aria.utils.ambient_qc import assess_ambient_contamination
+            findings["ambient_qc"] = assess_ambient_contamination(
+                cluster_result.get("top_markers", {}) or {},
+            )
+        except Exception as exc:
+            log.warning(f"Ambient QC assessment failed: {exc}")
 
         # 5. DE per cluster (always when ≥2 clusters) ─────────────────────
         de_result = None

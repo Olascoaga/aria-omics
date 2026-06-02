@@ -134,7 +134,9 @@ class ScrnaNarrator:
         red-flags as a visible limitation block instead of buried numbers."""
         caveats = []
         for key, label in (("integration_qc", "Integration"),
-                            ("annotation_qc", "Annotation")):
+                            ("annotation_qc", "Annotation"),
+                            ("batch_qc", "Batch"),
+                            ("ambient_qc", "Ambient RNA")):
             qc = findings.get(key) or {}
             for issue in qc.get("issues", []) or []:
                 sev = "warning" if issue.get("severity") != "blocking" else "blocking"
