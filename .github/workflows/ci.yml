@@ -82,6 +82,11 @@ jobs:
             tests/test_egress_governance.py \
             tests/test_sensitivity_privacy.py \
             tests/test_parameter_advisor_honesty.py \
+            tests/test_secret_hygiene.py \
+            tests/test_doctor_diagnostics.py \
+            tests/test_packaging.py \
+            tests/test_docker_hermeticity.py \
+            tests/test_image_provenance.py \
             tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout

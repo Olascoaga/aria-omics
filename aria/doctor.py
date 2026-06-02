@@ -16,17 +16,27 @@ def run_doctor(tier: str = "smoke") -> tuple[int, list[str]]:
     messages = [f"ARIA doctor {tier} (v{__version__})"]
     issues: list[IntegrityIssue] = []
 
-    issues.extend(check_registry_integrity())
-    issues.extend(_check_env_file_permissions())
+    if tier == "secrets":
+        # P2-9: focused secret-hygiene diagnostics (no registry/benchmark).
+        issues.extend(_check_secrets())
+        issues.extend(_check_env_file_permissions())
+    elif tier == "llm":
+        # P2-9: focused LLM provider/offline/fallback diagnostics.
+        issues.extend(_check_llm())
+    else:
+        issues.extend(check_registry_integrity())
+        issues.extend(_check_env_file_permissions())
+        if tier in {"synthetic", "benchmark"}:
+            issues.extend(_check_synthetic_assets())
+        if tier == "benchmark":
+            issues.extend(_run_synthetic_de_benchmark())
 
-    if tier in {"synthetic", "benchmark"}:
-        issues.extend(_check_synthetic_assets())
-    if tier == "benchmark":
-        issues.extend(_run_synthetic_de_benchmark())
+    errors = [i for i in issues if i.severity == "error"]
+    warnings = [i for i in issues if i.severity == "warning"]
+    infos = [i for i in issues if i.severity == "info"]
 
-    errors = [issue for issue in issues if issue.severity == "error"]
-    warnings = [issue for issue in issues if issue.severity != "error"]
-
+    for issue in infos:
+        messages.append(f"INFO {issue.code}: {issue.message}")
     for issue in errors:
         messages.append(f"ERROR {issue.code}: {issue.message}")
     for issue in warnings:
@@ -45,6 +55,8 @@ def main(argv: list[str] | None = None) -> int:
     group.add_argument("--smoke", action="store_true", help="Fast import/registry/security checks.")
     group.add_argument("--synthetic", action="store_true", help="Smoke checks plus synthetic-test asset checks.")
     group.add_argument("--benchmark", action="store_true", help="Smoke/synthetic checks plus benchmark readiness warnings.")
+    group.add_argument("--secrets", action="store_true", help="Secret hygiene: missing/malformed keys + leaked credentials in project files.")
+    group.add_argument("--llm", action="store_true", help="LLM provider/model/offline/fallback diagnostics (optional gated latency probe).")
     args = parser.parse_args(argv)
 
     tier = "smoke"
@@ -52,6 +64,10 @@ def main(argv: list[str] | None = None) -> int:
         tier = "synthetic"
     elif args.benchmark:
         tier = "benchmark"
+    elif args.secrets:
+        tier = "secrets"
+    elif args.llm:
+        tier = "llm"
 
     code, messages = run_doctor(tier)
     print("\n".join(messages))
@@ -123,6 +139,183 @@ def _run_synthetic_de_benchmark() -> list[IntegrityIssue]:
             ))
     # Pass: clean (no issue). The pytest gate records the positive metrics.
     return issues
+
+
+def _check_secrets() -> list[IntegrityIssue]:
+    """P2-9: API key presence/format + leaked-credential scan of project files.
+
+    Absent keys are informational (offline is valid); a malformed key is a
+    warning; a credential committed to a project file is an error. No key value
+    is ever printed (masked only).
+    """
+    from aria.utils.secret_hygiene import (
+        PROVIDER_ENV, classify_key, mask_secret, scan_paths_for_secrets,
+    )
+
+    issues: list[IntegrityIssue] = []
+    for provider, env_var in PROVIDER_ENV.items():
+        value = os.environ.get(env_var)
+        state = classify_key(provider, value)
+        if state == "absent":
+            issues.append(IntegrityIssue(
+                "key_absent", f"{env_var} not set ({provider}).",
+                severity="info"))
+        elif state == "ok":
+            issues.append(IntegrityIssue(
+                "key_present",
+                f"{env_var} present ({mask_secret(value)}).",
+                severity="info"))
+        else:
+            issues.append(IntegrityIssue(
+                "key_malformed",
+                f"{env_var} is set but looks malformed for {provider} "
+                f"({mask_secret(value)}); verify it was pasted correctly.",
+                severity="warning"))
+
+    # Leaked-credential scan over the project tree (bounded). The legitimate key
+    # store ~/.aria/.env is OUTSIDE the repo, so any hit here is a real concern.
+    repo_root = Path(__file__).resolve().parents[1]
+    _SKIP_DIRS = {".git", "memory", "graphify-out", "build", "dist",
+                  ".eggs", "__pycache__", ".pytest_cache", "node_modules"}
+    candidates: list[Path] = []
+    for path in repo_root.rglob("*"):
+        if not path.is_file():
+            continue
+        if any(part in _SKIP_DIRS for part in path.relative_to(repo_root).parts):
+            continue
+        candidates.append(path)
+        if len(candidates) >= 5000:  # bound the walk
+            break
+    for hit in scan_paths_for_secrets(candidates):
+        rel = Path(hit["path"]).relative_to(repo_root)
+        issues.append(IntegrityIssue(
+            "credential_in_project_file",
+            f"Possible {hit['kind']} credential committed in {rel} "
+            f"(matched {hit['match']}). Remove it and rotate the key.",
+            severity="error"))
+    return issues
+
+
+def _check_llm() -> list[IntegrityIssue]:
+    """P2-9: provider/model/offline/fallback diagnostics.
+
+    litellm-free: reads ~/.aria/config.yaml + env directly so it runs in any
+    env. A latency probe is OFF unless egress is allowed and a key is present;
+    it is a plain TCP reachability timing (no LLM call, no cost).
+    """
+    from aria.utils.secret_hygiene import PROVIDER_ENV, classify_key
+
+    issues: list[IntegrityIssue] = []
+    try:
+        from aria.utils.privacy import air_gapped_enabled, egress_allowed
+    except Exception:
+        air_gapped_enabled = lambda: bool(os.environ.get("ARIA_AIR_GAPPED"))  # noqa: E731
+        egress_allowed = lambda *a, **k: not air_gapped_enabled()  # noqa: E731
+
+    air_gapped = bool(air_gapped_enabled())
+    issues.append(IntegrityIssue(
+        "llm_mode",
+        f"air-gapped mode is {'ON (cloud egress refused)' if air_gapped else 'OFF'}.",
+        severity="info"))
+
+    # Configured providers (key presence only, masked-free; never the value).
+    configured = []
+    for provider, env_var in PROVIDER_ENV.items():
+        if classify_key(provider, os.environ.get(env_var)) == "ok":
+            configured.append(provider)
+    issues.append(IntegrityIssue(
+        "llm_keys",
+        f"providers with a valid-looking key: "
+        f"{', '.join(sorted(set(configured))) or 'none (offline only)'}.",
+        severity="info"))
+
+    # Tier -> model map from config.yaml when present (no provider import).
+    tier_models = _read_llm_config_models()
+    if tier_models:
+        for tier, entries in tier_models.items():
+            chain = " -> ".join(entries)
+            issues.append(IntegrityIssue(
+                f"llm_tier_{tier}",
+                f"{tier}: {chain}", severity="info"))
+    else:
+        issues.append(IntegrityIssue(
+            "llm_config",
+            "no ~/.aria/config.yaml llm section; built-in defaults are used "
+            "(heavy=frontier, medium/light fall back to local when air-gapped).",
+            severity="info"))
+
+    # Offline readiness: air-gapped needs a local model somewhere.
+    if air_gapped and tier_models and not any(
+        "local" in e or "ollama" in e for entries in tier_models.values()
+        for e in entries
+    ):
+        issues.append(IntegrityIssue(
+            "llm_offline_unready",
+            "air-gapped is ON but no local/ollama model is configured; "
+            "LLM calls will be refused.", severity="warning"))
+
+    # Optional, gated latency probe: plain TCP, no LLM call, no cost.
+    if os.environ.get("ARIA_DOCTOR_LLM_PROBE") == "1":
+        if air_gapped or not egress_allowed("llm"):
+            issues.append(IntegrityIssue(
+                "llm_latency",
+                "latency probe skipped (egress not allowed).", severity="info"))
+        else:
+            for provider, host in (("anthropic", "api.anthropic.com"),
+                                   ("openai", "api.openai.com"),
+                                   ("google", "generativelanguage.googleapis.com")):
+                if provider not in configured:
+                    continue
+                issues.append(_probe_latency(provider, host))
+    else:
+        issues.append(IntegrityIssue(
+            "llm_latency",
+            "latency probe off (set ARIA_DOCTOR_LLM_PROBE=1 to TCP-ping "
+            "configured providers; never makes a billed call).",
+            severity="info"))
+    return issues
+
+
+def _read_llm_config_models() -> dict[str, list[str]]:
+    """Read tier -> ['provider/model', ...] from ~/.aria/config.yaml if present."""
+    cfg = Path(os.environ.get("ARIA_CONFIG_FILE")
+               or Path.home() / ".aria" / "config.yaml")
+    if not cfg.exists():
+        return {}
+    try:
+        import yaml
+        data = yaml.safe_load(cfg.read_text()) or {}
+    except Exception:
+        return {}
+    llm = (data.get("llm") or {}) if isinstance(data, dict) else {}
+    out: dict[str, list[str]] = {}
+    for tier in ("heavy", "medium", "light"):
+        spec = llm.get(tier)
+        if not isinstance(spec, dict):
+            continue
+        provider = str(spec.get("provider", "?"))
+        model = str(spec.get("model", "?"))
+        tag = "local" if spec.get("api_base") else "cloud"
+        out[tier] = [f"{provider}/{model} ({tag})"]
+    return out
+
+
+def _probe_latency(provider: str, host: str) -> IntegrityIssue:
+    import socket
+    import time
+    start = time.monotonic()
+    try:
+        with socket.create_connection((host, 443), timeout=3.0):
+            ms = (time.monotonic() - start) * 1000.0
+        return IntegrityIssue(
+            "llm_latency",
+            f"{provider} ({host}) reachable in {ms:.0f} ms (TCP).",
+            severity="info")
+    except Exception as exc:
+        return IntegrityIssue(
+            "llm_latency",
+            f"{provider} ({host}) not reachable: {type(exc).__name__}.",
+            severity="warning")
 
 
 def _check_synthetic_assets() -> list[IntegrityIssue]:

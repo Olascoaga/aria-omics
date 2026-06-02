@@ -200,7 +200,8 @@ echo -e "  ${BLD}4.${RST} Left menu: ${BLD}API Keys${RST} -> ${BLD}Create Key${R
 echo -e "  ${BLD}5.${RST} Name it (e.g. 'ARIA-lab') and copy the key"
 echo -e "  ${YLW}  NOTE: The key starts with 'sk-ant-...' and is shown ONLY ONCE${RST}"
 echo ""
-read -p "  Paste your Anthropic API key (or ENTER to skip): " ANTHROPIC_KEY
+# -s: do not echo the key to the screen / terminal scrollback (P2-9).
+read -s -p "  Paste your Anthropic API key (or ENTER to skip): " ANTHROPIC_KEY
 echo ""
 
 # Google
@@ -214,7 +215,8 @@ echo -e "  ${BLD}4.${RST} Click ${BLD}Create API Key${RST}"
 echo -e "  ${BLD}5.${RST} Select or create a project, then copy the key"
 echo -e "  ${YLW}  NOTE: The key starts with 'AIza...'${RST}"
 echo ""
-read -p "  Paste your Google AI Studio API key (or ENTER to skip): " GEMINI_KEY
+# -s: do not echo the key to the screen / terminal scrollback (P2-9).
+read -s -p "  Paste your Google AI Studio API key (or ENTER to skip): " GEMINI_KEY
 echo ""
 
 # Default provider
