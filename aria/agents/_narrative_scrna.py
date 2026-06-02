@@ -562,6 +562,14 @@ def summarize_scrna_text(findings: dict) -> str:
     da = findings.get("differential_abundance") or {}
     if da and da.get("per_comparison") is not None:
         method = da.get("method") or "unknown"
+        method_desc = (
+            "donor-level centered log-ratio OLS with HC3 robust standard errors"
+            if method == "donor_clr_ols_hc3" else method
+        )
+        if method == "donor_clr_ols_hc3" and (da.get("model") or {}).get(
+            "paired_donor_fixed_effects"
+        ):
+            method_desc += " and donor fixed effects for the paired design"
         alpha = da.get("significance_alpha", 0.10)
         for comp_key, comp_info in (da.get("per_comparison") or {}).items():
             if comp_info.get("status") != "success":
@@ -574,7 +582,7 @@ def summarize_scrna_text(findings: dict) -> str:
             n_sig = comp_info.get("n_significant", 0)
             n_reps = comp_info.get("n_replicates", {})
             lines.append(
-                f"Cell-type abundance ({comp_key}): {method} on "
+                f"Cell-type abundance ({comp_key}): {method_desc} on "
                 f"{len(rows)} cell types, n={n_reps.get('test', '?')} vs "
                 f"n={n_reps.get('ref', '?')} replicates. "
                 f"{n_sig} cell type(s) shift significantly at padj < {alpha}."

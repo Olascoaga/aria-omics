@@ -20,19 +20,23 @@ abundance separately and (b) include a composition covariate in the DE
 design when abundance is shifting.
 
 Method.
-  Primary: quasi-Poisson GLM with offset(log total_cells_per_replicate).
-           Cell-type counts across biological replicates are overdispersed
-           (variance > mean), so a plain Poisson GLM is anti-conservative
-           and over-calls significance (C1, audit 2026-05-29). We fit the
-           Poisson mean model and scale inference by the estimated Pearson
-           dispersion (quasi-Poisson, scale="X2") with t-distributed Wald
-           tests on the residual df — the field-standard overdispersion
-           correction. BH correction across all cell types tested in the
+  Primary: donor-level compositional model. ARIA converts each pseudosample's
+           cell-type counts to proportions, applies a centered log-ratio (CLR)
+           transform with a small pseudocount, and fits per-cell-type OLS with
+           HC3 robust standard errors:
+
+               CLR(cell type proportion) ~ condition + covariates (+ donor FE)
+
+           Donor fixed effects are included automatically for paired designs.
+           This respects the compositional constraint (cell-type proportions
+           sum to one) and tests shifts at the biological replicate level rather
+           than treating cells as independent observations (P1-3, audit
+           2026-06-02). BH correction is across all cell types in the
            comparison. statsmodels.
   Fallback: Fisher's exact test per cell type on a 2x2 table of
            (cells_in_type, cells_in_other_types) x (test, ref) with
            BH correction. Only used when statsmodels is missing or the
-           GLM fails (e.g. perfect separation).
+           compositional model fails for a cell type.
 
 Input params:
     data_path:        str — path to annotated .h5ad
@@ -50,7 +54,7 @@ Input params:
 Output:
     {
       "status": "success",
-      "method": "quasipoisson_offset_glm" | "fisher_exact_fallback",
+      "method": "donor_clr_ols_hc3" | "fisher_exact_fallback",
       "groupby": str,
       "condition_col": str,
       "replicate_col": str,
@@ -67,9 +71,10 @@ Output:
              "prop_ref":  float,
              "log2_fold_change": float,  // log2(prop_test / prop_ref)
              "pval": float,
-             "dispersion": float,   // estimated quasi-Poisson Pearson
-                                    // dispersion (>1 = overdispersed);
-                                    // NaN for the Fisher fallback path
+             "clr_log_ratio": float | null,  // condition coefficient on the
+                                             // CLR scale; null for fallback
+             "dispersion": float,   // retained for backward compatibility;
+                                    // NaN for compositional/fallback paths
              "padj": float,         // BH within this comparison
              "direction": "up"|"down"|"none",
              "significant": bool},
@@ -93,11 +98,55 @@ from aria.scripts._base import run_script
 from aria.utils.stats import bh_correct as _bh_correct
 
 
+def _clr_transform_counts(counts):
+    """Return centered log-ratio values for sample x cell-type counts."""
+    import numpy as np
+
+    arr = counts.astype(float).to_numpy()
+    k = max(arr.shape[1], 1)
+    smoothed = arr + 0.5
+    props = smoothed / np.clip(smoothed.sum(axis=1, keepdims=True), 1e-12, None)
+    log_props = np.log(props)
+    clr = log_props - log_props.mean(axis=1, keepdims=True)
+    return counts.__class__(clr, index=counts.index, columns=counts.columns)
+
+
+def _build_clr_design(rep_subset, cond_vec, test_lvl, covariates, rep_to_covs,
+                      rep_to_base, paired_design):
+    """Build a donor-level design matrix for compositional abundance tests."""
+    import pandas as pd
+    import statsmodels.api as sm
+
+    X = pd.DataFrame({
+        "is_test": (cond_vec.values == test_lvl).astype(float),
+    }, index=rep_subset)
+    if covariates:
+        for cov in covariates:
+            X[cov] = [rep_to_covs[r][cov] for r in rep_subset]
+    if paired_design:
+        donors = pd.Series([rep_to_base.get(r, r) for r in rep_subset],
+                           index=rep_subset, name="_aria_donor")
+        donor_has_both = (
+            pd.DataFrame({"donor": donors, "condition": cond_vec})
+              .drop_duplicates()
+              .groupby("donor")["condition"]
+              .nunique()
+        )
+        if (donor_has_both > 1).any():
+            donor_dummies = pd.get_dummies(
+                donors, prefix="_aria_donor", drop_first=True
+            )
+            X = pd.concat([X, donor_dummies], axis=1)
+    if len(X.columns) > 1:
+        X = pd.get_dummies(X, drop_first=True)
+    X = X.astype(float)
+    return sm.add_constant(X, has_constant="add")
+
+
 def rna_diff_abundance(params: dict) -> dict:
     import math
     import numpy as np
     import pandas as pd
-    import scanpy as sc
     from pathlib import Path
     from aria.utils.safe_h5ad import read_h5ad
 
@@ -153,6 +202,9 @@ def rna_diff_abundance(params: dict) -> dict:
     rep_to_condition = (obs.drop_duplicates("_aria_pseudosample_key")
                           .set_index("_aria_pseudosample_key")[condition_col]
                           .to_dict())
+    rep_to_base = (obs.drop_duplicates("_aria_pseudosample_key")
+                     .set_index("_aria_pseudosample_key")[replicate_col]
+                     .to_dict())
 
     # Pseudosample -> covariate values
     rep_to_covs = {}
@@ -161,7 +213,7 @@ def rna_diff_abundance(params: dict) -> dict:
                          .set_index("_aria_pseudosample_key")[covariates]
                          .to_dict(orient="index"))
 
-    method = "quasipoisson_offset_glm"
+    method = "donor_clr_ols_hc3"
     try:
         import statsmodels.api as sm
         from statsmodels.stats.multitest import multipletests
@@ -171,9 +223,8 @@ def rna_diff_abundance(params: dict) -> dict:
         method = "fisher_exact_fallback"
         warnings.append(
             "statsmodels not available; falling back to per-cell-type "
-            "Fisher's exact + manual BH. Install statsmodels for the "
-            "primary quasi-Poisson-GLM-with-offset method (overdispersion "
-            "corrected)."
+            "Fisher's exact + manual BH. Install statsmodels for the primary "
+            "donor-level CLR OLS model with HC3 robust standard errors."
         )
 
     per_comparison: dict = {}
@@ -195,6 +246,7 @@ def rna_diff_abundance(params: dict) -> dict:
 
         sub_pivot = pivot.loc[rep_subset].copy()
         sub_total = total_per_rep.loc[rep_subset]
+        clr_pivot = _clr_transform_counts(sub_pivot)
 
         cond_vec = pd.Series([rep_to_condition[r] for r in rep_subset],
                              index=rep_subset)
@@ -235,42 +287,36 @@ def rna_diff_abundance(params: dict) -> dict:
 
             pval = float("nan")
             dispersion = float("nan")
+            clr_log_ratio = None
 
             if sm is not None:
                 try:
-                    # Design matrix: intercept + condition dummy (+ covariates)
-                    X = pd.DataFrame({
-                        "is_test": (cond_vec.values == test_lvl).astype(float),
-                    }, index=rep_subset)
-                    if covariates:
-                        for cov in covariates:
-                            X[cov] = [rep_to_covs[r][cov] for r in rep_subset]
-                        # One-hot any categorical covariates so statsmodels
-                        # does not silently coerce strings to NaN.
-                        X = pd.get_dummies(X, drop_first=True).astype(float)
-                    X_design = sm.add_constant(X, has_constant="add")
-                    model = sm.GLM(
-                        endog=y,
-                        exog=X_design,
-                        exposure=np.clip(total, 1, None),
-                        family=sm.families.Poisson(),
+                    # P1-3: compositional donor-level model. The response is
+                    # the cell type's centered log-ratio abundance in each
+                    # pseudosample, so the test respects the sum-to-one
+                    # constraint across cell types. HC3 keeps small-n standard
+                    # errors conservative; paired designs include donor fixed
+                    # effects when donors appear in both conditions.
+                    X_design = _build_clr_design(
+                        rep_subset, cond_vec, test_lvl, covariates,
+                        rep_to_covs, rep_to_base, paired_design,
                     )
-                    # Quasi-Poisson (C1, audit 2026-05-29): estimate the Pearson
-                    # dispersion (scale="X2") and scale the Wald standard errors
-                    # by it, with t-distributed inference on the residual df.
-                    # This corrects the overdispersion that makes a plain
-                    # Poisson GLM anti-conservative for replicate-level
-                    # cell-type counts.
-                    fit = model.fit(disp=False, maxiter=200,
-                                    scale="X2", use_t=True)
-                    dispersion = float(getattr(fit, "scale", float("nan")))
+                    model = sm.OLS(
+                        endog=clr_pivot.loc[rep_subset, ct].astype(float).values,
+                        exog=X_design,
+                        missing="drop",
+                    )
+                    fit = model.fit(cov_type="HC3", use_t=True)
+                    clr_log_ratio = float(
+                        fit.params.get("is_test", float("nan"))
+                    )
                     pval = float(fit.pvalues.get("is_test", float("nan")))
                 except Exception as exc:
-                    # Perfect separation / singular X / convergence failure:
+                    # Singular X / zero residual df / convergence failure:
                     # surface via warning and fall through to Fisher for this
-                    # cell type.
+                    # cell type rather than reporting a fabricated p-value.
                     warnings.append(
-                        f"[{comp_key}/{ct}] quasi-Poisson GLM failed "
+                        f"[{comp_key}/{ct}] donor-level CLR model failed "
                         f"({exc!s:.120}); using Fisher exact for this cell type."
                     )
                     pval = float("nan")
@@ -300,6 +346,11 @@ def rna_diff_abundance(params: dict) -> dict:
                 "log2_fold_change": log2fc,
                 "pval":             pval,
                 "dispersion":       dispersion,
+                "clr_log_ratio":    clr_log_ratio,
+                "model":            (
+                    "fisher_exact_fallback"
+                    if clr_log_ratio is None else "donor_clr_ols_hc3"
+                ),
             })
             pvals.append(pval)
 
@@ -324,6 +375,9 @@ def rna_diff_abundance(params: dict) -> dict:
         n_sig = sum(1 for r in rows if r["significant"])
         per_comparison[comp_key] = {
             "status":         "success",
+            "model":          method,
+            "transform":      "centered_log_ratio",
+            "covariance":     "HC3",
             "per_cell_type":  sorted(rows, key=lambda r: r["padj"]),
             "n_significant":  n_sig,
             "n_replicates":   {"test": n_test_reps, "ref": n_ref_reps},
@@ -351,6 +405,13 @@ def rna_diff_abundance(params: dict) -> dict:
     return {
         "status":                 "success",
         "method":                 method,
+        "model": {
+            "primary": method,
+            "transform": "centered_log_ratio",
+            "covariance": "HC3",
+            "paired_donor_fixed_effects": paired_design,
+            "unit": "biological replicate / donor pseudosample",
+        },
         "groupby":                groupby,
         "condition_col":          condition_col,
         "replicate_col":          replicate_col,
