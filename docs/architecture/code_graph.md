@@ -11,8 +11,12 @@ or checkpoint/design logic.
 For repository-wide exploration, use the generated Graphify map in
 [`docs/architecture/graphify/`](graphify/README.md). That artifact is built from
 a clean tracked snapshot and provides `graph.json`, `graph.html`,
-`GRAPH_TREE.html`, and `GRAPH_REPORT.md`. This document remains the curated
-impact map; Graphify is the broader navigational index.
+`GRAPH_TREE.html`, and `GRAPH_REPORT.md`. It is **structure-only**: only real
+code nodes and EXTRACTED structural edges (imports/calls/contains/method/
+inherits/references/…), with the inferred (`confidence=INFERRED`) and
+rationale/concept layers filtered out by `scripts/graphify_structure_filter.py`
+(deterministic, no LLM). This document remains the curated impact map; Graphify
+is the broader navigational index.
 
 ## RNA And Reporting Flow
 

@@ -1,17 +1,35 @@
-# ARIA Graphify Map
+# ARIA Graphify Map (structure-only)
 
 This directory contains the generated Graphify map for the tracked ARIA
-repository snapshot.
+repository snapshot. It is a **structure-only** graph: it reflects ARIA's REAL
+code structure and relationships — no inferred or LLM-derived nodes/edges.
+
+## What "structure-only" means
+
+`scripts/graphify_structure_filter.py` runs on the raw extraction and keeps ONLY:
+
+- **nodes** with `file_type == "code"` (files, classes, functions, methods);
+- **edges** with `confidence == "EXTRACTED"` and a structural relation:
+  `contains`, `imports`, `imports_from`, `calls`, `method`, `inherits`,
+  `defines`, `re_exports`, `implements`, `references`.
+
+It **drops**: every `confidence == "INFERRED"` edge (`uses` and a few inferred
+`calls`/`references`), the `rationale_for` edges, and all `rationale` / `concept`
+/ `document` nodes; it zeroes the LLM token counters and the hyperedge layer.
+The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `d7b97144`
-- Generated: 2026-05-31
+- Commit: `aed4853` (regenerate to refresh)
+- Generated: 2026-06-01
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Graph: 2299 extracted nodes / 6732 extracted edges in `graph.json`
-- Clustered report: 2296 nodes / 5428 edges / 101 communities in `GRAPH_REPORT.md`
-- Semantic extraction cost: 28,388 input tokens / 2,116 output tokens, about `$0.0205`
+- Structure-only graph: **1950 code nodes / 5094 EXTRACTED structural edges** in
+  `graph.json` (filter dropped ~648 rationale nodes + ~954 inferred edges)
+- Clustered report: ~1947 nodes / ~4587 edges / ~88 communities in
+  `GRAPH_REPORT.md` (community detection ignores a few isolated nodes — normal)
+- No LLM in the graph: 0 input/output tokens; community naming is skipped
+  (`--no-label` → "Community N" placeholders)
 
 ## Files
 
@@ -45,7 +63,9 @@ more file-oriented navigation surface.
 ## Regenerate
 
 Use the repository script so the graph is built from a clean tracked snapshot
-rather than local private files:
+rather than local private files. The script runs `graphify extract` →
+`scripts/graphify_structure_filter.py` (the structure-only reduction) →
+`graphify cluster-only` (report/html) → `graphify tree`:
 
 ```bash
 scripts/generate_graphify_graph.sh

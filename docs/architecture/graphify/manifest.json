@@ -1,786 +1,841 @@
 {
   "/home/medusa/Samael/ARIA/APPLY_fixes.sh": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "15381e32230bd3b16a433e4819b3ac1e",
     "semantic_hash": "15381e32230bd3b16a433e4819b3ac1e"
   },
   "/home/medusa/Samael/ARIA/aria/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "87cde8ef9c892674b280b10ac9307002",
     "semantic_hash": "87cde8ef9c892674b280b10ac9307002"
   },
   "/home/medusa/Samael/ARIA/aria/agents/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "8afdffe11c52a226e3d37044f9302be2",
     "semantic_hash": "8afdffe11c52a226e3d37044f9302be2"
   },
   "/home/medusa/Samael/ARIA/aria/agents/_narrative_scrna.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "238398ff89da8d7bc0cfe9a5ba1f4d0f",
     "semantic_hash": "238398ff89da8d7bc0cfe9a5ba1f4d0f"
   },
   "/home/medusa/Samael/ARIA/aria/agents/audit_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c511dd30f7bb6fb2c15a6fea76625d2f",
     "semantic_hash": "c511dd30f7bb6fb2c15a6fea76625d2f"
   },
   "/home/medusa/Samael/ARIA/aria/agents/base_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "89273210fa58be93978b7047fab77f69",
     "semantic_hash": "89273210fa58be93978b7047fab77f69"
   },
   "/home/medusa/Samael/ARIA/aria/agents/bulk_rna_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "cb5d90be6171aac7eaab25dd01124472",
     "semantic_hash": "cb5d90be6171aac7eaab25dd01124472"
   },
   "/home/medusa/Samael/ARIA/aria/agents/chromatin_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "762f7bc2610a199956e2d3199cfad6de",
     "semantic_hash": "762f7bc2610a199956e2d3199cfad6de"
   },
   "/home/medusa/Samael/ARIA/aria/agents/data_audit_agent.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "6695db9b6044c54568e20040e37bf1ff",
-    "semantic_hash": "6695db9b6044c54568e20040e37bf1ff"
+    "mtime": 1780360721.0,
+    "ast_hash": "58e0d139704634ad22afa004d2225db1",
+    "semantic_hash": "58e0d139704634ad22afa004d2225db1"
   },
   "/home/medusa/Samael/ARIA/aria/agents/debate_council.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b01ce7a61831b6da031b198e09dfa147",
     "semantic_hash": "b01ce7a61831b6da031b198e09dfa147"
   },
   "/home/medusa/Samael/ARIA/aria/agents/design_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "53301ca81627c6dae8210b5565e2cb83",
     "semantic_hash": "53301ca81627c6dae8210b5565e2cb83"
   },
   "/home/medusa/Samael/ARIA/aria/agents/design_intelligence.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "7cec0ff8754566a400c5f8d4e2e33cc7",
     "semantic_hash": "7cec0ff8754566a400c5f8d4e2e33cc7"
   },
   "/home/medusa/Samael/ARIA/aria/agents/genome_arch_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "f9aaeb04e9162b9970bcaa6bc68e6e8d",
     "semantic_hash": "f9aaeb04e9162b9970bcaa6bc68e6e8d"
   },
   "/home/medusa/Samael/ARIA/aria/agents/integration_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "f3ed143c9e381849260f38af295df6e1",
     "semantic_hash": "f3ed143c9e381849260f38af295df6e1"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e10c9456a340201c9f972682ce110121",
     "semantic_hash": "e10c9456a340201c9f972682ce110121"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/claim_compiler.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "aad87ef65e23b3e290b75710efa7b8c6",
     "semantic_hash": "aad87ef65e23b3e290b75710efa7b8c6"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/compose_prose.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "60832e25cfaf74fd8ffbdb3639649687",
     "semantic_hash": "60832e25cfaf74fd8ffbdb3639649687"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/devils_advocate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "516590ab514b555af942e8827ca96b92",
     "semantic_hash": "516590ab514b555af942e8827ca96b92"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/narrators/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "154813a7bb2c26d52bbed4f8864bd901",
     "semantic_hash": "154813a7bb2c26d52bbed4f8864bd901"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/narrators/bulk_rna.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "3b1d8c8ea76d83a35a8e392e5b8a03ce",
-    "semantic_hash": "3b1d8c8ea76d83a35a8e392e5b8a03ce"
+    "mtime": 1780360721.0,
+    "ast_hash": "36dd4c34defb7ca113ca2cd251c8d579",
+    "semantic_hash": "36dd4c34defb7ca113ca2cd251c8d579"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/narrators/scrna.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "0b6073a51f63381a0e0b4fbd48c20da0",
-    "semantic_hash": "0b6073a51f63381a0e0b4fbd48c20da0"
+    "mtime": 1780360721.0,
+    "ast_hash": "898b6bd7532726b2ef23e673c2bf0956",
+    "semantic_hash": "898b6bd7532726b2ef23e673c2bf0956"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/protocols.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "1cde052a39766892e48db286db141e64",
     "semantic_hash": "1cde052a39766892e48db286db141e64"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/registry.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "65b2ba58a21ffb86a500a218e2feb4f8",
     "semantic_hash": "65b2ba58a21ffb86a500a218e2feb4f8"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/render_blocks.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "6312167c3695f835b3dde5418a2339ea",
     "semantic_hash": "6312167c3695f835b3dde5418a2339ea"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/robustness.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "78978785c2fa8bfd796f669b017a95da",
     "semantic_hash": "78978785c2fa8bfd796f669b017a95da"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/run_ledger.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "1b724e0d82283d32520c9f17e343de99",
     "semantic_hash": "1b724e0d82283d32520c9f17e343de99"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/types.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "fa58bfcf767c3d6cbf2091772e3c4243",
     "semantic_hash": "fa58bfcf767c3d6cbf2091772e3c4243"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative/validators.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "eb09b4ceae56fb09143009ad5e70786d",
     "semantic_hash": "eb09b4ceae56fb09143009ad5e70786d"
   },
   "/home/medusa/Samael/ARIA/aria/agents/narrative_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "10aa0299ad257c7603c18a5e6ce4b003",
     "semantic_hash": "10aa0299ad257c7603c18a5e6ce4b003"
   },
   "/home/medusa/Samael/ARIA/aria/agents/orchestrator_agent.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "89bf0cd514c95c3608e96933aeabd218",
-    "semantic_hash": "89bf0cd514c95c3608e96933aeabd218"
+    "mtime": 1780360721.0,
+    "ast_hash": "445e84ac0ed474a9aa1b652645821032",
+    "semantic_hash": "445e84ac0ed474a9aa1b652645821032"
   },
   "/home/medusa/Samael/ARIA/aria/agents/raw_ingestion_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "92bc4669404848e706e7215c27a6424a",
     "semantic_hash": "92bc4669404848e706e7215c27a6424a"
   },
   "/home/medusa/Samael/ARIA/aria/agents/scrna_agent.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "a0c1c1517d580b1bbf934232aa1edc9a",
-    "semantic_hash": "a0c1c1517d580b1bbf934232aa1edc9a"
+    "mtime": 1780360721.0,
+    "ast_hash": "6eb25637037d2b63eba026aaa81e86f2",
+    "semantic_hash": "6eb25637037d2b63eba026aaa81e86f2"
   },
   "/home/medusa/Samael/ARIA/aria/agents/setup_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "09375b3c1d9e0953a2b197e1bea69e1a",
     "semantic_hash": "09375b3c1d9e0953a2b197e1bea69e1a"
   },
   "/home/medusa/Samael/ARIA/aria/benchmarks/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "48ae9ca9da2929ca7602e1559b38f02f",
     "semantic_hash": "48ae9ca9da2929ca7602e1559b38f02f"
   },
   "/home/medusa/Samael/ARIA/aria/benchmarks/synthetic_de.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "8b64f5a7c36b2ac7b052b4041cdd0a41",
     "semantic_hash": "8b64f5a7c36b2ac7b052b4041cdd0a41"
   },
   "/home/medusa/Samael/ARIA/aria/bus/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "52bd70e333039153914941df927f5630",
     "semantic_hash": "52bd70e333039153914941df927f5630"
   },
   "/home/medusa/Samael/ARIA/aria/bus/message_bus.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "029789d9e2bbc903ddd4677864356340",
     "semantic_hash": "029789d9e2bbc903ddd4677864356340"
   },
   "/home/medusa/Samael/ARIA/aria/connectors/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "/home/medusa/Samael/ARIA/aria/connectors/geo_connector.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "745ae10be9b65eeb1877b14775ce0c68",
     "semantic_hash": "745ae10be9b65eeb1877b14775ce0c68"
   },
   "/home/medusa/Samael/ARIA/aria/doctor.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "9b0ee9bc43af9522bcae78cd85802057",
     "semantic_hash": "9b0ee9bc43af9522bcae78cd85802057"
   },
   "/home/medusa/Samael/ARIA/aria/headless.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "95e2e3a45331a22e86c9c1573ec8b77e",
     "semantic_hash": "95e2e3a45331a22e86c9c1573ec8b77e"
   },
   "/home/medusa/Samael/ARIA/aria/llm/__init__.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "87cde8ef9c892674b280b10ac9307002",
     "semantic_hash": "87cde8ef9c892674b280b10ac9307002"
   },
   "/home/medusa/Samael/ARIA/aria/llm/context_manager.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "3d305b607b2c21af15049f988b6ccfc3",
     "semantic_hash": "3d305b607b2c21af15049f988b6ccfc3"
   },
   "/home/medusa/Samael/ARIA/aria/llm/parameter_advisor.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "dab0cf4cf3dc6728ad939ced9d01802b",
-    "semantic_hash": "dab0cf4cf3dc6728ad939ced9d01802b"
+    "mtime": 1780360721.0,
+    "ast_hash": "2136bc9f48470c5ad7ca082e78ab9d8f",
+    "semantic_hash": "2136bc9f48470c5ad7ca082e78ab9d8f"
   },
   "/home/medusa/Samael/ARIA/aria/llm/provider.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "1e4edafbff710d71ee72b4504c513471",
     "semantic_hash": "1e4edafbff710d71ee72b4504c513471"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/_base.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4391fe2c2aac9803ee8def2366b2e8ca",
     "semantic_hash": "4391fe2c2aac9803ee8def2366b2e8ca"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/chromatin_peaks.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "cdcf25bd95364c85723fd3101b8e3c91",
     "semantic_hash": "cdcf25bd95364c85723fd3101b8e3c91"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/chromatin_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "9a82568c7e9c76243cbfeed3c694f436",
     "semantic_hash": "9a82568c7e9c76243cbfeed3c694f436"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/hic_inspect.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4f672d2eafc38fc26abca481f8e8562c",
     "semantic_hash": "4f672d2eafc38fc26abca481f8e8562c"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/hic_qc_and_balance.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c94e291be823ff1717f49fcb7ada8378",
     "semantic_hash": "c94e291be823ff1717f49fcb7ada8378"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/hic_topology.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "85aad63b8b7c48e9d638bdc1c0c8fb78",
     "semantic_hash": "85aad63b8b7c48e9d638bdc1c0c8fb78"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/integration_mofa.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e4ae869823ac1c9b65cac41bdb7f34c4",
     "semantic_hash": "e4ae869823ac1c9b65cac41bdb7f34c4"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/integration_peak2gene.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d995dad1b7ff54a594fc59c4d6fd1656",
     "semantic_hash": "d995dad1b7ff54a594fc59c4d6fd1656"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/integration_wnn.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b862c31e4b51d9afa287bc879c570b52",
     "semantic_hash": "b862c31e4b51d9afa287bc879c570b52"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_advise_resolution.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "56feb0b1034aa2dbe7f995b990fdd571",
     "semantic_hash": "56feb0b1034aa2dbe7f995b990fdd571"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_align.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d1ec055a19c31034fda51c5c0c4a7ec8",
     "semantic_hash": "d1ec055a19c31034fda51c5c0c4a7ec8"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_apply_cluster_labels.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "ebec8239e8d38000ac9e778fdc7737cd",
     "semantic_hash": "ebec8239e8d38000ac9e778fdc7737cd"
   },
+  "/home/medusa/Samael/ARIA/aria/scripts/rna_bulk/__init__.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "0c682fab140eb3c943bdfbb51f7b1a6d",
+    "semantic_hash": "0c682fab140eb3c943bdfbb51f7b1a6d"
+  },
+  "/home/medusa/Samael/ARIA/aria/scripts/rna_bulk/gtf_io.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "38c7d7ef212d15289893db0b6ea1546f",
+    "semantic_hash": "38c7d7ef212d15289893db0b6ea1546f"
+  },
+  "/home/medusa/Samael/ARIA/aria/scripts/rna_bulk/ora.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "647c27285c2dfa60be753497d723f6a3",
+    "semantic_hash": "647c27285c2dfa60be753497d723f6a3"
+  },
+  "/home/medusa/Samael/ARIA/aria/scripts/rna_bulk/plots.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "c5661cc258cdf77e15cc1768a634e6f4",
+    "semantic_hash": "c5661cc258cdf77e15cc1768a634e6f4"
+  },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_bulk_de.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "af877e3a5ed3769edd9c726c962de94b",
-    "semantic_hash": "af877e3a5ed3769edd9c726c962de94b"
+    "mtime": 1780360721.0,
+    "ast_hash": "30eeb7ad5b43d8e02fdfdc25ba269e12",
+    "semantic_hash": "30eeb7ad5b43d8e02fdfdc25ba269e12"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_cellcomm.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "69a8dae04269ae8a2d2fc55758eb4150",
     "semantic_hash": "69a8dae04269ae8a2d2fc55758eb4150"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_celltypist.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "75c2c8458faa6aeb8b29884eaa0c1e69",
     "semantic_hash": "75c2c8458faa6aeb8b29884eaa0c1e69"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_clustering.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "167dd7c3f9d944b58fb383492016e544",
     "semantic_hash": "167dd7c3f9d944b58fb383492016e544"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_concat.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "614eb03ce4511cb95f44c5e537081050",
     "semantic_hash": "614eb03ce4511cb95f44c5e537081050"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_de_per_cluster.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c47a298ee1a49b922e05d19f0a2dd03c",
     "semantic_hash": "c47a298ee1a49b922e05d19f0a2dd03c"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_diff_abundance.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "29a5171579d4aba39e7344bbe9c16fad",
     "semantic_hash": "29a5171579d4aba39e7344bbe9c16fad"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_fastq_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "f0a72557127b835c2eaa1293934d34ca",
     "semantic_hash": "f0a72557127b835c2eaa1293934d34ca"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_figure_paga.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e4f91126855c9be426b187f6775a9d28",
     "semantic_hash": "e4f91126855c9be426b187f6775a9d28"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_figure_umap.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b895f439a7bc4dd4c64c583254a02b20",
     "semantic_hash": "b895f439a7bc4dd4c64c583254a02b20"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_inject_condition.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4e4c0810d7e2ad964c12054ec86fc58a",
     "semantic_hash": "4e4c0810d7e2ad964c12054ec86fc58a"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_integration.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5a9563833edf71eb322f628b84524833",
     "semantic_hash": "5a9563833edf71eb322f628b84524833"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_narrative_adapter.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "ab823ef70cf9bc9d24d34a009205c989",
     "semantic_hash": "ab823ef70cf9bc9d24d34a009205c989"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_pathway_per_cluster.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "50fc15571a7f9b1027749a21c0f88e89",
-    "semantic_hash": "50fc15571a7f9b1027749a21c0f88e89"
+    "mtime": 1780360721.0,
+    "ast_hash": "b05394d33106acab5e502978ca0f4a21",
+    "semantic_hash": "b05394d33106acab5e502978ca0f4a21"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_pathway_viz.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "27b6ae49f6dd6945e038a02c351f2f6b",
     "semantic_hash": "27b6ae49f6dd6945e038a02c351f2f6b"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_pseudobulk_de.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5f8c24e34fe019fd1905806423d3fc27",
     "semantic_hash": "5f8c24e34fe019fd1905806423d3fc27"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "3bcb4b805898efee6227432d7382bfc6",
     "semantic_hash": "3bcb4b805898efee6227432d7382bfc6"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_quantify.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "dfb8eab49b0b51c9091c0f39402a5860",
     "semantic_hash": "dfb8eab49b0b51c9091c0f39402a5860"
   },
   "/home/medusa/Samael/ARIA/aria/scripts/rna_trajectory.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "02ca6bfc996ea6c56b314b1987802564",
     "semantic_hash": "02ca6bfc996ea6c56b314b1987802564"
   },
   "/home/medusa/Samael/ARIA/aria/tui.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "467861ea1c68655401615c105a705f01",
     "semantic_hash": "467861ea1c68655401615c105a705f01"
   },
   "/home/medusa/Samael/ARIA/aria/utils/annotation_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "9f9b54437479087b69a3ccaf112e9942",
     "semantic_hash": "9f9b54437479087b69a3ccaf112e9942"
   },
   "/home/medusa/Samael/ARIA/aria/utils/count_classifier.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "011de5462326cba9e4c2aff9e51ce2be",
     "semantic_hash": "011de5462326cba9e4c2aff9e51ce2be"
   },
   "/home/medusa/Samael/ARIA/aria/utils/design_matrix.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "7554a76b61f5f21b8170a78f77baa281",
     "semantic_hash": "7554a76b61f5f21b8170a78f77baa281"
   },
   "/home/medusa/Samael/ARIA/aria/utils/env_loader.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4113f3492944fadf9d2be47944fd6a13",
     "semantic_hash": "4113f3492944fadf9d2be47944fd6a13"
   },
   "/home/medusa/Samael/ARIA/aria/utils/environment_manager.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "5adaefae5b66e9fcdf5915a6caa4508b",
-    "semantic_hash": "5adaefae5b66e9fcdf5915a6caa4508b"
+    "mtime": 1780360721.0,
+    "ast_hash": "775aba84b5568966df9d34c0df289e12",
+    "semantic_hash": "775aba84b5568966df9d34c0df289e12"
   },
   "/home/medusa/Samael/ARIA/aria/utils/hic_constants.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "04fd35ff55103a8d54a843da083415d3",
     "semantic_hash": "04fd35ff55103a8d54a843da083415d3"
   },
   "/home/medusa/Samael/ARIA/aria/utils/integration_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "0c6883dd11995c1e2cb4317401df3d1e",
     "semantic_hash": "0c6883dd11995c1e2cb4317401df3d1e"
   },
   "/home/medusa/Samael/ARIA/aria/utils/logging_setup.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d8ad17428f4a14adbe7ca0071a73d0db",
     "semantic_hash": "d8ad17428f4a14adbe7ca0071a73d0db"
   },
   "/home/medusa/Samael/ARIA/aria/utils/mudata_io.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "ae9fb06d75e5dbd7599a0b6bb29257e7",
     "semantic_hash": "ae9fb06d75e5dbd7599a0b6bb29257e7"
   },
+  "/home/medusa/Samael/ARIA/aria/utils/ora.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "852b0405061bd1c47be7a007270feef1",
+    "semantic_hash": "852b0405061bd1c47be7a007270feef1"
+  },
   "/home/medusa/Samael/ARIA/aria/utils/power_estimation.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "6b8feaef89260fd094aaa9fa6d177b8d",
     "semantic_hash": "6b8feaef89260fd094aaa9fa6d177b8d"
   },
   "/home/medusa/Samael/ARIA/aria/utils/privacy.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "277022e053450472633e21980db1f1a9",
-    "semantic_hash": "277022e053450472633e21980db1f1a9"
+    "mtime": 1780360721.0,
+    "ast_hash": "2831a254f0dee8b68ee001586dce711a",
+    "semantic_hash": "2831a254f0dee8b68ee001586dce711a"
   },
   "/home/medusa/Samael/ARIA/aria/utils/provenance.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "7297dfef1d522fd738627c6311d86146",
     "semantic_hash": "7297dfef1d522fd738627c6311d86146"
   },
   "/home/medusa/Samael/ARIA/aria/utils/raw_ingestion.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "6aebdeac742db03e0dd8071ac11e9b4a",
     "semantic_hash": "6aebdeac742db03e0dd8071ac11e9b4a"
   },
   "/home/medusa/Samael/ARIA/aria/utils/registry_integrity.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e690b341f4c3b239122069f77b498cff",
     "semantic_hash": "e690b341f4c3b239122069f77b498cff"
   },
   "/home/medusa/Samael/ARIA/aria/utils/safe_h5ad.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e91f4886e4b21d43e1747268342e4a79",
     "semantic_hash": "e91f4886e4b21d43e1747268342e4a79"
   },
   "/home/medusa/Samael/ARIA/aria/utils/script_contracts.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b9901ebe6fa8c81f9c02a108d945c6df",
     "semantic_hash": "b9901ebe6fa8c81f9c02a108d945c6df"
   },
+  "/home/medusa/Samael/ARIA/aria/utils/sensitivity.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "48375fbd598b5932b3e7dbf2ba406ace",
+    "semantic_hash": "48375fbd598b5932b3e7dbf2ba406ace"
+  },
   "/home/medusa/Samael/ARIA/aria/utils/stats.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "626dd94b000574c46e99d829797f2fbd",
     "semantic_hash": "626dd94b000574c46e99d829797f2fbd"
   },
   "/home/medusa/Samael/ARIA/aria/utils/thresholds.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "52e5b55d20c30de55f5a71a76d89e81d",
     "semantic_hash": "52e5b55d20c30de55f5a71a76d89e81d"
   },
   "/home/medusa/Samael/ARIA/aria/version.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "ff55a7163cfbf8868b0414a0cce956d6",
     "semantic_hash": "ff55a7163cfbf8868b0414a0cce956d6"
   },
   "/home/medusa/Samael/ARIA/install.sh": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "785b5c0e2f52fb294780aff3185a0a4c",
     "semantic_hash": "785b5c0e2f52fb294780aff3185a0a4c"
   },
+  "/home/medusa/Samael/ARIA/scripts/fetch_genesets.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "98a5534cde1092b3e1e98b47ff37617e",
+    "semantic_hash": "98a5534cde1092b3e1e98b47ff37617e"
+  },
   "/home/medusa/Samael/ARIA/scripts/generate_graphify_graph.sh": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "143b2fb7188b757668d68422edc232ba",
     "semantic_hash": "143b2fb7188b757668d68422edc232ba"
   },
   "/home/medusa/Samael/ARIA/scripts/generate_locks.sh": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "3d9fc5cc86980c9aaa01a80719bd07dd",
     "semantic_hash": "3d9fc5cc86980c9aaa01a80719bd07dd"
   },
   "/home/medusa/Samael/ARIA/scripts/update_version_metadata.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "369c5267918fbaaa7039a50347c46b79",
     "semantic_hash": "369c5267918fbaaa7039a50347c46b79"
   },
   "/home/medusa/Samael/ARIA/setup.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "8f629a7845732df76ae705001fa6ef22",
     "semantic_hash": "8f629a7845732df76ae705001fa6ef22"
   },
   "/home/medusa/Samael/ARIA/tests/conftest.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "18827f736d81c1dab7946831fc466cd7",
-    "semantic_hash": "18827f736d81c1dab7946831fc466cd7"
+    "mtime": 1780360721.0,
+    "ast_hash": "3e57d0ecf903aa1c98c57d5888a157f3",
+    "semantic_hash": "3e57d0ecf903aa1c98c57d5888a157f3"
+  },
+  "/home/medusa/Samael/ARIA/tests/fixtures/golden/bulk_mini/expected.json": {
+    "mtime": 1780360721.0,
+    "ast_hash": "59f4e51ca3a6d68a9f75e9e0f37de7b9",
+    "semantic_hash": "59f4e51ca3a6d68a9f75e9e0f37de7b9"
   },
   "/home/medusa/Samael/ARIA/tests/test_analysis_thresholds.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "67ea2517121624a82a26850205dcc9d8",
     "semantic_hash": "67ea2517121624a82a26850205dcc9d8"
   },
   "/home/medusa/Samael/ARIA/tests/test_benchmark_synthetic_de.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4b396114319cef66f54e4acd9803982e",
     "semantic_hash": "4b396114319cef66f54e4acd9803982e"
   },
   "/home/medusa/Samael/ARIA/tests/test_bulk_covariates.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "eef8db99e850e4cde9d150751a6a77bd",
     "semantic_hash": "eef8db99e850e4cde9d150751a6a77bd"
   },
   "/home/medusa/Samael/ARIA/tests/test_bulk_lfc_shrinkage.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "f21b4a092a21dfdee4836ca548469580",
     "semantic_hash": "f21b4a092a21dfdee4836ca548469580"
   },
   "/home/medusa/Samael/ARIA/tests/test_bulk_raw_count_guard.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "05ce2a84e4abc6f201b9e4e0c424392d",
     "semantic_hash": "05ce2a84e4abc6f201b9e4e0c424392d"
   },
   "/home/medusa/Samael/ARIA/tests/test_bulk_rna.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "c29a9979ae908b97c4d3406db7ffd3a5",
-    "semantic_hash": "c29a9979ae908b97c4d3406db7ffd3a5"
+    "mtime": 1780360721.0,
+    "ast_hash": "7701b0f6f8b14617406993aa0f71b179",
+    "semantic_hash": "7701b0f6f8b14617406993aa0f71b179"
   },
   "/home/medusa/Samael/ARIA/tests/test_bus_durability.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "59240eca916771002a2ce8e27b1d8584",
     "semantic_hash": "59240eca916771002a2ce8e27b1d8584"
   },
   "/home/medusa/Samael/ARIA/tests/test_causal_guard.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4bb24769bc19b0b02baf4712f480f3ae",
     "semantic_hash": "4bb24769bc19b0b02baf4712f480f3ae"
   },
   "/home/medusa/Samael/ARIA/tests/test_cellcomm_contract.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "862488a9b505d88959df31a629f2eece",
     "semantic_hash": "862488a9b505d88959df31a629f2eece"
   },
   "/home/medusa/Samael/ARIA/tests/test_chromatin_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "a2f396554acc6bfce87faa7d06971e40",
     "semantic_hash": "a2f396554acc6bfce87faa7d06971e40"
   },
   "/home/medusa/Samael/ARIA/tests/test_chromatin_dispatch_gate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "38db1baa72e4258034e0029c1075bd3a",
     "semantic_hash": "38db1baa72e4258034e0029c1075bd3a"
   },
   "/home/medusa/Samael/ARIA/tests/test_chromatin_readiness.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "dc313f088bac11a329e005da16275b81",
     "semantic_hash": "dc313f088bac11a329e005da16275b81"
   },
   "/home/medusa/Samael/ARIA/tests/test_claim_compiler.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "310b91bfa5ed99b117a6bca4cace5bc9",
     "semantic_hash": "310b91bfa5ed99b117a6bca4cace5bc9"
   },
   "/home/medusa/Samael/ARIA/tests/test_composition_collinearity.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "73c1b653abc572497743c98dadffa6c1",
     "semantic_hash": "73c1b653abc572497743c98dadffa6c1"
   },
   "/home/medusa/Samael/ARIA/tests/test_contrast_family_fdr.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "a146269e826d9caedc1b6319e43d7433",
     "semantic_hash": "a146269e826d9caedc1b6319e43d7433"
   },
   "/home/medusa/Samael/ARIA/tests/test_count_classifier.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "acac69f25ef2661d612ddfc980626e4f",
     "semantic_hash": "acac69f25ef2661d612ddfc980626e4f"
   },
   "/home/medusa/Samael/ARIA/tests/test_debate_council.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d9dc0a57d8dbd1a86af82604d73e6950",
     "semantic_hash": "d9dc0a57d8dbd1a86af82604d73e6950"
   },
   "/home/medusa/Samael/ARIA/tests/test_design_matrix_validator.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5b06ba5b3c05c1ae701f2e002278b7a0",
     "semantic_hash": "5b06ba5b3c05c1ae701f2e002278b7a0"
   },
   "/home/medusa/Samael/ARIA/tests/test_dispatchable_contracts.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5623d76fe29f221a907f24fb8256caa9",
     "semantic_hash": "5623d76fe29f221a907f24fb8256caa9"
   },
   "/home/medusa/Samael/ARIA/tests/test_doctor.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c6727a9dff0f4ccc940d4be0a19d5805",
     "semantic_hash": "c6727a9dff0f4ccc940d4be0a19d5805"
   },
   "/home/medusa/Samael/ARIA/tests/test_egress_governance.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "2dacfc419dc2d5fb69eace9a44175550",
-    "semantic_hash": "2dacfc419dc2d5fb69eace9a44175550"
+    "mtime": 1780360721.0,
+    "ast_hash": "f78bbd16b6b130d37df9a36e4fdb8bf4",
+    "semantic_hash": "f78bbd16b6b130d37df9a36e4fdb8bf4"
   },
   "/home/medusa/Samael/ARIA/tests/test_env_manager_cache.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "71c518557896b19ddfd7e97866d7a13a",
     "semantic_hash": "71c518557896b19ddfd7e97866d7a13a"
   },
   "/home/medusa/Samael/ARIA/tests/test_environment_manager.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "c520e8433c0c7dbe7b63adfdbd8325a9",
-    "semantic_hash": "c520e8433c0c7dbe7b63adfdbd8325a9"
+    "mtime": 1780360721.0,
+    "ast_hash": "a5f2fc371d0acc8b1f8826a1749e469a",
+    "semantic_hash": "a5f2fc371d0acc8b1f8826a1749e469a"
   },
   "/home/medusa/Samael/ARIA/tests/test_explicit_contrast_gate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "bf7fab7c500df3816cae45af1fb76d7b",
     "semantic_hash": "bf7fab7c500df3816cae45af1fb76d7b"
   },
   "/home/medusa/Samael/ARIA/tests/test_fdr_preregistration.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "cd554bc3d47e3680f559416b5056e736",
     "semantic_hash": "cd554bc3d47e3680f559416b5056e736"
   },
   "/home/medusa/Samael/ARIA/tests/test_filename_fallback_gate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "0f8c8f0ad91ddbb21e4d74b7db5080fa",
     "semantic_hash": "0f8c8f0ad91ddbb21e4d74b7db5080fa"
   },
   "/home/medusa/Samael/ARIA/tests/test_genome_arch_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "3fa2fd3676e11e72afa0ff44518e53ed",
     "semantic_hash": "3fa2fd3676e11e72afa0ff44518e53ed"
   },
   "/home/medusa/Samael/ARIA/tests/test_geo_design.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "377f778484af8382459b1ef20a4b0699",
     "semantic_hash": "377f778484af8382459b1ef20a4b0699"
   },
   "/home/medusa/Samael/ARIA/tests/test_geo_spikein_inference.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "9e6434abd21379752fdc56839e65c2b3",
     "semantic_hash": "9e6434abd21379752fdc56839e65c2b3"
   },
   "/home/medusa/Samael/ARIA/tests/test_headless_design_e2e.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "a744d4c2ea556cf25ced3bdc705db0c9",
     "semantic_hash": "a744d4c2ea556cf25ced3bdc705db0c9"
   },
   "/home/medusa/Samael/ARIA/tests/test_hic_dispatch_gate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "58180bc2762f8fc69b7de1f500b2da8e",
     "semantic_hash": "58180bc2762f8fc69b7de1f500b2da8e"
   },
   "/home/medusa/Samael/ARIA/tests/test_integration.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "660553bc5fb263ef477bf2e537b97099",
     "semantic_hash": "660553bc5fb263ef477bf2e537b97099"
   },
   "/home/medusa/Samael/ARIA/tests/test_integration_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "8b1f2754639bd6043f3283d9b792c5b6",
     "semantic_hash": "8b1f2754639bd6043f3283d9b792c5b6"
   },
   "/home/medusa/Samael/ARIA/tests/test_integration_annotation_qc.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "7454a2bb6ae4648cf1ff3c2f8bacbb9f",
     "semantic_hash": "7454a2bb6ae4648cf1ff3c2f8bacbb9f"
   },
   "/home/medusa/Samael/ARIA/tests/test_lfc_shrinkage.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "240c6e8ec0c53ff0399d265c4880f626",
     "semantic_hash": "240c6e8ec0c53ff0399d265c4880f626"
   },
   "/home/medusa/Samael/ARIA/tests/test_llm_partial_config.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "811c96d04e33b86c56aa82f582939063",
     "semantic_hash": "811c96d04e33b86c56aa82f582939063"
   },
   "/home/medusa/Samael/ARIA/tests/test_llm_reliability.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "2b62009266cd3007abc5f01bfe91407f",
     "semantic_hash": "2b62009266cd3007abc5f01bfe91407f"
   },
+  "/home/medusa/Samael/ARIA/tests/test_local_ora.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "9a6aad1b38a5043dd17b4fc283d0defd",
+    "semantic_hash": "9a6aad1b38a5043dd17b4fc283d0defd"
+  },
   "/home/medusa/Samael/ARIA/tests/test_narrative_agent.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "174fd512bf042b9059a38400e8b208f0",
     "semantic_hash": "174fd512bf042b9059a38400e8b208f0"
   },
   "/home/medusa/Samael/ARIA/tests/test_narrative_render_blocks.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "9a53f34ac570e2175c97e8d052d10d9b",
     "semantic_hash": "9a53f34ac570e2175c97e8d052d10d9b"
   },
   "/home/medusa/Samael/ARIA/tests/test_narrative_types.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "d9846e318946ecd2929de842d660db49",
     "semantic_hash": "d9846e318946ecd2929de842d660db49"
   },
   "/home/medusa/Samael/ARIA/tests/test_narrative_validators.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5b96a48de55820fd27ca4b7e3b9e4980",
     "semantic_hash": "5b96a48de55820fd27ca4b7e3b9e4980"
   },
   "/home/medusa/Samael/ARIA/tests/test_narrator_bulk.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c42e86db371993afee37f34d23dc049e",
     "semantic_hash": "c42e86db371993afee37f34d23dc049e"
   },
   "/home/medusa/Samael/ARIA/tests/test_narrator_scrna.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c1dafe34e7bf8378070fae6232c3471e",
     "semantic_hash": "c1dafe34e7bf8378070fae6232c3471e"
   },
   "/home/medusa/Samael/ARIA/tests/test_no_fabrication_guard.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "e217f76cd3ed1f42635bb85637ed480a",
     "semantic_hash": "e217f76cd3ed1f42635bb85637ed480a"
   },
+  "/home/medusa/Samael/ARIA/tests/test_parameter_advisor_honesty.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "fab793ec70bc4c129b04dceb59d1f406",
+    "semantic_hash": "fab793ec70bc4c129b04dceb59d1f406"
+  },
   "/home/medusa/Samael/ARIA/tests/test_pathway_viz.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "c9b4c66a71b745e1e5e447cb03975a8c",
     "semantic_hash": "c9b4c66a71b745e1e5e447cb03975a8c"
   },
   "/home/medusa/Samael/ARIA/tests/test_pbmc_e2e.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "f260bd2eed368b7b8b08c22435876679",
-    "semantic_hash": "f260bd2eed368b7b8b08c22435876679"
+    "mtime": 1780360721.0,
+    "ast_hash": "74d7108340b600eb8d69710e6436b8e5",
+    "semantic_hash": "74d7108340b600eb8d69710e6436b8e5"
   },
   "/home/medusa/Samael/ARIA/tests/test_pseudobulk_gate.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b69458fc608cacc469b4ffa3d3eaef33",
     "semantic_hash": "b69458fc608cacc469b4ffa3d3eaef33"
   },
   "/home/medusa/Samael/ARIA/tests/test_pytest_smoke.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "d5a386740410fc3b4e46b7a4f0111690",
-    "semantic_hash": "d5a386740410fc3b4e46b7a4f0111690"
+    "mtime": 1780360721.0,
+    "ast_hash": "8c2d17b03b3e2c34c81224a08bfa90b8",
+    "semantic_hash": "8c2d17b03b3e2c34c81224a08bfa90b8"
   },
   "/home/medusa/Samael/ARIA/tests/test_registry_integrity.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "20e37935b4474b7abbcf5398b756c71e",
     "semantic_hash": "20e37935b4474b7abbcf5398b756c71e"
   },
   "/home/medusa/Samael/ARIA/tests/test_run_ledger_and_devils.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "5684f6f8ee2858180aa63ca6414db92c",
     "semantic_hash": "5684f6f8ee2858180aa63ca6414db92c"
   },
   "/home/medusa/Samael/ARIA/tests/test_script_contracts.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "2100f78fcd7d08f844e318666b3fc938",
     "semantic_hash": "2100f78fcd7d08f844e318666b3fc938"
   },
   "/home/medusa/Samael/ARIA/tests/test_scrna.py": {
-    "mtime": 1780291527.0,
-    "ast_hash": "bc9d9eb91e3fdb4ee107fb739d6e20f2",
-    "semantic_hash": "bc9d9eb91e3fdb4ee107fb739d6e20f2"
+    "mtime": 1780360721.0,
+    "ast_hash": "42e9e884cb0e826620ad84458f4da1b1",
+    "semantic_hash": "42e9e884cb0e826620ad84458f4da1b1"
   },
   "/home/medusa/Samael/ARIA/tests/test_scrna_e2e.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "b46481ef97c906a0d09fcd3883b752e2",
     "semantic_hash": "b46481ef97c906a0d09fcd3883b752e2"
   },
+  "/home/medusa/Samael/ARIA/tests/test_sensitivity_privacy.py": {
+    "mtime": 1780360721.0,
+    "ast_hash": "de56de5ac74b22756b17e28c71569bfc",
+    "semantic_hash": "de56de5ac74b22756b17e28c71569bfc"
+  },
   "/home/medusa/Samael/ARIA/tests/test_stage4_closeout.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "4a10bfbe8ea0ed9df908da25ca6c3881",
     "semantic_hash": "4a10bfbe8ea0ed9df908da25ca6c3881"
   },
   "/home/medusa/Samael/ARIA/tests/test_wnn_no_fabrication.py": {
-    "mtime": 1780291527.0,
+    "mtime": 1780360721.0,
     "ast_hash": "7a8eaada2f8375b813a0db985002ce03",
     "semantic_hash": "7a8eaada2f8375b813a0db985002ce03"
   }
