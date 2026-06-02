@@ -2782,9 +2782,12 @@ def test_methodology_json_persists_llm_usage():
 
 def test_tool_versions_fall_back_to_lockfiles(monkeypatch):
     from aria.agents.narrative_agent import NarrativeAgent
+    # P2-8 follow-up: these helpers live in narrative/report_sections.py now and
+    # call each other by module-level name, so patch the dependency there.
+    from aria.agents.narrative import report_sections
 
     monkeypatch.setattr(
-        NarrativeAgent,
+        report_sections,
         "_tool_versions_from_lockfiles",
         lambda packages: {
             "pydeseq2": "0.5.4",
