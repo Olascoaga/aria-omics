@@ -12,7 +12,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_kxr2ix_corpus_apply_fixes_sh__entry",
+      "id": "tmp_aria_graphify_wq6k3q_corpus_apply_fixes_sh__entry",
       "label": "APPLY_fixes.sh script",
       "file_type": "code",
       "source_file": "APPLY_fixes.sh",
@@ -9274,7 +9274,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -9400,7 +9400,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_kxr2ix_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_wq6k3q_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -9422,7 +9422,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_kxr2ix_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_wq6k3q_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -13844,6 +13844,13 @@
       "source_location": "L110"
     },
     {
+      "id": "tests_test_stage4_closeout_test_robustness_multiverse_does_not_invent_intersection_from_counts",
+      "label": "test_robustness_multiverse_does_not_invent_intersection_from_counts()",
+      "file_type": "code",
+      "source_file": "tests/test_stage4_closeout.py",
+      "source_location": "L150"
+    },
+    {
       "id": "tests_test_wnn_no_fabrication",
       "label": "test_wnn_no_fabrication.py",
       "file_type": "code",
@@ -13879,7 +13886,7 @@
       "source_location": "L49"
     },
     {
-      "id": "orchestrator_agent",
+      "id": "aria_orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
@@ -13890,7 +13897,7 @@
       "contributor": null
     },
     {
-      "id": "data_audit_agent",
+      "id": "aria_data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
@@ -13901,7 +13908,7 @@
       "contributor": null
     },
     {
-      "id": "design_agent",
+      "id": "aria_design_agent",
       "label": "DesignAgent",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
@@ -13912,7 +13919,7 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
+      "id": "aria_audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/audit_agent.py",
@@ -13923,7 +13930,7 @@
       "contributor": null
     },
     {
-      "id": "setup_agent",
+      "id": "aria_setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
       "source_file": "aria/agents/setup_agent.py",
@@ -13934,7 +13941,7 @@
       "contributor": null
     },
     {
-      "id": "bulk_rna_agent",
+      "id": "aria_bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
@@ -13945,7 +13952,7 @@
       "contributor": null
     },
     {
-      "id": "scrna_agent",
+      "id": "aria_scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py",
@@ -13956,7 +13963,7 @@
       "contributor": null
     },
     {
-      "id": "chromatin_agent",
+      "id": "aria_chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
       "source_file": "aria/agents/chromatin_agent.py",
@@ -13967,7 +13974,7 @@
       "contributor": null
     },
     {
-      "id": "genome_arch_agent",
+      "id": "aria_genome_arch_agent",
       "label": "GenomeArchAgent",
       "file_type": "code",
       "source_file": "aria/agents/genome_arch_agent.py",
@@ -13978,7 +13985,7 @@
       "contributor": null
     },
     {
-      "id": "integration_agent",
+      "id": "aria_integration_agent",
       "label": "IntegrationAgent",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
@@ -13989,7 +13996,7 @@
       "contributor": null
     },
     {
-      "id": "narrative_agent",
+      "id": "aria_narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
@@ -14000,73 +14007,7 @@
       "contributor": null
     },
     {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_hierarchical.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "llm_provider",
-      "label": "LLMProvider",
-      "file_type": "code",
-      "source_file": "aria/llm/provider.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "parameter_advisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "aria/agents/parameter_advisor.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_bulk_de",
+      "id": "aria_rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_bulk_de.py",
@@ -14077,18 +14018,7 @@
       "contributor": null
     },
     {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_qc",
+      "id": "aria_rna_qc",
       "label": "rna_qc.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_qc.py",
@@ -14099,10 +14029,10 @@
       "contributor": null
     },
     {
-      "id": "rna_integration",
-      "label": "rna_integration.py",
+      "id": "aria_rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_integration.py",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -14110,10 +14040,10 @@
       "contributor": null
     },
     {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py",
+      "id": "aria_message_bus",
+      "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
+      "source_file": "aria/bus/message_bus.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -14121,10 +14051,10 @@
       "contributor": null
     },
     {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py",
+      "id": "aria_environment_manager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -14132,10 +14062,10 @@
       "contributor": null
     },
     {
-      "id": "design_intelligence",
-      "label": "DesignIntelligence",
+      "id": "aria_parameter_advisor",
+      "label": "ParameterAdvisor",
       "file_type": "code",
-      "source_file": "aria/agents/design_intelligence.py",
+      "source_file": "aria/agents/parameter_advisor.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -14146,7 +14076,7 @@
   "edges": [
     {
       "source": "apply_fixes",
-      "target": "tmp_aria_graphify_kxr2ix_corpus_apply_fixes_sh__entry",
+      "target": "tmp_aria_graphify_wq6k3q_corpus_apply_fixes_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "APPLY_fixes.sh",
@@ -40920,7 +40850,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L852",
+      "source_location": "L871",
       "weight": 1.0
     },
     {
@@ -47099,7 +47029,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -47152,7 +47082,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -47162,7 +47092,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -47172,7 +47102,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -47182,7 +47112,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -47192,7 +47122,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -47310,7 +47240,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_kxr2ix_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_wq6k3q_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -47319,7 +47249,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_kxr2ix_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_wq6k3q_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -47345,7 +47275,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_kxr2ix_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_wq6k3q_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -55069,6 +54999,15 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_stage4_closeout.py",
       "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_stage4_closeout",
+      "target": "tests_test_stage4_closeout_test_robustness_multiverse_does_not_invent_intersection_from_counts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_stage4_closeout.py",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -63658,6 +63597,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_stage4_closeout_test_robustness_multiverse_does_not_invent_intersection_from_counts",
+      "target": "narrative_robustness_build_robustness_multiverse",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_stage4_closeout.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
       "source": "agents_audit_agent_auditagent_check_design_matrix_sanity",
       "target": "utils_design_matrix_validate_design_matrix",
       "relation": "calls",
@@ -64472,8 +64421,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64482,8 +64431,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64492,8 +64441,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64502,8 +64451,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_setup_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64512,8 +64461,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64522,8 +64471,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64532,18 +64481,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "source": "aria_bulk_rna_agent",
+      "target": "aria_rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64552,8 +64491,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "rna_bulk_de",
+      "source": "aria_scrna_agent",
+      "target": "aria_rna_qc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64562,8 +64501,8 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
-      "target": "rna_qc",
+      "source": "aria_scrna_agent",
+      "target": "aria_rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64572,48 +64511,8 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "design_intelligence",
-      "target": "data_audit_agent",
+      "source": "aria_bulk_rna_agent",
+      "target": "aria_environment_manager",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64622,8 +64521,8 @@
       "weight": 1.0
     },
     {
-      "source": "design_intelligence",
-      "target": "design_agent",
+      "source": "aria_scrna_agent",
+      "target": "aria_environment_manager",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -64632,42 +64531,22 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "calls",
+      "source": "aria_orchestrator_agent",
+      "target": "aria_message_bus",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "parameter_advisor",
-      "target": "aria_memory",
+      "source": "aria_scrna_agent",
+      "target": "aria_parameter_advisor",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_integration",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/INSTALLATION.md",
       "source_location": null,
       "weight": 1.0
     }
