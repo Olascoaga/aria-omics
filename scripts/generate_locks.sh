@@ -19,27 +19,38 @@
 #     by design.
 #
 # Usage:
-#   scripts/generate_locks.sh                 # snapshot the v4.4 whitelist
+#   scripts/generate_locks.sh                 # snapshot the published-env whitelist
 #   scripts/generate_locks.sh aria-rna-env    # snapshot one env
 #   scripts/generate_locks.sh --all           # snapshot every env in envs/
+#   scripts/generate_locks.sh --requirements  # only refresh the top-level
+#                                             #   requirements.lock (pip core)
 #
+# P2-1: the published runtime envs (RNA / ATAC=chromatin / integration) are
+# conda-managed; their linux-64 explicit locks are SNAPSHOTS of the installed
+# env (conda-lock's solver hangs on the bioconda+pip mix here). Multi-platform
+# locks and locks for envs that are not installed on this machine are produced
+# by the hermetic Docker lane (P2-2), not fabricated here. The pip core fallback
+# is requirements.lock (orchestrator/aria-env).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVS_DIR="$ROOT/envs"
 
-# Whitelist for v4.4. v4.4 Stage C uses aria-rna-env only; hic and
-# integration are listed because they are part of the v4.4 contract for
-# any future bulk-ATAC / integration rerun. If they are not installed
-# here they will be skipped with a clear message.
+# The three published runtime envs (P2-1). aria-rna-env is the validated RNA
+# baseline; chromatin (scATAC) and integration are published as part of the
+# 4.6/4.7 contract. Envs not installed locally are skipped with a clear message
+# (their locks come from the Docker lane), never fabricated.
 WHITELIST=(
   "aria-rna-env"
-  "aria-hic-env"
+  "aria-chromatin-env"
   "aria-integration-env"
 )
 DEFERRED=(
-  "aria-chromatin-env"   # deferred to v4.5 scATAC sprint
+  "aria-hic-env"   # Hi-C dispatch is OFF (P0-3); env lock is not a release gate
 )
+
+# The orchestrator env whose pip freeze backs the top-level requirements.lock.
+CORE_ENV="aria-env"
 
 mode="whitelist"
 explicit_target=""
@@ -49,8 +60,11 @@ if [[ $# -ge 1 ]]; then
     --all)
       mode="all"
       ;;
+    --requirements)
+      mode="requirements"
+      ;;
     --help|-h)
-      sed -n '2,28p' "$0"
+      sed -n '2,33p' "$0"
       exit 0
       ;;
     *)
@@ -64,6 +78,35 @@ if ! command -v conda >/dev/null 2>&1; then
   echo "conda not found." >&2
   exit 1
 fi
+
+# Snapshot the orchestrator env's pip closure into the top-level
+# requirements.lock (pip-only fallback). Honest: skipped if CORE_ENV is absent.
+snapshot_requirements() {
+  local req_file="$ROOT/requirements.lock"
+  if ! env_installed "$CORE_ENV"; then
+    echo "skip requirements.lock: $CORE_ENV not installed locally" >&2
+    return 0
+  fi
+  echo "==> snapshotting $CORE_ENV pip closure -> requirements.lock"
+  local py_ver freeze
+  py_ver="$(conda run --name "$CORE_ENV" --no-capture-output python --version 2>/dev/null | awk '{print $2}')"
+  freeze="$(conda run --name "$CORE_ENV" --no-capture-output pip freeze 2>/dev/null \
+            | grep -ivE '^-e |^aria-omics| @ file://' || true)"
+  {
+    echo "# ARIA core/orchestrator pip lock (P2-1) — pip fallback for the aria-env."
+    echo "# Fully-pinned snapshot of the validated orchestrator environment so a"
+    echo "# pip-only install is reproducible. Provenance: pip freeze of conda env"
+    echo "# '$CORE_ENV' on linux-64, Python ${py_ver:-unknown}, $(date +%Y-%m-%d)."
+    echo "#"
+    echo "# This covers the CORE (LLM/orchestration/IO) stack. The heavy scientific"
+    echo "# runtime envs (RNA/ATAC/integration) are conda-managed and locked"
+    echo "# separately under envs/<env>.linux-64.lock (+ .pip.lock); multi-platform"
+    echo "# and non-installed-env locks are produced by the hermetic Docker lane."
+    echo "# Regenerate with: scripts/generate_locks.sh --requirements"
+    echo "#"
+    printf "%s\n" "$freeze"
+  } > "$req_file"
+}
 
 env_installed() {
   conda env list 2>/dev/null \
@@ -107,8 +150,12 @@ case "$mode" in
       snapshot_one "$env_name"
     done
     for env_name in "${DEFERRED[@]}"; do
-      echo "skip $env_name (deferred to v4.5; rerun with: scripts/generate_locks.sh $env_name)" >&2
+      echo "skip $env_name (deferred; rerun with: scripts/generate_locks.sh $env_name)" >&2
     done
+    snapshot_requirements
+    ;;
+  requirements)
+    snapshot_requirements
     ;;
   explicit)
     snapshot_one "$explicit_target"
