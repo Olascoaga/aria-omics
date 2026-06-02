@@ -759,6 +759,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 else effective_alpha_local
             )
 
+            stable_gene_ids = sorted(
+                set(map(str, sig_local.index)) & set(map(str, sig_global.index))
+            )
             comp.update({
                 "fdr_strategy":         fdr_strategy,
                 "n_significant":        int(len(sig_primary)),
@@ -785,18 +788,34 @@ def rna_pseudobulk_de(params: dict) -> dict:
                         ],
                     },
                     "composition_axis_rerun": False,
-                    "stable_significant_genes": int(
-                        len(set(map(str, sig_local.index))
-                            & set(map(str, sig_global.index)))
+                    "fdr_axis_evaluated": True,
+                    "fdr_axis_evaluation": (
+                        "local and global BH families evaluated from the same "
+                        "DESeq2 p-value table in this run"
                     ),
+                    "stability_basis": "gene_id_intersection",
+                    "stable_significant_genes": int(len(stable_gene_ids)),
+                    "stable_gene_ids": stable_gene_ids[:top_n],
+                    "stable_gene_ids_truncated": len(stable_gene_ids) > top_n,
                     "n_local": int(len(sig_local)),
                     "n_global": int(len(sig_global)),
+                    "fdr_family_variants": {
+                        "per_cluster": {
+                            "padj_column": "padj_local",
+                            "n_significant": int(len(sig_local)),
+                        },
+                        "global": {
+                            "padj_column": "padj_global",
+                            "n_significant": int(len(sig_global)),
+                        },
+                    },
                     "note": (
-                        "FDR-family robustness is computed from the two "
-                        "adjusted-p-value families already produced in this "
-                        "run. Composition on/off is reported as the realized "
-                        "design state; ARIA does not silently rerun a second "
-                        "DESeq2 model inside this summary."
+                        "FDR-family robustness is the intersection of gene IDs "
+                        "that pass the local and global BH families computed "
+                        "from this run's p-value table. Composition on/off is "
+                        "reported as the realized design state; ARIA does not "
+                        "silently rerun a second DESeq2 model inside this "
+                        "summary."
                     ),
                 },
             })

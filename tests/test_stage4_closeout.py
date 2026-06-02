@@ -120,8 +120,15 @@ def test_robustness_multiverse_manifest_from_pseudobulk_results():
                                     "corrected_for_composition": True,
                                     "robustness_multiverse": {
                                         "stable_significant_genes": 3,
+                                        "stability_basis": "gene_id_intersection",
+                                        "stable_gene_ids": ["GeneA", "GeneB", "GeneC"],
+                                        "fdr_axis_evaluated": True,
                                         "n_local": 5,
                                         "n_global": 3,
+                                        "fdr_family_variants": {
+                                            "per_cluster": {"n_significant": 5},
+                                            "global": {"n_significant": 3},
+                                        },
                                     },
                                 }
                             }
@@ -133,4 +140,38 @@ def test_robustness_multiverse_manifest_from_pseudobulk_results():
     })
     assert manifest["status"] == "available"
     assert manifest["entries"][0]["stable_significant_genes"] == 3
+    assert manifest["entries"][0]["stability_status"] == "computed"
+    assert manifest["entries"][0]["stability_basis"] == "gene_id_intersection"
+    assert manifest["entries"][0]["stable_gene_ids"] == ["GeneA", "GeneB", "GeneC"]
+    assert manifest["entries"][0]["fdr_axis_evaluated"] is True
     assert manifest["entries"][0]["composition_covariate"] == "included"
+
+
+def test_robustness_multiverse_does_not_invent_intersection_from_counts():
+    manifest = build_robustness_multiverse({
+        "scrna_agent": {
+            "findings": {
+                "pseudobulk_de": {
+                    "per_group": {
+                        "GroupA": {
+                            "per_comparison": {
+                                "condA_vs_condB": {
+                                    "status": "success",
+                                    "corrected_for_composition": False,
+                                    "n_significant_local": 8,
+                                    "n_significant_global": 5,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    entry = manifest["entries"][0]
+    assert entry["n_local_fdr"] == 8
+    assert entry["n_global_fdr"] == 5
+    assert entry["stable_significant_genes"] is None
+    assert entry["stability_status"] == "not_computed"
+    assert entry["stability_basis"] is None
