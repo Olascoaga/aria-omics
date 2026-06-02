@@ -31,6 +31,15 @@ def collect_provenance() -> dict[str, Any]:
             "git_describe": "unknown",
             "workflow_hash": "unknown",
             "workflow_hash_algorithm": "unknown",
+            "image": {
+                "containerized": False,
+                "kind": None,
+                "digest": None,
+                "reference": None,
+                "revision": None,
+                "env_lock_sha256": None,
+                "validation": None,
+            },
         }
     return {
         **version_metadata,

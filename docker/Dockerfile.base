@@ -1,0 +1,28 @@
+# ARIA common base layer (P2-2).
+# micromamba + the ARIA source tree, with NO science env solved here. Every
+# per-modality image builds FROM this, so the heavy conda solve is the only
+# per-modality layer and the OS/source layer is shared and cached.
+#
+# The build context is the repo root; .dockerignore keeps .git, the PRIVATE
+# memory/, build caches, and reports OUT of the image — hermeticity plus no
+# secret/PII leak into layers.
+#
+# Build:
+#   docker build -f docker/Dockerfile.base -t aria-base:local \
+#     --build-arg ARIA_IMAGE_REVISION=$(git rev-parse HEAD) .
+FROM mambaorg/micromamba:1.5.8
+
+# Build-time identity stamp (P2-2): surfaced in report provenance so a report
+# cites the exact image it ran in. REVISION is the git SHA; the per-modality
+# image adds the env-lock SHA. Honest default when unset.
+ARG ARIA_IMAGE_REVISION=unknown
+ENV ARIA_IMAGE_KIND=base \
+    ARIA_IMAGE_REVISION=${ARIA_IMAGE_REVISION}
+
+LABEL org.opencontainers.image.title="aria-base" \
+      org.opencontainers.image.description="ARIA common base (micromamba + source, no science env)" \
+      org.opencontainers.image.source="https://github.com/Olascoaga/aria-omics" \
+      org.opencontainers.image.revision="${ARIA_IMAGE_REVISION}"
+
+WORKDIR /opt/aria
+COPY --chown=$MAMBA_USER:$MAMBA_USER . /opt/aria

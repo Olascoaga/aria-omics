@@ -1,0 +1,43 @@
+# P2-2: keep the image build context hermetic. Nothing here is copied into a
+# layer, so private/operational/local files cannot leak into the image and the
+# build stays reproducible regardless of local cruft.
+
+# Version control + CI metadata
+.git
+.git/
+.gitignore
+.github
+
+# PRIVATE operational memory — must NEVER enter an image layer.
+memory/
+
+# Python build / cache artifacts
+__pycache__/
+*.py[cod]
+*.egg-info
+*.egg
+.eggs/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.numba_cache/
+
+# Generated maps / large reports / local outputs
+graphify-out/
+docs/architecture/graphify/graph.html
+docs/architecture/graphify/GRAPH_TREE.html
+reports/
+*.html
+
+# Editor / agent / OS local state
+.claude/
+.vscode/
+.idea/
+.DS_Store
+
+# Local env / secrets (never bake credentials into an image)
+.env
+.env.*
+*.local

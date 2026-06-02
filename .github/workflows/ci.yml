@@ -1,9 +1,12 @@
 name: ARIA CI
 
-# P1-10 (master audit pre-4.6): a blocking, 3-tier gate.
+# P1-10 (master audit pre-4.6): a blocking, 3-tier gate + supply-chain hygiene.
 #   PR      -> lint + unit + contracts + guards (pure-Python, importorskip-gated)
+#             + packaging metadata (P2-1)
 #   main    -> the above + the heavy pydeseq2 conda lane + recent closeout tests
-#   release -> Docker build + conda env solve + a real mini DE benchmark
+#   release -> base + RNA Docker build + conda env solve + a real mini DE
+#             benchmark + a CycloneDX SBOM of the image (P2-2)
+#   always  -> gitleaks secret scan (P2-2)
 # No lane is `continue-on-error`: a red lane is a real failure signal. Closes
 # F-ENG-REPRO / the master plan's "CI no bloqueante" finding.
 
@@ -143,20 +146,52 @@ jobs:
             tests/test_bulk_rna.py \
             tests/test_scrna.py
 
+  # ── Secret scanning (PR + push + tags): supply-chain hygiene ─────────────
+  # P2-2: gitleaks fails the build if a credential is committed. Runs on the
+  # full history (fetch-depth 0) so a secret in an older commit is also caught.
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks secret scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   # ── Tier 3 (tags v* only): release reproducibility ───────────────────────
-  # Validates the published Docker image solves the env and runs a real
-  # bulk+pseudobulk DE recovery benchmark inside the container.
+  # Validates the published Docker images (base + RNA modality) solve the env,
+  # runs a real bulk+pseudobulk DE recovery benchmark inside the container, and
+  # emits a CycloneDX SBOM of the image (P2-2 supply chain).
   release-repro:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Build the common base layer
+        run: |
+          docker build -f docker/Dockerfile.base -t aria-base:ci \
+            --build-arg ARIA_IMAGE_REVISION="${GITHUB_SHA}" .
+
       - name: Build the reproducible RNA image (validates conda env solve)
-        run: docker build -t aria-rna:ci .
+        run: |
+          ENV_SHA=$(sha256sum envs/aria-rna-env.yml | cut -d' ' -f1)
+          docker build -f docker/Dockerfile.rna -t aria-rna:ci \
+            --build-arg ARIA_BASE_IMAGE=aria-base:ci \
+            --build-arg ARIA_IMAGE_ENV_SHA="$ENV_SHA" .
 
       - name: Real synthetic-DE recovery benchmark inside the image
         run: |
           docker run --rm -e NUMBA_CACHE_DIR=/tmp/numba_cache aria-rna:ci \
             python -m pytest -q \
               /opt/aria/tests/test_benchmark_synthetic_de.py
+
+      - name: Generate CycloneDX SBOM of the RNA image (P2-2 supply chain)
+        uses: anchore/sbom-action@v0
+        with:
+          image: aria-rna:ci
+          format: cyclonedx-json
+          output-file: aria-rna.sbom.cdx.json
+          artifact-name: aria-rna-sbom.cdx.json

@@ -1,0 +1,35 @@
+# ARIA reproducible RNA image (P2-2). FROM the common base; adds ONLY the
+# scRNA/bulk-RNA conda env + the ARIA install. A report's provenance pins
+# git SHA + input SHA-256 + this image's digest/identity (ARIA_IMAGE_*).
+#
+# Build (two stages share the cached base layer):
+#   docker build -f docker/Dockerfile.base -t aria-base:local \
+#     --build-arg ARIA_IMAGE_REVISION=$(git rev-parse HEAD) .
+#   docker build -f docker/Dockerfile.rna -t aria-rna:local \
+#     --build-arg ARIA_IMAGE_ENV_SHA=$(sha256sum envs/aria-rna-env.yml | cut -d' ' -f1) .
+# Run TUI:
+#   docker run --rm -it -v "$PWD":/work -v "$HOME/.aria":/root/.aria aria-rna:local aria
+ARG ARIA_BASE_IMAGE=aria-base:local
+FROM ${ARIA_BASE_IMAGE}
+
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+# Pinned numpy<2 and the strict conda-forge>bioconda priority live in the yml.
+RUN micromamba install -y -n base -f /opt/aria/envs/aria-rna-env.yml && \
+    micromamba clean --all --yes
+
+# Install ARIA itself into the solved environment.
+RUN python -m pip install --no-deps -e /opt/aria
+
+# Env-lock identity: sha256 of the solved env yml pins the science stack; the
+# registry digest (ARIA_IMAGE_DIGEST) is supplied at run time by the publisher.
+ARG ARIA_IMAGE_ENV_SHA=unknown
+ENV ARIA_IMAGE_KIND=rna \
+    ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA} \
+    NUMBA_CACHE_DIR=/tmp/numba_cache
+
+LABEL org.opencontainers.image.title="aria-rna" \
+      org.opencontainers.image.description="ARIA scRNA/bulk-RNA reproducible image"
+
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["aria"]

@@ -1849,6 +1849,32 @@ for small-effect genes."
                 f"<td><code>{_html.escape(str(provenance.get(key, '')))}</code></td>"
                 "</tr>"
             )
+        # P2-2: cite the container image identity (digest) the report ran in.
+        # `image` is a nested dict, so render it explicitly; when ARIA is not
+        # running in a pinned image, say so honestly rather than omit it.
+        image = provenance.get("image") or {}
+        if isinstance(image, dict) and image.get("containerized"):
+            for ikey, label in (
+                ("kind", "image_kind"),
+                ("digest", "image_digest"),
+                ("reference", "image_reference"),
+                ("revision", "image_revision"),
+                ("env_lock_sha256", "image_env_lock_sha256"),
+                ("validation", "image_validation"),
+            ):
+                val = image.get(ikey)
+                if val:
+                    rows.append(
+                        "<tr>"
+                        f"<td>{_html.escape(label)}</td>"
+                        f"<td><code>{_html.escape(str(val))}</code></td>"
+                        "</tr>"
+                    )
+        else:
+            rows.append(
+                "<tr><td>image</td>"
+                "<td><code>not containerized</code></td></tr>"
+            )
         input_rows = []
         for rec in input_files or []:
             input_rows.append(

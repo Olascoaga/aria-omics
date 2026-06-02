@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -107,6 +108,42 @@ def version_badge_url(color: str = "blue") -> str:
     return f"https://img.shields.io/badge/version-{__version__}-{color}"
 
 
+def collect_image_metadata() -> dict[str, Any]:
+    """Container image identity for report provenance (P2-2).
+
+    Reads the build-time stamp baked by the Docker image (`ARIA_IMAGE_KIND`,
+    `ARIA_IMAGE_REVISION` = git SHA, `ARIA_IMAGE_ENV_SHA` = sha256 of the solved
+    env yml) plus the registry digest/reference supplied at run time
+    (`ARIA_IMAGE_DIGEST`, `ARIA_IMAGE_REF`). Returns honest nulls when ARIA is
+    NOT running inside a pinned image — it never fabricates a digest (ADR-002).
+    """
+    def _val(name: str) -> str | None:
+        raw = os.environ.get(name)
+        if not isinstance(raw, str):
+            return None
+        raw = raw.strip()
+        # The Dockerfiles default unset args to the literal "unknown"; treat
+        # that (and blanks) as "not provided" rather than a real value.
+        return raw if raw and raw.lower() != "unknown" else None
+
+    kind = _val("ARIA_IMAGE_KIND")
+    digest = _val("ARIA_IMAGE_DIGEST")
+    reference = _val("ARIA_IMAGE_REF")
+    revision = _val("ARIA_IMAGE_REVISION")
+    env_sha = _val("ARIA_IMAGE_ENV_SHA")
+    validation = _val("ARIA_IMAGE_VALIDATION")
+    containerized = any([kind, digest, reference, revision, env_sha])
+    return {
+        "containerized": bool(containerized),
+        "kind": kind,
+        "digest": digest,
+        "reference": reference,
+        "revision": revision,
+        "env_lock_sha256": env_sha,
+        "validation": validation,
+    }
+
+
 def collect_version_metadata(repo_root: str | Path | None = None) -> dict[str, Any]:
     """Collect version and source-control metadata for reports and releases."""
     root = _repo_root(repo_root)
@@ -125,4 +162,5 @@ def collect_version_metadata(repo_root: str | Path | None = None) -> dict[str, A
         "workflow_hash_algorithm": (
             "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
         ),
+        "image": collect_image_metadata(),
     }

@@ -1,0 +1,29 @@
+# ARIA multi-omic integration image — SCAFFOLD (P2-2 pattern, not a release image).
+#
+# NOT built in CI: the integration env (WNN/MOFA+/peak2gene) is a v4.7
+# deliverable and not yet validated. Present so the modality image lands FROM
+# the common base without touching the validated RNA path when integration is
+# productionized. It self-stamps ARIA_IMAGE_VALIDATION=scaffold so a report can
+# never present it as a validated/reproducible image.
+ARG ARIA_BASE_IMAGE=aria-base:local
+FROM ${ARIA_BASE_IMAGE}
+
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+# v4.7: promote once envs/aria-integration-env.yml solves in CI and the
+# integration science is validated.
+RUN micromamba install -y -n base -f /opt/aria/envs/aria-integration-env.yml && \
+    micromamba clean --all --yes
+RUN python -m pip install --no-deps -e /opt/aria
+
+ARG ARIA_IMAGE_ENV_SHA=unknown
+ENV ARIA_IMAGE_KIND=integration \
+    ARIA_IMAGE_VALIDATION=scaffold \
+    ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA} \
+    NUMBA_CACHE_DIR=/tmp/numba_cache
+
+LABEL org.opencontainers.image.title="aria-integration" \
+      org.opencontainers.image.description="ARIA multi-omic integration image (SCAFFOLD — not validated)"
+
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["aria"]
