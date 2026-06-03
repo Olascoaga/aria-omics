@@ -33,6 +33,7 @@ from typing import Optional
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence, CavemanMode
 from aria.memory.memory import ARIAMemory
+from aria.utils.assay_detector import AssayDetector
 from aria.utils.provenance import hash_file
 
 
@@ -320,6 +321,7 @@ class DataAuditAgent(BaseAgent):
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
         warnings.extend(self._scan_report_warnings())
+        warnings.extend(self._assay_detection_warnings())
         if ignored_intermediates:
             warnings.append(
                 "Ignored ARIA intermediate h5ad output(s) during data audit: "
@@ -444,6 +446,7 @@ class DataAuditAgent(BaseAgent):
             path.suffix in extensions
             or "".join(path.suffixes) in {".fastq.gz", ".pairs.gz",
                                           ".tsv.gz", ".bed.gz"}
+            or AssayDetector().is_supported_file(path)
         )
 
     def _scan_directory(
@@ -595,10 +598,18 @@ class DataAuditAgent(BaseAgent):
     def _classify_files(self, files: list[Path]) -> dict[str, list[str]]:
         """Map files to their omics modality."""
         classified: dict[str, list[str]] = {}
+        detector = AssayDetector()
+        self._last_assay_detections = []
         
         for f in files:
             fname = f.name.lower()
             fpath = str(f).lower()
+
+            detection = detector.detect_file(f)
+            if detection is not None:
+                classified.setdefault(detection.modality, []).append(str(f))
+                self._record_assay_detection(f, detection)
+                continue
             
             matched = False
             for modality, patterns in SIGNATURES.items():
@@ -615,6 +626,40 @@ class DataAuditAgent(BaseAgent):
                 classified.setdefault("unknown", []).append(str(f))
         
         return classified
+
+    def _record_assay_detection(self, path: Path, detection) -> None:
+        records = getattr(self, "_last_assay_detections", None)
+        if records is None:
+            records = []
+            self._last_assay_detections = records
+        records.append({
+            "path": str(path),
+            "modality": detection.modality,
+            "confidence": detection.confidence,
+            "reason": detection.reason,
+            "evidence": detection.evidence,
+            "possible_alternatives": list(detection.possible_alternatives),
+            "blocking_issues": list(detection.blocking_issues),
+        })
+
+    def _assay_detection_warnings(self) -> list[str]:
+        records = getattr(self, "_last_assay_detections", []) or []
+        warnings = []
+        for rec in records:
+            if rec.get("confidence") != "low" and not rec.get("blocking_issues"):
+                continue
+            issues = rec.get("blocking_issues") or []
+            alt = rec.get("possible_alternatives") or []
+            parts = [
+                f"AssayDetector classified {Path(rec['path']).name} as "
+                f"{rec.get('modality')} with {rec.get('confidence')} confidence"
+            ]
+            if alt:
+                parts.append("alternatives: " + ", ".join(map(str, alt)))
+            if issues:
+                parts.append("issues: " + ", ".join(map(str, issues)))
+            warnings.append("; ".join(parts) + ".")
+        return warnings
 
     @staticmethod
     def _is_aria_generated_output(path: str) -> bool:
@@ -1058,6 +1103,7 @@ class DataAuditAgent(BaseAgent):
             "modalities":     modalities,
             "input_files":    input_files,
             "unknown_files":  classified.get("unknown", []),
+            "assay_detections": getattr(self, "_last_assay_detections", []),
             "genome":         genome,
             "organism":       organism,
             "warnings":       warnings,
