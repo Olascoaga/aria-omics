@@ -12,7 +12,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_l0wxxn_corpus_apply_fixes_sh__entry",
+      "id": "tmp_aria_graphify_h5utok_corpus_apply_fixes_sh__entry",
       "label": "APPLY_fixes.sh script",
       "file_type": "code",
       "source_file": "APPLY_fixes.sh",
@@ -2914,6 +2914,76 @@
       "source_location": "L539"
     },
     {
+      "id": "narrators_chromatin",
+      "label": "chromatin.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "narrators_chromatin_safe_id",
+      "label": "_safe_id()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "aria_agents_narrative_narrators_chromatin_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator",
+      "label": "ChromatinNarrator",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_accepts",
+      "label": ".accepts()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L35"
+    },
+    {
+      "id": "aria_agents_narrative_narrators_chromatin_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L35"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_collect",
+      "label": ".collect()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "label": "NarrativeBlock",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_qc_block",
+      "label": "._qc_block()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L51"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_methods",
+      "label": ".methods()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L103"
+    },
+    {
       "id": "narrators_scrna",
       "label": "scrna.py",
       "file_type": "code",
@@ -3597,56 +3667,70 @@
       "label": "_plan_phrases()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L49"
+      "source_location": "L74"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L49"
+      "source_location": "L74"
     },
     {
       "id": "narrative_run_ledger_is_planned",
       "label": "_is_planned()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L58"
+      "source_location": "L83"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L58"
+      "source_location": "L83"
     },
     {
       "id": "narrative_run_ledger_status_from_finding",
       "label": "_status_from_finding()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62"
+      "source_location": "L87"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62"
+      "source_location": "L87"
     },
     {
       "id": "narrative_run_ledger_scrna_findings",
       "label": "_scrna_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L81"
+      "source_location": "L106"
+    },
+    {
+      "id": "narrative_run_ledger_chromatin_findings",
+      "label": "_chromatin_findings()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L117"
+    },
+    {
+      "id": "narrative_run_ledger_entries_for",
+      "label": "_entries_for()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L124"
     },
     {
       "id": "narrative_run_ledger_build_run_ledger",
       "label": "build_run_ledger()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L92"
+      "source_location": "L149"
     },
     {
       "id": "narrative_types",
@@ -3940,91 +4024,91 @@
       "label": "._collect_narrative_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L713"
+      "source_location": "L715"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_narrative_prefixes_for",
       "label": "._narrative_prefixes_for()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L735"
+      "source_location": "L737"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_write_methods_section",
       "label": "._write_methods_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L742"
+      "source_location": "L744"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_bulk_rna",
       "label": "._summarize_bulk_rna()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L948"
+      "source_location": "L950"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_rna",
       "label": "._summarize_rna()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1130"
+      "source_location": "L1132"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_chromatin",
       "label": "._summarize_chromatin()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1139"
+      "source_location": "L1141"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_hic",
       "label": "._summarize_hic()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1164"
+      "source_location": "L1166"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_integration",
       "label": "._summarize_integration()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1197"
+      "source_location": "L1199"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_conflicts",
       "label": "._summarize_conflicts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1242"
+      "source_location": "L1244"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_group_findings",
       "label": "._group_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1288"
+      "source_location": "L1290"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_get_decisions_log",
       "label": "._get_decisions_log()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1308"
+      "source_location": "L1310"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_fallback_executive_summary",
       "label": "._fallback_executive_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1315"
+      "source_location": "L1317"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_receive",
       "label": ".receive()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1328"
+      "source_location": "L1330"
     },
     {
       "id": "agents_orchestrator_agent",
@@ -10058,7 +10142,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -10184,7 +10268,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_h5utok_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -10206,7 +10290,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -11207,6 +11291,41 @@
       "file_type": "code",
       "source_file": "tests/test_chromatin_dispatch_gate.py",
       "source_location": "L13"
+    },
+    {
+      "id": "tests_test_chromatin_narrator",
+      "label": "test_chromatin_narrator.py",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_chromatin_narrator_test_chromatin_narrator_is_a_registered_builtin",
+      "label": "test_chromatin_narrator_is_a_registered_builtin()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_chromatin_narrator_test_chromatin_narrator_only_accepts_chromatin_agent",
+      "label": "test_chromatin_narrator_only_accepts_chromatin_agent()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "tests_test_chromatin_narrator_test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed",
+      "label": "test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "tests_test_chromatin_narrator_test_chromatin_narrator_fabricates_no_science_without_qc",
+      "label": "test_chromatin_narrator_fabricates_no_science_without_qc()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L57"
     },
     {
       "id": "tests_test_chromatin_readiness",
@@ -14807,53 +14926,74 @@
       "source_location": "L53"
     },
     {
+      "id": "tests_test_run_ledger_and_devils_test_ledger_flags_thin_chromatin_report",
+      "label": "test_ledger_flags_thin_chromatin_report()",
+      "file_type": "code",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "tests_test_run_ledger_and_devils_test_ledger_chromatin_no_divergence_when_executed",
+      "label": "test_ledger_chromatin_no_divergence_when_executed()",
+      "file_type": "code",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L90"
+    },
+    {
+      "id": "tests_test_run_ledger_and_devils_test_ledger_scrna_unchanged_alongside_chromatin_support",
+      "label": "test_ledger_scrna_unchanged_alongside_chromatin_support()",
+      "file_type": "code",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L104"
+    },
+    {
       "id": "tests_test_run_ledger_and_devils_assoc_block",
       "label": "_assoc_block()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L68"
+      "source_location": "L120"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_flags_unaddressed_confounders",
       "label": "test_devils_advocate_flags_unaddressed_confounders()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L81"
+      "source_location": "L133"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_addresses_confounders_with_evidence",
       "label": "test_devils_advocate_addresses_confounders_with_evidence()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L99"
+      "source_location": "L151"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_ambient_detector_is_not_a_correction",
       "label": "test_devils_advocate_ambient_detector_is_not_a_correction()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L115"
+      "source_location": "L167"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_ambient_addressed_when_correction_ran",
       "label": "test_devils_advocate_ambient_addressed_when_correction_ran()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L132"
+      "source_location": "L184"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_skips_descriptive_claims",
       "label": "test_devils_advocate_skips_descriptive_claims()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L144"
+      "source_location": "L196"
     },
     {
       "id": "tests_test_run_ledger_and_devils_test_devils_advocate_is_idempotent",
       "label": "test_devils_advocate_is_idempotent()",
       "file_type": "code",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L156"
+      "source_location": "L208"
     },
     {
       "id": "tests_test_script_contracts",
@@ -15283,241 +15423,178 @@
       "source_location": "L49"
     },
     {
-      "id": "orchestrator_agent",
+      "id": "readme_orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "data_audit_agent",
+      "id": "readme_data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "design_agent",
+      "id": "readme_design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "audit_agent",
+      "id": "readme_audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "setup_agent",
+      "id": "readme_setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "bulk_rna_agent",
+      "id": "readme_bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "scrna_agent",
+      "id": "readme_scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "narrative_agent",
+      "id": "readme_chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_genome_arch_agent",
+      "label": "GenomeArchAgent",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
+      "id": "readme_integration_agent",
+      "label": "IntegrationAgent",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "llm_provider",
+      "id": "readme_llm_provider",
       "label": "LLMProvider",
       "file_type": "code",
-      "source_file": "aria/llm/provider.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "claim_compiler",
+      "id": "readme_aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_parameter_advisor",
+      "label": "ParameterAdvisor",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "readme_claim_compiler",
       "label": "Claim Compiler",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
+      "id": "readme_debate_council",
+      "label": "DebateCouncil",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "README.md"
     },
     {
-      "id": "design_intelligence",
+      "id": "rna_bulk_de_py",
+      "label": "rna_bulk_de.py",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "rna_qc_py",
+      "label": "rna_qc.py",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "rna_pseudobulk_de_py",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "rna_cellcomm_py",
+      "label": "rna_cellcomm.py",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "rna_trajectory_py",
+      "label": "rna_trajectory.py",
+      "file_type": "code",
+      "source_file": "README.md"
+    },
+    {
+      "id": "code_graph_design_intelligence",
       "label": "DesignIntelligence",
       "file_type": "code",
-      "source_file": "aria/agents/design_intelligence.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "id": "env_rna",
-      "label": "aria-rna-env",
+      "id": "code_graph_assay_detector",
+      "label": "assay_detector.py",
       "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "id": "env_chromatin",
-      "label": "aria-chromatin-env",
+      "id": "code_graph_sensitivity",
+      "label": "sensitivity.py",
       "file_type": "code",
-      "source_file": "envs/aria-chromatin-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "id": "env_hic",
-      "label": "aria-hic-env",
+      "id": "code_graph_ora",
+      "label": "ora.py",
       "file_type": "code",
-      "source_file": "envs/aria-hic-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "id": "env_integration",
-      "label": "aria-integration-env",
+      "id": "code_graph_narrative_block",
+      "label": "NarrativeBlock",
       "file_type": "code",
-      "source_file": "envs/aria-integration-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "docs/release_notes_v4.5.2.md"
     }
   ],
   "edges": [
     {
       "source": "apply_fixes",
-      "target": "tmp_aria_graphify_l0wxxn_corpus_apply_fixes_sh__entry",
+      "target": "tmp_aria_graphify_h5utok_corpus_apply_fixes_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "APPLY_fixes.sh",
@@ -27069,6 +27146,170 @@
       "weight": 1.0
     },
     {
+      "source": "narrators_chromatin",
+      "target": "narrators_chromatin_safe_id",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_safe_id",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_accepts",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_accepts",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_accepts",
+      "target": "aria_agents_narrative_narrators_chromatin_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_collect",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_qc_block",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_qc_block",
+      "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_methods",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_methods",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_methods",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_qc_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_qc_block",
+      "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_qc_block",
+      "target": "narrators_chromatin_safe_id",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
       "source": "narrators_scrna",
       "target": "narrators_scrna_safe_id",
       "relation": "contains",
@@ -29385,7 +29626,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L49",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -29395,7 +29636,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L49",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -29404,7 +29645,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L58",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -29414,7 +29655,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L58",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -29424,7 +29665,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L58",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -29433,7 +29674,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -29443,7 +29684,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -29453,7 +29694,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -29463,7 +29704,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L62",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -29472,7 +29713,45 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L81",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger",
+      "target": "narrative_run_ledger_chromatin_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger",
+      "target": "narrative_run_ledger_entries_for",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_entries_for",
+      "target": "aria_agents_narrative_run_ledger_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_entries_for",
+      "target": "aria_agents_narrative_run_ledger_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -29481,7 +29760,27 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L92",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_entries_for",
+      "target": "narrative_run_ledger_is_planned",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_entries_for",
+      "target": "narrative_run_ledger_status_from_finding",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -29491,7 +29790,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L100",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -29501,27 +29800,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L101",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
       "source": "narrative_run_ledger_build_run_ledger",
-      "target": "narrative_run_ledger_is_planned",
+      "target": "narrative_run_ledger_entries_for",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L107",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
       "source": "narrative_run_ledger_build_run_ledger",
-      "target": "narrative_run_ledger_status_from_finding",
+      "target": "narrative_run_ledger_chromatin_findings",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L113",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -30267,7 +30566,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L713",
+      "source_location": "L715",
       "weight": 1.0
     },
     {
@@ -30276,7 +30575,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L735",
+      "source_location": "L737",
       "weight": 1.0
     },
     {
@@ -30286,7 +30585,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L735",
+      "source_location": "L737",
       "weight": 1.0
     },
     {
@@ -30295,7 +30594,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L742",
+      "source_location": "L744",
       "weight": 1.0
     },
     {
@@ -30305,7 +30604,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L742",
+      "source_location": "L744",
       "weight": 1.0
     },
     {
@@ -30314,7 +30613,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L948",
+      "source_location": "L950",
       "weight": 1.0
     },
     {
@@ -30324,7 +30623,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L948",
+      "source_location": "L950",
       "weight": 1.0
     },
     {
@@ -30333,7 +30632,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1130",
+      "source_location": "L1132",
       "weight": 1.0
     },
     {
@@ -30343,7 +30642,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1130",
+      "source_location": "L1132",
       "weight": 1.0
     },
     {
@@ -30352,7 +30651,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1139",
+      "source_location": "L1141",
       "weight": 1.0
     },
     {
@@ -30362,7 +30661,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1139",
+      "source_location": "L1141",
       "weight": 1.0
     },
     {
@@ -30371,7 +30670,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1164",
+      "source_location": "L1166",
       "weight": 1.0
     },
     {
@@ -30381,7 +30680,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1164",
+      "source_location": "L1166",
       "weight": 1.0
     },
     {
@@ -30390,7 +30689,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1197",
+      "source_location": "L1199",
       "weight": 1.0
     },
     {
@@ -30400,7 +30699,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1197",
+      "source_location": "L1199",
       "weight": 1.0
     },
     {
@@ -30409,7 +30708,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1242",
+      "source_location": "L1244",
       "weight": 1.0
     },
     {
@@ -30419,7 +30718,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1242",
+      "source_location": "L1244",
       "weight": 1.0
     },
     {
@@ -30428,7 +30727,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1288",
+      "source_location": "L1290",
       "weight": 1.0
     },
     {
@@ -30437,7 +30736,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1308",
+      "source_location": "L1310",
       "weight": 1.0
     },
     {
@@ -30447,7 +30746,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1308",
+      "source_location": "L1310",
       "weight": 1.0
     },
     {
@@ -30456,7 +30755,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1315",
+      "source_location": "L1317",
       "weight": 1.0
     },
     {
@@ -30466,7 +30765,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1315",
+      "source_location": "L1317",
       "weight": 1.0
     },
     {
@@ -30475,7 +30774,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1328",
+      "source_location": "L1330",
       "weight": 1.0
     },
     {
@@ -30635,7 +30934,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L717",
+      "source_location": "L719",
       "weight": 1.0
     },
     {
@@ -30645,7 +30944,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L738",
+      "source_location": "L740",
       "weight": 1.0
     },
     {
@@ -51981,7 +52280,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -52034,7 +52333,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52044,7 +52343,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52054,7 +52353,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52064,7 +52363,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52074,7 +52373,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52192,7 +52491,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_h5utok_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -52201,7 +52500,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -52236,7 +52535,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52246,7 +52545,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_l0wxxn_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -53847,6 +54146,42 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_dispatch_gate.py",
       "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator",
+      "target": "tests_test_chromatin_narrator_test_chromatin_narrator_is_a_registered_builtin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator",
+      "target": "tests_test_chromatin_narrator_test_chromatin_narrator_only_accepts_chromatin_agent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator",
+      "target": "tests_test_chromatin_narrator_test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator",
+      "target": "tests_test_chromatin_narrator_test_chromatin_narrator_fabricates_no_science_without_qc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -59876,7 +60211,7 @@
     },
     {
       "source": "tests_test_run_ledger_and_devils",
-      "target": "tests_test_run_ledger_and_devils_assoc_block",
+      "target": "tests_test_run_ledger_and_devils_test_ledger_flags_thin_chromatin_report",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
@@ -59885,11 +60220,38 @@
     },
     {
       "source": "tests_test_run_ledger_and_devils",
+      "target": "tests_test_run_ledger_and_devils_test_ledger_chromatin_no_divergence_when_executed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_run_ledger_and_devils",
+      "target": "tests_test_run_ledger_and_devils_test_ledger_scrna_unchanged_alongside_chromatin_support",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_run_ledger_and_devils",
+      "target": "tests_test_run_ledger_and_devils_assoc_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_run_ledger_and_devils",
       "target": "tests_test_run_ledger_and_devils_test_devils_advocate_flags_unaddressed_confounders",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L81",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -59898,7 +60260,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L99",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -59907,7 +60269,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L115",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -59916,7 +60278,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L132",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -59925,7 +60287,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L144",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -59934,7 +60296,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L156",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -59944,7 +60306,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L82",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -59954,7 +60316,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L100",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -59964,7 +60326,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L118",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -59974,7 +60336,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L134",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -59984,7 +60346,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L157",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -61167,6 +61529,16 @@
       "weight": 1.0
     },
     {
+      "source": "narrators_init",
+      "target": "narrators_chromatin",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/__init__.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_init",
       "target": "benchmarks_synthetic_de",
       "relation": "re_exports",
@@ -61867,6 +62239,16 @@
       "weight": 1.0
     },
     {
+      "source": "narrators_init",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/__init__.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
       "source": "narrators_bulk_rna",
       "target": "narrative_types_caveat",
       "relation": "imports",
@@ -61894,6 +62276,36 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
       "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin",
+      "target": "narrative_types_caveat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin",
+      "target": "narrative_types_evidenceitem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin",
+      "target": "narrative_types_narrativeblock",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -62248,6 +62660,16 @@
     },
     {
       "source": "agents_narrative_agent",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": "L709",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_agent",
       "target": "narrators_scrna_scrnanarrator",
       "relation": "imports",
       "context": "import",
@@ -62263,7 +62685,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L710",
+      "source_location": "L711",
       "weight": 1.0
     },
     {
@@ -62273,7 +62695,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L725",
+      "source_location": "L727",
       "weight": 1.0
     },
     {
@@ -64434,6 +64856,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_dispatch_gate.py",
       "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -68027,6 +68459,46 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_chromatin_narrator_test_chromatin_narrator_is_a_registered_builtin",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator_test_chromatin_narrator_only_accepts_chromatin_agent",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator_test_chromatin_narrator_surfaces_measured_qc_and_marks_not_computed",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_narrator_test_chromatin_narrator_fabricates_no_science_without_qc",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_narrator.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_chromatin_readiness_test_tss_and_frip_are_not_fabricated",
       "target": "scripts_chromatin_qc_compute_tss_enrichment",
       "relation": "calls",
@@ -70127,13 +70599,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_run_ledger_and_devils_test_ledger_flags_thin_chromatin_report",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_run_ledger_and_devils_test_ledger_chromatin_no_divergence_when_executed",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_run_ledger_and_devils_test_ledger_scrna_unchanged_alongside_chromatin_support",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_run_ledger_and_devils.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_run_ledger_and_devils_assoc_block",
       "target": "narrative_types_narrativeblock",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L69",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -70143,7 +70645,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L74",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -70153,7 +70655,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L85",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -70163,7 +70665,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L107",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -70173,7 +70675,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L127",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -70183,7 +70685,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L139",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -70193,7 +70695,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L145",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -70203,7 +70705,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L149",
+      "source_location": "L201",
       "weight": 1.0
     },
     {
@@ -70213,7 +70715,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L152",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -70223,7 +70725,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_run_ledger_and_devils.py",
-      "source_location": "L159",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -70589,6 +71091,17 @@
       "weight": 1.0
     },
     {
+      "source": "narrators_chromatin_chromatinnarrator_qc_block",
+      "target": "narrative_types_caveat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
       "source": "narrators_scrna_scrnanarrator_data_quality_blocks",
       "target": "narrative_types_caveat",
       "relation": "calls",
@@ -70794,7 +71307,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L711",
+      "source_location": "L712",
       "weight": 1.0
     },
     {
@@ -70805,7 +71318,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L711",
+      "source_location": "L713",
       "weight": 1.0
     },
     {
@@ -70816,7 +71329,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L711",
+      "source_location": "L713",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_agent_narrativeagent_narrative_registry",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": "L713",
       "weight": 1.0
     },
     {
@@ -70827,7 +71351,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L726",
+      "source_location": "L728",
       "weight": 1.0
     },
     {
@@ -71205,174 +71729,116 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
+      "source": "readme_orchestrator_agent",
+      "target": "readme_data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "README.md"
     },
     {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
+      "source": "readme_orchestrator_agent",
+      "target": "readme_design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "README.md"
     },
     {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "design_agent",
-      "target": "design_intelligence",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
+      "source": "readme_orchestrator_agent",
+      "target": "readme_message_bus",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "README.md"
     },
     {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "llm_provider",
+      "source": "readme_bulk_rna_agent",
+      "target": "rna_bulk_de_py",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "README.md"
+    },
+    {
+      "source": "readme_scrna_agent",
+      "target": "rna_qc_py",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md"
+    },
+    {
+      "source": "readme_scrna_agent",
+      "target": "rna_pseudobulk_de_py",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md"
+    },
+    {
+      "source": "readme_scrna_agent",
+      "target": "rna_cellcomm_py",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md"
+    },
+    {
+      "source": "readme_scrna_agent",
+      "target": "rna_trajectory_py",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md"
+    },
+    {
+      "source": "readme_data_audit_agent",
+      "target": "code_graph_assay_detector",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "readme_data_audit_agent",
+      "target": "code_graph_sensitivity",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "readme_bulk_rna_agent",
+      "target": "readme_environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "readme_scrna_agent",
+      "target": "readme_environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "rna_bulk_de_py",
+      "target": "code_graph_ora",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "readme_narrative_agent",
+      "target": "readme_llm_provider",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
     }
   ],
   "hyperedges": [],
