@@ -27,9 +27,10 @@ import uuid
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
-from aria.bus.message_bus import Message, MessageType, Confidence, bus
+from aria.bus.message_bus import Message, MessageType, Confidence
 from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
+from aria.runtime.experiment_session import ExperimentSession
 from aria.utils.provenance import collect_provenance
 
 log = logging.getLogger("aria.orchestrator")
@@ -198,6 +199,7 @@ class OrchestratorAgent(BaseAgent):
                  llm: LLMProvider = None,
                  api_key: str = None):
         super().__init__(memory, llm=llm, api_key=api_key)
+        self._sessions             = {}
         self._pending_checkpoints  = {}
         self._experiment_plans     = {}
         self._agent_results        = {}
@@ -208,12 +210,107 @@ class OrchestratorAgent(BaseAgent):
         # Per-experiment file log handlers (attached in run, detached at end)
         self._log_handlers         = {}
 
+    def _get_session(self, experiment_id: str) -> ExperimentSession:
+        sessions = getattr(self, "_sessions", None)
+        if sessions is None:
+            sessions = {}
+            self._sessions = sessions
+        if experiment_id not in sessions:
+            sessions[experiment_id] = ExperimentSession(experiment_id=experiment_id)
+        return sessions[experiment_id]
+
+    def _sync_plan_record(self, session: ExperimentSession) -> None:
+        plans = getattr(self, "_experiment_plans", None)
+        if plans is None:
+            plans = {}
+            self._experiment_plans = plans
+        plans[session.experiment_id] = session.as_plan_record()
+
+    def _handle_design_checkpoint(
+        self,
+        experiment_id: str,
+        checkpoint: int | float,
+        user_decision: str,
+    ) -> dict:
+        session = self._get_session(experiment_id)
+        design_agent = session.design_agent
+        if design_agent is None:
+            return {"status": "error", "message": "No active design session"}
+
+        result = design_agent.handle_user_response(
+            experiment_id=experiment_id,
+            checkpoint_num=checkpoint,
+            choice=user_decision,
+        )
+        if result.get("status") == "cancelled":
+            session.design_agent = None
+            self._sync_plan_record(session)
+            return {"status": "cancelled", "reason": "Design cancelled by user"}
+
+        if result.get("status") != "done":
+            self._sync_plan_record(session)
+            return {"status": "design_in_progress", "next_step": result.get("step")}
+
+        # Diseño completado → enriquecer contexto y pasar a CP2
+        design = result["design"]
+        exp_context = session.exp_context or {}
+        exp_context["organism"] = design["organism"]
+        exp_context["genome"]   = design["genome"]
+        exp_context["design"]   = design
+        design_intelligence = self._run_design_intelligence(
+            exp_context,
+            session.intent,
+        )
+        exp_context["design_intelligence"] = design_intelligence
+        self.memory.store_decision(
+            decision_id=f"{experiment_id}_design_intelligence",
+            wing_id=experiment_id,
+            checkpoint="2.pre",
+            question="Design Intelligence assessment",
+            decision=design_intelligence.get("summary", "completed"),
+            rationale=(
+                "ARIA evaluated modality feasibility, recommended "
+                "analyses, optional analyses, unsupported analyses, "
+                "covariates, and design limitations before compute."
+            ),
+            made_by="design_intelligence",
+        )
+        session.exp_context = exp_context
+        session.design_agent = None
+        # Backward-compat mirror only; session.design_agent is authoritative.
+        self._active_design_agent = None
+
+        plan = self._design_analysis_plan(experiment_id, exp_context)
+        plan["design_intelligence"] = design_intelligence
+        # Annotate plan with resolved thresholds — single source of truth
+        # so the preview and the actual run always agree.
+        from aria.agents.bulk_rna_agent import _infer_lfc_threshold
+        plan["lfc_threshold"]  = _infer_lfc_threshold(session.intent)
+        plan["padj_threshold"] = 0.05
+        session.plan = plan
+        self._sync_plan_record(session)
+        self.publish_escalation(
+            experiment_id=experiment_id,
+            checkpoint=2,
+            question=self._format_plan_summary(plan),
+            options=[
+                "Run recommended plan only",
+                "Run recommended + optional supported analyses",
+                "Modify plan",
+                "Cancel",
+            ],
+            context={"plan": plan, "exp_context": exp_context},
+        )
+        return {"status": "plan_ready", "plan": plan}
+
     def run(self, experiment_id: str, context: dict) -> dict:
+        session = self._get_session(experiment_id)
         # Open a per-experiment log file so background-thread agent failures
         # are recoverable without scrolling the TUI.
         try:
             from aria.utils.logging_setup import attach_experiment_log
-            self._log_handlers[experiment_id] = attach_experiment_log(experiment_id)
+            session.log_handler = attach_experiment_log(experiment_id)
+            self._log_handlers[experiment_id] = session.log_handler
         except Exception as e:
             log.debug(f"Could not attach experiment log: {e}")
 
@@ -222,7 +319,7 @@ class OrchestratorAgent(BaseAgent):
         # concurrent runs never share a log file.
         try:
             from pathlib import Path as _Path
-            bus.enable_persistence(
+            session.message_bus.enable_persistence(
                 str(_Path.home() / ".aria" / "workspace" / experiment_id
                     / "bus_log.jsonl")
             )
@@ -232,14 +329,10 @@ class OrchestratorAgent(BaseAgent):
         self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
         intent = self._parse_question(context["user_question"])
         context["provenance"] = collect_provenance()
-
-        self._experiment_plans[experiment_id] = {
-            "user_question": context["user_question"],
-            "intent":        intent,
-            "context":       context,
-            "status":        "auditing",
-            "findings":      [],
-        }
+        session.context = context
+        session.intent = intent
+        session.status = "auditing"
+        self._sync_plan_record(session)
 
         return {"status": "started", "intent": intent, "next": "data_audit"}
 
@@ -252,9 +345,13 @@ class OrchestratorAgent(BaseAgent):
     def on_checkpoint_resolved(self, message_id: str,
                                 user_decision: str,
                                 experiment_id: str) -> dict:
-        bus.resolve_checkpoint(message_id, {"choice": user_decision})
+        session_bus = self._get_session(experiment_id).message_bus
+        session_bus.resolve_checkpoint(message_id, {"choice": user_decision})
 
-        resolved_msg = next((m for m in bus.get_log() if m.id == message_id), None)
+        resolved_msg = next(
+            (m for m in session_bus.get_log(experiment_id) if m.id == message_id),
+            None,
+        )
         if not resolved_msg:
             return {"status": "error", "message": "Checkpoint not found"}
 
@@ -269,69 +366,14 @@ class OrchestratorAgent(BaseAgent):
             }
 
         # ── v4.0: Delegar checkpoints de diseño al DesignAgent ──────────
-        if cp in (2.1, 2.2, 2.3, 2.4, 2.5, 2.6) and self._active_design_agent is not None:
-            result = self._active_design_agent.handle_user_response(
-                experiment_id=experiment_id,
-                checkpoint_num=cp,
-                choice=user_decision,
-            )
-            if result.get("status") == "cancelled":
-                self._active_design_agent = None
-                return {"status": "cancelled", "reason": "Design cancelled by user"}
-
-            elif result.get("status") == "done":
-                # Diseño completado → enriquecer contexto y pasar a CP2
-                design = result["design"]
-                exp_context = self._experiment_plans.get(experiment_id, {}).get("exp_context", {})
-                exp_context["organism"] = design["organism"]
-                exp_context["genome"]   = design["genome"]
-                exp_context["design"]   = design
-                design_intelligence = self._run_design_intelligence(
-                    exp_context,
-                    self._experiment_plans.get(experiment_id, {}).get("intent", {}),
-                )
-                exp_context["design_intelligence"] = design_intelligence
-                self.memory.store_decision(
-                    decision_id=f"{experiment_id}_design_intelligence",
-                    wing_id=experiment_id,
-                    checkpoint="2.pre",
-                    question="Design Intelligence assessment",
-                    decision=design_intelligence.get("summary", "completed"),
-                    rationale=(
-                        "ARIA evaluated modality feasibility, recommended "
-                        "analyses, optional analyses, unsupported analyses, "
-                        "covariates, and design limitations before compute."
-                    ),
-                    made_by="design_intelligence",
-                )
-                self._experiment_plans[experiment_id]["exp_context"] = exp_context
-                self._active_design_agent = None
-
-                plan = self._design_analysis_plan(experiment_id, exp_context)
-                plan["design_intelligence"] = design_intelligence
-                # Annotate plan with resolved thresholds — single source of truth
-                # so the preview and the actual run always agree.
-                intent = self._experiment_plans.get(experiment_id, {}).get("intent", {})
-                from aria.agents.bulk_rna_agent import _infer_lfc_threshold
-                plan["lfc_threshold"]  = _infer_lfc_threshold(intent)
-                plan["padj_threshold"] = 0.05
-                self.publish_escalation(
+        if cp in (2.1, 2.2, 2.3, 2.4, 2.5, 2.6):
+            session = self._get_session(experiment_id)
+            if session.design_agent is not None:
+                return self._handle_design_checkpoint(
                     experiment_id=experiment_id,
-                    checkpoint=2,
-                    question=self._format_plan_summary(plan),
-                    options=[
-                        "Run recommended plan only",
-                        "Run recommended + optional supported analyses",
-                        "Modify plan",
-                        "Cancel",
-                    ],
-                    context={"plan": plan, "exp_context": exp_context},
+                    checkpoint=cp,
+                    user_decision=user_decision,
                 )
-                return {"status": "plan_ready", "plan": plan}
-
-            else:
-                # El DesignAgent ya publicó el siguiente checkpoint
-                return {"status": "design_in_progress", "next_step": result.get("step")}
 
         # ── Checkpoints normales ────────────────────────────────────────
         if cp == 1:
@@ -406,8 +448,13 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "cancelled", "reason": result.get("reason", "Design failed")}
 
         # Guardar el agente activo para seguir recibiendo sus checkpoints
+        session = self._get_session(experiment_id)
+        session.design_agent = design_agent
+        session.exp_context = exp_context
+        # Backward-compat mirror only; session.design_agent is authoritative.
         self._active_design_agent = design_agent
         self._experiment_plans[experiment_id]["exp_context"] = exp_context
+        self._sync_plan_record(session)
 
         # El primer checkpoint de diseño (2.1) ya fue publicado.
         return {"status": "design_in_progress", "next_checkpoint": 2.1}
@@ -550,7 +597,9 @@ class OrchestratorAgent(BaseAgent):
             )
 
             # Hold the dispatch payload
-            self._pending_dispatch[experiment_id] = (plan, exp_context)
+            session = self._get_session(experiment_id)
+            session.pending_dispatch = (plan, exp_context)
+            self._pending_dispatch[experiment_id] = session.pending_dispatch
 
             self.publish_escalation(
                 experiment_id=experiment_id,
@@ -581,7 +630,10 @@ class OrchestratorAgent(BaseAgent):
     def _after_audit_checkpoint(self, experiment_id: str,
                                 decision: str, msg: Message) -> dict:
         """CP 3.5 — user decided whether to proceed despite blocking audit issues."""
-        pending = self._pending_dispatch.pop(experiment_id, None)
+        session = self._get_session(experiment_id)
+        pending = session.pending_dispatch
+        session.pending_dispatch = None
+        self._pending_dispatch.pop(experiment_id, None)
 
         if "cancel" in decision.lower() or pending is None:
             return {"status": "cancelled"}
@@ -705,6 +757,7 @@ class OrchestratorAgent(BaseAgent):
                 "Raw ingestion failed before analysis dispatch.",
                 1.0,
             )
+            self._get_session(experiment_id).agent_results = agent_results
             self._agent_results[experiment_id] = agent_results
             self._present_final_summary(experiment_id, agent_results, [])
             return
@@ -793,7 +846,9 @@ class OrchestratorAgent(BaseAgent):
             agent_results["integration_agent"] = result
 
         self.publish_status(experiment_id, "Generating report...", 0.88)
-        findings = bus.get_findings(experiment_id)
+        findings = self._get_session(experiment_id).message_bus.get_findings(
+            experiment_id
+        )
 
         narrative_result = self._run_agent(
             agent_name="narrative_agent",
@@ -806,6 +861,7 @@ class OrchestratorAgent(BaseAgent):
             },
         )
         agent_results["narrative_agent"] = narrative_result
+        self._get_session(experiment_id).agent_results = agent_results
         self._agent_results[experiment_id] = agent_results
 
         self._present_final_summary(experiment_id, agent_results, findings)
@@ -904,7 +960,12 @@ class OrchestratorAgent(BaseAgent):
 
         # Detach the per-experiment log handler so the file is flushed and
         # the next experiment starts with a fresh handler list.
-        handler = self._log_handlers.pop(experiment_id, None)
+        session = self._get_session(experiment_id)
+        handler = session.log_handler
+        mirror = self._log_handlers.pop(experiment_id, None)
+        if handler is None:
+            handler = mirror
+        session.log_handler = None
         if handler is not None:
             try:
                 from aria.utils.logging_setup import detach_experiment_log
