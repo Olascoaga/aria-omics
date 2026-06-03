@@ -1,7 +1,8 @@
 # Bulk RNA-seq Workflow
 
-Validation level: production-like validated for count matrices; beta for FASTQ
-preprocessing.
+Validation level: validated on controlled + small real datasets for count
+matrices; beta for FASTQ preprocessing. Publication still requires expert
+review of the design, the fitted model, and the conclusions.
 
 ## Goal
 

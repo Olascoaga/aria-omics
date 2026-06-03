@@ -20,9 +20,14 @@ decisions, and writes a report grounded in real output files.
 
 **Current validation boundary:**
 
-- **Production-like validated:** bulk RNA-seq count matrices; scRNA-seq
-  single-sample and multi-sample workflows; processed `.h5ad` pseudobulk
-  workflows with design metadata in `obs`.
+- **Validated (controlled + small real datasets):** bulk RNA-seq count
+  matrices; scRNA-seq single-sample and multi-sample workflows; processed
+  `.h5ad` pseudobulk workflows with design metadata in `obs`. "Validated" means
+  these paths were exercised on controlled synthetic data and small real
+  datasets with reviewed reports and a numerical ground-truth benchmark — it is
+  **not** a claim of publication-grade results for a specific study; a domain
+  expert must still review the design, the fitted model, and the conclusions
+  before publication.
 - **Validated / beta:** bulk RNA-seq FASTQ preprocessing, trajectory
   summaries, LIANA cell-cell communication, processed `.h5ad` recovery, and
   GEO/SRA connector paths.
@@ -142,10 +147,13 @@ installer secret hygiene, registry-integrity checks, scaffold dispatch gating,
 typed script IPC contracts, design-matrix validation before DESeq2, synthetic
 ground-truth DE benchmarking, scientific QC red flags, and the **Claim
 Compiler**. `v4.5.4` adds scientific-honesty hardening: pseudobulk scRNA now
-defaults to per-cluster FDR while still reporting global FDR, power is reported
-against the effective global-BH threshold, and log-normalized count recovery is
-visibly low-confidence. Pseudobulk significant-gene counts can differ from
-pre-`v4.5.4` reports by design.
+defaults to per-cluster FDR for the primary significance call while still
+reporting global FDR as a secondary audit diagnostic. Power is reported against
+the decision rule actually in force — under the per-cluster default, against
+each block's effective per-cluster-family alpha (the whole-experiment global-BH
+alpha is kept only as a secondary diagnostic) — and log-normalized count
+recovery is visibly low-confidence. Pseudobulk significant-gene counts can
+differ from pre-`v4.5.4` reports by design.
 
 Since `v4.5.4`, ARIA has been in a focused reliability, governance, and
 reproducibility hardening pass on the validated RNA baseline before the next

@@ -1,7 +1,8 @@
 # Single-cell RNA-seq Workflow
 
-Validation level: production-like validated for single-sample and multi-sample
-RNA workflows.
+Validation level: validated on controlled + small real datasets for
+single-sample and multi-sample RNA workflows. Publication still requires expert
+review of the design, the fitted model, and the conclusions.
 
 ## Goal
 

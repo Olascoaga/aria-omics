@@ -1,6 +1,6 @@
 # Validation Status
 
-Last updated: May 31, 2026.
+Last updated: June 3, 2026.
 
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
@@ -42,7 +42,13 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | No fabricated science | Done | repo-wide anti-fabrication guard (no placeholder matrices, ungated mock "successes", or hash-derived metrics) |
 | Typed IPC contracts | Done | every dispatchable script validates inputs/outputs before and after the subprocess |
 | Blocking CI (3 tiers) | Done | PR (guards + unit + contracts) / main (real pyDESeq2 recovery benchmark) / release (Docker env solve + in-image benchmark) |
-| Air-gapped mode | Done | `ARIA_AIR_GAPPED=1` keeps the LLM layer local-only and redacts failed-run input archives |
+| Air-gapped mode | Done | `ARIA_AIR_GAPPED=1` governs **all** egress (LLM + pathway ORA + GEO/SRA connectors), not just the LLM, and redacts failed-run input/error archives |
+| Sensitivity checkpoint | Done | inputs are classified for clinical/PHI-like fields and quasi-identifiers before CP1; the user is always offered an air-gapped opt-in (never auto-disabled) |
+| Local versioned enrichment | Done | over-representation analysis runs locally by default against versioned GMTs (library + release + SHA-256 recorded); Enrichr is opt-in and skipped honestly when egress is blocked |
+| Deterministic packaging | Done | PEP 621 `pyproject.toml` with a single version source and per-platform lockfiles; `requirements.lock` core fallback |
+| Hermetic build + supply chain | Done | per-modality Docker images with a `.dockerignore` (no `.git`/private `memory/`/caches in layers), gitleaks secret scan, and a CycloneDX SBOM of the RNA image; image digest stamped in the report |
+| Secret hygiene | Done | installer reads API keys without echo; `aria doctor --secrets`/`--llm` classify/mask keys and flag committed credentials (no LLM call) |
+| Per-modality readiness gate | Done | an assay capability matrix marks each modality green/yellow/red; green auto-dispatches, yellow needs explicit acknowledgement, red is removed from dispatch |
 
 ## Validated / Beta
 

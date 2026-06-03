@@ -1,6 +1,8 @@
 # Pseudobulk scRNA-seq From h5ad obs Metadata
 
-Validation level: production-like validated analytically for `v4.3.12`.
+Validation level: validated on controlled + small real datasets, analytically
+for `v4.3.12`. Publication still requires expert review of the design, the
+fitted model, and the conclusions.
 
 ## Goal
 
