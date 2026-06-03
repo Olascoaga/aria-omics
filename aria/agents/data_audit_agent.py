@@ -25,6 +25,8 @@ import os
 import re
 import uuid
 import hashlib
+import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
@@ -132,6 +134,100 @@ ORGANISM_HINTS = {
 }
 
 
+@dataclass(frozen=True)
+class DataAuditScanLimits:
+    """Bounds for the initial directory walk.
+
+    Size is optional because DataAudit only inspects file names here; very large
+    BAM/H5 files can be valid inputs and should not be skipped by default.
+    """
+
+    max_files: int = 5000
+    max_entries: int = 20000
+    max_depth: int = 8
+    max_seconds: float = 10.0
+    max_file_size_bytes: Optional[int] = None
+    follow_symlinks: bool = False
+
+    @classmethod
+    def from_config(cls, config: Optional[dict] = None) -> "DataAuditScanLimits":
+        values = {
+            "max_files": _env_int("ARIA_DATA_AUDIT_MAX_FILES", cls.max_files),
+            "max_entries": _env_int("ARIA_DATA_AUDIT_MAX_ENTRIES", cls.max_entries),
+            "max_depth": _env_int("ARIA_DATA_AUDIT_MAX_DEPTH", cls.max_depth),
+            "max_seconds": _env_float("ARIA_DATA_AUDIT_MAX_SECONDS", cls.max_seconds),
+            "max_file_size_bytes": _env_optional_int(
+                "ARIA_DATA_AUDIT_MAX_FILE_SIZE_BYTES",
+                cls.max_file_size_bytes,
+            ),
+            "follow_symlinks": _env_bool(
+                "ARIA_DATA_AUDIT_FOLLOW_SYMLINKS",
+                cls.follow_symlinks,
+            ),
+        }
+        if config:
+            values.update({k: v for k, v in config.items() if k in values})
+        return cls(
+            max_files=max(1, int(values["max_files"])),
+            max_entries=max(1, int(values["max_entries"])),
+            max_depth=max(0, int(values["max_depth"])),
+            max_seconds=max(0.0, float(values["max_seconds"])),
+            max_file_size_bytes=(
+                None if values["max_file_size_bytes"] in (None, "")
+                else max(0, int(values["max_file_size_bytes"]))
+            ),
+            follow_symlinks=bool(values["follow_symlinks"]),
+        )
+
+    def as_dict(self) -> dict:
+        return {
+            "max_files": self.max_files,
+            "max_entries": self.max_entries,
+            "max_depth": self.max_depth,
+            "max_seconds": self.max_seconds,
+            "max_file_size_bytes": self.max_file_size_bytes,
+            "follow_symlinks": self.follow_symlinks,
+        }
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.environ.get(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+def _env_optional_int(name: str, default: Optional[int]) -> Optional[int]:
+    raw = os.environ.get(name)
+    if raw in (None, ""):
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return None if value < 0 else value
+
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.environ.get(name)
+    if raw in (None, ""):
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw in (None, ""):
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 class DataAuditAgent(BaseAgent):
 
     name = "data_audit_agent"
@@ -163,7 +259,10 @@ class DataAuditAgent(BaseAgent):
             f"Scanning {data_dir}...", progress=0.0)
 
         # 1. Scan files
-        all_files = self._scan_directory(data_dir)
+        all_files = self._scan_directory(
+            data_dir,
+            limits=context.get("scan_limits"),
+        )
         if not all_files and not geo_metadata:
             return {
                 "status": "failed",
@@ -220,6 +319,7 @@ class DataAuditAgent(BaseAgent):
 
         # 4. Validate design (replicates, pairs, etc.)
         warnings = self._validate_design(classified)
+        warnings.extend(self._scan_report_warnings())
         if ignored_intermediates:
             warnings.append(
                 "Ignored ARIA intermediate h5ad output(s) during data audit: "
@@ -331,8 +431,8 @@ class DataAuditAgent(BaseAgent):
             fields.extend(str(c) for c in covs)
         return fields
 
-    def _scan_directory(self, data_dir: Path) -> list[Path]:
-        """Recursively scan directory for all files."""
+    @staticmethod
+    def _supported_input_file(path: Path) -> bool:
         extensions = {
             ".fastq", ".gz", ".bam", ".bai", ".sam",
             ".bed", ".narrowPeak", ".broadPeak", ".bigWig", ".bw",
@@ -340,18 +440,157 @@ class DataAuditAgent(BaseAgent):
             ".h5", ".h5ad", ".h5mu", ".loom",
             ".mtx", ".tsv", ".csv", ".txt",
         }
+        return (
+            path.suffix in extensions
+            or "".join(path.suffixes) in {".fastq.gz", ".pairs.gz",
+                                          ".tsv.gz", ".bed.gz"}
+        )
+
+    def _scan_directory(
+        self,
+        data_dir: Path,
+        limits: Optional[dict | DataAuditScanLimits] = None,
+    ) -> list[Path]:
+        """Recursively scan directory for input files with explicit bounds."""
+        scan_limits = (
+            limits if isinstance(limits, DataAuditScanLimits)
+            else DataAuditScanLimits.from_config(limits)
+        )
         files = []
-        try:
-            for f in data_dir.rglob("*"):
-                if f.is_file():
-                    # Check by extension or compound extension (.fastq.gz)
-                    if (f.suffix in extensions or
-                            "".join(f.suffixes) in {".fastq.gz", ".pairs.gz",
-                                                     ".tsv.gz", ".bed.gz"}):
-                        files.append(f)
-        except PermissionError as e:
-            self.publish_status("", f"Permission error: {e}")
+        report = {
+            "limits": scan_limits.as_dict(),
+            "entries_seen": 0,
+            "files_seen": 0,
+            "matched_files": 0,
+            "skipped_symlinks": 0,
+            "skipped_large_files": 0,
+            "skipped_deep_dirs": 0,
+            "errors": [],
+            "truncated": False,
+            "truncated_reason": None,
+        }
+        self._last_scan_report = report
+
+        start = time.monotonic()
+        deadline = start + scan_limits.max_seconds
+        stack: list[tuple[Path, int]] = [(data_dir, 0)]
+        visited_dirs: set[tuple[int, int]] = set()
+
+        def stop(reason: str) -> bool:
+            report["truncated"] = True
+            report["truncated_reason"] = reason
+            return True
+
+        while stack:
+            if time.monotonic() >= deadline:
+                stop("scan_timeout")
+                break
+            current, depth = stack.pop()
+            try:
+                stat = current.stat()
+                marker = (stat.st_dev, stat.st_ino)
+                if marker in visited_dirs:
+                    continue
+                visited_dirs.add(marker)
+            except OSError as e:
+                report["errors"].append(f"{current}: {e}")
+                continue
+
+            try:
+                with os.scandir(current) as entries:
+                    for entry in entries:
+                        if time.monotonic() >= deadline:
+                            stop("scan_timeout")
+                            break
+                        report["entries_seen"] += 1
+                        if report["entries_seen"] > scan_limits.max_entries:
+                            stop("max_entries")
+                            break
+
+                        entry_path = Path(entry.path)
+                        try:
+                            is_link = entry.is_symlink()
+                        except OSError as e:
+                            report["errors"].append(f"{entry_path}: {e}")
+                            continue
+                        if is_link and not scan_limits.follow_symlinks:
+                            report["skipped_symlinks"] += 1
+                            continue
+
+                        try:
+                            if entry.is_dir(follow_symlinks=scan_limits.follow_symlinks):
+                                if depth >= scan_limits.max_depth:
+                                    report["skipped_deep_dirs"] += 1
+                                else:
+                                    stack.append((entry_path, depth + 1))
+                                continue
+                            if not entry.is_file(follow_symlinks=scan_limits.follow_symlinks):
+                                continue
+                            size = entry.stat(
+                                follow_symlinks=scan_limits.follow_symlinks
+                            ).st_size
+                        except OSError as e:
+                            report["errors"].append(f"{entry_path}: {e}")
+                            continue
+
+                        report["files_seen"] += 1
+                        max_size = scan_limits.max_file_size_bytes
+                        if max_size is not None and size > max_size:
+                            report["skipped_large_files"] += 1
+                            continue
+                        if self._supported_input_file(entry_path):
+                            files.append(entry_path)
+                            report["matched_files"] = len(files)
+                            if len(files) >= scan_limits.max_files:
+                                stop("max_files")
+                                break
+                    if report["truncated"]:
+                        break
+            except PermissionError as e:
+                report["errors"].append(f"{current}: {e}")
+                self.publish_status("", f"Permission error: {e}")
+            except OSError as e:
+                report["errors"].append(f"{current}: {e}")
         return files
+
+    def _scan_report_warnings(self) -> list[str]:
+        report = getattr(self, "_last_scan_report", None)
+        if not report:
+            return []
+        warnings = []
+        if report.get("truncated"):
+            limits = report.get("limits", {})
+            warnings.append(
+                "Data audit directory scan was truncated "
+                f"({report.get('truncated_reason')}; "
+                f"files={report.get('matched_files')}, "
+                f"entries_seen={report.get('entries_seen')}, "
+                f"limits={limits})."
+            )
+        if report.get("skipped_symlinks"):
+            warnings.append(
+                "Data audit skipped symlinked paths "
+                f"({report['skipped_symlinks']}); set "
+                "ARIA_DATA_AUDIT_FOLLOW_SYMLINKS=1 or scan_limits.follow_symlinks "
+                "to opt in."
+            )
+        if report.get("skipped_large_files"):
+            warnings.append(
+                "Data audit skipped files over the configured size limit "
+                f"({report['skipped_large_files']})."
+            )
+        if report.get("skipped_deep_dirs"):
+            warnings.append(
+                "Data audit skipped directories deeper than the configured limit "
+                f"({report['skipped_deep_dirs']})."
+            )
+        if report.get("errors"):
+            warnings.append(
+                "Data audit encountered filesystem errors while scanning: "
+                + "; ".join(report["errors"][:3])
+                + ("..." if len(report["errors"]) > 3 else "")
+            )
+        return warnings
 
     def _classify_files(self, files: list[Path]) -> dict[str, list[str]]:
         """Map files to their omics modality."""
