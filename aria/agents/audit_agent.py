@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
+from aria.agents.modality_audit import build_capability_matrix
 from aria.bus.message_bus import Confidence
 
 log = logging.getLogger("aria.audit")
@@ -44,7 +45,12 @@ class AuditAgent(BaseAgent):
 
     # ── Public entry point ────────────────────────────────────────────────
 
-    def run_audit(self, exp_context: dict, experiment_id: str) -> dict:
+    def run_audit(
+        self,
+        exp_context: dict,
+        experiment_id: str,
+        modality_validation: dict | None = None,
+    ) -> dict:
         """
         Run all applicable checks.
 
@@ -67,6 +73,15 @@ class AuditAgent(BaseAgent):
 
         files  = exp_context.get("files", [])
         design = exp_context.get("design", {})
+
+        # P2-6: per-modality readiness cards and capability matrix. These run
+        # before the bulk-centric checks below and govern whether dispatch is
+        # automatic, requires explicit acknowledgement, or is blocked.
+        capability_matrix = build_capability_matrix(
+            exp_context,
+            modality_validation=modality_validation,
+        )
+        findings.extend(capability_matrix.get("findings", []))
 
         # ── 1. Replicate correlation ──────────────────────────────────────
         try:
@@ -97,10 +112,16 @@ class AuditAgent(BaseAgent):
         except Exception as e:
             log.warning(f"STAR alignment check failed: {e}")
 
+        dispatch = capability_matrix.get("dispatch", {})
+        requires_ack = bool(dispatch.get("requires_ack"))
         has_blocking = any(f["severity"] == "blocking" for f in findings)
         has_warnings = any(f["severity"] == "warning" for f in findings)
 
-        status = "blocking" if has_blocking else ("warnings" if has_warnings else "clean")
+        status = (
+            "blocking"
+            if has_blocking or requires_ack
+            else ("warnings" if has_warnings else "clean")
+        )
 
         for f in findings:
             log.warning(f"[audit:{f['severity']}] {f['check']}: {f['message']}")
@@ -116,7 +137,13 @@ class AuditAgent(BaseAgent):
                 0.08,
             )
 
-        return {"status": status, "findings": findings}
+        return {
+            "status": status,
+            "findings": findings,
+            "capability_matrix": capability_matrix,
+            "readiness_cards": capability_matrix.get("cards", {}),
+            "dispatch_decision": dispatch,
+        }
 
     # ── Check 1: Replicate correlation ────────────────────────────────────
 

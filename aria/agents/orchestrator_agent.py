@@ -568,11 +568,22 @@ class OrchestratorAgent(BaseAgent):
         from aria.agents.audit_agent import AuditAgent
 
         audit = AuditAgent(memory=self.memory, llm=self.llm)
-        audit_result = audit.run_audit(exp_context, experiment_id)
+        audit_result = audit.run_audit(
+            exp_context,
+            experiment_id,
+            modality_validation=MODALITY_VALIDATION,
+        )
+        exp_context = self._apply_capability_dispatch_policy(
+            exp_context,
+            audit_result,
+        )
         findings = audit_result.get("findings", [])
 
         # Store audit findings in exp_context so NarrativeAgent can surface them
         exp_context["audit_findings"] = findings
+        if audit_result.get("capability_matrix"):
+            exp_context["capability_matrix"] = audit_result["capability_matrix"]
+            exp_context["readiness_cards"] = audit_result.get("readiness_cards", {})
 
         if audit_result["status"] == "blocking":
             # Serialize the blocking issues for the user-facing question
@@ -581,6 +592,18 @@ class OrchestratorAgent(BaseAgent):
             for i, f in enumerate(blocking, 1):
                 lines.append(f"  [{i}] {f['message']}")
                 lines.append(f"      → {f['recommendation']}")
+            if not blocking:
+                matrix = audit_result.get("capability_matrix", {}) or {}
+                cards = matrix.get("cards", {}) or {}
+                for modality in matrix.get("dispatch", {}).get("requires_ack", []):
+                    card = cards.get(modality, {})
+                    lines.append(
+                        f"  [{len(lines) + 1}] {modality} is "
+                        f"{card.get('status', 'yellow')} and requires explicit "
+                        "acknowledgement before dispatch."
+                    )
+                    for finding in card.get("findings", []):
+                        lines.append(f"      -> {finding.get('message', '')}")
             issue_text = "\n".join(lines)
 
             warnings = [f for f in findings if f["severity"] == "warning"]
@@ -590,8 +613,8 @@ class OrchestratorAgent(BaseAgent):
                 warn_text = "\n\nAdditional warnings:\n" + "\n".join(warn_lines)
 
             question = (
-                f"Quality Audit found {len(blocking)} blocking issue(s) "
-                f"that may compromise your results:\n\n"
+                "Quality Audit found dispatch readiness issue(s) that may "
+                "compromise your results:\n\n"
                 f"{issue_text}{warn_text}\n\n"
                 f"How would you like to proceed?"
             )
@@ -605,7 +628,11 @@ class OrchestratorAgent(BaseAgent):
                 experiment_id=experiment_id,
                 checkpoint=3.5,
                 question=question,
-                options=["Proceed anyway", "Cancel analysis"],
+                options=(
+                    ["Proceed anyway", "Cancel analysis"]
+                    if exp_context.get("modalities")
+                    else ["Cancel analysis"]
+                ),
                 context={"plan": plan, "exp_context": exp_context,
                          "audit_findings": findings},
             )
@@ -627,6 +654,28 @@ class OrchestratorAgent(BaseAgent):
         ).start()
         return {"status": "analysis_running", "plan": plan, "exp_context": exp_context}
 
+    @staticmethod
+    def _apply_capability_dispatch_policy(
+        exp_context: dict,
+        audit_result: dict,
+    ) -> dict:
+        matrix = audit_result.get("capability_matrix") or {}
+        blocked = set((matrix.get("dispatch") or {}).get("blocked") or [])
+        if not blocked:
+            return exp_context
+
+        modalities = exp_context.get("modalities") or {}
+        filtered = {
+            modality: files
+            for modality, files in modalities.items()
+            if modality not in blocked
+        }
+        updated = {**exp_context, "modalities": filtered}
+        updated["blocked_modalities_by_capability"] = sorted(
+            modality for modality in blocked if modality in modalities
+        )
+        return updated
+
     def _after_audit_checkpoint(self, experiment_id: str,
                                 decision: str, msg: Message) -> dict:
         """CP 3.5 — user decided whether to proceed despite blocking audit issues."""
@@ -639,6 +688,8 @@ class OrchestratorAgent(BaseAgent):
             return {"status": "cancelled"}
 
         plan, exp_context = pending
+        if not (exp_context.get("modalities") or {}):
+            return {"status": "cancelled", "reason": "no_dispatchable_modalities"}
         self.publish_status(
             experiment_id, "Proceeding with analysis despite audit warnings.", 0.10
         )
