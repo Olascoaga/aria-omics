@@ -63,6 +63,58 @@ def test_ledger_records_skip_reason():
     assert cc["divergence"] is True   # planned but did not run
 
 
+# ── P3-1: chromatin ledger (thin-report divergence from day one) ──────────────
+
+def test_ledger_flags_thin_chromatin_report():
+    # Plan recommended peak calling + motif enrichment, but only QC ran — the
+    # chromatin analogue of the PBMC thin report. The ledger must surface the
+    # gap from day one, before the v4.6 stack is built.
+    exp_ctx = {"design_intelligence": {
+        "recommended": ["Call accessible peaks with MACS3.",
+                        "TF motif enrichment over accessible peaks."],
+        "optional": [],
+    }}
+    agent_results = {"chromatin_agent": {"findings": {
+        "qc": {"status": "success", "n_cells": 500, "qc_complete": False},
+    }}}
+    ledger = build_run_ledger(exp_ctx, agent_results)
+    by_key = {e["analysis"]: e for e in ledger["entries"]}
+    assert "chromatin" in ledger["modalities"]
+    assert by_key["qc"]["status"] == "ran"
+    assert by_key["peak_calling"]["planned"] is True
+    assert by_key["peak_calling"]["divergence"] is True
+    assert by_key["motif_enrichment"]["divergence"] is True
+    assert ledger["n_divergences"] >= 2
+
+
+def test_ledger_chromatin_no_divergence_when_executed():
+    exp_ctx = {"design_intelligence": {
+        "recommended": ["Call accessible peaks with MACS3."], "optional": []}}
+    agent_results = {"chromatin_agent": {"findings": {
+        "qc": {"status": "success", "n_cells": 500},
+        "peaks": {"status": "success", "n_peaks": 120000},
+    }}}
+    ledger = build_run_ledger(exp_ctx, agent_results)
+    by_key = {e["analysis"]: e for e in ledger["entries"]}
+    assert by_key["peak_calling"]["status"] == "ran"
+    assert by_key["peak_calling"]["divergence"] is False
+    assert ledger["n_divergences"] == 0
+
+
+def test_ledger_scrna_unchanged_alongside_chromatin_support():
+    # Regression: adding chromatin must not change the scRNA ledger shape.
+    exp_ctx = {"design_intelligence": {
+        "recommended": ["Donor-level pseudobulk DESeq2 between conditions."],
+        "optional": []}}
+    agent_results = {"scrna_agent": {"findings": {
+        "qc": {"status": "success", "n_cells": 100},
+    }}}
+    ledger = build_run_ledger(exp_ctx, agent_results)
+    by_key = {e["analysis"]: e for e in ledger["entries"]}
+    assert ledger["modalities"] == ["scRNA"]
+    assert by_key["pseudobulk_de"]["divergence"] is True
+
+
 # ── P-DEVIL ──────────────────────────────────────────────────────────────────
 
 def _assoc_block():

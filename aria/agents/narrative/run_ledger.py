@@ -46,6 +46,31 @@ _SCRNA_ANALYSES: list[dict[str, Any]] = [
 ]
 
 
+# P3-1 (pre-4.6 polish): the same planned-vs-run pattern for chromatin, wired in
+# from day one so the moment the v4.6 scATAC stack lands a thin chromatin report
+# (QC ran but LSI/peaks/motifs did not) is reconciled as a divergence rather than
+# vanishing silently. Technical/process vocabulary only (no biology — ADR-011).
+# finding_keys mirror ChromatinAgent's structured `findings` keys.
+_CHROMATIN_ANALYSES: list[dict[str, Any]] = [
+    {"key": "qc", "label": "Quality control",
+     "plan_kw": ["qc", "quality control"], "finding_keys": ["qc"]},
+    {"key": "dimensionality_reduction",
+     "label": "Dimensionality reduction (LSI/TF-IDF)",
+     "plan_kw": ["lsi", "latent semantic", "tf-idf", "tfidf",
+                 "dimensionality", "svd"],
+     "finding_keys": ["lsi_params", "lsi"]},
+    {"key": "peak_calling", "label": "Peak calling",
+     "plan_kw": ["peak", "macs"], "finding_keys": ["peaks"]},
+    {"key": "differential_accessibility", "label": "Differential accessibility",
+     "plan_kw": ["differential accessibility", "differentially accessible",
+                 "differential peak"],
+     "finding_keys": ["differential_accessibility"]},
+    {"key": "motif_enrichment", "label": "TF motif enrichment",
+     "plan_kw": ["motif", "transcription factor", "chromvar", "tf enrichment"],
+     "finding_keys": ["motifs"]},
+]
+
+
 def _plan_phrases(exp_ctx: dict) -> list[str]:
     di = (exp_ctx or {}).get("design_intelligence", {}) or {}
     phrases: list[str] = []
@@ -89,44 +114,65 @@ def _scrna_findings(agent_results: dict) -> dict:
         return {}
 
 
+def _chromatin_findings(agent_results: dict) -> dict:
+    ch = (agent_results or {}).get("chromatin_agent", {})
+    if isinstance(ch, dict):
+        return ch.get("findings", ch) or {}
+    return {}
+
+
+def _entries_for(modality: str, specs: list[dict], findings: dict,
+                 phrases: list[str]) -> list[dict]:
+    """Reconcile one modality's analyses against its structured findings."""
+    entries: list[dict] = []
+    for spec in specs:
+        planned = _is_planned(spec, phrases)
+        val = None
+        for fk in spec["finding_keys"]:
+            if fk in findings:
+                val = findings[fk]
+                break
+        status, reason = _status_from_finding(val)
+        ran = status == "ran"
+        entries.append({
+            "modality": modality,
+            "analysis": spec["key"],
+            "label": spec["label"],
+            "planned": planned,
+            "status": status,
+            "reason": reason,
+            "divergence": bool(planned and not ran),
+        })
+    return entries
+
+
 def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
     """Reconcile planned vs executed analyses into an auditable manifest.
 
     Returns ``{"entries": [...], "divergences": [...], "n_divergences": int,
     "modalities": [...]}``. A divergence is an analysis the plan called for that
     did not run or was skipped — the signal that would have caught the PBMC thin
-    report before a rerun.
+    report before a rerun. Covers scRNA and (P3-1) chromatin from day one.
     """
     phrases = _plan_phrases(exp_ctx)
-    findings = _scrna_findings(agent_results)
-    has_scrna = bool(findings) or "scrna_agent" in (agent_results or {})
-
     entries: list[dict] = []
-    if has_scrna:
-        for spec in _SCRNA_ANALYSES:
-            planned = _is_planned(spec, phrases)
-            val = None
-            for fk in spec["finding_keys"]:
-                if fk in findings:
-                    val = findings[fk]
-                    break
-            status, reason = _status_from_finding(val)
-            ran = status == "ran"
-            divergence = bool(planned and not ran)
-            entries.append({
-                "modality": "scRNA",
-                "analysis": spec["key"],
-                "label": spec["label"],
-                "planned": planned,
-                "status": status,
-                "reason": reason,
-                "divergence": divergence,
-            })
+    modalities: list[str] = []
+
+    sc_findings = _scrna_findings(agent_results)
+    if bool(sc_findings) or "scrna_agent" in (agent_results or {}):
+        entries += _entries_for("scRNA", _SCRNA_ANALYSES, sc_findings, phrases)
+        modalities.append("scRNA")
+
+    ch_findings = _chromatin_findings(agent_results)
+    if bool(ch_findings) or "chromatin_agent" in (agent_results or {}):
+        entries += _entries_for("chromatin", _CHROMATIN_ANALYSES,
+                                ch_findings, phrases)
+        modalities.append("chromatin")
 
     divergences = [e for e in entries if e["divergence"]]
     return {
         "entries": entries,
         "divergences": divergences,
         "n_divergences": len(divergences),
-        "modalities": ["scRNA"] if has_scrna else [],
+        "modalities": modalities,
     }

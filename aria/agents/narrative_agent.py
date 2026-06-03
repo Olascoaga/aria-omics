@@ -706,9 +706,11 @@ for small-effect genes."
         return sections
 
     def _narrative_registry(self):
-        from aria.agents.narrative.narrators import BulkRnaNarrator, ScrnaNarrator
+        from aria.agents.narrative.narrators import (
+            BulkRnaNarrator, ChromatinNarrator, ScrnaNarrator)
         from aria.agents.narrative.registry import registry_with
-        return registry_with((ScrnaNarrator(), BulkRnaNarrator()))
+        return registry_with(
+            (ScrnaNarrator(), BulkRnaNarrator(), ChromatinNarrator()))
 
     def _collect_narrative_blocks(self, agent_results: dict,
                                   exp_ctx: dict | None = None) -> list:
