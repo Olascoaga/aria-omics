@@ -835,14 +835,20 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
 
     # Raw-count guard (B10 / P-RAWCLASS): classify BEFORE rounding so a
     # normalized matrix is not silently turned into pseudo-counts.
-    info = classify_matrix(counts.values)
+    source_hint = ";".join(str(f) for f in count_files)
+    info = classify_matrix(
+        counts.values,
+        gene_ids=list(counts.index),
+        source_hint=source_hint,
+    )
     if info["is_raw_counts"]:
         count_source = "raw_counts"
     elif allow_nonraw:
         count_source = "coerced_nonraw"
         warnings.append(
             f"Count matrix does not look like raw counts "
-            f"(kind={info['kind']}, max={info['max']:.2f}); coercing to "
+            f"(kind={info['kind']}, score={info.get('raw_count_score', 0):.2f}, "
+            f"max={info['max']:.2f}); coercing to "
             f"integers because allow_nonraw_counts=True. DESeq2 results are "
             f"LOW CONFIDENCE — supply raw counts for a valid negative-binomial "
             f"fit."
@@ -852,9 +858,14 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
             "refused":    True,
             "error_type": "NonRawCounts",
             "kind":       info["kind"],
+            "raw_count_score": info.get("raw_count_score"),
+            "confidence": info.get("confidence"),
+            "sub_scores": info.get("sub_scores", {}),
+            "score_basis": info.get("score_basis", {}),
             "details": (
                 f"Count matrix does not look like raw counts "
-                f"(kind={info['kind']}, max={info['max']:.2f}, "
+                f"(kind={info['kind']}, score={info.get('raw_count_score', 0):.2f}, "
+                f"max={info['max']:.2f}, "
                 f"min={info['min']:.2f}). DESeq2 requires raw integer counts; "
                 f"TPM/CPM/FPKM/log-normalized/scaled inputs are invalid. Supply "
                 f"a raw-count matrix, or set allow_nonraw_counts=True to coerce "
@@ -865,7 +876,14 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
     # Round to integers (required by DESeq2)
     counts = counts.round().astype(int)
 
-    return counts, warnings, {"count_source": count_source, "kind": info["kind"]}
+    return counts, warnings, {
+        "count_source": count_source,
+        "kind": info["kind"],
+        "raw_count_score": info.get("raw_count_score"),
+        "confidence": info.get("confidence"),
+        "sub_scores": info.get("sub_scores", {}),
+        "score_basis": info.get("score_basis", {}),
+    }
 
 
 def _load_or_infer_metadata(counts, metadata_file: str,

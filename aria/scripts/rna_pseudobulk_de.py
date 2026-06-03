@@ -245,13 +245,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
     adata = read_h5ad(data_path)
 
     # ── Resolve count source ──────────────────────────────────────────────
-    def _looks_integerlike(mat) -> tuple[bool, float]:
+    count_classification = {}
+
+    def _looks_integerlike(mat) -> tuple[bool, float, dict]:
         # Shared classifier on a RANDOM sampled slice (P-RAWCLASS / R7): the
         # old first-200-row probe was biased when the h5ad is ordered by cell
         # type or condition. Raw counts are non-negative integers with a large
         # max; log-normalized data sits in [0, ~10].
-        info = classify_matrix(mat)
-        return bool(info["is_raw_counts"]), float(info["max"])
+        info = classify_matrix(mat, gene_ids=gene_names, source_hint=data_path)
+        return bool(info["is_raw_counts"]), float(info["max"]), info
 
     def _validate_lognorm_recovery(mat, lib_sizes) -> bool:
         """Probe: does (expm1(x) * lib/scale) on a random block produce
@@ -288,13 +290,17 @@ def rna_pseudobulk_de(params: dict) -> dict:
     except Exception:
         background_genes = list(map(str, gene_names))
 
-    integerlike, max_val = _looks_integerlike(counts)
+    integerlike, max_val, count_classification = _looks_integerlike(counts)
     needs_recovery       = False
     if not integerlike:
         if not allow_lognorm_recovery:
             return {"status":     "error",
                     "error_type": "NonIntegerCounts",
-                    "details":    (f"counts appear non-integer (max={max_val:.2f}). "
+                    "count_classification": count_classification,
+                    "details":    (f"counts appear non-integer "
+                                   f"(kind={count_classification.get('kind')}, "
+                                   f"score={count_classification.get('raw_count_score', 0):.2f}, "
+                                   f"max={max_val:.2f}). "
                                    f"Set allow_lognorm_recovery=True with a "
                                    f"valid lib_size_col, or supply an h5ad "
                                    f"with raw counts.")}
@@ -878,6 +884,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "replicate_col":                   replicate_col,
         "covariates":                      covariates,
         "count_source":                    count_source,
+        "count_classification":            count_classification,
         "lognorm_recovered":               bool(needs_recovery),
         "norm_scale_factor_used":          (norm_scale_factor if needs_recovery else None),
         "lognorm_lib_size_col":            (lib_size_col if needs_recovery else None),

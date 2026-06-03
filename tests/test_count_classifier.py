@@ -74,3 +74,55 @@ def test_sample_rows_densifies_only_the_slice():
     mat = _raw_counts(n=1000)
     block = sample_rows(mat, n_rows=50)
     assert block.shape == (50, mat.shape[1])
+
+
+def test_low_depth_float_integer_counts_score_as_raw():
+    rng = np.random.default_rng(5)
+    mat = rng.poisson(3, size=(600, 6)).astype(float)
+    info = classify_matrix(
+        mat,
+        gene_ids=[f"ENSG{i:011d}" for i in range(mat.shape[0])],
+        source_hint="low_depth_counts.tsv",
+    )
+
+    assert info["is_raw_counts"] is True
+    assert info["kind"] == "raw"
+    assert info["raw_count_score"] >= 0.75
+    assert info["confidence"] in {"high", "medium"}
+    assert info["sub_scores"]["integer"] == 1.0
+    assert info["sub_scores"]["nonnegative"] == 1.0
+
+
+def test_expected_count_decimal_matrix_scores_but_is_not_raw():
+    rng = np.random.default_rng(6)
+    mat = rng.gamma(shape=1.2, scale=5.0, size=(600, 6))
+    info = classify_matrix(
+        mat,
+        gene_ids=[f"ENSG{i:011d}" for i in range(mat.shape[0])],
+        source_hint="rsem_expected_count.tsv",
+    )
+
+    assert info["is_raw_counts"] is False
+    assert info["kind"] in {"expected_count", "continuous"}
+    assert info["raw_count_score"] < 0.75
+    assert info["sub_scores"]["decimal_fraction"] < 0.5
+    assert info["sub_scores"]["tool_signature"] < 0.5
+
+
+def test_classifier_reports_required_score_evidence_keys():
+    info = classify_matrix(
+        _raw_counts(),
+        gene_ids=["ENSG000001", "ENSG000002", "ENSG000003"],
+        source_hint="featureCounts_counts.tsv",
+    )
+
+    assert 0.0 <= info["raw_count_score"] <= 1.0
+    assert set(info["sub_scores"]) >= {
+        "integer",
+        "nonnegative",
+        "library_size",
+        "decimal_fraction",
+        "gene_id_type",
+        "tool_signature",
+    }
+    assert "score_basis" in info

@@ -28,6 +28,8 @@ def test_raw_counts_load_and_are_tagged_raw(tmp_path):
     counts, warnings, meta = _load_counts([path])
     assert counts is not None
     assert meta["count_source"] == "raw_counts"
+    assert meta["raw_count_score"] >= 0.75
+    assert "sub_scores" in meta
     assert str(counts.dtypes.iloc[0]).startswith("int")
 
 
@@ -39,6 +41,8 @@ def test_lognorm_matrix_is_hard_refused_by_default(tmp_path):
     assert counts is None
     assert meta["refused"] is True
     assert meta["error_type"] == "NonRawCounts"
+    assert meta["raw_count_score"] < 0.75
+    assert "score_basis" in meta
 
 
 def test_nonraw_matrix_coerced_only_when_allowed(tmp_path):
