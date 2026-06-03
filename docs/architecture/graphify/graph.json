@@ -12,7 +12,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wmhc9e_corpus_apply_fixes_sh__entry",
+      "id": "tmp_aria_graphify_fuokns_corpus_apply_fixes_sh__entry",
       "label": "APPLY_fixes.sh script",
       "file_type": "code",
       "source_file": "APPLY_fixes.sh",
@@ -3884,203 +3884,245 @@
       "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L188"
+      "source_location": "L189"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197"
+      "source_location": "L198"
     },
     {
       "id": "aria_agents_orchestrator_agent_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197"
+      "source_location": "L198"
     },
     {
       "id": "aria_agents_orchestrator_agent_py_llmprovider",
       "label": "LLMProvider",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197"
+      "source_location": "L198"
     },
     {
       "id": "aria_agents_orchestrator_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197"
+      "source_location": "L198"
+    },
+    {
+      "id": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "label": "._get_session()",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L213"
+    },
+    {
+      "id": "experimentsession",
+      "label": "ExperimentSession",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L213"
+    },
+    {
+      "id": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "label": "._sync_plan_record()",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L222"
+    },
+    {
+      "id": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "label": "._handle_design_checkpoint()",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229"
+    },
+    {
+      "id": "aria_agents_orchestrator_agent_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229"
+    },
+    {
+      "id": "aria_agents_orchestrator_agent_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L211"
+      "source_location": "L306"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_run_audit",
       "label": ".run_audit()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L246"
+      "source_location": "L339"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_on_checkpoint_resolved",
       "label": ".on_checkpoint_resolved()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L252"
+      "source_location": "L345"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_after_checkpoint_1",
       "label": "._after_checkpoint_1()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349"
+      "source_location": "L391"
     },
     {
       "id": "aria_agents_orchestrator_agent_py_message",
       "label": "Message",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349"
+      "source_location": "L391"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_after_checkpoint_2",
       "label": "._after_checkpoint_2()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L416"
+      "source_location": "L463"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_after_checkpoint_3",
       "label": "._after_checkpoint_3()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L470"
+      "source_location": "L517"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_gate_and_dispatch",
       "label": "._gate_and_dispatch()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L515"
+      "source_location": "L562"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_after_audit_checkpoint",
       "label": "._after_audit_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L581"
+      "source_location": "L630"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_dispatch_agents",
       "label": "._dispatch_agents()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L601"
+      "source_location": "L653"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_run_agent",
       "label": "._run_agent()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L814"
+      "source_location": "L870"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_experimental_override_active",
       "label": "._experimental_override_active()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L829"
+      "source_location": "L885"
     },
     {
       "id": "aria_agents_orchestrator_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L829"
+      "source_location": "L885"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_blocked_modalities",
       "label": "._blocked_modalities()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L839"
+      "source_location": "L895"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_experimental_modalities",
       "label": "._experimental_modalities()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L852"
+      "source_location": "L908"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_integration_dispatch_enabled",
       "label": "._integration_dispatch_enabled()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L865"
+      "source_location": "L921"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_resolve_execution_order",
       "label": "._resolve_execution_order()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L868"
+      "source_location": "L924"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_infer_steps",
       "label": "._infer_steps()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L880"
+      "source_location": "L936"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_present_final_summary",
       "label": "._present_final_summary()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L890"
+      "source_location": "L946"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_parse_question",
       "label": "._parse_question()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L915"
+      "source_location": "L976"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_design_analysis_plan",
       "label": "._design_analysis_plan()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L930"
+      "source_location": "L991"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_run_design_intelligence",
       "label": "._run_design_intelligence()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L960"
+      "source_location": "L1021"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_fallback_plan",
       "label": "._fallback_plan()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L974"
+      "source_location": "L1035"
     },
     {
       "id": "agents_orchestrator_agent_orchestratoragent_format_plan_summary",
       "label": "._format_plan_summary()",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L998"
+      "source_location": "L1059"
     },
     {
       "id": "agents_raw_ingestion_agent",
@@ -5782,6 +5824,48 @@
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
       "source_location": "L496"
+    },
+    {
+      "id": "runtime_init",
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "aria/runtime/__init__.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "runtime_experiment_session",
+      "label": "experiment_session.py",
+      "file_type": "code",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "runtime_experiment_session_experimentsession",
+      "label": "ExperimentSession",
+      "file_type": "code",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "runtime_experiment_session_experimentsession_as_plan_record",
+      "label": ".as_plan_record()",
+      "file_type": "code",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "aria_runtime_experiment_session_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "aria_runtime_experiment_session_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34"
     },
     {
       "id": "scripts_base",
@@ -7842,7 +7926,7 @@
       "source_location": "L474"
     },
     {
-      "id": "orchestratoragent",
+      "id": "aria_tui_py_orchestratoragent",
       "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/tui.py",
@@ -9813,7 +9897,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -9939,7 +10023,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_fuokns_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -9961,7 +10045,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_fuokns_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -11781,6 +11865,69 @@
       "file_type": "code",
       "source_file": "tests/test_environment_manager.py",
       "source_location": "L107"
+    },
+    {
+      "id": "tests_test_experiment_session",
+      "label": "test_experiment_session.py",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_experiment_session_dummydesignagent",
+      "label": "DummyDesignAgent",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_experiment_session_dummydesignagent_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_experiment_session_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_experiment_session_dummydesignagent_handle_user_response",
+      "label": ".handle_user_response()",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L19"
+    },
+    {
+      "id": "tests_test_experiment_session_orchestrator",
+      "label": "_orchestrator()",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_experiment_session_py_orchestratoragent",
+      "label": "OrchestratorAgent",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_experiment_session_test_experiment_session_scopes_design_agent_per_experiment",
+      "label": "test_experiment_session_scopes_design_agent_per_experiment()",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "tests_test_experiment_session_test_experiment_session_scopes_pending_dispatch_by_experiment",
+      "label": "test_experiment_session_scopes_pending_dispatch_by_experiment()",
+      "file_type": "code",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L56"
     },
     {
       "id": "tests_test_explicit_contrast_gate",
@@ -14912,7 +15059,7 @@
       "source_location": "L49"
     },
     {
-      "id": "aria_orchestratoragent",
+      "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py",
@@ -14923,7 +15070,7 @@
       "contributor": null
     },
     {
-      "id": "aria_dataauditagent",
+      "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
@@ -14934,7 +15081,7 @@
       "contributor": null
     },
     {
-      "id": "aria_designagent",
+      "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
@@ -14945,7 +15092,7 @@
       "contributor": null
     },
     {
-      "id": "aria_auditagent",
+      "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/audit_agent.py",
@@ -14956,7 +15103,7 @@
       "contributor": null
     },
     {
-      "id": "aria_setupagent",
+      "id": "setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
       "source_file": "aria/agents/setup_agent.py",
@@ -14967,7 +15114,7 @@
       "contributor": null
     },
     {
-      "id": "aria_bulkrnaagent",
+      "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
@@ -14978,7 +15125,7 @@
       "contributor": null
     },
     {
-      "id": "aria_scrnaagent",
+      "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py",
@@ -14989,7 +15136,7 @@
       "contributor": null
     },
     {
-      "id": "aria_narrativeagent",
+      "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
@@ -15000,7 +15147,7 @@
       "contributor": null
     },
     {
-      "id": "aria_environmentmanager",
+      "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
       "source_file": "aria/utils/environment_manager.py",
@@ -15011,29 +15158,7 @@
       "contributor": null
     },
     {
-      "id": "aria_parameteradvisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "aria/agents/parameter_advisor.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_ariamemory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_messagebus",
+      "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
       "source_file": "aria/bus/message_bus.py",
@@ -15044,21 +15169,10 @@
       "contributor": null
     },
     {
-      "id": "aria_llmprovider",
-      "label": "LLMProvider",
+      "id": "aria_memory",
+      "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/llm/provider.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_file": "aria/storage/sqlite_memory.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -15099,17 +15213,6 @@
       "contributor": null
     },
     {
-      "id": "rna_clustering",
-      "label": "rna_clustering.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_clustering.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "rna_cellcomm",
       "label": "rna_cellcomm.py",
       "file_type": "code",
@@ -15130,12 +15233,23 @@
       "captured_at": null,
       "author": null,
       "contributor": null
+    },
+    {
+      "id": "design_intelligence",
+      "label": "DesignIntelligence",
+      "file_type": "code",
+      "source_file": "aria/agents/design_intelligence.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
     {
       "source": "apply_fixes",
-      "target": "tmp_aria_graphify_wmhc9e_corpus_apply_fixes_sh__entry",
+      "target": "tmp_aria_graphify_fuokns_corpus_apply_fixes_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "APPLY_fixes.sh",
@@ -29448,7 +29562,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L188",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -29457,7 +29571,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L188",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -29466,7 +29580,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -29476,7 +29590,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -29486,7 +29600,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -29496,7 +29610,104 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L197",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "target": "aria_agents_orchestrator_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "target": "experimentsession",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent",
+      "target": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "target": "experimentsession",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent",
+      "target": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "aria_agents_orchestrator_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "aria_agents_orchestrator_agent_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "aria_agents_orchestrator_agent_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "aria_agents_orchestrator_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L229",
       "weight": 1.0
     },
     {
@@ -29505,7 +29716,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L211",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -29515,7 +29726,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L211",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -29524,7 +29735,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L246",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -29534,7 +29745,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L246",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -29543,7 +29754,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L252",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -29553,7 +29764,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L252",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -29563,7 +29774,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L252",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -29573,7 +29784,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L252",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -29582,7 +29793,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -29592,7 +29803,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -29602,7 +29813,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -29612,7 +29823,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L349",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -29621,7 +29832,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L416",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -29631,7 +29842,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L416",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -29641,7 +29852,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L416",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -29651,7 +29862,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L416",
+      "source_location": "L463",
       "weight": 1.0
     },
     {
@@ -29660,7 +29871,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L470",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -29670,7 +29881,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L470",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -29680,7 +29891,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L470",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -29690,7 +29901,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L470",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -29699,7 +29910,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L515",
+      "source_location": "L562",
       "weight": 1.0
     },
     {
@@ -29709,7 +29920,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L515",
+      "source_location": "L562",
       "weight": 1.0
     },
     {
@@ -29718,7 +29929,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L581",
+      "source_location": "L630",
       "weight": 1.0
     },
     {
@@ -29728,7 +29939,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L581",
+      "source_location": "L630",
       "weight": 1.0
     },
     {
@@ -29738,7 +29949,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L581",
+      "source_location": "L630",
       "weight": 1.0
     },
     {
@@ -29748,7 +29959,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L581",
+      "source_location": "L630",
       "weight": 1.0
     },
     {
@@ -29757,7 +29968,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L601",
+      "source_location": "L653",
       "weight": 1.0
     },
     {
@@ -29767,7 +29978,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L601",
+      "source_location": "L653",
       "weight": 1.0
     },
     {
@@ -29776,7 +29987,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L814",
+      "source_location": "L870",
       "weight": 1.0
     },
     {
@@ -29786,7 +29997,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L814",
+      "source_location": "L870",
       "weight": 1.0
     },
     {
@@ -29796,7 +30007,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L814",
+      "source_location": "L870",
       "weight": 1.0
     },
     {
@@ -29805,7 +30016,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L829",
+      "source_location": "L885",
       "weight": 1.0
     },
     {
@@ -29815,7 +30026,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L829",
+      "source_location": "L885",
       "weight": 1.0
     },
     {
@@ -29824,7 +30035,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L839",
+      "source_location": "L895",
       "weight": 1.0
     },
     {
@@ -29833,7 +30044,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L852",
+      "source_location": "L908",
       "weight": 1.0
     },
     {
@@ -29842,7 +30053,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L865",
+      "source_location": "L921",
       "weight": 1.0
     },
     {
@@ -29852,7 +30063,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L865",
+      "source_location": "L921",
       "weight": 1.0
     },
     {
@@ -29861,7 +30072,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L868",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -29870,7 +30081,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L880",
+      "source_location": "L936",
       "weight": 1.0
     },
     {
@@ -29879,7 +30090,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L890",
+      "source_location": "L946",
       "weight": 1.0
     },
     {
@@ -29889,7 +30100,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L890",
+      "source_location": "L946",
       "weight": 1.0
     },
     {
@@ -29898,7 +30109,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L915",
+      "source_location": "L976",
       "weight": 1.0
     },
     {
@@ -29908,7 +30119,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L915",
+      "source_location": "L976",
       "weight": 1.0
     },
     {
@@ -29917,7 +30128,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L930",
+      "source_location": "L991",
       "weight": 1.0
     },
     {
@@ -29927,7 +30138,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L930",
+      "source_location": "L991",
       "weight": 1.0
     },
     {
@@ -29936,7 +30147,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L960",
+      "source_location": "L1021",
       "weight": 1.0
     },
     {
@@ -29945,7 +30156,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L974",
+      "source_location": "L1035",
       "weight": 1.0
     },
     {
@@ -29954,7 +30165,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L998",
+      "source_location": "L1059",
       "weight": 1.0
     },
     {
@@ -29964,7 +30175,77 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L998",
+      "source_location": "L1059",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "target": "experimentsession",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L219",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L247",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_run_design_intelligence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L260",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_design_analysis_plan",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L283",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_format_plan_summary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L295",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_run",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -29974,7 +30255,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L233",
+      "source_location": "L330",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_run",
+      "target": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -29984,37 +30275,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L249",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
       "source": "agents_orchestrator_agent_orchestratoragent_on_checkpoint_resolved",
-      "target": "agents_orchestrator_agent_orchestratoragent_run_design_intelligence",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L289",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
       "source": "agents_orchestrator_agent_orchestratoragent_on_checkpoint_resolved",
-      "target": "agents_orchestrator_agent_orchestratoragent_design_analysis_plan",
+      "target": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L310",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_orchestrator_agent_orchestratoragent_on_checkpoint_resolved",
-      "target": "agents_orchestrator_agent_orchestratoragent_format_plan_summary",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L321",
+      "source_location": "L372",
       "weight": 1.0
     },
     {
@@ -30024,7 +30305,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L338",
+      "source_location": "L380",
       "weight": 1.0
     },
     {
@@ -30034,7 +30315,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L340",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -30044,7 +30325,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L342",
+      "source_location": "L384",
       "weight": 1.0
     },
     {
@@ -30054,7 +30335,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L344",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_after_checkpoint_1",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L451",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_after_checkpoint_1",
+      "target": "agents_orchestrator_agent_orchestratoragent_sync_plan_record",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L457",
       "weight": 1.0
     },
     {
@@ -30064,7 +30365,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L467",
+      "source_location": "L514",
       "weight": 1.0
     },
     {
@@ -30074,7 +30375,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L511",
+      "source_location": "L558",
       "weight": 1.0
     },
     {
@@ -30084,7 +30385,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L524",
+      "source_location": "L571",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_gate_and_dispatch",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L600",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_after_audit_checkpoint",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L633",
       "weight": 1.0
     },
     {
@@ -30094,7 +30415,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L614",
+      "source_location": "L666",
       "weight": 1.0
     },
     {
@@ -30104,7 +30425,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L654",
+      "source_location": "L706",
       "weight": 1.0
     },
     {
@@ -30114,7 +30435,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L681",
+      "source_location": "L733",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_dispatch_agents",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -30124,7 +30455,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L709",
+      "source_location": "L762",
       "weight": 1.0
     },
     {
@@ -30134,7 +30465,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L712",
+      "source_location": "L765",
       "weight": 1.0
     },
     {
@@ -30144,7 +30475,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L713",
+      "source_location": "L766",
       "weight": 1.0
     },
     {
@@ -30154,7 +30485,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L756",
+      "source_location": "L809",
       "weight": 1.0
     },
     {
@@ -30164,7 +30495,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L823",
+      "source_location": "L879",
       "weight": 1.0
     },
     {
@@ -30174,7 +30505,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L846",
+      "source_location": "L902",
       "weight": 1.0
     },
     {
@@ -30184,7 +30515,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L860",
+      "source_location": "L916",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent_orchestratoragent_present_final_summary",
+      "target": "agents_orchestrator_agent_orchestratoragent_get_session",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L963",
       "weight": 1.0
     },
     {
@@ -30194,7 +30535,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L955",
+      "source_location": "L1016",
       "weight": 1.0
     },
     {
@@ -37109,6 +37450,44 @@
       "weight": 1.0
     },
     {
+      "source": "runtime_experiment_session",
+      "target": "runtime_experiment_session_experimentsession",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "runtime_experiment_session_experimentsession",
+      "target": "runtime_experiment_session_experimentsession_as_plan_record",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "runtime_experiment_session_experimentsession_as_plan_record",
+      "target": "aria_runtime_experiment_session_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "runtime_experiment_session_experimentsession_as_plan_record",
+      "target": "aria_runtime_experiment_session_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/experiment_session.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_base",
       "target": "scripts_base_mocks_allowed",
       "relation": "contains",
@@ -43213,7 +43592,7 @@
     },
     {
       "source": "aria_tui_run_analysis",
-      "target": "orchestratoragent",
+      "target": "aria_tui_py_orchestratoragent",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
@@ -43242,7 +43621,7 @@
     },
     {
       "source": "aria_tui_drain_checkpoints",
-      "target": "orchestratoragent",
+      "target": "aria_tui_py_orchestratoragent",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
@@ -43281,7 +43660,7 @@
     },
     {
       "source": "aria_tui_live_analysis_loop",
-      "target": "orchestratoragent",
+      "target": "aria_tui_py_orchestratoragent",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
@@ -43569,7 +43948,7 @@
     },
     {
       "source": "aria_tui_main",
-      "target": "orchestratoragent",
+      "target": "aria_tui_py_orchestratoragent",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -50491,7 +50870,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -50544,7 +50923,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50554,7 +50933,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50564,7 +50943,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50574,7 +50953,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50584,7 +50963,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50702,7 +51081,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_fuokns_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -50711,7 +51090,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_fuokns_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -50746,7 +51125,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -50756,7 +51135,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wmhc9e_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_fuokns_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -53559,6 +53938,110 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_environment_manager.py",
       "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "tests_test_experiment_session_dummydesignagent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_dummydesignagent",
+      "target": "tests_test_experiment_session_dummydesignagent_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_dummydesignagent_init",
+      "target": "tests_test_experiment_session_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_dummydesignagent",
+      "target": "tests_test_experiment_session_dummydesignagent_handle_user_response",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "tests_test_experiment_session_orchestrator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_orchestrator",
+      "target": "tests_test_experiment_session_py_orchestratoragent",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "tests_test_experiment_session_test_experiment_session_scopes_design_agent_per_experiment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "tests_test_experiment_session_test_experiment_session_scopes_pending_dispatch_by_experiment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_test_experiment_session_scopes_design_agent_per_experiment",
+      "target": "tests_test_experiment_session_orchestrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_test_experiment_session_scopes_design_agent_per_experiment",
+      "target": "tests_test_experiment_session_dummydesignagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_test_experiment_session_scopes_pending_dispatch_by_experiment",
+      "target": "tests_test_experiment_session_orchestrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -59490,6 +59973,16 @@
       "weight": 1.0
     },
     {
+      "source": "runtime_init",
+      "target": "runtime_experiment_session",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/__init__.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
       "source": "agents_init",
       "target": "agents_base_agent_baseagent",
       "relation": "imports",
@@ -60571,7 +61064,7 @@
     },
     {
       "source": "agents_orchestrator_agent",
-      "target": "utils_provenance_collect_provenance",
+      "target": "runtime_experiment_session_experimentsession",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -60581,22 +61074,12 @@
     },
     {
       "source": "agents_orchestrator_agent",
-      "target": "utils_logging_setup_attach_experiment_log",
+      "target": "utils_provenance_collect_provenance",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L215",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_orchestrator_agent",
-      "target": "agents_data_audit_agent_dataauditagent",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L247",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -60606,7 +61089,27 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L315",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent",
+      "target": "utils_logging_setup_attach_experiment_log",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L311",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_orchestrator_agent",
+      "target": "agents_data_audit_agent_dataauditagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L340",
       "weight": 1.0
     },
     {
@@ -60616,7 +61119,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L358",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -60626,7 +61129,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L360",
+      "source_location": "L402",
       "weight": 1.0
     },
     {
@@ -60636,7 +61139,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L397",
+      "source_location": "L439",
       "weight": 1.0
     },
     {
@@ -60646,7 +61149,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L521",
+      "source_location": "L568",
       "weight": 1.0
     },
     {
@@ -60656,7 +61159,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L910",
+      "source_location": "L971",
       "weight": 1.0
     },
     {
@@ -60666,7 +61169,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L962",
+      "source_location": "L1023",
       "weight": 1.0
     },
     {
@@ -60676,7 +61179,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L1016",
+      "source_location": "L1077",
       "weight": 1.0
     },
     {
@@ -61167,6 +61670,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
       "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "runtime_init",
+      "target": "runtime_experiment_session_experimentsession",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/runtime/__init__.py",
+      "source_location": "L3",
       "weight": 1.0
     },
     {
@@ -63147,6 +63660,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_environment_manager.py",
       "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "agents_orchestrator_agent_orchestratoragent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session",
+      "target": "runtime_experiment_session_experimentsession",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -66820,6 +67353,26 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_experiment_session_test_experiment_session_scopes_design_agent_per_experiment",
+      "target": "runtime_experiment_session_experimentsession",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_experiment_session_test_experiment_session_scopes_pending_dispatch_by_experiment",
+      "target": "runtime_experiment_session_experimentsession",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_experiment_session.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_explicit_contrast_gate_test_bulk_script_requires_explicit_contrasts",
       "target": "scripts_rna_bulk_de_bulk_rna_de",
       "relation": "calls",
@@ -68923,6 +69476,17 @@
       "weight": 1.0
     },
     {
+      "source": "agents_orchestrator_agent_orchestratoragent_handle_design_checkpoint",
+      "target": "agents_bulk_rna_agent_infer_lfc_threshold",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": "L288",
+      "weight": 1.0
+    },
+    {
       "source": "agents_orchestrator_agent_orchestratoragent_run",
       "target": "utils_logging_setup_attach_experiment_log",
       "relation": "calls",
@@ -68930,7 +69494,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L216",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -68941,18 +69505,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L234",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_orchestrator_agent_orchestratoragent_on_checkpoint_resolved",
-      "target": "agents_bulk_rna_agent_infer_lfc_threshold",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L316",
+      "source_location": "L331",
       "weight": 1.0
     },
     {
@@ -68963,7 +69516,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L359",
+      "source_location": "L401",
       "weight": 1.0
     },
     {
@@ -68974,7 +69527,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L361",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -68985,7 +69538,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L398",
+      "source_location": "L440",
       "weight": 1.0
     },
     {
@@ -68996,7 +69549,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L523",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -69007,7 +69560,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L911",
+      "source_location": "L972",
       "weight": 1.0
     },
     {
@@ -69018,7 +69571,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L963",
+      "source_location": "L1024",
       "weight": 1.0
     },
     {
@@ -69029,7 +69582,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": "L1017",
+      "source_location": "L1078",
       "weight": 1.0
     },
     {
@@ -69297,8 +69850,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_orchestratoragent",
-      "target": "aria_dataauditagent",
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -69307,8 +69860,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_orchestratoragent",
-      "target": "aria_designagent",
+      "source": "orchestrator_agent",
+      "target": "design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -69317,109 +69870,39 @@
       "weight": 1.0
     },
     {
-      "source": "aria_orchestratoragent",
-      "target": "aria_messagebus",
-      "relation": "references",
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "aria_bulkrnaagent",
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "rna_qc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "rna_clustering",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_bulkrnaagent",
-      "target": "aria_environmentmanager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_scrnaagent",
-      "target": "aria_environmentmanager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_narrativeagent",
-      "target": "aria_llmprovider",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_narrativeagent",
-      "target": "aria_claim_compiler",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
@@ -69427,9 +69910,59 @@
       "weight": 1.0
     },
     {
-      "source": "aria_parameteradvisor",
-      "target": "aria_ariamemory",
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
       "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_qc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_cellcomm",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_trajectory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "README.md",
