@@ -330,6 +330,15 @@ Use these tests as impact anchors when editing the graph's major nodes:
   empirical FDR, W-CALIB): `tests/test_benchmark_synthetic_de.py`
   (`aria/benchmarks/synthetic_de.py`; recovery cases pydeseq2-gated; also run by
   `aria doctor --benchmark`). Numerical safety net for any DE-math change.
+- scATAC differential-accessibility calibration hook (P3-2, **v4.6 scaffold**):
+  `aria/benchmarks/synthetic_atac_da.py` (`simulate_atac_da_dataset` +
+  `run_atac_da_benchmark`), `tests/test_benchmark_atac_da.py`. The ground-truth
+  simulator + recall/FDR scoring are real now, but there is NO validated scATAC DA
+  backend: `run_atac_da_benchmark` raises `NotImplementedError` unless the caller
+  injects the real DA function as `da_fn` — it never fabricates calibration
+  metrics. v4.6 fills the typed slot (`ATACDACaller`) and the regression goes live;
+  do not stub `da_fn` with a fake in production. Dependency-light (numpy/pandas/
+  anndata), runs in the light lane.
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery

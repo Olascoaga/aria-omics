@@ -15,6 +15,12 @@ from aria.benchmarks.synthetic_de import (
     run_pseudobulk_de_benchmark,
     run_bulk_de_benchmark,
 )
+from aria.benchmarks.synthetic_atac_da import (
+    SyntheticATACDADataset,
+    ATACDACaller,
+    simulate_atac_da_dataset,
+    run_atac_da_benchmark,
+)
 
 __all__ = [
     "SyntheticDEDataset",
@@ -24,4 +30,9 @@ __all__ = [
     "simulate_bulk_dataset",
     "run_pseudobulk_de_benchmark",
     "run_bulk_de_benchmark",
+    # P3-2: scATAC differential-accessibility calibration hook (v4.6 scaffold).
+    "SyntheticATACDADataset",
+    "ATACDACaller",
+    "simulate_atac_da_dataset",
+    "run_atac_da_benchmark",
 ]
