@@ -107,6 +107,7 @@ jobs:
             tests/test_calibration_badge.py \
             tests/test_calibration_spike_in.py \
             tests/test_fdr_advanced_disclosure.py \
+            tests/test_llm_provider_fallback.py \
             tests/test_lfc_shrinkage.py \
             tests/test_pathway_viz.py \
             tests/test_doctor.py \

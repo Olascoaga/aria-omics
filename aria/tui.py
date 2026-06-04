@@ -890,6 +890,21 @@ def main():
             f"\n\n  [{C['amber']}]Interrupted. "
             f"Partial results may be in ~/.aria/reports/[/]\n"
         )
+    except RuntimeError as exc:
+        # An unreachable LLM provider should give an actionable hint, not a raw
+        # traceback (real-run bug 2026-06-04).
+        msg = str(exc)
+        if "models failed for tier" in msg or "No model is configured" in msg:
+            from aria.llm.provider import diagnose_llm_failure
+            console.print(Panel(
+                diagnose_llm_failure(exc),
+                border_style=C['red'],
+                title=f"[{C['red']}]LLM provider unavailable[/]",
+                title_align="left",
+                padding=(0, 1),
+            ))
+        else:
+            raise
     finally:
         memory.close()
 

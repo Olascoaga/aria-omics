@@ -42,6 +42,16 @@ log = logging.getLogger("aria.llm")
 # Silence LiteLLM's aggressive logging
 litellm.suppress_debug_info = True
 logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+# Defensive: never crash a call because a provider rejects an optional param
+# (e.g. anthropic/gemini reject `seed`). LiteLLM drops the unsupported param for
+# that provider instead of raising litellm.UnsupportedParamsError.
+litellm.drop_params = True
+
+# Providers that actually honor an integer `seed` (deterministic sampling). For
+# everyone else we omit it — temperature=0.0 remains the primary determinism
+# control — so the call does not depend on litellm.drop_params and the recorded
+# provenance is honest about whether a seed was applied.
+_SEED_SUPPORTED_PROVIDERS = {"openai", "ollama", "vllm"}
 
 
 # ── Routing tiers ────────────────────────────────────────────────────────────
@@ -84,6 +94,9 @@ DEFAULT_MODELS: dict[TaskTier, list[ModelConfig]] = {
         ModelConfig("anthropic", "claude-sonnet-4-6",          200_000),
         ModelConfig("anthropic", "claude-haiku-4-5-20251001",  200_000),
         ModelConfig("openai",    "gpt-4o-mini",                128_000),
+        # Cloud fallback for a Gemini-only user — must precede the local Ollama
+        # entries, which are off unless an Ollama server is actually running.
+        ModelConfig("gemini",    "gemini/gemini-2.5-flash",  1_000_000),
         ModelConfig("ollama",    "ollama/llama3:8b",            8_000,  is_local=True,
                     api_base="http://localhost:11434"),
         ModelConfig("ollama",    "ollama/mistral:7b",           8_000,  is_local=True,
@@ -91,12 +104,51 @@ DEFAULT_MODELS: dict[TaskTier, list[ModelConfig]] = {
     ],
     TaskTier.LIGHT: [
         ModelConfig("anthropic", "claude-haiku-4-5-20251001",  200_000),
+        ModelConfig("gemini",    "gemini/gemini-2.5-flash",  1_000_000),
         ModelConfig("ollama",    "ollama/llama3:8b",            8_000,  is_local=True,
                     api_base="http://localhost:11434"),
         ModelConfig("ollama",    "ollama/mistral:7b",           8_000,  is_local=True,
                     api_base="http://localhost:11434"),
     ],
 }
+
+
+def diagnose_llm_failure(error: Exception | str) -> str:
+    """Translate an LLM-provider failure into an actionable hint (no traceback).
+
+    ARIA reaches no configured model when the configured provider has no API key
+    and the local Ollama fallback is not running. This inspects which API keys are
+    actually present and tells the user the smallest fix.
+    """
+    keys = {
+        "anthropic": bool(os.environ.get("ANTHROPIC_API_KEY")),
+        "openai": bool(os.environ.get("OPENAI_API_KEY")),
+        "gemini": bool(os.environ.get("GEMINI_API_KEY")
+                       or os.environ.get("GOOGLE_API_KEY")),
+    }
+    present = [p for p, v in keys.items() if v]
+    lines = [
+        "ARIA could not reach any configured LLM model.",
+        f"  Detail: {str(error)[:200]}",
+    ]
+    if present:
+        lines += [
+            f"  Detected API key(s) in your environment: {', '.join(present)}.",
+            "  Your ~/.aria/config.yaml likely points at a provider you have no "
+            "key for.",
+            f"  Fix: set each llm tier's provider/model to one you have a key for, "
+            f"e.g. provider: {present[0]}.",
+        ]
+    else:
+        lines += [
+            "  No ANTHROPIC / OPENAI / GEMINI API key was found in your "
+            "environment,",
+            "  and the local Ollama fallback is not running (connection refused).",
+            "  Fix: export an API key (e.g. GEMINI_API_KEY=...) or start an "
+            "Ollama server.",
+        ]
+    lines.append("  Diagnose: run `aria doctor --llm`.")
+    return "\n".join(lines)
 
 
 class LLMProvider:
@@ -341,14 +393,18 @@ class LLMProvider:
                 max_response_tokens=max_tokens,
             )
 
+        # seed only where the provider honors it (anthropic/gemini reject it).
+        seed_applied = cfg.provider in _SEED_SUPPORTED_PROVIDERS
+        seed_value = self.DETERMINISTIC_SEED if seed_applied else None
         kwargs = dict(
             model=cfg.model,
             messages=msgs,
             max_tokens=max_tokens,
             temperature=self.DETERMINISTIC_TEMPERATURE,
-            seed=self.DETERMINISTIC_SEED,
             timeout=self._timeout_s,   # R3: bound a hung provider
         )
+        if seed_applied:
+            kwargs["seed"] = self.DETERMINISTIC_SEED
 
         # Inject API base for local models
         if cfg.api_base:
@@ -379,7 +435,8 @@ class LLMProvider:
             "model": cfg.model,
             "tier": tier.value,
             "temperature": self.DETERMINISTIC_TEMPERATURE,
-            "seed": self.DETERMINISTIC_SEED,
+            "seed": seed_value,
+            "seed_applied": seed_applied,
             "deterministic": True,
             "cache_hit": False,
             "prompt_tokens": prompt_tokens,
