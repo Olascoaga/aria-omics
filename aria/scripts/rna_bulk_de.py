@@ -54,6 +54,7 @@ from aria.scripts._base import mocks_allowed, run_script
 from aria.utils.count_classifier import classify_matrix
 from aria.utils.stats import (
     contrast_family_significance,
+    fdr_advanced_methods_disclosure,
     preregister_contrast_family,
 )
 from pathlib import Path
@@ -614,6 +615,9 @@ def bulk_rna_de(params: dict) -> dict:
         "lfc_threshold":    lfc_thr,
         # P1-1c: pre-registered contrast-FDR family + the pooled-BH family size.
         "fdr_family":       {**fdr_family, "n_tests_family": n_tests_family},
+        # P1-2 closure (ADR-027): IHW + s-values honestly disclosed as not
+        # implemented, never faked. Primary FDR stays pre-registered BH.
+        "fdr_advanced_methods": fdr_advanced_methods_disclosure(),
         "overlap":          overlap_info,
         "methodology":      methodology,
         "count_source":     count_source,

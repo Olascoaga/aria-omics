@@ -140,6 +140,9 @@ def _build_calibration_badge(calibration: dict | None) -> str:
         ("Pseudobulk recall", _fmt("pseudobulk_recall")),
         ("Pseudobulk empirical FDR", _fmt("pseudobulk_empirical_fdr")),
         ("Pseudobulk null false-positive rate", _fmt("pseudobulk_null_fpr")),
+        ("Bulk spike-in null FP rate", _fmt("bulk_spike_null_fpr")),
+        ("Bulk spike-in top-level detection", _fmt("bulk_spike_top_detection")),
+        ("Bulk spike-in log2FC MAE", _fmt("bulk_spike_lfc_mae")),
     ]
     body = "".join(
         f"<tr><td>{_html.escape(name)}</td><td><code>{_html.escape(val)}</code></td></tr>"

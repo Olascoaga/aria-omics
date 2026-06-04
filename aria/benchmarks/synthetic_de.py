@@ -622,6 +622,226 @@ def run_pseudobulk_de_negative_control(
     )
 
 
+# ── W-CALIB: spike-in dose-response (effect-size calibration ladder) ─────────
+#
+# Recovery + negative controls answer "finds true effects?" and "quiet under the
+# null?". Spike-ins add the dose-response question an ERCC ladder answers: across
+# a ladder of KNOWN |log2FC| levels, does detection rise monotonically from ~0 at
+# level 0 (true nulls) to high at the strongest level, are the level-0 spike-ins
+# kept below alpha, and are the estimated effect sizes close to the truth?
+
+
+@dataclass
+class SpikeInDataset:
+    """A bulk matrix with spike-in genes at a ladder of known fold-changes."""
+    counts: Any                              # DataFrame (genes x samples)
+    metadata: Any                            # DataFrame (samples x design)
+    spike_true_log2fc: dict[str, float]      # spike gene -> signed true log2fc
+    spike_level: dict[str, float]            # spike gene -> |true log2fc| level
+    null_genes: list[str]                    # background null genes
+    levels: list[float]
+    params: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class SpikeInResult:
+    status: str                              # "pass" | "fail" | "error"
+    levels: list[float]
+    detection_rate_by_level: dict[str, float]  # str(level) -> fraction significant
+    lfc_mae: float                           # mean |estimated - true| log2fc on spike-ins
+    null_spike_fpr: float                    # detection rate at level 0 (true nulls)
+    nominal_alpha: float
+    n_spike_per_level: int
+    tolerances: dict[str, float]
+    messages: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "levels": self.levels,
+            "detection_rate_by_level": {
+                k: round(v, 4) for k, v in self.detection_rate_by_level.items()
+            },
+            "lfc_mae": round(self.lfc_mae, 4),
+            "null_spike_fpr": round(self.null_spike_fpr, 4),
+            "nominal_alpha": self.nominal_alpha,
+            "n_spike_per_level": self.n_spike_per_level,
+            "tolerances": self.tolerances,
+            "messages": self.messages,
+        }
+
+
+def simulate_spike_in_bulk_dataset(
+    *,
+    levels: tuple[float, ...] = (0.0, 0.5, 1.0, 1.5, 2.0, 3.0),
+    genes_per_level: int = 15,
+    n_background: int = 1500,
+    replicates_per_condition: int = 6,
+    dispersion: float = 0.2,
+    seed: int = 17,
+) -> SpikeInDataset:
+    """Simulate a bulk matrix with a ladder of known-fold-change spike-in genes.
+
+    ``genes_per_level`` spike-in genes are planted at each ``|log2FC|`` level (sign
+    random, except level 0 which is a true null). The remaining ``n_background``
+    genes are null. Negative-binomial counts at bulk depth; deterministic for a
+    seed. Neutral labels only (ADR-011).
+    """
+    import numpy as np
+    import pandas as pd
+
+    rng = np.random.default_rng(seed)
+
+    n_spike = genes_per_level * len(levels)
+    n_genes = n_background + n_spike
+    gene_names = [f"GENE_{i:04d}" for i in range(n_genes)]
+    base_mean = np.clip(np.exp(rng.normal(3.0, 1.0, size=n_genes)), 5.0, None)
+
+    # The last n_spike genes are the spike-ins, ordered by level.
+    spike_true_log2fc: dict[str, float] = {}
+    spike_level: dict[str, float] = {}
+    log2fc = np.zeros(n_genes, dtype=float)
+    si = n_background
+    for lvl in levels:
+        for _ in range(genes_per_level):
+            sign = 1.0 if lvl == 0.0 else float(rng.choice([-1.0, 1.0]))
+            val = sign * float(lvl)
+            log2fc[si] = val
+            spike_true_log2fc[gene_names[si]] = val
+            spike_level[gene_names[si]] = float(lvl)
+            si += 1
+    cond_b_fc = np.power(2.0, log2fc)
+
+    sample_cols, sample_names, conds = [], [], []
+    for cond in ("COND_A", "COND_B"):
+        fc = cond_b_fc if cond == "COND_B" else np.ones(n_genes)
+        for r in range(replicates_per_condition):
+            sf = float(np.exp(rng.normal(0.0, 0.15)))
+            gene_mean = base_mean * fc * sf
+            shape = 1.0 / dispersion
+            gamma = rng.gamma(shape=shape, scale=gene_mean * dispersion)
+            sample_cols.append(rng.poisson(gamma).astype(np.int64))
+            sample_names.append(f"{cond}_r{r}")
+            conds.append(cond)
+
+    counts = pd.DataFrame(
+        np.array(sample_cols).T, index=gene_names, columns=sample_names)
+    metadata = pd.DataFrame({"condition": conds}, index=sample_names)
+    null_genes = [gene_names[i] for i in range(n_background)]
+
+    return SpikeInDataset(
+        counts=counts,
+        metadata=metadata,
+        spike_true_log2fc=spike_true_log2fc,
+        spike_level=spike_level,
+        null_genes=null_genes,
+        levels=list(levels),
+        params={
+            "levels": list(levels), "genes_per_level": genes_per_level,
+            "n_background": n_background,
+            "replicates_per_condition": replicates_per_condition,
+            "dispersion": dispersion, "seed": seed,
+        },
+    )
+
+
+def run_bulk_de_spike_in(
+    dataset: SpikeInDataset | None = None,
+    *,
+    nominal_alpha: float = 0.05,
+    max_null_fpr: float = 0.1,
+    min_top_detection: float = 0.5,
+    max_lfc_mae: float = 1.0,
+    lfc_min: float = 0.5,
+    lfc_shrink: bool = True,
+    seed: int = 17,
+    **sim_kwargs,
+) -> SpikeInResult:
+    """Run ARIA's real bulk DE on a spike-in ladder and score effect-size calibration.
+
+    Measures per-level detection rate (a dose-response curve), the level-0 false
+    positive rate (true-null spike-ins), and the mean absolute error between the
+    apeGLM-shrunken estimated log2FC and the known truth on the spike-ins.
+    ``status`` is "pass" only when the null spike-ins stay below ``max_null_fpr``,
+    the strongest level clears ``min_top_detection``, and the effect-size MAE is
+    within ``max_lfc_mae``. Requires pydeseq2.
+    """
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    if dataset is None:
+        dataset = simulate_spike_in_bulk_dataset(seed=seed, **sim_kwargs)
+
+    tolerances = {
+        "max_null_fpr": max_null_fpr,
+        "min_top_detection": min_top_detection,
+        "max_lfc_mae": max_lfc_mae,
+        "nominal_alpha": nominal_alpha,
+    }
+    levels = dataset.levels
+    n_spike_per_level = sum(1 for v in dataset.spike_level.values()
+                            if v == levels[0]) if levels else 0
+
+    result, _warnings = _run_deseq2(
+        dataset.counts, dataset.metadata, "condition", "COND_B", "COND_A",
+        padj_thr=nominal_alpha, lfc_thr=lfc_min, lfc_shrink=lfc_shrink,
+    )
+    if result.get("status") != "success":
+        return SpikeInResult(
+            status="error", levels=levels, detection_rate_by_level={},
+            lfc_mae=float("nan"), null_spike_fpr=1.0, nominal_alpha=nominal_alpha,
+            n_spike_per_level=n_spike_per_level, tolerances=tolerances,
+            messages=[f"bulk DE did not succeed: {result.get('error_type')} "
+                      f"{result.get('details', '')}"],
+        )
+
+    called = set(result.get("sig_genes", []) or [])
+    results_df = result.get("results")
+    est_log2fc = {}
+    if results_df is not None:
+        est_log2fc = {str(g): float(v)
+                      for g, v in results_df["log2FoldChange"].items()}
+
+    # Detection rate per level.
+    detection_rate_by_level: dict[str, float] = {}
+    by_level: dict[float, list[str]] = {}
+    for gene, lvl in dataset.spike_level.items():
+        by_level.setdefault(lvl, []).append(gene)
+    for lvl in levels:
+        genes = by_level.get(lvl, [])
+        n_called = sum(1 for g in genes if g in called)
+        detection_rate_by_level[str(lvl)] = n_called / max(len(genes), 1)
+
+    null_spike_fpr = detection_rate_by_level.get(str(levels[0]), 0.0) if levels else 0.0
+
+    # Effect-size accuracy (shrunken estimate vs truth) over spike-ins present.
+    errs = [abs(est_log2fc[g] - true)
+            for g, true in dataset.spike_true_log2fc.items() if g in est_log2fc]
+    lfc_mae = float(sum(errs) / len(errs)) if errs else float("nan")
+
+    top_detection = detection_rate_by_level.get(str(levels[-1]), 0.0) if levels else 0.0
+    ok = (
+        null_spike_fpr <= max_null_fpr
+        and top_detection >= min_top_detection
+        and lfc_mae <= max_lfc_mae
+    )
+    messages = [
+        f"null_spike_fpr={null_spike_fpr:.3f} (<= {max_null_fpr}); "
+        f"top_detection={top_detection:.3f} (>= {min_top_detection}); "
+        f"lfc_mae={lfc_mae:.3f} (<= {max_lfc_mae})",
+    ]
+    return SpikeInResult(
+        status="pass" if ok else "fail",
+        levels=levels,
+        detection_rate_by_level=detection_rate_by_level,
+        lfc_mae=lfc_mae,
+        null_spike_fpr=null_spike_fpr,
+        nominal_alpha=nominal_alpha,
+        n_spike_per_level=n_spike_per_level,
+        tolerances=tolerances,
+        messages=messages,
+    )
+
+
 def run_calibration_suite(
     *,
     seed: int = 11,
@@ -645,11 +865,15 @@ def run_calibration_suite(
     if quick:
         bulk_kw = dict(n_genes=600, n_de=60, replicates_per_condition=6)
         pb_kw = dict(n_genes=600, n_de=60, donors_per_condition=5, cells_per_donor=40)
+        spike_kw = dict(levels=(0.0, 1.0, 2.0, 3.0), genes_per_level=10,
+                        n_background=500, replicates_per_condition=6)
         n_perms = 3
         bulk_min_recall = pb_min_recall = 0.4
     else:
         bulk_kw = dict(n_genes=1000, n_de=120, replicates_per_condition=6)
         pb_kw = dict(n_genes=1200, n_de=120, donors_per_condition=6, cells_per_donor=80)
+        spike_kw = dict(levels=(0.0, 0.5, 1.0, 1.5, 2.0, 3.0), genes_per_level=15,
+                        n_background=1000, replicates_per_condition=6)
         n_perms = 3
         bulk_min_recall = pb_min_recall = 0.5
 
@@ -657,18 +881,20 @@ def run_calibration_suite(
     bulk_neg = run_bulk_de_negative_control(seed=seed, n_permutations=n_perms, **bulk_kw)
     pb_recovery = run_pseudobulk_de_benchmark(seed=seed, min_recall=pb_min_recall, **pb_kw)
     pb_neg = run_pseudobulk_de_negative_control(seed=seed, n_permutations=n_perms, **pb_kw)
+    spike = run_bulk_de_spike_in(seed=seed, **spike_kw)
 
     paths = {
         "bulk": {
             "recovery": bulk_recovery.as_dict(),
             "negative_control": bulk_neg.as_dict(),
+            "spike_in": spike.as_dict(),
         },
         "pseudobulk": {
             "recovery": pb_recovery.as_dict(),
             "negative_control": pb_neg.as_dict(),
         },
     }
-    all_results = [bulk_recovery, bulk_neg, pb_recovery, pb_neg]
+    all_results = [bulk_recovery, bulk_neg, pb_recovery, pb_neg, spike]
     if all(r.status == "pass" for r in all_results):
         status = "pass"
     elif any(r.status == "error" for r in all_results):
@@ -676,6 +902,7 @@ def run_calibration_suite(
     else:
         status = "fail"
 
+    top_level = str(spike.levels[-1]) if spike.levels else ""
     return {
         "status": status,
         "measured": True,
@@ -689,5 +916,8 @@ def run_calibration_suite(
             "pseudobulk_recall": pb_recovery.recall,
             "pseudobulk_empirical_fdr": pb_recovery.empirical_fdr,
             "pseudobulk_null_fpr": pb_neg.false_positive_rate,
+            "bulk_spike_null_fpr": spike.null_spike_fpr,
+            "bulk_spike_top_detection": spike.detection_rate_by_level.get(top_level, 0.0),
+            "bulk_spike_lfc_mae": spike.lfc_mae,
         },
     }

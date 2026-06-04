@@ -74,6 +74,7 @@ from aria.utils.count_classifier import classify_matrix, sample_row_indices
 from aria.utils.stats import bh_correct as _bh_correct
 from aria.utils.stats import (
     assert_fdr_family_not_post_hoc,
+    fdr_advanced_methods_disclosure,
     preregister_fdr_family,
     primary_fdr_column,
 )
@@ -910,6 +911,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
+            # P1-2 closure (ADR-027): IHW + s-values are honestly disclosed as
+            # not implemented (no validated Python estimator; pydeseq2 has no
+            # s-values), never faked. Primary FDR stays pre-registered BH.
+            "advanced_methods": fdr_advanced_methods_disclosure(),
         },
         "robustness_multiverse": {
             "method": "per-block FDR-family stability over local/global BH",

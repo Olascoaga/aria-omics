@@ -53,6 +53,37 @@ def preregister_fdr_family(strategy) -> dict:
     }
 
 
+def fdr_advanced_methods_disclosure() -> dict:
+    """Honest disclosure for IHW and apeGLM s-values (P1-2 closure, ADR-027).
+
+    ARIA does NOT implement covariate-weighted IHW or s-values, and discloses
+    that rather than faking them. There is no validated pure-Python IHW
+    (Ignatiadis-Huber is R/Bioconductor only) and pydeseq2 0.5.4 exposes no
+    s-values; a hand-rolled covariate-weighted BH could silently break FDR
+    control, which the no-fabrication policy (ADR-002) forbids. The primary FDR
+    therefore stays the pre-registered Benjamini-Hochberg family. Recorded under
+    `methodology.json["multiple_testing"]["advanced_methods"]`.
+    """
+    return {
+        "ihw": {
+            "status": "not_implemented",
+            "available": False,
+            "reason": (
+                "No validated pure-Python IHW estimator; Independent Hypothesis "
+                "Weighting (Ignatiadis-Huber) is R/Bioconductor only. A "
+                "hand-rolled covariate-weighted BH could silently break FDR "
+                "control (ADR-002), so it is not shipped."
+            ),
+        },
+        "s_values": {
+            "status": "not_available",
+            "available": False,
+            "reason": "pydeseq2 0.5.4 (apeGLM) exposes no s-values.",
+        },
+        "primary_method": "pre-registered Benjamini-Hochberg (local/global dual)",
+    }
+
+
 def primary_fdr_column(strategy) -> str:
     """Map a (pre-registered) strategy to its primary adjusted-p-value column.
 

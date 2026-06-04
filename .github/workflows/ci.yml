@@ -103,6 +103,8 @@ jobs:
             tests/test_ledger_claim_linkage.py \
             tests/test_stage4_closeout.py \
             tests/test_calibration_badge.py \
+            tests/test_calibration_spike_in.py \
+            tests/test_fdr_advanced_disclosure.py \
             tests/test_lfc_shrinkage.py \
             tests/test_pathway_viz.py \
             tests/test_doctor.py \
@@ -147,6 +149,7 @@ jobs:
           pip install -e .
           python -m pytest -q \
             tests/test_benchmark_synthetic_de.py \
+            tests/test_calibration_spike_in.py \
             tests/test_lfc_shrinkage.py \
             tests/test_composition_collinearity.py \
             tests/test_bulk_covariates.py \

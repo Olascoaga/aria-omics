@@ -17,6 +17,10 @@ from aria.benchmarks.synthetic_de import (
     run_bulk_de_benchmark,
     run_bulk_de_negative_control,
     run_pseudobulk_de_negative_control,
+    SpikeInDataset,
+    SpikeInResult,
+    simulate_spike_in_bulk_dataset,
+    run_bulk_de_spike_in,
     run_calibration_suite,
 )
 from aria.benchmarks.synthetic_atac_da import (
@@ -38,6 +42,11 @@ __all__ = [
     "NegativeControlResult",
     "run_bulk_de_negative_control",
     "run_pseudobulk_de_negative_control",
+    # W-CALIB: spike-in dose-response effect-size calibration ladder.
+    "SpikeInDataset",
+    "SpikeInResult",
+    "simulate_spike_in_bulk_dataset",
+    "run_bulk_de_spike_in",
     "run_calibration_suite",
     # P3-2: scATAC differential-accessibility calibration hook (v4.6 scaffold).
     "SyntheticATACDADataset",
