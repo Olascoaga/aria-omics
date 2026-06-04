@@ -344,9 +344,11 @@ class OrchestratorAgent(BaseAgent):
     # ── Callback principal para checkpoints resueltos ───────────────────
     def on_checkpoint_resolved(self, message_id: str,
                                 user_decision: str,
-                                experiment_id: str) -> dict:
+                                experiment_id: str,
+                                corrections: dict | None = None) -> dict:
         session_bus = self._get_session(experiment_id).message_bus
-        session_bus.resolve_checkpoint(message_id, {"choice": user_decision})
+        session_bus.resolve_checkpoint(
+            message_id, {"choice": user_decision, "corrections": corrections})
 
         resolved_msg = next(
             (m for m in session_bus.get_log(experiment_id) if m.id == message_id),
@@ -377,7 +379,8 @@ class OrchestratorAgent(BaseAgent):
 
         # ── Checkpoints normales ────────────────────────────────────────
         if cp == 1:
-            return self._after_checkpoint_1(experiment_id, user_decision, resolved_msg)
+            return self._after_checkpoint_1(
+                experiment_id, user_decision, resolved_msg, corrections=corrections)
         elif cp == 2:
             return self._after_checkpoint_2(experiment_id, user_decision, resolved_msg)
         elif cp == 3:
@@ -388,11 +391,39 @@ class OrchestratorAgent(BaseAgent):
         return {"status": "ok"}
 
     # ── Checkpoint 1: Auditoría completada ──────────────────────────────
-    def _after_checkpoint_1(self, experiment_id: str, decision: str, msg: Message) -> dict:
+    def _after_checkpoint_1(self, experiment_id: str, decision: str, msg: Message,
+                            corrections: dict | None = None) -> dict:
         if "cancel" in decision.lower():
             return {"status": "cancelled"}
 
         exp_context = msg.payload.get("context", {}).get("exp_context", {})
+
+        # CHECKPOINT-1 "Correct metadata": apply the user's modality/organism/
+        # genome corrections to exp_context BEFORE design/dispatch, so the right
+        # pipeline runs. Previously this decision was a silent no-op and ARIA
+        # proceeded with the (possibly wrong) auto-detected metadata.
+        if "correct" in decision.lower() and corrections:
+            from aria.agents.data_audit_agent import apply_metadata_corrections
+            apply_metadata_corrections(exp_context, corrections)
+            self.publish_finding(
+                experiment_id,
+                {"summary": (
+                    "User corrected the data audit at checkpoint 1: "
+                    f"modality(ies)={list((exp_context.get('modalities') or {}).keys())}, "
+                    f"organism={exp_context.get('organism')}, "
+                    f"genome={exp_context.get('genome')}."
+                )},
+                Confidence.HIGH,
+            )
+            self.memory.store_decision(
+                decision_id=str(uuid.uuid4())[:8],
+                wing_id=experiment_id,
+                checkpoint=1,
+                question="Correct data-audit metadata",
+                decision=str(corrections),
+                rationale="User overrode the auto-detected modality/organism/genome.",
+                made_by="user",
+            )
 
         # P1-8a / W-PRIV: honor the user's air-gapped choice from the sensitivity
         # checkpoint. Enabling it here (before design/dispatch) makes BOTH the

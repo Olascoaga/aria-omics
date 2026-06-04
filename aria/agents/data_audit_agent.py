@@ -134,6 +134,52 @@ ORGANISM_HINTS = {
     "S. cerevisiae":       ["sacCer3", "yeast", "cerevisiae"],
 }
 
+# Modalities a user may pick when correcting the data audit at CHECKPOINT 1.
+# Sourced from the recognized SIGNATURES so the menu always matches what ARIA
+# can route (dispatch gating, e.g. scATAC/HiC, is enforced downstream).
+SUPPORTED_MODALITIES = list(SIGNATURES.keys())
+
+# Canonical reference genome per organism (the default an alignment-based
+# pipeline uses); the first assembly in each organism's hint list.
+_DEFAULT_GENOME = {
+    "Homo sapiens": "hg38",
+    "Mus musculus": "mm10",
+    "Drosophila melanogaster": "dm6",
+    "C. elegans": "ce11",
+    "Danio rerio": "danRer11",
+    "S. cerevisiae": "sacCer3",
+}
+
+
+def default_genome_for_organism(organism: str | None) -> str | None:
+    """Return the canonical reference assembly for an organism, or None."""
+    return _DEFAULT_GENOME.get(str(organism or "").strip())
+
+
+def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> dict:
+    """Apply a user's CHECKPOINT-1 metadata corrections in place.
+
+    ``corrections`` may carry ``modality`` (re-assign ALL audited files to that
+    single modality — the user is asserting "this data is actually X"),
+    ``organism``, and ``genome``. Returns the same ``exp_context``. A falsy
+    ``corrections`` is a no-op (e.g. headless runs that cannot prompt).
+    """
+    if not corrections:
+        return exp_context
+    modality = corrections.get("modality")
+    if modality:
+        all_files = [
+            f
+            for files in (exp_context.get("modalities") or {}).values()
+            for f in (files or [])
+        ]
+        exp_context["modalities"] = {modality: all_files}
+    if corrections.get("organism"):
+        exp_context["organism"] = corrections["organism"]
+    if corrections.get("genome"):
+        exp_context["genome"] = corrections["genome"]
+    return exp_context
+
 
 @dataclass(frozen=True)
 class DataAuditScanLimits:

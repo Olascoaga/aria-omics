@@ -175,6 +175,83 @@ def print_agent_message(agent: str, message: str):
     console.print(prefix + msg)
 
 
+def _collect_metadata_corrections(exp_context: dict) -> dict:
+    """CHECKPOINT-1 correction sub-flow: pick the real modality and species.
+
+    Returns a corrections dict ``{modality, organism, genome}`` (only the keys the
+    user actually changed). Empty dict if the user keeps everything.
+    """
+    from aria.agents.data_audit_agent import (
+        SUPPORTED_MODALITIES, default_genome_for_organism,
+    )
+
+    corrections: dict = {}
+    current_mods = list((exp_context.get("modalities") or {}).keys())
+    console.print(
+        f"\n  [{C['muted']}]Currently detected modality: "
+        f"{', '.join(current_mods) or 'unknown'}[/]"
+    )
+    console.print(f"  [{C['muted']}]Select the correct modality:[/]")
+    for i, m in enumerate(SUPPORTED_MODALITIES, 1):
+        console.print(f"    [{C['cyan']}][{i}][/] {m}")
+    keep_idx = len(SUPPORTED_MODALITIES) + 1
+    console.print(f"    [{C['muted']}][{keep_idx}][/] keep current")
+    m_choice = Prompt.ask(
+        f"  [bold {C['cyan']}]Modality[/]",
+        choices=[str(i) for i in range(1, keep_idx + 1)],
+        default=str(keep_idx), console=console,
+    )
+    if int(m_choice) != keep_idx:
+        corrections["modality"] = SUPPORTED_MODALITIES[int(m_choice) - 1]
+
+    organisms = [
+        "Homo sapiens", "Mus musculus", "Drosophila melanogaster",
+        "C. elegans", "Danio rerio", "S. cerevisiae",
+    ]
+    console.print(
+        f"\n  [{C['muted']}]Current organism: "
+        f"{exp_context.get('organism', 'unknown')}[/]"
+    )
+    console.print(f"  [{C['muted']}]Select the correct species:[/]")
+    for i, o in enumerate(organisms, 1):
+        console.print(f"    [{C['cyan']}][{i}][/] {o}")
+    other_idx = len(organisms) + 1
+    keep_org_idx = other_idx + 1
+    console.print(f"    [{C['cyan']}][{other_idx}][/] Other (type it)")
+    console.print(f"    [{C['muted']}][{keep_org_idx}][/] keep current")
+    o_choice = Prompt.ask(
+        f"  [bold {C['cyan']}]Species[/]",
+        choices=[str(i) for i in range(1, keep_org_idx + 1)],
+        default=str(keep_org_idx), console=console,
+    )
+    organism = None
+    if int(o_choice) == other_idx:
+        organism = Prompt.ask(
+            f"  [bold {C['cyan']}]Type the species "
+            f"(e.g. \"Rattus norvegicus\")[/]", console=console,
+        ).strip()
+    elif int(o_choice) != keep_org_idx:
+        organism = organisms[int(o_choice) - 1]
+    if organism:
+        corrections["organism"] = organism
+        genome = default_genome_for_organism(organism)
+        if genome:
+            corrections["genome"] = genome
+            console.print(
+                f"  [{C['muted']}]Reference genome set to {genome} "
+                f"for {organism}.[/]"
+            )
+
+    if corrections:
+        console.print(
+            f"\n  [{C['green']}]Corrections applied:[/] "
+            f"{corrections}\n"
+        )
+    else:
+        console.print(f"\n  [{C['muted']}]No changes made.[/]\n")
+    return corrections
+
+
 def print_checkpoint(number, title: str,
                      content: str, options: list[str]) -> str:
     """
@@ -541,10 +618,19 @@ def _drain_checkpoints(orchestrator: OrchestratorAgent,
             options=msg.payload.get("options", ["Continue", "Cancel"]),
         )
 
+        # CHECKPOINT-1 "Correct metadata": let the user pick the real modality and
+        # species, and pass the corrections to the orchestrator.
+        corrections = None
+        if cp_num == 1 and "correct" in choice.lower():
+            corrections = _collect_metadata_corrections(
+                msg.payload.get("context", {}).get("exp_context", {})
+            )
+
         result = orchestrator.on_checkpoint_resolved(
             message_id=msg.id,
             user_decision=choice,
             experiment_id=experiment_id,
+            corrections=corrections,
         )
 
         if result.get("status") == "cancelled":
