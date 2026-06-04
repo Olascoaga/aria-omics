@@ -143,6 +143,19 @@ class ReportBuilderMixin:
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
             run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
 
+        # W-LEDGER: actively verify that no associative-or-stronger claim cites a
+        # ledger node the run marked not-run/skipped/error. This is intentionally
+        # outside the build try/except so a real contradiction (the thin-report
+        # shape) aborts rendering instead of producing a misleading report.
+        from aria.agents.narrative.run_ledger import (
+            verify_blocks_against_ledger, LedgerLinkageError,
+        )
+        from aria.agents.narrative.validators import NarrativeValidationError
+        try:
+            verify_blocks_against_ledger(narrative_blocks, run_ledger, strict=True)
+        except LedgerLinkageError as exc:
+            raise NarrativeValidationError(str(exc)) from exc
+
         # Findings table rows
         findings_rows = self._build_findings_table(grouped_findings)
 
@@ -536,6 +549,15 @@ class ReportBuilderMixin:
                 log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
                 run_ledger = {"entries": [], "divergences": [],
                               "n_divergences": 0}
+        # W-LEDGER: link every compiled claim to its ledger node so each claim is
+        # traceable to both an evidence card (W-CLAIM) and a run-ledger node. The
+        # per-claim ledger_node_id/ledger_status are written in place; the summary
+        # (incl. any contradiction) is recorded on the ledger manifest.
+        try:
+            from aria.agents.narrative.run_ledger import link_claims_to_ledger
+            run_ledger["claim_linkage"] = link_claims_to_ledger(claims, run_ledger)
+        except Exception as exc:
+            log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
         try:
             from aria.agents.narrative.robustness import build_robustness_multiverse
             robustness_multiverse = build_robustness_multiverse(agent_results)

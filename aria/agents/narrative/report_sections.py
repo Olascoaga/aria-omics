@@ -160,8 +160,9 @@ def _build_calibration_badge(calibration: dict | None) -> str:
 
 
 def _build_run_ledger_section(run_ledger: dict | None) -> str:
-        """P-LEDGER: render the planned-vs-run manifest. Any analysis the plan
-        called for that did not run is flagged as a divergence."""
+        """P-LEDGER + W-LEDGER: render the planned-vs-run manifest with the stable
+        ledger node id each report claim links to. Any analysis the plan called
+        for that did not run is flagged as a divergence."""
         entries = (run_ledger or {}).get("entries", []) or []
         if not entries:
             return ""
@@ -171,23 +172,36 @@ def _build_run_ledger_section(run_ledger: dict | None) -> str:
             planned = "yes" if e.get("planned") else "no"
             status = str(e.get("status", ""))
             reason = e.get("reason")
+            node_id = str(e.get("node_id", ""))
             flag = " ⚠ planned but not run" if e.get("divergence") else ""
             detail = f" ({_html.escape(str(reason))})" if reason else ""
             rows.append(
                 "<tr>"
                 f"<td>{_html.escape(str(e.get('label', e.get('analysis', ''))))}</td>"
+                f"<td><code>{_html.escape(node_id)}</code></td>"
                 f"<td>{_html.escape(planned)}</td>"
                 f"<td><code>{_html.escape(status)}</code>{detail}"
                 f"{_html.escape(flag)}</td>"
                 "</tr>"
             )
+        # W-LEDGER: summarize claim -> ledger-node linkage when present.
+        linkage = (run_ledger or {}).get("claim_linkage") or {}
+        link_html = ""
+        if linkage:
+            n_viol = linkage.get("n_violations", 0)
+            link_html = (
+                f"<p><em>Claim linkage: {linkage.get('linked', 0)} claim(s) "
+                f"linked to a ledger node, {linkage.get('unlinked', 0)} without a "
+                f"node; {n_viol} claim(s) citing a non-executed analysis.</em></p>"
+            )
         header = (
             f"<h3>Run Ledger (planned vs executed)</h3>"
             f"<p><em>{n_div} plan/execution divergence(s).</em></p>"
+            f"{link_html}"
         )
         return (
             header
-            + "<table><tr><th>Analysis</th><th>Planned</th>"
+            + "<table><tr><th>Analysis</th><th>Ledger node</th><th>Planned</th>"
               "<th>Status</th></tr>"
             + "".join(rows)
             + "</table>"
