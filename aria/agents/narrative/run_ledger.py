@@ -168,8 +168,15 @@ def _bulk_findings_normalized(agent_results: dict) -> dict:
         if c.get("pathways"):
             pathway_ran = True
             break
+        # Mirror the bulk narrator's GSEA block-creation condition exactly
+        # (narrators/bulk_rna.py: gsea_table OR running_sums OR top_table_fig),
+        # so a GSEA-only contrast does not read as a not-run pathway node.
         plots = c.get("plots") or {}
-        if isinstance(plots, dict) and plots.get("gsea_table"):
+        if isinstance(plots, dict) and (
+            plots.get("gsea_table")
+            or plots.get("gsea_running_sums")
+            or plots.get("gsea_top_table")
+        ):
             pathway_ran = True
             break
     # Only assert the node when there is evidence it ran; otherwise leave it

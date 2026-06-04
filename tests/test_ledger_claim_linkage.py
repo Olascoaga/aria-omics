@@ -123,6 +123,28 @@ def test_bulk_claims_link_to_bulk_nodes():
     assert claims[0]["ledger_status"] == "ran"
 
 
+def test_bulk_pathway_node_ran_for_gsea_only_running_sums():
+    # Regression: a bulk contrast with GSEA running-sum plots but NO gsea_table
+    # and NO ORA pathways still builds a GSEA block in the narrator, so the
+    # pathway_enrichment ledger node must read "ran" (not a false not-run that
+    # would flag the associative GSEA claim as a violation).
+    agent_results = {"bulk_rna_agent": {"findings": {
+        "sample_qc": {"n_samples": 6},
+        "contrasts": [{"name": "t_vs_c", "status": "success",
+                       "plots": {"gsea_running_sums": ["/p1.png", "/p2.png"]}}],
+    }}}
+    ledger = build_run_ledger({}, agent_results)
+    node = next(e for e in ledger["entries"]
+                if e["node_id"] == "ledger://bulk/pathway_enrichment")
+    assert node["status"] == "ran"
+    # And a GSEA-only claim links to that ran node without a violation.
+    claims = [{"claim_id": "bulk.gsea.t_vs_c", "modality": "bulk RNA-seq",
+               "analysis": "gsea_preranked", "tier": "associative"}]
+    summary = link_claims_to_ledger(claims, ledger)
+    assert claims[0]["ledger_status"] == "ran"
+    assert summary["n_violations"] == 0
+
+
 def test_bulk_pathway_claim_links_when_pathways_present():
     exp_ctx = {"design_intelligence": {
         "recommended": ["Pathway/ORA enrichment."], "optional": []}}

@@ -197,6 +197,24 @@ def _build_run_ledger_section(run_ledger: dict | None) -> str:
                 f"linked to a ledger node, {linkage.get('unlinked', 0)} without a "
                 f"node; {n_viol} claim(s) citing a non-executed analysis.</em></p>"
             )
+        # W-LEDGER: a loud, non-fatal caveat when a claim cites a non-executed
+        # analysis (the record-only integrity check from the render path).
+        verification = (run_ledger or {}).get("claim_ledger_verification") or {}
+        if verification.get("n_violations"):
+            items = "".join(
+                "<li>"
+                f"<code>{_html.escape(str(v.get('claim_id', '')))}</code> cites "
+                f"<code>{_html.escape(str(v.get('node_id', '')))}</code> "
+                f"(run status: {_html.escape(str(v.get('ledger_status', '')))})"
+                "</li>"
+                for v in verification.get("violations", [])
+            )
+            link_html += (
+                "<p style='color:var(--amber)'><strong>⚠ Claim/ledger "
+                "integrity:</strong> the following claim(s) reference an analysis "
+                "the run did not execute — interpret with caution:</p>"
+                f"<ul style='color:var(--amber)'>{items}</ul>"
+            )
         header = (
             f"<h3>Run Ledger (planned vs executed)</h3>"
             f"<p><em>{n_div} plan/execution divergence(s).</em></p>"

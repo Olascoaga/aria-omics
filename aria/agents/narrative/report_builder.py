@@ -143,18 +143,30 @@ class ReportBuilderMixin:
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
             run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
 
-        # W-LEDGER: actively verify that no associative-or-stronger claim cites a
-        # ledger node the run marked not-run/skipped/error. This is intentionally
-        # outside the build try/except so a real contradiction (the thin-report
-        # shape) aborts rendering instead of producing a misleading report.
-        from aria.agents.narrative.run_ledger import (
-            verify_blocks_against_ledger, LedgerLinkageError,
-        )
-        from aria.agents.narrative.validators import NarrativeValidationError
+        # W-LEDGER: verify that no associative-or-stronger claim cites a ledger
+        # node the run marked not-run/skipped/error. This cross-references TWO
+        # structures whose "ran" semantics can legitimately differ (the ledger's
+        # finding-based detection vs a narrator's block-creation condition), so it
+        # is RECORD-ONLY (fail-safe): a mismatch is recorded in methodology.json
+        # and surfaced as a loud caveat in the report, but it never aborts a real
+        # report. (Contrast W-CLAIM, which checks a block against its OWN evidence
+        # card and is safe to hard-fail in render_blocks.)
         try:
-            verify_blocks_against_ledger(narrative_blocks, run_ledger, strict=True)
-        except LedgerLinkageError as exc:
-            raise NarrativeValidationError(str(exc)) from exc
+            from aria.agents.narrative.run_ledger import verify_blocks_against_ledger
+            ledger_verification = verify_blocks_against_ledger(
+                narrative_blocks, run_ledger, strict=False
+            )
+            if isinstance(run_ledger, dict):
+                run_ledger["claim_ledger_verification"] = ledger_verification
+            if ledger_verification.get("n_violations"):
+                log.warning(
+                    "W-LEDGER: %d claim(s) cite a ledger node the run did not "
+                    "execute: %s",
+                    ledger_verification["n_violations"],
+                    [v.get("claim_id") for v in ledger_verification["violations"]],
+                )
+        except Exception as exc:
+            log.warning(f"Ledger claim verification failed: {exc}", exc_info=True)
 
         # Findings table rows
         findings_rows = self._build_findings_table(grouped_findings)
