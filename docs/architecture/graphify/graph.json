@@ -12,7 +12,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_h5utok_corpus_apply_fixes_sh__entry",
+      "id": "tmp_aria_graphify_siqwrb_corpus_apply_fixes_sh__entry",
       "label": "APPLY_fixes.sh script",
       "file_type": "code",
       "source_file": "APPLY_fixes.sh",
@@ -4886,6 +4886,69 @@
       "file_type": "code",
       "source_file": "aria/benchmarks/__init__.py",
       "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_synthetic_atac_da",
+      "label": "synthetic_atac_da.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "label": "SyntheticATACDADataset",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "benchmarks_synthetic_atac_da_syntheticatacdadataset_n_da",
+      "label": ".n_da()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "aria_benchmarks_synthetic_atac_da_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "label": "simulate_atac_da_dataset()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48"
+    },
+    {
+      "id": "aria_benchmarks_synthetic_atac_da_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48"
+    },
+    {
+      "id": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "label": "run_atac_da_benchmark()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119"
+    },
+    {
+      "id": "atacdacaller",
+      "label": "ATACDACaller",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119"
+    },
+    {
+      "id": "debenchmarkresult",
+      "label": "DEBenchmarkResult",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119"
     },
     {
       "id": "benchmarks_synthetic_de",
@@ -10142,7 +10205,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -10268,7 +10331,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_h5utok_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -10290,7 +10353,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -10640,6 +10703,34 @@
       "file_type": "code",
       "source_file": "tests/test_assay_detector.py",
       "source_location": "L127"
+    },
+    {
+      "id": "tests_test_benchmark_atac_da",
+      "label": "test_benchmark_atac_da.py",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_benchmark_atac_da_test_simulate_atac_da_dataset_has_known_truth",
+      "label": "test_simulate_atac_da_dataset_has_known_truth()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_refuses_to_fabricate_without_backend",
+      "label": "test_run_atac_da_benchmark_refuses_to_fabricate_without_backend()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_scores_an_injected_da_caller",
+      "label": "test_run_atac_da_benchmark_scores_an_injected_da_caller()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L48"
     },
     {
       "id": "tests_test_benchmark_synthetic_de",
@@ -15423,178 +15514,219 @@
       "source_location": "L49"
     },
     {
-      "id": "readme_orchestrator_agent",
+      "id": "aria_orchestratoragent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_data_audit_agent",
+      "id": "aria_dataauditagent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_design_agent",
+      "id": "aria_designagent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_audit_agent",
+      "id": "aria_auditagent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_setup_agent",
+      "id": "aria_setupagent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/setup_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_bulk_rna_agent",
+      "id": "aria_bulkrnaagent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_scrna_agent",
+      "id": "aria_scrnaagent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_genome_arch_agent",
-      "label": "GenomeArchAgent",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_narrative_agent",
+      "id": "aria_narrativeagent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "README.md"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "readme_integration_agent",
-      "label": "IntegrationAgent",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_llm_provider",
-      "label": "LLMProvider",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_parameter_advisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "readme_debate_council",
-      "label": "DebateCouncil",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "rna_bulk_de_py",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "rna_qc_py",
-      "label": "rna_qc.py",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "rna_pseudobulk_de_py",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "rna_cellcomm_py",
-      "label": "rna_cellcomm.py",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "rna_trajectory_py",
-      "label": "rna_trajectory.py",
-      "file_type": "code",
-      "source_file": "README.md"
-    },
-    {
-      "id": "code_graph_design_intelligence",
+      "id": "aria_designintelligence",
       "label": "DesignIntelligence",
       "file_type": "code",
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "aria/agents/design_intelligence.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "code_graph_assay_detector",
-      "label": "assay_detector.py",
+      "id": "aria_environmentmanager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "code_graph_sensitivity",
-      "label": "sensitivity.py",
+      "id": "aria_messagebus",
+      "label": "MessageBus",
       "file_type": "code",
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "code_graph_ora",
-      "label": "ora.py",
+      "id": "aria_ariamemory",
+      "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "aria/memory/sqlite_memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "code_graph_narrative_block",
-      "label": "NarrativeBlock",
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "docs/release_notes_v4.5.2.md"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_qc",
+      "label": "rna_qc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_qc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_cellcomm",
+      "label": "rna_cellcomm.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_cellcomm.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_trajectory",
+      "label": "rna_trajectory.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_trajectory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_devils_advocate",
+      "label": "Devil's Advocate",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/devils_advocate.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
     {
       "source": "apply_fixes",
-      "target": "tmp_aria_graphify_h5utok_corpus_apply_fixes_sh__entry",
+      "target": "tmp_aria_graphify_siqwrb_corpus_apply_fixes_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "APPLY_fixes.sh",
@@ -34288,6 +34420,212 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_synthetic_atac_da",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset_n_da",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_syntheticatacdadataset_n_da",
+      "target": "aria_benchmarks_synthetic_atac_da_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "aria_benchmarks_synthetic_atac_da_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da",
+      "target": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "atacdacaller",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "aria_benchmarks_synthetic_atac_da_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "aria_benchmarks_synthetic_atac_da_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "debenchmarkresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "debenchmarkresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_de",
       "target": "benchmarks_synthetic_de_syntheticdedataset",
       "relation": "contains",
@@ -52280,7 +52618,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -52333,7 +52671,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52343,7 +52681,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52353,7 +52691,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52363,7 +52701,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52373,7 +52711,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52491,7 +52829,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_h5utok_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -52500,7 +52838,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -52535,7 +52873,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -52545,7 +52883,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_h5utok_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_siqwrb_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -53009,6 +53347,33 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector.py",
       "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "tests_test_benchmark_atac_da_test_simulate_atac_da_dataset_has_known_truth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_refuses_to_fabricate_without_backend",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_scores_an_injected_da_caller",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -61549,6 +61914,16 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_init",
+      "target": "benchmarks_synthetic_atac_da",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/__init__.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
       "source": "bus_init",
       "target": "bus_message_bus",
       "relation": "re_exports",
@@ -63139,6 +63514,56 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_init",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/__init__.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_init",
+      "target": "atacdacaller",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/__init__.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_init",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/__init__.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_init",
+      "target": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/__init__.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_atac_da",
+      "target": "benchmarks_synthetic_de_debenchmarkresult",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_de",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "imports",
@@ -64496,6 +64921,46 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector.py",
       "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "benchmarks_synthetic_atac_da_syntheticatacdadataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da",
+      "target": "benchmarks_synthetic_de_debenchmarkresult",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -67109,6 +67574,16 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "target": "benchmarks_synthetic_de_debenchmarkresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_atac_da.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_de_run_bulk_de_benchmark",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
@@ -67996,6 +68471,56 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_analysis_thresholds.py",
       "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da_test_simulate_atac_da_dataset_has_known_truth",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_refuses_to_fabricate_without_backend",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_refuses_to_fabricate_without_backend",
+      "target": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_scores_an_injected_da_caller",
+      "target": "benchmarks_synthetic_atac_da_simulate_atac_da_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_atac_da_test_run_atac_da_benchmark_scores_an_injected_da_caller",
+      "target": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_atac_da.py",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -71729,116 +72254,174 @@
       "weight": 1.0
     },
     {
-      "source": "readme_orchestrator_agent",
-      "target": "readme_data_audit_agent",
+      "source": "aria_orchestratoragent",
+      "target": "aria_dataauditagent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_orchestrator_agent",
-      "target": "readme_design_agent",
+      "source": "aria_orchestratoragent",
+      "target": "aria_designagent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_orchestrator_agent",
-      "target": "readme_message_bus",
+      "source": "aria_orchestratoragent",
+      "target": "aria_auditagent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_orchestratoragent",
+      "target": "aria_setupagent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_orchestratoragent",
+      "target": "aria_bulkrnaagent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_orchestratoragent",
+      "target": "aria_scrnaagent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_orchestratoragent",
+      "target": "aria_narrativeagent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_bulkrnaagent",
+      "target": "aria_environmentmanager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_bulkrnaagent",
+      "target": "rna_bulk_de",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_bulk_rna_agent",
-      "target": "rna_bulk_de_py",
+      "source": "aria_scrnaagent",
+      "target": "rna_qc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_scrnaagent",
+      "target": "rna_pseudobulk_de",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_scrnaagent",
+      "target": "rna_cellcomm",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_scrnaagent",
+      "target": "rna_trajectory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aria_narrativeagent",
+      "target": "aria_claim_compiler",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_scrna_agent",
-      "target": "rna_qc_py",
+      "source": "aria_narrativeagent",
+      "target": "aria_devils_advocate",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_scrna_agent",
-      "target": "rna_pseudobulk_de_py",
+      "source": "aria_orchestratoragent",
+      "target": "aria_messagebus",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "readme_scrna_agent",
-      "target": "rna_cellcomm_py",
+      "source": "aria_orchestratoragent",
+      "target": "aria_ariamemory",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md"
-    },
-    {
-      "source": "readme_scrna_agent",
-      "target": "rna_trajectory_py",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md"
-    },
-    {
-      "source": "readme_data_audit_agent",
-      "target": "code_graph_assay_detector",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "readme_data_audit_agent",
-      "target": "code_graph_sensitivity",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "readme_bulk_rna_agent",
-      "target": "readme_environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "readme_scrna_agent",
-      "target": "readme_environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "rna_bulk_de_py",
-      "target": "code_graph_ora",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "readme_narrative_agent",
-      "target": "readme_llm_provider",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
