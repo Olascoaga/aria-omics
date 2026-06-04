@@ -287,6 +287,12 @@ for small-effect genes."
                                          grouped: dict,
                                          agent_results: dict) -> str:
         """Build a grounded summary directly from structured outputs."""
+        bulk_summary = self._deterministic_bulk_executive_summary(
+            exp_ctx, intent, agent_results
+        )
+        if bulk_summary:
+            return bulk_summary
+
         sc = (agent_results or {}).get("scrna_agent") or \
              (agent_results or {}).get("rna_agent") or {}
         if sc.get("status") != "done":
@@ -411,6 +417,104 @@ for small-effect genes."
                 f"the top communication pairs."
             )
 
+        return " ".join(parts[:4])
+
+    def _deterministic_bulk_executive_summary(self, exp_ctx: dict,
+                                              intent: dict,
+                                              agent_results: dict) -> str:
+        """Build a bulk RNA summary from structured results, without LLM prose."""
+        bulk = (agent_results or {}).get("bulk_rna_agent", {}) or {}
+        if bulk.get("status") != "done":
+            return ""
+        findings = bulk.get("findings", {}) or {}
+        contrasts = [
+            c for c in findings.get("contrasts", []) or []
+            if c.get("status") == "success"
+        ]
+        if not contrasts:
+            return ""
+
+        question = intent.get("summary") or exp_ctx.get("user_question") or \
+            "the bulk RNA-seq question"
+        organism = exp_ctx.get("organism") or "the submitted samples"
+        design = exp_ctx.get("design", {}) or {}
+        reps = design.get("replicates", {}) or {}
+        reps_clause = ""
+        if reps:
+            reps_txt = ", ".join(
+                f"{group} n={count}" for group, count in sorted(reps.items())
+            )
+            reps_clause = f" with {reps_txt}"
+
+        de_clause = "; ".join(
+            f"{c.get('name', 'contrast')}: {int(c.get('n_significant', 0))} "
+            f"DE genes ({int(c.get('n_upregulated', 0))} up, "
+            f"{int(c.get('n_downregulated', 0))} down)"
+            for c in contrasts[:4]
+        )
+        parts = [
+            f"Bulk RNA-seq in {organism}{reps_clause} directly addressed "
+            f"'{question}' with MEDIUM-confidence differential-expression "
+            f"evidence across {len(contrasts)} successful contrast(s): "
+            f"{de_clause}."
+        ]
+
+        overlap = findings.get("overlap", {}) or {}
+        if overlap:
+            pair, info = next(iter(overlap.items()))
+            parts.append(
+                f"The strongest shared-signal summary recorded {int(info.get('n_shared', 0))} "
+                f"shared DE genes for {pair} "
+                f"(Jaccard={float(info.get('jaccard', 0)):.3g})."
+            )
+
+        pathway_counts = []
+        top_terms = []
+        for c in contrasts:
+            terms = []
+            for db, rows in (c.get("pathways", {}) or {}).items():
+                for row in rows or []:
+                    term = row.get("term") or row.get("Term")
+                    if term:
+                        terms.append((db, term))
+            if terms:
+                pathway_counts.append(f"{c.get('name', 'contrast')}={len(terms)}")
+                top_terms.extend(terms[:1])
+        if pathway_counts:
+            top_txt = "; ".join(f"{db}: {term}" for db, term in top_terms[:3])
+            parts.append(
+                "Pathway ORA/GSEA support was generated for the DE gene sets "
+                f"({', '.join(pathway_counts)} term(s)); top recorded terms "
+                f"include {top_txt}."
+            )
+
+        powers = [
+            c.get("power_estimate_at_lfc_min") for c in contrasts
+            if isinstance(c.get("power_estimate_at_lfc_min"), (int, float))
+        ]
+        outlier_clause = ""
+        sample_qc = findings.get("sample_qc", {}) or {}
+        if sample_qc:
+            n_out = len(sample_qc.get("candidate_outliers",
+                                      sample_qc.get("outliers", [])) or [])
+            outlier_clause = (
+                f" Sample QC flagged {n_out} outlier(s); the primary DE "
+                "analysis retained all samples."
+            )
+        if powers:
+            parts.append(
+                f"Approximate power at the selected LFC threshold ranged from "
+                f"{min(powers):.0%} to {max(powers):.0%}."
+                f"{outlier_clause} The next step is biological review of the "
+                "top DE genes and enriched terms, plus orthogonal validation "
+                "for any mechanistic claims."
+            )
+        else:
+            parts.append(
+                f"{outlier_clause} The next step is biological review of the "
+                "top DE genes and enriched terms, plus orthogonal validation "
+                "for any mechanistic claims."
+            )
         return " ".join(parts[:4])
 
     def _summarize_agent_results_for_llm(self, agent_results: dict) -> str:
@@ -858,20 +962,65 @@ for small-effect genes."
                     for c in contrasts
                     if (c.get("pathway_background") or {}).get("background_size")
                 ]
+                ora_methods = {
+                    ((c.get("pathway_ora") or {}).get("method") or "none")
+                    for c in contrasts
+                    if c.get("status") == "success"
+                    and c.get("pathways")
+                }
+                versions = {}
+                for c in contrasts:
+                    ora_meta = c.get("pathway_ora") or {}
+                    for db, meta in (ora_meta.get("gene_set_versions") or {}).items():
+                        if isinstance(meta, dict):
+                            label = meta.get("release") or meta.get("version")
+                            if label:
+                                versions[db] = label
                 bg_clause = (
                     f" ORA used the dataset-expressed background "
                     f"({min(bg_sizes)}-{max(bg_sizes)} genes across contrasts) "
-                    f"instead of Enrichr's default universe."
+                    f"as the enrichment universe."
                     if bg_sizes else
-                    " ORA used Enrichr's default universe because no "
-                    "dataset-expressed background was available."
+                    " ORA did not record a dataset-expressed background "
+                    "size for at least one contrast."
                 )
+                version_clause = (
+                    " Gene-set releases recorded: "
+                    + "; ".join(f"{db}={rel}" for db, rel in sorted(versions.items()))
+                    + "."
+                    if versions else
+                    " Gene-set release metadata is recorded in pathway_ora "
+                    "when available."
+                )
+                if ora_methods <= {"local_hypergeometric", "none"}:
+                    ora_sentence = (
+                        "Over-representation analysis was performed locally "
+                        "with a hypergeometric test against versioned GO "
+                        "Biological Process, KEGG, and Reactome GMT libraries. "
+                        "Gene lists were not sent to Enrichr; Enrichr is "
+                        "opt-in only."
+                    )
+                elif "mixed_local_enrichr" in ora_methods:
+                    ora_sentence = (
+                        "Over-representation analysis used local versioned "
+                        "GMT libraries where available and Enrichr only for "
+                        "databases explicitly allowed by the run configuration."
+                    )
+                elif "enrichr" in ora_methods:
+                    ora_sentence = (
+                        "Over-representation analysis used Enrichr because "
+                        "the run configuration explicitly allowed that "
+                        "external enrichment endpoint."
+                    )
+                else:
+                    ora_sentence = (
+                        "Over-representation analysis was run for DE gene "
+                        "sets; the engine is recorded per contrast in "
+                        "pathway_ora."
+                    )
                 lines.append(
-                    f"Over-representation analysis was performed with "
-                    f"gseapy (Enrichr endpoint) against GO Biological "
-                    f"Process, KEGG, and Reactome gene sets. "
-                    f"Significance was defined as adjusted p-value < 0.05."
-                    f"{bg_clause}"
+                    f"{ora_sentence} Significance was defined as adjusted "
+                    f"p-value < 0.05.{bg_clause}{version_clause}"
                 )
 
         # Single-cell RNA methods (delegated to _narrative_scrna for full

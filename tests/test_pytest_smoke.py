@@ -2808,6 +2808,18 @@ def test_tool_versions_fall_back_to_lockfiles(monkeypatch):
     assert tools["anndata"] != "not installed"
 
 
+def test_tool_versions_read_repo_env_lockfiles():
+    from aria.agents.narrative import report_sections
+
+    tools = report_sections._collect_tool_versions(
+        ("pydeseq2", "gseapy", "anndata")
+    )
+
+    assert tools["pydeseq2"] == "0.5.4"
+    assert tools["gseapy"] == "1.1.13"
+    assert tools["anndata"] != "not installed"
+
+
 def test_conda_lock_url_version_parser():
     from aria.agents.narrative_agent import NarrativeAgent
 

@@ -43,7 +43,7 @@ def _collect_tool_versions(packages: tuple[str, ...]) -> dict:
 
 
 def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
-        root = Path(__file__).resolve().parents[2]
+        root = Path(__file__).resolve().parents[3]
         package_set = {p.lower(): p for p in packages}
         versions = {}
         pip_locks = sorted((root / "envs").glob("*.pip.lock"))

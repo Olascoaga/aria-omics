@@ -8,7 +8,7 @@ Fixes vs old inline implementation:
   2. Robust metadata parsing: detects groups from column names automatically
   3. Sample outlier detection (PCA-based) before running DESeq2; primary DE
      retains all samples and outlier removal is reported as sensitivity only
-  4. Pathway enrichment via gseapy after DE (GO BP, KEGG, Reactome)
+  4. Pathway enrichment via local ORA after DE (GO BP, KEGG, Reactome)
   5. Visualizations saved as SVG (volcano, sample PCA, heatmap)
   6. Runs in aria-rna-env (isolated) not in aria-env (base)
 
