@@ -283,9 +283,15 @@ class AssayDetector:
         if prefix.startswith(b"BAM\x01"):
             header = _read_bam_header_from_stream(path)
         elif prefix.startswith(b"\x1f\x8b"):
-            header = _read_gzip_prefix(path, 32768)
-            if header.startswith("BAM\x01"):
-                header = _parse_bam_header_text(header.encode("latin1", "ignore"))
+            decompressed = _read_gzip_prefix(path, 32768)
+            # Only a gzipped BAM is alignment content. A gzipped FASTQ or count
+            # table is NOT: scanning its decompressed bytes for assay keywords is
+            # unsafe because read sequences contain "atac"/"star" 4-mers by chance
+            # (this misclassified bulk RNA FASTQs as bulk_ATAC). Leave the header
+            # empty so detection falls through to the filename/path signal.
+            if decompressed.startswith("BAM\x01"):
+                header = _parse_bam_header_text(
+                    decompressed.encode("latin1", "ignore"))
         else:
             text = _read_text_prefix(path)
             if text.startswith("@HD") or text.startswith("@SQ"):

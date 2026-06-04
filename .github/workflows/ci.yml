@@ -87,6 +87,7 @@ jobs:
             tests/test_packaging.py \
             tests/test_docker_hermeticity.py \
             tests/test_image_provenance.py \
+            tests/test_assay_detector_fastq.py \
             tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout
