@@ -796,6 +796,12 @@ def main():
             raise SystemExit(code)
         return
 
+    # W-LEDGER: `aria diff A B` and `aria export <reportDir>` over the run ledger.
+    if args and args[0] in ("diff", "export"):
+        from aria.agents.narrative.ledger_export import cli_main
+
+        raise SystemExit(cli_main(args))
+
     reproducible_mode = "--reproducible" in sys.argv[1:]
     memory       = ARIAMemory()
     orchestrator = OrchestratorAgent(memory)
