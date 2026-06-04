@@ -107,34 +107,35 @@ def _run_synthetic_de_benchmark() -> list[IntegrityIssue]:
             severity="warning",
         )]
     issues: list[IntegrityIssue] = []
-    # Small/fast configs for the doctor; the pytest gate uses larger ones.
+    # W-CALIB single source: recovery (recall + empirical FDR) AND the
+    # label-permutation negative control (false-positive rate under the null)
+    # for both DE paths. `quick` uses small/fast configs; the pytest gate uses
+    # the full, powered configs.
     try:
-        from aria.benchmarks.synthetic_de import (
-            run_bulk_de_benchmark,
-            run_pseudobulk_de_benchmark,
-        )
-        runs = {
-            "pseudobulk": run_pseudobulk_de_benchmark(
-                n_genes=400, n_de=40, donors_per_condition=4, cells_per_donor=30,
-                seed=11, min_recall=0.5, max_empirical_fdr=0.25,
-            ),
-            "bulk": run_bulk_de_benchmark(
-                n_genes=400, n_de=40, replicates_per_condition=5,
-                seed=11, min_recall=0.5, max_empirical_fdr=0.25,
-            ),
-        }
+        from aria.benchmarks.synthetic_de import run_calibration_suite
+        manifest = run_calibration_suite(seed=11, quick=True)
     except Exception as exc:  # never let doctor crash on the benchmark
         return [IntegrityIssue(
             "benchmark_error",
-            f"Synthetic DE benchmark could not run: {exc}",
+            f"Synthetic DE calibration suite could not run: {exc}",
             severity="warning",
         )]
-    for path, res in runs.items():
-        if res.status != "pass":
+    for path, blocks in manifest.get("paths", {}).items():
+        recovery = blocks.get("recovery", {})
+        if recovery.get("status") != "pass":
+            msgs = recovery.get("messages") or [recovery]
             issues.append(IntegrityIssue(
                 "benchmark_failed",
-                f"Synthetic {path} DE recovery out of tolerance: "
-                f"{res.messages[0] if res.messages else res.as_dict()}",
+                f"Synthetic {path} DE recovery out of tolerance: {msgs[0]}",
+                severity="error",
+            ))
+        neg = blocks.get("negative_control", {})
+        if neg.get("status") != "pass":
+            msgs = neg.get("messages") or [neg]
+            issues.append(IntegrityIssue(
+                "calibration_failed",
+                f"Synthetic {path} DE negative control out of tolerance "
+                f"(over-calls under permuted null): {msgs[0]}",
                 severity="error",
             ))
     # Pass: clean (no issue). The pytest gate records the positive metrics.

@@ -102,6 +102,7 @@ class NarrativeAgent(ReportBuilderMixin, BaseAgent):
     _tool_versions_from_lockfiles = staticmethod(report_sections._tool_versions_from_lockfiles)
     _package_version_from_conda_url = staticmethod(report_sections._package_version_from_conda_url)
     _build_run_ledger_section = staticmethod(report_sections._build_run_ledger_section)
+    _build_calibration_badge = staticmethod(report_sections._build_calibration_badge)
     _build_raw_ingestion_section = staticmethod(report_sections._build_raw_ingestion_section)
     _collect_param_hashes = staticmethod(report_sections._collect_param_hashes)
     _build_lockfile_section = staticmethod(report_sections._build_lockfile_section)

@@ -101,6 +101,7 @@ jobs:
             tests/test_claim_compiler.py \
             tests/test_run_ledger_and_devils.py \
             tests/test_stage4_closeout.py \
+            tests/test_calibration_badge.py \
             tests/test_lfc_shrinkage.py \
             tests/test_pathway_viz.py \
             tests/test_doctor.py \

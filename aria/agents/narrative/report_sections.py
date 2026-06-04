@@ -96,6 +96,69 @@ def _package_version_from_conda_url(
         return None
 
 
+def _build_calibration_badge(calibration: dict | None) -> str:
+    """W-CALIB: render the numerical-calibration badge for the report.
+
+    ``calibration`` is the manifest produced by
+    ``aria.benchmarks.run_calibration_suite`` (recall + empirical FDR + the
+    label-permutation negative-control false-positive rate, for the bulk and
+    pseudobulk DE paths). It is a property of the ARIA build, not of the user's
+    dataset, so it is only present when a real calibration run was attached.
+
+    Honesty contract (no fabrication): when no manifest is attached, the badge
+    states that calibration was NOT measured in this report environment and that
+    the DE paths are covered by ARIA's calibration test suite (the CI release
+    gate) — it shows NO metric. When a manifest IS attached it shows exactly the
+    measured numbers and their pass/fail status.
+    """
+    if not isinstance(calibration, dict) or not calibration.get("measured"):
+        return (
+            "<h3>Numerical Calibration (W-CALIB)</h3>"
+            "<p><span class='badge'>not measured in this run</span> "
+            "DE numerical calibration (recall, empirical FDR, and label-permutation "
+            "negative controls on the bulk &amp; pseudobulk paths) is exercised by "
+            "ARIA's calibration test suite / CI release gate, not re-run for each "
+            "report. No calibration metric is asserted for this run.</p>"
+        )
+
+    status = str(calibration.get("status", "")).lower()
+    css = {"pass": "high", "fail": "low", "error": "insuff"}.get(status, "medium")
+    label = {"pass": "PASS", "fail": "FAIL", "error": "ERROR"}.get(status, status.upper() or "—")
+    summary = calibration.get("summary", {}) or {}
+
+    def _fmt(key: str) -> str:
+        v = summary.get(key)
+        try:
+            return f"{float(v):.3f}"
+        except (TypeError, ValueError):
+            return "—"
+
+    rows = [
+        ("Bulk recall", _fmt("bulk_recall")),
+        ("Bulk empirical FDR", _fmt("bulk_empirical_fdr")),
+        ("Bulk null false-positive rate", _fmt("bulk_null_fpr")),
+        ("Pseudobulk recall", _fmt("pseudobulk_recall")),
+        ("Pseudobulk empirical FDR", _fmt("pseudobulk_empirical_fdr")),
+        ("Pseudobulk null false-positive rate", _fmt("pseudobulk_null_fpr")),
+    ]
+    body = "".join(
+        f"<tr><td>{_html.escape(name)}</td><td><code>{_html.escape(val)}</code></td></tr>"
+        for name, val in rows
+    )
+    seed = _html.escape(str(calibration.get("seed", "")))
+    return (
+        "<h3>Numerical Calibration (W-CALIB)</h3>"
+        f"<p><span class='badge {css}'>{label}</span> measured on synthetic "
+        "ground-truth data (recovery + label-permutation negative control). "
+        f"Seed <code>{seed}</code>. The null false-positive rate is the empirical "
+        "type-I rate when condition labels are permuted; it should sit at or below "
+        "the nominal alpha.</p>"
+        "<table><tr><th>Metric</th><th>Value</th></tr>"
+        + body
+        + "</table>"
+    )
+
+
 def _build_run_ledger_section(run_ledger: dict | None) -> str:
         """P-LEDGER: render the planned-vs-run manifest. Any analysis the plan
         called for that did not run is flagged as a divergence."""

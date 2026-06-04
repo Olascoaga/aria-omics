@@ -100,3 +100,89 @@ def test_bulk_de_recovers_ground_truth():
     assert res.status == "pass", res.as_dict()
     assert res.recall >= 0.5, res.as_dict()
     assert res.empirical_fdr <= 0.2, res.as_dict()
+
+
+# ── W-CALIB: label-permutation negative controls (empirical type-I) ───────────
+
+def test_negative_control_result_shape():
+    """The negative-control result serializes the calibration fields a report
+    badge / methodology manifest consumes (runs without pydeseq2)."""
+    from aria.benchmarks.synthetic_de import NegativeControlResult
+
+    res = NegativeControlResult(
+        status="pass", false_positive_rate=0.001, max_false_positive_rate=0.004,
+        nominal_alpha=0.05, n_permutations=5, n_tested=1000,
+        calls_per_permutation=[0, 1, 0, 2, 1],
+        tolerances={"nominal_alpha": 0.05, "max_false_positive_rate": 0.05},
+        messages=["ok"],
+    )
+    d = res.as_dict()
+    assert d["status"] == "pass"
+    assert d["false_positive_rate"] == 0.001
+    assert d["nominal_alpha"] == 0.05
+    assert d["n_permutations"] == 5
+    assert d["calls_per_permutation"] == [0, 1, 0, 2, 1]
+
+
+def test_bulk_de_negative_control_stays_quiet_under_permuted_null():
+    """Permuting bulk condition labels destroys all signal; the real bulk DE
+    path must NOT over-call — the mean false-positive rate must stay at/below
+    the nominal alpha (empirical type-I control, the W-CALIB statement)."""
+    pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import run_bulk_de_negative_control
+
+    res = run_bulk_de_negative_control(
+        n_genes=800, n_de=80, replicates_per_condition=6,
+        n_permutations=4, seed=11, nominal_alpha=0.05,
+        max_false_positive_rate=0.05,
+    )
+    assert res.status == "pass", res.as_dict()
+    assert res.false_positive_rate <= 0.05, res.as_dict()
+    assert res.n_permutations >= 1, res.as_dict()
+
+
+def test_pseudobulk_de_negative_control_stays_quiet_under_permuted_null():
+    """Permuting the donor→condition map destroys all signal; the real
+    pseudobulk DE path must not over-call under the null."""
+    pytest.importorskip("anndata")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import run_pseudobulk_de_negative_control
+
+    res = run_pseudobulk_de_negative_control(
+        n_genes=800, n_de=80, donors_per_condition=6, cells_per_donor=60,
+        n_permutations=3, seed=11, nominal_alpha=0.05,
+        max_false_positive_rate=0.05,
+    )
+    assert res.status == "pass", res.as_dict()
+    assert res.false_positive_rate <= 0.05, res.as_dict()
+
+
+def test_calibration_suite_assembles_recovery_and_negative_control():
+    """run_calibration_suite combines recall + empirical FDR + negative-control
+    FP-rate for bulk and pseudobulk into one honest manifest the report badge
+    consumes; a clean build is status=pass."""
+    pytest.importorskip("anndata")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import run_calibration_suite
+
+    # Use the full, genuinely-powered gate config (quick=False) for the pass
+    # assertion; the quick path is a looser doctor smoke.
+    manifest = run_calibration_suite(seed=11, quick=False)
+    assert manifest["measured"] is True
+    assert manifest["status"] in {"pass", "fail", "error"}
+    assert set(manifest["paths"]) == {"bulk", "pseudobulk"}
+    for path in ("bulk", "pseudobulk"):
+        assert "recovery" in manifest["paths"][path]
+        assert "negative_control" in manifest["paths"][path]
+    summary = manifest["summary"]
+    for key in (
+        "bulk_recall", "bulk_empirical_fdr", "bulk_null_fpr",
+        "pseudobulk_recall", "pseudobulk_empirical_fdr", "pseudobulk_null_fpr",
+    ):
+        assert key in summary
+    # A clean build should pass calibration end to end: it recovers true effects
+    # AND stays quiet (null false-positive rate ~ 0) under the permuted null.
+    assert manifest["status"] == "pass", manifest
+    assert summary["bulk_null_fpr"] <= 0.05, manifest
+    assert summary["pseudobulk_null_fpr"] <= 0.05, manifest

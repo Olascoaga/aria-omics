@@ -60,6 +60,42 @@ class DEBenchmarkResult:
         }
 
 
+@dataclass
+class NegativeControlResult:
+    """W-CALIB negative control: false-positive rate under a permuted null.
+
+    The recovery benchmarks (recall + empirical FDR on a dataset WITH signal)
+    answer "does ARIA find true effects?". This answers the complementary
+    calibration question — "does ARIA stay quiet when there is NO effect?" — by
+    permuting the condition labels (destroying any real association) and checking
+    the real DE path does not over-call. Every gene called under the permuted
+    null is, by construction, a false positive; a well-calibrated method keeps
+    the false-positive rate at or below the nominal alpha.
+    """
+    status: str                             # "pass" | "fail" | "error"
+    false_positive_rate: float              # mean fraction of tested genes called over permutations
+    max_false_positive_rate: float          # worst single permutation
+    nominal_alpha: float                    # the FDR/alpha the method was run at
+    n_permutations: int
+    n_tested: int                           # genes tested per permutation (last run)
+    calls_per_permutation: list[int]        # significant count in each permutation
+    tolerances: dict[str, float]
+    messages: list[str] = field(default_factory=list)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "status": self.status,
+            "false_positive_rate": round(self.false_positive_rate, 4),
+            "max_false_positive_rate": round(self.max_false_positive_rate, 4),
+            "nominal_alpha": self.nominal_alpha,
+            "n_permutations": self.n_permutations,
+            "n_tested": self.n_tested,
+            "calls_per_permutation": self.calls_per_permutation,
+            "tolerances": self.tolerances,
+            "messages": self.messages,
+        }
+
+
 def simulate_pseudobulk_dataset(
     *,
     n_genes: int = 1500,
@@ -383,3 +419,275 @@ def run_pseudobulk_de_benchmark(
         tolerances={"min_recall": min_recall, "max_empirical_fdr": max_empirical_fdr},
         messages=messages,
     )
+
+
+# ── W-CALIB: label-permutation negative controls (empirical type-I / FDR) ─────
+#
+# A recovery benchmark proves ARIA finds true effects. A negative control proves
+# it does not invent them: under permuted (null) labels the false-positive rate
+# must stay near the nominal alpha. Together they make the calibration statement
+# the v4.6 gate asks for — empirical FDR ≈ nominal on bulk and pseudobulk, not
+# just recall.
+
+
+def run_bulk_de_negative_control(
+    dataset: SyntheticBulkDEDataset | None = None,
+    *,
+    n_permutations: int = 5,
+    nominal_alpha: float = 0.05,
+    max_false_positive_rate: float = 0.05,
+    lfc_min: float = 0.5,
+    lfc_shrink: bool = True,
+    seed: int = 11,
+    **sim_kwargs,
+) -> NegativeControlResult:
+    """Permute bulk condition labels and confirm ARIA's real bulk DE stays quiet.
+
+    The simulated matrix carries real signal, but the condition labels are
+    shuffled across samples before each DE run, so there is NO true association
+    and every significant call is a false positive. A calibrated method keeps the
+    mean false-positive rate (significant / tested) at or below
+    ``max_false_positive_rate``. Requires pydeseq2.
+    """
+    import numpy as np
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    if dataset is None:
+        dataset = simulate_bulk_dataset(seed=seed, **sim_kwargs)
+
+    tolerances = {
+        "nominal_alpha": nominal_alpha,
+        "max_false_positive_rate": max_false_positive_rate,
+    }
+    rng = np.random.default_rng(seed)
+    labels = list(dataset.metadata["condition"].values)
+    n_tested = 0
+    calls: list[int] = []
+    rates: list[float] = []
+    errors: list[str] = []
+
+    for _ in range(n_permutations):
+        permuted = list(labels)
+        rng.shuffle(permuted)
+        meta = dataset.metadata.copy()
+        meta["condition"] = permuted
+        result, _w = _run_deseq2(
+            dataset.counts, meta, "condition", "COND_B", "COND_A",
+            padj_thr=nominal_alpha, lfc_thr=lfc_min, lfc_shrink=lfc_shrink,
+        )
+        if result.get("status") != "success":
+            errors.append(f"{result.get('error_type')} {result.get('details', '')}")
+            continue
+        # Genes actually tested = rows of the DESeq2 results table (post-filter);
+        # fall back to the full matrix if the script shape is unavailable.
+        res_df = result.get("results")
+        tested = int(len(res_df)) if res_df is not None else 0
+        if not tested:
+            tested = int(dataset.counts.shape[0])
+        n_called = len(result.get("sig_genes", []) or [])
+        n_tested = tested
+        calls.append(n_called)
+        rates.append(n_called / max(tested, 1))
+
+    if not rates:
+        return NegativeControlResult(
+            status="error", false_positive_rate=1.0, max_false_positive_rate=1.0,
+            nominal_alpha=nominal_alpha, n_permutations=n_permutations,
+            n_tested=0, calls_per_permutation=calls, tolerances=tolerances,
+            messages=["bulk DE did not succeed under any permutation: "
+                      + "; ".join(errors)],
+        )
+
+    mean_fpr = float(sum(rates) / len(rates))
+    worst = float(max(rates))
+    status = "pass" if mean_fpr <= max_false_positive_rate else "fail"
+    messages = [
+        f"label-permutation null: mean false-positive rate={mean_fpr:.4f} "
+        f"(<= {max_false_positive_rate}; nominal alpha={nominal_alpha}); "
+        f"worst={worst:.4f}; calls/perm={calls}; n_tested={n_tested}",
+    ]
+    return NegativeControlResult(
+        status=status, false_positive_rate=mean_fpr, max_false_positive_rate=worst,
+        nominal_alpha=nominal_alpha, n_permutations=len(rates), n_tested=n_tested,
+        calls_per_permutation=calls, tolerances=tolerances, messages=messages,
+    )
+
+
+def run_pseudobulk_de_negative_control(
+    dataset: SyntheticDEDataset | None = None,
+    *,
+    workdir: str | None = None,
+    n_permutations: int = 4,
+    nominal_alpha: float = 0.05,
+    max_false_positive_rate: float = 0.05,
+    lfc_min: float = 0.5,
+    seed: int = 11,
+    **sim_kwargs,
+) -> NegativeControlResult:
+    """Permute the donor→condition map and confirm pseudobulk DE stays quiet.
+
+    Donors are the replication unit (nested in condition), so the permutation
+    reassigns whole donors to conditions at random with balanced group sizes —
+    a valid label-permutation null that preserves the pseudobulk structure. Under
+    it the real pseudobulk DE path should call essentially nothing; the mean
+    false-positive rate must stay at or below ``max_false_positive_rate``.
+    Requires pydeseq2.
+    """
+    import tempfile
+    from pathlib import Path
+    import numpy as np
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+
+    if dataset is None:
+        dataset = simulate_pseudobulk_dataset(seed=seed, **sim_kwargs)
+
+    tolerances = {
+        "nominal_alpha": nominal_alpha,
+        "max_false_positive_rate": max_false_positive_rate,
+    }
+    rng = np.random.default_rng(seed)
+    obs = dataset.adata.obs
+    donors = list(dict.fromkeys(obs["donor"].tolist()))   # stable unique order
+    n_a = int((obs.drop_duplicates("donor")["condition"] == "COND_A").sum())
+    tmp_root = workdir or tempfile.mkdtemp(prefix="aria_wcalib_neg_")
+
+    calls: list[int] = []
+    rates: list[float] = []
+    errors: list[str] = []
+    n_tested = 0
+
+    for i in range(n_permutations):
+        shuffled = list(donors)
+        rng.shuffle(shuffled)
+        # First n_a donors -> COND_A, the rest -> COND_B (balanced like the truth).
+        donor_to_cond = {d: ("COND_A" if j < n_a else "COND_B")
+                         for j, d in enumerate(shuffled)}
+        adata = dataset.adata.copy()
+        adata.obs = adata.obs.copy()
+        adata.obs["condition"] = [donor_to_cond[d] for d in adata.obs["donor"]]
+
+        run_dir = str(Path(tmp_root) / f"perm{i}")
+        Path(run_dir).mkdir(parents=True, exist_ok=True)
+        h5ad_path = str(Path(run_dir) / "permuted.h5ad")
+        adata.write_h5ad(h5ad_path)
+
+        result = rna_pseudobulk_de({
+            "data_path": h5ad_path,
+            "groupby": "ctype",
+            "condition_col": "condition",
+            "replicate_col": "donor",
+            "comparisons": [["COND_B", "COND_A"]],
+            "use_raw": False,
+            "min_replicates_per_condition": 3,
+            "padj_max": nominal_alpha,
+            "lfc_min": lfc_min,
+            "output_dir": run_dir,
+        })
+        if result.get("status") != "success":
+            errors.append(f"{result.get('error_type')} {result.get('details', '')}")
+            continue
+        block = (
+            result.get("per_group", {}).get("ctype0", {})
+            .get("per_comparison", {}).get("COND_B_vs_COND_A", {})
+        )
+        n_called = len(block.get("all_sig", []) or [])
+        tested = int(block.get("n_tested") or block.get("n_genes_tested") or 0)
+        if not tested:
+            tested = int(dataset.adata.shape[1])
+        n_tested = tested
+        calls.append(n_called)
+        rates.append(n_called / max(tested, 1))
+
+    if not rates:
+        return NegativeControlResult(
+            status="error", false_positive_rate=1.0, max_false_positive_rate=1.0,
+            nominal_alpha=nominal_alpha, n_permutations=n_permutations,
+            n_tested=0, calls_per_permutation=calls, tolerances=tolerances,
+            messages=["pseudobulk DE did not succeed under any permutation: "
+                      + "; ".join(errors)],
+        )
+
+    mean_fpr = float(sum(rates) / len(rates))
+    worst = float(max(rates))
+    status = "pass" if mean_fpr <= max_false_positive_rate else "fail"
+    messages = [
+        f"donor-permutation null: mean false-positive rate={mean_fpr:.4f} "
+        f"(<= {max_false_positive_rate}; nominal alpha={nominal_alpha}); "
+        f"worst={worst:.4f}; calls/perm={calls}; n_tested={n_tested}",
+    ]
+    return NegativeControlResult(
+        status=status, false_positive_rate=mean_fpr, max_false_positive_rate=worst,
+        nominal_alpha=nominal_alpha, n_permutations=len(rates), n_tested=n_tested,
+        calls_per_permutation=calls, tolerances=tolerances, messages=messages,
+    )
+
+
+def run_calibration_suite(
+    *,
+    seed: int = 11,
+    quick: bool = False,
+) -> dict[str, Any]:
+    """Run the full W-CALIB suite and assemble a structured calibration manifest.
+
+    Combines recovery (recall + empirical FDR) with the label-permutation
+    negative control (false-positive rate ≈ nominal) for both the bulk and the
+    pseudobulk DE paths, and returns a single dict ready to embed in a report's
+    provenance / methodology. Requires pydeseq2; the caller must gate on it.
+
+    ``quick`` shrinks the simulations for the doctor command; the pytest gate and
+    CI use the full configs. This never fabricates: it runs the REAL DE code and
+    records exactly what it measured, including an overall ``status``.
+    """
+    # The bulk path uses a conservative lfcThreshold-in-Wald test, so a too-small
+    # matrix is underpowered for recall; the full config is the genuinely powered
+    # calibration gate. ``quick`` is a faster smoke for the doctor command (it
+    # uses looser recovery tolerances at the call site, below).
+    if quick:
+        bulk_kw = dict(n_genes=600, n_de=60, replicates_per_condition=6)
+        pb_kw = dict(n_genes=600, n_de=60, donors_per_condition=5, cells_per_donor=40)
+        n_perms = 3
+        bulk_min_recall = pb_min_recall = 0.4
+    else:
+        bulk_kw = dict(n_genes=1000, n_de=120, replicates_per_condition=6)
+        pb_kw = dict(n_genes=1200, n_de=120, donors_per_condition=6, cells_per_donor=80)
+        n_perms = 3
+        bulk_min_recall = pb_min_recall = 0.5
+
+    bulk_recovery = run_bulk_de_benchmark(seed=seed, min_recall=bulk_min_recall, **bulk_kw)
+    bulk_neg = run_bulk_de_negative_control(seed=seed, n_permutations=n_perms, **bulk_kw)
+    pb_recovery = run_pseudobulk_de_benchmark(seed=seed, min_recall=pb_min_recall, **pb_kw)
+    pb_neg = run_pseudobulk_de_negative_control(seed=seed, n_permutations=n_perms, **pb_kw)
+
+    paths = {
+        "bulk": {
+            "recovery": bulk_recovery.as_dict(),
+            "negative_control": bulk_neg.as_dict(),
+        },
+        "pseudobulk": {
+            "recovery": pb_recovery.as_dict(),
+            "negative_control": pb_neg.as_dict(),
+        },
+    }
+    all_results = [bulk_recovery, bulk_neg, pb_recovery, pb_neg]
+    if all(r.status == "pass" for r in all_results):
+        status = "pass"
+    elif any(r.status == "error" for r in all_results):
+        status = "error"
+    else:
+        status = "fail"
+
+    return {
+        "status": status,
+        "measured": True,
+        "seed": seed,
+        "quick": quick,
+        "paths": paths,
+        "summary": {
+            "bulk_recall": bulk_recovery.recall,
+            "bulk_empirical_fdr": bulk_recovery.empirical_fdr,
+            "bulk_null_fpr": bulk_neg.false_positive_rate,
+            "pseudobulk_recall": pb_recovery.recall,
+            "pseudobulk_empirical_fdr": pb_recovery.empirical_fdr,
+            "pseudobulk_null_fpr": pb_neg.false_positive_rate,
+        },
+    }

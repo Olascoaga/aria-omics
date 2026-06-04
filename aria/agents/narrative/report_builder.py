@@ -660,6 +660,10 @@ class ReportBuilderMixin:
             exp_ctx_records=[]
         )
         ledger_html = self._build_run_ledger_section(run_ledger)
+        # W-CALIB: numerical-calibration badge. `provenance["calibration"]` is a
+        # build property, present only when a real calibration run was attached;
+        # absent on a normal report -> the badge says "not measured" honestly.
+        calibration_html = self._build_calibration_badge(provenance.get("calibration"))
         return (
             "<div class='card'>"
             "<h3>Runtime</h3>"
@@ -680,6 +684,7 @@ class ReportBuilderMixin:
             + "".join(llm_rows)
             + "</table>"
             + ledger_html
+            + calibration_html
             + "<h3>Conda Lockfiles</h3>"
             + self._build_lockfile_section()
             + "</div>"

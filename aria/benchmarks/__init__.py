@@ -10,10 +10,14 @@ from aria.benchmarks.synthetic_de import (
     SyntheticDEDataset,
     SyntheticBulkDEDataset,
     DEBenchmarkResult,
+    NegativeControlResult,
     simulate_pseudobulk_dataset,
     simulate_bulk_dataset,
     run_pseudobulk_de_benchmark,
     run_bulk_de_benchmark,
+    run_bulk_de_negative_control,
+    run_pseudobulk_de_negative_control,
+    run_calibration_suite,
 )
 from aria.benchmarks.synthetic_atac_da import (
     SyntheticATACDADataset,
@@ -30,6 +34,11 @@ __all__ = [
     "simulate_bulk_dataset",
     "run_pseudobulk_de_benchmark",
     "run_bulk_de_benchmark",
+    # W-CALIB: label-permutation negative controls + calibration manifest.
+    "NegativeControlResult",
+    "run_bulk_de_negative_control",
+    "run_pseudobulk_de_negative_control",
+    "run_calibration_suite",
     # P3-2: scATAC differential-accessibility calibration hook (v4.6 scaffold).
     "SyntheticATACDADataset",
     "ATACDACaller",

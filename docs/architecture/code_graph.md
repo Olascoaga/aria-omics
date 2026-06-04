@@ -330,6 +330,21 @@ Use these tests as impact anchors when editing the graph's major nodes:
   empirical FDR, W-CALIB): `tests/test_benchmark_synthetic_de.py`
   (`aria/benchmarks/synthetic_de.py`; recovery cases pydeseq2-gated; also run by
   `aria doctor --benchmark`). Numerical safety net for any DE-math change.
+- W-CALIB negative controls + calibration manifest (label-permutation null):
+  `aria/benchmarks/synthetic_de.py` `run_bulk_de_negative_control` /
+  `run_pseudobulk_de_negative_control` permute the condition labels (bulk: across
+  samples; pseudobulk: the donor→condition map, balanced) and run the REAL DE
+  path — every call is a false positive, so the mean false-positive rate must sit
+  at/below the nominal alpha (`NegativeControlResult`). `run_calibration_suite`
+  assembles recovery + negative control for both paths into one manifest
+  (`status`, `summary`, per-path blocks). pydeseq2-gated tests in
+  `tests/test_benchmark_synthetic_de.py`; `aria doctor --benchmark` uses the suite
+  (single source). The HTML badge renderer is the pure
+  `report_sections._build_calibration_badge` (aliased on `NarrativeAgent`, wired
+  into `_build_provenance_section`): it reads `provenance["calibration"]`, says
+  "not measured in this run" with NO metric when absent (the normal report — no
+  fabrication), and shows the measured numbers + pass/fail when a manifest is
+  attached. Tests: `tests/test_calibration_badge.py` (litellm-gated, light lane).
 - scATAC differential-accessibility calibration hook (P3-2, **v4.6 scaffold**):
   `aria/benchmarks/synthetic_atac_da.py` (`simulate_atac_da_dataset` +
   `run_atac_da_benchmark`), `tests/test_benchmark_atac_da.py`. The ground-truth
