@@ -405,6 +405,8 @@ class BulkRnaNarrator:
         ]
         if not powers:
             return []
+        min_power = min(powers)
+        max_power = max(powers)
         return [NarrativeBlock(
             id="bulk.power",
             modality="bulk RNA-seq",
@@ -414,19 +416,29 @@ class BulkRnaNarrator:
             status="success",
             confidence="medium",
             claim=(
-                f"Approximate bulk RNA power ranged from {min(powers):.0%} "
-                f"to {max(powers):.0%} across analyzable contrasts."
+                f"Approximate bulk RNA power ranged from {min_power:.0%} "
+                f"to {max_power:.0%} across analyzable contrasts."
             ),
             evidence=[
-                _evidence("minimum power", min(powers), "power_estimation"),
-                _evidence("maximum power", max(powers), "power_estimation"),
+                _evidence("minimum power", min_power, "power_estimation"),
+                _evidence("maximum power", max_power, "power_estimation"),
+                _evidence(
+                    "minimum power percent",
+                    f"{min_power:.0%}",
+                    "power_estimation",
+                ),
+                _evidence(
+                    "maximum power percent",
+                    f"{max_power:.0%}",
+                    "power_estimation",
+                ),
             ],
             caveats=[Caveat(
                 "Power is an approximation from replicate count, expression, "
                 "and dispersion.",
                 "info",
             )],
-            metrics={"min_power": min(powers), "max_power": max(powers)},
+            metrics={"min_power": min_power, "max_power": max_power},
         )]
 
     def _attach_artifacts(self, blocks: list[NarrativeBlock],

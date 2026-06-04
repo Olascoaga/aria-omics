@@ -63,6 +63,23 @@ def test_bulk_narrator_generates_qc_contrast_pathway_and_power_blocks():
     power = next(b for b in blocks if b.id == "bulk.power")
     assert power.metrics["min_power"] == 0.31
     assert power.metrics["max_power"] == 0.71
+    assert any(ev.value == "31%" for ev in power.evidence)
+    assert any(ev.value == "71%" for ev in power.evidence)
+
+
+def test_bulk_power_block_renders_under_strict_evidence_gate(tmp_path):
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.agents.narrative.render_blocks import render_blocks
+    from aria.agents.narrative.validators import validate_blocks
+
+    agent_result = {"status": "done", "findings": _bulk_findings()}
+    blocks = validate_blocks(BulkRnaNarrator().collect("bulk_rna_agent", agent_result))
+    power = [block for block in blocks if block.id == "bulk.power"]
+
+    html = render_blocks(power, report_dir=tmp_path)
+
+    assert "31%" in html
+    assert "71%" in html
 
 
 def test_bulk_narrator_methods_are_generic_and_auditable():
