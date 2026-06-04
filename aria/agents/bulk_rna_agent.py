@@ -10,6 +10,7 @@ inference from file names (backward compatible).
 
 from __future__ import annotations
 
+import csv
 import gzip
 import logging
 import os
@@ -160,7 +161,11 @@ class BulkRNAAgent(BaseAgent):
             contrasts = []
         # ────────────────────────────────────────────────────────────────────
 
-        self.publish_status(experiment_id, f"Detected groups: {list(group_labels.keys())}", 0.68)
+        self.publish_status(
+            experiment_id,
+            f"Detected groups: {sorted(set(group_labels.values()))}",
+            0.68,
+        )
         if not contrasts:
             return self._block_for_explicit_contrast(
                 experiment_id, design_factor, group_labels
@@ -168,6 +173,11 @@ class BulkRNAAgent(BaseAgent):
 
         padj_thr = exp_ctx.get("global_padj", 0.05)
         lfc_thr  = exp_ctx.get("global_lfc", _infer_lfc_threshold(intent))
+        output_dir = self._output_dir(files)
+        metadata_file = (
+            str(self._write_design_metadata(group_labels, design_factor, output_dir))
+            if design and group_labels else ""
+        )
 
         self.publish_status(
             experiment_id,
@@ -181,13 +191,14 @@ class BulkRNAAgent(BaseAgent):
             params={
                 "files":          files,
                 "design_factor":  design_factor,
+                "metadata_file":   metadata_file,
                 "contrasts":      contrasts,
                 # P0-4: forward confirmed covariates (e.g. batch) so DESeq2 fits
                 # `~ batch + condition`, not a bare `~ condition`.
                 "covariates":     self._design_covariates(design) if design else [],
                 "organism":       exp_ctx.get("organism", "Homo sapiens"),
                 "genome":         exp_ctx.get("genome", "hg38"),
-                "output_dir":     self._output_dir(files),
+                "output_dir":     output_dir,
                 "run_pathways":   True,
                 "padj_threshold": padj_thr,
                 "lfc_threshold":  lfc_thr,
@@ -371,6 +382,19 @@ class BulkRNAAgent(BaseAgent):
         if not raw:
             return []
         available = {str(g) for g in available_groups}
+        by_token: dict[str, str | None] = {}
+        for group in available:
+            token = _normalise_sample_token(group)
+            by_token[token] = group if token not in by_token else None
+
+        def resolve_level(value) -> str:
+            level = str(value or "").strip()
+            if level in available:
+                return level
+            token = _normalise_sample_token(level)
+            resolved = by_token.get(token)
+            return resolved if resolved is not None else ""
+
         contrasts: list[dict] = []
         for comp in raw:
             if isinstance(comp, dict):
@@ -387,9 +411,9 @@ class BulkRNAAgent(BaseAgent):
                 name = None
             else:
                 continue
-            num = str(num or "").strip()
-            den = str(den or "").strip()
-            if not num or not den or num not in available or den not in available:
+            num = resolve_level(num)
+            den = resolve_level(den)
+            if not num or not den:
                 continue
             contrasts.append({
                 "numerator": num,
@@ -397,6 +421,21 @@ class BulkRNAAgent(BaseAgent):
                 "name": str(name or f"{num} vs {den}"),
             })
         return contrasts
+
+    @staticmethod
+    def _write_design_metadata(
+        group_labels: dict[str, str], design_factor: str, output_dir: str | Path
+    ) -> Path:
+        """Persist the confirmed sample-to-group mapping for rna_bulk_de.py."""
+        out = Path(output_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        path = out / "confirmed_design_metadata.tsv"
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
+            writer.writerow(["sample", design_factor])
+            for sample, group in group_labels.items():
+                writer.writerow([sample, group])
+        return path
 
     @staticmethod
     def _suggest_contrasts_from_groups(group_labels: dict) -> list[dict]:
