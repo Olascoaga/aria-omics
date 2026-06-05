@@ -72,9 +72,53 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
     if n_contrasts == 0:
         return blocks
 
-    # 1) Integrated signal: how many contrasts produced DE + concordant pathways.
+    # 1) MAIN PATTERN — the headline the whole discussion synthesizes to. When a
+    #    reference-anchored pair exists, lead with the shared-vs-distinct program
+    #    and the processes it points to; otherwise fall back to a generic signal.
     converging = [w for w in within if w.get("converges")]
-    if converging:
+    ref_pairs = [x for x in cross
+                 if x.get("shared_reference") and x.get("n_shared_genes", 0) > 0]
+    dominant = max(ref_pairs, key=lambda x: x["n_shared_genes"]) if ref_pairs else None
+    if dominant:
+        a, b = dominant["contrast_a"], dominant["contrast_b"]
+        s = dominant["n_shared_genes"]
+        ev = [
+            _ev("contrasts", f"{a}; {b}"),
+            _ev("shared DE genes", s),
+            _ev(f"{a} specific genes", dominant["n_specific_a"]),
+            _ev(f"{b} specific genes", dominant["n_specific_b"]),
+        ]
+        conc_clause = ""
+        if dominant.get("direction_known") and dominant.get("n_direction_concordant", -1) >= 0:
+            conc = dominant["n_direction_concordant"]
+            ev.append(_ev("shared genes, same direction", conc))
+            conc_clause = f" ({conc} of them changing in the same direction)"
+        procs = _name_processes(dominant.get("shared_pathway_terms", []), 3)
+        proc_clause = ""
+        if procs:
+            ev.append(_ev("shared enriched processes", "; ".join(procs)))
+            proc_clause = f", pointing to coordinated enrichment of {_join(procs)}"
+        blocks.append(NarrativeBlock(
+            id="integration.main_pattern",
+            modality="integrated synthesis",
+            analysis="integrated_signal",
+            block_type="integration",
+            title="Main integrated pattern",
+            status="success",
+            confidence="medium",
+            claim=(
+                f"The dominant integrated pattern is a shared transcriptional "
+                f"program: {a} and {b} share {s} differentially expressed "
+                f"gene(s){conc_clause}{proc_clause}, while each condition also "
+                f"engages partially distinct programs "
+                f"({dominant['n_specific_a']} and {dominant['n_specific_b']} "
+                f"contrast-specific genes)."
+            ),
+            evidence=ev,
+            caveats=[_ASSOCIATIVE_CAVEAT],
+            metrics={"n_shared_genes": s},
+        ))
+    elif converging:
         names = "; ".join(w["name"] for w in converging)
         blocks.append(NarrativeBlock(
             id="integration.signal",
@@ -134,6 +178,16 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
                 f" The shared response points to coordinated enrichment of "
                 f"{_join(shared_procs)}."
             )
+        # Name the top shared differentially expressed genes (ranked by
+        # significance) — reviewers expect the actual gene names.
+        top_genes = (x.get("top_shared_genes") or [])[:8]
+        gene_clause = ""
+        if top_genes:
+            ev.append(_ev("top shared genes", ", ".join(top_genes)))
+            gene_clause = (
+                f" The most significant shared differentially expressed genes "
+                f"include {_join(top_genes)}."
+            )
         blocks.append(NarrativeBlock(
             id=f"integration.convergent.{_safe(a)}__{_safe(b)}",
             modality="integrated synthesis",
@@ -146,7 +200,7 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
                 f"{a} and {b} share {shared} differentially expressed gene(s)"
                 f"{direction_clause}{terms_clause}, consistent with a shared "
                 f"transcriptional program relative to {x['shared_reference']}."
-                f"{proc_clause}"
+                f"{proc_clause}{gene_clause}"
             ),
             evidence=ev,
             caveats=[_ASSOCIATIVE_CAVEAT],

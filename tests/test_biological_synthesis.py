@@ -16,11 +16,12 @@ from aria.agents.narrative.validators import find_causal_language
 from aria.agents.biological_synthesis_agent import BiologicalSynthesisAgent
 
 
-def _contrast(name, num, den, up, down, terms):
+def _contrast(name, num, den, up, down, terms, symbols=None):
     ids = list(up) + list(down)
+    syms = symbols if symbols is not None else ids
     return {
         "name": name, "numerator": num, "denominator": den, "status": "success",
-        "n_significant": len(ids), "all_sig_gene_ids": ids,
+        "n_significant": len(ids), "all_sig_gene_ids": ids, "all_sig_genes": syms,
         "up_gene_ids": list(up), "down_gene_ids": list(down),
         "pathways": {"GO_BP": [{"term": t} for t in terms]},
         "power_estimate_at_lfc_min": 0.8,
@@ -99,6 +100,27 @@ def test_convergent_claim_names_the_shared_processes_not_just_counts():
     assert "extracellular matrix organization" in div.claim
     assert "cholesterol biosynthetic process" in div.claim
     verify_block_claim_support(div, strict=True)
+
+
+def test_main_pattern_block_leads_and_names_genes_and_processes():
+    # The synthesis must open with a headline "main pattern" and name the top
+    # shared genes by symbol (reviewers expect the gene names).
+    A = _contrast("KOa vs WT", "KOa", "WT", ["i1", "i2", "i3"], ["i4"],
+                  ["response to zinc ion"],
+                  symbols=["IGFBP5", "COL3A1", "ANKRD1", "RFX3"])
+    B = _contrast("KOb vs WT", "KOb", "WT", ["i1", "i2"], ["i4", "i5"],
+                  ["response to zinc ion"],
+                  symbols=["IGFBP5", "COL3A1", "KITLG", "GABRP"])
+    blocks = compose_discussion_blocks(detect_bulk_patterns([A, B]))
+    annotate_claim_tiers(blocks, {})
+    assert blocks[0].id == "integration.main_pattern"        # headline first
+    assert "dominant integrated pattern" in blocks[0].claim.lower()
+    verify_block_claim_support(blocks[0], strict=True)
+    conv = next(b for b in blocks if b.analysis == "convergent_evidence")
+    # shared genes IGFBP5/COL3A1 (i1,i2) named by symbol, ranked
+    assert "IGFBP5" in conv.claim and "COL3A1" in conv.claim
+    assert "KITLG" not in conv.claim                          # not shared -> not named
+    verify_block_claim_support(conv, strict=True)
 
 
 def test_no_pathways_means_no_enrichment_claim():

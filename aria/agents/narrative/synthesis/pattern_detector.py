@@ -48,6 +48,7 @@ class CrossContrastPattern:
     shared_pathway_terms: list[str]
     specific_terms_a: list[str]
     specific_terms_b: list[str]
+    top_shared_genes: list[str]     # shared genes, ranked by significance (symbols)
     n_terms_a: int
     n_terms_b: int
 
@@ -68,13 +69,49 @@ class CrossContrastPattern:
             "shared_pathway_terms": self.shared_pathway_terms[:20],
             "specific_terms_a": self.specific_terms_a[:20],
             "specific_terms_b": self.specific_terms_b[:20],
+            "top_shared_genes": self.top_shared_genes[:20],
             "n_terms_a": self.n_terms_a, "n_terms_b": self.n_terms_b,
         }
 
 
-def _gene_ids(contrast: dict) -> set[str]:
+def _gene_id_list(contrast: dict) -> list[str]:
+    """Significant gene IDs, ranked by significance (the script sorts by padj)."""
     ids = contrast.get("all_sig_gene_ids") or contrast.get("all_sig_genes") or []
-    return {str(g) for g in ids}
+    return [str(g) for g in ids]
+
+
+def _gene_ids(contrast: dict) -> set[str]:
+    return set(_gene_id_list(contrast))
+
+
+def _id_to_symbol(contrast: dict) -> dict[str, str]:
+    ids = contrast.get("all_sig_gene_ids") or []
+    syms = contrast.get("all_sig_genes") or []
+    return {str(i): str(s) for i, s in zip(ids, syms)}
+
+
+def _looks_like_raw_id(symbol: str) -> bool:
+    s = str(symbol or "")
+    return s.startswith(("ENSG", "ENSMUS", "ENST", "ENS")) or s.isdigit() or not s
+
+
+def _top_shared_symbols(a: dict, b_ids: set[str], k: int = 10) -> list[str]:
+    """Shared genes (ranked by contrast a's significance), named by symbol.
+
+    Skips genes that only have a raw Ensembl/numeric id so the named list is the
+    community-friendly symbols a reviewer expects (IGFBP5, COL3A1, ...).
+    """
+    sym_map = _id_to_symbol(a)
+    out: list[str] = []
+    for gid in _gene_id_list(a):
+        if gid not in b_ids:
+            continue
+        sym = sym_map.get(gid, gid)
+        if not _looks_like_raw_id(sym) and sym not in out:
+            out.append(sym)
+        if len(out) >= k:
+            break
+    return out
 
 
 def _direction_sets(contrast: dict) -> tuple[set[str], set[str], bool]:
@@ -156,6 +193,7 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
             shared_pathway_terms=[t for t in ta if t in tb_set],
             specific_terms_a=[t for t in ta if t not in tb_set],
             specific_terms_b=[t for t in tb if t not in ta_set],
+            top_shared_genes=_top_shared_symbols(a, gb),
             n_terms_a=len(ta), n_terms_b=len(tb),
         ))
 
