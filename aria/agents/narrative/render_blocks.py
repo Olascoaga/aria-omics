@@ -149,10 +149,19 @@ def _claim_tier_badge(block: NarrativeBlock) -> str:
     licensed = claim.get("licensed_language", "associative")
     label = tier.replace("_", " ")
     title = html.escape(str(claim.get("rationale") or ""))
+    if label == licensed:
+        text = "Evidence scope: association only" if label == "associative" \
+            else f"Evidence level: {html.escape(label)}"
+    else:
+        text = (
+            "Evidence scope: association only"
+            if licensed == "associative" else
+            f"Evidence level: {html.escape(label)} / {html.escape(licensed)}"
+        )
     return (
         f"<span class='badge' title='{title}' "
         f"style='margin-left:0.35rem;background:var(--border);color:var(--muted)'>"
-        f"evidence: {html.escape(label)} · {html.escape(licensed)}</span>"
+        f"{text}</span>"
     )
 
 

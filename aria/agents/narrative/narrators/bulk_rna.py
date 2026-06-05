@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import math
 import re
 from pathlib import Path
 
@@ -342,6 +343,7 @@ class BulkRnaNarrator:
         summary = _read_gsea_summary(gsea_table)
         n_pathways = summary.get("n_pathways")
         top_pathways = summary.get("top_pathways", [])
+        n_numeric_unstable = summary.get("n_numeric_unstable", 0)
         evidence = [
             _evidence(
                 "FDR<0.25 pathways",
@@ -361,6 +363,24 @@ class BulkRnaNarrator:
                 "gsea_preranked",
                 path=gsea_table,
             ))
+        caveats = [Caveat(
+            "GSEA uses the complete ranked gene list and is exploratory "
+            "at FDR < 0.25; inspect the leading-edge genes before making "
+            "mechanistic claims.",
+            "info",
+        )]
+        if n_numeric_unstable:
+            evidence.append(_evidence(
+                "numerically unstable GSEA rows",
+                n_numeric_unstable,
+                "gsea_preranked",
+                path=gsea_table,
+            ))
+            caveats.append(Caveat(
+                "One or more GSEA rows had non-finite NES/FDR values and were "
+                "excluded from the ranked-signal prose.",
+                "warning",
+            ))
 
         name = contrast.get("name", "contrast")
         return [NarrativeBlock(
@@ -375,15 +395,11 @@ class BulkRnaNarrator:
                 f"Preranked GSEA generated ranked pathway support for {name}."
             ),
             evidence=evidence,
-            caveats=[Caveat(
-                "GSEA uses the complete ranked gene list and is exploratory "
-                "at FDR < 0.25; inspect the leading-edge genes before making "
-                "mechanistic claims.",
-                "info",
-            )],
+            caveats=caveats,
             metrics={
                 "n_pathways": n_pathways,
                 "top_pathways": top_pathways,
+                "n_numeric_unstable": n_numeric_unstable,
             },
             figures=[
                 {"id": "gsea_top_table", "path": top_table_fig,
@@ -514,17 +530,23 @@ def _read_gsea_summary(path: str | None) -> dict:
 
     parsed = [_parse_gsea_row(row) for row in rows]
     parsed = [row for row in parsed if row.get("term")]
+    n_numeric_unstable = sum(1 for row in parsed if row.get("numeric_unstable"))
+    stable = [row for row in parsed if not row.get("numeric_unstable")]
     n_pathways = sum(
-        1 for row in parsed
+        1 for row in stable
         if isinstance(row.get("fdr"), (int, float)) and row["fdr"] < 0.25
     )
-    parsed.sort(
+    stable.sort(
         key=lambda row: (
             row.get("fdr") if isinstance(row.get("fdr"), (int, float)) else 1.0,
             -abs(row.get("nes") or 0.0),
         )
     )
-    return {"n_pathways": n_pathways, "top_pathways": parsed[:5]}
+    return {
+        "n_pathways": n_pathways,
+        "top_pathways": stable[:5],
+        "n_numeric_unstable": n_numeric_unstable,
+    }
 
 
 def _parse_gsea_row(row: dict) -> dict:
@@ -541,17 +563,32 @@ def _parse_gsea_row(row: dict) -> dict:
             if key is None or str(key).lower().startswith("unnamed"):
                 term = value
                 break
+    nes, nes_unstable = _to_float_checked(
+        lower.get("nes") or lower.get("normalized enrichment score")
+    )
+    fdr, fdr_unstable = _to_float_checked(
+        lower.get("fdr") or lower.get("fdr q-val") or lower.get("fdr_q_val")
+    )
     return {
         "term": str(term) if term else "",
-        "nes": _to_float(lower.get("nes") or lower.get("normalized enrichment score")),
-        "fdr": _to_float(lower.get("fdr") or lower.get("fdr q-val") or lower.get("fdr_q_val")),
+        "nes": nes,
+        "fdr": fdr,
+        "numeric_unstable": bool(nes_unstable or fdr_unstable),
     }
 
 
 def _to_float(value):
+    parsed, unstable = _to_float_checked(value)
+    return None if unstable else parsed
+
+
+def _to_float_checked(value):
     try:
         if value in (None, ""):
-            return None
-        return round(float(value), 4)
+            return None, False
+        parsed = float(value)
+        if not math.isfinite(parsed):
+            return None, True
+        return round(parsed, 4), False
     except (TypeError, ValueError):
-        return None
+        return None, False

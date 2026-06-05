@@ -127,3 +127,42 @@ def test_bulk_methods_describe_local_ora_not_enrichr_endpoint():
     assert "gene lists were not sent to enrichr" in methods.lower()
     assert "gseapy (Enrichr endpoint)" not in methods
     assert "instead of Enrichr's default universe" not in methods
+
+
+def test_bulk_report_layout_and_single_modality_wording(tmp_path):
+    agent = _agent()
+    agent.reports_dir = tmp_path
+    agent.memory = type("M", (), {"db_path": ":memory:"})()
+    exp_ctx = _exp_ctx()
+    agent_results = _bulk_agent_results()
+    agent_results["raw_ingestion_agent"] = {
+        "records": [{
+            "mode": "fastq_kb_plan",
+            "source_directory": "/data/raw_fastq",
+            "blockers": ["FASTQ ingestion requires explicit chemistry."],
+        }]
+    }
+
+    report = agent._render_html_report(
+        experiment_id="bulk_layout",
+        exp_ctx=exp_ctx,
+        intent={"summary": "H9 knockout differential expression"},
+        executive_summary="grounded summary",
+        findings_sections={
+            "conflicts": agent._summarize_conflicts(agent_results, {
+                "high": [], "medium": [], "low": [], "insufficient": [],
+            })
+        },
+        grouped_findings={"high": [], "medium": [], "low": [], "insufficient": []},
+        methods="methods",
+        decisions=[],
+        agent_results=agent_results,
+        report_dir=tmp_path / "report",
+    )
+    html = report.read_text(encoding="utf-8")
+
+    assert html.index("<h2>Executive Summary</h2>") < html.index("<h2>Provenance</h2>")
+    assert "FASTQ-to-h5ad/kb ingestion routes" in html
+    assert "STAR/featureCounts execution is reported separately" in html
+    assert "Cross-modal conflict analysis: not applicable; single-modality report." in html
+    assert "No cross-modal conflicts identified." not in html

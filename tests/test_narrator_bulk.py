@@ -133,3 +133,37 @@ def test_bulk_narrator_surfaces_gsea_as_narrative_block(tmp_path):
     assert gsea_block.metrics["n_pathways"] == 2
     assert gsea_block.metrics["top_pathways"][0]["term"] == "pathway_alpha_response"
     assert any(ev.label == "FDR<0.25 pathways" for ev in gsea_block.evidence)
+
+
+def test_bulk_gsea_nonfinite_values_are_not_narrated_as_top_pathways(tmp_path):
+    from aria.agents.narrative.compose_prose import compose_block_prose
+    from aria.agents.narrative.narrators.bulk_rna import BulkRnaNarrator
+    from aria.agents.narrative.validators import validate_blocks
+
+    gsea = tmp_path / "gsea_results.csv"
+    gsea.write_text(
+        ",nes,fdr\n"
+        "unstable_pathway,inf,0.0\n"
+        "stable_pathway,1.9,0.04\n",
+        encoding="utf-8",
+    )
+    findings = _bulk_findings()
+    findings["contrasts"][0]["plots"] = {
+        "gsea_table": str(gsea),
+        "gsea_running_sums": [str(tmp_path / "running.png")],
+    }
+
+    blocks = validate_blocks(
+        BulkRnaNarrator().collect(
+            "bulk_rna_agent", {"status": "done", "findings": findings}
+        )
+    )
+    gsea_block = next(block for block in blocks if block.id == "bulk.gsea.treat_vs_ctrl")
+    prose = compose_block_prose(gsea_block)
+
+    assert gsea_block.metrics["n_numeric_unstable"] == 1
+    assert gsea_block.metrics["top_pathways"][0]["term"] == "stable_pathway"
+    assert "unstable_pathway" not in prose
+    assert "NES=inf" not in prose
+    assert "FDR=0.0)" not in prose
+    assert "non-finite" in prose

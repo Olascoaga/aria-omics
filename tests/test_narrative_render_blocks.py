@@ -93,6 +93,36 @@ def test_render_blocks_stores_claim_verification_metadata():
     )
 
 
+def test_render_blocks_does_not_duplicate_associative_badge_label():
+    from aria.agents.narrative.render_blocks import render_blocks
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+
+    block = NarrativeBlock(
+        id="bulk.pathway.treat_vs_ctrl",
+        modality="bulk RNA-seq",
+        analysis="pathway_enrichment",
+        block_type="result",
+        title="Pathway enrichment treat_vs_ctrl",
+        status="success",
+        confidence="medium",
+        claim="Pathway enrichment found 3 term(s) for treat_vs_ctrl.",
+        evidence=[EvidenceItem("enriched terms", 3, "bulk_pathways")],
+        metrics={"n_terms": 3},
+        metadata={
+            "claim": {
+                "tier": "associative",
+                "licensed_language": "associative",
+                "rationale": "observational omics evidence",
+            }
+        },
+    )
+
+    html = render_blocks([block])
+
+    assert "Evidence scope: association only" in html
+    assert "associative · associative" not in html
+
+
 def test_narrative_agent_composes_scrna_from_blocks_and_persists_json(tmp_path):
     from aria.agents.narrative_agent import NarrativeAgent
 

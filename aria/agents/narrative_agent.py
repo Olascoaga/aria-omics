@@ -1431,7 +1431,19 @@ for small-effect genes."
                 parts.append(f"- {f.get('summary', str(f))[:120]}")
 
         if not parts:
-            return "No cross-modal conflicts identified."
+            active_modalities = [
+                name for name in (
+                    "bulk_rna_agent", "scrna_agent", "chromatin_agent",
+                    "genome_arch_agent", "integration_agent",
+                )
+                if (agent_results.get(name) or {}).get("status") == "done"
+            ]
+            if "integration_agent" not in active_modalities and len(active_modalities) <= 1:
+                return (
+                    "Cross-modal conflict analysis: not applicable; "
+                    "single-modality report."
+                )
+            return "No cross-modal conflicts identified among executed modalities."
 
         return "\n".join(parts)
 

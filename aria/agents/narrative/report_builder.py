@@ -392,13 +392,13 @@ class ReportBuilderMixin:
   <p><em>{_html.escape(str(question))}</em></p>
 </div>
 
-<h2>Provenance</h2>
-{provenance_html}
-
 <h2>Executive Summary</h2>
 <div class="card">
   <p>{self._plain_text_to_html(executive_summary)}</p>
 </div>
+
+<h2>Provenance</h2>
+{provenance_html}
 
 <h2>Quality Control Summary</h2>
 {self._build_qc_section(grouped_findings, agent_results, exp_ctx)}

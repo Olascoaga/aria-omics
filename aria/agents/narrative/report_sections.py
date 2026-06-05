@@ -237,6 +237,16 @@ def _build_raw_ingestion_section(agent_results: dict,
         records.extend(exp_ctx_records or [])
         if not records:
             return ""
+        mode_note = ""
+        if any(str(rec.get("mode", "")).startswith("fastq_kb")
+               for rec in records):
+            mode_note = (
+                "<p style='color:var(--muted);font-size:0.88rem'>"
+                "This table reports optional FASTQ-to-h5ad/kb ingestion routes. "
+                "For bulk RNA-seq FASTQ analyses, STAR/featureCounts execution "
+                "is reported separately in the Run Ledger and Bulk RNA-seq "
+                "Methods sections.</p>"
+            )
         rows = []
         for rec in records:
             source = rec.get("source_directory") or rec.get("mode", "")
@@ -254,6 +264,7 @@ def _build_raw_ingestion_section(agent_results: dict,
             )
         return (
             "<h3>Raw Ingestion</h3>"
+            f"{mode_note}"
             "<table><tr><th>Mode</th><th>Source</th><th>Generated h5ad</th>"
             "<th>Output SHA-256</th><th>Blockers</th></tr>"
             + "".join(rows)

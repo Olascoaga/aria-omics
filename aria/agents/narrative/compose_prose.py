@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 from aria.agents.narrative.types import NarrativeBlock
 
 
@@ -157,23 +159,40 @@ def _compose_gsea(block: NarrativeBlock) -> str:
     top = block.metrics.get("top_pathways") or []
     pieces = []
     for row in top[:3]:
+        if row.get("numeric_unstable"):
+            continue
         term = row.get("term")
         if not term:
             continue
         nes = row.get("nes")
         fdr = row.get("fdr")
         stats = []
-        if nes is not None:
-            stats.append(f"NES={nes}")
-        if fdr is not None:
-            stats.append(f"FDR={fdr}")
+        if _is_finite_number(nes):
+            stats.append(f"NES={float(nes):.3g}")
+        if _is_finite_number(fdr):
+            if float(fdr) <= 0:
+                stats.append("FDR below display precision")
+            else:
+                stats.append(f"FDR={float(fdr):.3g}")
         pieces.append(f"{term} ({', '.join(stats)})" if stats else str(term))
     top_text = f" The top ranked signals were {', '.join(pieces)}." if pieces else ""
+    if block.metrics.get("n_numeric_unstable"):
+        top_text += (
+            " One or more GSEA rows had non-finite numerical values and were "
+            "excluded from the ranked-signal prose."
+        )
     return (
         f"{block.title} used the full log2FC-ranked gene list and found "
         f"{n_terms} pathway(s) at the standard exploratory GSEA threshold "
         f"of FDR < 0.25.{top_text}"
     )
+
+
+def _is_finite_number(value) -> bool:
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError):
+        return False
 
 
 def _compose_cellcomm(block: NarrativeBlock) -> str:
