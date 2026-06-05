@@ -2728,11 +2728,12 @@ def test_hash_file_stable_under_chunk_size(tmp_path):
     assert hash_file(p, chunk_size=7) == hash_file(p, chunk_size=8192)
 
 
-def test_lockfile_embed_renders_warning_when_missing():
+def test_lockfile_embed_reads_repo_env_lockfiles():
     from aria.agents.narrative_agent import NarrativeAgent
 
     html = NarrativeAgent._build_lockfile_section()
-    assert "conda lockfiles" in html.lower() or ".linux-64.lock" in html
+    assert "aria-rna-env.linux-64.lock" in html
+    assert "No conda lockfiles found" not in html
 
 
 def test_methodology_json_emitted_with_required_keys(tmp_path):

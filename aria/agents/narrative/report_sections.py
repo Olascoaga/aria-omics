@@ -288,7 +288,7 @@ def _collect_param_hashes(obj, prefix: str = "") -> list[tuple[str, str]]:
 
 
 def _build_lockfile_section() -> str:
-        root = Path(__file__).resolve().parents[2]
+        root = Path(__file__).resolve().parents[3]
         env_dir = root / "envs"
         # Pair every conda lockfile with its sibling pip lock (if present).
         # `conda create --name X --file <env>.linux-64.lock` reproduces the
