@@ -168,12 +168,16 @@ def _compose_gsea(block: NarrativeBlock) -> str:
         fdr = row.get("fdr")
         stats = []
         if _is_finite_number(nes):
-            stats.append(f"NES={float(nes):.3g}")
+            # Use the same 6-significant-figure normalization the strict evidence
+            # verifier applies, so the displayed NES matches the value on the
+            # evidence card (`:.3g` rounded to 5.43 while the card held 5.4321,
+            # which made the verifier reject the prose and abort the report).
+            stats.append(f"NES={float(nes):.6g}")
         if _is_finite_number(fdr):
             if float(fdr) <= 0:
                 stats.append("FDR below display precision")
             else:
-                stats.append(f"FDR={float(fdr):.3g}")
+                stats.append(f"FDR={float(fdr):.6g}")
         pieces.append(f"{term} ({', '.join(stats)})" if stats else str(term))
     top_text = f" The top ranked signals were {', '.join(pieces)}." if pieces else ""
     if block.metrics.get("n_numeric_unstable"):

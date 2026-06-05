@@ -849,11 +849,54 @@ for small-effect genes."
                 annotate_claim_tiers(blocks, exp_ctx or {})
             except Exception as exc:
                 log.warning(f"Claim-tier annotation failed: {exc}", exc_info=True)
+            # FAIL-SAFE for the synthesis layer (W-LEDGER lesson): the render path
+            # verifies every block STRICTLY and HARD-FAILS the whole report on an
+            # unsupported sentence. The synthesis is additive — a synthesis block
+            # that cannot be verified must be DROPPED, never abort the report. We
+            # pre-verify only the `integration.*` blocks with the exact check the
+            # renderer uses and keep only the supported ones (loudly logged).
+            blocks = self._drop_unverifiable_synthesis_blocks(blocks)
             return blocks
         except Exception as exc:
             log.warning(f"Narrative block collection failed: {exc}",
                         exc_info=True)
             return []
+
+    @staticmethod
+    def _drop_unverifiable_synthesis_blocks(blocks: list) -> list:
+        """Keep only `integration.*` blocks the renderer would accept.
+
+        Runs the same verification the strict renderer runs (block.claim +
+        `compose_block_prose`); a synthesis block that fails is dropped with a loud
+        log instead of aborting the whole report. Non-integration blocks are left
+        untouched (their failures are real report bugs, surfaced as before)."""
+        try:
+            from aria.agents.narrative.compose_prose import compose_block_prose
+            from aria.agents.narrative.evidence_verifier import (
+                verify_block_claim_support,
+            )
+        except Exception:
+            return blocks
+        kept = []
+        for b in blocks:
+            if not str(getattr(b, "id", "")).startswith("integration."):
+                kept.append(b)
+                continue
+            try:
+                prose = compose_block_prose(b) or b.claim or ""
+                manifest = verify_block_claim_support(b, prose, strict=False)
+                if manifest.get("status") == "supported":
+                    kept.append(b)
+                else:
+                    reason = (manifest.get("unsupported") or [{}])[0]
+                    log.warning(
+                        "Dropping unverifiable synthesis block %s: %s",
+                        b.id, reason.get("reason", "unsupported"),
+                    )
+            except Exception as exc:
+                log.warning("Dropping synthesis block %s (verify error): %s",
+                            getattr(b, "id", "?"), exc)
+        return kept
 
     def _narrative_prefixes_for(self, agent_results: dict,
                                 exp_ctx: dict | None = None) -> set[str]:

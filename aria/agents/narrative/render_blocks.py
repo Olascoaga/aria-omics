@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import base64
 import html
+import logging
 from pathlib import Path
+
+log = logging.getLogger("aria.narrative")
 
 from aria.agents.narrative.compose_prose import compose_block_prose
 from aria.agents.narrative.types import NarrativeBlock
@@ -31,22 +34,65 @@ BLOCK_ORDER = {
 
 
 def render_blocks(blocks: list[NarrativeBlock],
-                  report_dir: str | Path | None = None) -> str:
-    blocks = validate_blocks(
-        list(blocks or []),
-        base_dir=report_dir,
-        check_files=report_dir is not None,
-    )
+                  report_dir: str | Path | None = None,
+                  strict: bool = True) -> str:
+    """Render structured blocks to HTML.
+
+    ``strict`` (default) keeps the W-CLAIM contract: an unsupported claim or a
+    missing referenced file raises ``NarrativeValidationError``. The report
+    builder calls with ``strict=False`` so a SINGLE bad block can no longer abort
+    the whole report — the offending block is withheld (its unverified prose is
+    NOT shown, preserving integrity) and a visible note replaces it, while every
+    other section still renders.
+    """
+    if strict:
+        validated = validate_blocks(
+            list(blocks or []),
+            base_dir=report_dir,
+            check_files=report_dir is not None,
+        )
+        ordered = sorted(
+            validated,
+            key=lambda b: (_group_key(b), BLOCK_ORDER.get(b.block_type, 99), b.id),
+        )
+        return "\n".join(_render_block(block, report_dir=report_dir)
+                         for block in ordered)
+
+    # Resilient path: validate + render each block in isolation; withhold any
+    # that fail instead of aborting the whole report.
     ordered = sorted(
-        blocks,
-        key=lambda b: (
-            _group_key(b),
-            BLOCK_ORDER.get(b.block_type, 99),
-            b.id,
-        ),
+        list(blocks or []),
+        key=lambda b: (_group_key(b), BLOCK_ORDER.get(b.block_type, 99), b.id),
     )
-    return "\n".join(_render_block(block, report_dir=report_dir)
-                     for block in ordered)
+    out = []
+    for block in ordered:
+        try:
+            vb = validate_blocks([block], base_dir=report_dir,
+                                 check_files=report_dir is not None)
+            out.append(_render_block(vb[0], report_dir=report_dir))
+        except (NarrativeValidationError, EvidenceVerificationError) as exc:
+            log.warning("Withholding block %s from report (unverified): %s",
+                        getattr(block, "id", "?"), exc)
+            out.append(_withheld_block_html(block))
+        except Exception as exc:
+            log.warning("Withholding block %s from report (render error): %s",
+                        getattr(block, "id", "?"), exc)
+            out.append(_withheld_block_html(block))
+    return "\n".join(out)
+
+
+def _withheld_block_html(block: NarrativeBlock) -> str:
+    """A placeholder for a block that could not be verified — no orphan claim is
+    shown, but the report still renders and the gap is visible."""
+    title = html.escape(str(getattr(block, "title", "") or "Result"))
+    return f"""
+<section class="narrative-block" data-block-id="{html.escape(str(getattr(block, 'id', '')))}"
+         style="border-top:1px solid var(--border);padding-top:0.9rem;margin-top:0.9rem">
+  <h4>{title} <span class="badge insuff" style="margin-left:0.35rem">withheld</span></h4>
+  <p style="color:var(--amber)"><em>This section's narrative was withheld because a
+  statement could not be verified against its structured evidence. The underlying
+  tables and figures remain in the report artifacts.</em></p>
+</section>"""
 
 
 def group_blocks_by_prefix(blocks: list[NarrativeBlock]) -> dict[str, list[NarrativeBlock]]:

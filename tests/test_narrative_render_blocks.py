@@ -1,6 +1,54 @@
 import json
 
 
+def test_render_blocks_strict_false_withholds_bad_block_without_aborting():
+    # Real-run bug: a single block failing strict verification aborted the WHOLE
+    # report ("termina pero no genera el reporte html"). With strict=False the bad
+    # block is withheld and every other block still renders.
+    from aria.agents.narrative.render_blocks import render_blocks
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+
+    good = NarrativeBlock(
+        id="bulk.qc", modality="bulk RNA-seq", analysis="sample_qc",
+        block_type="qc", title="QC", status="success", confidence="high",
+        claim="Sample QC evaluated the inputs.",
+        evidence=[EvidenceItem(label="samples", value=6)])
+    bad = NarrativeBlock(
+        id="bulk.gsea.bad", modality="bulk RNA-seq", analysis="gsea_preranked",
+        block_type="exploratory", title="Bad GSEA", status="success",
+        confidence="low", claim="GSEA had 999 unsupported signals.",
+        evidence=[EvidenceItem(label="x", value=1)])
+    html = render_blocks([good, bad], strict=False)
+    assert "QC" in html                       # the good block rendered
+    assert "withheld" in html                 # the bad block was withheld
+    assert "999 unsupported" not in html      # its unverified prose is NOT shown
+
+
+def test_gsea_prose_nes_matches_evidence_after_rounding_fix():
+    # The GSEA composer rounded NES to :.3g (5.43) while the evidence held the raw
+    # value (5.4321), so strict verification rejected the prose and killed the
+    # report. The composer now uses the verifier's :.6g normalization.
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+    from aria.agents.narrative.compose_prose import compose_block_prose
+    from aria.agents.narrative.evidence_verifier import verify_block_claim_support
+
+    block = NarrativeBlock(
+        id="bulk.gsea.X", modality="bulk RNA-seq", analysis="gsea_preranked",
+        block_type="exploratory", title="Preranked GSEA X", status="success",
+        confidence="low",
+        claim="Preranked GSEA generated ranked pathway support for X.",
+        evidence=[
+            EvidenceItem(label="FDR<0.25 pathways", value=1, source="gsea_preranked"),
+            EvidenceItem(label="GSEA term RNA Polymerase II",
+                         value=5.43209876, source="gsea_preranked"),
+        ],
+        metrics={"n_pathways": 1, "top_pathways": [
+            {"term": "RNA Polymerase II", "nes": 5.43209876, "fdr": 0.000312}]})
+    prose = compose_block_prose(block)
+    assert "NES=5.43" in prose                 # the value is shown
+    verify_block_claim_support(block, prose, strict=True)   # and it verifies
+
+
 def test_render_blocks_shows_claim_evidence_caveats_and_validates_files(tmp_path):
     import pytest
     from aria.agents.narrative.render_blocks import render_blocks

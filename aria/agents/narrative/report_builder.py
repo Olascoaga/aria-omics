@@ -908,7 +908,11 @@ class ReportBuilderMixin:
             # Build plot embeds if we have bulk RNA results
             plot_html = ""
             if blocks:
-                plot_html = render_blocks(blocks, report_dir=report_dir)
+                # strict=False: a single unverifiable block is withheld, never
+                # aborts the whole report (W-CLAIM stays strict for the block, but
+                # report generation is resilient).
+                plot_html = render_blocks(blocks, report_dir=report_dir,
+                                          strict=False)
                 body_html = ""
             elif key == "bulk_rna" and agent_results:
                 plot_html = self._build_bulk_rna_plots(
