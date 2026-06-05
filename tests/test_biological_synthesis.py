@@ -81,6 +81,26 @@ def test_claims_are_capped_at_associative():
         assert tier in {"descriptive", "associative"}, (b.title, tier)
 
 
+def test_convergent_claim_names_the_shared_processes_not_just_counts():
+    # Integrative, not a summary: the claim must say what the convergence points
+    # to (the shared enriched processes), and those names must be evidence-backed.
+    A = _contrast("KOa vs WT", "KOa", "WT", ["g1", "g2", "g3"], ["g4"],
+                  ["response to zinc ion", "extracellular matrix organization"])
+    B = _contrast("KOb vs WT", "KOb", "WT", ["g2", "g3"], ["g4", "g5"],
+                  ["response to zinc ion", "cholesterol biosynthetic process"])
+    blocks = compose_discussion_blocks(detect_bulk_patterns([A, B]))
+    conv = next(b for b in blocks if b.analysis == "convergent_evidence")
+    assert "points to" in conv.claim
+    assert "response to zinc ion" in conv.claim          # the shared process named
+    verify_block_claim_support(conv, strict=True)        # still evidence-backed
+    div = next(b for b in blocks if b.analysis == "divergent_evidence")
+    assert "uniquely engages" in div.claim
+    # each contrast's specific process is named
+    assert "extracellular matrix organization" in div.claim
+    assert "cholesterol biosynthetic process" in div.claim
+    verify_block_claim_support(div, strict=True)
+
+
 def test_no_pathways_means_no_enrichment_claim():
     # Test 1: pathways empty -> no integrated-signal block, no "enriched term" prose
     A = _contrast("KOa vs WT", "KOa", "WT", ["g1", "g2"], ["g3"], [])

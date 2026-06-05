@@ -15,9 +15,40 @@ convergence/divergence over a shared reference, reliability limits). Cross-modal
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from aria.agents.narrative.types import NarrativeBlock, EvidenceItem, Caveat
+from aria.agents.narrative.validators import find_causal_language
+
+_GO_ID_RE = re.compile(r"\s*\(GO:\d+\)\s*$")
+
+
+def _clean_term(term: str) -> str:
+    """Strip the trailing GO accession so the prose reads as a process name."""
+    return _GO_ID_RE.sub("", str(term or "")).strip()
+
+
+def _name_processes(terms: list[str], k: int = 3) -> list[str]:
+    """Top-k enrichment process names (ORA order), GO-id-free and never causal.
+
+    Skips any term whose label carries causal vocabulary so naming a process can
+    never smuggle a causal claim past the (caveat-exempt) prose.
+    """
+    out: list[str] = []
+    for t in terms or []:
+        c = _clean_term(t)
+        if c and c not in out and find_causal_language(c) is None:
+            out.append(c)
+        if len(out) >= k:
+            break
+    return out
+
+
+def _join(items: list[str]) -> str:
+    if len(items) <= 1:
+        return items[0] if items else ""
+    return ", ".join(items[:-1]) + (", and " if len(items) > 2 else " and ") + items[-1]
 
 _ASSOCIATIVE_CAVEAT = Caveat(
     "This is an observational association across analyses, not a demonstration of "
@@ -92,6 +123,17 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
             f"; {x['n_shared_terms']} enriched term(s) are common to both"
             if x.get("n_shared_terms") else ""
         )
+        # The biological "what does it point to": name the shared enriched
+        # processes (real ORA evidence), so the convergence reads as an
+        # integration, not a count. Stays associative — enrichment, not mechanism.
+        shared_procs = _name_processes(x.get("shared_pathway_terms", []), 3)
+        proc_clause = ""
+        if shared_procs:
+            ev.append(_ev("shared enriched processes", "; ".join(shared_procs)))
+            proc_clause = (
+                f" The shared response points to coordinated enrichment of "
+                f"{_join(shared_procs)}."
+            )
         blocks.append(NarrativeBlock(
             id=f"integration.convergent.{_safe(a)}__{_safe(b)}",
             modality="integrated synthesis",
@@ -104,6 +146,7 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
                 f"{a} and {b} share {shared} differentially expressed gene(s)"
                 f"{direction_clause}{terms_clause}, consistent with a shared "
                 f"transcriptional program relative to {x['shared_reference']}."
+                f"{proc_clause}"
             ),
             evidence=ev,
             caveats=[_ASSOCIATIVE_CAVEAT],
@@ -125,6 +168,26 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
                 f" {x['n_direction_discordant']} shared gene(s) move in opposite "
                 f"directions (discordant evidence)."
             )
+        div_ev = [
+            _ev("contrasts compared", f"{a}; {b}"),
+            _ev(f"{a} specific genes", spec_a),
+            _ev(f"{b} specific genes", spec_b),
+            _ev("discordant shared genes", x.get("n_direction_discordant", 0)),
+        ]
+        # Name the contrast-specific processes so divergence is biological, not
+        # just a count of non-overlapping genes.
+        procs_a = _name_processes(x.get("specific_terms_a", []), 2)
+        procs_b = _name_processes(x.get("specific_terms_b", []), 2)
+        spec_proc_clause = ""
+        parts = []
+        if procs_a:
+            div_ev.append(_ev(f"{a} specific processes", "; ".join(procs_a)))
+            parts.append(f"{a} uniquely engages {_join(procs_a)}")
+        if procs_b:
+            div_ev.append(_ev(f"{b} specific processes", "; ".join(procs_b)))
+            parts.append(f"{b} uniquely engages {_join(procs_b)}")
+        if parts:
+            spec_proc_clause = " " + "; ".join(parts) + "."
         blocks.append(NarrativeBlock(
             id=f"integration.divergent.{_safe(a)}__{_safe(b)}",
             modality="integrated synthesis",
@@ -136,14 +199,9 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
             claim=(
                 f"{a} additionally shows {spec_a} contrast-specific differentially "
                 f"expressed gene(s) and {b} shows {spec_b}, indicating partially "
-                f"distinct programs.{discord_clause}"
+                f"distinct programs.{spec_proc_clause}{discord_clause}"
             ),
-            evidence=[
-                _ev("contrasts compared", f"{a}; {b}"),
-                _ev(f"{a} specific genes", spec_a),
-                _ev(f"{b} specific genes", spec_b),
-                _ev("discordant shared genes", x.get("n_direction_discordant", 0)),
-            ],
+            evidence=div_ev,
             caveats=[_ASSOCIATIVE_CAVEAT],
             metrics={"n_specific_a": spec_a, "n_specific_b": spec_b},
         ))

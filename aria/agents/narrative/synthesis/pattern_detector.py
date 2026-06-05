@@ -46,6 +46,8 @@ class CrossContrastPattern:
     n_direction_discordant: int
     direction_known: bool
     shared_pathway_terms: list[str]
+    specific_terms_a: list[str]
+    specific_terms_b: list[str]
     n_terms_a: int
     n_terms_b: int
 
@@ -64,6 +66,8 @@ class CrossContrastPattern:
             "direction_known": self.direction_known,
             "n_shared_terms": self.n_shared_terms,
             "shared_pathway_terms": self.shared_pathway_terms[:20],
+            "specific_terms_a": self.specific_terms_a[:20],
+            "specific_terms_b": self.specific_terms_b[:20],
             "n_terms_a": self.n_terms_a, "n_terms_b": self.n_terms_b,
         }
 
@@ -82,14 +86,17 @@ def _direction_sets(contrast: dict) -> tuple[set[str], set[str], bool]:
             {str(g) for g in (down or [])}, True)
 
 
-def _pathway_terms(contrast: dict) -> set[str]:
-    terms: set[str] = set()
+def _pathway_terms(contrast: dict) -> list[str]:
+    """Ordered, de-duplicated enriched terms (ORA output order = significance)."""
+    terms: list[str] = []
+    seen: set[str] = set()
     for rows in (contrast.get("pathways") or {}).values():
         for row in rows or []:
             if isinstance(row, dict):
                 t = row.get("term") or row.get("Term")
-                if t:
-                    terms.add(str(t))
+                if t and str(t) not in seen:
+                    seen.add(str(t))
+                    terms.append(str(t))
     return terms
 
 
@@ -132,6 +139,7 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
             concordant = len((up_a & up_b) | (down_a & down_b))
             discordant = len((up_a & down_b) | (down_a & up_b))
         ta, tb = _pathway_terms(a), _pathway_terms(b)
+        tb_set, ta_set = set(tb), set(ta)
         den_a = str(a.get("denominator") or "")
         den_b = str(b.get("denominator") or "")
         cross.append(CrossContrastPattern(
@@ -144,7 +152,10 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
             n_direction_concordant=concordant,
             n_direction_discordant=discordant,
             direction_known=direction_known,
-            shared_pathway_terms=sorted(ta & tb),
+            # Ordered by each contrast's ORA significance (most enriched first).
+            shared_pathway_terms=[t for t in ta if t in tb_set],
+            specific_terms_a=[t for t in ta if t not in tb_set],
+            specific_terms_b=[t for t in tb if t not in ta_set],
             n_terms_a=len(ta), n_terms_b=len(tb),
         ))
 
