@@ -13,6 +13,7 @@ model, and the conclusions.
 - [Generated Graphify Map](architecture/graphify/README.md)
 - [Design Principles](architecture/design_principles.md)
 - [Reporting and Outputs](architecture/reporting_and_outputs.md)
+- [Biological Synthesis (Integrated Discussion)](architecture/biological_synthesis.md)
 - [Installation Guide](INSTALLATION.md)
 - [Validation Status](validation_status.md)
 - [v4.5.4 Release Notes](release_notes_v4.5.4.md)
