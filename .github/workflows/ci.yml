@@ -101,6 +101,7 @@ jobs:
             tests/test_narrative_render_blocks.py \
             tests/test_causal_guard.py \
             tests/test_claim_compiler.py \
+            tests/test_biological_synthesis.py \
             tests/test_run_ledger_and_devils.py \
             tests/test_ledger_claim_linkage.py \
             tests/test_ledger_export.py \

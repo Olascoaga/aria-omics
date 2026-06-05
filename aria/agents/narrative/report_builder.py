@@ -890,12 +890,14 @@ class ReportBuilderMixin:
             "rna":         ("RNA-seq", "var(--green)"),
             "chromatin":   ("Chromatin", "var(--teal)"),
             "hic":         ("3D Genome", "#a78bfa"),
-            "integration": ("Integration", "#f472b6"),
+            "integration": ("Integrated Biological Discussion", "#f472b6"),
             "synthesis":   ("Integrated Interpretation", "var(--navy)"),
         }
         section_prefix = {
             "bulk_rna": "bulk",
             "scrna": "scrna",
+            # BiologicalSynthesisAgent blocks carry the "integration." id prefix.
+            "integration": "integration",
         }
         for key, (label, color) in section_labels.items():
             text = sections.get(key, "")

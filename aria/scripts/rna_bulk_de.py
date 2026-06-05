@@ -441,6 +441,10 @@ def bulk_rna_de(params: dict) -> dict:
             # else Ensembl IDs — both work for set intersection)
             "all_sig_genes":     all_sig_symbols,
             "all_sig_gene_ids":   [str(g) for g in all_sig],
+            # Direction split (gene IDs) so the BiologicalSynthesisAgent can score
+            # direction concordance of shared genes across contrasts.
+            "up_gene_ids":       [str(g) for g in (de_result.get("up_genes") or [])],
+            "down_gene_ids":     [str(g) for g in (de_result.get("down_genes") or [])],
             "pathways":          pathways,
             "pathway_background": {
                 "background_size": len(background_symbols),

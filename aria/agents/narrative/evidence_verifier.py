@@ -233,8 +233,20 @@ def _issues_for_sentence(
                 f"named entity {token!r} is absent from the evidence card",
             ))
 
+    # Integration/synthesis blocks deliberately span multiple analysis families
+    # (they integrate DE + pathway + abundance ...), so the single-family
+    # requirement does not apply. Numeric support, named-entity support, and the
+    # causal-licensing guard below STILL apply — only the family-mismatch check is
+    # skipped for these blocks.
+    is_integration = (
+        block.block_type == "integration"
+        or str(block.analysis or "").startswith("integration")
+        or str(block.analysis or "") in {
+            "integrated_signal", "convergent_evidence", "divergent_evidence",
+        }
+    )
     required = _required_family(low)
-    if required and required != family:
+    if required and required != family and not is_integration:
         # Pathway prose often explains that terms summarize a DE list. That is
         # still pathway evidence, not a second unsupported DE claim.
         pathway_explains_de = (

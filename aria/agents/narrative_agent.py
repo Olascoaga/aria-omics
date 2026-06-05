@@ -824,6 +824,22 @@ for small-effect genes."
             blocks = self._narrative_registry().collect_blocks(
                 agent_results or {}, context
             )
+            # BiologicalSynthesisAgent (Slice 1): integrate the structured results
+            # into an Integrated Biological Discussion. Emitting NarrativeBlocks
+            # means the synthesis inherits the claim tiering + STRICT evidence
+            # verification + devil's advocate + ledger linkage applied below.
+            # Best-effort — never block report generation.
+            try:
+                from aria.agents.biological_synthesis_agent import (
+                    BiologicalSynthesisAgent,
+                )
+                blocks.extend(
+                    BiologicalSynthesisAgent().synthesize(
+                        agent_results or {}, exp_ctx or {}
+                    )
+                )
+            except Exception as exc:
+                log.warning(f"Biological synthesis failed: {exc}", exc_info=True)
             # X14 Claim Compiler: classify each claim into an evidence tier from
             # the structured evidence and cap the licensed language. Stored in
             # block.metadata['claim'] so both the HTML render and methodology.json
