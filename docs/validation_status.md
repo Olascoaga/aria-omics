@@ -21,12 +21,28 @@ provenance-stamped, and missing or low-power results stay visible.
 | scRNA single-sample | Validated | PBMC 3k and GSE278576 single-sample runs |
 | scRNA multi-sample | Validated | GSE278576 3-donor concat + Harmony workflow |
 | Processed h5ad pseudobulk | Validated | 40-donor hippocampus rerun; report review confirmed pseudobulk, ORA, LIANA, trajectory, figures, and TSV exports |
+| Integrated RNA biological discussion | Validated for RNA-only reports | Bulk RNA and scRNA synthesis blocks are generated from structured ARIA outputs, evidence-verified, claim-tiered, and rendered through the normal NarrativeAgent governance |
 
-Current RNA/reporting baseline: `v4.5.4`, plus an ongoing post-`v4.5.4`
-reliability / governance / reproducibility hardening pass (see below). scRNA
+Current RNA/reporting baseline: release tag `v4.5.4`, with post-`v4.5.4`
+hardening on `main` through the June 6, 2026 chromatin entry-path validation.
+The post-tag hardening closed the scRNA W-CLAIM verifier regressions, removed
+embedded biological fallback knowledge from runtime paths, required explicit
+CellTypist tissue hints, and added governed scRNA biological synthesis. scRNA
 pseudobulk DE defaults to per-cluster FDR for the primary significance call while
 still reporting global FDR for audit; significant-gene counts can differ from
 pre-`v4.5.4` reports by design.
+
+## Recent Post-v4.5.4 Closures
+
+These changes are newer than the `v4.5.4` tag and explain why the `main` branch
+is stricter than the released baseline:
+
+| Closure | Status | What changed |
+|---|---|---|
+| scRNA W-CLAIM verification | Done | Diagnostic/error scRNA blocks, age-bin labels, thousands separators, LIANA tool names, and word-boundary analysis-family matching are handled without rejecting valid report text or accepting unsupported scientific claims |
+| Anti-hardcode cleanup | Done | Runtime ligand-receptor fallback biology, MOFA cell-cycle mock biology, peak-to-gene mechanism labels from correlation sign, dataset/gene examples in production docstrings, and prose-derived CellTypist tissue hints were removed or gated |
+| scRNA biological synthesis | Done | `BiologicalSynthesisAgent` now emits RNA-only scRNA integrated discussion blocks from measured pseudobulk, ORA, abundance, LIANA, trajectory, and reliability summaries; it remains data-only and makes no RNA+ATAC claims |
+| Chromatin `.h5mu` entry path | Done at scaffold level | The planned HC11 paired RNA+ATAC MuData file is readable through `chromatin_qc.py`, which reports real ATAC matrix dimensions while leaving FRiP/TSS/pass-QC uncomputed |
 
 ## Reliability, Governance & Reproducibility
 
@@ -40,6 +56,8 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | Single-source provenance | Done | version + git commit + dirty state + input SHA-256 + per-stage parameter hashes + dependency lockfiles + LLM usage |
 | Design honesty | Done | confirmed covariates in the fitted DESeq2 formula; no alphabetical reference contrast; no filename-fallback design in production; user thresholds propagated end-to-end |
 | No fabricated science | Done | repo-wide anti-fabrication guard (no placeholder matrices, ungated mock "successes", or hash-derived metrics) |
+| No hardcoded biology in runtime fallbacks | Done | biological marker panels, ligand-receptor fallback tables, tissue keyword maps, and mechanism labels from feature names/signs are not used as production evidence |
+| Evidence-linked claims | Done | report claims pass strict evidence verification, causal-language guards, run-ledger linkage, and deterministic devil's-advocate review before rendering |
 | Typed IPC contracts | Done | every dispatchable script validates inputs/outputs before and after the subprocess |
 | Blocking CI (3 tiers) | Done | PR (guards + unit + contracts) / main (real pyDESeq2 recovery benchmark) / release (Docker env solve + in-image benchmark) |
 | Air-gapped mode | Done | `ARIA_AIR_GAPPED=1` governs **all** egress (LLM + pathway ORA + GEO/SRA connectors), not just the LLM, and redacts failed-run input/error archives |
@@ -97,10 +115,15 @@ closeout and extended since):
 - methods record the fitted design formula, thresholds, grouping columns, covariates, and warnings;
 - existing `obs` annotations are reported as reused groupings, not as newly inferred Leiden clusters;
 - claims are evidence-tiered and never exceed the language their evidence licenses;
+- every rendered scientific claim must be backed by local evidence cards or be
+  withheld; diagnostic blocks can report structured skip/error counts without
+  masquerading as measured biology;
 - `rna_de_per_cluster.py` is treated as optional on atlas-scale inputs. If it times
   out, the pipeline may still be scientifically valid when donor-level pseudobulk,
   pathway, communication, and trajectory outputs complete.
 
 Latest reviewed hippocampus rerun produced real output tables and figures; newer
 reports state that Leiden was skipped when input annotations are reused, and carry
-the full provenance and evidence-tier manifest described above.
+the full provenance and evidence-tier manifest described above. The integrated
+RNA discussion is part of the governed report path; cross-modal RNA+ATAC
+synthesis remains deferred until validated chromatin outputs exist.
