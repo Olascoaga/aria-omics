@@ -12,7 +12,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_m7nos0_corpus_apply_fixes_sh__entry",
+      "id": "tmp_aria_graphify_7wg12d_corpus_apply_fixes_sh__entry",
       "label": "APPLY_fixes.sh script",
       "file_type": "code",
       "source_file": "APPLY_fixes.sh",
@@ -2029,147 +2029,147 @@
       "label": "IntegrationAgent",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L115"
+      "source_location": "L112"
     },
     {
       "id": "agents_integration_agent_integrationagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126"
+      "source_location": "L123"
     },
     {
       "id": "aria_agents_integration_agent_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126"
+      "source_location": "L123"
     },
     {
       "id": "aria_agents_integration_agent_py_llmprovider",
       "label": "LLMProvider",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126"
+      "source_location": "L123"
     },
     {
       "id": "aria_agents_integration_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126"
+      "source_location": "L123"
     },
     {
       "id": "agents_integration_agent_integrationagent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L137"
+      "source_location": "L134"
     },
     {
       "id": "agents_integration_agent_integrationagent_select_strategy",
       "label": "._select_strategy()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228"
+      "source_location": "L225"
     },
     {
       "id": "aria_agents_integration_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228"
+      "source_location": "L225"
     },
     {
       "id": "aria_agents_integration_agent_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228"
+      "source_location": "L225"
     },
     {
       "id": "agents_integration_agent_integrationagent_run_wnn",
       "label": "._run_wnn()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L259"
+      "source_location": "L256"
     },
     {
       "id": "agents_integration_agent_integrationagent_evaluate_wnn_weights",
       "label": "._evaluate_wnn_weights()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L341"
+      "source_location": "L338"
     },
     {
       "id": "agents_integration_agent_integrationagent_run_peak_to_gene",
       "label": "._run_peak_to_gene()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L397"
+      "source_location": "L394"
     },
     {
       "id": "agents_integration_agent_integrationagent_store_peak_gene_tunnels",
       "label": "._store_peak_gene_tunnels()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L439"
+      "source_location": "L436"
     },
     {
       "id": "agents_integration_agent_integrationagent_debate_peak_gene_links",
       "label": "._debate_peak_gene_links()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L474"
+      "source_location": "L471"
     },
     {
       "id": "agents_integration_agent_integrationagent_run_mofa",
       "label": "._run_mofa()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L547"
+      "source_location": "L544"
     },
     {
       "id": "agents_integration_agent_integrationagent_advise_mofa_factors",
       "label": "._advise_mofa_factors()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L586"
+      "source_location": "L583"
     },
     {
       "id": "agents_integration_agent_integrationagent_interpret_mofa_factors",
       "label": "._interpret_mofa_factors()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L653"
+      "source_location": "L650"
     },
     {
       "id": "agents_integration_agent_integrationagent_resolve_conflicts",
       "label": "._resolve_conflicts()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L708"
+      "source_location": "L707"
     },
     {
       "id": "agents_integration_agent_integrationagent_format_wnn_checkpoint",
       "label": "._format_wnn_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L781"
+      "source_location": "L775"
     },
     {
       "id": "agents_integration_agent_integrationagent_get_output_dir",
       "label": "._get_output_dir()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L813"
+      "source_location": "L807"
     },
     {
       "id": "agents_integration_agent_integrationagent_receive",
       "label": ".receive()",
       "file_type": "code",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L818"
+      "source_location": "L812"
     },
     {
       "id": "agents_modality_audit",
@@ -7265,35 +7265,35 @@
       "label": "integration_mofa()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L63"
+      "source_location": "L50"
     },
     {
       "id": "scripts_integration_mofa_load_modality",
       "label": "_load_modality()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L296"
+      "source_location": "L273"
     },
     {
       "id": "aria_scripts_integration_mofa_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L296"
+      "source_location": "L273"
     },
     {
       "id": "scripts_integration_mofa_mock_mofa",
       "label": "_mock_mofa()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L316"
+      "source_location": "L293"
     },
     {
       "id": "aria_scripts_integration_mofa_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L316"
+      "source_location": "L293"
     },
     {
       "id": "scripts_integration_peak2gene",
@@ -7307,56 +7307,56 @@
       "label": "integration_peak2gene()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L56"
+      "source_location": "L54"
     },
     {
       "id": "scripts_integration_peak2gene_load_atac_matrix",
       "label": "_load_atac_matrix()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290"
+      "source_location": "L288"
     },
     {
       "id": "aria_scripts_integration_peak2gene_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290"
+      "source_location": "L288"
     },
     {
       "id": "aria_scripts_integration_peak2gene_py_object",
       "label": "object",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290"
+      "source_location": "L288"
     },
     {
       "id": "scripts_integration_peak2gene_get_gene_coordinates",
       "label": "_get_gene_coordinates()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L316"
+      "source_location": "L314"
     },
     {
       "id": "scripts_integration_peak2gene_missinggtferror",
       "label": "MissingGTFError",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L390"
+      "source_location": "L388"
     },
     {
       "id": "scripts_integration_peak2gene_get_peak_coordinates",
       "label": "_get_peak_coordinates()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L395"
+      "source_location": "L393"
     },
     {
       "id": "scripts_integration_peak2gene_mock_peak2gene",
       "label": "_mock_peak2gene()",
       "file_type": "code",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L431"
+      "source_location": "L429"
     },
     {
       "id": "scripts_integration_wnn",
@@ -7909,7 +7909,7 @@
       "label": "rna_cellcomm()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": "L73"
+      "source_location": "L50"
     },
     {
       "id": "scripts_rna_celltypist",
@@ -10828,7 +10828,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -10954,7 +10954,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -10976,7 +10976,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -12152,6 +12152,13 @@
       "file_type": "code",
       "source_file": "tests/test_cellcomm_contract.py",
       "source_location": "L82"
+    },
+    {
+      "id": "tests_test_cellcomm_contract_test_cellcomm_has_no_embedded_ligand_receptor_fallback",
+      "label": "test_cellcomm_has_no_embedded_ligand_receptor_fallback()",
+      "file_type": "code",
+      "source_file": "tests/test_cellcomm_contract.py",
+      "source_location": "L94"
     },
     {
       "id": "tests_test_chromatin_agent",
@@ -16894,6 +16901,17 @@
       "contributor": null
     },
     {
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
@@ -16905,30 +16923,8 @@
       "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "aria_memory",
       "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/bus/aria_memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
       "file_type": "code",
       "source_file": "aria/bus/message_bus.py",
       "source_location": null,
@@ -16952,7 +16948,7 @@
   "edges": [
     {
       "source": "apply_fixes",
-      "target": "tmp_aria_graphify_m7nos0_corpus_apply_fixes_sh__entry",
+      "target": "tmp_aria_graphify_7wg12d_corpus_apply_fixes_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "APPLY_fixes.sh",
@@ -24653,7 +24649,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L115",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -24662,7 +24658,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L115",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -24671,7 +24667,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -24681,7 +24677,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -24691,7 +24687,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -24701,7 +24697,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L126",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -24710,7 +24706,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L137",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -24720,7 +24716,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L137",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -24729,7 +24725,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24739,7 +24735,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24749,7 +24745,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24759,7 +24755,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24769,7 +24765,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24779,7 +24775,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L228",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -24788,7 +24784,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L259",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -24798,7 +24794,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L259",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -24807,7 +24803,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L341",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -24817,7 +24813,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L341",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -24826,7 +24822,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L397",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -24836,7 +24832,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L397",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -24845,7 +24841,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L439",
+      "source_location": "L436",
       "weight": 1.0
     },
     {
@@ -24855,7 +24851,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L439",
+      "source_location": "L436",
       "weight": 1.0
     },
     {
@@ -24864,7 +24860,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L474",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -24874,7 +24870,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L474",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -24883,7 +24879,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L547",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -24893,7 +24889,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L547",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -24902,7 +24898,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L586",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -24912,7 +24908,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L586",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -24922,7 +24918,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L586",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -24931,7 +24927,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L653",
+      "source_location": "L650",
       "weight": 1.0
     },
     {
@@ -24941,7 +24937,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L653",
+      "source_location": "L650",
       "weight": 1.0
     },
     {
@@ -24950,7 +24946,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L708",
+      "source_location": "L707",
       "weight": 1.0
     },
     {
@@ -24960,7 +24956,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L708",
+      "source_location": "L707",
       "weight": 1.0
     },
     {
@@ -24969,7 +24965,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L781",
+      "source_location": "L775",
       "weight": 1.0
     },
     {
@@ -24979,7 +24975,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L781",
+      "source_location": "L775",
       "weight": 1.0
     },
     {
@@ -24988,7 +24984,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L813",
+      "source_location": "L807",
       "weight": 1.0
     },
     {
@@ -24998,7 +24994,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L813",
+      "source_location": "L807",
       "weight": 1.0
     },
     {
@@ -25007,7 +25003,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L818",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -25017,7 +25013,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L174",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -25027,7 +25023,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L190",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -25037,7 +25033,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L198",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -25047,7 +25043,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L208",
+      "source_location": "L205",
       "weight": 1.0
     },
     {
@@ -25057,7 +25053,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L217",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -25067,7 +25063,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L278",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -25077,7 +25073,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L330",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -25087,7 +25083,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L335",
+      "source_location": "L332",
       "weight": 1.0
     },
     {
@@ -25097,7 +25093,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L425",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -25107,7 +25103,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L430",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -25117,7 +25113,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L433",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -25127,7 +25123,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L554",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -25137,7 +25133,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L580",
+      "source_location": "L577",
       "weight": 1.0
     },
     {
@@ -44817,7 +44813,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L63",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -44826,7 +44822,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L296",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -44836,7 +44832,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L296",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -44846,7 +44842,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L296",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -44855,7 +44851,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L316",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -44865,7 +44861,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L316",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -44875,7 +44871,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L316",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -44885,7 +44881,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L105",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -44895,7 +44891,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L112",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -44904,7 +44900,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L56",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -44913,7 +44909,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -44923,7 +44919,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -44933,7 +44929,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L290",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -44942,7 +44938,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L316",
+      "source_location": "L314",
       "weight": 1.0
     },
     {
@@ -44952,7 +44948,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L316",
+      "source_location": "L314",
       "weight": 1.0
     },
     {
@@ -44962,7 +44958,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L316",
+      "source_location": "L314",
       "weight": 1.0
     },
     {
@@ -44971,7 +44967,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L390",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -44980,7 +44976,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L390",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -44989,7 +44985,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L395",
+      "source_location": "L393",
       "weight": 1.0
     },
     {
@@ -44999,7 +44995,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L395",
+      "source_location": "L393",
       "weight": 1.0
     },
     {
@@ -45008,7 +45004,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L431",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -45018,7 +45014,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L431",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -45028,7 +45024,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L115",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -45038,7 +45034,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L124",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -45048,7 +45044,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L148",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -45058,7 +45054,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L151",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -45068,7 +45064,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L345",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -46766,7 +46762,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": "L73",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -46776,7 +46772,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": "L81",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -56496,7 +56492,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -56549,7 +56545,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56559,7 +56555,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56569,7 +56565,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56579,7 +56575,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56589,7 +56585,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56707,7 +56703,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -56716,7 +56712,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -56751,7 +56747,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -56761,7 +56757,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_m7nos0_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_7wg12d_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -58751,6 +58747,15 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_cellcomm_contract.py",
       "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cellcomm_contract",
+      "target": "tests_test_cellcomm_contract_test_cellcomm_has_no_embedded_ligand_receptor_fallback",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cellcomm_contract.py",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
@@ -67605,7 +67610,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L358",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -69225,7 +69230,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L52",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -69235,7 +69240,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L52",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -69245,7 +69250,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L53",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -69255,7 +69260,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L53",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -69645,7 +69650,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": "L78",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -71795,7 +71800,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_integration_agent.py",
-      "source_location": "L300",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -71805,7 +71810,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_integration_agent.py",
-      "source_location": "L345",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -71815,7 +71820,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_integration_agent.py",
-      "source_location": "L351",
+      "source_location": "L344",
       "weight": 1.0
     },
     {
@@ -71825,7 +71830,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_integration_agent.py",
-      "source_location": "L357",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -73625,7 +73630,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_mofa.py",
-      "source_location": "L72",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -73635,7 +73640,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/integration_peak2gene.py",
-      "source_location": "L68",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -73885,7 +73890,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": "L88",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -78482,7 +78487,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L130",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -78493,7 +78498,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L359",
+      "source_location": "L356",
       "weight": 1.0
     },
     {
@@ -78504,7 +78509,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L495",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -78515,7 +78520,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/integration_agent.py",
-      "source_location": "L661",
+      "source_location": "L658",
       "weight": 1.0
     },
     {
@@ -79340,22 +79345,12 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "narrative_agent",
-      "target": "claim_compiler",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -79370,8 +79365,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -79380,12 +79375,22 @@
       "weight": 1.0
     },
     {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
       "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
+      "target": "claim_compiler",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_file": "docs/architecture/reporting_and_outputs.md",
       "source_location": null,
       "weight": 1.0
     }
