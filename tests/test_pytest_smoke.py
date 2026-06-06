@@ -1449,6 +1449,20 @@ def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
         assert entry["annotation_source"] == "input_obs"
 
 
+def test_scrna_celltypist_tissue_hint_requires_explicit_context():
+    from aria.agents.scrna_agent import scRNAAgent
+
+    assert scRNAAgent._infer_tissue_hint(
+        {"user_question": "profile fetal brain cells"},
+        {"summary": "fetal brain single-cell atlas",
+         "biological_entities": ["hippocampus"]},
+    ) is None
+    assert scRNAAgent._infer_tissue_hint(
+        {"celltypist_tissue_hint": "brain"},
+        {"summary": "single-cell atlas"},
+    ) == "brain"
+
+
 def test_scrna_pseudobulk_skips_when_annotation_unrecoverable(tmp_path):
     from aria.agents.scrna_agent import scRNAAgent
 

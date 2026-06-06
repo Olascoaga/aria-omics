@@ -925,32 +925,15 @@ class scRNAAgent(BaseAgent):
 
     # ── Cell type annotation: CellTypist anchors, LLM reinterprets ───────
 
-    # Tissue keywords → CellTypist tissue_hint. Order matters: most-specific
-    # first so "fetal brain" routes to fetal, not brain.
-    _TISSUE_KEYWORDS = [
-        ("fetal",     ["fetal", "fetus", "prenatal", "embryon"]),
-        ("brain",     ["brain", "cortex", "neuron", "hippocamp", "cerebr"]),
-        ("kidney",    ["kidney", "renal", "nephron"]),
-        ("lung",      ["lung", "pulmonary", "alveol", "bronch"]),
-        ("intestine", ["intestin", "gut", "colon", "ileum"]),
-        ("skin",      ["skin", "epidermis", "dermal"]),
-        ("pbmc",      ["pbmc", "peripheral blood", "blood mononuclear"]),
-        ("immune",    ["immune", "t cell", "b cell", "monocyt", "lymph",
-                       "macrophag", "dendritic", "nk cell"]),
-    ]
-
-    @classmethod
-    def _infer_tissue_hint(cls, exp_ctx: dict, intent: dict) -> str:
-        text = " ".join(filter(None, [
-            intent.get("summary", ""),
-            intent.get("user_question", ""),
-            exp_ctx.get("user_question", ""),
-            " ".join(intent.get("biological_entities", []) or []),
-        ])).lower()
-        for hint, keywords in cls._TISSUE_KEYWORDS:
-            if any(kw in text for kw in keywords):
-                return hint
-        return "immune"  # CellTypist default — Immune_All_Low covers PBMC well
+    @staticmethod
+    def _infer_tissue_hint(exp_ctx: dict, intent: dict) -> str | None:
+        """Use only an explicit tissue/model hint; do not infer one from prose."""
+        for source in (exp_ctx or {}, intent or {}):
+            for key in ("celltypist_tissue_hint", "tissue_hint", "tissue"):
+                value = source.get(key)
+                if isinstance(value, str) and value.strip():
+                    return value.strip().lower()
+        return None
 
     def _predefined_celltype_col(self, h5ad_path: str,
                                   exp_ctx: dict) -> str | None:
