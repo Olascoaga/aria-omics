@@ -107,7 +107,7 @@ def verify_block_claim_support(
     card = build_evidence_card(block)
 
     # Error / skipped blocks state a DIAGNOSTIC message (a timeout, a skip reason
-    # like "not enough replicates: 80-100=0, 20-39=4"), not a measured scientific
+    # like "not enough replicates: group_a=0, group_b=4"), not a measured scientific
     # claim. Their numbers legitimately are not on the evidence card, and the
     # Report Integrity rules require the failure to stay visible — so do not run
     # numeric/entity verification on a non-success block.
@@ -348,13 +348,13 @@ def _claim_numbers(sentence: str) -> set[str]:
     return numbers
 
 
-# Hyphenated digit ranges are GROUP/COMPARISON LABELS (age bins like "40-59",
-# "80-100", "80-100_vs_20-39"), not measured claims — their numbers must not be
-# required on the evidence card. Thousands separators ("242,405") must collapse so
-# a formatted claim number matches the unformatted evidence value ("242405").
-# Hyphen DIRECTLY between digits = a group/comparison label (age bins "40-59",
-# "80-100_vs_20-39"). The hyphen must be adjacent (no spaces) so a negative number
-# after a gene name ("TOMM7 -2.055") is NOT mistaken for a range.
+# Hyphenated digit ranges are GROUP/COMPARISON LABELS (for example "10-20",
+# "10-20_vs_30-40"), not measured claims; their numbers must not be required on
+# the evidence card. Thousands separators ("123,456") must collapse so a
+# formatted claim number matches the unformatted evidence value ("123456").
+# Hyphen DIRECTLY between digits = a group/comparison label. The hyphen must be
+# adjacent (no spaces) so a negative number after a feature name ("FEATURE -2.055")
+# is NOT mistaken for a range.
 _RANGE_LABEL_RE = re.compile(r"\d+(?:-\d+)+")
 _THOUSANDS_SEP_RE = re.compile(r"(?<=\d),(?=\d{3}(?:\D|$))")
 

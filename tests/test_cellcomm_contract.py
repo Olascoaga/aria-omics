@@ -89,3 +89,15 @@ def test_script_resolves_groupby_then_cell_type_col_alias():
     assert _resolve_groupby({"groupby": "cluster",
                              "cell_type_col": "leiden"}) == "cluster"
     assert _resolve_groupby({}) == "cell_type"
+
+
+def test_cellcomm_has_no_embedded_ligand_receptor_fallback():
+    """When LIANA is absent, ARIA should skip honestly instead of emitting
+    interactions from a baked-in ligand-receptor list."""
+    import inspect
+    import aria.scripts.rna_cellcomm as mod
+
+    source = inspect.getsource(mod)
+    assert "_LR_PAIRS" not in source
+    assert "mean_expression_fallback" not in source
+    assert "liana_not_installed" in source

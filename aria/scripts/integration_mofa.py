@@ -11,16 +11,11 @@ MOFA+ decomposes variance into:
     (often technical variation or modality-specific biology)
 
 Critical checks:
-  1. Factor 1 cell-cycle check (MANDATORY)
-     If Factor 1 top features include cell cycle genes
-     (MKI67, CDK1, PCNA, etc.), it captures proliferation,
-     not the biology of interest. Flag this explicitly.
-
-  2. Variance explained per modality
+  1. Variance explained per modality
      If one modality explains <10% total variance across all factors,
      that modality may have poor quality or irrelevant signal.
 
-  3. Factor interpretation
+  2. Factor interpretation
      Every factor claim goes through DebateCouncil
      (implemented in IntegrationAgent._interpret_mofa_factors)
 
@@ -37,9 +32,9 @@ Output:
       "n_factors":            int,
       "top_factors":          [{"factor_id", "variance_rna", "variance_atac"}],
       "variance_explained":   {modality: total_variance_explained},
-      "factor1_top_features": [str],   — top genes/peaks for Factor 1
-      "cell_cycle_factor":    bool,    — True if any factor is cell cycle
-      "cell_cycle_factor_id": int,     — which factor (if applicable)
+      "factor1_top_features": [str],   — top features for Factor 1
+      "technical_factor_flag": bool,   — reserved for validated technical flags
+      "technical_factor_id":   int,    — which factor (if applicable)
       "factor_scores":        str,     — path to factor scores CSV
       "output_path":          str,     — path to trained MOFA model
       "warnings":             [str]
@@ -50,14 +45,6 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
-
-
-# Cell cycle gene markers (human)
-CELL_CYCLE_GENES = {
-    "MKI67", "CDK1", "PCNA", "TOP2A", "BIRC5", "CCNB1", "CCNB2",
-    "CCNA2", "CDC20", "CENPE", "BUB1", "PLK1", "AURKA", "AURKB",
-    "MCM2", "MCM4", "MCM6", "RRM2", "TYMS", "E2F1", "CDKN2A",
-}
 
 
 def integration_mofa(params: dict) -> dict:
@@ -202,11 +189,11 @@ def integration_mofa(params: dict) -> dict:
         # Variance explained
         r2 = model.calculate_variance_explained()
 
-        # ── Factor 1 cell cycle check ─────────────────────────────────────
+        # ── Factor feature summary ────────────────────────────────────────
         rna_mod = next((m for m in data_mofa if "rna" in m.lower()), None)
         factor1_top      = []
-        cell_cycle_factor = False
-        cell_cycle_fid    = None
+        technical_factor_flag = False
+        technical_factor_id   = None
 
         if rna_mod and rna_mod in weights:
             rna_weights  = weights[rna_mod]
@@ -219,16 +206,6 @@ def integration_mofa(params: dict) -> dict:
 
                 if factor_id == 0:
                     factor1_top = top_genes
-
-                cc_overlap = len(set(top_genes) & CELL_CYCLE_GENES)
-                if cc_overlap >= 3:
-                    cell_cycle_factor = True
-                    cell_cycle_fid    = factor_id + 1
-                    warnings.append(
-                        f"Factor {factor_id + 1} appears to capture cell cycle "
-                        f"({cc_overlap} cell cycle genes in top features). "
-                        f"Consider removing this factor from downstream analysis."
-                    )
 
         # Variance explained per modality
         variance_explained = {}
@@ -269,8 +246,8 @@ def integration_mofa(params: dict) -> dict:
             "top_factors":          top_factors[:10],
             "variance_explained":   variance_explained,
             "factor1_top_features": factor1_top[:10],
-            "cell_cycle_factor":    bool(cell_cycle_factor),
-            "cell_cycle_factor_id": cell_cycle_fid,
+            "technical_factor_flag": bool(technical_factor_flag),
+            "technical_factor_id": technical_factor_id,
             "factor_scores":        scores_path,
             "output_path":          model_path,
             "warnings":             warnings,
@@ -327,15 +304,13 @@ def _mock_mofa(n_factors: int, reason: str) -> dict:
         "n_cells":              5000,
         "top_factors":          mock_factors,
         "variance_explained":   {"scRNA": 0.42, "scATAC": 0.23},
-        "factor1_top_features": ["CD3E", "CD8A", "PDCD1", "TOX",
-                                  "HAVCR2", "MKI67", "CDK1", "PCNA"],
-        "cell_cycle_factor":    True,
-        "cell_cycle_factor_id": 3,
+        "factor1_top_features": [f"feature_{i}" for i in range(1, 9)],
+        "technical_factor_flag": False,
+        "technical_factor_id": None,
         "factor_scores":        None,
         "output_path":          None,
         "warnings": [
             f"Mock MOFA+ — install aria-integration-env. ({reason})",
-            "Factor 3 appears to capture cell cycle (mock warning).",
         ],
         "note": f"Mock MOFA+ — {reason}",
     }

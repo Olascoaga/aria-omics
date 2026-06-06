@@ -1434,16 +1434,16 @@ for small-effect genes."
             )
             if n_neg:
                 parts.append(
-                    f"{n_neg} open-chromatin/silent-gene pairs identified "
-                    f"(candidate poised regulatory elements)."
+                    f"{n_neg} peak-gene pair(s) showed negative "
+                    f"accessibility-expression correlation."
                 )
 
         mofa = findings.get("mofa", {})
         if mofa.get("n_factors"):
-            if mofa.get("cell_cycle_factor"):
-                fid = mofa.get("cell_cycle_factor_id", "?")
+            if mofa.get("technical_factor_flag"):
+                fid = mofa.get("technical_factor_id", "?")
                 parts.append(
-                    f"MOFA+ Factor {fid} captures cell cycle variation "
+                    f"MOFA+ Factor {fid} was flagged as technical "
                     f"(excluded from biological interpretation)."
                 )
 

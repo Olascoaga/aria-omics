@@ -98,8 +98,8 @@ def _looks_like_raw_id(symbol: str) -> bool:
 def _top_shared_symbols(a: dict, b_ids: set[str], k: int = 10) -> list[str]:
     """Shared genes (ranked by contrast a's significance), named by symbol.
 
-    Skips genes that only have a raw Ensembl/numeric id so the named list is the
-    community-friendly symbols a reviewer expects (IGFBP5, COL3A1, ...).
+    Skips genes that only have a raw Ensembl/numeric id so the named list uses
+    community-friendly symbols a reviewer expects.
     """
     sym_map = _id_to_symbol(a)
     out: list[str] = []

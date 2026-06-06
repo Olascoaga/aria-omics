@@ -11,17 +11,15 @@ Method:
   and gene expression across all cells.
   Report links where |r| >= min_corr.
 
-Biological interpretation:
-  Positive correlation (r > 0): open chromatin → active gene
-    → candidate enhancer or active promoter
-  Negative correlation (r < 0): open chromatin → silent gene
-    → candidate poised enhancer, silencer, or repressor binding site
-    → THESE ARE BIOLOGICALLY IMPORTANT — flag them explicitly
+Interpretation boundary:
+  Positive and negative correlations are descriptive evidence only. ARIA
+  reports the sign and magnitude but does not assign regulatory mechanism from
+  correlation alone.
 
 High-confidence criteria (stored as Tunnels in ARIAMemory):
   - |r| >= 0.4 (strong correlation)
-  - Distance < 250kb (proximal regulatory element)
-  - Ideally: corroborated by HiC loop or CTCF footprint
+  - Distance < 250kb
+  - Ideally: corroborated by an independent orthogonal assay
 
 Input params:
     rna_files:    list  — scRNA files
@@ -247,8 +245,8 @@ def integration_peak2gene(params: dict) -> dict:
         if n_neg > 0:
             warnings.append(
                 f"{n_neg} peaks show NEGATIVE correlation with nearby genes "
-                f"(open chromatin + silent gene). These may be poised enhancers "
-                f"or silencers — flag for experimental validation."
+                f"(discordant accessibility-expression evidence). Flag for "
+                f"experimental validation before interpreting mechanism."
             )
 
         # Save to CSV

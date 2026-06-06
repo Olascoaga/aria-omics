@@ -84,30 +84,27 @@ WNN:
 PEAK-TO-GENE LINKING:
   - Correlation-based linking has high false positive rate
   - Distance cutoff (typically 500kb) must be justified, not arbitrary
-  - Positive correlation (open + expressed) is the easy case
-  - Negative correlation (open + NOT expressed) is the interesting case:
-    could be poised enhancer, silencer, or technical artifact
+  - Positive correlation and negative correlation are both descriptive
+    observations until independent evidence supports interpretation
   - Always require at least 2 independent lines of evidence before
-    claiming a regulatory relationship (correlation + CTCF/footprinting
-    or correlation + HiC loop)
+    claiming a regulatory relationship
 
 MOFA+:
   - Number of factors is the critical hyperparameter
   - Too few: biological programs are confounded
   - Too many: factors become noise-driven
-  - Factor 1 often captures cell cycle or technical variation — check this
+  - Factor interpretation requires explicit evidence; do not infer biology
+    from feature names alone
   - Variance explained per modality tells you which omics drives the biology
   - If one modality explains <10% variance across all factors, question its quality
 
 CROSS-MODAL CONFLICTS:
   Gene expressed but chromatin closed:
-    → Possible: distal regulatory element, trans-regulation, technical artifact
-    → Always flag — do not silently discard
+    → Discordant evidence; flag it and avoid causal interpretation
   Chromatin open but gene not expressed:
-    → Possible: poised enhancer, TF binding without activation, cell state transition
-    → Biologically important — report with confidence MEDIUM and explanation
+    → Discordant evidence; flag it and avoid causal interpretation
   HiC loop present but no expression link:
-    → Possible: structural loop (CTCF-anchored) without regulatory function
+    → Structural contact without expression support
     → Requires additional evidence before claiming enhancer-promoter interaction
 """.strip()
 
@@ -677,7 +674,9 @@ class IntegrationAgent(BaseAgent):
                     "n_factors":        len(factors),
                     "variance_explained": variance_exp,
                     "factor1_features": factor1_top,
-                    "cell_cycle_check": mofa_result.get("cell_cycle_factor", False),
+                    "technical_factor_flag": mofa_result.get(
+                        "technical_factor_flag", False
+                    ),
                 },
                 biological_context=intent,
             )
@@ -710,14 +709,9 @@ class IntegrationAgent(BaseAgent):
         """
         Identify and reason about cross-modal discordances.
 
-        Cases:
-          - Open chromatin but no expression → poised enhancer?
-          - Expressed gene but closed chromatin → distal regulation?
-          - WNN cluster != RNA cluster → chromatin drives cell identity?
-          - HiC loop without expression correlation → structural loop?
-
-        Each conflict is reported with biological interpretation
-        and stored as a finding with explicit confidence and limitations.
+        Cases are descriptive discordances only; ARIA stores them with explicit
+        confidence and limitations, without assigning a mechanism from pattern
+        alone.
         """
         conflicts = []
 
@@ -742,21 +736,21 @@ class IntegrationAgent(BaseAgent):
                 }
                 conflicts.append(conflict)
 
-        # Check peak-gene negative correlations (open but silent)
+        # Check peak-gene negative correlations (discordant evidence)
         if p2g.get("status") == "success":
             n_negative = p2g.get("n_negative_correlations", 0)
             if n_negative > 0:
                 conflict = {
-                    "type":        "open_chromatin_silent_gene",
+                    "type":        "accessibility_expression_discordance",
                     "description": (
-                        f"{n_negative} peaks are accessible but their "
-                        f"linked genes are not expressed. "
-                        f"These may represent poised enhancers, silencers, "
-                        f"or developmental regulatory elements."
+                        f"{n_negative} peak-gene pair(s) show negative "
+                        f"accessibility-expression correlation. "
+                        f"Treat these as discordant evidence until an "
+                        f"independent validation assay supports mechanism."
                     ),
                     "n_events":    n_negative,
                     "confidence":  "medium",
-                    "action":      "Prioritize for footprinting and HiC validation",
+                    "action":      "Prioritize for independent validation",
                 }
                 conflicts.append(conflict)
                 # Store as findings for NarrativeAgent
@@ -764,7 +758,7 @@ class IntegrationAgent(BaseAgent):
                     experiment_id,
                     {"summary": conflict["description"],
                      "n_events": n_negative,
-                     "type": "poised_regulatory_elements"},
+                     "type": "accessibility_expression_discordance"},
                     Confidence.MEDIUM,
                 )
 

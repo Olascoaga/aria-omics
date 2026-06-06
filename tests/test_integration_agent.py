@@ -2,8 +2,8 @@
 ARIA IntegrationAgent Tests
 -----------------------------
 Validates: strategy selection, WNN weight evaluation, peak-to-gene
-conflict detection, MOFA+ cell cycle check, cross-modal conflict
-resolution, and DebateCouncil integration for multimodal claims.
+conflict detection, MOFA+ no-hardcoded-biology checks, cross-modal
+conflict resolution, and DebateCouncil integration for multimodal claims.
 
 Run:
   conda activate aria-env
@@ -76,18 +76,18 @@ class MockEnvManager:
                      "direction": "negative"},
                 ],
                 "ctcf_validated": False, "hic_corroborated": False,
-                "warnings": ["126 peaks show negative correlation (poised enhancers?)"],
+                "warnings": ["126 peaks show negative correlation"],
             }
         elif "mofa" in script:
             return {
                 "status": "success", "n_factors": 10, "n_cells": 5000,
                 "top_factors": [{"factor_id": i+1} for i in range(5)],
                 "variance_explained": {"scRNA": 0.42, "scATAC": 0.23},
-                "factor1_top_features": ["CD3E", "CD8A", "MKI67", "CDK1", "PCNA"],
-                "cell_cycle_factor": True, "cell_cycle_factor_id": 1,
+                "factor1_top_features": ["feature_a", "feature_b", "feature_c"],
+                "technical_factor_flag": True, "technical_factor_id": 1,
                 "factor_scores": "/tmp/scores.csv",
                 "output_path": "/tmp/mofa.hdf5",
-                "warnings": ["Factor 1 appears to capture cell cycle"],
+                "warnings": ["Factor 1 flagged as technical"],
             }
         return {"status": "success"}
 
@@ -272,44 +272,37 @@ try:
 
     n_neg_conflicts = sum(
         1 for c in conflicts.get("conflicts", [])
-        if c.get("type") == "open_chromatin_silent_gene"
+        if c.get("type") == "accessibility_expression_discordance"
     )
     assert n_neg_conflicts >= 1
-    ok(f"Negative correlations → 'open_chromatin_silent_gene' conflict detected")
+    ok("Negative correlations -> accessibility-expression conflict detected")
 except Exception as e:
     fail("Peak-to-gene conflict detection", str(e))
 
 
-# ── Test 4: MOFA+ cell cycle check ───────────────────────────────────────────
+# ── Test 4: MOFA+ mock does not invent biological factor labels ──────────────
 
-section("IntegrationAgent — MOFA+ cell cycle detection")
+section("IntegrationAgent — MOFA+ no hardcoded biology in mock")
 
 try:
-    from aria.scripts.integration_mofa import CELL_CYCLE_GENES
-    assert "MKI67"  in CELL_CYCLE_GENES
-    assert "CDK1"   in CELL_CYCLE_GENES
-    assert "PCNA"   in CELL_CYCLE_GENES
-    assert "TOP2A"  in CELL_CYCLE_GENES
-    assert len(CELL_CYCLE_GENES) >= 15
-    ok(f"Cell cycle gene set: {len(CELL_CYCLE_GENES)} genes including "
-       f"MKI67, CDK1, PCNA, TOP2A")
+    import aria.scripts.integration_mofa as mofa
+    assert not hasattr(mofa, "CELL_CYCLE_GENES")
+    ok("MOFA+ has no embedded cell-cycle gene panel")
 except Exception as e:
-    fail("Cell cycle gene set", str(e))
+    fail("No embedded cell-cycle gene panel", str(e))
 
 try:
     from aria.scripts.integration_mofa import _mock_mofa
     result = _mock_mofa(n_factors=10, reason="test")
-    assert result["cell_cycle_factor"] == True
-    assert result["cell_cycle_factor_id"] is not None
-    # Factor 1 features include cell cycle genes
+    assert result["technical_factor_flag"] is False
+    assert result["technical_factor_id"] is None
     f1_features = result["factor1_top_features"]
-    cc_overlap  = len(set(f1_features) & CELL_CYCLE_GENES)
-    assert cc_overlap >= 2, \
-        f"Factor1 features should include CC genes. Found: {f1_features}"
-    ok(f"MOFA+ mock flags cell cycle in Factor 1 "
-       f"({cc_overlap} CC genes in top features)")
+    assert all(str(x).startswith("feature_") for x in f1_features)
+    assert not any("cell cycle" in str(w).lower()
+                   for w in result.get("warnings", []))
+    ok("MOFA+ mock does not fabricate a cell-cycle factor")
 except Exception as e:
-    fail("MOFA+ cell cycle detection in mock", str(e))
+    fail("MOFA+ mock no-hardcoded-biology check", str(e))
 
 
 # ── Test 5: MOFA+ factor count advice ────────────────────────────────────────
@@ -407,11 +400,11 @@ except Exception as e:
     fail("System prompt coverage", str(e))
 
 try:
-    assert "poised" in INTEGRATION_SYSTEM.lower() or \
-           "negative" in INTEGRATION_SYSTEM.lower()
-    ok("System prompt addresses open-chromatin-silent-gene (poised enhancers)")
+    assert "negative correlation" in INTEGRATION_SYSTEM.lower()
+    assert "poised" not in INTEGRATION_SYSTEM.lower()
+    ok("System prompt addresses negative correlations without mechanism labels")
 except Exception as e:
-    fail("System prompt missing poised enhancer mention", str(e))
+    fail("System prompt negative-correlation wording", str(e))
 
 try:
     assert "0.85" in INTEGRATION_SYSTEM or "imbalance" in INTEGRATION_SYSTEM.lower()
@@ -420,10 +413,11 @@ except Exception as e:
     fail("System prompt missing WNN weight threshold", str(e))
 
 try:
-    assert "cell cycle" in INTEGRATION_SYSTEM.lower()
-    ok("System prompt warns about cell cycle in MOFA+ Factor 1")
+    assert "feature names alone" in INTEGRATION_SYSTEM.lower()
+    assert "cell cycle" not in INTEGRATION_SYSTEM.lower()
+    ok("System prompt avoids hardcoded MOFA+ biological factor labels")
 except Exception as e:
-    fail("System prompt missing cell cycle warning", str(e))
+    fail("System prompt hardcoded MOFA+ biology check", str(e))
 
 try:
     assert "two" in INTEGRATION_SYSTEM.lower() or "2 independent" in INTEGRATION_SYSTEM.lower() or \

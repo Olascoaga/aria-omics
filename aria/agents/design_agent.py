@@ -266,8 +266,8 @@ class DesignAgent(BaseAgent):
 
     def _normalise_manual_groups(self, proposed: dict) -> dict:
         """
-        Map user-supplied sample tokens (e.g. 'hc1153') back to the canonical
-        parsed stems (e.g. 'GSE278576_hc1153_raw_feature_bc_matrix') using
+        Map user-supplied sample tokens (e.g. 'sample01') back to the canonical
+        parsed stems (e.g. 'sample01_raw_feature_bc_matrix') using
         substring match. Drops tokens that match no parsed sample.
         """
         if not self._parsed_samples:

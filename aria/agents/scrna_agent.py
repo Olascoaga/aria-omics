@@ -553,8 +553,8 @@ class scRNAAgent(BaseAgent):
     def _sample_id_from_path(path: str) -> str:
         """
         Derive a stable per-sample label from a 10x .h5 / MEX / .h5ad path.
-        Strips well-known 10x suffixes so accessions stay readable
-        (e.g. GSE278576_hc11_raw_feature_bc_matrix.h5 → GSE278576_hc11).
+        Strips well-known 10x suffixes so sample accessions stay readable
+        (e.g. sample01_raw_feature_bc_matrix.h5 -> sample01).
 
         Also strips a leading `qc_filtered_` and rejects ARIA intermediate
         stems so a user who accidentally re-feeds a workspace output (e.g.
