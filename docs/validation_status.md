@@ -1,6 +1,6 @@
 # Validation Status
 
-Last updated: June 3, 2026.
+Last updated: June 6, 2026.
 
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
@@ -68,7 +68,7 @@ explicit `NotImplemented` rather than any fabricated result.
 
 | Area | Status | Required before stable |
 |---|---|---|
-| scATAC-seq | Scaffolded (next, v4.6) | LSI, clustering, differential accessibility, motifs, report section, fixtures |
+| scATAC-seq | Scaffolded (next, v4.6) | `.h5mu` entry path validated on the planned HC11 paired RNA+ATAC input; still needs LSI, clustering, differential accessibility, motifs, report section, fixtures |
 | Bulk ATAC-seq | Scaffolded | Peak count matrix, DA, QC summaries, report section |
 | ChIP-seq / CUT&RUN / CUT&TAG | Scaffolded | Clear assay-specific QC and peak interpretation |
 | Hi-C / Micro-C | Scaffolded — dispatch OFF | Runs only under `ARIA_ALLOW_EXPERIMENTAL_HIC=1` and are stamped not-publication-grade; needs E2E validation + memory-safe fixtures |
@@ -77,6 +77,13 @@ explicit `NotImplemented` rather than any fabricated result.
 Chromatin QC (`chromatin_qc.py`) already emits only measured metrics: TSS
 enrichment and FRiP return null until a reference annotation / called peaks exist,
 never a fabricated placeholder.
+
+The v4.6 `.h5mu` entry path has been exercised on the planned local validation
+input (`hc11_paired.h5mu`): ARIA reads ATAC modality `atac` and reports real
+matrix dimensions of 3,143 cells x 60,990 peaks. This is not a production
+scATAC validation. FRiP, TSS enrichment, complete QC, and pass/fail remain
+explicitly not computed until the chromatin stack, peak calling, and
+reference-backed TSS computation are implemented.
 
 ## Report Release Gate
 

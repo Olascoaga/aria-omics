@@ -20,11 +20,21 @@ This module should not yet be described as production-ready.
 - MACS3 parameter profiles for assay types;
 - basic report hooks.
 
+## Current v4.6 Entry Path
+
+The planned same-cell RNA+ATAC `.h5mu` input path is now validated at the
+reader/QC-scaffold level. On the local HC11 validation file, `chromatin_qc.py`
+reads ATAC modality `atac` and reports real dimensions of 3,143 cells x 60,990
+peaks. It still does not compute FRiP, TSS enrichment, complete QC, or pass/fail;
+those require the v4.6 chromatin stack, peak calling, and reference-backed TSS
+enrichment. This module remains scaffolded.
+
 ## Required Before Stable
 
 For scATAC:
 
-- fragments / peak matrix input detection;
+- fragments / peak matrix input detection beyond the validated `.h5mu` entry
+  path;
 - TSS enrichment and FRiP QC;
 - TF-IDF + LSI;
 - clustering;

@@ -9,6 +9,8 @@
 """
 
 import inspect
+import os
+from pathlib import Path
 
 import pytest
 
@@ -141,6 +143,46 @@ def test_chromatin_qc_h5mu_real_is_honest(tmp_path):
     assert res["qc_complete"] is False
     assert res["pass_qc"] is None
     assert any("tss_enrichment" in m for m in res["metrics_not_computed"])
+
+
+def test_chromatin_qc_real_hc11_h5mu_validation_input_is_honest():
+    """Dataset-gated v4.6 entry-path validation.
+
+    This does not promote scATAC to production. It fixes the expected behavior
+    for the real `.h5mu` validation input: ARIA can read the ATAC modality and
+    report matrix dimensions, while FRiP/TSS remain not-computed until the v4.6
+    chromatin stack adds peak calling and reference-backed TSS enrichment.
+    """
+    pytest.importorskip("mudata")
+    from aria.scripts.chromatin_qc import chromatin_qc
+
+    default_path = (
+        "/home/medusa/Samael/Erosion/data_inputs/"
+        "muon_processed/hc11_paired.h5mu"
+    )
+    p = Path(os.environ.get("ARIA_V46_H5MU_VALIDATION_INPUT", default_path))
+    if not p.exists():
+        pytest.skip(f"v4.6 .h5mu validation input not present: {p}")
+
+    res = chromatin_qc({
+        "data_type": "scATAC",
+        "files": [str(p)],
+        "genome": "mm10",
+        "organism": "Mus musculus",
+    })
+
+    assert res["status"] == "success"
+    assert res["input_kind"] == "h5mu"
+    assert res["atac_modality"] == "atac"
+    assert res["n_cells"] == 3143
+    assert res["n_peaks"] == 60990
+    assert res["frip"] is None
+    assert res["tss_enrichment"] is None
+    assert res["qc_complete"] is False
+    assert res["pass_qc"] is None
+    missing = "; ".join(res["metrics_not_computed"])
+    assert "tss_enrichment" in missing
+    assert "frip" in missing
 
 
 # ── B12: no dead env-alias path ──────────────────────────────────────────────
