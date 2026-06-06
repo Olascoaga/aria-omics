@@ -81,7 +81,7 @@ def test_raw_ingestion_agent_dispatches_kb_count_through_rna_stack(
 
     assert result["status"] == "done"
     assert calls == [{
-        "stack": "rna",
+        "stack": "ingestion",
         "script_path": "aria/scripts/rna_kb_count.py",
         "params": {
             "execute": True,
@@ -199,7 +199,7 @@ def test_raw_ingestion_fastq_checkpoint_json_enables_kb_dispatch(
     )
 
     assert result["status"] == "done"
-    assert calls[0][0] == "rna"
+    assert calls[0][0] == "ingestion"
     assert calls[0][1] == "aria/scripts/rna_kb_count.py"
     assert calls[0][2]["execute"] is True
     assert calls[0][2]["chemistry"] == "10xv3"

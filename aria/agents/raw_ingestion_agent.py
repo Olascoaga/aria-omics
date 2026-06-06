@@ -174,7 +174,7 @@ class RawIngestionAgent(BaseAgent):
             env = env_manager
             self.env = env
         return env.run_in_stack(
-            stack="rna",
+            stack="ingestion",
             script_path="aria/scripts/rna_kb_count.py",
             params=params,
             timeout=int(params.get("timeout_seconds") or 86400),

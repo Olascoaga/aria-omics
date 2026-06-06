@@ -95,7 +95,8 @@ class EnvironmentManager:
     # Analytical stack -> Conda environment name
     STACKS: dict[str, str] = {
         "rna":         "aria-rna-env",
-        "rnaseq":      "aria-rnaseq-env",   # raw FASTQ processing: fastp/STAR/featureCounts
+        "ingestion":   "aria-ingestion-env",  # scRNA FASTQ -> matrix/.h5ad
+        "rnaseq":      "aria-rnaseq-env",   # bulk FASTQ: fastp/STAR/featureCounts
         "chromatin":   "aria-chromatin-env",
         "hic":         "aria-hic-env",
         "integration": "aria-integration-env",
@@ -106,6 +107,7 @@ class EnvironmentManager:
     # HiC and integration can take hours on large datasets
     TIMEOUTS: dict[str, int] = {
         "rna":         3600,    # 1 hour
+        "ingestion":   10800,   # 3h — kb/kallisto-bustools on raw scRNA FASTQs
         "chromatin":   7200,    # 2 hours
         "hic":         14400,
         "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours

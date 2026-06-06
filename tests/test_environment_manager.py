@@ -48,8 +48,14 @@ def test_check_environments_shape():
     from aria.utils.environment_manager import env_manager
     envs = env_manager.check_environments()
     assert isinstance(envs, dict)
-    assert {"rna", "chromatin", "hic", "integration"} <= set(envs)
+    assert {"rna", "ingestion", "chromatin", "hic", "integration"} <= set(envs)
     assert all(isinstance(v, bool) for v in envs.values())
+
+
+def test_ingestion_stack_has_dedicated_environment():
+    from aria.utils.environment_manager import EnvironmentManager
+    assert EnvironmentManager.STACKS["ingestion"] == "aria-ingestion-env"
+    assert "ingestion" in EnvironmentManager.TIMEOUTS
 
 
 # ── Script base IPC contract ─────────────────────────────────────────────────

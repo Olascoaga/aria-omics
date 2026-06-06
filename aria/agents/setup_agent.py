@@ -111,6 +111,28 @@ GENOME_REGISTRY = {
 # Users never edit these. ARIA installs them on first run.
 
 ARIA_ENVS = {
+    "aria-ingestion-env": {
+        "description": "Raw scRNA ingestion: kb-python, kallisto, bustools",
+        "stack":       "ingestion",
+        "yml": """name: aria-ingestion-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+dependencies:
+  - python=3.11
+  - numpy>=1.24,<2.0.0
+  - scipy>=1.11
+  - pandas>=2.0,<3.0
+  - h5py>=3.9
+  - anndata>=0.10,<0.11
+  - scanpy>=1.9.6,<2.0
+  - kb-python>=0.29,<1.0
+  - kallisto>=0.50
+  - bustools>=0.43
+""",
+    },
     "aria-rnaseq-env": {
         "description": "Raw RNA-seq: fastp, STAR, featureCounts, samtools",
         "stack":       "rnaseq",
@@ -395,14 +417,17 @@ class SetupAgent(BaseAgent):
     def _needed_envs(self, modalities: dict, has_fastq: bool) -> list[str]:
         """Which ARIA environments does this experiment need?"""
         envs = []
-        if has_fastq:
+        modality_set = set(modalities)
+        if has_fastq and "scRNA" in modality_set:
+            envs.append("aria-ingestion-env")
+        if has_fastq and ({"bulk_RNA", "bulk_RNA_raw"} & modality_set):
             envs.append("aria-rnaseq-env")
-        if {"scRNA", "bulk_RNA"} & set(modalities):
+        if {"scRNA", "bulk_RNA"} & modality_set:
             envs.append("aria-rna-env")
         if {"scATAC", "bulk_ATAC", "ChIP",
-            "CUT_AND_RUN", "CUT_AND_TAG"} & set(modalities):
+            "CUT_AND_RUN", "CUT_AND_TAG"} & modality_set:
             envs.append("aria-chromatin-env")
-        if {"HiC", "Micro-C"} & set(modalities):
+        if {"HiC", "Micro-C"} & modality_set:
             envs.append("aria-hic-env")
         return list(dict.fromkeys(envs))
 
