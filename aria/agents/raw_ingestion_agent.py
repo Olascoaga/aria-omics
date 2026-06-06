@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from aria.agents.base_agent import BaseAgent
@@ -11,6 +12,17 @@ from aria.utils.raw_ingestion import (
     discover_10x_mtx_triplets,
     ingest_10x_mtx_triplet,
     scan_fastq_plan,
+)
+
+
+KB_REQUIRED_FIELDS = (
+    "fastq_files",
+    "index_path",
+    "index_sha256",
+    "t2g_path",
+    "t2g_sha256",
+    "chemistry",
+    "output_dir",
 )
 
 
@@ -72,6 +84,23 @@ class RawIngestionAgent(BaseAgent):
                 or context.get("raw_ingestion_kb")
                 or {}
             )
+            if (not kb_params.get("execute")
+                    or self._missing_kb_fields(kb_params)):
+                checkpoint = self._resolve_fastq_kb_checkpoint(
+                    experiment_id,
+                    fastq_plan,
+                    kb_params,
+                )
+                records.append(checkpoint)
+                if checkpoint.get("status") == "error":
+                    errors.append({
+                        "mode": checkpoint.get("mode", "fastq_kb_checkpoint"),
+                        "error_type": checkpoint.get(
+                            "reason", "fastq_kb_checkpoint_error"),
+                        "details": checkpoint.get(
+                            "details", "FASTQ kb checkpoint was cancelled."),
+                    })
+                kb_params = checkpoint.get("raw_ingestion_kb", {})
             if kb_params.get("execute"):
                 kb_result = self._run_kb_count(kb_params)
                 records.append(kb_result)
@@ -149,4 +178,143 @@ class RawIngestionAgent(BaseAgent):
             script_path="aria/scripts/rna_kb_count.py",
             params=params,
             timeout=int(params.get("timeout_seconds") or 86400),
+        )
+
+    def _resolve_fastq_kb_checkpoint(
+        self,
+        experiment_id: str,
+        fastq_plan: dict,
+        kb_params: dict,
+    ) -> dict:
+        question = self._format_fastq_kb_checkpoint(fastq_plan, kb_params)
+        _, decision = self.publish_blocking_escalation(
+            experiment_id=experiment_id,
+            checkpoint="raw_ingestion.fastq_kb",
+            question=question,
+            options=[
+                "Skip FASTQ quantification for now (Recommended)",
+                "Use supplied raw_ingestion_kb parameters",
+                "Other: paste raw_ingestion_kb JSON",
+                "Cancel analysis",
+            ],
+            context={
+                "raw_ingestion_fastq_plan": fastq_plan,
+                "raw_ingestion_kb": kb_params,
+            },
+        )
+        choice = self.checkpoint_choice_text(decision)
+        if "cancel" in choice.lower():
+            return {
+                "status": "error",
+                "mode": "fastq_kb_checkpoint",
+                "reason": "user_cancelled_fastq_ingestion",
+            }
+        if choice.strip().startswith("{"):
+            parsed = self._parse_kb_json_choice(choice)
+            return parsed
+        if "use supplied" in choice.lower():
+            prepared = self._prepare_kb_params(kb_params)
+            missing = self._missing_kb_fields(prepared)
+            if missing:
+                return {
+                    "status": "blocked",
+                    "mode": "fastq_kb_checkpoint",
+                    "reason": "raw_ingestion_kb_incomplete",
+                    "missing_fields": missing,
+                    "raw_ingestion_kb": {},
+                }
+            return {
+                "status": "success",
+                "mode": "fastq_kb_checkpoint",
+                "decision": "use_supplied_parameters",
+                "raw_ingestion_kb": prepared,
+            }
+        return {
+            "status": "skipped",
+            "mode": "fastq_kb_checkpoint",
+            "decision": "skip_fastq_quantification",
+            "reason": "user_skipped_fastq_quantification",
+            "raw_ingestion_kb": {},
+        }
+
+    def _parse_kb_json_choice(self, choice: str) -> dict:
+        try:
+            parsed = json.loads(choice)
+        except json.JSONDecodeError as exc:
+            return {
+                "status": "blocked",
+                "mode": "fastq_kb_checkpoint",
+                "reason": "invalid_raw_ingestion_kb_json",
+                "details": str(exc),
+                "raw_ingestion_kb": {},
+            }
+        if not isinstance(parsed, dict):
+            return {
+                "status": "blocked",
+                "mode": "fastq_kb_checkpoint",
+                "reason": "raw_ingestion_kb_json_must_be_object",
+                "raw_ingestion_kb": {},
+            }
+        prepared = self._prepare_kb_params(parsed)
+        missing = self._missing_kb_fields(prepared)
+        if missing:
+            return {
+                "status": "blocked",
+                "mode": "fastq_kb_checkpoint",
+                "reason": "raw_ingestion_kb_incomplete",
+                "missing_fields": missing,
+                "raw_ingestion_kb": {},
+            }
+        return {
+            "status": "success",
+            "mode": "fastq_kb_checkpoint",
+            "decision": "use_json_parameters",
+            "raw_ingestion_kb": prepared,
+        }
+
+    def _prepare_kb_params(self, params: dict) -> dict:
+        prepared = dict(params or {})
+        prepared["execute"] = True
+        return prepared
+
+    @staticmethod
+    def _missing_kb_fields(params: dict) -> list[str]:
+        missing = []
+        for field in KB_REQUIRED_FIELDS:
+            value = (params or {}).get(field)
+            if value in (None, "", []):
+                missing.append(field)
+        return missing
+
+    def _format_fastq_kb_checkpoint(self, fastq_plan: dict,
+                                    kb_params: dict) -> str:
+        samples = fastq_plan.get("samples", []) or []
+        sample_lines = []
+        for sample in samples[:8]:
+            files = sample.get("files", {}) or {}
+            roles = ", ".join(sorted(files)) or "no parsed R1/R2 roles"
+            lanes = ", ".join(sample.get("lanes", []) or []) or "lane not parsed"
+            sample_lines.append(
+                f"- {sample.get('sample_id', 'sample')}: {roles}; {lanes}"
+            )
+        if len(samples) > 8:
+            sample_lines.append(f"- ... {len(samples) - 8} more sample groups")
+        missing = self._missing_kb_fields(kb_params)
+        blocker_lines = [f"- {b}" for b in (fastq_plan.get("blockers", []) or [])]
+        required = "\n".join(f"- {field}" for field in KB_REQUIRED_FIELDS)
+        supplied = ", ".join(sorted(kb_params)) if kb_params else "none"
+        return (
+            "ARIA detected scRNA FASTQ inputs, but FASTQ quantification cannot "
+            "run until all chemistry/reference inputs are explicit.\n\n"
+            "Detected sample groups:\n"
+            f"{chr(10).join(sample_lines) if sample_lines else '- none parsed'}\n\n"
+            "Current blockers:\n"
+            f"{chr(10).join(blocker_lines) if blocker_lines else '- metadata incomplete'}\n\n"
+            "Required raw_ingestion_kb JSON fields:\n"
+            f"{required}\n\n"
+            f"Currently supplied fields: {supplied}.\n"
+            f"Missing fields: {', '.join(missing) if missing else 'none'}.\n\n"
+            "Use 'Other' to paste a JSON object with those fields, or skip "
+            "FASTQ quantification for this run. ARIA will not guess chemistry, "
+            "download references, or fabricate a matrix."
         )
