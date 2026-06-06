@@ -206,6 +206,143 @@ def detect_bulk_patterns(contrasts: list[dict]) -> dict[str, Any]:
     }
 
 
+def _scrna_findings(agent_result: dict) -> dict[str, Any]:
+    """Return the structured scRNA findings envelope, tolerating legacy shapes."""
+    if not isinstance(agent_result, dict):
+        return {}
+    findings = agent_result.get("findings", agent_result)
+    if isinstance(findings, dict) and "scRNA" in findings:
+        nested = findings.get("scRNA") or {}
+        if isinstance(nested, dict):
+            return nested.get("findings", nested) or {}
+    return findings if isinstance(findings, dict) else {}
+
+
+def _scrna_pathway_terms(block: dict) -> list[str]:
+    terms: list[str] = []
+    seen: set[str] = set()
+    for rows in (block.get("results", {}) or {}).values():
+        for row in rows or []:
+            if isinstance(row, dict):
+                term = row.get("term") or row.get("Term")
+                if term and str(term) not in seen:
+                    seen.add(str(term))
+                    terms.append(str(term))
+    return terms
+
+
+def _scrna_successful_pseudobulk(findings: dict) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    pb = (findings or {}).get("pseudobulk_de") or {}
+    for group, info in (pb.get("per_group", {}) or {}).items():
+        for comparison, comp in (info.get("per_comparison", {}) or {}).items():
+            if comp.get("status", "success") != "success":
+                continue
+            n_sig = int(comp.get("n_significant",
+                                 comp.get("n_significant_global", 0)) or 0)
+            if n_sig <= 0:
+                continue
+            out.append({
+                "group": str(group),
+                "comparison": str(comparison),
+                "block_key": f"{group}::{comparison}",
+                "n_de": n_sig,
+                "n_up": int(comp.get("n_up", comp.get("n_up_global", 0)) or 0),
+                "n_down": int(comp.get("n_down",
+                                        comp.get("n_down_global", 0)) or 0),
+                "composition_corrected": bool(
+                    comp.get("corrected_for_composition")
+                ),
+                "power": comp.get("power_estimate_at_lfc_min"),
+                "low_power": bool(comp.get("low_power_warning")),
+                "top_genes": [
+                    str(g.get("gene"))
+                    for g in (comp.get("top_genes") or [])
+                    if isinstance(g, dict) and g.get("gene")
+                ][:8],
+            })
+    return sorted(out, key=lambda x: x["n_de"], reverse=True)
+
+
+def detect_scrna_patterns(agent_result: dict) -> dict[str, Any]:
+    """Detect scRNA synthesis patterns from measured structured outputs.
+
+    The detector does not infer cell identities, mechanisms, or gene programs from
+    names. It only summarizes support already produced by validated scRNA steps:
+    donor-level pseudobulk DE, per-block ORA, abundance shifts, LIANA, and
+    trajectory context.
+    """
+    findings = _scrna_findings(agent_result)
+    if not findings:
+        return {"modalities_present": [], "n_cells": None}
+
+    qc = findings.get("qc") or {}
+    ann = findings.get("cell_types") or {}
+    has_labels = bool((ann.get("cell_types") or {}))
+    pwp = findings.get("pseudobulk_pathways") or {}
+    pathway_blocks = pwp.get("per_cluster", {}) or {}
+
+    pb_blocks = _scrna_successful_pseudobulk(findings)
+    for block in pb_blocks:
+        pw = pathway_blocks.get(block["block_key"]) or {}
+        terms = _scrna_pathway_terms(pw)
+        block["n_pathway_terms"] = int(pw.get("n_significant", len(terms)) or 0)
+        block["top_pathway_terms"] = terms[:5]
+
+    da = findings.get("differential_abundance") or {}
+    shifted: list[str] = []
+    n_da_tests = 0
+    for comp in (da.get("per_comparison", {}) or {}).values():
+        rows = comp.get("per_cell_type", []) or []
+        n_da_tests += len(rows)
+        for row in rows:
+            if row.get("significant") and row.get("name"):
+                shifted.append(str(row["name"]))
+
+    ccc = findings.get("cell_communication") or {}
+    traj = findings.get("trajectory") or {}
+    paga = traj.get("paga", {}) or {}
+    pt = traj.get("pseudotime", {}) or {}
+
+    powers = [b["power"] for b in pb_blocks
+              if isinstance(b.get("power"), (int, float))]
+    return {
+        "modalities_present": ["scRNA-seq"],
+        "n_cells": qc.get("n_cells_after"),
+        "resolution": "cell-type" if has_labels else "cluster",
+        "n_pseudobulk_blocks": len(pb_blocks),
+        "strongest_pseudobulk": pb_blocks[0] if pb_blocks else None,
+        "n_pathway_supported_blocks": sum(
+            1 for b in pb_blocks if b.get("n_pathway_terms", 0) > 0
+        ),
+        "n_abundance_tests": n_da_tests,
+        "n_abundance_shifts": len(shifted),
+        "abundance_shift_labels": shifted[:8],
+        "cellcomm": {
+            "ran": ccc.get("status") in {"done", "success"},
+            "n_interactions": int(ccc.get("n_interactions", 0) or 0),
+            "n_cell_types": int(ccc.get("n_cell_types", 0) or 0),
+        },
+        "trajectory": {
+            "ran": traj.get("status") in {"done", "success"},
+            "n_connections": int(paga.get("n_connections", 0) or 0),
+            "n_strong": int(paga.get("n_strong", 0) or 0),
+            "dpt_computed": bool(pt.get("computed")),
+        },
+        "reliability": {
+            "min_power": round(min(powers), 3) if powers else None,
+            "max_power": round(max(powers), 3) if powers else None,
+            "low_power_blocks": [
+                f"{b['group']}::{b['comparison']}" for b in pb_blocks
+                if b.get("low_power")
+            ],
+            "lognorm_recovered": bool(
+                (findings.get("pseudobulk_de") or {}).get("lognorm_recovered")
+            ),
+        },
+    }
+
+
 def _reliability(contrasts: list[dict]) -> dict[str, Any]:
     powers = [c.get("power_estimate_at_lfc_min") for c in contrasts
               if isinstance(c.get("power_estimate_at_lfc_min"), (int, float))]

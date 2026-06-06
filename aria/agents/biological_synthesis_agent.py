@@ -12,9 +12,13 @@ from __future__ import annotations
 
 import logging
 
-from aria.agents.narrative.synthesis.pattern_detector import detect_bulk_patterns
+from aria.agents.narrative.synthesis.pattern_detector import (
+    detect_bulk_patterns,
+    detect_scrna_patterns,
+)
 from aria.agents.narrative.synthesis.discussion_composer import (
     compose_discussion_blocks,
+    compose_scrna_discussion_blocks,
 )
 
 log = logging.getLogger("aria.synthesis")
@@ -31,10 +35,20 @@ class BiologicalSynthesisAgent:
     def synthesize(self, agent_results: dict,
                    exp_ctx: dict | None = None) -> list:
         """Return the integration NarrativeBlocks (empty when unsupported)."""
+        blocks = []
         bulk = (agent_results or {}).get("bulk_rna_agent", {}) or {}
         findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
         contrasts = (findings or {}).get("contrasts", []) or []
-        if not contrasts:
-            return []
-        patterns = detect_bulk_patterns(contrasts)
-        return compose_discussion_blocks(patterns)
+        if contrasts:
+            patterns = detect_bulk_patterns(contrasts)
+            blocks.extend(compose_discussion_blocks(patterns))
+
+        scrna = (
+            (agent_results or {}).get("scrna_agent")
+            or (agent_results or {}).get("rna_agent")
+            or {}
+        )
+        if isinstance(scrna, dict):
+            patterns = detect_scrna_patterns(scrna)
+            blocks.extend(compose_scrna_discussion_blocks(patterns))
+        return blocks

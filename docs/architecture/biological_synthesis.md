@@ -35,8 +35,9 @@ instead of adding a parallel one.
 ## Design rules
 
 1. **The LLM does not decide patterns (ADR-002: LLM proposes, code guarantees).**
-   `pattern_detector.py` is pure set/sign math over the structured DE + pathway
-   results. No LLM, no hardcoded biology. The numbers are reproducible.
+   `pattern_detector.py` is pure set/sign math over the structured DE, pathway,
+   abundance, communication, and trajectory summaries ARIA already produced. No
+   LLM, no hardcoded biology. The numbers are reproducible.
 
 2. **Emit blocks, inherit governance.** Every integration block passes through:
    - **Claim Compiler** — observational omics caps at the *associative* tier; the
@@ -80,9 +81,22 @@ instead of adding a parallel one.
   symbol (raw Ensembl/numeric ids are skipped);
 - **reliability** — power and low-power flags that bound interpretation.
 
+`pattern_detector.detect_scrna_patterns(agent_result)` reads measured scRNA
+findings from `scrna_agent` / `rna_agent` envelopes and computes:
+
+- **dominant pseudobulk signal** — the largest successful donor-level pseudobulk
+  DE block, with up/down counts, top DE genes, composition-covariate state, and
+  matched ORA term counts for the same group/comparison block;
+- **context layers** — abundance-shifted groups, LIANA interaction candidate
+  counts, and trajectory graph connection counts when those analyses ran;
+- **reliability** — pseudobulk power range, low-power blocks, and whether counts
+  were recovered from log-normalized input.
+
 ## What it writes
 
-The Integrated Biological Discussion section (Slice 1, bulk single-modality):
+The Integrated Biological Discussion section (Slice 1, RNA single-modality):
+
+Bulk RNA-seq:
 
 1. **Main integrated pattern** — the headline: the shared-vs-distinct program, the
    processes it points to, and each condition's specific program.
@@ -94,13 +108,23 @@ The Integrated Biological Discussion section (Slice 1, bulk single-modality):
 4. **Limits of interpretation** (mandatory) — associative scope, no causal/direct
    regulation, candidates prioritized for independent validation; power range.
 
+scRNA-seq:
+
+1. **Main scRNA integrated pattern** — the strongest replicate-aware pseudobulk
+   DE block, matched ORA support, top DE genes, and analysis resolution.
+2. **scRNA context layers** — abundance, LIANA, and trajectory summaries reported
+   as observational context, not mechanism.
+3. **scRNA synthesis limits** (mandatory) — association-only scope and pseudobulk
+   reliability bounds.
+
 Sections appear only when the data supports them — e.g. the cross-modal section is
 omitted (not faked) when there is no ATAC.
 
 ## Scope
 
-- **Slice 1 (current):** bulk RNA-seq, single modality (within-contrast,
-  cross-contrast, reliability).
+- **Slice 1 (current):** bulk RNA-seq and scRNA-seq, single modality
+  (within/cross-contrast bulk synthesis; scRNA pseudobulk + ORA + abundance +
+  LIANA + trajectory context).
 - **Slice 2 (deferred):** cross-modal patterns (RNA expression + ATAC
   accessibility + motifs + peak-to-gene), to be designed against a real
   multi-omic run, not blind.
@@ -110,5 +134,6 @@ omitted (not faked) when there is no ATAC.
 `tests/test_biological_synthesis.py` enforces the spec guards: no fabricated
 pathways, no causal language, cross-modal only when the modality exists, mandatory
 limitations, conflicts surfaced, every claim mapped to evidence, the main-pattern
-headline, named processes and genes — plus a real-data golden that runs against a
+headline, named processes and genes, scRNA-only synthesis blocks, and strict
+verification for scRNA synthesis — plus a real-data golden that runs against a
 generated report on the machine and skips in CI.

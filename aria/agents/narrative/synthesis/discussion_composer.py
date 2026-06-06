@@ -297,6 +297,166 @@ def compose_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
     return blocks
 
 
+_SCRNA_CAVEAT = Caveat(
+    "This scRNA synthesis integrates measured ARIA outputs only; pseudobulk DE, "
+    "ORA, LIANA, and trajectory context remain observational and require "
+    "independent validation before mechanistic interpretation.",
+    "info",
+)
+
+
+def compose_scrna_discussion_blocks(patterns: dict) -> list[NarrativeBlock]:
+    """Return scRNA integrated-discussion blocks from measured patterns."""
+    blocks: list[NarrativeBlock] = []
+    if "scRNA-seq" not in (patterns.get("modalities_present") or []):
+        return blocks
+
+    strongest = patterns.get("strongest_pseudobulk") or {}
+    n_cells = patterns.get("n_cells")
+    if strongest:
+        group = strongest.get("group", "group")
+        comparison = strongest.get("comparison", "comparison")
+        n_de = int(strongest.get("n_de", 0) or 0)
+        n_terms = int(strongest.get("n_pathway_terms", 0) or 0)
+        evidence = [
+            _ev("cell group", group),
+            _ev("comparison", comparison),
+            _ev("replicate-aware DE genes", n_de),
+            _ev("up genes", int(strongest.get("n_up", 0) or 0)),
+            _ev("down genes", int(strongest.get("n_down", 0) or 0)),
+            _ev("enriched terms", n_terms),
+        ]
+        if n_cells is not None:
+            evidence.append(_ev("retained cells", n_cells))
+        top_genes = (strongest.get("top_genes") or [])[:5]
+        gene_clause = ""
+        if top_genes:
+            evidence.append(EvidenceItem(
+                label="top gene names",
+                value=", ".join(top_genes),
+                source="pseudobulk_de",
+            ))
+            gene_clause = f" Top DE genes include {_join(top_genes)}."
+        top_terms = _name_processes(strongest.get("top_pathway_terms", []), 3)
+        term_clause = ""
+        if top_terms:
+            evidence.append(EvidenceItem(
+                label="top enriched terms",
+                value="; ".join(top_terms),
+                source="pseudobulk_pathways",
+            ))
+            term_clause = (
+                f" ORA support includes {_join(top_terms)}."
+            )
+        blocks.append(NarrativeBlock(
+            id="integration.scrna.main_pattern",
+            modality="integrated synthesis",
+            analysis="scrna_integrated_signal",
+            block_type="integration",
+            title="Main scRNA integrated pattern",
+            status="success",
+            confidence="medium",
+            claim=(
+                f"The strongest scRNA signal was {group} {comparison}, with "
+                f"{n_de} replicate-aware DE gene(s) and {n_terms} enriched "
+                f"term(s) at {patterns.get('resolution', 'cluster')} resolution."
+                f"{gene_clause}{term_clause}"
+            ),
+            evidence=evidence,
+            caveats=[_SCRNA_CAVEAT],
+            metrics={
+                "n_de": n_de,
+                "n_pathway_terms": n_terms,
+                "composition_corrected": bool(
+                    strongest.get("composition_corrected")
+                ),
+            },
+        ))
+
+    n_shifted = int(patterns.get("n_abundance_shifts", 0) or 0)
+    cellcomm = patterns.get("cellcomm") or {}
+    trajectory = patterns.get("trajectory") or {}
+    has_context = (
+        n_shifted > 0 or cellcomm.get("ran") or trajectory.get("ran")
+    )
+    if has_context:
+        evidence = [
+            _ev("abundance-shifted groups", n_shifted),
+            _ev("LIANA interaction candidates",
+                int(cellcomm.get("n_interactions", 0) or 0)),
+            _ev("LIANA cell groups", int(cellcomm.get("n_cell_types", 0) or 0)),
+            _ev("trajectory graph connections",
+                int(trajectory.get("n_connections", 0) or 0)),
+            _ev("strong trajectory graph edges",
+                int(trajectory.get("n_strong", 0) or 0)),
+        ]
+        labels = patterns.get("abundance_shift_labels") or []
+        label_clause = ""
+        if labels:
+            evidence.append(_ev("abundance-shifted labels", ", ".join(labels)))
+            label_clause = f" Abundance shifts included {_join(labels[:5])}."
+        blocks.append(NarrativeBlock(
+            id="integration.scrna.context_layers",
+            modality="integrated synthesis",
+            analysis="scrna_context_layers",
+            block_type="integration",
+            title="scRNA context layers",
+            status="success",
+            confidence="low",
+            claim=(
+                f"scRNA context layers reported {n_shifted} abundance-shifted "
+                f"group(s), {int(cellcomm.get('n_interactions', 0) or 0)} "
+                f"LIANA interaction candidate(s), and "
+                f"{int(trajectory.get('n_connections', 0) or 0)} trajectory "
+                f"graph connection(s).{label_clause}"
+            ),
+            evidence=evidence,
+            caveats=[_SCRNA_CAVEAT],
+            metrics={
+                "n_abundance_shifts": n_shifted,
+                "n_interactions": int(cellcomm.get("n_interactions", 0) or 0),
+                "n_trajectory_connections": int(
+                    trajectory.get("n_connections", 0) or 0
+                ),
+            },
+        ))
+
+    if blocks:
+        rel = patterns.get("reliability") or {}
+        ev = [_ev("scope", "scRNA_association_only")]
+        bound = ""
+        if rel.get("min_power") is not None:
+            ev.append(_ev("minimum pseudobulk power", rel["min_power"]))
+            ev.append(_ev("maximum pseudobulk power", rel["max_power"]))
+            bound = (
+                f" Pseudobulk power ranged from {rel['min_power']} to "
+                f"{rel['max_power']} across supported DE blocks."
+            )
+        if rel.get("low_power_blocks"):
+            ev.append(_ev("low-power pseudobulk blocks",
+                          "; ".join(rel["low_power_blocks"])))
+        if rel.get("lognorm_recovered"):
+            ev.append(_ev("log-normalized count recovery", "true"))
+        blocks.append(NarrativeBlock(
+            id="integration.scrna.limitations",
+            modality="integrated synthesis",
+            analysis="scrna_integration_limitations",
+            block_type="limitation",
+            title="scRNA synthesis limits",
+            status="success",
+            confidence="high",
+            claim=(
+                "The scRNA synthesis is association-only and does not establish "
+                "causality, cell-state transitions, or molecular function."
+                + bound
+            ),
+            evidence=ev,
+            caveats=[_SCRNA_CAVEAT],
+        ))
+
+    return blocks
+
+
 def _safe(name: str) -> str:
     out = "".join(ch if ch.isalnum() else "_" for ch in str(name))
     return out.strip("_") or "x"
