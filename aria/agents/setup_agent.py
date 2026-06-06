@@ -155,22 +155,32 @@ dependencies:
 """,
     },
     "aria-chromatin-env": {
-        "description": "Chromatin analysis: pysam, MACS3, episcanpy",
+        "description": "Chromatin analysis: pysam, MACS3, snapatac2, episcanpy",
         "stack":       "chromatin",
         "yml": """name: aria-chromatin-env
 channels:
-  - bioconda
   - conda-forge
+  - bioconda
   - defaults
 dependencies:
   - python=3.11
+  - pip
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.2,<3.0
+  - scipy>=1.12
+  - h5py>=3.9
   - pysam>=0.21
-  - samtools>=1.21
-  - numpy<2.0.0
-  - pandas>=1.5
+  - pybedtools>=0.9
+  - bedtools>=2.31
+  - matplotlib>=3.7
+  - seaborn>=0.12
   - pip:
-    - macs3
-    - episcanpy
+    - MACS3==3.0.4
+    - snapatac2==2.9.0
+    - episcanpy==0.4.0
+    - muon==0.1.7
+    - mudata==0.3.3
+    - pyBigWig==0.3.25
 """,
     },
     "aria-hic-env": {
