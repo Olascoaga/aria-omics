@@ -217,6 +217,26 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_cells_after", "int"),
         ),
     ),
+    "aria/scripts/rna_kb_count.py": ScriptContract(
+        script_path="aria/scripts/rna_kb_count.py",
+        validation_level="beta",
+        inputs=(
+            _f("fastq_files", "list[path]", required=False, path_must_exist=True),
+            _f("index_path", "path", required=False, path_must_exist=True),
+            _f("index_sha256", "str", required=False, allow_empty=False),
+            _f("t2g_path", "path", required=False, path_must_exist=True),
+            _f("t2g_sha256", "str", required=False, allow_empty=False),
+            _f("chemistry", "str", required=False, allow_empty=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("mode", "str"),
+            _f("output_h5ad", "path", allow_empty=False, path_must_exist=True),
+            _f("output_sha256", "str", allow_empty=False),
+            _f("command", "list"),
+            _f("reference", "dict"),
+        ),
+    ),
     "aria/scripts/rna_clustering.py": ScriptContract(
         script_path="aria/scripts/rna_clustering.py",
         validation_level="production",

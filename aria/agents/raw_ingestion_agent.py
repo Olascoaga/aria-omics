@@ -9,7 +9,6 @@ from aria.memory.memory import ARIAMemory
 from aria.utils.provenance import hash_file
 from aria.utils.raw_ingestion import (
     discover_10x_mtx_triplets,
-    execute_kb_count,
     ingest_10x_mtx_triplet,
     scan_fastq_plan,
 )
@@ -23,6 +22,8 @@ class RawIngestionAgent(BaseAgent):
 
     def __init__(self, memory: ARIAMemory, llm=None, api_key: str = None):
         super().__init__(memory, llm=llm, api_key=api_key)
+        from aria.utils.environment_manager import env_manager
+        self.env = env_manager
 
     def run(self, experiment_id: str, context: dict) -> dict:
         exp_ctx = context.get("exp_context", {}) or {}
@@ -72,7 +73,7 @@ class RawIngestionAgent(BaseAgent):
                 or {}
             )
             if kb_params.get("execute"):
-                kb_result = execute_kb_count(kb_params)
+                kb_result = self._run_kb_count(kb_params)
                 records.append(kb_result)
                 if kb_result.get("status") == "success":
                     generated_h5ads.append(kb_result["output_h5ad"])
@@ -102,7 +103,7 @@ class RawIngestionAgent(BaseAgent):
 
         input_files = list(exp_ctx.get("input_files", []) or [])
         for rec in records:
-            if rec.get("mode") != "10x_mtx":
+            if rec.get("status") != "success" or not rec.get("output_h5ad"):
                 continue
             output = Path(rec["output_h5ad"])
             input_files.append({
@@ -136,3 +137,16 @@ class RawIngestionAgent(BaseAgent):
                 "raw_ingestion": records,
             },
         }
+
+    def _run_kb_count(self, params: dict) -> dict:
+        env = getattr(self, "env", None)
+        if env is None:
+            from aria.utils.environment_manager import env_manager
+            env = env_manager
+            self.env = env
+        return env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/rna_kb_count.py",
+            params=params,
+            timeout=int(params.get("timeout_seconds") or 86400),
+        )
