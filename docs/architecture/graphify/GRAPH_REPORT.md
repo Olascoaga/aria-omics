@@ -4,12 +4,12 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 2429 nodes · 5861 edges · 112 communities (100 shown, 12 thin omitted)
+- 2429 nodes · 5861 edges · 113 communities (100 shown, 13 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1f396ab9`
+- Built from commit: `91f1253d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -111,14 +111,15 @@
 - [[_COMMUNITY_Community 94|Community 94]]
 - [[_COMMUNITY_Community 95|Community 95]]
 - [[_COMMUNITY_Community 96|Community 96]]
-- [[_COMMUNITY_Community 98|Community 98]]
+- [[_COMMUNITY_Community 97|Community 97]]
 - [[_COMMUNITY_Community 99|Community 99]]
 - [[_COMMUNITY_Community 100|Community 100]]
-- [[_COMMUNITY_Community 102|Community 102]]
-- [[_COMMUNITY_Community 108|Community 108]]
+- [[_COMMUNITY_Community 101|Community 101]]
+- [[_COMMUNITY_Community 103|Community 103]]
 - [[_COMMUNITY_Community 109|Community 109]]
 - [[_COMMUNITY_Community 110|Community 110]]
 - [[_COMMUNITY_Community 111|Community 111]]
+- [[_COMMUNITY_Community 112|Community 112]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `NarrativeBlock` - 45 edges
@@ -147,7 +148,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (112 total, 12 thin omitted)
+## Communities (113 total, 13 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
@@ -318,8 +319,8 @@ Cohesion: 0.17
 Nodes (18): bool, float, int, _build_design_formula(), _mock_de_result(), _resolve_covariates(), _run_deseq2(), _run_outlier_sensitivity() (+10 more)
 
 ### Community 42 - "Community 42"
-Cohesion: 0.15
-Nodes (15): float, int, str, bulk_rna_de(), _compute_tpm(), _contrast_overlap(), _format_top_genes(), export_de_table() (+7 more)
+Cohesion: 0.23
+Nodes (19): str, bool, str, _to_symbols(), _enrichr_enrichment(), _get_gene_sets(), _gseapy_organism(), _mock_pathways() (+11 more)
 
 ### Community 43 - "Community 43"
 Cohesion: 0.25
@@ -354,48 +355,48 @@ Cohesion: 0.18
 Nodes (9): ARIAMemory, float, int, LLMProvider, Message, str, CavemanMode, Confidence (+1 more)
 
 ### Community 51 - "Community 51"
-Cohesion: 0.26
-Nodes (15): str, bool, str, _to_symbols(), _enrichr_enrichment(), _get_gene_sets(), _gseapy_organism(), _mock_pathways() (+7 more)
-
-### Community 52 - "Community 52"
 Cohesion: 0.12
 Nodes (4): _Decision, MockAdvisor, MockEnvManager, MockMemory
 
-### Community 53 - "Community 53"
+### Community 52 - "Community 52"
 Cohesion: 0.35
 Nodes (13): Any, bool, str, BaseModel, FieldType, ContractField, ContractIssue, _f() (+5 more)
 
-### Community 54 - "Community 54"
+### Community 53 - "Community 53"
 Cohesion: 0.19
 Nodes (10): _import_bulk(), _ref_sf(), test_bulk_run_pathway_enrichment_defaults_to_local(), test_bulk_run_pathway_enrichment_skips_without_gmt_or_optin(), test_hypergeom_sf_matches_reference(), test_load_local_library_with_manifest(), test_local_ora_for_databases_reports_missing(), test_parse_gmt() (+2 more)
 
-### Community 55 - "Community 55"
+### Community 54 - "Community 54"
 Cohesion: 0.39
 Nodes (15): bool, NarrativeBlock, Path, str, _claim_tier_badge(), group_blocks_by_prefix(), _group_key(), _image_uri() (+7 more)
 
-### Community 56 - "Community 56"
+### Community 55 - "Community 55"
 Cohesion: 0.22
 Nodes (15): AST, FunctionDef, _call_name(), _module_gates_mocks(), bool, Call, int, str (+7 more)
 
-### Community 57 - "Community 57"
+### Community 56 - "Community 56"
 Cohesion: 0.25
 Nodes (12): Any, bool, str, test_candidate_column_corrected_by_integration_is_downgraded(), test_clean_when_no_candidate_batch_columns(), test_declared_batch_is_not_flagged(), test_flags_unmodeled_technical_column(), test_graceful_on_empty_inputs() (+4 more)
 
-### Community 58 - "Community 58"
+### Community 57 - "Community 57"
 Cohesion: 0.26
 Nodes (14): bool, float, int, Path, str, _categorical_colors(), _compute_umap(), _embedding_label() (+6 more)
 
-### Community 59 - "Community 59"
+### Community 58 - "Community 58"
 Cohesion: 0.17
 Nodes (10): Exception, bool, Path, str, diagnose_llm_failure(), test_diagnose_points_to_the_api_key_the_user_actually_has(), test_diagnose_when_no_key_is_present(), load_aria_env() (+2 more)
 
-### Community 60 - "Community 60"
+### Community 59 - "Community 59"
 Cohesion: 0.23
 Nodes (12): Any, float, int, str, test_clean_when_markers_are_cluster_specific(), test_empty_marker_lists_do_not_count_as_ubiquitous(), test_flags_ubiquitous_markers_across_clusters(), test_graceful_on_empty_markers() (+4 more)
 
-### Community 61 - "Community 61"
+### Community 60 - "Community 60"
 Cohesion: 0.27
 Nodes (12): find_causal_language(), _causal_block(), _ora_block_with_regulatory_term_name(), test_causal_claim_still_caught_despite_term_name_evidence(), test_find_causal_language_detects_broadened_terms(), test_find_causal_language_exclude_redacts_named_entities(), test_find_causal_language_passes_associative_text(), test_render_suppresses_warning_when_causal_evidence_declared() (+4 more)
+
+### Community 62 - "Community 62"
+Cohesion: 0.27
+Nodes (10): float, int, str, export_de_table(), export_pathways_table(), make_gsea_running_sums(), make_ora_dotplot(), _ranked_signature_frame() (+2 more)
 
 ### Community 63 - "Community 63"
 Cohesion: 0.32
@@ -493,45 +494,45 @@ Nodes (5): _load_counts(), test_lognorm_matrix_is_hard_refused_by_default(), tes
 Cohesion: 0.60
 Nodes (5): _manager(), test_environment_manager_attaches_contract_metadata_on_success(), test_environment_manager_validates_script_output_contract(), test_script_contract_rejects_missing_required_input(), test_script_contract_rejects_version_mismatch()
 
-### Community 91 - "Community 91"
+### Community 92 - "Community 92"
 Cohesion: 0.70
 Nodes (4): test_disclosure_is_deterministic(), test_disclosure_keeps_bh_as_primary_and_never_claims_ihw(), test_disclosure_marks_ihw_and_svalues_unavailable_with_reasons(), fdr_advanced_methods_disclosure()
 
-### Community 92 - "Community 92"
+### Community 93 - "Community 93"
 Cohesion: 0.40
 Nodes (5): DataAuditAgent, DesignAgent, DesignIntelligence, MessageBus, OrchestratorAgent
 
-### Community 93 - "Community 93"
+### Community 94 - "Community 94"
 Cohesion: 0.40
 Nodes (3): BulkRNAAgent, EnvironmentManager, scRNAAgent
 
-### Community 94 - "Community 94"
+### Community 95 - "Community 95"
 Cohesion: 0.80
 Nodes (4): env_installed(), snapshot_one(), snapshot_requirements(), generate_locks.sh script
 
-### Community 95 - "Community 95"
+### Community 96 - "Community 96"
 Cohesion: 0.70
 Nodes (4): str, integration_wnn(), _load_atac(), _load_rna()
 
-### Community 99 - "Community 99"
+### Community 100 - "Community 100"
 Cohesion: 0.67
 Nodes (3): filter_graph(), main(), int
 
-### Community 100 - "Community 100"
+### Community 101 - "Community 101"
 Cohesion: 0.67
 Nodes (3): Claim Compiler, Devil's Advocate, NarrativeAgent
 
 ## Knowledge Gaps
 - **160 isolated node(s):** `float`, `ARIAMemory`, `LLMProvider`, `CavemanMode`, `Confidence` (+155 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **12 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **13 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `BaseAgent` connect `Community 33` to `Community 2`, `Community 3`, `Community 67`, `Community 5`, `Community 6`, `Community 7`, `Community 8`, `Community 4`, `Community 10`, `Community 71`, `Community 16`, `Community 17`, `Community 50`, `Community 24`, `Community 31`?**
   _High betweenness centrality (0.204) - this node is a cross-community bridge._
-- **Why does `rna_pseudobulk_de()` connect `Community 35` to `Community 2`, `Community 8`, `Community 9`, `Community 14`, `Community 15`, `Community 18`, `Community 91`?**
+- **Why does `rna_pseudobulk_de()` connect `Community 35` to `Community 2`, `Community 8`, `Community 9`, `Community 14`, `Community 15`, `Community 18`, `Community 92`?**
   _High betweenness centrality (0.093) - this node is a cross-community bridge._
 - **Why does `DataAuditAgent` connect `Community 3` to `Community 33`, `Community 2`, `Community 48`, `Community 19`, `Community 21`?**
   _High betweenness centrality (0.073) - this node is a cross-community bridge._

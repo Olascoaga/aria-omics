@@ -36,12 +36,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVS_DIR="$ROOT/envs"
 
-# The three published runtime envs (P2-1). aria-rna-env is the validated RNA
-# baseline; chromatin (scATAC) and integration are published as part of the
-# 4.6/4.7 contract. Envs not installed locally are skipped with a clear message
-# (their locks come from the Docker lane), never fabricated.
+# Published runtime envs (P2-1). aria-rna-env is the validated RNA baseline;
+# ingestion owns raw scRNA FASTQ quantification; chromatin (scATAC) and
+# integration are published as part of the 4.6/4.7 contract. Envs not installed
+# locally are skipped with a clear message (their locks come from the Docker
+# lane), never fabricated.
 WHITELIST=(
   "aria-rna-env"
+  "aria-ingestion-env"
   "aria-chromatin-env"
   "aria-integration-env"
 )
