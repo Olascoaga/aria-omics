@@ -1,6 +1,70 @@
 import json
 
 
+def test_verifier_passes_real_hippocampus_scrna_block_patterns():
+    # Real-run bug (hippocampus scRNA, age-bin design): the ENTIRE single-cell
+    # Findings section rendered blank because strict verification withheld every
+    # block. Five root causes, all fixed and guarded here:
+    #   1. age-bin comparison LABELS ("80-100", "40-59_vs_20-39") were read as
+    #      unsupported claim numbers;
+    #   2. skipped/error blocks (diagnostic "not enough replicates" messages)
+    #      were numeric-verified as if they were measured claims;
+    #   3. the tool name "LIANA" was treated as an unsupported gene entity;
+    #   4. "ora" matched as a pathway term INSIDE "exploratory", flagging a
+    #      trajectory block as asserting pathway evidence;
+    #   5. a thousands-separated count ("242,405") did not match the unformatted
+    #      evidence value (242405).
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+    from aria.agents.narrative.evidence_verifier import verify_block_claim_support
+
+    # 1) success composition block whose comparison label is an age range
+    comp = NarrativeBlock(
+        id="scrna.composition.80-100_vs_20-39", modality="scRNA-seq",
+        analysis="differential_abundance", block_type="abundance",
+        title="Cell-type abundance 80-100_vs_20-39", status="success",
+        confidence="medium",
+        claim="Cell-type abundance shifted in 80-100_vs_20-39 across 7 cell types.",
+        evidence=[EvidenceItem(label="cell types tested", value=7)])
+    verify_block_claim_support(comp, strict=True)
+
+    # 2) skipped block: a diagnostic message, NOT a measured claim — its numbers
+    #    (12, 3) are legitimately absent from the (empty) evidence card.
+    skipped = NarrativeBlock(
+        id="scrna.pseudobulk.skipped", modality="scRNA-seq",
+        analysis="pseudobulk_de", block_type="differential_expression",
+        title="Pseudobulk DE 80-100_vs_20-39", status="skipped",
+        confidence="insufficient",
+        claim="Skipped: only 12 donors had cells in 80-100 (needed 3 per group).")
+    man = verify_block_claim_support(skipped, strict=True)
+    assert man["status"] == "supported"
+
+    # 3) "LIANA" is a tool name, not a gene entity
+    ccc = NarrativeBlock(
+        id="scrna.cellcomm", modality="scRNA-seq",
+        analysis="cell_communication", block_type="communication",
+        title="Cell communication", status="success", confidence="low",
+        claim="LIANA reported 50 non-autocrine ligand-receptor interaction candidates.",
+        evidence=[EvidenceItem(label="interaction candidates", value=50)])
+    verify_block_claim_support(ccc, strict=True)
+
+    # 4) "exploratory" must not match the pathway term "ora"
+    traj = NarrativeBlock(
+        id="scrna.trajectory", modality="scRNA-seq",
+        analysis="trajectory", block_type="exploratory",
+        title="Trajectory", status="success", confidence="low",
+        claim="PAGA/DPT evaluated 153 cluster-pair connections as exploratory manifold context.",
+        evidence=[EvidenceItem(label="cluster-pair connections", value=153)])
+    verify_block_claim_support(traj, strict=True)
+
+    # 5) thousands separator collapses to match the evidence value
+    qc = NarrativeBlock(
+        id="scrna.qc", modality="scRNA-seq", analysis="qc", block_type="qc",
+        title="scRNA quality control", status="success", confidence="high",
+        claim="242,405 cells passed quality control.",
+        evidence=[EvidenceItem(label="cells passing QC", value=242405)])
+    verify_block_claim_support(qc, strict=True)
+
+
 def test_render_blocks_strict_false_withholds_bad_block_without_aborting():
     # Real-run bug: a single block failing strict verification aborted the WHOLE
     # report ("termina pero no genera el reporte html"). With strict=False the bad

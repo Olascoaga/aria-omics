@@ -55,8 +55,8 @@ _ANALYSIS_FAMILY = {
 
 _GENE_STOPWORDS = {
     "ARIA", "ATAC", "BAM", "CTRL", "DE", "DNA", "DPT", "FDR", "FRIP",
-    "GEO", "GO", "GSEA", "HTML", "IF", "KEGG", "LLM", "NES", "ORA",
-    "PAGA", "PBMC", "QC", "RNA", "SRA", "TAD", "UMAP", "VST",
+    "GEO", "GO", "GSEA", "HTML", "IF", "KEGG", "LIANA", "LLM", "NES",
+    "ORA", "PAGA", "PBMC", "QC", "RNA", "SRA", "TAD", "UMAP", "VST",
 }
 
 _NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])-?\d+(?:\.\d+)?%?")
@@ -105,6 +105,21 @@ def verify_block_claim_support(
     ``EvidenceVerificationError`` so unsupported prose cannot be rendered.
     """
     card = build_evidence_card(block)
+
+    # Error / skipped blocks state a DIAGNOSTIC message (a timeout, a skip reason
+    # like "not enough replicates: 80-100=0, 20-39=4"), not a measured scientific
+    # claim. Their numbers legitimately are not on the evidence card, and the
+    # Report Integrity rules require the failure to stay visible — so do not run
+    # numeric/entity verification on a non-success block.
+    if str(block.status or "").strip().lower() in {"error", "skipped", "failed"}:
+        return {
+            "status": "supported",
+            "checked_sentences": 0,
+            "unsupported": [],
+            "evidence_card": card.as_dict(),
+            "policy": "Non-success block: diagnostic message, not a verified claim.",
+        }
+
     issues: list[VerificationIssue] = []
     checked = 0
 
@@ -252,7 +267,7 @@ def _issues_for_sentence(
         pathway_explains_de = (
             required == "expression"
             and family == "pathway"
-            and any(term in low for term in _PATHWAY_TERMS)
+            and _mentions_any(low, _PATHWAY_TERMS)
         )
         if not pathway_explains_de:
             issues.append(VerificationIssue(
@@ -281,6 +296,20 @@ def _issues_for_sentence(
     return issues
 
 
+def _mentions_any(sentence_lower: str, terms: tuple[str, ...]) -> bool:
+    """True if any term appears as a whole word, not embedded in a larger word.
+
+    A plain substring test wrongly matches short tokens like ``ora`` inside
+    ``exploratory`` (and ``gsea``/``de`` inside other words), so a trajectory
+    sentence got flagged as asserting pathway evidence. Anchoring each term with
+    word boundaries keeps multi-word/hyphenated terms ("gene-set",
+    "ligand-receptor") matching while ignoring incidental substrings.
+    """
+    return any(
+        re.search(r"\b" + re.escape(term) + r"\b", sentence_lower) for term in terms
+    )
+
+
 def _required_family(sentence_lower: str) -> str | None:
     if "composition covariate" in sentence_lower:
         return None
@@ -292,7 +321,7 @@ def _required_family(sentence_lower: str) -> str | None:
         ("trajectory", _TRAJECTORY_TERMS),
     )
     for family, terms in checks:
-        if any(term in sentence_lower for term in terms):
+        if _mentions_any(sentence_lower, terms):
             return family
     return None
 
@@ -319,8 +348,21 @@ def _claim_numbers(sentence: str) -> set[str]:
     return numbers
 
 
+# Hyphenated digit ranges are GROUP/COMPARISON LABELS (age bins like "40-59",
+# "80-100", "80-100_vs_20-39"), not measured claims — their numbers must not be
+# required on the evidence card. Thousands separators ("242,405") must collapse so
+# a formatted claim number matches the unformatted evidence value ("242405").
+# Hyphen DIRECTLY between digits = a group/comparison label (age bins "40-59",
+# "80-100_vs_20-39"). The hyphen must be adjacent (no spaces) so a negative number
+# after a gene name ("TOMM7 -2.055") is NOT mistaken for a range.
+_RANGE_LABEL_RE = re.compile(r"\d+(?:-\d+)+")
+_THOUSANDS_SEP_RE = re.compile(r"(?<=\d),(?=\d{3}(?:\D|$))")
+
+
 def _numbers_in(text: str) -> set[str]:
-    return {_normalize_number(m.group(0)) for m in _NUMBER_RE.finditer(str(text or ""))}
+    s = _RANGE_LABEL_RE.sub(" ", str(text or ""))
+    s = _THOUSANDS_SEP_RE.sub("", s)
+    return {_normalize_number(m.group(0)) for m in _NUMBER_RE.finditer(s)}
 
 
 def _normalize_number(raw: str) -> str:
