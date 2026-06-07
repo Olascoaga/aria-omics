@@ -83,6 +83,60 @@ def test_bulk_simulator_is_deterministic_and_labels_truth():
     assert ds1.counts.shape == (300, 10)
     assert set(ds1.metadata["condition"].unique()) == {"COND_A", "COND_B"}
     assert str(ds1.counts.values.dtype).startswith("int")
+    assert set(ds1.true_log2fc) == set(ds1.counts.index)
+    assert all(ds1.true_log2fc[g] != 0 for g in ds1.de_genes)
+    assert all(ds1.true_log2fc[g] == 0 for g in ds1.null_genes)
+
+
+def test_bulk_a1_scorer_reports_frozen_axes():
+    pd = pytest.importorskip("pandas")
+    from aria.benchmarks.synthetic_de import (
+        NegativeControlResult,
+        score_bulk_de_a1,
+        simulate_bulk_dataset,
+    )
+
+    ds = simulate_bulk_dataset(n_genes=60, n_de=10, replicates_per_condition=4, seed=5)
+    truth = pd.Series(ds.true_log2fc, dtype=float)
+    called = truth.abs().sort_values(ascending=False).head(8).index.tolist()
+    results = pd.DataFrame({
+        "log2FoldChange": truth,
+        "padj": [0.001 if gene in called else 0.9 for gene in ds.counts.index],
+    }, index=ds.counts.index)
+    de_result = {
+        "status": "success",
+        "results": results,
+        "sig_genes": called,
+    }
+    neg = NegativeControlResult(
+        status="pass",
+        false_positive_rate=0.0,
+        max_false_positive_rate=0.0,
+        nominal_alpha=0.05,
+        n_permutations=3,
+        n_tested=60,
+        calls_per_permutation=[0, 0, 0],
+        tolerances={},
+    )
+
+    manifest = score_bulk_de_a1(
+        ds,
+        de_result,
+        neg,
+        min_lfc_spearman=0.9,
+        min_top_k_jaccard=0.2,
+    )
+
+    assert manifest["status"] == "pass"
+    assert set(manifest["axes"]) == {
+        "fdr_calibration",
+        "lfc_concordance",
+        "ranking_concordance",
+        "significant_call_concordance",
+    }
+    assert manifest["axes"]["significant_call_concordance"]["recall"] == 0.8
+    assert manifest["axes"]["fdr_calibration"]["false_positive_rate"] == 0.0
+    assert manifest["axes"]["lfc_concordance"]["spearman_true_de"] >= 0.9
 
 
 def test_bulk_de_recovers_ground_truth():

@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.5.4-blue)
+![Version](https://img.shields.io/badge/version-4.5.5-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -136,7 +136,7 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current stable baseline is `v4.5.4`: bulk RNA + scRNA core paths are
+The current stable baseline is `v4.5.5`: bulk RNA + scRNA core paths are
 closed for practical use, publication-readiness provenance is embedded in
 reports, raw-ingestion planning/conversion is available for supported 10X
 inputs, and reports are composed from validated modality blocks for scRNA and
@@ -154,6 +154,12 @@ each block's effective per-cluster-family alpha (the whole-experiment global-BH
 alpha is kept only as a secondary diagnostic) — and log-normalized count
 recovery is visibly low-confidence. Pseudobulk significant-gene counts can
 differ from pre-`v4.5.4` reports by design.
+
+`v4.5.5` adds the first executable artifact from the frozen v4.5 benchmarking
+plan: preliminary Benchmark A1 bulk-DE validation against synthetic truth, with
+FDR calibration, LFC concordance, ranking concordance, and significant-call
+concordance reported in a versioned manifest and simple Fig. 1 SVG. External R
+comparators remain in the separate `aria-bench-env` lane.
 
 Since `v4.5.4`, ARIA has been in a focused reliability, governance, and
 reproducibility hardening pass on the validated RNA baseline before the next

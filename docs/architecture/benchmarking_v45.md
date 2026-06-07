@@ -86,6 +86,14 @@ models.
 SEQC/MAQC qPCR/TaqMan and ERCC spike-ins are external validation references,
 not absolute truth.
 
+v4.5.5 executable artifact: the preliminary synthetic-truth A1 lane is
+implemented by `scripts/run_a1_bulk_de_benchmark.py` and writes a versioned
+manifest plus Fig 1 SVG under `docs/benchmark_results/`. It runs ARIA's real
+bulk DESeq2 path with apeGLM enabled and reports the same four frozen axes.
+External DESeq2/edgeR/limma comparator execution remains assigned to
+`aria-bench-env`; do not cite the preliminary artifact as a superiority or
+identity claim.
+
 ### A2 Pseudobulk scRNA
 
 Use Kang et al. 2018 PBMC lupus control versus IFN-beta as the main scRNA
@@ -235,7 +243,8 @@ Primary metric: fabricated or unsupported narrative rate on null controls.
 ## Frozen Implementation Order
 
 1. Benchmark manifest schema, compatible with the W-CALIB badge manifest.
-2. A1 synthetic bulk DE and preliminary Fig 1.
+2. A1 synthetic bulk DE and preliminary Fig 1. **Done in v4.5.5 for the
+   ARIA-path synthetic-truth lane.**
 3. `aria-bench-env.yml` for external comparators. Keep R/benchmark packages out
    of production RNA/chromatin environments and call them through JSON IPC.
 4. A2 Kang + muscat.

@@ -350,6 +350,14 @@ Use these tests as impact anchors when editing the graph's major nodes:
   empirical FDR, W-CALIB): `tests/test_benchmark_synthetic_de.py`
   (`aria/benchmarks/synthetic_de.py`; recovery cases pydeseq2-gated; also run by
   `aria doctor --benchmark`). Numerical safety net for any DE-math change.
+- Benchmark A1 preliminary bulk-DE artifact (v4.5.5):
+  `scripts/run_a1_bulk_de_benchmark.py` calls
+  `aria.benchmarks.synthetic_de.run_bulk_de_a1_benchmark`, which executes the
+  real bulk `_run_deseq2` path on synthetic truth, scores the four frozen A1 axes
+  via `score_bulk_de_a1`, writes `docs/benchmark_results/a1_bulk_de_v4.5.5.json`,
+  and writes `docs/benchmark_results/fig1_a1_bulk_de_v4.5.5.svg`. This is the
+  ARIA-path preliminary lane only; external R comparator runs belong to the
+  separate `aria-bench-env` track.
 - W-CALIB negative controls + calibration manifest (label-permutation null):
   `aria/benchmarks/synthetic_de.py` `run_bulk_de_negative_control` /
   `run_pseudobulk_de_negative_control` permute the condition labels (bulk: across

@@ -192,6 +192,7 @@ class SyntheticBulkDEDataset:
     metadata: Any                           # DataFrame (samples x design), with "condition"
     de_genes: dict[str, str]                # gene -> "up" | "down" (truth in COND_B vs COND_A)
     null_genes: list[str]                   # genes with no true effect
+    true_log2fc: dict[str, float] = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -260,6 +261,7 @@ def simulate_bulk_dataset(
         metadata=metadata,
         de_genes=de_genes,
         null_genes=null_genes,
+        true_log2fc={gene_names[i]: float(log2fc[i]) for i in range(n_genes)},
         params={
             "n_genes": n_genes, "n_de": n_de,
             "replicates_per_condition": replicates_per_condition,
@@ -269,6 +271,294 @@ def simulate_bulk_dataset(
             "seed": seed,
         },
     )
+
+
+def _rank_biased_overlap(left: list[str], right: list[str], p: float = 0.9) -> float:
+    """Finite-list rank-biased overlap for top-list concordance."""
+    if not left or not right:
+        return 0.0
+    depth = min(len(left), len(right))
+    seen_left: set[str] = set()
+    seen_right: set[str] = set()
+    score = 0.0
+    for d in range(1, depth + 1):
+        seen_left.add(left[d - 1])
+        seen_right.add(right[d - 1])
+        agreement = len(seen_left & seen_right) / d
+        score += (1.0 - p) * (p ** (d - 1)) * agreement
+    return float(score)
+
+
+def _finite_float(value: Any, default: float = 0.0) -> float:
+    try:
+        import math
+        val = float(value)
+        return val if math.isfinite(val) else default
+    except Exception:
+        return default
+
+
+def score_bulk_de_a1(
+    dataset: SyntheticBulkDEDataset,
+    de_result: dict[str, Any],
+    negative_control: NegativeControlResult,
+    *,
+    padj_max: float = 0.05,
+    lfc_min: float = 0.5,
+    top_k: int | None = None,
+    min_recall: float = 0.5,
+    max_empirical_fdr: float = 0.2,
+    max_null_fpr: float = 0.05,
+    min_lfc_spearman: float = 0.7,
+    min_top_k_jaccard: float = 0.35,
+) -> dict[str, Any]:
+    """Score Benchmark A1's four bulk-DE axes from a real ARIA DESeq2 result."""
+    import pandas as pd
+
+    tolerances = {
+        "padj_max": padj_max,
+        "lfc_min": lfc_min,
+        "min_recall": min_recall,
+        "max_empirical_fdr": max_empirical_fdr,
+        "max_null_false_positive_rate": max_null_fpr,
+        "min_lfc_spearman": min_lfc_spearman,
+        "min_top_k_jaccard": min_top_k_jaccard,
+    }
+    if de_result.get("status") != "success":
+        return {
+            "status": "error",
+            "tolerances": tolerances,
+            "messages": [
+                f"bulk DE did not succeed: {de_result.get('error_type')} "
+                f"{de_result.get('details', '')}".strip()
+            ],
+        }
+
+    results_df = de_result.get("results")
+    if results_df is None or not hasattr(results_df, "copy"):
+        return {
+            "status": "error",
+            "tolerances": tolerances,
+            "messages": ["bulk DE result did not include a results DataFrame"],
+        }
+
+    df = results_df.copy()
+    df.index = [str(idx) for idx in df.index]
+    true_de = set(dataset.de_genes)
+    null = set(dataset.null_genes)
+    called = set(de_result.get("sig_genes", []) or [])
+    tp = called & true_de
+    fp = called & null
+
+    recall = len(tp) / max(len(true_de), 1)
+    empirical_fdr = len(fp) / max(len(called), 1)
+    precision = len(tp) / max(len(called), 1)
+
+    truth = pd.Series(dataset.true_log2fc, name="true_log2fc", dtype=float)
+    est = df.get("log2FoldChange")
+    if est is None:
+        est = pd.Series(dtype=float)
+    lfc_frame = pd.DataFrame({
+        "estimated": pd.to_numeric(est, errors="coerce"),
+        "true": truth,
+    }).dropna()
+    lfc_de_frame = lfc_frame[lfc_frame["true"].abs() > 0]
+    if lfc_frame.empty:
+        pearson = spearman = pearson_de = spearman_de = 0.0
+    else:
+        pearson = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="pearson"))
+        spearman = _finite_float(lfc_frame["estimated"].corr(lfc_frame["true"], method="spearman"))
+        if lfc_de_frame.empty:
+            pearson_de = spearman_de = 0.0
+        else:
+            pearson_de = _finite_float(
+                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="pearson")
+            )
+            spearman_de = _finite_float(
+                lfc_de_frame["estimated"].corr(lfc_de_frame["true"], method="spearman")
+            )
+
+    if top_k is None:
+        top_k = min(100, max(1, dataset.n_de))
+    ranked_est = (
+        df.assign(
+            _padj=pd.to_numeric(df.get("padj"), errors="coerce").fillna(1.0),
+            _abs_lfc=pd.to_numeric(df.get("log2FoldChange"), errors="coerce").abs().fillna(0.0),
+        )
+        .sort_values(["_padj", "_abs_lfc"], ascending=[True, False])
+        .index.astype(str)
+        .tolist()
+    )
+    ranked_truth = (
+        pd.Series(dataset.true_log2fc, dtype=float)
+        .abs()
+        .sort_values(ascending=False)
+        .index.astype(str)
+        .tolist()
+    )
+    est_top = set(ranked_est[:top_k])
+    truth_top = set(ranked_truth[:top_k])
+    top_intersection = est_top & truth_top
+    top_k_jaccard = len(top_intersection) / max(len(est_top | truth_top), 1)
+    top_k_truth_recall = len(top_intersection) / max(len(truth_top), 1)
+    rbo = _rank_biased_overlap(ranked_est[:top_k], ranked_truth[:top_k], p=0.9)
+
+    axes = {
+        "fdr_calibration": {
+            "status": negative_control.status,
+            "nominal_alpha": negative_control.nominal_alpha,
+            "false_positive_rate": round(negative_control.false_positive_rate, 4),
+            "max_false_positive_rate": round(negative_control.max_false_positive_rate, 4),
+            "calls_per_permutation": negative_control.calls_per_permutation,
+            "n_permutations": negative_control.n_permutations,
+            "n_tested": negative_control.n_tested,
+        },
+        "lfc_concordance": {
+            "pearson_all_tested": round(pearson, 4),
+            "spearman_all_tested": round(spearman, 4),
+            "pearson_true_de": round(pearson_de, 4),
+            "spearman_true_de": round(spearman_de, 4),
+            "n_genes_scored": int(len(lfc_frame)),
+            "n_true_de_scored": int(len(lfc_de_frame)),
+        },
+        "ranking_concordance": {
+            "top_k": int(top_k),
+            "top_k_jaccard": round(top_k_jaccard, 4),
+            "top_k_truth_recall": round(top_k_truth_recall, 4),
+            "rank_biased_overlap_p0.9": round(rbo, 4),
+        },
+        "significant_call_concordance": {
+            "recall": round(recall, 4),
+            "precision": round(precision, 4),
+            "empirical_fdr": round(empirical_fdr, 4),
+            "n_true_de": len(true_de),
+            "n_called": len(called),
+            "n_true_positive": len(tp),
+            "n_false_positive": len(fp),
+        },
+    }
+    axis_pass = {
+        "fdr_calibration": (
+            negative_control.status == "pass"
+            and negative_control.false_positive_rate <= max_null_fpr
+        ),
+        "lfc_concordance": spearman_de >= min_lfc_spearman,
+        "ranking_concordance": top_k_jaccard >= min_top_k_jaccard,
+        "significant_call_concordance": (
+            recall >= min_recall and empirical_fdr <= max_empirical_fdr
+        ),
+    }
+    status = "pass" if all(axis_pass.values()) else "fail"
+    return {
+        "status": status,
+        "benchmark": "A1_bulk_de",
+        "benchmark_version": "v1",
+        "scope": "preliminary_synthetic_truth",
+        "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
+        "comparison": {"numerator": "COND_B", "denominator": "COND_A"},
+        "dataset": dataset.params,
+        "thresholds": {"padj": padj_max, "lfc_threshold": lfc_min},
+        "tolerances": tolerances,
+        "axis_pass": axis_pass,
+        "axes": axes,
+        "messages": [
+            "A1 preliminary validates ARIA's bulk DE path against synthetic truth; "
+            "external DESeq2/edgeR/limma comparators remain assigned to aria-bench-env."
+        ],
+    }
+
+
+def write_bulk_de_a1_figure(manifest: dict[str, Any], path: str) -> str:
+    """Write a dependency-free SVG summary for preliminary Fig. 1."""
+    from pathlib import Path
+
+    axes = manifest.get("axes", {})
+    vals = [
+        ("FDR calibration", 1.0 - float(axes.get("fdr_calibration", {}).get("false_positive_rate", 1.0))),
+        ("LFC Spearman", float(axes.get("lfc_concordance", {}).get("spearman_true_de", 0.0))),
+        ("Top-k Jaccard", float(axes.get("ranking_concordance", {}).get("top_k_jaccard", 0.0))),
+        ("Call recall", float(axes.get("significant_call_concordance", {}).get("recall", 0.0))),
+    ]
+    width, height = 760, 390
+    left, top = 190, 70
+    bar_w, bar_h, gap = 430, 42, 26
+    rows = []
+    for i, (label, value) in enumerate(vals):
+        y = top + i * (bar_h + gap)
+        v = max(0.0, min(1.0, value))
+        fill = "#2F6F73" if v >= 0.5 else "#A23B3B"
+        rows.append(
+            f'<text x="28" y="{y + 27}" font-size="17" fill="#1f2933">{label}</text>'
+            f'<rect x="{left}" y="{y}" width="{bar_w}" height="{bar_h}" fill="#e8edf0"/>'
+            f'<rect x="{left}" y="{y}" width="{bar_w * v:.1f}" height="{bar_h}" fill="{fill}"/>'
+            f'<text x="{left + bar_w + 18}" y="{y + 27}" font-size="17" fill="#1f2933">{v:.2f}</text>'
+        )
+    status = manifest.get("status", "unknown").upper()
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<text x="28" y="34" font-size="22" font-weight="700" fill="#111827">'
+        'Fig. 1 preliminary: A1 bulk DE validation</text>'
+        f'<text x="630" y="34" font-size="18" font-weight="700" fill="#2F6F73">{status}</text>'
+        '<text x="28" y="366" font-size="13" fill="#4b5563">'
+        'Synthetic truth; external R comparators are separate aria-bench-env work.</text>'
+        + "".join(rows)
+        + "</svg>"
+    )
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(svg, encoding="utf-8")
+    return str(out)
+
+
+def run_bulk_de_a1_benchmark(
+    *,
+    seed: int = 11,
+    quick: bool = False,
+    output_dir: str | None = None,
+    manifest_name: str = "a1_bulk_de_manifest.json",
+    figure_name: str = "fig1_a1_bulk_de.svg",
+) -> dict[str, Any]:
+    """Execute Benchmark A1's preliminary synthetic bulk-DE lane."""
+    import json
+    from pathlib import Path
+    from aria.scripts.rna_bulk_de import _run_deseq2
+    from aria.version import __version__, collect_version_metadata
+
+    sim_kwargs = (
+        dict(n_genes=600, n_de=60, replicates_per_condition=6)
+        if quick else
+        dict(n_genes=1000, n_de=120, replicates_per_condition=6)
+    )
+    n_perms = 2 if quick else 3
+    dataset = simulate_bulk_dataset(seed=seed, **sim_kwargs)
+    de_result, warnings = _run_deseq2(
+        dataset.counts, dataset.metadata, "condition", "COND_B", "COND_A",
+        padj_thr=0.05, lfc_thr=0.5, lfc_shrink=True,
+    )
+    negative = run_bulk_de_negative_control(
+        dataset=dataset, seed=seed, n_permutations=n_perms,
+        nominal_alpha=0.05, max_false_positive_rate=0.05, lfc_min=0.5,
+    )
+    manifest = score_bulk_de_a1(dataset, de_result, negative)
+    manifest.update({
+        "aria_version": __version__,
+        "provenance": collect_version_metadata(),
+        "warnings": warnings,
+    })
+    if output_dir:
+        outdir = Path(output_dir)
+        outdir.mkdir(parents=True, exist_ok=True)
+        manifest_path = outdir / manifest_name
+        figure_path = outdir / figure_name
+        write_bulk_de_a1_figure(manifest, str(figure_path))
+        manifest["artifacts"] = {
+            "manifest_json": str(manifest_path),
+            "figure_svg": str(figure_path),
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+    return manifest
 
 
 def run_bulk_de_benchmark(

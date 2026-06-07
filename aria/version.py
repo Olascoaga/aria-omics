@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-__version__ = "4.5.4"
+__version__ = "4.5.5"
 
 VERSION_SOURCE = "aria.version.__version__"
 

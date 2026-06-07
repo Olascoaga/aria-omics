@@ -1,0 +1,107 @@
+{
+  "aria_version": "4.5.5",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/fig1_a1_bulk_de_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/a1_bulk_de_v4.5.5.json"
+  },
+  "axes": {
+    "fdr_calibration": {
+      "calls_per_permutation": [
+        0,
+        0,
+        0
+      ],
+      "false_positive_rate": 0.0,
+      "max_false_positive_rate": 0.0,
+      "n_permutations": 3,
+      "n_tested": 1000,
+      "nominal_alpha": 0.05,
+      "status": "pass"
+    },
+    "lfc_concordance": {
+      "n_genes_scored": 1000,
+      "n_true_de_scored": 120,
+      "pearson_all_tested": 0.8642,
+      "pearson_true_de": 0.9542,
+      "spearman_all_tested": 0.5502,
+      "spearman_true_de": 0.9033
+    },
+    "ranking_concordance": {
+      "rank_biased_overlap_p0.9": 0.4168,
+      "top_k": 100,
+      "top_k_jaccard": 0.7241,
+      "top_k_truth_recall": 0.84
+    },
+    "significant_call_concordance": {
+      "empirical_fdr": 0.0,
+      "n_called": 63,
+      "n_false_positive": 0,
+      "n_true_de": 120,
+      "n_true_positive": 63,
+      "precision": 1.0,
+      "recall": 0.525
+    }
+  },
+  "axis_pass": {
+    "fdr_calibration": true,
+    "lfc_concordance": true,
+    "ranking_concordance": true,
+    "significant_call_concordance": true
+  },
+  "benchmark": "A1_bulk_de",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "COND_A",
+    "numerator": "COND_B"
+  },
+  "dataset": {
+    "dispersion": 0.2,
+    "max_abs_log2fc": 2.5,
+    "min_abs_log2fc": 1.0,
+    "n_de": 120,
+    "n_genes": 1000,
+    "replicates_per_condition": 6,
+    "seed": 11
+  },
+  "messages": [
+    "A1 preliminary validates ARIA's bulk DE path against synthetic truth; external DESeq2/edgeR/limma comparators remain assigned to aria-bench-env."
+  ],
+  "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
+  "provenance": {
+    "aria_version": "4.5.5",
+    "git_commit": "24d15184598555a136d381d1ba1a35a2e01e5a1b",
+    "git_describe": "v4.5.4-133-g24d1518-dirty",
+    "git_dirty": true,
+    "git_sha": "24d15184598555a136d381d1ba1a35a2e01e5a1b",
+    "git_tree_sha": "a074506dea4cc9a13714fe5c3b2cb812617f3b8d",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.5.5",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "e474f60c55f0ed8b0525d497ff7dc787a90e3f4550aa3b04dc2376da862eaa4f",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "preliminary_synthetic_truth",
+  "status": "pass",
+  "thresholds": {
+    "lfc_threshold": 0.5,
+    "padj": 0.05
+  },
+  "tolerances": {
+    "lfc_min": 0.5,
+    "max_empirical_fdr": 0.2,
+    "max_null_false_positive_rate": 0.05,
+    "min_lfc_spearman": 0.7,
+    "min_recall": 0.5,
+    "min_top_k_jaccard": 0.35,
+    "padj_max": 0.05
+  },
+  "warnings": []
+}
