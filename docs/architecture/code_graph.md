@@ -259,6 +259,16 @@ sentence must be backed by a structured evidence card, and unsupported prose
 blocks HTML generation. A report that only exposes claim rows and evidence tables
 is not considered sufficiently narrative.
 
+## Benchmarking Protocol
+
+The frozen v4.5 RNA/evidence-governance benchmarking protocol is
+[`benchmarking_v45.md`](benchmarking_v45.md) (ADR-030). It is a methods and
+release-governance document, not a runtime dependency edge: Benchmark A validates
+standard RNA statistical behavior, while Benchmark B validates design refusal,
+claim support, causal-language control, and false narrative reduction. Full
+execution of the benchmark suite is the RNA preprint lane; it is not a blocker
+for v4.6 scATAC unless the product goal explicitly changes.
+
 ## Test Anchors
 
 Use these tests as impact anchors when editing the graph's major nodes:

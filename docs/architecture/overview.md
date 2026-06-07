@@ -48,6 +48,9 @@ For implementation-impact checks, use the deeper
 ownership boundaries, and test anchors. For repository-wide navigation, use the
 generated [Graphify map](graphify/README.md): it includes a queryable
 `graph.json`, an interactive `graph.html`, and a file-oriented `GRAPH_TREE.html`.
+The frozen v4.5 RNA/evidence-governance benchmarking protocol lives in
+[benchmarking_v45.md](benchmarking_v45.md); it closes v4.5 as a benchmarking
+specification and leaves full benchmark execution as the RNA preprint lane.
 
 ## Components
 
