@@ -10897,7 +10897,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -11023,7 +11023,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -11045,7 +11045,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -11060,7 +11060,7 @@
       "label": "snapshot_requirements()",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L84",
+      "source_location": "L86",
       "metadata": {
         "language": "bash",
         "kind": "bash_function"
@@ -11071,7 +11071,7 @@
       "label": "env_installed()",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L111",
+      "source_location": "L113",
       "metadata": {
         "language": "bash",
         "kind": "bash_function"
@@ -11082,7 +11082,7 @@
       "label": "snapshot_one()",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L117",
+      "source_location": "L119",
       "metadata": {
         "language": "bash",
         "kind": "bash_function"
@@ -16353,6 +16353,48 @@
       "source_location": "L146"
     },
     {
+      "id": "tests_test_raw_ingestion_real_fastq_gate",
+      "label": "test_raw_ingestion_real_fastq_gate.py",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_raw_ingestion_real_fastq_gate_expanded",
+      "label": "_expanded()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L19"
+    },
+    {
+      "id": "tests_test_raw_ingestion_real_fastq_gate_load_validation_config",
+      "label": "_load_validation_config()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "label": "_validation_data_dir()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "label": "test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L77"
+    },
+    {
       "id": "tests_test_registry_integrity",
       "label": "test_registry_integrity.py",
       "file_type": "code",
@@ -17009,17 +17051,6 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -17097,62 +17128,7 @@
       "contributor": null
     },
     {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_hierarchical",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "design_intelligence",
-      "label": "DesignIntelligence",
-      "file_type": "code",
-      "source_file": "aria/agents/design_intelligence.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "env_rna",
+      "id": "aria_rna_env",
       "label": "aria-rna-env",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
@@ -57109,7 +57085,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -57162,7 +57138,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57172,7 +57148,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57182,7 +57158,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57192,7 +57168,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57202,7 +57178,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57320,7 +57296,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -57329,7 +57305,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -57342,7 +57318,7 @@
       "relation": "defines",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L84",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -57351,7 +57327,7 @@
       "relation": "defines",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L111",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -57360,26 +57336,26 @@
       "relation": "defines",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L117",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L150",
+      "source_location": "L152",
       "weight": 1.0,
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bvpvok_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L155",
+      "source_location": "L157",
       "weight": 1.0,
       "context": "call"
     },
@@ -57389,7 +57365,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L86",
+      "source_location": "L88",
       "weight": 1.0,
       "context": "call"
     },
@@ -57399,7 +57375,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
-      "source_location": "L122",
+      "source_location": "L124",
       "weight": 1.0,
       "context": "call"
     },
@@ -66253,6 +66229,132 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_expanded",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_load_validation_config",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_expanded",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_load_validation_config",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_load_validation_config",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_expanded",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_expanded",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_load_validation_config",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_validation_data_dir",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "target": "tests_test_raw_ingestion_real_fastq_gate_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_registry_integrity",
       "target": "tests_test_registry_integrity_test_agent_registry_imports_and_script_contracts_are_valid",
       "relation": "contains",
@@ -73908,6 +74010,26 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "agents_raw_ingestion_agent_rawingestionagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_real_fastq_gate",
+      "target": "utils_environment_manager_environmentmanager",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_registry_integrity",
       "target": "utils_registry_integrity_check_registry_integrity",
       "relation": "imports",
@@ -79028,6 +79150,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_raw_ingestion_real_fastq_gate_test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering",
+      "target": "utils_environment_manager_environmentmanager",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_real_fastq_gate.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_registry_integrity_test_agent_registry_imports_and_script_contracts_are_valid",
       "target": "utils_registry_integrity_check_registry_integrity",
       "relation": "calls",
@@ -80335,7 +80467,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -80345,14 +80477,14 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -80360,7 +80492,7 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
+      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80381,51 +80513,11 @@
     },
     {
       "source": "narrative_agent",
-      "target": "claim_compiler",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "design_agent",
-      "target": "design_intelligence",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     }
