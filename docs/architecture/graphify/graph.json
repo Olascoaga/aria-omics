@@ -10939,7 +10939,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -11065,7 +11065,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -11087,7 +11087,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -17107,10 +17107,10 @@
       "contributor": null
     },
     {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
+      "source_file": "aria/agents/bulk_rna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17118,10 +17118,10 @@
       "contributor": null
     },
     {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17198,7 +17198,7 @@
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/sqlite_hierarchical.py",
+      "source_file": "aria/memory/sqlite_hierarchical",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17206,30 +17206,8 @@
       "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_rna_env",
-      "label": "ARIA RNA Environment",
+      "id": "env_rna",
+      "label": "aria-rna-env",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
       "source_location": null,
@@ -57321,7 +57299,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -57374,7 +57352,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57384,7 +57362,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57394,7 +57372,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57404,7 +57382,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57414,7 +57392,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57532,7 +57510,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -57541,7 +57519,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -57576,7 +57554,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57586,7 +57564,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80721,7 +80699,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -80731,7 +80709,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -80747,6 +80725,26 @@
     },
     {
       "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80756,7 +80754,7 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80766,52 +80764,22 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "scrna_agent",
-      "target": "environment_manager",
+      "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/workflows/scrna.md",
       "source_location": null,
       "weight": 1.0
     }
