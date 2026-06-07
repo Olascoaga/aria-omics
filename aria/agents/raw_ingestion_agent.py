@@ -15,6 +15,8 @@ from aria.utils.raw_ingestion import (
 )
 
 
+FASTQ_SUFFIXES = (".fastq", ".fq", ".fastq.gz", ".fq.gz")
+
 KB_REQUIRED_FIELDS = (
     "fastq_files",
     "index_path",
@@ -52,6 +54,7 @@ class RawIngestionAgent(BaseAgent):
         records = []
         generated_h5ads = []
         errors = []
+        requested_scrna_fastqs = self._scrna_fastq_inputs(exp_ctx)
 
         triplets = discover_10x_mtx_triplets(data_dir)
         for i, triplet in enumerate(triplets):
@@ -106,6 +109,22 @@ class RawIngestionAgent(BaseAgent):
                 records.append(kb_result)
                 if kb_result.get("status") == "success":
                     generated_h5ads.append(kb_result["output_h5ad"])
+                else:
+                    errors.append(self._kb_error_record(kb_result))
+
+        if (requested_scrna_fastqs and not generated_h5ads
+                and not self._scrna_canonical_inputs(exp_ctx)):
+            errors.append({
+                "mode": "fastq_kb_count",
+                "error_type": "CanonicalH5adMissing",
+                "details": (
+                    "scRNA FASTQ inputs were detected, but no canonical .h5ad "
+                    "was generated. ARIA will not dispatch scRNAAgent on raw "
+                    "FASTQ files; provide complete raw_ingestion_kb parameters "
+                    "or a precomputed .h5ad/MEX input."
+                ),
+                "fastq_files": requested_scrna_fastqs,
+            })
 
         if errors:
             return {
@@ -276,6 +295,41 @@ class RawIngestionAgent(BaseAgent):
         prepared = dict(params or {})
         prepared["execute"] = True
         return prepared
+
+    @staticmethod
+    def _is_fastq_path(path: str | Path) -> bool:
+        lower = str(path).lower()
+        return lower.endswith(FASTQ_SUFFIXES)
+
+    @classmethod
+    def _scrna_fastq_inputs(cls, exp_ctx: dict) -> list[str]:
+        modalities = exp_ctx.get("modalities", {}) or {}
+        files = modalities.get("scRNA", []) or []
+        return [str(path) for path in files if cls._is_fastq_path(path)]
+
+    @classmethod
+    def _scrna_canonical_inputs(cls, exp_ctx: dict) -> list[str]:
+        modalities = exp_ctx.get("modalities", {}) or {}
+        files = modalities.get("scRNA", []) or []
+        canonical_suffixes = (".h5ad", ".h5")
+        return [
+            str(path) for path in files
+            if str(path).lower().endswith(canonical_suffixes)
+        ]
+
+    @staticmethod
+    def _kb_error_record(result: dict) -> dict:
+        blockers = result.get("blockers") or []
+        details = (
+            result.get("details")
+            or "; ".join(str(blocker) for blocker in blockers)
+            or "kb count did not produce a canonical .h5ad output."
+        )
+        return {
+            "mode": result.get("mode", "fastq_kb_count"),
+            "error_type": result.get("error_type", "KbCountFailed"),
+            "details": details,
+        }
 
     @staticmethod
     def _missing_kb_fields(params: dict) -> list[str]:

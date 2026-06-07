@@ -138,8 +138,11 @@ def test_bulk_report_layout_and_single_modality_wording(tmp_path):
     agent_results["raw_ingestion_agent"] = {
         "records": [{
             "mode": "fastq_kb_plan",
+            "status": "blocked",
             "source_directory": "/data/raw_fastq",
+            "reason": "raw_ingestion_kb_incomplete",
             "blockers": ["FASTQ ingestion requires explicit chemistry."],
+            "missing_fields": ["chemistry", "index_path"],
         }]
     }
 
@@ -164,5 +167,7 @@ def test_bulk_report_layout_and_single_modality_wording(tmp_path):
     assert html.index("<h2>Executive Summary</h2>") < html.index("<h2>Provenance</h2>")
     assert "FASTQ-to-h5ad/kb ingestion routes" in html
     assert "STAR/featureCounts execution is reported separately" in html
+    assert "raw_ingestion_kb_incomplete" in html
+    assert "Missing fields: chemistry, index_path" in html
     assert "Cross-modal conflict analysis: not applicable; single-modality report." in html
     assert "No cross-modal conflicts identified." not in html

@@ -252,21 +252,41 @@ def _build_raw_ingestion_section(agent_results: dict,
             source = rec.get("source_directory") or rec.get("mode", "")
             output = rec.get("output_h5ad") or ""
             output_hash = rec.get("output_sha256") or ""
-            blockers = "; ".join(rec.get("blockers", [])[:3]) if rec.get("blockers") else ""
+            status = rec.get("status") or ""
+            reason = (
+                rec.get("reason")
+                or rec.get("error_type")
+                or rec.get("decision")
+                or ""
+            )
+            detail_parts = []
+            if rec.get("blockers"):
+                detail_parts.extend(str(item) for item in rec.get("blockers", [])[:3])
+            if rec.get("missing_fields"):
+                detail_parts.append(
+                    "Missing fields: "
+                    + ", ".join(str(item) for item in rec.get("missing_fields", []))
+                )
+            if rec.get("details"):
+                detail_parts.append(str(rec.get("details")))
+            details = "; ".join(detail_parts)
             rows.append(
                 "<tr>"
                 f"<td>{_html.escape(str(rec.get('mode', '')))}</td>"
+                f"<td>{_html.escape(str(status))}</td>"
                 f"<td><code>{_html.escape(str(source))}</code></td>"
                 f"<td><code>{_html.escape(str(output))}</code></td>"
                 f"<td><code>{_html.escape(str(output_hash))}</code></td>"
-                f"<td>{_html.escape(blockers)}</td>"
+                f"<td>{_html.escape(str(reason))}</td>"
+                f"<td>{_html.escape(details)}</td>"
                 "</tr>"
             )
         return (
             "<h3>Raw Ingestion</h3>"
             f"{mode_note}"
-            "<table><tr><th>Mode</th><th>Source</th><th>Generated h5ad</th>"
-            "<th>Output SHA-256</th><th>Blockers</th></tr>"
+            "<table><tr><th>Mode</th><th>Status</th><th>Source</th>"
+            "<th>Generated h5ad</th><th>Output SHA-256</th><th>Reason</th>"
+            "<th>Blockers / details</th></tr>"
             + "".join(rows)
             + "</table>"
         )
