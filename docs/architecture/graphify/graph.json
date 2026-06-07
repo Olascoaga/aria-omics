@@ -5675,91 +5675,126 @@
       "label": ".n_de()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L198"
+      "source_location": "L199"
     },
     {
       "id": "benchmarks_synthetic_de_simulate_bulk_dataset",
       "label": "simulate_bulk_dataset()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202"
+      "source_location": "L203"
     },
     {
-      "id": "benchmarks_synthetic_de_run_bulk_de_benchmark",
-      "label": "run_bulk_de_benchmark()",
+      "id": "benchmarks_synthetic_de_rank_biased_overlap",
+      "label": "_rank_biased_overlap()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274"
+      "source_location": "L276"
+    },
+    {
+      "id": "benchmarks_synthetic_de_finite_float",
+      "label": "_finite_float()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L292"
+    },
+    {
+      "id": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "label": "score_bulk_de_a1()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301"
+    },
+    {
+      "id": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "label": "write_bulk_de_a1_figure()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471"
+    },
+    {
+      "id": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "label": "run_bulk_de_a1_benchmark()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515"
     },
     {
       "id": "aria_benchmarks_synthetic_de_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274"
+      "source_location": "L515"
+    },
+    {
+      "id": "benchmarks_synthetic_de_run_bulk_de_benchmark",
+      "label": "run_bulk_de_benchmark()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L564"
     },
     {
       "id": "benchmarks_synthetic_de_run_pseudobulk_de_benchmark",
       "label": "run_pseudobulk_de_benchmark()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339"
+      "source_location": "L629"
     },
     {
       "id": "benchmarks_synthetic_de_run_bulk_de_negative_control",
       "label": "run_bulk_de_negative_control()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433"
+      "source_location": "L723"
     },
     {
       "id": "benchmarks_synthetic_de_run_pseudobulk_de_negative_control",
       "label": "run_pseudobulk_de_negative_control()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516"
+      "source_location": "L806"
     },
     {
       "id": "benchmarks_synthetic_de_spikeindataset",
       "label": "SpikeInDataset",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L635"
+      "source_location": "L925"
     },
     {
       "id": "benchmarks_synthetic_de_spikeinresult",
       "label": "SpikeInResult",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L647"
+      "source_location": "L937"
     },
     {
       "id": "benchmarks_synthetic_de_spikeinresult_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L658"
+      "source_location": "L948"
     },
     {
       "id": "benchmarks_synthetic_de_simulate_spike_in_bulk_dataset",
       "label": "simulate_spike_in_bulk_dataset()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674"
+      "source_location": "L964"
     },
     {
       "id": "benchmarks_synthetic_de_run_bulk_de_spike_in",
       "label": "run_bulk_de_spike_in()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748"
+      "source_location": "L1038"
     },
     {
       "id": "benchmarks_synthetic_de_run_calibration_suite",
       "label": "run_calibration_suite()",
       "file_type": "code",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845"
+      "source_location": "L1135"
     },
     {
       "id": "bus_init",
@@ -10928,6 +10963,615 @@
       "source_location": "L147"
     },
     {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5",
+      "label": "a1_bulk_de_v4.5.5.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_artifacts",
+      "label": "artifacts",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_artifacts_figure_svg",
+      "label": "figure_svg",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_artifacts_manifest_json",
+      "label": "manifest_json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "label": "axes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "label": "fdr_calibration",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_calls_per_permutation",
+      "label": "calls_per_permutation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_false_positive_rate",
+      "label": "false_positive_rate",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_max_false_positive_rate",
+      "label": "max_false_positive_rate",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_n_permutations",
+      "label": "n_permutations",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_nominal_alpha",
+      "label": "nominal_alpha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "label": "lfc_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_n_genes_scored",
+      "label": "n_genes_scored",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_n_true_de_scored",
+      "label": "n_true_de_scored",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_pearson_all_tested",
+      "label": "pearson_all_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L24"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_pearson_true_de",
+      "label": "pearson_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L25"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_spearman_all_tested",
+      "label": "spearman_all_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_spearman_true_de",
+      "label": "spearman_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L27"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "label": "ranking_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L29"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "label": "rank_biased_overlap_p0.9",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k",
+      "label": "top_k",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L31"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k_jaccard",
+      "label": "top_k_jaccard",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L32"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "label": "top_k_truth_recall",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "label": "significant_call_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L35"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_empirical_fdr",
+      "label": "empirical_fdr",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L36"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L37"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_false_positive",
+      "label": "n_false_positive",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L38"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_true_de",
+      "label": "n_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L39"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_true_positive",
+      "label": "n_true_positive",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L40"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_precision",
+      "label": "precision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L41"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_recall",
+      "label": "recall",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L42"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "label": "axis_pass",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_fdr_calibration",
+      "label": "fdr_calibration",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L46"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_lfc_concordance",
+      "label": "lfc_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L47"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_ranking_concordance",
+      "label": "ranking_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L48"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_significant_call_concordance",
+      "label": "significant_call_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L49"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_benchmark",
+      "label": "benchmark",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L51"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_benchmark_version",
+      "label": "benchmark_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L52"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_comparison",
+      "label": "comparison",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L53"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_comparison_denominator",
+      "label": "denominator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L54"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_comparison_numerator",
+      "label": "numerator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L55"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "label": "dataset",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L57"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_dispersion",
+      "label": "dispersion",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L58"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_max_abs_log2fc",
+      "label": "max_abs_log2fc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L59"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_min_abs_log2fc",
+      "label": "min_abs_log2fc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L60"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_n_de",
+      "label": "n_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L61"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_n_genes",
+      "label": "n_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L62"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_replicates_per_condition",
+      "label": "replicates_per_condition",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L63"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_dataset_seed",
+      "label": "seed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L64"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_messages",
+      "label": "messages",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L66"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_method_under_test",
+      "label": "method_under_test",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L69"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L70"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L71"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L72"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L73"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L74"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L75"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L76"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L77"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L78"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L79"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L80"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L81"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L82"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L83"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L84"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L86"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L87"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L88"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L89"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L91"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L92"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_thresholds",
+      "label": "thresholds",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L93"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_thresholds_lfc_threshold",
+      "label": "lfc_threshold",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L94"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_thresholds_padj",
+      "label": "padj",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L95"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "label": "tolerances",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L97"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_lfc_min",
+      "label": "lfc_min",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L98"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_max_empirical_fdr",
+      "label": "max_empirical_fdr",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L99"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_max_null_false_positive_rate",
+      "label": "max_null_false_positive_rate",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L100"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_lfc_spearman",
+      "label": "min_lfc_spearman",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L101"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_recall",
+      "label": "min_recall",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L102"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_top_k_jaccard",
+      "label": "min_top_k_jaccard",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L103"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_padj_max",
+      "label": "padj_max",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L104"
+    },
+    {
+      "id": "benchmark_results_a1_bulk_de_v4_5_5_warnings",
+      "label": "warnings",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L106"
+    },
+    {
       "id": "install",
       "label": "install.sh",
       "file_type": "code",
@@ -10939,7 +11583,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -11065,7 +11709,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -11087,7 +11731,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -11157,6 +11801,34 @@
       "file_type": "code",
       "source_file": "scripts/graphify_structure_filter.py",
       "source_location": "L74"
+    },
+    {
+      "id": "scripts_run_a1_bulk_de_benchmark",
+      "label": "run_a1_bulk_de_benchmark.py",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_a1_bulk_de_benchmark_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_bulk_de_benchmark_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_bulk_de_benchmark_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17"
     },
     {
       "id": "scripts_update_version_metadata",
@@ -11537,39 +12209,46 @@
       "source_location": "L70"
     },
     {
+      "id": "tests_test_benchmark_synthetic_de_test_bulk_a1_scorer_reports_frozen_axes",
+      "label": "test_bulk_a1_scorer_reports_frozen_axes()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L91"
+    },
+    {
       "id": "tests_test_benchmark_synthetic_de_test_bulk_de_recovers_ground_truth",
       "label": "test_bulk_de_recovers_ground_truth()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L88"
+      "source_location": "L142"
     },
     {
       "id": "tests_test_benchmark_synthetic_de_test_negative_control_result_shape",
       "label": "test_negative_control_result_shape()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L107"
+      "source_location": "L161"
     },
     {
       "id": "tests_test_benchmark_synthetic_de_test_bulk_de_negative_control_stays_quiet_under_permuted_null",
       "label": "test_bulk_de_negative_control_stays_quiet_under_permuted_null()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L127"
+      "source_location": "L181"
     },
     {
       "id": "tests_test_benchmark_synthetic_de_test_pseudobulk_de_negative_control_stays_quiet_under_permuted_null",
       "label": "test_pseudobulk_de_negative_control_stays_quiet_under_permuted_null()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L145"
+      "source_location": "L199"
     },
     {
       "id": "tests_test_benchmark_synthetic_de_test_calibration_suite_assembles_recovery_and_negative_control",
       "label": "test_calibration_suite_assembles_recovery_and_negative_control()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L161"
+      "source_location": "L215"
     },
     {
       "id": "tests_test_biological_synthesis",
@@ -17107,6 +17786,28 @@
       "contributor": null
     },
     {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_agent",
+      "label": "SetupAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/setup_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -17151,6 +17852,17 @@
       "contributor": null
     },
     {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -17173,10 +17885,10 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "aria_memory",
+      "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "README.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17195,21 +17907,10 @@
       "contributor": null
     },
     {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
+      "id": "design_intelligence",
+      "label": "DesignIntelligence",
       "file_type": "code",
-      "source_file": "aria/memory/sqlite_hierarchical",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "env_rna",
-      "label": "aria-rna-env",
-      "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
+      "source_file": "aria/agents/design_intelligence.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -38828,7 +39529,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L198",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -38838,7 +39539,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L198",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -38847,7 +39548,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38857,7 +39558,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38867,7 +39568,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38877,7 +39578,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38887,7 +39588,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38897,7 +39598,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38907,7 +39608,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38917,7 +39618,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -38927,7 +39628,372 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L202",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "benchmarks_synthetic_de_rank_biased_overlap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_rank_biased_overlap",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_rank_biased_overlap",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_rank_biased_overlap",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_rank_biased_overlap",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "benchmarks_synthetic_de_finite_float",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L292",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_finite_float",
+      "target": "aria_benchmarks_synthetic_de_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L292",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_finite_float",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L292",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_finite_float",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L292",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "benchmarks_synthetic_de_syntheticbulkdedataset",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "benchmarks_synthetic_de_negativecontrolresult",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "aria_benchmarks_synthetic_de_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L301",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "target": "aria_benchmarks_synthetic_de_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L471",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_benchmarks_synthetic_de_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L515",
       "weight": 1.0
     },
     {
@@ -38936,7 +40002,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38946,7 +40012,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38956,7 +40022,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38966,7 +40032,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38976,7 +40042,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38986,7 +40052,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -38996,7 +40062,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -39006,7 +40072,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L274",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -39015,7 +40081,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39025,7 +40091,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39035,7 +40101,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39045,7 +40111,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39055,7 +40121,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39065,7 +40131,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39075,7 +40141,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39085,7 +40151,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L339",
+      "source_location": "L629",
       "weight": 1.0
     },
     {
@@ -39094,7 +40160,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39104,7 +40170,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39114,7 +40180,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39124,7 +40190,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39134,7 +40200,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39144,7 +40210,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39154,7 +40220,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39164,7 +40230,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39174,7 +40240,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L433",
+      "source_location": "L723",
       "weight": 1.0
     },
     {
@@ -39183,7 +40249,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39193,7 +40259,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39203,7 +40269,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39213,7 +40279,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39223,7 +40289,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39233,7 +40299,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39243,7 +40309,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39253,7 +40319,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39263,7 +40329,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L516",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -39272,7 +40338,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L635",
+      "source_location": "L925",
       "weight": 1.0
     },
     {
@@ -39281,7 +40347,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L647",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -39290,7 +40356,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L658",
+      "source_location": "L948",
       "weight": 1.0
     },
     {
@@ -39300,7 +40366,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L658",
+      "source_location": "L948",
       "weight": 1.0
     },
     {
@@ -39310,7 +40376,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L658",
+      "source_location": "L948",
       "weight": 1.0
     },
     {
@@ -39319,7 +40385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39329,7 +40395,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39339,7 +40405,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39349,7 +40415,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39359,7 +40425,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39369,7 +40435,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39379,7 +40445,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39389,7 +40455,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L674",
+      "source_location": "L964",
       "weight": 1.0
     },
     {
@@ -39398,7 +40464,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39408,7 +40474,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39418,7 +40484,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39428,7 +40494,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39438,7 +40504,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39448,7 +40514,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39458,7 +40524,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39468,7 +40534,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39478,7 +40544,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39488,7 +40554,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L748",
+      "source_location": "L1038",
       "weight": 1.0
     },
     {
@@ -39497,7 +40563,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
+      "source_location": "L1135",
       "weight": 1.0
     },
     {
@@ -39507,7 +40573,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
+      "source_location": "L1135",
       "weight": 1.0
     },
     {
@@ -39517,7 +40583,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
+      "source_location": "L1135",
       "weight": 1.0
     },
     {
@@ -39527,7 +40593,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
+      "source_location": "L1135",
       "weight": 1.0
     },
     {
@@ -39537,7 +40603,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
+      "source_location": "L1135",
       "weight": 1.0
     },
     {
@@ -39557,7 +40623,67 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L258",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "benchmarks_synthetic_de_finite_float",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L369",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "target": "benchmarks_synthetic_de_rank_biased_overlap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L404",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L535",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "benchmarks_synthetic_de_run_bulk_de_negative_control",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L540",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L544",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "benchmarks_synthetic_de_write_bulk_de_a1_figure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -39567,7 +40693,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L293",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -39577,7 +40703,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L302",
+      "source_location": "L592",
       "weight": 1.0
     },
     {
@@ -39587,7 +40713,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L360",
+      "source_location": "L650",
       "weight": 1.0
     },
     {
@@ -39597,7 +40723,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L380",
+      "source_location": "L670",
       "weight": 1.0
     },
     {
@@ -39607,7 +40733,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L456",
+      "source_location": "L746",
       "weight": 1.0
     },
     {
@@ -39617,7 +40743,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L493",
+      "source_location": "L783",
       "weight": 1.0
     },
     {
@@ -39627,7 +40753,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L542",
+      "source_location": "L832",
       "weight": 1.0
     },
     {
@@ -39637,7 +40763,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L602",
+      "source_location": "L892",
       "weight": 1.0
     },
     {
@@ -39647,7 +40773,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L732",
+      "source_location": "L1022",
       "weight": 1.0
     },
     {
@@ -39657,7 +40783,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L772",
+      "source_location": "L1062",
       "weight": 1.0
     },
     {
@@ -39667,7 +40793,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L789",
+      "source_location": "L1079",
       "weight": 1.0
     },
     {
@@ -39677,7 +40803,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L880",
+      "source_location": "L1170",
       "weight": 1.0
     },
     {
@@ -39687,7 +40813,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L881",
+      "source_location": "L1171",
       "weight": 1.0
     },
     {
@@ -39697,7 +40823,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L882",
+      "source_location": "L1172",
       "weight": 1.0
     },
     {
@@ -39707,7 +40833,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L883",
+      "source_location": "L1173",
       "weight": 1.0
     },
     {
@@ -39717,7 +40843,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L884",
+      "source_location": "L1174",
       "weight": 1.0
     },
     {
@@ -39727,7 +40853,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L888",
+      "source_location": "L1178",
       "weight": 1.0
     },
     {
@@ -57298,8 +58424,782 @@
       "weight": 1.0
     },
     {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_artifacts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_artifacts",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_artifacts_figure_svg",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_artifacts",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_artifacts_manifest_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_calls_per_permutation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_false_positive_rate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_max_false_positive_rate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_n_permutations",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_nominal_alpha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_fdr_calibration",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_fdr_calibration_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_n_genes_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_n_true_de_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_pearson_all_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_pearson_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_spearman_all_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_lfc_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_lfc_concordance_spearman_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_ranking_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_false_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_n_true_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_precision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axes_significant_call_concordance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_significant_call_concordance_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_fdr_calibration",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_ranking_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_axis_pass_significant_call_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_benchmark_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_comparison",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_comparison",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_comparison_denominator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_comparison",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_comparison_numerator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_dispersion",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_max_abs_log2fc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_min_abs_log2fc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_n_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_n_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_replicates_per_condition",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_dataset",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_dataset_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_messages",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_method_under_test",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance_image",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_provenance",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_thresholds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_thresholds",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_thresholds_lfc_threshold",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_thresholds",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_thresholds_padj",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_lfc_min",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_max_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_max_null_false_positive_rate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_lfc_spearman",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_min_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5_tolerances",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_tolerances_padj_max",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmark_results_a1_bulk_de_v4_5_5",
+      "target": "benchmark_results_a1_bulk_de_v4_5_5_warnings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_bulk_de_v4.5.5.json",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
       "source": "install",
-      "target": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -57352,7 +59252,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57362,7 +59262,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57372,7 +59272,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57382,7 +59282,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57392,7 +59292,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57510,7 +59410,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -57519,7 +59419,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -57554,7 +59454,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57564,7 +59464,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_q7hqxd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_cqc1qh_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57629,6 +59529,35 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/graphify_structure_filter.py",
       "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_bulk_de_benchmark",
+      "target": "scripts_run_a1_bulk_de_benchmark_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_bulk_de_benchmark_main",
+      "target": "scripts_run_a1_bulk_de_benchmark_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_bulk_de_benchmark_main",
+      "target": "scripts_run_a1_bulk_de_benchmark_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -58151,11 +60080,20 @@
     },
     {
       "source": "tests_test_benchmark_synthetic_de",
+      "target": "tests_test_benchmark_synthetic_de_test_bulk_a1_scorer_reports_frozen_axes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_synthetic_de",
       "target": "tests_test_benchmark_synthetic_de_test_bulk_de_recovers_ground_truth",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L88",
+      "source_location": "L142",
       "weight": 1.0
     },
     {
@@ -58164,7 +60102,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L107",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -58173,7 +60111,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L127",
+      "source_location": "L181",
       "weight": 1.0
     },
     {
@@ -58182,7 +60120,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L145",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -58191,7 +60129,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L161",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -70068,7 +72006,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L290",
+      "source_location": "L526",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L527",
       "weight": 1.0
     },
     {
@@ -70078,7 +72026,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L357",
+      "source_location": "L647",
       "weight": 1.0
     },
     {
@@ -71432,6 +73380,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_bulk_de_benchmark",
+      "target": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_update_version_metadata",
       "target": "aria_version_version_badge_url",
       "relation": "imports",
@@ -71573,22 +73531,32 @@
     },
     {
       "source": "tests_test_benchmark_synthetic_de",
-      "target": "benchmarks_synthetic_de_run_bulk_de_benchmark",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L94",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_benchmark_synthetic_de",
       "target": "benchmarks_synthetic_de_negativecontrolresult",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L110",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_synthetic_de",
+      "target": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_synthetic_de",
+      "target": "benchmarks_synthetic_de_run_bulk_de_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -71598,7 +73566,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L133",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -71608,7 +73576,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L150",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -71618,7 +73586,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L167",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -74692,13 +76660,33 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L536",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/synthetic_de.py",
+      "source_location": "L547",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_de_run_bulk_de_benchmark",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L296",
+      "source_location": "L586",
       "weight": 1.0
     },
     {
@@ -74708,7 +76696,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L366",
+      "source_location": "L656",
       "weight": 1.0
     },
     {
@@ -74718,7 +76706,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L474",
+      "source_location": "L764",
       "weight": 1.0
     },
     {
@@ -74728,7 +76716,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L574",
+      "source_location": "L864",
       "weight": 1.0
     },
     {
@@ -74738,7 +76726,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L784",
+      "source_location": "L1074",
       "weight": 1.0
     },
     {
@@ -75592,6 +77580,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_bulk_de_benchmark_main",
+      "target": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_update_version_metadata_update_readme_badge",
       "target": "aria_version_version_badge_url",
       "relation": "calls",
@@ -75772,13 +77770,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_benchmark_synthetic_de_test_bulk_a1_scorer_reports_frozen_axes",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_synthetic_de_test_bulk_a1_scorer_reports_frozen_axes",
+      "target": "benchmarks_synthetic_de_negativecontrolresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_synthetic_de_test_bulk_a1_scorer_reports_frozen_axes",
+      "target": "benchmarks_synthetic_de_score_bulk_de_a1",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_synthetic_de.py",
+      "source_location": "L122",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_benchmark_synthetic_de_test_bulk_de_recovers_ground_truth",
       "target": "benchmarks_synthetic_de_run_bulk_de_benchmark",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L96",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -75788,7 +77816,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L112",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -75798,7 +77826,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L135",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -75808,7 +77836,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L152",
+      "source_location": "L206",
       "weight": 1.0
     },
     {
@@ -75818,7 +77846,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_synthetic_de.py",
-      "source_location": "L171",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -80724,8 +82752,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "source": "design_agent",
+      "target": "design_intelligence",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -80734,7 +82762,7 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
+      "source": "bulk_rna_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80754,32 +82782,12 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/scrna.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     }
