@@ -3799,42 +3799,42 @@
       "label": "_collect_param_hashes()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L275"
+      "source_location": "L295"
     },
     {
       "id": "narrative_report_sections_build_lockfile_section",
       "label": "_build_lockfile_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L301"
+      "source_location": "L321"
     },
     {
       "id": "narrative_report_sections_build_slug",
       "label": "_build_slug()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L348"
+      "source_location": "L368"
     },
     {
       "id": "narrative_report_sections_plain_text_to_html",
       "label": "_plain_text_to_html()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L380"
+      "source_location": "L400"
     },
     {
       "id": "narrative_report_sections_format_finding_summary",
       "label": "_format_finding_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L386"
+      "source_location": "L406"
     },
     {
       "id": "narrative_report_sections_guard_bulk_interpretation",
       "label": "_guard_bulk_interpretation()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L415"
+      "source_location": "L435"
     },
     {
       "id": "narrative_robustness",
@@ -4926,77 +4926,119 @@
       "label": "RawIngestionAgent",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L29"
+      "source_location": "L31"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35"
+      "source_location": "L37"
     },
     {
       "id": "aria_agents_raw_ingestion_agent_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35"
+      "source_location": "L37"
     },
     {
       "id": "aria_agents_raw_ingestion_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35"
+      "source_location": "L37"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L40"
+      "source_location": "L42"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_run_kb_count",
       "label": "._run_kb_count()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L170"
+      "source_location": "L189"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_resolve_fastq_kb_checkpoint",
       "label": "._resolve_fastq_kb_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L183"
+      "source_location": "L202"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_parse_kb_json_choice",
       "label": "._parse_kb_json_choice()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L240"
+      "source_location": "L259"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_prepare_kb_params",
       "label": "._prepare_kb_params()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L275"
+      "source_location": "L294"
+    },
+    {
+      "id": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "label": "._is_fastq_path()",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300"
+    },
+    {
+      "id": "aria_agents_raw_ingestion_agent_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300"
+    },
+    {
+      "id": "aria_agents_raw_ingestion_agent_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300"
+    },
+    {
+      "id": "agents_raw_ingestion_agent_rawingestionagent_scrna_fastq_inputs",
+      "label": "._scrna_fastq_inputs()",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L305"
+    },
+    {
+      "id": "agents_raw_ingestion_agent_rawingestionagent_scrna_canonical_inputs",
+      "label": "._scrna_canonical_inputs()",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L311"
+    },
+    {
+      "id": "agents_raw_ingestion_agent_rawingestionagent_kb_error_record",
+      "label": "._kb_error_record()",
+      "file_type": "code",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L321"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_missing_kb_fields",
       "label": "._missing_kb_fields()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L281"
+      "source_location": "L335"
     },
     {
       "id": "agents_raw_ingestion_agent_rawingestionagent_format_fastq_kb_checkpoint",
       "label": "._format_fastq_kb_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L289"
+      "source_location": "L343"
     },
     {
       "id": "agents_scrna_agent",
@@ -10897,7 +10939,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -11023,7 +11065,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -11045,7 +11087,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -16353,6 +16395,20 @@
       "source_location": "L146"
     },
     {
+      "id": "tests_test_raw_ingestion_kb_dispatch_test_raw_ingestion_blocks_scrna_fastq_only_when_kb_is_skipped",
+      "label": "test_raw_ingestion_blocks_scrna_fastq_only_when_kb_is_skipped()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_kb_dispatch.py",
+      "source_location": "L209"
+    },
+    {
+      "id": "tests_test_raw_ingestion_kb_dispatch_test_raw_ingestion_blocks_scrna_fastq_only_when_kb_fails",
+      "label": "test_raw_ingestion_blocks_scrna_fastq_only_when_kb_fails()",
+      "file_type": "code",
+      "source_file": "tests/test_raw_ingestion_kb_dispatch.py",
+      "source_location": "L260"
+    },
+    {
       "id": "tests_test_raw_ingestion_real_fastq_gate",
       "label": "test_raw_ingestion_real_fastq_gate.py",
       "file_type": "code",
@@ -17051,10 +17107,10 @@
       "contributor": null
     },
     {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17062,10 +17118,10 @@
       "contributor": null
     },
     {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
+      "source_file": "aria/agents/bulk_rna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -17128,8 +17184,52 @@
       "contributor": null
     },
     {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/sqlite_hierarchical.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "devils_advocate",
+      "label": "Devil's Advocate",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/devils_advocate.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "aria_rna_env",
-      "label": "aria-rna-env",
+      "label": "ARIA RNA Environment",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
       "source_location": null,
@@ -31888,7 +31988,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L275",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -31898,7 +31998,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L275",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -31908,7 +32008,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L275",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -31918,7 +32018,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L275",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -31927,7 +32027,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L301",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -31937,7 +32037,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L301",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -31946,7 +32046,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L348",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -31956,7 +32056,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L348",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -31965,7 +32065,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L380",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -31975,7 +32075,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L380",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -31985,7 +32085,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L380",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -31994,7 +32094,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L386",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -32004,7 +32104,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L386",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -32013,7 +32113,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L415",
+      "source_location": "L435",
       "weight": 1.0
     },
     {
@@ -32023,7 +32123,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L415",
+      "source_location": "L435",
       "weight": 1.0
     },
     {
@@ -32033,7 +32133,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_sections.py",
-      "source_location": "L415",
+      "source_location": "L435",
       "weight": 1.0
     },
     {
@@ -35663,7 +35763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L29",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -35672,7 +35772,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L29",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -35681,7 +35781,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -35691,7 +35791,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -35701,7 +35801,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L35",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -35710,7 +35810,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L40",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -35720,7 +35820,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L40",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -35729,7 +35829,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L170",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -35738,7 +35838,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L183",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -35748,7 +35848,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L183",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
@@ -35757,7 +35857,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L240",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -35767,7 +35867,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L240",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -35776,7 +35876,93 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L275",
+      "source_location": "L294",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "target": "aria_agents_raw_ingestion_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "target": "aria_agents_raw_ingestion_agent_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "target": "aria_agents_raw_ingestion_agent_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L300",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_scrna_fastq_inputs",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_scrna_fastq_inputs",
+      "target": "aria_agents_raw_ingestion_agent_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_scrna_canonical_inputs",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L311",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_scrna_canonical_inputs",
+      "target": "aria_agents_raw_ingestion_agent_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L311",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_kb_error_record",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -35785,7 +35971,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L281",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -35795,7 +35981,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L281",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -35804,7 +35990,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L289",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -35814,7 +36000,27 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L289",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_run",
+      "target": "aria_agents_raw_ingestion_agent_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_run",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_scrna_fastq_inputs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -35824,7 +36030,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L88",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -35834,7 +36040,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L89",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -35844,7 +36050,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L105",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_run",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_kb_error_record",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_run",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_scrna_canonical_inputs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -35854,7 +36080,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L189",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -35864,7 +36090,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L213",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -35874,7 +36100,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L216",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -35884,7 +36110,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L217",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -35894,7 +36120,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L258",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -35904,7 +36130,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L259",
+      "source_location": "L278",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_raw_ingestion_agent_rawingestionagent_scrna_fastq_inputs",
+      "target": "agents_raw_ingestion_agent_rawingestionagent_is_fastq_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/raw_ingestion_agent.py",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -35914,7 +36150,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L302",
+      "source_location": "L356",
       "weight": 1.0
     },
     {
@@ -57085,7 +57321,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -57138,7 +57374,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57148,7 +57384,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57158,7 +57394,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57168,7 +57404,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57178,7 +57414,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57296,7 +57532,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -57305,7 +57541,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -57340,7 +57576,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -57350,7 +57586,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_79iwlo_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6k9wmq_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66226,6 +66462,24 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_raw_ingestion_kb_dispatch.py",
       "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_kb_dispatch",
+      "target": "tests_test_raw_ingestion_kb_dispatch_test_raw_ingestion_blocks_scrna_fastq_only_when_kb_is_skipped",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_kb_dispatch.py",
+      "source_location": "L209",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_raw_ingestion_kb_dispatch",
+      "target": "tests_test_raw_ingestion_kb_dispatch_test_raw_ingestion_blocks_scrna_fastq_only_when_kb_fails",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_raw_ingestion_kb_dispatch.py",
+      "source_location": "L260",
       "weight": 1.0
     },
     {
@@ -80194,7 +80448,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L56",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -80205,7 +80459,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L64",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -80216,7 +80470,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L79",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -80227,7 +80481,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/raw_ingestion_agent.py",
-      "source_location": "L142",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -80467,7 +80721,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "README.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -80477,14 +80731,14 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "README.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -80492,7 +80746,7 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80512,12 +80766,52 @@
       "weight": 1.0
     },
     {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "claim_compiler",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "devils_advocate",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
       "source_location": null,
       "weight": 1.0
     }
