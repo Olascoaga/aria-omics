@@ -188,6 +188,15 @@ class ChromatinAgent(BaseAgent):
         Single-cell ATAC-seq pipeline.
         Key: LSI dimensionality reduction, discard SVD component 1.
         """
+        # v4.6 peak-matrix path: a 10x ARC `.h5mu` carries pre-called peaks, so
+        # the pipeline is QC -> LSI/clustering -> differential accessibility ->
+        # motif enrichment (no MACS3 peak calling). Fragments/BAM inputs fall
+        # through to the legacy peak-calling path below.
+        h5mu = next((f for f in files
+                     if str(f).lower().endswith(".h5mu")), None)
+        if h5mu:
+            return self._run_scatac_matrix(experiment_id, exp_ctx, intent, h5mu)
+
         findings = {}
 
         # 1. QC via EnvironmentManager
@@ -260,6 +269,93 @@ class ChromatinAgent(BaseAgent):
                                 "TF motif enrichment...", 0.7)
             motif_result = self._run_motif_enrichment(
                 experiment_id, exp_ctx, intent, peaks_result, "scATAC"
+            )
+            findings["motifs"] = motif_result
+
+        return {"status": "done", "findings": findings}
+
+    def _run_scatac_matrix(self, experiment_id: str, exp_ctx: dict,
+                           intent: dict, h5mu_path: str) -> dict:
+        """v4.6 scATAC peak-matrix pipeline for a `.h5mu` (pre-called peaks):
+        QC -> LSI/clustering -> differential accessibility -> motif enrichment.
+
+        Every stage is honest: each result carries its own status, downstream
+        stages only run when the upstream produced a usable output, and motif
+        enrichment self-skips unless a local genome FASTA + a versioned motif
+        collection are present (it never fabricates). Findings are stored under
+        the keys the ChromatinNarrator and run-ledger read (`qc`, `lsi`,
+        `differential_accessibility`, `motifs`).
+        """
+        findings: dict = {}
+        out_dir = str(Path(h5mu_path).parent / "aria_chromatin")
+
+        # 1. QC (chromatin_qc routes a .h5mu through the MuData reader)
+        self.publish_status(experiment_id, "scATAC QC (.h5mu)...", 0.1)
+        qc_result = self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/chromatin_qc.py",
+            params={
+                "data_type": "scATAC",
+                "files": [h5mu_path],
+                "genome": exp_ctx.get("genome", "hg38"),
+                "organism": exp_ctx.get("organism", "Homo sapiens"),
+            },
+        )
+        findings["qc"] = qc_result
+        if qc_result.get("status") != "error":
+            self._publish_qc_finding(experiment_id, qc_result, "scATAC")
+
+        # 2. LSI + Leiden clustering on the peak matrix
+        self.publish_status(experiment_id, "scATAC LSI clustering...", 0.35)
+        lsi_result = self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/chromatin_lsi_clustering.py",
+            params={
+                "data_path": h5mu_path,
+                "resolution": exp_ctx.get("leiden_resolution", 1.0),
+                "output_dir": out_dir,
+            },
+        )
+        findings["lsi"] = lsi_result
+        clustered = (lsi_result.get("output_path")
+                     if lsi_result.get("status") == "success" else None)
+
+        # 3. Differential accessibility (needs the clustered .h5ad)
+        if clustered:
+            self.publish_status(
+                experiment_id, "Differential accessibility...", 0.6)
+            da_params = {
+                "data_path": clustered,
+                "output_dir": out_dir,
+                "exp_context": exp_ctx,  # confirmed thresholds (P0-7)
+            }
+            # Forward confirmed cross-condition design only when present; absent
+            # metadata makes the pseudobulk lane honestly skip (P0-5).
+            for k in ("condition_col", "replicate_col", "comparisons"):
+                if exp_ctx.get(k) is not None:
+                    da_params[k] = exp_ctx[k]
+            da_result = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/chromatin_diffacc.py",
+                params=da_params,
+            )
+            findings["differential_accessibility"] = da_result
+
+            # 4. TF motif enrichment in the DA peak sets (offline, self-gating)
+            da_csv = ((da_result.get("per_cluster") or {}).get("output_csv")
+                      if da_result.get("status") == "success" else None)
+            self.publish_status(experiment_id, "TF motif enrichment...", 0.8)
+            motif_result = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/chromatin_motifs.py",
+                params={
+                    "data_path": clustered,
+                    "da_csv": da_csv,
+                    "genome_fasta": exp_ctx.get("genome_fasta"),
+                    "motif_collection": exp_ctx.get("motif_collection"),
+                    "output_dir": out_dir,
+                    "exp_context": exp_ctx,
+                },
             )
             findings["motifs"] = motif_result
 

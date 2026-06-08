@@ -901,7 +901,11 @@ class ReportBuilderMixin:
         }
         for key, (label, color) in section_labels.items():
             text = sections.get(key, "")
-            blocks = block_groups.get(section_prefix.get(key, ""), [])
+            # Most sections share their key with the block-id prefix
+            # (chromatin/hic/synthesis/rna); only bulk_rna/scrna/integration
+            # remap. Defaulting to the key itself lets chromatin blocks
+            # ("chromatin.*") render in the Chromatin section (v4.6 step 6).
+            blocks = block_groups.get(section_prefix.get(key, key), [])
             if not text and not blocks:
                 continue
 
