@@ -1,0 +1,339 @@
+"""
+ARIA Chromatin Motif Enrichment Script (v4.6 scATAC, step 4)
+------------------------------------------------------------
+Transcription-factor motif over-representation in differentially accessible
+(DA) peak sets, using snapatac2's native enrichment against a versioned,
+LOCAL, offline MEME motif collection.
+
+Pipeline:
+  1. Read DA peak groups (from step 3's per-cluster CSV, or explicit `regions`);
+  2. Read a versioned MEME motif collection (default JASPAR2024 CORE
+     vertebrates) resolved from `ARIA_MOTIF_DIR` (W-PRIV: offline, versioned);
+  3. Scan each DA peak group for motif hits against the peak universe as
+     background and test enrichment (binomial / hypergeometric) with
+     `snapatac2.tl.motif_enrichment`;
+  4. Report the enriched motifs per group with the exact motif release used.
+
+Executed inside aria-chromatin-env by EnvironmentManager.
+
+Honesty contract (ADR-002 / ADR-011 / W-PRIV):
+  - Motif enrichment runs ONLY with a local versioned motif collection AND a
+    local genome FASTA. Either missing => honest skip with a concrete reason
+    (e.g. "run scripts/fetch_motifs.py"), never a fabricated enrichment.
+  - This script performs NO network egress; the only governed download lives in
+    `scripts/fetch_motifs.py`.
+  - The motif release (collection, release, sha256) is recorded for
+    reproducibility. A motif id is a database identifier, not a biological
+    claim about the cluster — the report stays descriptive/associative.
+  - Per-cell chromVAR-style motif ACTIVITY is out of scope here (a heavier later
+    increment); this is over-representation in DA peak sets only, and that limit
+    is reported, not hidden.
+
+Input params:
+    data_path:        str   — clustered scATAC .h5ad (peak universe = var_names,
+                              used as the enrichment background).
+    da_csv:           str   (optional) — step-3 `chromatin_da_per_cluster.csv`
+                              (columns include `cluster`, `peak`); grouped into
+                              per-cluster DA peak sets.
+    regions:          dict  (optional) — explicit {group: [peak, ...]} override.
+    background:       list  (optional) — explicit background peaks (else all
+                              var_names from data_path).
+    genome_fasta:     str   — local genome FASTA path (REQUIRED for a real run).
+    motif_collection: str   (optional) — collection name under ARIA_MOTIF_DIR
+                              (default JASPAR2024_CORE_vertebrates).
+    motif_file:       str   (optional) — explicit MEME path (overrides the
+                              collection resolution).
+    method:           str   (optional) — "hypergeometric" (default; DA peaks are
+                              a subset of background) or "binomial".
+    padj_max:         float (optional) — enrichment significance cutoff.
+    top_n:            int   (optional) — top enriched motifs per group (def 25).
+    max_regions_per_group: int (optional) — cap on peaks scanned per group
+                              (default 5000; excess is dropped with a warning).
+    exp_context:      dict  (optional) — confirmed thresholds (global_padj).
+    output_dir:       str   (optional).
+
+Output:
+    {
+      "status":          "success" | "error",
+      "ran":             bool,
+      "reason":          str | None,         — why it skipped, if it did
+      "method":          str,
+      "genome_fasta":    str | None,
+      "motif_source":    {collection, release, sha256, n_motifs, source} | None,
+      "n_groups":        int,
+      "per_group": {
+        group: {n_regions, n_regions_dropped, n_motifs_tested,
+                n_enriched, top_motifs: [{motif_id, name, family,
+                                          log2_enrichment, pvalue, padj}, ...]}
+      },
+      "output_csv":      str | None,
+      "warnings":        [str],
+    }
+"""
+
+from __future__ import annotations
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+from aria.scripts._base import run_script, mocks_allowed
+
+
+def _skip(reason, **extra):
+    out = {"status": "success", "ran": False, "reason": reason,
+           "per_group": {}, "n_groups": 0, "warnings": []}
+    out.update(extra)
+    return out
+
+
+def _regions_from_csv(da_csv, max_per_group, warnings):
+    """Build {cluster: [peak, ...]} from the step-3 per-cluster DA CSV."""
+    import csv
+    groups: dict = {}
+    with open(da_csv, newline="", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        if not reader.fieldnames or "peak" not in reader.fieldnames:
+            return {}
+        gcol = "cluster" if "cluster" in reader.fieldnames else None
+        for row in reader:
+            g = str(row.get(gcol, "all")) if gcol else "all"
+            peak = str(row.get("peak", "")).strip()
+            if peak:
+                groups.setdefault(g, []).append(peak)
+    return groups
+
+
+def _detect_col(cols, *needles):
+    low = {c.lower(): c for c in cols}
+    for n in needles:
+        for lc, orig in low.items():
+            if n in lc:
+                return orig
+    return None
+
+
+def chromatin_motifs(params: dict) -> dict:
+    import json
+    from pathlib import Path
+
+    data_path = params.get("data_path")
+    da_csv = params.get("da_csv")
+    regions_param = params.get("regions")
+    genome_fasta = params.get("genome_fasta")
+    motif_collection = params.get("motif_collection")
+    motif_file = params.get("motif_file")
+    method = params.get("method", "hypergeometric")
+    top_n = int(params.get("top_n", 25))
+    max_per_group = int(params.get("max_regions_per_group", 5000))
+    output_dir = params.get("output_dir")
+    allow_mock = mocks_allowed(params)
+
+    from aria.utils.thresholds import AnalysisThresholds
+    thr = AnalysisThresholds.from_exp_context(
+        params.get("exp_context"), modality="scATAC")
+    padj_max = float(params.get("padj_max", thr.padj))
+
+    warnings: list = []
+
+    # ── Resolve the local versioned motif collection (offline, W-PRIV) ───────
+    from aria.utils.motifs import (
+        load_local_motif_collection, DEFAULT_COLLECTION,
+    )
+    if motif_file:
+        if not Path(motif_file).is_file():
+            return _skip(f"motif_file not found: {motif_file}")
+        meme_path = str(motif_file)
+        motif_version = {"collection": Path(motif_file).stem, "source": "explicit",
+                         "release": "unknown"}
+    else:
+        coll = motif_collection or DEFAULT_COLLECTION
+        loaded = load_local_motif_collection(coll)
+        if loaded is None:
+            return _skip(
+                f"motif collection '{coll}' not staged under ARIA_MOTIF_DIR; "
+                f"run scripts/fetch_motifs.py to download it (one-time, "
+                f"governed). Motif enrichment is offline-only and never "
+                f"fabricated.")
+        meme_path, motif_version = loaded
+
+    # ── Genome FASTA (local; required for scanning) ──────────────────────────
+    # Fall back to ARIA_GENOME_FASTA when the caller did not pass a path (there
+    # is no checkpoint that collects it yet); offline, no fabrication.
+    if not genome_fasta:
+        from aria.utils.motifs import genome_fasta_from_env
+        genome_fasta = genome_fasta_from_env()
+    if not genome_fasta:
+        return _skip("no genome_fasta supplied; motif scanning needs a local "
+                     "reference FASTA (e.g. GRCh38 for human). Pass "
+                     "`genome_fasta` or set ARIA_GENOME_FASTA.",
+                     motif_source=motif_version)
+    if not Path(genome_fasta).is_file():
+        return _skip(f"genome_fasta not found: {genome_fasta}",
+                     motif_source=motif_version)
+
+    # ── Dependencies ─────────────────────────────────────────────────────────
+    try:
+        import snapatac2 as snap
+        from aria.utils.safe_h5ad import read_h5ad
+    except ImportError as e:
+        if not allow_mock:
+            return {"status": "error", "error_type": "MissingDependency",
+                    "details": (f"motif enrichment requires snapatac2 "
+                                f"(aria-chromatin-env). ImportError: {e}")}
+        return _skip(f"mock (deps missing: {e})", motif_source=motif_version)
+
+    # ── Assemble region groups + background ──────────────────────────────────
+    if regions_param:
+        groups = {str(k): [str(p) for p in v] for k, v in regions_param.items()}
+    elif da_csv and Path(da_csv).is_file():
+        groups = _regions_from_csv(da_csv, max_per_group, warnings)
+    else:
+        return _skip("no DA regions supplied (need `regions` or `da_csv` from "
+                     "chromatin_diffacc step 3).", motif_source=motif_version)
+    groups = {g: peaks for g, peaks in groups.items() if peaks}
+    if not groups:
+        return _skip("DA region groups are empty.", motif_source=motif_version)
+
+    background = params.get("background")
+    if not background:
+        if not data_path or not Path(data_path).exists():
+            return _skip("no background peaks: supply `background` or a "
+                         "`data_path` clustered .h5ad.",
+                         motif_source=motif_version)
+        adata = read_h5ad(str(data_path))
+        background = [str(p) for p in adata.var_names]
+    background = [str(p) for p in background]
+    bg_set = set(background)
+
+    # For hypergeometric, regions MUST be a subset of background; intersect and
+    # cap per group. Dropped peaks are disclosed, never silently ignored.
+    clean_groups: dict = {}
+    dropped_counts: dict = {}
+    for g, peaks in groups.items():
+        in_bg = [p for p in peaks if p in bg_set]
+        dropped = len(peaks) - len(in_bg)
+        if len(in_bg) > max_per_group:
+            warnings.append(
+                f"group '{g}': capped {len(in_bg)} -> {max_per_group} peaks "
+                f"for motif scanning.")
+            in_bg = in_bg[:max_per_group]
+        if dropped:
+            warnings.append(
+                f"group '{g}': dropped {dropped} peak(s) not in the background "
+                f"peak universe before enrichment.")
+        if in_bg:
+            clean_groups[g] = in_bg
+            dropped_counts[g] = dropped
+    if not clean_groups:
+        return _skip("no DA peaks overlap the background peak universe.",
+                     motif_source=motif_version)
+
+    # ── Read motifs + run enrichment ─────────────────────────────────────────
+    motifs = snap.datasets.read_motifs(meme_path)
+    n_motifs_loaded = len(motifs)
+    try:
+        results = snap.tl.motif_enrichment(
+            motifs=motifs,
+            regions=clean_groups,
+            genome_fasta=genome_fasta,
+            background=background,
+            method=method,
+        )
+    except Exception as e:
+        return {"status": "error", "error_type": "MotifEnrichmentFailed",
+                "details": f"{type(e).__name__}: {str(e)[:400]}",
+                "motif_source": motif_version}
+
+    # ── Normalize polars results -> plain dicts ──────────────────────────────
+    per_group: dict = {}
+    rows_csv: list = []
+    for g, df in results.items():
+        try:
+            recs = df.to_dicts()
+        except Exception:
+            recs = []
+        cols = list(recs[0].keys()) if recs else []
+        id_c = _detect_col(cols, "id")
+        name_c = _detect_col(cols, "name")
+        fam_c = _detect_col(cols, "family")
+        p_c = _detect_col(cols, "p-value", "pvalue", "p_value", "pval")
+        padj_c = _detect_col(cols, "adjusted", "padj", "fdr", "q-value", "qval")
+        lfc_c = _detect_col(cols, "log2", "fold", "enrichment", "odds")
+
+        norm = []
+        for r in recs:
+            padj_v = _as_float(r.get(padj_c)) if padj_c else None
+            mid = str(r.get(id_c)) if id_c and r.get(id_c) is not None else None
+            nm = (str(r.get(name_c))
+                  if name_c and r.get(name_c) is not None else None)
+            # JASPAR MEME records carry id + TF name in one token
+            # (e.g. "MA0752.2 ZNF410"); split so the matrix id and the TF name
+            # are reported separately. The TF name is a database fact, not an
+            # inferred biological claim about the cluster.
+            if nm is None and mid and " " in mid:
+                matrix_id, nm = mid.split(None, 1)
+            else:
+                matrix_id = mid
+            norm.append({
+                "motif_id": matrix_id,
+                "name": nm,
+                "family": str(r.get(fam_c)) if fam_c else None,
+                "log2_enrichment": _as_float(r.get(lfc_c)) if lfc_c else None,
+                "pvalue": _as_float(r.get(p_c)) if p_c else None,
+                "padj": padj_v,
+            })
+        # sort by padj (then pvalue) ascending; count enriched at threshold
+        norm.sort(key=lambda x: (x["padj"] if x["padj"] is not None else 1.0,
+                                 x["pvalue"] if x["pvalue"] is not None else 1.0))
+        n_enriched = sum(1 for x in norm
+                         if x["padj"] is not None and x["padj"] < padj_max)
+        top = norm[:top_n]
+        for x in top:
+            row = {"group": g}
+            row.update(x)
+            rows_csv.append(row)
+        per_group[g] = {
+            "n_regions": len(clean_groups[g]),
+            "n_regions_dropped": dropped_counts.get(g, 0),
+            "n_motifs_tested": n_motifs_loaded,
+            "n_enriched": n_enriched,
+            "top_motifs": top,
+        }
+
+    out_dir = Path(output_dir) if output_dir else (
+        Path(data_path).parent if data_path else Path("."))
+    out_dir.mkdir(parents=True, exist_ok=True)
+    csv_path = None
+    if rows_csv:
+        import csv as _csv
+        csv_path = str(out_dir / "chromatin_motif_enrichment.csv")
+        try:
+            with open(csv_path, "w", newline="", encoding="utf-8") as fh:
+                w = _csv.DictWriter(fh, fieldnames=list(rows_csv[0].keys()))
+                w.writeheader()
+                w.writerows(rows_csv)
+        except Exception:
+            csv_path = None
+
+    return {
+        "status": "success",
+        "ran": True,
+        "reason": None,
+        "method": method,
+        "genome_fasta": str(genome_fasta),
+        "motif_source": motif_version,
+        "n_groups": len(per_group),
+        "per_group": per_group,
+        "output_csv": csv_path,
+        "warnings": warnings,
+    }
+
+
+def _as_float(v):
+    try:
+        f = float(v)
+        return f
+    except (TypeError, ValueError):
+        return None
+
+
+if __name__ == "__main__":
+    run_script(chromatin_motifs)
