@@ -363,6 +363,16 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("per_cluster", "dict", required=False),
         ),
     ),
+    "aria/scripts/chromatin_motifs.py": ScriptContract(
+        script_path="aria/scripts/chromatin_motifs.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("data_path", "path", required=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("ran", "bool", required=False),
+        ),
+    ),
 
     # ── P1-12: contracts for the remaining dispatchable scripts ──────────────
     # scRNA helper scripts (validated path).
