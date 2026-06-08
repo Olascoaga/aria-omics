@@ -105,6 +105,14 @@ Figure message: cell-level DE methods may inflate evidence when cells are
 treated as independent replicates; ARIA preserves the donor/sample as the
 inferential unit.
 
+v4.5.5 executable artifact: the preliminary donor-aware A2 lane is implemented
+by `scripts/run_a2_pseudobulk_benchmark.py` and writes a versioned manifest plus
+Fig 2 SVG under `docs/benchmark_results/`. It validates ARIA's real pseudobulk
+DE path on synthetic truth and runs a donor-heterogeneity null where a naive
+cell-level Welch test treats cells as independent replicates. Kang + muscat
+remains the external reference lane and requires local benchmark data plus
+`aria-bench-env`.
+
 ### A5 ORA/GSEA
 
 Keep three analyses distinct:
@@ -247,7 +255,8 @@ Primary metric: fabricated or unsupported narrative rate on null controls.
    ARIA-path synthetic-truth lane.**
 3. `aria-bench-env.yml` for external comparators. Keep R/benchmark packages out
    of production RNA/chromatin environments and call them through JSON IPC.
-4. A2 Kang + muscat.
+4. A2 Kang + muscat. **Preliminary ARIA-path donor-aware lane done in v4.5.5;
+   external Kang + muscat remains pending.**
 5. B1 adversarial design corpus, about 30 cases, no heavy downloads.
 6. B2 claim schema and manual scorer CSV/rubric.
 7. B4 null narratives.

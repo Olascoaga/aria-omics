@@ -49,6 +49,43 @@ def test_true_de_genes_have_separated_pseudobulk_means():
     assert np.median(de_lfc) > np.median(null_lfc) * 2
 
 
+def test_pseudobulk_simulator_tracks_true_log2fc():
+    pytest.importorskip("anndata")
+    from aria.benchmarks.synthetic_de import simulate_pseudobulk_dataset
+
+    ds = simulate_pseudobulk_dataset(n_genes=180, n_de=20, cells_per_donor=12, seed=4)
+
+    assert set(ds.true_log2fc) == set(ds.adata.var_names)
+    assert all(ds.true_log2fc[g] != 0 for g in ds.de_genes)
+    assert all(ds.true_log2fc[g] == 0 for g in ds.null_genes)
+
+
+def test_pseudoreplication_null_has_no_true_condition_effect():
+    np = pytest.importorskip("numpy")
+    pytest.importorskip("anndata")
+    from aria.benchmarks.synthetic_de import (
+        _naive_cell_level_null_calls,
+        simulate_pseudoreplication_null_dataset,
+    )
+
+    ds = simulate_pseudoreplication_null_dataset(
+        n_genes=120, donors_per_condition=3, cells_per_donor=35,
+        donor_gene_sd=1.0, seed=9,
+    )
+
+    assert ds.n_de == 0
+    assert len(ds.null_genes) == 120
+    assert set(ds.adata.obs["condition"].unique()) == {"COND_A", "COND_B"}
+    assert ds.adata.obs["donor"].nunique() == 6
+    assert np.allclose(list(ds.true_log2fc.values()), 0.0)
+
+    naive = _naive_cell_level_null_calls(ds, nominal_alpha=0.05)
+    assert naive["status"] == "success"
+    assert naive["n_tested"] == 120
+    # This is intentionally the anti-pattern: cells are not independent donors.
+    assert naive["false_positive_rate"] >= 0.2, naive
+
+
 def test_pseudobulk_de_recovers_ground_truth():
     """ARIA's real pseudobulk DE must recover the planted truth within
     tolerance (recall) while controlling false positives (empirical FDR)."""

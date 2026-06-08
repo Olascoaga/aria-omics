@@ -27,6 +27,7 @@ class SyntheticDEDataset:
     adata: Any                              # AnnData (cells x genes), integer counts in X
     de_genes: dict[str, str]                # gene -> "up" | "down" (truth in COND_B vs COND_A)
     null_genes: list[str]                   # genes with no true effect
+    true_log2fc: dict[str, float] = field(default_factory=dict)
     params: dict[str, Any] = field(default_factory=dict)
 
     @property
@@ -173,6 +174,7 @@ def simulate_pseudobulk_dataset(
         adata=adata,
         de_genes=de_genes,
         null_genes=null_genes,
+        true_log2fc={gene_names[i]: float(log2fc[i]) for i in range(n_genes)},
         params={
             "n_genes": n_genes, "n_de": n_de,
             "donors_per_condition": donors_per_condition,
@@ -183,6 +185,358 @@ def simulate_pseudobulk_dataset(
             "seed": seed,
         },
     )
+
+
+def simulate_pseudoreplication_null_dataset(
+    *,
+    n_genes: int = 600,
+    donors_per_condition: int = 4,
+    cells_per_donor: int = 80,
+    dispersion: float = 0.2,
+    donor_gene_sd: float = 0.9,
+    seed: int = 31,
+) -> SyntheticDEDataset:
+    """Simulate a no-condition-effect scRNA dataset with donor heterogeneity.
+
+    There is no planted COND_B-vs-COND_A effect. Donors carry stable per-gene
+    expression offsets, so a cell-level test that treats cells as independent
+    replicates is anti-conservative, while donor-aware pseudobulk keeps the
+    inferential unit at the biological replicate.
+    """
+    import numpy as np
+    import pandas as pd
+    import anndata as ad
+
+    rng = np.random.default_rng(seed)
+    gene_names = [f"GENE_{i:04d}" for i in range(n_genes)]
+    base_mean = np.clip(np.exp(rng.normal(1.5, 1.0, size=n_genes)), 1.0, None)
+
+    rows_counts = []
+    obs_records = []
+    cell_counter = 0
+    for ci, cond in enumerate(("COND_A", "COND_B")):
+        for d in range(donors_per_condition):
+            donor = f"d{ci * donors_per_condition + d:02d}"
+            donor_gene_log2 = rng.normal(0.0, donor_gene_sd, size=n_genes)
+            donor_gene_fc = np.power(2.0, donor_gene_log2)
+            donor_sf = float(np.exp(rng.normal(0.0, 0.12)))
+            gene_mean = base_mean * donor_gene_fc * donor_sf
+            for _ in range(cells_per_donor):
+                cell_sf = float(np.exp(rng.normal(0.0, 0.08)))
+                shape = 1.0 / dispersion
+                gamma = rng.gamma(shape=shape, scale=gene_mean * cell_sf * dispersion)
+                rows_counts.append(rng.poisson(gamma).astype(np.int64))
+                obs_records.append({
+                    "condition": cond,
+                    "donor": donor,
+                    "ctype": "ctype0",
+                })
+                cell_counter += 1
+
+    X = np.vstack(rows_counts)
+    obs = pd.DataFrame(obs_records, index=[f"cell_{i}" for i in range(cell_counter)])
+    var = pd.DataFrame(index=gene_names)
+    return SyntheticDEDataset(
+        adata=ad.AnnData(X=X.astype(np.float32), obs=obs, var=var),
+        de_genes={},
+        null_genes=gene_names,
+        true_log2fc={gene: 0.0 for gene in gene_names},
+        params={
+            "n_genes": n_genes,
+            "n_de": 0,
+            "donors_per_condition": donors_per_condition,
+            "cells_per_donor": cells_per_donor,
+            "dispersion": dispersion,
+            "donor_gene_sd": donor_gene_sd,
+            "seed": seed,
+            "null_model": "donor_gene_heterogeneity_no_condition_effect",
+        },
+    )
+
+
+def _bh_adjust(pvalues: Any) -> Any:
+    try:
+        from statsmodels.stats.multitest import multipletests
+        _, padj, _, _ = multipletests(pvalues, method="fdr_bh")
+        return padj
+    except Exception:
+        from aria.utils.stats import bh_correct
+        return bh_correct(pvalues)
+
+
+def _naive_cell_level_null_calls(
+    dataset: SyntheticDEDataset,
+    *,
+    nominal_alpha: float = 0.05,
+    min_abs_log2fc: float = 0.0,
+) -> dict[str, Any]:
+    """Cell-level Welch tests that intentionally ignore donor structure."""
+    import numpy as np
+
+    X = np.asarray(dataset.adata.X, dtype=float)
+    cond = np.asarray(dataset.adata.obs["condition"].values)
+    a = np.log1p(X[cond == "COND_A"])
+    b = np.log1p(X[cond == "COND_B"])
+    try:
+        from scipy import stats
+        _stat, pvals = stats.ttest_ind(b, a, axis=0, equal_var=False, nan_policy="omit")
+    except Exception:
+        # Normal approximation fallback; the benchmark lane normally has SciPy.
+        import math
+        mean_diff = b.mean(axis=0) - a.mean(axis=0)
+        se = np.sqrt(b.var(axis=0, ddof=1) / max(b.shape[0], 1)
+                     + a.var(axis=0, ddof=1) / max(a.shape[0], 1))
+        z = np.divide(mean_diff, se, out=np.zeros_like(mean_diff), where=se > 0)
+        pvals = np.array([math.erfc(abs(float(v)) / math.sqrt(2.0)) for v in z])
+    pvals = np.asarray(pvals, dtype=float)
+    pvals[~np.isfinite(pvals)] = 1.0
+    padj = np.asarray(_bh_adjust(pvals), dtype=float)
+
+    mean_a = np.asarray(X[cond == "COND_A"].mean(axis=0), dtype=float)
+    mean_b = np.asarray(X[cond == "COND_B"].mean(axis=0), dtype=float)
+    log2fc = np.log2((mean_b + 1.0) / (mean_a + 1.0))
+    called_mask = (padj < nominal_alpha) & (np.abs(log2fc) >= min_abs_log2fc)
+    genes = list(dataset.adata.var_names)
+    called = [genes[i] for i, flag in enumerate(called_mask) if bool(flag)]
+    return {
+        "method": "naive_cell_level_welch_treats_cells_as_replicates",
+        "status": "success",
+        "nominal_alpha": nominal_alpha,
+        "min_abs_log2fc": min_abs_log2fc,
+        "n_cells_condition_a": int(a.shape[0]),
+        "n_cells_condition_b": int(b.shape[0]),
+        "n_tested": int(len(genes)),
+        "n_called": int(len(called)),
+        "false_positive_rate": round(len(called) / max(len(genes), 1), 4),
+        "called_genes_top": called[:25],
+    }
+
+
+def _run_pseudobulk_null_calls(
+    dataset: SyntheticDEDataset,
+    *,
+    workdir: str | None = None,
+    nominal_alpha: float = 0.05,
+    lfc_min: float = 0.0,
+) -> dict[str, Any]:
+    """Run ARIA pseudobulk DE on a known-null dataset and count false calls."""
+    import tempfile
+    from pathlib import Path
+    from aria.scripts.rna_pseudobulk_de import rna_pseudobulk_de
+
+    tmp = workdir or tempfile.mkdtemp(prefix="aria_a2_null_")
+    h5ad_path = str(Path(tmp) / "pseudoreplication_null.h5ad")
+    dataset.adata.write_h5ad(h5ad_path)
+    result = rna_pseudobulk_de({
+        "data_path": h5ad_path,
+        "groupby": "ctype",
+        "condition_col": "condition",
+        "replicate_col": "donor",
+        "comparisons": [["COND_B", "COND_A"]],
+        "use_raw": False,
+        "min_replicates_per_condition": 3,
+        "padj_max": nominal_alpha,
+        "lfc_min": lfc_min,
+        "fdr_strategy": "per_cluster",
+        "output_dir": tmp,
+    })
+    if result.get("status") != "success":
+        return {
+            "method": "aria_donor_aware_pseudobulk",
+            "status": "error",
+            "error_type": result.get("error_type"),
+            "details": result.get("details", ""),
+            "nominal_alpha": nominal_alpha,
+            "n_tested": int(dataset.adata.shape[1]),
+            "n_called": 0,
+            "false_positive_rate": 1.0,
+        }
+    block = (
+        result.get("per_group", {})
+        .get("ctype0", {})
+        .get("per_comparison", {})
+        .get("COND_B_vs_COND_A", {})
+    )
+    called = [rec.get("gene") for rec in block.get("all_sig", []) or []]
+    n_tested = int(block.get("n_tested") or block.get("n_genes_tested") or dataset.adata.shape[1])
+    return {
+        "method": "aria_donor_aware_pseudobulk",
+        "status": "success",
+        "nominal_alpha": nominal_alpha,
+        "lfc_min": lfc_min,
+        "n_biological_replicates_condition_a": int(
+            dataset.adata.obs.drop_duplicates("donor")
+            .query("condition == 'COND_A'")
+            .shape[0]
+        ),
+        "n_biological_replicates_condition_b": int(
+            dataset.adata.obs.drop_duplicates("donor")
+            .query("condition == 'COND_B'")
+            .shape[0]
+        ),
+        "n_tested": n_tested,
+        "n_called": int(len(called)),
+        "false_positive_rate": round(len(called) / max(n_tested, 1), 4),
+        "called_genes_top": [g for g in called if g][:25],
+    }
+
+
+def write_pseudobulk_a2_figure(manifest: dict[str, Any], path: str) -> str:
+    """Write a dependency-free SVG summary for preliminary Fig. 2."""
+    from pathlib import Path
+
+    axes = manifest.get("axes", {})
+    recovery = axes.get("donor_aware_recovery", {})
+    guard = axes.get("pseudoreplication_guard", {})
+    vals = [
+        ("Pseudobulk recall", float(recovery.get("recall", 0.0)), "#2F6F73"),
+        ("Pseudobulk empirical FDR", float(recovery.get("empirical_fdr", 1.0)), "#7C3AED"),
+        ("Pseudobulk null FPR", float(guard.get("pseudobulk_false_positive_rate", 1.0)), "#2F6F73"),
+        ("Naive cell-level null FPR", float(guard.get("naive_cell_level_false_positive_rate", 0.0)), "#A23B3B"),
+    ]
+    width, height = 790, 410
+    left, top = 230, 74
+    bar_w, bar_h, gap = 410, 40, 27
+    rows = []
+    for i, (label, value, fill) in enumerate(vals):
+        y = top + i * (bar_h + gap)
+        v = max(0.0, min(1.0, value))
+        rows.append(
+            f'<text x="28" y="{y + 26}" font-size="16" fill="#1f2933">{label}</text>'
+            f'<rect x="{left}" y="{y}" width="{bar_w}" height="{bar_h}" fill="#e8edf0"/>'
+            f'<rect x="{left}" y="{y}" width="{bar_w * v:.1f}" height="{bar_h}" fill="{fill}"/>'
+            f'<text x="{left + bar_w + 18}" y="{y + 26}" font-size="16" fill="#1f2933">{value:.3f}</text>'
+        )
+    status = str(manifest.get("status", "unknown")).upper()
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<text x="28" y="36" font-size="22" font-weight="700" fill="#111827">'
+        'Fig. 2 preliminary: A2 donor-aware pseudobulk</text>'
+        f'<text x="660" y="36" font-size="18" font-weight="700" fill="#2F6F73">{status}</text>'
+        '<text x="28" y="382" font-size="13" fill="#4b5563">'
+        'Synthetic donor-null anti-pattern; Kang + muscat external lane remains pending.</text>'
+        + "".join(rows)
+        + "</svg>"
+    )
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(svg, encoding="utf-8")
+    return str(out)
+
+
+def run_pseudobulk_a2_benchmark(
+    *,
+    seed: int = 23,
+    quick: bool = False,
+    output_dir: str | None = None,
+    manifest_name: str = "a2_pseudobulk_v4.5.5.json",
+    figure_name: str = "fig2_a2_pseudobulk_v4.5.5.svg",
+    artifact_version: str = "v4.5.5",
+) -> dict[str, Any]:
+    """Execute Benchmark A2's preliminary donor-aware pseudobulk lane."""
+    import json
+    import subprocess
+    from pathlib import Path
+
+    recovery_kw = (
+        dict(n_genes=700, n_de=70, donors_per_condition=5, cells_per_donor=45)
+        if quick else
+        dict(n_genes=1200, n_de=120, donors_per_condition=6, cells_per_donor=80)
+    )
+    null_kw = (
+        dict(n_genes=400, donors_per_condition=4, cells_per_donor=45, donor_gene_sd=0.9)
+        if quick else
+        dict(n_genes=600, donors_per_condition=4, cells_per_donor=80, donor_gene_sd=0.9)
+    )
+    recovery = run_pseudobulk_de_benchmark(seed=seed, min_recall=0.5, **recovery_kw)
+    null_ds = simulate_pseudoreplication_null_dataset(seed=seed + 8, **null_kw)
+    pb_null = _run_pseudobulk_null_calls(null_ds, nominal_alpha=0.05, lfc_min=0.0)
+    naive_null = _naive_cell_level_null_calls(null_ds, nominal_alpha=0.05)
+
+    pb_fpr = float(pb_null.get("false_positive_rate", 1.0))
+    naive_fpr = float(naive_null.get("false_positive_rate", 0.0))
+    inflation_ratio = naive_fpr / max(pb_fpr, 1.0 / max(int(pb_null.get("n_tested", 1)), 1))
+    axes = {
+        "donor_aware_recovery": recovery.as_dict(),
+        "pseudoreplication_guard": {
+            "pseudobulk_false_positive_rate": round(pb_fpr, 4),
+            "naive_cell_level_false_positive_rate": round(naive_fpr, 4),
+            "inflation_ratio_vs_pseudobulk_floor": round(float(inflation_ratio), 4),
+            "pseudobulk": pb_null,
+            "naive_cell_level": naive_null,
+        },
+    }
+    axis_pass = {
+        "donor_aware_recovery": recovery.status == "pass",
+        "pseudobulk_null_control": (
+            pb_null.get("status") == "success" and pb_fpr <= 0.10
+        ),
+        "cell_level_antipattern_detected": naive_fpr >= max(0.20, pb_fpr * 3.0),
+    }
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], text=True
+        ).strip()
+        git_status = subprocess.check_output(
+            ["git", "status", "--porcelain"], text=True
+        ).strip()
+    except Exception:
+        git_commit = "unknown"
+        git_status = "unknown"
+    manifest = {
+        "status": "pass" if all(axis_pass.values()) else "fail",
+        "benchmark": "A2_pseudobulk_scrna",
+        "benchmark_version": "v1",
+        "artifact_version": artifact_version,
+        "scope": "preliminary_synthetic_donor_aware",
+        "method_under_test": "ARIA donor-aware scRNA pseudobulk DE",
+        "external_reference_lane": {
+            "status": "pending",
+            "reason": "Kang + muscat requires local benchmark data and aria-bench-env",
+        },
+        "datasets": {
+            "recovery": recovery_kw | {"seed": seed},
+            "pseudoreplication_null": null_ds.params,
+        },
+        "tolerances": {
+            "min_recall": 0.5,
+            "max_recovery_empirical_fdr": 0.2,
+            "max_pseudobulk_null_fpr": 0.10,
+            "min_naive_cell_level_null_fpr": 0.20,
+            "min_naive_vs_pseudobulk_inflation": 3.0,
+        },
+        "axis_pass": axis_pass,
+        "axes": axes,
+        "provenance": {
+            "git_commit": git_commit,
+            "git_dirty": bool(git_status),
+            "runtime_note": (
+                "artifact_version is fixed for the v4.5 benchmark lane; local "
+                "working tree may contain unrelated v4.6 changes."
+            ),
+        },
+        "messages": [
+            "A2 preliminary validates that ARIA keeps donor/sample as the "
+            "inferential unit and exposes the cell-level pseudoreplication "
+            "anti-pattern on a controlled donor-null simulation.",
+            "Kang et al. + muscat remains the external A2 lane once local data "
+            "and aria-bench-env are available.",
+        ],
+    }
+    if output_dir:
+        outdir = Path(output_dir)
+        outdir.mkdir(parents=True, exist_ok=True)
+        manifest_path = outdir / manifest_name
+        figure_path = outdir / figure_name
+        write_pseudobulk_a2_figure(manifest, str(figure_path))
+        manifest["artifacts"] = {
+            "manifest_json": str(manifest_path),
+            "figure_svg": str(figure_path),
+        }
+        manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+    return manifest
 
 
 @dataclass

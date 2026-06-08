@@ -368,6 +368,16 @@ Use these tests as impact anchors when editing the graph's major nodes:
   and writes `docs/benchmark_results/fig1_a1_bulk_de_v4.5.5.svg`. This is the
   ARIA-path preliminary lane only; external R comparator runs belong to the
   separate `aria-bench-env` track.
+- Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
+  `scripts/run_a2_pseudobulk_benchmark.py` calls
+  `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the
+  real `rna_pseudobulk_de.py` path on synthetic truth, then contrasts donor-aware
+  pseudobulk against `_naive_cell_level_null_calls` on a donor-heterogeneity null
+  that has no true condition effect. It writes
+  `docs/benchmark_results/a2_pseudobulk_v4.5.5.json` and
+  `docs/benchmark_results/fig2_a2_pseudobulk_v4.5.5.svg`. This is the preliminary
+  pseudoreplication-safety lane; Kang + muscat remains the external reference
+  lane requiring `aria-bench-env` and local data.
 - W-CALIB negative controls + calibration manifest (label-permutation null):
   `aria/benchmarks/synthetic_de.py` `run_bulk_de_negative_control` /
   `run_pseudobulk_de_negative_control` permute the condition labels (bulk: across
