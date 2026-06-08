@@ -104,14 +104,16 @@ def test_motifs_skip_without_collection(tmp_path, monkeypatch):
 def test_motifs_skip_without_genome(tmp_path, monkeypatch):
     from aria.scripts.chromatin_motifs import chromatin_motifs
     monkeypatch.setenv("ARIA_MOTIF_DIR", str(tmp_path))
+    monkeypatch.setenv("ARIA_GENOME_DIR", str(tmp_path / "genomes"))  # empty
     monkeypatch.delenv("ARIA_GENOME_FASTA", raising=False)  # deterministic
     _stage_collection(tmp_path, "JASPAR_TEST")
     res = chromatin_motifs({
         "motif_collection": "JASPAR_TEST",
         "regions": {"0": ["chr1:1-9"]},
     })
+    # honest, user-facing skip (no env-var instruction); unknown assembly here
     assert res["status"] == "success" and res["ran"] is False
-    assert "genome_fasta" in res["reason"]
+    assert "reference genome" in res["reason"]
     # the motif provenance is still surfaced on the skip
     assert res["motif_source"]["collection"] == "JASPAR_TEST"
 

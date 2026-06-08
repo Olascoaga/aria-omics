@@ -118,6 +118,8 @@ def chromatin_motifs(params: dict) -> dict:
     da_csv = params.get("da_csv")
     regions_param = params.get("regions")
     genome_fasta = params.get("genome_fasta")
+    assembly = str(params.get("assembly") or params.get("genome") or "").strip()
+    allow_genome_fetch = bool(params.get("allow_genome_fetch", False))
     motif_collection = params.get("motif_collection")
     motif_file = params.get("motif_file")
     method = params.get("method", "hypergeometric")
@@ -154,20 +156,49 @@ def chromatin_motifs(params: dict) -> dict:
                 f"fabricated.")
         meme_path, motif_version = loaded
 
-    # ── Genome FASTA (local; required for scanning) ──────────────────────────
-    # Fall back to ARIA_GENOME_FASTA when the caller did not pass a path (there
-    # is no checkpoint that collects it yet); offline, no fabrication.
-    if not genome_fasta:
-        from aria.utils.motifs import genome_fasta_from_env
-        genome_fasta = genome_fasta_from_env()
-    if not genome_fasta:
-        return _skip("no genome_fasta supplied; motif scanning needs a local "
-                     "reference FASTA (e.g. GRCh38 for human). Pass "
-                     "`genome_fasta` or set ARIA_GENOME_FASTA.",
-                     motif_source=motif_version)
-    if not Path(genome_fasta).is_file():
+    # ── Reference genome (resolved automatically; no env var required) ───────
+    # Resolution policy (aria.utils.genomes): explicit path → ARIA_GENOME_FASTA
+    # → managed store ARIA_GENOME_DIR/<assembly> → (governed, opt-in) snapatac2
+    # auto-fetch by assembly. A missing genome is an honest skip — never an
+    # env-var instruction to the user.
+    from aria.utils import genomes
+    genome_source = "explicit_param" if genome_fasta else None
+    if genome_fasta and not Path(str(genome_fasta)).is_file():
         return _skip(f"genome_fasta not found: {genome_fasta}",
                      motif_source=motif_version)
+    if not genome_fasta:
+        local, src = genomes.resolve_local_genome_fasta(assembly)
+        if local:
+            genome_fasta, genome_source = local, src
+
+    # Decide whether a governed snapatac2 auto-fetch is warranted. It downloads +
+    # caches the assembly FASTA (~hundreds of MB), so it requires an explicit
+    # opt-in AND network egress (ARIA_AIR_GAPPED off) — ARIA never fetches
+    # silently. The decision is light; the actual fetch happens after the deps.
+    attr = genomes.snapatac2_attr(assembly)
+    will_fetch = bool((not genome_fasta) and attr and allow_genome_fetch)
+    if will_fetch:
+        from aria.utils import privacy
+        if not privacy.egress_allowed():
+            will_fetch = False
+
+    # No genome and not going to fetch → honest skip NOW (no heavy deps needed),
+    # with a user-facing reason (never an env-var instruction).
+    if not genome_fasta and not will_fetch:
+        if attr and not allow_genome_fetch:
+            reason = (f"reference genome for assembly '{assembly}' is not staged "
+                      f"locally; ARIA can auto-download it (~hundreds of MB) once "
+                      f"the genome checkpoint is approved. Skipping motif "
+                      f"enrichment for now.")
+        elif attr:
+            reason = (f"reference genome for assembly '{assembly}' is unavailable "
+                      f"(air-gapped, no local copy). Stage one under "
+                      f"ARIA_GENOME_DIR/<assembly> to enable motif enrichment.")
+        else:
+            reason = (f"could not resolve a reference genome for assembly "
+                      f"'{assembly or 'unknown'}'. Provide one via the run or "
+                      f"stage it under ARIA_GENOME_DIR/<assembly>.")
+        return _skip(reason, motif_source=motif_version)
 
     # ── Dependencies ─────────────────────────────────────────────────────────
     try:
@@ -179,6 +210,19 @@ def chromatin_motifs(params: dict) -> dict:
                     "details": (f"motif enrichment requires snapatac2 "
                                 f"(aria-chromatin-env). ImportError: {e}")}
         return _skip(f"mock (deps missing: {e})", motif_source=motif_version)
+
+    # Governed auto-fetch (after deps): snap.genome.<attr> downloads + caches.
+    if not genome_fasta and will_fetch:
+        try:
+            gobj = getattr(snap.genome, attr, None)
+            if gobj is not None:
+                genome_fasta = gobj       # snapatac2 Genome object (cached fetch)
+                genome_source = f"snapatac2_auto_fetch:{attr}"
+        except Exception as e:
+            warnings.append(f"snapatac2 genome auto-fetch failed: {e}")
+        if not genome_fasta:
+            return _skip(f"snapatac2 auto-fetch did not yield a genome for "
+                         f"assembly '{assembly}'.", motif_source=motif_version)
 
     # ── Assemble region groups + background ──────────────────────────────────
     if regions_param:
@@ -319,6 +363,8 @@ def chromatin_motifs(params: dict) -> dict:
         "reason": None,
         "method": method,
         "genome_fasta": str(genome_fasta),
+        "genome_source": genome_source,
+        "assembly": assembly or None,
         "motif_source": motif_version,
         "n_groups": len(per_group),
         "per_group": per_group,

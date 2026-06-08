@@ -344,6 +344,36 @@ class ChromatinAgent(BaseAgent):
             # 4. TF motif enrichment in the DA peak sets (offline, self-gating)
             da_csv = ((da_result.get("per_cluster") or {}).get("output_csv")
                       if da_result.get("status") == "success" else None)
+
+            # Resolve the reference genome automatically (no env var required).
+            # If nothing is staged locally, guide the user with a checkpoint
+            # rather than silently skipping or demanding an env var: ARIA can
+            # auto-download the assembly (heavy) only with explicit approval.
+            from aria.utils import genomes, privacy
+            assembly = exp_ctx.get("genome")
+            genome_fasta = exp_ctx.get("genome_fasta")
+            local, _src = genomes.resolve_local_genome_fasta(assembly)
+            allow_fetch = bool(exp_ctx.get("allow_genome_fetch", False))
+            if not genome_fasta and not local and not allow_fetch:
+                attr = genomes.snapatac2_attr(assembly)
+                opts = []
+                if attr and privacy.egress_allowed():
+                    opts.append("Download the reference genome now "
+                                "(~hundreds of MB)")
+                opts += ["Provide a local genome FASTA path",
+                         "Skip TF motif enrichment"]
+                self.publish_escalation(
+                    experiment_id=experiment_id,
+                    checkpoint=3,
+                    question=(
+                        f"TF motif enrichment needs a reference genome for "
+                        f"assembly '{assembly or 'unknown'}', which is not staged "
+                        f"locally. How should ARIA obtain it?"),
+                    options=opts,
+                    context={"modality": "scATAC", "assembly": assembly,
+                             "need": "genome_fasta"},
+                )
+
             self.publish_status(experiment_id, "TF motif enrichment...", 0.8)
             motif_result = self.env.run_in_stack(
                 stack="chromatin",
@@ -351,7 +381,9 @@ class ChromatinAgent(BaseAgent):
                 params={
                     "data_path": clustered,
                     "da_csv": da_csv,
-                    "genome_fasta": exp_ctx.get("genome_fasta"),
+                    "genome_fasta": genome_fasta,
+                    "assembly": assembly,
+                    "allow_genome_fetch": allow_fetch,
                     "motif_collection": exp_ctx.get("motif_collection"),
                     "output_dir": out_dir,
                     "exp_context": exp_ctx,
