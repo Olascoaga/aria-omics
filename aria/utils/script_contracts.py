@@ -343,6 +343,16 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_peaks", "int", required=False),
         ),
     ),
+    "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(
+        script_path="aria/scripts/chromatin_lsi_clustering.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("n_clusters", "int", required=False),
+        ),
+    ),
 
     # ── P1-12: contracts for the remaining dispatchable scripts ──────────────
     # scRNA helper scripts (validated path).
