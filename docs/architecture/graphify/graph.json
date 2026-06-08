@@ -7106,6 +7106,104 @@
       "source_location": "L143"
     },
     {
+      "id": "scripts_benchmark_a1_external_comparators",
+      "label": "benchmark_a1_external_comparators.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "label": "_sim_kwargs()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "label": "_write_inputs()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "syntheticbulkdedataset",
+      "label": "SyntheticBulkDEDataset",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_finite",
+      "label": "_finite()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67"
+    },
+    {
+      "id": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_score_table",
+      "label": "_score_table()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_score_methods",
+      "label": "_score_methods()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172"
+    },
+    {
+      "id": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "label": "benchmark_a1_external_comparators()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206"
+    },
+    {
       "id": "scripts_chromatin_diffacc",
       "label": "chromatin_diffacc.py",
       "file_type": "code",
@@ -12542,7 +12640,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -12703,7 +12801,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -12725,7 +12823,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -12822,6 +12920,34 @@
       "label": "int",
       "file_type": "code",
       "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_external_comparators",
+      "label": "run_a1_external_comparators.py",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_a1_external_comparators_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_external_comparators_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_external_comparators_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_external_comparators.py",
       "source_location": "L17"
     },
     {
@@ -13166,6 +13292,34 @@
       "file_type": "code",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L47"
+    },
+    {
+      "id": "tests_test_benchmark_a1_external_comparators",
+      "label": "test_benchmark_a1_external_comparators.py",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_contract_registered",
+      "label": "test_a1_external_comparator_contract_registered()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L5"
+    },
+    {
+      "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
+      "label": "test_a1_external_comparator_runner_reports_missing_rscript()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_scores_mocked_r_output",
+      "label": "test_a1_external_comparator_runner_scores_mocked_r_output()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L30"
     },
     {
       "id": "tests_test_benchmark_atac_da",
@@ -19340,28 +19494,6 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -19377,39 +19509,6 @@
       "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "genome_arch_agent",
-      "label": "GenomeArchAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/genome_arch_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "integration_agent",
-      "label": "IntegrationAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/integration_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -19439,43 +19538,21 @@
       "contributor": null
     },
     {
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
       "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "parameter_advisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "aria/utils/parameter_advisor.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_memory.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -19498,39 +19575,6 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py (LIANA)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py (PAGA+DPT)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_qc",
-      "label": "chromatin_qc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_qc.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -47547,6 +47591,410 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "target": "syntheticbulkdedataset",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_finite",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_finite",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_finite",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_finite",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_score_table",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "syntheticbulkdedataset",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_score_methods",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "syntheticbulkdedataset",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "scripts_benchmark_a1_external_comparators_finite",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_score_methods",
+      "target": "scripts_benchmark_a1_external_comparators_score_table",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "aria_scripts_benchmark_a1_external_comparators_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_sim_kwargs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_write_inputs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L224",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_score_methods",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L277",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_diffacc",
       "target": "scripts_chromatin_diffacc_binary_pct",
       "relation": "contains",
@@ -63057,7 +63505,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -63110,7 +63558,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63120,7 +63568,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63130,7 +63578,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63140,7 +63588,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63150,7 +63598,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63326,7 +63774,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -63335,7 +63783,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -63370,7 +63818,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63380,7 +63828,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6fwk1v_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63473,6 +63921,35 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_a1_bulk_de_benchmark.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_external_comparators",
+      "target": "scripts_run_a1_external_comparators_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_external_comparators_main",
+      "target": "scripts_run_a1_external_comparators_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_external_comparators_main",
+      "target": "scripts_run_a1_external_comparators_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_external_comparators.py",
       "source_location": "L17",
       "weight": 1.0
     },
@@ -63958,6 +64435,33 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators",
+      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_contract_registered",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators",
+      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators",
+      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_scores_mocked_r_output",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -77128,6 +77632,46 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "benchmarks_synthetic_de_syntheticbulkdedataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "benchmarks_synthetic_de_rank_biased_overlap",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators",
+      "target": "scripts_base_run_script",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_diffacc",
       "target": "scripts_base_run_script",
       "relation": "imports",
@@ -78468,6 +79012,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_external_comparators",
+      "target": "utils_environment_manager_environmentmanager",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_a2_pseudobulk_benchmark",
       "target": "benchmarks_synthetic_de_run_pseudobulk_a2_benchmark",
       "relation": "imports",
@@ -78545,6 +79099,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators",
+      "target": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -82118,6 +82682,26 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_benchmark_a1_external_comparators_score_table",
+      "target": "benchmarks_synthetic_de_rank_biased_overlap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_diffacc_pseudobulk_da",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
@@ -82998,6 +83582,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_external_comparators_main",
+      "target": "utils_environment_manager_environmentmanager",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_external_comparators.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_a2_pseudobulk_benchmark_main",
       "target": "benchmarks_synthetic_de_run_pseudobulk_a2_benchmark",
       "relation": "calls",
@@ -83095,6 +83689,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
+      "target": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -88533,67 +89137,7 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -88613,7 +89157,7 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -88623,52 +89167,12 @@
       "weight": 1.0
     },
     {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
+      "source": "biological_synthesis_agent",
+      "target": "narrative_agent",
+      "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/workflows/scrna.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/workflows/scrna.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_qc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     }
