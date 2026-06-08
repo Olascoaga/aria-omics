@@ -94,6 +94,14 @@ External DESeq2/edgeR/limma comparator execution remains assigned to
 `aria-bench-env`; do not cite the preliminary artifact as a superiority or
 identity claim.
 
+Post-v4.5.5 comparator scaffold: `scripts/run_a1_external_comparators.py`
+dispatches `aria/scripts/benchmark_a1_external_comparators.py` through
+`EnvironmentManager` `stack="benchmark"` / `aria-bench-env`. The IPC runner
+exports the same neutral A1 synthetic matrix and calls an R comparator script for
+DESeq2, edgeR-QLF, and limma-voom, then scores each table against the known
+truth. This is an external-comparator execution path; it is not a SEQC/MAQC/ERCC
+reference-data completion.
+
 ### A2 Pseudobulk scRNA
 
 Use Kang et al. 2018 PBMC lupus control versus IFN-beta as the main scRNA
@@ -255,6 +263,8 @@ Primary metric: fabricated or unsupported narrative rate on null controls.
    ARIA-path synthetic-truth lane.**
 3. `aria-bench-env.yml` for external comparators. Keep R/benchmark packages out
    of production RNA/chromatin environments and call them through JSON IPC.
+   **Env + A1 IPC runner scaffold implemented; live R comparator execution
+   requires local `aria-bench-env`.**
 4. A2 Kang + muscat. **Preliminary ARIA-path donor-aware lane done in v4.5.5;
    external Kang + muscat remains pending.**
 5. B1 adversarial design corpus, about 30 cases, no heavy downloads.

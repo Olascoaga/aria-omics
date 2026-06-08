@@ -260,6 +260,21 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("count_source", "str", required=False),
         ),
     ),
+    "aria/scripts/benchmark_a1_external_comparators.py": ScriptContract(
+        script_path="aria/scripts/benchmark_a1_external_comparators.py",
+        validation_level="beta",
+        inputs=(
+            _f("output_dir", "path", required=False, allow_empty=False),
+            _f("seed", "int", required=False),
+            _f("quick", "bool", required=False),
+            _f("manifest_name", "str", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("external_comparator_status", "str"),
+            _f("methods", "dict"),
+            _f("artifacts", "dict"),
+        ),
+    ),
     "aria/scripts/rna_diff_abundance.py": ScriptContract(
         script_path="aria/scripts/rna_diff_abundance.py",
         validation_level="production",
