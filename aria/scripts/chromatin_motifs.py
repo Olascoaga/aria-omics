@@ -155,9 +155,15 @@ def chromatin_motifs(params: dict) -> dict:
         meme_path, motif_version = loaded
 
     # ── Genome FASTA (local; required for scanning) ──────────────────────────
+    # Fall back to ARIA_GENOME_FASTA when the caller did not pass a path (there
+    # is no checkpoint that collects it yet); offline, no fabrication.
+    if not genome_fasta:
+        from aria.utils.motifs import genome_fasta_from_env
+        genome_fasta = genome_fasta_from_env()
     if not genome_fasta:
         return _skip("no genome_fasta supplied; motif scanning needs a local "
-                     "reference FASTA (e.g. GRCh38 for human).",
+                     "reference FASTA (e.g. GRCh38 for human). Pass "
+                     "`genome_fasta` or set ARIA_GENOME_FASTA.",
                      motif_source=motif_version)
     if not Path(genome_fasta).is_file():
         return _skip(f"genome_fasta not found: {genome_fasta}",

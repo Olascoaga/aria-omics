@@ -28,9 +28,24 @@ import os
 from pathlib import Path
 
 MOTIF_DIR_ENV = "ARIA_MOTIF_DIR"
+# Local reference genome FASTA for motif scanning. There is no checkpoint that
+# collects it yet, so this env var is the deterministic, no-egress way to provide
+# it (mirrors ARIA_MOTIF_DIR / ARIA_GMT_DIR). A motif run with no FASTA skips
+# honestly rather than fabricating enrichment.
+GENOME_FASTA_ENV = "ARIA_GENOME_FASTA"
 
 # Curated, CC0, semantically versioned, field-standard for ATAC reporting.
 DEFAULT_COLLECTION = "JASPAR2024_CORE_vertebrates"
+
+
+def genome_fasta_from_env() -> str | None:
+    """Return a local genome FASTA path from ``ARIA_GENOME_FASTA`` if set and
+    the file exists, else None. No network, no fabrication."""
+    path = os.environ.get(GENOME_FASTA_ENV)
+    if not path:
+        return None
+    p = Path(path).expanduser()
+    return str(p) if p.is_file() else None
 
 
 def motifs_dir() -> Path:

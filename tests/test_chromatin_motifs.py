@@ -104,6 +104,7 @@ def test_motifs_skip_without_collection(tmp_path, monkeypatch):
 def test_motifs_skip_without_genome(tmp_path, monkeypatch):
     from aria.scripts.chromatin_motifs import chromatin_motifs
     monkeypatch.setenv("ARIA_MOTIF_DIR", str(tmp_path))
+    monkeypatch.delenv("ARIA_GENOME_FASTA", raising=False)  # deterministic
     _stage_collection(tmp_path, "JASPAR_TEST")
     res = chromatin_motifs({
         "motif_collection": "JASPAR_TEST",
@@ -113,6 +114,40 @@ def test_motifs_skip_without_genome(tmp_path, monkeypatch):
     assert "genome_fasta" in res["reason"]
     # the motif provenance is still surfaced on the skip
     assert res["motif_source"]["collection"] == "JASPAR_TEST"
+
+
+def test_genome_fasta_from_env_resolves_existing_file(tmp_path, monkeypatch):
+    from aria.utils import motifs
+    fa = tmp_path / "g.fa"
+    fa.write_text(">chr1\nACGT\n")
+    monkeypatch.setenv("ARIA_GENOME_FASTA", str(fa))
+    assert motifs.genome_fasta_from_env() == str(fa)
+    # unset / missing file -> None (no fabrication)
+    monkeypatch.setenv("ARIA_GENOME_FASTA", str(tmp_path / "nope.fa"))
+    assert motifs.genome_fasta_from_env() is None
+    monkeypatch.delenv("ARIA_GENOME_FASTA", raising=False)
+    assert motifs.genome_fasta_from_env() is None
+
+
+def test_motifs_uses_genome_fasta_env_fallback(tmp_path, monkeypatch):
+    # With no genome_fasta param but ARIA_GENOME_FASTA set, the run gets PAST the
+    # genome gate (it then needs snapatac2 to actually scan).
+    pytest.importorskip("snapatac2")
+    from aria.scripts.chromatin_motifs import chromatin_motifs
+    monkeypatch.setenv("ARIA_MOTIF_DIR", str(tmp_path))
+    _stage_collection(tmp_path, "JASPAR_TEST")
+    fa = tmp_path / "tiny.fa"
+    fa.write_text(">chr1\n" + "ACGT" * 50 + "\n")
+    monkeypatch.setenv("ARIA_GENOME_FASTA", str(fa))
+    res = chromatin_motifs({
+        "motif_collection": "JASPAR_TEST",
+        # no genome_fasta param -> env fallback
+        "regions": {"0": ["chr1:1-9"]},
+        "data_path": None, "background": ["chr1:1-9", "chr1:10-20"],
+    })
+    # past the genome gate: not the "no genome_fasta" skip
+    assert not (res.get("ran") is False
+                and "no genome_fasta" in str(res.get("reason", "")))
 
 
 def test_motifs_skip_with_missing_genome_file(tmp_path, monkeypatch):
