@@ -22,10 +22,17 @@ def test_every_dispatch_modality_has_validation_metadata():
     assert all(MODALITY_VALIDATION[m].get("level") for m in MODALITY_TO_AGENT)
 
 
-def test_scaffold_chromatin_modalities_are_not_dispatched():
+def test_scatac_alpha_is_dispatchable_with_readiness_ack():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
-    for modality in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
+    assert MODALITY_VALIDATION["scATAC"]["level"] == "alpha"
+    assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
+
+
+def test_remaining_scaffold_chromatin_modalities_are_not_dispatched():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION
+
+    for modality in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         assert MODALITY_VALIDATION[modality]["level"] == "scaffold"
         assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is False
 

@@ -266,9 +266,40 @@ class ScRNAAuditAgent:
 
 
 class ChromatinAuditAgent:
-    """Pattern card for chromatin modalities before v4.6 validation closes."""
+    """Readiness cards for chromatin modalities before full validation closes."""
 
     def audit(self, exp_context: dict[str, Any], modality: str) -> dict[str, Any]:
+        if modality == "scATAC":
+            card = _base_card(
+                modality,
+                agent="chromatin_agent",
+                validation_level="alpha",
+                status="yellow",
+                reason=(
+                    "scATAC alpha dispatch is available only after explicit "
+                    "user acknowledgement."
+                ),
+            )
+            card["checks"]["validation"] = {
+                "validated": False,
+                "stage": "alpha",
+                "live_orchestrator_run": "pending",
+            }
+            card["findings"].append(_finding(
+                "warning",
+                "chromatin_readiness_alpha_ack_required",
+                (
+                    "scATAC is alpha: core scripts are dispatchable, but a live "
+                    "orchestrator/TUI validation run is still pending."
+                ),
+                (
+                    "Proceed only after explicit CP3.5 acknowledgement and treat "
+                    "outputs as alpha until the live validation run closes."
+                ),
+                modality=modality,
+            ))
+            return card
+
         card = _base_card(
             modality,
             agent="chromatin_agent",
@@ -302,7 +333,7 @@ def build_capability_matrix(
         enabled = bool(meta.get("dispatch_enabled", True))
         if not enabled:
             status = "red"
-        elif level in {"beta", "experimental"}:
+        elif level in {"alpha", "beta", "experimental"}:
             status = "yellow"
         else:
             status = "green"

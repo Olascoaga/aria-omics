@@ -77,15 +77,18 @@ class ChromatinAgent(BaseAgent):
         "Chromatin accessibility and protein-DNA interaction analysis. "
         "Handles scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG."
     )
-    validation_level = "scaffold"
-    dispatch_enabled = False
+    validation_level = "alpha"
+    dispatch_enabled = True
     REQUIRED_SCRIPTS = (
         "aria/scripts/chromatin_qc.py",
         "aria/scripts/chromatin_peaks.py",
+        "aria/scripts/chromatin_lsi_clustering.py",
+        "aria/scripts/chromatin_diffacc.py",
+        "aria/scripts/chromatin_motifs.py",
     )
     PLANNED_SCRIPTS = (
-        "aria/scripts/chromatin_motifs.py",
-        "aria/scripts/chromatin_differential.py",
+        "aria/scripts/chromatin_footprinting.py",
+        "aria/scripts/chromatin_accessibility_score.py",
     )
 
     # Assay-specific MACS3 parameters

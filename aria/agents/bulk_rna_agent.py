@@ -58,7 +58,7 @@ def _is_fastq(files: list) -> bool:
 def _infer_lfc_threshold(intent: dict) -> float:
     entities = [str(e).lower() for e in intent.get("biological_entities", [])]
     text = re.sub(r'[\-\s]', '', " ".join([str(intent.get("summary", "")), str(intent.get("comparison", "")), *entities]).lower())
-    if any(tf in text for tf in KNOWN_TFS) or re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text) or "transcription factor" in text:
+    if any(tf in text for tf in KNOWN_TFS) or re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text) or "transcriptionfactor" in text:
         return 0.58
     return 1.0
 

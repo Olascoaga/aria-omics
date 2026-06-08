@@ -130,9 +130,12 @@ MODALITY_VALIDATION = {
         "dispatch_enabled": True,
     },
     "scATAC": {
-        "level": "scaffold",
-        "dispatch_enabled": False,
-        "reason": "scATAC E2E validation is scheduled for v4.6.",
+        "level": "alpha",
+        "dispatch_enabled": True,
+        "reason": (
+            "scATAC alpha dispatch requires explicit CP3.5 acknowledgement; "
+            "a live orchestrator/TUI validation run is still pending."
+        ),
     },
     "bulk_ATAC": {
         "level": "scaffold",

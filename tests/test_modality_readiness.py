@@ -59,7 +59,7 @@ def test_scrna_readiness_red_blocks_under_replicated_pseudobulk():
     assert any(f["severity"] == "blocking" for f in card["findings"])
 
 
-def test_capability_matrix_marks_beta_as_yellow_and_scaffold_as_red():
+def test_capability_matrix_marks_beta_and_scatac_alpha_as_yellow():
     matrix = build_capability_matrix(
         {
             "modalities": {
@@ -70,19 +70,36 @@ def test_capability_matrix_marks_beta_as_yellow_and_scaffold_as_red():
         modality_validation={
             "bulk_RNA_raw": {"level": "beta", "dispatch_enabled": True},
             "scATAC": {
-                "level": "scaffold",
-                "dispatch_enabled": False,
-                "reason": "scATAC validation is not closed.",
+                "level": "alpha",
+                "dispatch_enabled": True,
+                "reason": "scATAC alpha requires acknowledgement.",
             },
         },
     )
 
     assert matrix["cards"]["bulk_RNA_raw"]["status"] == "yellow"
     assert matrix["cards"]["bulk_RNA_raw"]["dispatch_policy"] == "requires_ack"
-    assert matrix["cards"]["scATAC"]["status"] == "red"
-    assert matrix["cards"]["scATAC"]["dispatch_policy"] == "blocked"
-    assert matrix["dispatch"]["requires_ack"] == ["bulk_RNA_raw"]
-    assert matrix["dispatch"]["blocked"] == ["scATAC"]
+    assert matrix["cards"]["scATAC"]["status"] == "yellow"
+    assert matrix["cards"]["scATAC"]["dispatch_policy"] == "requires_ack"
+    assert matrix["dispatch"]["requires_ack"] == ["bulk_RNA_raw", "scATAC"]
+    assert matrix["dispatch"]["blocked"] == []
+
+
+def test_capability_matrix_keeps_non_scatac_chromatin_scaffold_red():
+    matrix = build_capability_matrix(
+        {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
+        modality_validation={
+            "bulk_ATAC": {
+                "level": "scaffold",
+                "dispatch_enabled": False,
+                "reason": "bulk ATAC validation is not closed.",
+            },
+        },
+    )
+
+    assert matrix["cards"]["bulk_ATAC"]["status"] == "red"
+    assert matrix["cards"]["bulk_ATAC"]["dispatch_policy"] == "blocked"
+    assert matrix["dispatch"]["blocked"] == ["bulk_ATAC"]
 
 
 def test_audit_agent_surfaces_capability_matrix_without_heavy_checks(monkeypatch):
@@ -134,3 +151,29 @@ def test_orchestrator_filters_red_modalities_before_dispatch():
 
     assert filtered["modalities"] == {"bulk_RNA": ["/data/counts.tsv"]}
     assert filtered["blocked_modalities_by_capability"] == ["scATAC"]
+
+
+def test_orchestrator_does_not_filter_requires_ack_scatac_before_dispatch():
+    from aria.agents.orchestrator_agent import OrchestratorAgent
+
+    orch = OrchestratorAgent.__new__(OrchestratorAgent)
+    exp_context = {
+        "modalities": {
+            "bulk_RNA": ["/data/counts.tsv"],
+            "scATAC": ["/data/atac.h5mu"],
+        }
+    }
+    audit_result = {
+        "capability_matrix": {
+            "dispatch": {
+                "allowed": ["bulk_RNA", "scATAC"],
+                "requires_ack": ["scATAC"],
+                "blocked": [],
+            }
+        }
+    }
+
+    filtered = orch._apply_capability_dispatch_policy(exp_context, audit_result)
+
+    assert filtered["modalities"] == exp_context["modalities"]
+    assert "blocked_modalities_by_capability" not in filtered

@@ -1,13 +1,25 @@
-def test_orchestrator_blocks_scaffold_chromatin_dispatch():
-    from aria.agents.orchestrator_agent import OrchestratorAgent
+def test_orchestrator_allows_alpha_scatac_after_readiness_ack_gate():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION, OrchestratorAgent
 
     blocked = OrchestratorAgent._blocked_modalities({
         "scRNA": ["/tmp/rna.h5ad"],
         "scATAC": ["/tmp/fragments.tsv.gz"],
     })
 
-    assert set(blocked) == {"scATAC"}
-    assert blocked["scATAC"]["level"] == "scaffold"
+    assert blocked == {}
+    assert MODALITY_VALIDATION["scATAC"]["level"] == "alpha"
+    assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
+
+
+def test_orchestrator_still_blocks_scaffold_bulk_atac_dispatch():
+    from aria.agents.orchestrator_agent import OrchestratorAgent
+
+    blocked = OrchestratorAgent._blocked_modalities({
+        "bulk_ATAC": ["/tmp/fragments.tsv.gz"],
+    })
+
+    assert set(blocked) == {"bulk_ATAC"}
+    assert blocked["bulk_ATAC"]["level"] == "scaffold"
 
 
 def test_chromatin_missing_planned_scripts_return_structured_blocker():

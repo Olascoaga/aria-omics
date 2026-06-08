@@ -46,7 +46,9 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
         root = Path(__file__).resolve().parents[3]
         package_set = {p.lower(): p for p in packages}
         versions = {}
-        pip_locks = sorted((root / "envs").glob("*.pip.lock"))
+        pip_locks = sorted(
+            (root / "envs").glob("*.pip.lock"), key=_lockfile_priority
+        )
         for lock in pip_locks:
             try:
                 for line in lock.read_text(encoding="utf-8").splitlines():
@@ -63,7 +65,9 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
             except Exception:
                 continue
 
-        conda_locks = sorted((root / "envs").glob("*.linux-64.lock"))
+        conda_locks = sorted(
+            (root / "envs").glob("*.linux-64.lock"), key=_lockfile_priority
+        )
         for lock in conda_locks:
             try:
                 for line in lock.read_text(encoding="utf-8").splitlines():
@@ -79,6 +83,16 @@ def _tool_versions_from_lockfiles(packages: tuple[str, ...]) -> dict:
             except Exception:
                 continue
         return versions
+
+
+def _lockfile_priority(path: Path) -> tuple[int, str]:
+        """Prefer RNA locks for RNA report provenance when package names overlap."""
+        name = path.name
+        if name.startswith("aria-rna-env."):
+            return (0, name)
+        if name.startswith("aria-rna-ci."):
+            return (1, name)
+        return (2, name)
 
 
 def _package_version_from_conda_url(

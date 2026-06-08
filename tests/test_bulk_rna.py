@@ -103,22 +103,22 @@ def test_infer_design_factor(intent, expected_factor):
 
 @needs_agent
 def test_lfc_threshold_tf_vs_nontf():
-    tf = {"comparison": "BMAL1 KO vs wildtype", "summary": "BMAL1 knockout",
-          "biological_entities": ["BMAL1", "wildtype"]}
+    tf = {"comparison": "entity_A KO vs neutral_ref", "summary": "transcription factor knockout",
+          "biological_entities": ["entity_A", "neutral_ref"]}
     assert _infer_lfc_threshold(tf) == 0.58
-    non_tf = {"comparison": "disease vs healthy", "biological_entities": ["lupus"]}
+    non_tf = {"comparison": "condition_X vs neutral_ref", "biological_entities": ["condition_X"]}
     assert _infer_lfc_threshold(non_tf) == 1.0
 
 
 @needs_agent
 def test_entity_to_label_mapping():
     mapping = BulkRNAAgent.__new__(BulkRNAAgent)._map_entities_to_labels(
-        entities=["BMAL1", "REV-ERBa", "wildtype"],
-        group_names=["B", "R", "WT"], intent={},
+        entities=["A_entity", "B_entity", "REF_entity"],
+        group_names=["A", "B", "REF"], intent={},
     )
-    assert mapping.get("BMAL1") == "B"
-    assert mapping.get("REV-ERBa") == "R"
-    assert mapping.get("wildtype") == "WT"
+    assert mapping.get("A_entity") == "A"
+    assert mapping.get("B_entity") == "B"
+    assert mapping.get("REF_entity") == "REF"
 
 
 # ── Fix 3: sample QC / outlier detection ─────────────────────────────────────
@@ -147,7 +147,7 @@ def test_sample_qc_runs_with_injected_outlier():
 # ── Fix 4: pathway helpers (local ORA, P1-7) ─────────────────────────────────
 
 def test_mock_pathways_structure():
-    mock = _mock_pathways(["CD3E", "CD8A", "PDCD1", "TOX", "IL2"])
+    mock = _mock_pathways(["gene_1", "gene_2", "gene_3", "gene_4", "gene_5"])
     assert ("GO_BP" in mock) or ("KEGG" in mock)
     assert any(isinstance(v, list) for v in mock.values())
 
@@ -161,8 +161,8 @@ def test_gene_sets_by_organism():
 
 def test_run_pathway_enrichment_returns_triple():
     pw, warnings, meta = _run_pathway_enrichment(
-        sig_genes=["CD3E", "CD8A", "PDCD1", "TOX", "IL2", "IFNG"],
-        up_genes=["CD3E", "CD8A"], down_genes=["IL2"],
+        sig_genes=["gene_1", "gene_2", "gene_3", "gene_4", "gene_5", "gene_6"],
+        up_genes=["gene_1", "gene_2"], down_genes=["gene_5"],
         organism="Homo sapiens", output_dir="/tmp/test_pw",
     )
     assert isinstance(pw, dict)
