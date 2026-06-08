@@ -10,6 +10,16 @@ def test_a1_external_comparator_contract_registered():
     assert SCRIPT_CONTRACTS[key].validation_level == "beta"
 
 
+def test_a1_external_r_runner_uses_portable_base_io():
+    script = Path("aria/scripts/benchmark_a1_external_comparators.R").read_text()
+
+    assert 'dest = "output_dir"' in script
+    assert 'dest = "output_json"' in script
+    assert "library(data.table)" not in script
+    assert "read.delim" in script
+    assert "write.table" in script
+
+
 def test_a1_external_comparator_runner_reports_missing_rscript(tmp_path):
     from aria.scripts.benchmark_a1_external_comparators import (
         benchmark_a1_external_comparators,

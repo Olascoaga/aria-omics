@@ -1,0 +1,136 @@
+{
+  "artifact_version": "v4.5.5",
+  "artifacts": {
+    "counts_tsv": "docs/benchmark_results/a1_external/inputs/a1_counts.tsv",
+    "manifest_json": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+    "metadata_tsv": "docs/benchmark_results/a1_external/inputs/a1_metadata.tsv",
+    "r_json": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+    "truth_tsv": "docs/benchmark_results/a1_external/inputs/a1_truth.tsv"
+  },
+  "benchmark": "A1_bulk_de_external_comparators",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "COND_A",
+    "numerator": "COND_B"
+  },
+  "dataset": {
+    "dispersion": 0.2,
+    "max_abs_log2fc": 2.5,
+    "min_abs_log2fc": 1.0,
+    "n_de": 120,
+    "n_genes": 1000,
+    "replicates_per_condition": 6,
+    "seed": 11
+  },
+  "external_comparator_status": "complete",
+  "messages": [
+    "A1 external comparator runner executed DESeq2, edgeR-QLF, and limma-voom in aria-bench-env through JSON IPC.",
+    "This validates the comparator execution path on synthetic truth; SEQC/MAQC/ERCC external references remain a separate lane."
+  ],
+  "method_status": {
+    "deseq2": true,
+    "edgeR_QLF": true,
+    "limma_voom": true
+  },
+  "methods": {
+    "deseq2": {
+      "method": "DESeq2",
+      "n_called": 106,
+      "n_tested": 1000,
+      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/deseq2.tsv",
+      "scores": {
+        "lfc_concordance": {
+          "n_true_de_scored": 120,
+          "pearson_true_de": 0.9694,
+          "spearman_true_de": 0.9034
+        },
+        "ranking_concordance": {
+          "rank_biased_overlap_p0.9": 0.4176,
+          "top_k": 100,
+          "top_k_jaccard": 0.6949,
+          "top_k_truth_recall": 0.82
+        },
+        "significant_call_concordance": {
+          "empirical_fdr": 0.0849,
+          "n_called": 106,
+          "n_false_positive": 9,
+          "n_true_de": 120,
+          "n_true_positive": 97,
+          "precision": 0.9151,
+          "recall": 0.8083
+        }
+      },
+      "status": "success"
+    },
+    "edgeR_QLF": {
+      "method": "edgeR-QLF",
+      "n_called": 100,
+      "n_tested": 1000,
+      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/edgeR_QLF.tsv",
+      "scores": {
+        "lfc_concordance": {
+          "n_true_de_scored": 120,
+          "pearson_true_de": 0.9696,
+          "spearman_true_de": 0.9045
+        },
+        "ranking_concordance": {
+          "rank_biased_overlap_p0.9": 0.4735,
+          "top_k": 100,
+          "top_k_jaccard": 0.7544,
+          "top_k_truth_recall": 0.86
+        },
+        "significant_call_concordance": {
+          "empirical_fdr": 0.05,
+          "n_called": 100,
+          "n_false_positive": 5,
+          "n_true_de": 120,
+          "n_true_positive": 95,
+          "precision": 0.95,
+          "recall": 0.7917
+        }
+      },
+      "status": "success"
+    },
+    "limma_voom": {
+      "method": "limma-voom",
+      "n_called": 92,
+      "n_tested": 1000,
+      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/limma_voom.tsv",
+      "scores": {
+        "lfc_concordance": {
+          "n_true_de_scored": 120,
+          "pearson_true_de": 0.9647,
+          "spearman_true_de": 0.9047
+        },
+        "ranking_concordance": {
+          "rank_biased_overlap_p0.9": 0.4603,
+          "top_k": 100,
+          "top_k_jaccard": 0.7241,
+          "top_k_truth_recall": 0.84
+        },
+        "significant_call_concordance": {
+          "empirical_fdr": 0.0326,
+          "n_called": 92,
+          "n_false_positive": 3,
+          "n_true_de": 120,
+          "n_true_positive": 89,
+          "precision": 0.9674,
+          "recall": 0.7417
+        }
+      },
+      "status": "success"
+    }
+  },
+  "r_versions": {
+    "DESeq2": "1.42.0",
+    "R": "4.3.3",
+    "edgeR": "4.0.16",
+    "limma": "3.58.1"
+  },
+  "scope": "external_r_comparator_synthetic_truth",
+  "status": "success",
+  "thresholds": {
+    "lfc_threshold": 0.5,
+    "padj": 0.05
+  }
+}

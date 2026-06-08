@@ -3,14 +3,13 @@
 suppressPackageStartupMessages({
   library(optparse)
   library(jsonlite)
-  library(data.table)
 })
 
 option_list <- list(
   make_option("--counts", type = "character"),
   make_option("--metadata", type = "character"),
-  make_option("--output-dir", type = "character"),
-  make_option("--output-json", type = "character"),
+  make_option("--output-dir", type = "character", dest = "output_dir"),
+  make_option("--output-json", type = "character", dest = "output_json"),
   make_option("--padj", type = "double", default = 0.05),
   make_option("--lfc", type = "double", default = 0.5)
 )
@@ -41,8 +40,8 @@ if (length(missing_packages) > 0) {
 
 dir.create(opt$output_dir, recursive = TRUE, showWarnings = FALSE)
 
-counts_dt <- fread(opt$counts)
-meta_dt <- fread(opt$metadata)
+counts_dt <- read.delim(opt$counts, check.names = FALSE)
+meta_dt <- read.delim(opt$metadata, check.names = FALSE)
 if (!"gene" %in% names(counts_dt)) {
   fail("InvalidInput", "Counts table must contain a 'gene' column.")
 }
@@ -51,7 +50,7 @@ if (!all(c("sample", "condition") %in% names(meta_dt))) {
 }
 
 genes <- counts_dt$gene
-count_mat <- as.matrix(counts_dt[, !"gene"])
+count_mat <- as.matrix(counts_dt[, setdiff(names(counts_dt), "gene"), drop = FALSE])
 rownames(count_mat) <- genes
 mode(count_mat) <- "integer"
 
@@ -64,23 +63,29 @@ if (any(is.na(meta$condition))) {
 meta$condition <- relevel(factor(meta$condition), ref = "COND_A")
 
 standardize <- function(df, method, out_path) {
-  df <- as.data.table(df)
-  setnames(df, old = names(df), new = make.names(names(df)), skip_absent = TRUE)
+  df <- as.data.frame(df)
+  names(df) <- make.names(names(df))
   if (!"gene" %in% names(df)) {
-    df[, gene := rownames(as.data.frame(df))]
+    df$gene <- rownames(df)
   }
   if (!"log2FoldChange" %in% names(df) && "logFC" %in% names(df)) {
-    df[, log2FoldChange := logFC]
+    df$log2FoldChange <- df$logFC
   }
   if (!"padj" %in% names(df) && "FDR" %in% names(df)) {
-    df[, padj := FDR]
+    df$padj <- df$FDR
+  }
+  if (!"padj" %in% names(df) && "adj.P.Val" %in% names(df)) {
+    df$padj <- df$adj.P.Val
   }
   if (!"pvalue" %in% names(df) && "PValue" %in% names(df)) {
-    df[, pvalue := PValue]
+    df$pvalue <- df$PValue
+  }
+  if (!"pvalue" %in% names(df) && "P.Value" %in% names(df)) {
+    df$pvalue <- df$P.Value
   }
   keep <- intersect(c("gene", "log2FoldChange", "pvalue", "padj"), names(df))
-  df <- df[, ..keep]
-  fwrite(df, out_path, sep = "\t")
+  df <- df[, keep, drop = FALSE]
+  write.table(df, out_path, sep = "\t", row.names = FALSE, quote = FALSE)
   list(
     status = "success",
     method = method,
@@ -148,4 +153,3 @@ write_payload(list(
     limma = as.character(packageVersion("limma"))
   )
 ))
-

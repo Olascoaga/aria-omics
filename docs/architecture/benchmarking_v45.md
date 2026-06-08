@@ -3,7 +3,7 @@
 ---
 status: active
 source_of_truth_for: v45_benchmarking_protocol
-last_updated: 2026-06-07
+last_updated: 2026-06-08
 decision: ADR-030
 ---
 
@@ -94,13 +94,15 @@ External DESeq2/edgeR/limma comparator execution remains assigned to
 `aria-bench-env`; do not cite the preliminary artifact as a superiority or
 identity claim.
 
-Post-v4.5.5 comparator scaffold: `scripts/run_a1_external_comparators.py`
+Post-v4.5.5 comparator execution: `scripts/run_a1_external_comparators.py`
 dispatches `aria/scripts/benchmark_a1_external_comparators.py` through
 `EnvironmentManager` `stack="benchmark"` / `aria-bench-env`. The IPC runner
 exports the same neutral A1 synthetic matrix and calls an R comparator script for
 DESeq2, edgeR-QLF, and limma-voom, then scores each table against the known
-truth. This is an external-comparator execution path; it is not a SEQC/MAQC/ERCC
-reference-data completion.
+truth. Local live execution wrote
+`docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json` with
+all three methods complete. This is the synthetic-truth external-comparator
+execution path; it is not a SEQC/MAQC/ERCC reference-data completion.
 
 ### A2 Pseudobulk scRNA
 
