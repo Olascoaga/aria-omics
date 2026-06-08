@@ -12055,6 +12055,741 @@
       "source_location": "L106"
     },
     {
+      "id": "a1_external_a1_external_comparators_v4_5_5",
+      "label": "a1_external_comparators_v4.5.5.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifact_version",
+      "label": "artifact_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "label": "artifacts",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts_counts_tsv",
+      "label": "counts_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts_manifest_json",
+      "label": "manifest_json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts_metadata_tsv",
+      "label": "metadata_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts_r_json",
+      "label": "r_json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_artifacts_truth_tsv",
+      "label": "truth_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_benchmark",
+      "label": "benchmark",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_benchmark_version",
+      "label": "benchmark_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_comparison",
+      "label": "comparison",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_comparison_denominator",
+      "label": "denominator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_comparison_numerator",
+      "label": "numerator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "label": "dataset",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_dispersion",
+      "label": "dispersion",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_max_abs_log2fc",
+      "label": "max_abs_log2fc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_min_abs_log2fc",
+      "label": "min_abs_log2fc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_n_de",
+      "label": "n_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_n_genes",
+      "label": "n_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_replicates_per_condition",
+      "label": "replicates_per_condition",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_dataset_seed",
+      "label": "seed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_external_comparator_status",
+      "label": "external_comparator_status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L25"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_messages",
+      "label": "messages",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_method_status",
+      "label": "method_status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_method_status_deseq2",
+      "label": "deseq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L31"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_method_status_edger_qlf",
+      "label": "edgeR_QLF",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L32"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_method_status_limma_voom",
+      "label": "limma_voom",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_methods",
+      "label": "methods",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L35"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "label": "deseq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L36"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L37"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L38"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L39"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L40"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_scores",
+      "label": "scores",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L41"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "label": "lfc_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L42"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_n_true_de_scored",
+      "label": "n_true_de_scored",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L43"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_pearson_true_de",
+      "label": "pearson_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L44"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_spearman_true_de",
+      "label": "spearman_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "label": "ranking_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L47"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "label": "rank_biased_overlap_p0.9",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L48"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k",
+      "label": "top_k",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L49"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_jaccard",
+      "label": "top_k_jaccard",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L50"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "label": "top_k_truth_recall",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L51"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "label": "significant_call_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L53"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_empirical_fdr",
+      "label": "empirical_fdr",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L54"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L55"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_false_positive",
+      "label": "n_false_positive",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L56"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_de",
+      "label": "n_true_de",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L57"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_positive",
+      "label": "n_true_positive",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L58"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_precision",
+      "label": "precision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L59"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_recall",
+      "label": "recall",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L60"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_deseq2_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L63"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "label": "edgeR_QLF",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L65"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L66"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L67"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L68"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L69"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_scores",
+      "label": "scores",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L70"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L92"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "label": "limma_voom",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L94"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L95"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L96"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L97"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L98"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_scores",
+      "label": "scores",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L99"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_limma_voom_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L121"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "label": "r_versions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L124"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_r_versions_deseq2",
+      "label": "DESeq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L125"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_r_versions_r",
+      "label": "R",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L126"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_r_versions_edger",
+      "label": "edgeR",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L127"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_r_versions_limma",
+      "label": "limma",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L128"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L130"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L131"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_thresholds",
+      "label": "thresholds",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L132"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_thresholds_lfc_threshold",
+      "label": "lfc_threshold",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L133"
+    },
+    {
+      "id": "a1_external_a1_external_comparators_v4_5_5_thresholds_padj",
+      "label": "padj",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L134"
+    },
+    {
+      "id": "r_outputs_r_comparators",
+      "label": "r_comparators.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "r_outputs_r_comparators_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "r_outputs_r_comparators_methods",
+      "label": "methods",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "r_outputs_r_comparators_methods_deseq2",
+      "label": "deseq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "r_outputs_r_comparators_deseq2_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "r_outputs_r_comparators_deseq2_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "r_outputs_r_comparators_deseq2_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "r_outputs_r_comparators_deseq2_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "r_outputs_r_comparators_deseq2_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "r_outputs_r_comparators_methods_edger_qlf",
+      "label": "edgeR_QLF",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "r_outputs_r_comparators_edger_qlf_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "r_outputs_r_comparators_edger_qlf_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "r_outputs_r_comparators_edger_qlf_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "r_outputs_r_comparators_edger_qlf_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "r_outputs_r_comparators_edger_qlf_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "r_outputs_r_comparators_methods_limma_voom",
+      "label": "limma_voom",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "r_outputs_r_comparators_limma_voom_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "r_outputs_r_comparators_limma_voom_method",
+      "label": "method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "r_outputs_r_comparators_limma_voom_results_tsv",
+      "label": "results_tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "r_outputs_r_comparators_limma_voom_n_tested",
+      "label": "n_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "r_outputs_r_comparators_limma_voom_n_called",
+      "label": "n_called",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "r_outputs_r_comparators_thresholds",
+      "label": "thresholds",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "r_outputs_r_comparators_thresholds_padj",
+      "label": "padj",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L27"
+    },
+    {
+      "id": "r_outputs_r_comparators_thresholds_lfc",
+      "label": "lfc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L28"
+    },
+    {
+      "id": "r_outputs_r_comparators_versions",
+      "label": "versions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "r_outputs_r_comparators_versions_r",
+      "label": "R",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L31"
+    },
+    {
+      "id": "r_outputs_r_comparators_versions_deseq2",
+      "label": "DESeq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L32"
+    },
+    {
+      "id": "r_outputs_r_comparators_versions_edger",
+      "label": "edgeR",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "r_outputs_r_comparators_versions_limma",
+      "label": "limma",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L34"
+    },
+    {
       "id": "benchmark_results_a2_pseudobulk_v4_5_5",
       "label": "a2_pseudobulk_v4.5.5.json",
       "file_type": "code",
@@ -12640,7 +13375,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -12801,7 +13536,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -12823,7 +13558,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -13308,18 +14043,25 @@
       "source_location": "L5"
     },
     {
+      "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_r_runner_uses_portable_base_io",
+      "label": "test_a1_external_r_runner_uses_portable_base_io()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L13"
+    },
+    {
       "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
       "label": "test_a1_external_comparator_runner_reports_missing_rscript()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
-      "source_location": "L13"
+      "source_location": "L23"
     },
     {
       "id": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_scores_mocked_r_output",
       "label": "test_a1_external_comparator_runner_scores_mocked_r_output()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
-      "source_location": "L30"
+      "source_location": "L40"
     },
     {
       "id": "tests_test_benchmark_atac_da",
@@ -19494,6 +20236,28 @@
       "contributor": null
     },
     {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "setup_agent",
+      "label": "SetupAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/setup_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -19509,6 +20273,39 @@
       "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "genome_arch_agent",
+      "label": "GenomeArchAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/genome_arch_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "integration_agent",
+      "label": "IntegrationAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/integration_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -19538,10 +20335,10 @@
       "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -19549,10 +20346,32 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "parameter_advisor",
+      "label": "ParameterAdvisor",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "aria/utils/parameter_advisor.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/sqlite_memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -19575,6 +20394,39 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_cellcomm",
+      "label": "rna_cellcomm.py (LIANA)",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_cellcomm.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_trajectory",
+      "label": "rna_trajectory.py (PAGA+DPT)",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_trajectory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "env_rna",
+      "label": "aria-rna-env",
+      "file_type": "code",
+      "source_file": "envs/aria-rna-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -62766,6 +63618,1239 @@
       "weight": 1.0
     },
     {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifact_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts_counts_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts_manifest_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts_metadata_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts_r_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_artifacts",
+      "target": "a1_external_a1_external_comparators_v4_5_5_artifacts_truth_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_benchmark_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_comparison",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_comparison",
+      "target": "a1_external_a1_external_comparators_v4_5_5_comparison_denominator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_comparison",
+      "target": "a1_external_a1_external_comparators_v4_5_5_comparison_numerator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_dispersion",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_max_abs_log2fc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_min_abs_log2fc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_n_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_n_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_replicates_per_condition",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_dataset",
+      "target": "a1_external_a1_external_comparators_v4_5_5_dataset_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_external_comparator_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_messages",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_method_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_method_status",
+      "target": "a1_external_a1_external_comparators_v4_5_5_method_status_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_method_status",
+      "target": "a1_external_a1_external_comparators_v4_5_5_method_status_edger_qlf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_method_status",
+      "target": "a1_external_a1_external_comparators_v4_5_5_method_status_limma_voom",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_methods",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods",
+      "target": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_scores",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_deseq2_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_n_true_de_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_pearson_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_spearman_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_deseq2_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_deseq2_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_false_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_precision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_deseq2",
+      "target": "a1_external_a1_external_comparators_v4_5_5_deseq2_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods",
+      "target": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_scores",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_n_true_de_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_pearson_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_spearman_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_false_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_precision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_edger_qlf",
+      "target": "a1_external_a1_external_comparators_v4_5_5_edger_qlf_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods",
+      "target": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_scores",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_limma_voom_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_n_true_de_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_pearson_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_lfc_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_lfc_concordance_spearman_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_limma_voom_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_rank_biased_overlap_p0_9",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_ranking_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_ranking_concordance_top_k_truth_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_limma_voom_scores",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_false_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_de",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_n_true_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_precision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_scores_significant_call_concordance",
+      "target": "a1_external_a1_external_comparators_v4_5_5_significant_call_concordance_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_methods_limma_voom",
+      "target": "a1_external_a1_external_comparators_v4_5_5_limma_voom_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "target": "a1_external_a1_external_comparators_v4_5_5_r_versions_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "target": "a1_external_a1_external_comparators_v4_5_5_r_versions_r",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "target": "a1_external_a1_external_comparators_v4_5_5_r_versions_edger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_r_versions",
+      "target": "a1_external_a1_external_comparators_v4_5_5_r_versions_limma",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5",
+      "target": "a1_external_a1_external_comparators_v4_5_5_thresholds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_thresholds",
+      "target": "a1_external_a1_external_comparators_v4_5_5_thresholds_lfc_threshold",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_external_a1_external_comparators_v4_5_5_thresholds",
+      "target": "a1_external_a1_external_comparators_v4_5_5_thresholds_padj",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators",
+      "target": "r_outputs_r_comparators_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators",
+      "target": "r_outputs_r_comparators_methods",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods",
+      "target": "r_outputs_r_comparators_methods_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_deseq2",
+      "target": "r_outputs_r_comparators_deseq2_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_deseq2",
+      "target": "r_outputs_r_comparators_deseq2_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_deseq2",
+      "target": "r_outputs_r_comparators_deseq2_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_deseq2",
+      "target": "r_outputs_r_comparators_deseq2_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_deseq2",
+      "target": "r_outputs_r_comparators_deseq2_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods",
+      "target": "r_outputs_r_comparators_methods_edger_qlf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_edger_qlf",
+      "target": "r_outputs_r_comparators_edger_qlf_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_edger_qlf",
+      "target": "r_outputs_r_comparators_edger_qlf_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_edger_qlf",
+      "target": "r_outputs_r_comparators_edger_qlf_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_edger_qlf",
+      "target": "r_outputs_r_comparators_edger_qlf_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_edger_qlf",
+      "target": "r_outputs_r_comparators_edger_qlf_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods",
+      "target": "r_outputs_r_comparators_methods_limma_voom",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_limma_voom",
+      "target": "r_outputs_r_comparators_limma_voom_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_limma_voom",
+      "target": "r_outputs_r_comparators_limma_voom_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_limma_voom",
+      "target": "r_outputs_r_comparators_limma_voom_results_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_limma_voom",
+      "target": "r_outputs_r_comparators_limma_voom_n_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_methods_limma_voom",
+      "target": "r_outputs_r_comparators_limma_voom_n_called",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators",
+      "target": "r_outputs_r_comparators_thresholds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_thresholds",
+      "target": "r_outputs_r_comparators_thresholds_padj",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_thresholds",
+      "target": "r_outputs_r_comparators_thresholds_lfc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators",
+      "target": "r_outputs_r_comparators_versions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_versions",
+      "target": "r_outputs_r_comparators_versions_r",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_versions",
+      "target": "r_outputs_r_comparators_versions_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_versions",
+      "target": "r_outputs_r_comparators_versions_edger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "r_outputs_r_comparators_versions",
+      "target": "r_outputs_r_comparators_versions_limma",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_external/r_outputs/r_comparators.json",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
       "source": "benchmark_results_a2_pseudobulk_v4_5_5",
       "target": "benchmark_results_a2_pseudobulk_v4_5_5_artifact_version",
       "relation": "contains",
@@ -63505,7 +65590,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -63558,7 +65643,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63568,7 +65653,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63578,7 +65663,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63588,7 +65673,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63598,7 +65683,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63774,7 +65859,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -63783,7 +65868,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -63818,7 +65903,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -63828,7 +65913,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_xbz39p_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xvrda3_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -64448,7 +66533,7 @@
     },
     {
       "source": "tests_test_benchmark_a1_external_comparators",
-      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
+      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_r_runner_uses_portable_base_io",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
@@ -64457,11 +66542,20 @@
     },
     {
       "source": "tests_test_benchmark_a1_external_comparators",
+      "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_reports_missing_rscript",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_external_comparators.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_external_comparators",
       "target": "tests_test_benchmark_a1_external_comparators_test_a1_external_comparator_runner_scores_mocked_r_output",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
-      "source_location": "L30",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -79108,7 +81202,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
-      "source_location": "L14",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -83698,7 +85792,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
-      "source_location": "L18",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -89137,17 +91231,47 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "source": "orchestrator_agent",
+      "target": "audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "orchestrator_agent",
+      "target": "setup_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -89167,12 +91291,62 @@
       "weight": 1.0
     },
     {
-      "source": "biological_synthesis_agent",
-      "target": "narrative_agent",
-      "relation": "implements",
+      "source": "scrna_agent",
+      "target": "rna_cellcomm",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_trajectory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     }
