@@ -58,6 +58,12 @@ def test_ingestion_stack_has_dedicated_environment():
     assert "ingestion" in EnvironmentManager.TIMEOUTS
 
 
+def test_benchmark_stack_has_external_reference_environment():
+    from aria.utils.environment_manager import EnvironmentManager
+    assert EnvironmentManager.STACKS["benchmark"] == "aria-bench-env"
+    assert EnvironmentManager.TIMEOUTS["benchmark"] >= 14400
+
+
 # ── Script base IPC contract ─────────────────────────────────────────────────
 
 def test_base_json_serializer_handles_numpy():
@@ -110,7 +116,7 @@ def test_workspace_exists():
 
 # ── live PBMC 3k QC (scanpy + local dataset) ─────────────────────────────────
 
-def test_rna_qc_on_pbmc3k():
+def test_rna_qc_on_pbmc3k(tmp_path):
     sc = pytest.importorskip("scanpy")
     pbmc = None
     for c in (Path.home() / "aria-data" / "pbmc3k_test",
@@ -123,7 +129,11 @@ def test_rna_qc_on_pbmc3k():
     adata = sc.read_10x_mtx(str(pbmc), var_names="gene_symbols", cache=True)
     assert adata.n_obs > 0
     from aria.scripts.rna_qc import rna_qc
-    result = rna_qc({"data_path": str(pbmc), "organism": "Homo sapiens"})
+    result = rna_qc({
+        "data_path": str(pbmc),
+        "organism": "Homo sapiens",
+        "output_dir": str(tmp_path),
+    })
     assert result["status"] == "success"
     assert result["n_cells_after"] > 2000
     qc_out = Path(result.get("output_path", ""))

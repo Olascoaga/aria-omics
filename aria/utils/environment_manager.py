@@ -100,6 +100,7 @@ class EnvironmentManager:
         "chromatin":   "aria-chromatin-env",
         "hic":         "aria-hic-env",
         "integration": "aria-integration-env",
+        "benchmark":   "aria-bench-env",  # external RNA benchmark comparators
         "spatial":     "aria-rna-env",   # spatial uses same env as RNA
     }
 
@@ -112,6 +113,7 @@ class EnvironmentManager:
         "hic":         14400,
         "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
         "integration": 7200,    # 2 hours
+        "benchmark":   14400,   # 4h — R/Bioconductor reference comparators
         "spatial":     3600,    # 1 hour
     }
 

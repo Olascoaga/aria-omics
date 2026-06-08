@@ -1,0 +1,58 @@
+name: aria-bench-env
+
+# External benchmark/reference-comparator environment for the v4.5 RNA
+# preprint lane. This is intentionally separate from aria-rna-env: ARIA's
+# production RNA stack stays Python/pyDESeq2, while R/Bioconductor comparators
+# run through EnvironmentManager stack="benchmark" and JSON IPC wrappers.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.11
+  - pip
+
+  # Shared table/IPC utilities for benchmark wrappers.
+  - numpy>=1.24,<2.0.0
+  - pandas>=2.0,<3.0
+  - scipy>=1.11
+  - pyarrow>=14,<18
+
+  # R runtime and bridge-free command-line execution. Wrappers should call
+  # Rscript via subprocess/IPC, not import R into ARIA's Python process.
+  - r-base>=4.3,<4.5
+  - r-jsonlite
+  - r-optparse
+  - r-data.table
+  - r-tidyverse
+  - r-matrix
+  - r-remotes
+
+  # Bulk RNA external comparators (A1).
+  - bioconductor-deseq2
+  - bioconductor-edger
+  - bioconductor-limma
+  - bioconductor-apeglm
+
+  # scRNA/pseudobulk external comparators (A2/A3).
+  - bioconductor-muscat
+  - bioconductor-mast
+  - bioconductor-scater
+  - bioconductor-scran
+  - bioconductor-scuttle
+  - bioconductor-singlecellexperiment
+  - bioconductor-summarizedexperiment
+  - bioconductor-biocparallel
+  - bioconductor-speckle
+  - bioconductor-singler
+
+  # Pathway/enrichment reference lanes (A5 supplement).
+  - bioconductor-fgsea
+  - bioconductor-gsva
+
+  - pip:
+    # Keep plotting/report helpers available to Python-side benchmark wrappers.
+    - matplotlib>=3.7
+    - seaborn>=0.12
