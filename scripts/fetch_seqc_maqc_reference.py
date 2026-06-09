@@ -30,6 +30,53 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 R_SCRIPT = ROOT / "aria" / "scripts" / "fetch_seqc_maqc_reference.R"
 
+# Thermo Fisher ERCC RNA Spike-In Control Mixes concentration/fold-change table
+# (subgroup A/B/C/D at Mix1/Mix2 ratios 4/1/0.667/0.5 -> log2 2/0/-0.58/-1).
+ERCC_TRUTH_URL = (
+    "https://assets.thermofisher.com/TFS-Assets/LSG/manuals/cms_095046.txt"
+)
+
+
+def _fetch_ercc_truth(out: Path) -> bool:
+    """Download + normalize the ERCC ExFold concentration/fold-change truth.
+    Returns True on success; the dose-response lane is optional, so a failure is
+    non-fatal (the gene/TaqMan bundle is still written)."""
+    import urllib.request
+
+    try:
+        raw = urllib.request.urlopen(ERCC_TRUTH_URL, timeout=30).read().decode(
+            "utf-8", "replace"
+        )
+    except Exception as exc:  # network/URL issue: skip ERCC, keep the bundle
+        print(f"[fetch] ERCC truth download failed ({type(exc).__name__}); "
+              "dose-response lane will be unavailable for this bundle")
+        return False
+
+    lines = [ln for ln in raw.splitlines() if ln.strip()]
+    header = lines[0].split("\t")
+
+    def col(name_part: str) -> int:
+        for i, h in enumerate(header):
+            if name_part.lower() in h.lower():
+                return i
+        raise ValueError(f"ERCC truth header missing '{name_part}': {header}")
+
+    i_id, i_sub = col("ERCC ID"), col("subgroup")
+    i_m1, i_m2 = col("concentration in Mix 1"), col("concentration in Mix 2")
+    i_fc, i_log2 = col("expected fold"), col("log2")
+    rows = ["\t".join([
+        "ercc_id", "subgroup", "conc_mix1", "conc_mix2",
+        "expected_fc", "log2_mix1_mix2",
+    ])]
+    for ln in lines[1:]:
+        c = ln.split("\t")
+        rows.append("\t".join([
+            c[i_id], c[i_sub], c[i_m1], c[i_m2], c[i_fc], c[i_log2],
+        ]))
+    (out / "ercc_truth.tsv").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    print(f"[fetch] wrote ERCC truth ({len(rows) - 1} controls)")
+    return True
+
 
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
@@ -70,6 +117,11 @@ def main(argv: list[str] | None = None) -> int:
     if missing:
         print(f"[fetch] FAILED — extractor did not write: {missing}")
         return 1
+
+    # Optional ERCC dose-response files (gene/TaqMan bundle is valid without them).
+    _fetch_ercc_truth(out)
+    optional = [f for f in ("ercc_counts.tsv", "ercc_truth.tsv") if (out / f).exists()]
+    files = files + optional
 
     manifest = {
         "source": "seqc Bioconductor data package",

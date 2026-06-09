@@ -21,6 +21,10 @@ suppressMessages(library(seqc))
 # --- counts ---------------------------------------------------------------
 data(list = count_table, package = "seqc")
 x <- get(count_table)
+
+# Split off the ERCC spike-in rows (written separately for the dose-response
+# lane); the gene matrix excludes them.
+ercc <- if (!is.null(x$IsERCC)) x[x$IsERCC, , drop = FALSE] else x[0, ]
 if (!is.null(x$IsERCC)) x <- x[!x$IsERCC, , drop = FALSE]
 
 cnt_cols <- grep("^[ABCD]_[0-9]+_L", colnames(x), value = TRUE)
@@ -41,6 +45,20 @@ samples <- data.frame(sample = reps, group = sub("_.*$", "", reps))
 write.table(samples, file.path(out_dir, "samples.tsv"),
             sep = "\t", quote = FALSE, row.names = FALSE)
 
+# --- ERCC spike-in counts (same sample-replicate aggregation) -------------
+if (nrow(ercc) > 0) {
+  emat <- vapply(
+    reps,
+    function(r) rowSums(ercc[, cnt_cols[rep_id == r], drop = FALSE]),
+    numeric(nrow(ercc))
+  )
+  storage.mode(emat) <- "integer"
+  ercc_counts <- data.frame(ercc_id = as.character(ercc$Symbol), emat,
+                            check.names = FALSE)
+  write.table(ercc_counts, file.path(out_dir, "ercc_counts.tsv"),
+              sep = "\t", quote = FALSE, row.names = FALSE)
+}
+
 # --- taqman truth (log2 A/B) ----------------------------------------------
 data(taqman, package = "seqc")
 a_cols <- grep("^A[0-9]+_value$", colnames(taqman), value = TRUE)
@@ -54,6 +72,6 @@ write.table(tq, file.path(out_dir, "taqman.tsv"),
             sep = "\t", quote = FALSE, row.names = FALSE)
 
 cat(sprintf(
-  "SEQC_BUNDLE_DONE genes=%d samples=%d taqman=%d table=%s\n",
-  nrow(counts), nrow(samples), nrow(tq), count_table
+  "SEQC_BUNDLE_DONE genes=%d samples=%d taqman=%d ercc=%d table=%s\n",
+  nrow(counts), nrow(samples), nrow(tq), nrow(ercc), count_table
 ))

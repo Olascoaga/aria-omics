@@ -39,6 +39,9 @@ __all__ = [
     "write_seqc_maqc_a1_figure",
     "run_seqc_maqc_multisite",
     "write_seqc_multisite_figure",
+    "score_ercc_dose_response",
+    "run_ercc_dose_response",
+    "write_ercc_figure",
 ]
 
 
@@ -125,10 +128,27 @@ def load_seqc_maqc_bundle(bundle_dir: str | Path) -> dict[str, Any] | None:
         except (ValueError, OSError):
             manifest = {}
 
+    # Optional ERCC spike-in dose-response files (absent in older bundles).
+    ercc_counts = ercc_truth = None
+    ercc_counts_p = bundle / "ercc_counts.tsv"
+    ercc_truth_p = bundle / "ercc_truth.tsv"
+    if ercc_counts_p.exists() and ercc_truth_p.exists():
+        ec = pd.read_csv(ercc_counts_p, sep="\t")
+        if "ercc_id" in ec.columns:
+            ec = ec.set_index("ercc_id")
+            ec.index = [str(i) for i in ec.index]
+            ercc_counts = ec[~ec.index.duplicated(keep="first")]
+        et = pd.read_csv(ercc_truth_p, sep="\t")
+        if "ercc_id" in et.columns:
+            et["ercc_id"] = et["ercc_id"].astype(str)
+            ercc_truth = et[~et["ercc_id"].duplicated(keep="first")].set_index("ercc_id")
+
     return {
         "counts": counts,
         "samples": samples,
         "taqman_log2_ab": taqman_log2,
+        "ercc_counts": ercc_counts,
+        "ercc_truth": ercc_truth,
         "manifest": manifest,
         "bundle_dir": str(bundle),
     }
@@ -679,3 +699,235 @@ def write_seqc_multisite_figure(manifest: dict[str, Any], path: str) -> str:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(svg, encoding="utf-8")
     return str(out)
+
+
+def _ols_slope(x, y) -> float | None:
+    """Least-squares slope of y on x (no intercept assumption)."""
+    import numpy as np
+
+    x = np.asarray(x, float)
+    y = np.asarray(y, float)
+    m = np.isfinite(x) & np.isfinite(y)
+    x, y = x[m], y[m]
+    if x.size < 3 or np.allclose(x.var(), 0.0):
+        return None
+    return float(np.polyfit(x, y, 1)[0])
+
+
+def score_ercc_dose_response(
+    bundle: dict[str, Any],
+    *,
+    numerator: str = "A",
+    denominator: str = "B",
+    min_count_sum: int = 10,
+    min_fc_pearson: float = 0.5,
+    min_dynamic_range_pearson: float = 0.9,
+) -> dict[str, Any]:
+    """Score ARIA's recovery of the ERCC spike-in dose-response from the staged
+    bundle: (1) fold-change recovery — measured log2(A/B) of each ERCC vs the
+    known Mix1/Mix2 log2 ratio, per subgroup; (2) dynamic-range linearity —
+    measured CPM vs the known input concentration across orders of magnitude.
+
+    ERCC counts (per sample) and the ERCC concentration/fold-change truth come
+    entirely from the bundle. Mix 1 is assumed spiked into the numerator group
+    (SEQC convention); the fitted slope sign reports whether that holds."""
+    import numpy as np
+    import pandas as pd
+
+    ercc = bundle.get("ercc_counts")
+    truth = bundle.get("ercc_truth")
+    if ercc is None or truth is None:
+        return {"status": "skipped", "reason": "no ERCC files in bundle"}
+
+    gene_counts = bundle["counts"]
+    grp = bundle["samples"].set_index("sample")["group"]
+    a_cols = [s for s in ercc.columns if s in grp.index and grp[s] == numerator]
+    b_cols = [s for s in ercc.columns if s in grp.index and grp[s] == denominator]
+    if len(a_cols) < 2 or len(b_cols) < 2:
+        return {"status": "error", "messages": ["need >=2 reps per group for ERCC"]}
+
+    # CPM normalize ERCC by the gene-matrix library size (the main library).
+    cpm = pd.DataFrame(index=ercc.index)
+    for s in a_cols + b_cols:
+        lib = float(gene_counts[s].sum()) or np.nan
+        cpm[s] = ercc[s] / lib * 1e6
+    mean_a = cpm[a_cols].mean(axis=1)
+    mean_b = cpm[b_cols].mean(axis=1)
+    total = ercc[a_cols + b_cols].sum(axis=1)
+
+    common = [e for e in ercc.index if e in truth.index]
+    detected = [
+        e for e in common
+        if total.get(e, 0) >= min_count_sum
+        and mean_a.get(e, 0) > 0 and mean_b.get(e, 0) > 0
+    ]
+
+    # 1. Fold-change recovery vs the known Mix1/Mix2 log2 ratio.
+    measured_fc = {e: float(np.log2(mean_a[e] / mean_b[e])) for e in detected}
+    expected_fc = {e: float(truth.loc[e, "log2_mix1_mix2"]) for e in detected}
+    mvec = [measured_fc[e] for e in detected]
+    evec = [expected_fc[e] for e in detected]
+    fc_pearson = (
+        _finite_float(pd.Series(mvec).corr(pd.Series(evec))) if len(detected) >= 3 else 0.0
+    )
+    slope = _ols_slope(evec, mvec)
+    by_subgroup = {}
+    sub = truth["subgroup"].astype(str)
+    for g in sorted(set(sub.loc[detected])):
+        ids = [e for e in detected if sub.get(e) == g]
+        by_subgroup[g] = {
+            "n": len(ids),
+            "expected_log2": round(float(np.mean([expected_fc[e] for e in ids])), 3),
+            "measured_log2_mean": round(float(np.mean([measured_fc[e] for e in ids])), 3),
+            "measured_log2_sd": round(float(np.std([measured_fc[e] for e in ids])), 3),
+        }
+
+    # 2. Dynamic-range linearity: measured CPM vs known input concentration.
+    # Each (sample, ERCC) uses its mix's nominal concentration.
+    log_meas, log_nom = [], []
+    for e in detected:
+        c1 = float(truth.loc[e, "conc_mix1"])
+        c2 = float(truth.loc[e, "conc_mix2"])
+        for s in a_cols:
+            if cpm.loc[e, s] > 0 and c1 > 0:
+                log_meas.append(np.log2(cpm.loc[e, s])); log_nom.append(np.log2(c1))
+        for s in b_cols:
+            if cpm.loc[e, s] > 0 and c2 > 0:
+                log_meas.append(np.log2(cpm.loc[e, s])); log_nom.append(np.log2(c2))
+    if len(log_nom) >= 3:
+        dr_pearson = _finite_float(pd.Series(log_meas).corr(pd.Series(log_nom)))
+        dr_slope = _ols_slope(log_nom, log_meas)
+        dynamic_range_log10 = round(
+            float((np.max(log_nom) - np.min(log_nom)) / np.log2(10)), 2
+        )
+    else:
+        dr_pearson = 0.0
+        dr_slope = None
+        dynamic_range_log10 = 0.0
+
+    axes = {
+        "fold_change_recovery": {
+            "pearson": round(fc_pearson, 4),
+            "slope_measured_vs_expected": None if slope is None else round(slope, 3),
+            "n_ercc_detected": len(detected),
+            "n_ercc_total": int(len(ercc.index)),
+            "by_subgroup": by_subgroup,
+        },
+        "dynamic_range": {
+            "pearson_log_cpm_vs_log_conc": round(dr_pearson, 4),
+            "slope": None if dr_slope is None else round(dr_slope, 3),
+            "dynamic_range_orders_of_magnitude": dynamic_range_log10,
+            "n_points": len(log_nom),
+        },
+    }
+    axis_pass = {
+        "fold_change_recovery": abs(fc_pearson) >= min_fc_pearson,
+        "dynamic_range": dr_pearson >= min_dynamic_range_pearson,
+    }
+    status = "pass" if all(axis_pass.values()) else "fail"
+    return {
+        "status": status,
+        "benchmark": "A1_ercc_dose_response",
+        "benchmark_version": "v1",
+        "scope": "external_reference_ercc",
+        "method_under_test": "ARIA CPM normalization on the SEQC gene library",
+        "comparison": {"numerator": numerator, "denominator": denominator,
+                       "mix_assumption": f"{numerator}=Mix1, {denominator}=Mix2"},
+        "tolerances": {"min_fc_pearson": min_fc_pearson,
+                       "min_dynamic_range_pearson": min_dynamic_range_pearson},
+        "axis_pass": axis_pass,
+        "axes": axes,
+        "source": bundle.get("manifest", {}),
+        "messages": [
+            "ERCC dose-response: measured log2(A/B) vs known Mix1/Mix2 ratio "
+            "(per subgroup) and measured CPM vs known input concentration. ERCC "
+            "counts + concentration truth come from the staged bundle."
+        ],
+    }
+
+
+def write_ercc_figure(manifest: dict[str, Any], path: str) -> str:
+    """Dependency-free SVG: per-subgroup expected vs measured ERCC log2FC."""
+    axes = manifest.get("axes", {})
+    fc = axes.get("fold_change_recovery", {})
+    dr = axes.get("dynamic_range", {})
+    by = fc.get("by_subgroup", {})
+    rows_data = [
+        (f"subgroup {g} (exp {v['expected_log2']:+.2f})", v["measured_log2_mean"],
+         v["expected_log2"])
+        for g, v in sorted(by.items())
+    ]
+    width = 760
+    left, mid, top = 300, 380, 80
+    row_h, gap = 36, 20
+    span = 3.2  # log2 axis half-range for the centered bars
+    rows = []
+    for i, (label, measured, expected) in enumerate(rows_data):
+        y = top + i * (row_h + gap)
+        mx = mid + (max(-span, min(span, measured)) / span) * (width - mid - 90)
+        ex = mid + (max(-span, min(span, expected)) / span) * (width - mid - 90)
+        rows.append(
+            f'<text x="20" y="{y + 23}" font-size="14" fill="#1f2933">{label}</text>'
+            f'<line x1="{ex:.1f}" y1="{y}" x2="{ex:.1f}" y2="{y + row_h}" '
+            f'stroke="#A23B3B" stroke-width="3"/>'
+            f'<circle cx="{mx:.1f}" cy="{y + row_h / 2:.1f}" r="7" fill="#2F6F73"/>'
+            f'<text x="{mx + 12:.1f}" y="{y + 23}" font-size="13" fill="#1f2933">'
+            f'{measured:+.2f}</text>'
+        )
+    status = manifest.get("status", "unknown").upper()
+    height = top + len(rows_data) * (row_h + gap) + 56
+    yaxis = mid
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<text x="20" y="34" font-size="20" font-weight="700" fill="#111827">'
+        'Fig. 1 reference: ERCC dose-response (A vs B)</text>'
+        f'<text x="640" y="34" font-size="16" font-weight="700" fill="#2F6F73">{status}</text>'
+        f'<line x1="{yaxis}" y1="{top - 10}" x2="{yaxis}" y2="{height - 50}" '
+        'stroke="#cbd5e1" stroke-width="1"/>'
+        f'<text x="20" y="58" font-size="12" fill="#4b5563">'
+        f'Red bar = expected log2(Mix1/Mix2); teal dot = measured. FC Pearson '
+        f'{fc.get("pearson", 0):.3f}, slope {fc.get("slope_measured_vs_expected")}; '
+        f'dynamic-range Pearson {dr.get("pearson_log_cpm_vs_log_conc", 0):.3f} over '
+        f'{dr.get("dynamic_range_orders_of_magnitude", 0)} log10.</text>'
+        + "".join(rows)
+        + "</svg>"
+    )
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(svg, encoding="utf-8")
+    return str(out)
+
+
+def run_ercc_dose_response(
+    bundle_dir: str | Path,
+    *,
+    output_dir: str | None = None,
+    manifest_name: str = "a1_ercc_dose_response_v4.5.5.json",
+    figure_name: str = "fig1_a1_ercc_dose_response_v4.5.5.svg",
+    **score_kwargs: Any,
+) -> dict[str, Any]:
+    """Execute the ERCC dose-response lane, or skip honestly if no ERCC bundle."""
+    import json
+
+    bundle = load_seqc_maqc_bundle(bundle_dir)
+    if bundle is None:
+        return {"status": "skipped", "reason": "no bundle staged",
+                "benchmark": "A1_ercc_dose_response"}
+    manifest = score_ercc_dose_response(bundle, **score_kwargs)
+    if output_dir and manifest.get("status") in ("pass", "fail"):
+        from aria.version import __version__, collect_version_metadata
+        outdir = Path(output_dir)
+        outdir.mkdir(parents=True, exist_ok=True)
+        manifest["aria_version"] = __version__
+        manifest["provenance"] = collect_version_metadata()
+        figure_path = outdir / figure_name
+        manifest_path = outdir / manifest_name
+        write_ercc_figure(manifest, str(figure_path))
+        manifest["artifacts"] = {"manifest_json": str(manifest_path),
+                                 "figure_svg": str(figure_path)}
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+        )
+    return manifest

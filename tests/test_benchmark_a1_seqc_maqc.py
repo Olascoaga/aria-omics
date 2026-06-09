@@ -162,6 +162,73 @@ def test_multisite_cross_concordance_matrix(monkeypatch, tmp_path):
     assert cs["mean_offdiagonal_pearson"] is not None
 
 
+def test_ercc_dose_response_recovers_known_design(tmp_path):
+    """ERCC dose-response uses only CPM (no pydeseq2): build an ERCC bundle whose
+    A/B counts follow the known Mix1/Mix2 ratios across a concentration ladder,
+    and confirm the scorer recovers the per-subgroup fold-changes and dynamic
+    range."""
+    import numpy as np
+    import pandas as pd
+    from aria.benchmarks.reference_seqc import (
+        load_seqc_maqc_bundle,
+        score_ercc_dose_response,
+    )
+
+    # 4 ERCC subgroups x known log2(Mix1/Mix2) and a concentration ladder.
+    sub_log2 = {"A": 2.0, "B": 0.0, "C": -0.58, "D": -1.0}
+    rng = np.random.default_rng(3)
+    a_cols = [f"A_{i}" for i in range(1, 4)]
+    b_cols = [f"B_{i}" for i in range(1, 4)]
+    erows, truth_rows = {}, []
+    for k in range(40):
+        g = list(sub_log2)[k % 4]
+        conc1 = float(10 ** rng.uniform(1, 5))            # 4-order ladder
+        conc2 = conc1 / (2 ** sub_log2[g])
+        scale = 30.0
+        a = rng.poisson(conc1 * scale, size=3) + 5
+        b = rng.poisson(conc2 * scale, size=3) + 5
+        eid = f"ERCC-{k:05d}"
+        erows[eid] = list(a) + list(b)
+        truth_rows.append((eid, g, conc1, conc2, 2 ** sub_log2[g], sub_log2[g]))
+
+    ercc = pd.DataFrame.from_dict(erows, orient="index", columns=a_cols + b_cols)
+    ercc.insert(0, "ercc_id", ercc.index)
+    # A large flat gene matrix so the library sizes are balanced across A/B.
+    genes = pd.DataFrame(
+        rng.poisson(100, size=(500, 6)), columns=a_cols + b_cols,
+        index=[f"G{i}" for i in range(500)],
+    )
+    genes.insert(0, "gene", genes.index)
+
+    bundle_dir = tmp_path
+    genes.to_csv(bundle_dir / "counts.tsv", sep="\t", index=False)
+    pd.DataFrame({"sample": a_cols + b_cols,
+                  "group": ["A"] * 3 + ["B"] * 3}).to_csv(
+        bundle_dir / "samples.tsv", sep="\t", index=False)
+    pd.DataFrame({"gene": ["G0"], "log2_ab": [0.0]}).to_csv(
+        bundle_dir / "taqman.tsv", sep="\t", index=False)
+    ercc.to_csv(bundle_dir / "ercc_counts.tsv", sep="\t", index=False)
+    pd.DataFrame(truth_rows, columns=[
+        "ercc_id", "subgroup", "conc_mix1", "conc_mix2",
+        "expected_fc", "log2_mix1_mix2",
+    ]).to_csv(bundle_dir / "ercc_truth.tsv", sep="\t", index=False)
+
+    bundle = load_seqc_maqc_bundle(bundle_dir)
+    m = score_ercc_dose_response(bundle)
+
+    assert m["status"] == "pass", m
+    fc = m["axes"]["fold_change_recovery"]
+    dr = m["axes"]["dynamic_range"]
+    assert fc["pearson"] >= 0.6
+    assert fc["slope_measured_vs_expected"] > 0.5          # A=Mix1 direction
+    assert set(fc["by_subgroup"]) == {"A", "B", "C", "D"}
+    # Per-subgroup measured tracks expected ordering A > B > C > D.
+    means = {g: v["measured_log2_mean"] for g, v in fc["by_subgroup"].items()}
+    assert means["A"] > means["B"] > means["D"]
+    assert dr["pearson_log_cpm_vs_log_conc"] >= 0.9
+    assert dr["dynamic_range_orders_of_magnitude"] >= 2.0
+
+
 @pytest.mark.skipif(
     not os.environ.get("ARIA_SEQC_MAQC_BUNDLE"),
     reason="set ARIA_SEQC_MAQC_BUNDLE to a staged real reference bundle",
