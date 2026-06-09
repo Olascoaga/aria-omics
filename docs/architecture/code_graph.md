@@ -370,7 +370,15 @@ Use these tests as impact anchors when editing the graph's major nodes:
   via `score_bulk_de_a1`, writes `docs/benchmark_results/a1_bulk_de_v4.5.5.json`,
   and writes `docs/benchmark_results/fig1_a1_bulk_de_v4.5.5.svg`. This is the
   ARIA-path preliminary lane only; external R comparator runs belong to the
-  separate `aria-bench-env` track.
+  separate `aria-bench-env` track. The manifest also carries a permanent
+  descriptive `lfc_threshold_frontier` axis from `sweep_bulk_de_lfc_threshold`:
+  the same dataset re-run at Wald `lfcThreshold` ∈ {0,0.25,0.5,1.0}, where
+  `lfc_threshold=0` is the matched-null DESeq2-equivalence reference (recall
+  0.808 = external DESeq2) and 0.5 is the default policy (recall 0.525). It is
+  NOT a pass/fail gate (the four scored axes still use 0.5); it proves the
+  recall gap vs DESeq2/edgeR/limma is effect-size policy, not engine (ADR-035).
+  Guards: `test_a1_lfc_threshold_frontier_isolates_effect_size_policy`,
+  `test_a1_runner_manifest_carries_lfc_threshold_frontier` (pydeseq2-gated).
 - Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
   `scripts/run_a2_pseudobulk_benchmark.py` calls
   `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the

@@ -94,6 +94,18 @@ External DESeq2/edgeR/limma comparator execution remains assigned to
 `aria-bench-env`; do not cite the preliminary artifact as a superiority or
 identity claim.
 
+A1 also reports a permanent `lfc_threshold_frontier` axis (descriptive, not a
+pass/fail gate): the same dataset is re-run through ARIA's real bulk DE path at
+several Wald `lfcThreshold` values. `lfc_threshold=0` is the matched-null
+DESeq2-equivalence reference (H0: LFC = 0) and is computed, not hardcoded;
+higher thresholds test H0: `|LFC| <= thr`, trading recall for precision. On the
+seed-11 synthetic truth ARIA recovers recall 0.808 / empirical FDR 0.085 at
+`lfc_threshold=0` — matching the external DESeq2 comparator exactly — and
+recall 0.525 / FDR 0.000 at the default `lfcThreshold=0.5` effect-size policy.
+This isolates the recall difference versus DESeq2/edgeR/limma as ARIA's
+deliberate, user-controlled policy rather than an engine difference; cite the
+frontier, not a single conservative recall number (ADR-035).
+
 Post-v4.5.5 comparator execution: `scripts/run_a1_external_comparators.py`
 dispatches `aria/scripts/benchmark_a1_external_comparators.py` through
 `EnvironmentManager` `stack="benchmark"` / `aria-bench-env`. The IPC runner

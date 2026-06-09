@@ -1,5 +1,5 @@
 {
-  "aria_version": "4.5.5",
+  "aria_version": "4.6.0-alpha",
   "artifacts": {
     "figure_svg": "docs/benchmark_results/fig1_a1_bulk_de_v4.5.5.svg",
     "manifest_json": "docs/benchmark_results/a1_bulk_de_v4.5.5.json"
@@ -63,17 +63,74 @@
     "replicates_per_condition": 6,
     "seed": 11
   },
+  "lfc_threshold_frontier": {
+    "description": "Wald lfcThreshold recall/precision frontier on one synthetic truth. lfc_threshold=0 is the matched-null DESeq2 equivalence reference; higher thresholds are ARIA's deliberate effect-size policy.",
+    "n_true_de": 120,
+    "padj_max": 0.05,
+    "points": [
+      {
+        "empirical_fdr": 0.0849,
+        "is_matched_null": true,
+        "is_policy_default": false,
+        "lfc_threshold": 0.0,
+        "n_called": 106,
+        "n_false_positive": 9,
+        "n_true_positive": 97,
+        "precision": 0.9151,
+        "recall": 0.8083,
+        "status": "success"
+      },
+      {
+        "empirical_fdr": 0.0,
+        "is_matched_null": false,
+        "is_policy_default": false,
+        "lfc_threshold": 0.25,
+        "n_called": 82,
+        "n_false_positive": 0,
+        "n_true_positive": 82,
+        "precision": 1.0,
+        "recall": 0.6833,
+        "status": "success"
+      },
+      {
+        "empirical_fdr": 0.0,
+        "is_matched_null": false,
+        "is_policy_default": true,
+        "lfc_threshold": 0.5,
+        "n_called": 63,
+        "n_false_positive": 0,
+        "n_true_positive": 63,
+        "precision": 1.0,
+        "recall": 0.525,
+        "status": "success"
+      },
+      {
+        "empirical_fdr": 0.0,
+        "is_matched_null": false,
+        "is_policy_default": false,
+        "lfc_threshold": 1.0,
+        "n_called": 18,
+        "n_false_positive": 0,
+        "n_true_positive": 18,
+        "precision": 1.0,
+        "recall": 0.15,
+        "status": "success"
+      }
+    ],
+    "policy_threshold": 0.5
+  },
   "messages": [
-    "A1 preliminary validates ARIA's bulk DE path against synthetic truth; external DESeq2/edgeR/limma comparators remain assigned to aria-bench-env."
+    "A1 preliminary validates ARIA's bulk DE path against synthetic truth; external DESeq2/edgeR/limma comparators remain assigned to aria-bench-env.",
+    "lfc_threshold_frontier: at lfc_threshold=0 (matched DESeq2 null) ARIA recall=0.8083 / empirical_fdr=0.0849 (n_called=106); the scored axes use ARIA's default lfcThreshold=0.5 effect-size policy. The recall difference is policy, not engine."
   ],
   "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
   "provenance": {
-    "aria_version": "4.5.5",
-    "git_commit": "24d15184598555a136d381d1ba1a35a2e01e5a1b",
-    "git_describe": "v4.5.4-133-g24d1518-dirty",
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "ab029dac7dbe4845f7426bc9ca60e86bb4244cfa",
+    "git_describe": "v4.5.5-20-gab029da-dirty",
     "git_dirty": true,
-    "git_sha": "24d15184598555a136d381d1ba1a35a2e01e5a1b",
-    "git_tree_sha": "a074506dea4cc9a13714fe5c3b2cb812617f3b8d",
+    "git_sha": "ab029dac7dbe4845f7426bc9ca60e86bb4244cfa",
+    "git_tree_sha": "d5e93111f6ac7ac177d969a2df4bf1e5c18f7594",
     "image": {
       "containerized": false,
       "digest": null,
@@ -83,9 +140,9 @@
       "revision": null,
       "validation": null
     },
-    "version": "4.5.5",
+    "version": "4.6.0-alpha",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "e474f60c55f0ed8b0525d497ff7dc787a90e3f4550aa3b04dc2376da862eaa4f",
+    "workflow_hash": "225b8467d344942d04ae8380c7fb74b64257ba7f2c6bdf59ffecaf0d8ca0a62d",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "preliminary_synthetic_truth",

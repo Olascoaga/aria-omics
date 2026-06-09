@@ -822,6 +822,75 @@ def score_bulk_de_a1(
     }
 
 
+def sweep_bulk_de_lfc_threshold(
+    dataset: SyntheticBulkDEDataset,
+    *,
+    thresholds: tuple[float, ...] = (0.0, 0.25, 0.5, 1.0),
+    padj_max: float = 0.05,
+    policy_threshold: float = 0.5,
+) -> dict[str, Any]:
+    """Quantify the recall/precision frontier of ARIA's Wald ``lfcThreshold``.
+
+    Runs the real bulk DE path (``_run_deseq2``, apeGLM-enabled) on a single
+    synthetic dataset at several Wald lfcThreshold values. ``lfc_thr=0.0``
+    reproduces the standard DESeq2 null (H0: LFC = 0); higher thresholds test
+    H0: ``|LFC| <= thr`` and deliberately trade recall for precision.
+
+    This isolates how much of any recall gap versus standard DESeq2/edgeR/limma
+    is ARIA's *effect-size policy* (a user-controlled choice) rather than an
+    engine difference: the ``lfc_threshold == 0`` point is the matched-null
+    DESeq2-equivalence reference, computed here (not hardcoded), so a report can
+    show the frontier instead of a single conservative recall number.
+    """
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    true_de = set(map(str, dataset.de_genes))
+    null = set(map(str, dataset.null_genes))
+    n_true = len(true_de)
+
+    points: list[dict[str, Any]] = []
+    for thr in thresholds:
+        thr = float(thr)
+        res, _w = _run_deseq2(
+            dataset.counts, dataset.metadata, "condition", "COND_B", "COND_A",
+            padj_thr=padj_max, lfc_thr=thr, lfc_shrink=True,
+        )
+        if res.get("status") != "success":
+            points.append({
+                "lfc_threshold": thr,
+                "status": "error",
+                "error_type": res.get("error_type"),
+                "details": res.get("details", ""),
+            })
+            continue
+        called = set(map(str, res.get("sig_genes", []) or []))
+        tp = called & true_de
+        fp = called & null
+        points.append({
+            "lfc_threshold": thr,
+            "status": "success",
+            "n_called": len(called),
+            "n_true_positive": len(tp),
+            "n_false_positive": len(fp),
+            "recall": round(len(tp) / max(n_true, 1), 4),
+            "precision": round(len(tp) / max(len(called), 1), 4),
+            "empirical_fdr": round(len(fp) / max(len(called), 1), 4),
+            "is_matched_null": thr == 0.0,
+            "is_policy_default": thr == float(policy_threshold),
+        })
+    return {
+        "description": (
+            "Wald lfcThreshold recall/precision frontier on one synthetic truth. "
+            "lfc_threshold=0 is the matched-null DESeq2 equivalence reference; "
+            "higher thresholds are ARIA's deliberate effect-size policy."
+        ),
+        "padj_max": padj_max,
+        "policy_threshold": float(policy_threshold),
+        "n_true_de": n_true,
+        "points": points,
+    }
+
+
 def write_bulk_de_a1_figure(manifest: dict[str, Any], path: str) -> str:
     """Write a dependency-free SVG summary for preliminary Fig. 1."""
     from pathlib import Path
@@ -896,6 +965,26 @@ def run_bulk_de_a1_benchmark(
         nominal_alpha=0.05, max_false_positive_rate=0.05, lfc_min=0.5,
     )
     manifest = score_bulk_de_a1(dataset, de_result, negative)
+    frontier = sweep_bulk_de_lfc_threshold(
+        dataset,
+        thresholds=(0.0, 0.5) if quick else (0.0, 0.25, 0.5, 1.0),
+        padj_max=0.05,
+        policy_threshold=0.5,
+    )
+    manifest["lfc_threshold_frontier"] = frontier
+    matched = next(
+        (p for p in frontier["points"]
+         if p.get("is_matched_null") and p.get("status") == "success"),
+        None,
+    )
+    if matched is not None:
+        manifest.setdefault("messages", []).append(
+            "lfc_threshold_frontier: at lfc_threshold=0 (matched DESeq2 null) "
+            f"ARIA recall={matched['recall']} / empirical_fdr={matched['empirical_fdr']} "
+            f"(n_called={matched['n_called']}); the scored axes use ARIA's default "
+            "lfcThreshold=0.5 effect-size policy. The recall difference is policy, "
+            "not engine."
+        )
     manifest.update({
         "aria_version": __version__,
         "provenance": collect_version_metadata(),

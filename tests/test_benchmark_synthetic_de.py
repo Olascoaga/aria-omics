@@ -193,6 +193,53 @@ def test_bulk_de_recovers_ground_truth():
     assert res.empirical_fdr <= 0.2, res.as_dict()
 
 
+def test_a1_lfc_threshold_frontier_isolates_effect_size_policy():
+    """The A1 lfcThreshold frontier must show that ARIA's recall gap versus
+    standard DESeq2 is its effect-size policy, not an engine difference:
+    lfc_threshold=0 (matched DESeq2 null) recovers strictly more than the
+    default 0.5 policy, and recall is non-increasing as the threshold rises."""
+    pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import (
+        simulate_bulk_dataset,
+        sweep_bulk_de_lfc_threshold,
+    )
+
+    ds = simulate_bulk_dataset(n_genes=1000, n_de=120, replicates_per_condition=6, seed=11)
+    frontier = sweep_bulk_de_lfc_threshold(ds, thresholds=(0.0, 0.5, 1.0))
+
+    pts = {p["lfc_threshold"]: p for p in frontier["points"]}
+    assert set(pts) == {0.0, 0.5, 1.0}
+    assert all(p["status"] == "success" for p in pts.values())
+
+    # The matched-null point is the DESeq2-equivalence reference and is flagged.
+    assert pts[0.0]["is_matched_null"] is True
+    assert pts[0.5]["is_policy_default"] is True
+
+    # Effect-size policy trades recall for precision: recall non-increasing.
+    assert pts[0.0]["recall"] > pts[0.5]["recall"] > pts[1.0]["recall"]
+    # Matched-null recovers the standard-DESeq2 calibre (well above the 0.5 gate).
+    assert pts[0.0]["recall"] >= 0.75
+    # The stricter policy never inflates empirical FDR over the matched null.
+    assert pts[0.5]["empirical_fdr"] <= pts[0.0]["empirical_fdr"]
+
+
+def test_a1_runner_manifest_carries_lfc_threshold_frontier():
+    """run_bulk_de_a1_benchmark must persist the frontier as a permanent axis,
+    including the matched-null DESeq2-equivalence message."""
+    pytest.importorskip("pandas")
+    pytest.importorskip("pydeseq2")
+    from aria.benchmarks.synthetic_de import run_bulk_de_a1_benchmark
+
+    manifest = run_bulk_de_a1_benchmark(seed=11, quick=True)
+    frontier = manifest.get("lfc_threshold_frontier")
+    assert frontier is not None
+    thresholds = {p["lfc_threshold"] for p in frontier["points"]}
+    assert thresholds == {0.0, 0.5}
+    assert frontier["policy_threshold"] == 0.5
+    assert any("matched DESeq2 null" in m for m in manifest.get("messages", []))
+
+
 # ── W-CALIB: label-permutation negative controls (empirical type-I) ───────────
 
 def test_negative_control_result_shape():
