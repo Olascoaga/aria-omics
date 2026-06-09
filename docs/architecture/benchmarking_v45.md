@@ -166,6 +166,20 @@ by `scripts/run_a2_pseudobulk_benchmark.py` and writes a versioned manifest plus
 Fig 2 SVG under `docs/benchmark_results/`. It validates ARIA's real pseudobulk
 DE path on synthetic truth and runs a donor-heterogeneity null where a naive
 cell-level Welch test treats cells as independent replicates. Kang + muscat
+A2 external reference EXECUTED (ADR-039): `run_a2_external_comparators.py` /
+`aria/benchmarks/reference_kang.py` validate ARIA's donor-aware pseudobulk DE
+against the muscat reference method on the real Kang et al. 2018 dataset (8
+donors, ctrl vs IFN-beta). The muscat method aggregates cells to per-cluster
+donor-condition pseudobulk and runs edgeR-QLF; ARIA's `_run_deseq2` runs on the
+identical pseudobulk, compared per cell type. The full Kang18_8vs8 SCE is
+fetched directly from ExperimentHub (EH2259) and the muscat edgeR reference is
+computed with edgeR — no heavy muscat-package install. Executed result (8 cell
+types, 8-vs-8): mean ARIA-vs-muscat log2FC Pearson **0.976** (min 0.900),
+signal-Spearman 0.985, 100% direction agreement on shared significant genes,
+4921 shared significant genes (the IFN/ISG response). This is the (former)
+Kang + muscat lane — now done.
+
+Superseded note: Kang + muscat
 remains the external reference lane and requires local benchmark data plus
 `aria-bench-env`.
 

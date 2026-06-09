@@ -409,6 +409,20 @@ Use these tests as impact anchors when editing the graph's major nodes:
   cms_095046, downloaded by the Python fetcher). Real result (BGI): FC Pearson
   0.902 / slope 0.919, dynamic-range Pearson 0.976 over 6.3 log10. Guard
   `test_ercc_dose_response_recovers_known_design` (no pydeseq2). ADR-038.
+- Benchmark A2 Kang + muscat external reference lane (ADR-039):
+  `scripts/run_a2_external_comparators.py` runs a two-phase comparison —
+  `aria/scripts/benchmark_a2_external_muscat.R` (aria-bench-env) fetches the full
+  Kang18_8vs8 SCE from ExperimentHub (EH2259, cached in `~/.aria/benchmarks/`),
+  aggregates per-cluster donor-condition pseudobulk, and computes the muscat
+  edgeR-QLF reference (with the installed edgeR; no muscat-package install since
+  its dep tree fails to compile); then `aria/benchmarks/reference_kang.py`
+  `score_aria_vs_muscat` runs ARIA's `_run_deseq2` on the identical pseudobulk
+  and compares per cell type (gates on mean log2FC Pearson + sig-gene overlap;
+  reports signal Spearman, direction agreement, top-k Jaccard). Data-gated by the
+  export; honest-skip when absent. Real result: mean Pearson 0.976, 100%
+  direction agreement, 4921 shared significant. Guards (no pydeseq2):
+  `tests/test_benchmark_a2_kang_muscat.py`. Artifact:
+  `docs/benchmark_results/a2_kang_muscat/`.
 - Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
   `scripts/run_a2_pseudobulk_benchmark.py` calls
   `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the
