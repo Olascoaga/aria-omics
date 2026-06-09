@@ -230,6 +230,13 @@ Adversarial cases include:
 
 Report a confusion matrix by decision type.
 
+B1 EXECUTED (ADR-040): `run_b1_design_governance.py` /
+`aria/benchmarks/governance_b1.py` drive ARIA's real readiness audit
+(`ScRNAAuditAgent`) + design-matrix validator (`validate_design_matrix`) over a
+23-case adversarial corpus. Result: 100% accuracy, perfectly diagonal confusion
+matrix, **unsafe-execution rate 0.0**, correct refusal 1.0, correct inference
+1.0. Artifact: `docs/benchmark_results/b1_design/`.
+
 ### B2 Claim/Narrative
 
 Operational unit:
@@ -297,6 +304,10 @@ must be independent of ARIA's Claim Compiler and reported against human labels.
 At least one dataset should be recent/private enough to reduce training-data
 contamination risk.
 
+
+
+B2 EXECUTED (preliminary, ADR-040): `run_b2_claim_narrative.py` / `aria/benchmarks/governance_b2.py` score ARIA's claim governance (`verify_block_claim_support` + `classify_claim` + causal guard) vs an ungoverned arm over a hand-labelled claim corpus. Result: false-narrative rate 0.4 -> 0.1, causal-overreach rate 1.0 -> 0.0. The one surviving false claim is qualitative overclaim the structured verifier does not catch (surfaced honestly). Full multi-annotator human B2 remains preprint work. Artifact: `docs/benchmark_results/b2_claim/`.
+
 ### B3 Multi-LLM Invariance
 
 Supplemental unless it is clean and cheap:
@@ -317,6 +328,10 @@ whether ARIA reports no supported signal rather than inventing a biological
 story.
 
 Primary metric: fabricated or unsupported narrative rate on null controls.
+
+
+
+B4 EXECUTED (ADR-040): `run_b4_null_narrative.py` / `aria/benchmarks/governance_b4.py` drive the same governance over narrative blocks on NULL evidence (0 significant genes). Result: fabricated-narrative rate 0.0 (3 hard-rejected by the verifier, 3 tier-capped to descriptive), honest false-flag 0.0. Artifact: `docs/benchmark_results/b4_null/`.
 
 ## Frozen Implementation Order
 

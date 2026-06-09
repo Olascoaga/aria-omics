@@ -379,6 +379,19 @@ Use these tests as impact anchors when editing the graph's major nodes:
   recall gap vs DESeq2/edgeR/limma is effect-size policy, not engine (ADR-035).
   Guards: `test_a1_lfc_threshold_frontier_isolates_effect_size_policy`,
   `test_a1_runner_manifest_carries_lfc_threshold_frontier` (pydeseq2-gated).
+- Benchmark B governance lanes (ARIA's contribution; pure-Python, no pydeseq2):
+  `aria/benchmarks/governance_b1.py` (B1 DesignAgent) drives the REAL
+  `ScRNAAuditAgent` readiness + `validate_design_matrix` over a 23-case
+  adversarial corpus → unsafe-execution rate 0.0, 100% accuracy.
+  `governance_b4.py` (B4 null narrative) + `governance_b2.py` (B2 claim, prelim)
+  drive the REAL `verify_block_claim_support` + `classify_claim` + causal guard
+  (`validators.validate_block`): B4 fabricated-narrative rate 0.0 on null
+  evidence; B2 false-narrative 0.4→0.1 and causal-overreach 1.0→0.0 vs an
+  ungoverned arm. These benchmarks call ARIA's governance as the system under
+  test against independent hand-labels; do not let the scorer become ARIA's own
+  Claim Compiler judging itself. Runners `scripts/run_b{1,2,4}_*.py`; guards
+  `tests/test_benchmark_b{1,2,4}_*.py` in the CI PR lane; artifacts
+  `docs/benchmark_results/b{1,2,4}_*/`. ADR-040.
 - Benchmark A1 SEQC/MAQC reference lane (external TaqMan truth):
   `scripts/run_a1_seqc_maqc_benchmark.py` calls
   `aria.benchmarks.reference_seqc.run_seqc_maqc_a1_benchmark`, which runs the
