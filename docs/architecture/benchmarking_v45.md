@@ -98,6 +98,16 @@ counts (samples A/B, 5 reps each) ARIA scored: LFC concordance vs TaqMan
 A→C→D→B. The lane is data-gated (`ARIA_SEQC_MAQC_BUNDLE`) and skips honestly when
 the bundle is absent; nothing is fabricated (ADR-036).
 
+Cross-site reproducibility (executed, ADR-037): `run_seqc_maqc_multisite`
+(`scripts/run_a1_seqc_multisite_benchmark.py`) runs ARIA's A-vs-B DE at each of
+the five Illumina SEQC sites (BGI, CNL, MAY, AGR, NVS) and reports the pairwise
+log2FC concordance between sites — the SEQC reproducibility metric — plus each
+site's TaqMan concordance. Executed result: mean off-diagonal cross-site Pearson
+**0.980** (min 0.978) over all 10 site pairs (median 23,022 genes/pair), and a
+near-constant per-site TaqMan Pearson **0.940–0.944**. ARIA's DE result is
+effectively independent of the sequencing site. Artifact:
+`docs/benchmark_results/a1_seqc_maqc/a1_seqc_multisite_v4.5.5.json`.
+
 v4.5.5 executable artifact: the preliminary synthetic-truth A1 lane is
 implemented by `scripts/run_a1_bulk_de_benchmark.py` and writes a versioned
 manifest plus Fig 1 SVG under `docs/benchmark_results/`. It runs ARIA's real

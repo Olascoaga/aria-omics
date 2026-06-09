@@ -37,6 +37,8 @@ __all__ = [
     "score_seqc_maqc_a1",
     "run_seqc_maqc_a1_benchmark",
     "write_seqc_maqc_a1_figure",
+    "run_seqc_maqc_multisite",
+    "write_seqc_multisite_figure",
 ]
 
 
@@ -425,3 +427,255 @@ def run_seqc_maqc_a1_benchmark(
             json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
         )
     return manifest
+
+
+def _site_de_lfc(bundle, numerator, denominator, padj_max, lfc_thr):
+    """Run ARIA's real bulk DE for one site; return (de_result, est_lfc, n_num,
+    n_den). Shared by the multi-site lane; the single-site scorer is unchanged."""
+    import pandas as pd
+    from aria.scripts.rna_bulk_de import _run_deseq2
+
+    counts = bundle["counts"]
+    grp = bundle["samples"].set_index("sample")["group"]
+    keep = [s for s in counts.columns if s in grp.index and grp[s] in (numerator, denominator)]
+    meta = pd.DataFrame({"group": [grp[s] for s in keep]}, index=keep)
+    n_num = int((meta["group"] == numerator).sum())
+    n_den = int((meta["group"] == denominator).sum())
+    if n_num < 2 or n_den < 2:
+        return None, None, n_num, n_den
+    de_result, _w = _run_deseq2(
+        counts[keep], meta, "group", numerator, denominator,
+        padj_thr=padj_max, lfc_thr=lfc_thr, lfc_shrink=True,
+    )
+    if de_result.get("status") != "success":
+        return de_result, None, n_num, n_den
+    df = de_result["results"].copy()
+    df.index = [str(i) for i in df.index]
+    est_lfc = pd.to_numeric(df.get("log2FoldChange"), errors="coerce")
+    est_lfc = est_lfc[est_lfc.notna()]
+    return de_result, est_lfc, n_num, n_den
+
+
+def _taqman_summary(de_result, est_lfc, taqman, *, signal_floor, taqman_de_threshold,
+                    taqman_null_threshold):
+    """Compact per-site TaqMan concordance (Pearson + signal Spearman + AUC)."""
+    import numpy as np
+    import pandas as pd
+
+    df = de_result["results"].copy()
+    df.index = [str(i) for i in df.index]
+    pvalue = pd.to_numeric(df.get("pvalue"), errors="coerce")
+    overlap = [g for g in est_lfc.index if g in taqman]
+    conc = pd.DataFrame({
+        "aria": est_lfc.reindex(overlap).values,
+        "taqman": [taqman[g] for g in overlap],
+    }, index=overlap).replace([np.inf, -np.inf], np.nan).dropna()
+    if conc.empty:
+        return {"pearson": 0.0, "spearman_signal": 0.0, "auc": None, "n_overlap": 0}
+    pearson = _finite_float(conc["aria"].corr(conc["taqman"], method="pearson"))
+    signal = conc[conc["taqman"].abs() >= signal_floor]
+    spearman_signal = (
+        _finite_float(signal["aria"].corr(signal["taqman"], method="spearman"))
+        if len(signal) >= 3 else 0.0
+    )
+    score = (-np.log10(pvalue.clip(lower=1e-300))).reindex(overlap)
+    pos = [g for g in overlap if abs(taqman[g]) >= taqman_de_threshold]
+    neg = [g for g in overlap if abs(taqman[g]) <= taqman_null_threshold]
+    auc = _auc(
+        [float(score.get(g, np.nan)) for g in pos],
+        [float(score.get(g, np.nan)) for g in neg],
+    )
+    return {
+        "pearson": round(pearson, 4),
+        "spearman_signal": round(spearman_signal, 4),
+        "auc": None if auc is None else round(auc, 4),
+        "n_overlap": int(len(conc)),
+    }
+
+
+def run_seqc_maqc_multisite(
+    site_bundles: dict[str, str | Path],
+    *,
+    numerator: str = "A",
+    denominator: str = "B",
+    padj_max: float = 0.05,
+    lfc_thr: float = 0.0,
+    signal_floor: float = 0.5,
+    taqman_de_threshold: float = 1.0,
+    taqman_null_threshold: float = 0.2,
+    min_cross_site_pearson: float = 0.9,
+    output_dir: str | None = None,
+    manifest_name: str = "a1_seqc_multisite_v4.5.5.json",
+    figure_name: str = "fig1_a1_seqc_multisite_v4.5.5.svg",
+) -> dict[str, Any]:
+    """Cross-site SEQC reproducibility: run ARIA's bulk DE (A vs B) at each site
+    and report the pairwise log2FC concordance between sites plus each site's
+    TaqMan concordance. Cross-site log2FC correlation is the SEQC reproducibility
+    metric; high values mean the DE result does not depend on the sequencing
+    site. Sites with no staged bundle are skipped honestly."""
+    import json
+    import numpy as np
+    import pandas as pd
+
+    per_site: dict[str, Any] = {}
+    lfc_by_site: dict[str, Any] = {}
+    for site, bdir in site_bundles.items():
+        bundle = load_seqc_maqc_bundle(bdir)
+        if bundle is None:
+            per_site[site] = {"status": "skipped", "reason": "no bundle staged"}
+            continue
+        de_result, est_lfc, n_num, n_den = _site_de_lfc(
+            bundle, numerator, denominator, padj_max, lfc_thr
+        )
+        if est_lfc is None:
+            per_site[site] = {
+                "status": "error",
+                "reason": (de_result or {}).get("error_type", "insufficient_replicates"),
+                "n_numerator": n_num, "n_denominator": n_den,
+            }
+            continue
+        summary = _taqman_summary(
+            de_result, est_lfc, bundle["taqman_log2_ab"],
+            signal_floor=signal_floor, taqman_de_threshold=taqman_de_threshold,
+            taqman_null_threshold=taqman_null_threshold,
+        )
+        lfc_by_site[site] = est_lfc
+        per_site[site] = {
+            "status": "success",
+            "n_numerator": n_num, "n_denominator": n_den,
+            "n_genes_tested": int(len(est_lfc)),
+            "taqman": summary,
+        }
+
+    # Cross-site pairwise log2FC concordance on commonly-tested genes.
+    sites = sorted(lfc_by_site)
+    pearson_matrix: dict[str, dict[str, float | None]] = {}
+    spearman_matrix: dict[str, dict[str, float | None]] = {}
+    offdiag_pearson: list[float] = []
+    pair_n: list[int] = []
+    for s1 in sites:
+        pearson_matrix[s1] = {}
+        spearman_matrix[s1] = {}
+        for s2 in sites:
+            common = lfc_by_site[s1].index.intersection(lfc_by_site[s2].index)
+            joint = pd.DataFrame({
+                "a": lfc_by_site[s1].reindex(common).values,
+                "b": lfc_by_site[s2].reindex(common).values,
+            }).replace([np.inf, -np.inf], np.nan).dropna()
+            if len(joint) < 3:
+                pearson_matrix[s1][s2] = spearman_matrix[s1][s2] = None
+                continue
+            p = round(_finite_float(joint["a"].corr(joint["b"], method="pearson")), 4)
+            sp = round(_finite_float(joint["a"].corr(joint["b"], method="spearman")), 4)
+            pearson_matrix[s1][s2] = p
+            spearman_matrix[s1][s2] = sp
+            if s1 < s2:
+                offdiag_pearson.append(p)
+                pair_n.append(int(len(joint)))
+
+    cross_site = {
+        "sites": sites,
+        "n_sites": len(sites),
+        "pearson_matrix": pearson_matrix,
+        "spearman_matrix": spearman_matrix,
+        "mean_offdiagonal_pearson": round(float(np.mean(offdiag_pearson)), 4) if offdiag_pearson else None,
+        "min_offdiagonal_pearson": round(float(np.min(offdiag_pearson)), 4) if offdiag_pearson else None,
+        "n_pairs": len(offdiag_pearson),
+        "median_pair_genes": int(np.median(pair_n)) if pair_n else 0,
+    }
+    cross_ok = (
+        cross_site["min_offdiagonal_pearson"] is not None
+        and cross_site["min_offdiagonal_pearson"] >= min_cross_site_pearson
+    )
+    taqman_ok = all(
+        v.get("taqman", {}).get("pearson", 0.0) >= 0.7
+        for v in per_site.values() if v.get("status") == "success"
+    )
+    n_ok_sites = sum(1 for v in per_site.values() if v.get("status") == "success")
+    status = "pass" if (cross_ok and taqman_ok and n_ok_sites >= 2) else (
+        "fail" if n_ok_sites >= 2 else "skipped"
+    )
+
+    manifest = {
+        "status": status,
+        "benchmark": "A1_seqc_multisite_reproducibility",
+        "benchmark_version": "v1",
+        "scope": "external_reference_cross_site",
+        "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
+        "comparison": {"numerator": numerator, "denominator": denominator},
+        "tolerances": {"min_cross_site_pearson": min_cross_site_pearson},
+        "per_site": per_site,
+        "cross_site": cross_site,
+        "messages": [
+            "Cross-site SEQC reproducibility: ARIA's A-vs-B log2FC is correlated "
+            "between sequencing sites; counts + TaqMan truth come from the staged "
+            "per-site bundles, not from ARIA."
+        ],
+    }
+    if output_dir and n_ok_sites >= 2:
+        from aria.version import __version__, collect_version_metadata
+        outdir = Path(output_dir)
+        outdir.mkdir(parents=True, exist_ok=True)
+        manifest["aria_version"] = __version__
+        manifest["provenance"] = collect_version_metadata()
+        figure_path = outdir / figure_name
+        manifest_path = outdir / manifest_name
+        write_seqc_multisite_figure(manifest, str(figure_path))
+        manifest["artifacts"] = {
+            "manifest_json": str(manifest_path),
+            "figure_svg": str(figure_path),
+        }
+        manifest_path.write_text(
+            json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8"
+        )
+    return manifest
+
+
+def write_seqc_multisite_figure(manifest: dict[str, Any], path: str) -> str:
+    """Dependency-free SVG: per-site TaqMan Pearson + the cross-site mean."""
+    per_site = manifest.get("per_site", {})
+    cross = manifest.get("cross_site", {})
+    rows_data = [
+        (site, _finite_float(v.get("taqman", {}).get("pearson", 0.0)))
+        for site, v in sorted(per_site.items())
+        if v.get("status") == "success"
+    ]
+    mean_cross = cross.get("mean_offdiagonal_pearson")
+    if mean_cross is not None:
+        rows_data.append((f"cross-site mean ({cross.get('n_pairs', 0)} pairs)",
+                          _finite_float(mean_cross)))
+
+    width = 760
+    left, top = 320, 70
+    bar_w, bar_h, gap = 300, 38, 22
+    rows = []
+    for i, (label, value) in enumerate(rows_data):
+        y = top + i * (bar_h + gap)
+        v = max(0.0, min(1.0, value))
+        fill = "#2F6F73" if "cross-site" in label else "#3b6ea2"
+        if v < 0.5:
+            fill = "#A23B3B"
+        rows.append(
+            f'<text x="28" y="{y + 25}" font-size="15" fill="#1f2933">{label}</text>'
+            f'<rect x="{left}" y="{y}" width="{bar_w}" height="{bar_h}" fill="#e8edf0"/>'
+            f'<rect x="{left}" y="{y}" width="{bar_w * v:.1f}" height="{bar_h}" fill="{fill}"/>'
+            f'<text x="{left + bar_w + 14}" y="{y + 25}" font-size="14" fill="#1f2933">{v:.3f}</text>'
+        )
+    status = manifest.get("status", "unknown").upper()
+    height = top + len(rows_data) * (bar_h + gap) + 36
+    svg = (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
+        f'viewBox="0 0 {width} {height}">'
+        '<rect width="100%" height="100%" fill="#ffffff"/>'
+        '<text x="28" y="34" font-size="20" font-weight="700" fill="#111827">'
+        'Fig. 1 reference: SEQC cross-site reproducibility (A vs B)</text>'
+        f'<text x="660" y="34" font-size="16" font-weight="700" fill="#2F6F73">{status}</text>'
+        f'<text x="28" y="{height - 12}" font-size="12" fill="#4b5563">'
+        'Per-site log2FC vs TaqMan (blue) and mean pairwise cross-site log2FC concordance (teal).</text>'
+        + "".join(rows)
+        + "</svg>"
+    )
+    out = Path(path)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(svg, encoding="utf-8")
+    return str(out)

@@ -110,6 +110,58 @@ def test_score_seqc_maqc_recovers_reference_truth(tmp_path):
     assert manifest["axes"]["titration_monotonicity"]["status"] == "not_computed"
 
 
+def test_multisite_cross_concordance_matrix(monkeypatch, tmp_path):
+    """The cross-site lane must build a symmetric pairwise log2FC concordance
+    matrix and summarize the off-diagonal. Patch the per-site DE so the test
+    needs no pydeseq2: two near-identical sites + one decorrelated site."""
+    import numpy as np
+    import pandas as pd
+    from aria.benchmarks import reference_seqc
+
+    rng = np.random.default_rng(0)
+    base = pd.Series(rng.normal(0, 2, size=300), index=[f"G{i}" for i in range(300)])
+    site_lfc = {
+        "S1": base,
+        "S2": base + rng.normal(0, 0.1, size=300),          # ~identical to S1
+        "S3": pd.Series(rng.normal(0, 2, size=300), index=base.index),  # unrelated
+    }
+
+    def fake_site_de_lfc(bundle, num, den, padj, lfc):
+        site = bundle["__site__"]
+        de = {"results": pd.DataFrame({"log2FoldChange": site_lfc[site],
+                                       "pvalue": 0.01}, index=base.index)}
+        return de, site_lfc[site], 5, 5
+
+    def fake_summary(*a, **k):
+        return {"pearson": 0.95, "spearman_signal": 0.95, "auc": 0.9, "n_overlap": 300}
+
+    def fake_load(d):
+        name = Path(d).name
+        if name not in site_lfc:        # simulate an unstaged site
+            return None
+        return {"__site__": name, "taqman_log2_ab": {}}
+
+    monkeypatch.setattr(reference_seqc, "_site_de_lfc", fake_site_de_lfc)
+    monkeypatch.setattr(reference_seqc, "_taqman_summary", fake_summary)
+    monkeypatch.setattr(reference_seqc, "load_seqc_maqc_bundle", fake_load)
+
+    m = reference_seqc.run_seqc_maqc_multisite(
+        {"S1": "S1", "S2": "S2", "S3": "S3", "S4_missing": "S4_missing"},
+    )
+    # S4 has no bundle -> honest skip; the other three score.
+    assert m["per_site"]["S4_missing"]["status"] == "skipped"
+    cs = m["cross_site"]
+    assert cs["n_sites"] == 3 and cs["n_pairs"] == 3
+    # Matrix symmetric, diagonal == 1.
+    pm = cs["pearson_matrix"]
+    assert pm["S1"]["S1"] == 1.0
+    assert pm["S1"]["S2"] == pm["S2"]["S1"]
+    # S1~S2 highly concordant; S3 decorrelated drags the min down.
+    assert pm["S1"]["S2"] >= 0.99
+    assert cs["min_offdiagonal_pearson"] < 0.5
+    assert cs["mean_offdiagonal_pearson"] is not None
+
+
 @pytest.mark.skipif(
     not os.environ.get("ARIA_SEQC_MAQC_BUNDLE"),
     reason="set ARIA_SEQC_MAQC_BUNDLE to a staged real reference bundle",

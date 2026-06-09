@@ -394,6 +394,13 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `docs/benchmark_results/a1_seqc_maqc/`. Guards:
   `tests/test_benchmark_a1_seqc_maqc.py` (light AUC/loader/skip everywhere;
   scorer e2e pydeseq2-gated; real-bundle case gated on the env var). ADR-036.
+  Cross-site reproducibility: `run_seqc_maqc_multisite` +
+  `scripts/run_a1_seqc_multisite_benchmark.py` run the A-vs-B DE at each
+  SEQC site (BGI/CNL/MAY/AGR/NVS) and build a pairwise log2FC concordance matrix
+  (`_site_de_lfc`/`_taqman_summary` shared helpers leave the single-site scorer
+  untouched). Real result: mean off-diagonal cross-site Pearson 0.980 (min
+  0.978), per-site TaqMan Pearson 0.940–0.944. Matrix-math guard is the
+  no-pydeseq2 `test_multisite_cross_concordance_matrix`. ADR-037.
 - Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
   `scripts/run_a2_pseudobulk_benchmark.py` calls
   `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the
