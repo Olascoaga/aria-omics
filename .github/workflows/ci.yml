@@ -89,6 +89,7 @@ jobs:
             tests/test_image_provenance.py \
             tests/test_assay_detector_fastq.py \
             tests/test_metadata_correction.py \
+            tests/test_benchmark_a1_seqc_maqc.py \
             tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout
@@ -155,6 +156,7 @@ jobs:
           pip install -e .
           python -m pytest -q \
             tests/test_benchmark_synthetic_de.py \
+            tests/test_benchmark_a1_seqc_maqc.py \
             tests/test_calibration_spike_in.py \
             tests/test_lfc_shrinkage.py \
             tests/test_composition_collinearity.py \

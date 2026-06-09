@@ -1,0 +1,111 @@
+{
+  "aria_version": "4.6.0-alpha",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/a1_seqc_maqc/fig1_a1_seqc_maqc_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json"
+  },
+  "axes": {
+    "lfc_concordance": {
+      "n_genes_scored": 830,
+      "n_signal_genes": 655,
+      "pearson": 0.9442,
+      "signal_floor": 0.5,
+      "spearman": 0.9376,
+      "spearman_signal": 0.9609
+    },
+    "taqman_de_detection": {
+      "auc": 0.8928,
+      "empirical_fdr_ref": 0.1036,
+      "n_called_total": 19019,
+      "n_negative": 88,
+      "n_positive": 528,
+      "recall_at_padj": 0.983,
+      "taqman_de_threshold": 1.0,
+      "taqman_null_threshold": 0.2
+    },
+    "titration_monotonicity": {
+      "fraction_monotone": 0.9754,
+      "n_evaluated": 528,
+      "n_monotone": 515,
+      "order": [
+        "A",
+        "C",
+        "D",
+        "B"
+      ],
+      "status": "computed"
+    }
+  },
+  "axis_pass": {
+    "lfc_concordance": true,
+    "taqman_de_detection": true
+  },
+  "benchmark": "A1_seqc_maqc_reference",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "B",
+    "numerator": "A"
+  },
+  "messages": [
+    "A1 reference lane validates ARIA's bulk DE against MAQC/SEQC TaqMan truth; TaqMan log2(A/B) and the count matrix come from the staged bundle, not from ARIA."
+  ],
+  "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
+  "provenance": {
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "014ef6ac0b0965c44dbcc3646a139322a6e2f61d",
+    "git_describe": "v4.5.5-23-g014ef6a",
+    "git_dirty": true,
+    "git_sha": "014ef6ac0b0965c44dbcc3646a139322a6e2f61d",
+    "git_tree_sha": "459c2f5901c240b8cc7c8c3af68889333d947872",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.0-alpha",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "c9dcae55ce3ae94618eead99a659eac4a9e9de76e1a122991bc4b50414e04dfb",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "samples": {
+    "groups_present": [
+      "A",
+      "B",
+      "C",
+      "D"
+    ],
+    "n_denominator": 5,
+    "n_numerator": 5
+  },
+  "scope": "external_reference_taqman_truth",
+  "source": {
+    "count_table": "ILM_refseq_gene_BGI",
+    "env": "aria-bench-env",
+    "fetched_utc": "2026-06-09T19:57:50+00:00",
+    "references": [
+      "SEQC/MAQC-III Consortium, Nature Biotechnology 2014",
+      "MAQC Consortium (TaqMan), Nature Biotechnology 2006"
+    ],
+    "sha256": {
+      "counts.tsv": "7fb9f7937470243047a23c2805253e2195cbfed036ee7d20ba2c4a26ef6063c0",
+      "samples.tsv": "a82a403dd709466e2c943a0172e09666eba2ab1aa267fd5e4cd651d16aecf43b",
+      "taqman.tsv": "9299a618252d5ea59ad384eedcd7f09c3d9c0e365c2a80e99eeccb0acd5c3a82"
+    },
+    "source": "seqc Bioconductor data package",
+    "truth": "TaqMan qPCR log2(A/B) by gene Symbol (mean of 4 reps each)"
+  },
+  "status": "pass",
+  "thresholds": {
+    "lfc_threshold": 0.0,
+    "padj": 0.05
+  },
+  "tolerances": {
+    "min_auc": 0.8,
+    "min_lfc_pearson": 0.7
+  },
+  "warnings": []
+}

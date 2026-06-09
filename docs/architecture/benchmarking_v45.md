@@ -86,6 +86,18 @@ models.
 SEQC/MAQC qPCR/TaqMan and ERCC spike-ins are external validation references,
 not absolute truth.
 
+SEQC/MAQC reference lane (executed): `aria/benchmarks/reference_seqc.py` +
+`scripts/run_a1_seqc_maqc_benchmark.py` validate ARIA's real bulk DE path
+against external TaqMan qPCR truth. The bundle is bootstrapped once from the
+`seqc` Bioconductor data package by `scripts/fetch_seqc_maqc_reference.py`
+(counts = a SEQC site's RefSeq gene table; truth = TaqMan log2(A/B) over ~1000
+genes; kept out of the repo under `~/.aria/benchmarks/`). On the BGI RefSeq
+counts (samples A/B, 5 reps each) ARIA scored: LFC concordance vs TaqMan
+**Pearson 0.944 / Spearman 0.938** (830 genes), TaqMan-DE detection **AUC
+0.893**, and titration monotonicity **97.5%** of TaqMan-DE genes ordered across
+A→C→D→B. The lane is data-gated (`ARIA_SEQC_MAQC_BUNDLE`) and skips honestly when
+the bundle is absent; nothing is fabricated (ADR-036).
+
 v4.5.5 executable artifact: the preliminary synthetic-truth A1 lane is
 implemented by `scripts/run_a1_bulk_de_benchmark.py` and writes a versioned
 manifest plus Fig 1 SVG under `docs/benchmark_results/`. It runs ARIA's real

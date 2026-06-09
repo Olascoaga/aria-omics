@@ -379,6 +379,21 @@ Use these tests as impact anchors when editing the graph's major nodes:
   recall gap vs DESeq2/edgeR/limma is effect-size policy, not engine (ADR-035).
   Guards: `test_a1_lfc_threshold_frontier_isolates_effect_size_policy`,
   `test_a1_runner_manifest_carries_lfc_threshold_frontier` (pydeseq2-gated).
+- Benchmark A1 SEQC/MAQC reference lane (external TaqMan truth):
+  `scripts/run_a1_seqc_maqc_benchmark.py` calls
+  `aria.benchmarks.reference_seqc.run_seqc_maqc_a1_benchmark`, which runs the
+  real bulk `_run_deseq2` on samples A vs B and scores LFC concordance vs TaqMan
+  (Pearson gated, SEQC-standard log-ratio concordance), TaqMan-DE detection AUC,
+  and titration monotonicity (A→C→D→B; needs the C/D mixtures). Data-gated by
+  `ARIA_SEQC_MAQC_BUNDLE` (counts.tsv/samples.tsv/taqman.tsv); skips honestly
+  when absent — never fabricates. The bundle is bootstrapped once by
+  `scripts/fetch_seqc_maqc_reference.py` → `aria/scripts/fetch_seqc_maqc_reference.R`
+  from the `seqc` Bioconductor package in `aria-bench-env`, written outside the
+  repo (`~/.aria/benchmarks/`). Real result (BGI RefSeq, A/B 5 reps): Pearson
+  0.944, AUC 0.893, titration 97.5%. Artifact:
+  `docs/benchmark_results/a1_seqc_maqc/`. Guards:
+  `tests/test_benchmark_a1_seqc_maqc.py` (light AUC/loader/skip everywhere;
+  scorer e2e pydeseq2-gated; real-bundle case gated on the env var). ADR-036.
 - Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
   `scripts/run_a2_pseudobulk_benchmark.py` calls
   `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the
