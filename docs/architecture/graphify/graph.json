@@ -5615,6 +5615,90 @@
       "source_location": "L1"
     },
     {
+      "id": "benchmarks_reference_seqc",
+      "label": "reference_seqc.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_reference_seqc_finite_float",
+      "label": "_finite_float()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "aria_benchmarks_reference_seqc_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "aria_benchmarks_reference_seqc_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "benchmarks_reference_seqc_auc",
+      "label": "_auc()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "label": "load_seqc_maqc_bundle()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "aria_benchmarks_reference_seqc_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "aria_benchmarks_reference_seqc_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "benchmarks_reference_seqc_group_means_cpm",
+      "label": "_group_means_cpm()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "label": "score_seqc_maqc_a1()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150"
+    },
+    {
+      "id": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "label": "write_seqc_maqc_a1_figure()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331"
+    },
+    {
+      "id": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "label": "run_seqc_maqc_a1_benchmark()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380"
+    },
+    {
       "id": "benchmarks_synthetic_atac_da",
       "label": "synthetic_atac_da.py",
       "file_type": "code",
@@ -12853,6 +12937,573 @@
       "source_location": "L34"
     },
     {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "label": "a1_seqc_maqc_v4.5.5.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts",
+      "label": "artifacts",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts_figure_svg",
+      "label": "figure_svg",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts_manifest_json",
+      "label": "manifest_json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes",
+      "label": "axes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "label": "lfc_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_n_genes_scored",
+      "label": "n_genes_scored",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_n_signal_genes",
+      "label": "n_signal_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_pearson",
+      "label": "pearson",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_signal_floor",
+      "label": "signal_floor",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_spearman",
+      "label": "spearman",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_spearman_signal",
+      "label": "spearman_signal",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "label": "taqman_de_detection",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_auc",
+      "label": "auc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_empirical_fdr_ref",
+      "label": "empirical_fdr_ref",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_called_total",
+      "label": "n_called_total",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_negative",
+      "label": "n_negative",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_positive",
+      "label": "n_positive",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_recall_at_padj",
+      "label": "recall_at_padj",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_taqman_de_threshold",
+      "label": "taqman_de_threshold",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_taqman_null_threshold",
+      "label": "taqman_null_threshold",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L24"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "label": "titration_monotonicity",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_fraction_monotone",
+      "label": "fraction_monotone",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L27"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_n_evaluated",
+      "label": "n_evaluated",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L28"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_n_monotone",
+      "label": "n_monotone",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L29"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_order",
+      "label": "order",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L36"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass",
+      "label": "axis_pass",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L39"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass_lfc_concordance",
+      "label": "lfc_concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L40"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass_taqman_de_detection",
+      "label": "taqman_de_detection",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L41"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_benchmark",
+      "label": "benchmark",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L43"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_benchmark_version",
+      "label": "benchmark_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L44"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison",
+      "label": "comparison",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison_denominator",
+      "label": "denominator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L46"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison_numerator",
+      "label": "numerator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L47"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_messages",
+      "label": "messages",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L49"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_method_under_test",
+      "label": "method_under_test",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L52"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L53"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L54"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L55"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L56"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L57"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L58"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L59"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L60"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L61"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L62"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L63"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L64"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L65"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L66"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L67"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L69"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L70"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L71"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L72"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples",
+      "label": "samples",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L74"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_groups_present",
+      "label": "groups_present",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L75"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_n_denominator",
+      "label": "n_denominator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L81"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_n_numerator",
+      "label": "n_numerator",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L82"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L84"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "label": "source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L85"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_count_table",
+      "label": "count_table",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L86"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_env",
+      "label": "env",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L87"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_fetched_utc",
+      "label": "fetched_utc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L88"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_references",
+      "label": "references",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L89"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_sha256",
+      "label": "sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L93"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_counts_tsv",
+      "label": "counts.tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L94"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_samples_tsv",
+      "label": "samples.tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L95"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_taqman_tsv",
+      "label": "taqman.tsv",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L96"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_source",
+      "label": "source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L98"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_truth",
+      "label": "truth",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L99"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L101"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds",
+      "label": "thresholds",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L102"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds_lfc_threshold",
+      "label": "lfc_threshold",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L103"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds_padj",
+      "label": "padj",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L104"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances",
+      "label": "tolerances",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L106"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances_min_auc",
+      "label": "min_auc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L107"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances_min_lfc_pearson",
+      "label": "min_lfc_pearson",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L108"
+    },
+    {
+      "id": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_warnings",
+      "label": "warnings",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L110"
+    },
+    {
       "id": "benchmark_results_a2_pseudobulk_v4_5_5",
       "label": "a2_pseudobulk_v4.5.5.json",
       "file_type": "code",
@@ -13438,7 +14089,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -13588,6 +14239,48 @@
       "source_location": "L56"
     },
     {
+      "id": "scripts_fetch_seqc_maqc_reference",
+      "label": "fetch_seqc_maqc_reference.py",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_fetch_seqc_maqc_reference_sha256",
+      "label": "_sha256()",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "scripts_fetch_seqc_maqc_reference_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "scripts_fetch_seqc_maqc_reference_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "scripts_fetch_seqc_maqc_reference_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "scripts_fetch_seqc_maqc_reference_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L42"
+    },
+    {
       "id": "scripts_generate_graphify_graph",
       "label": "generate_graphify_graph.sh",
       "file_type": "code",
@@ -13599,7 +14292,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_djzewf_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -13621,7 +14314,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_djzewf_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -13747,6 +14440,34 @@
       "file_type": "code",
       "source_file": "scripts/run_a1_external_comparators.py",
       "source_location": "L17"
+    },
+    {
+      "id": "scripts_run_a1_seqc_maqc_benchmark",
+      "label": "run_a1_seqc_maqc_benchmark.py",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_a1_seqc_maqc_benchmark_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "scripts_run_a1_seqc_maqc_benchmark_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "scripts_run_a1_seqc_maqc_benchmark_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23"
     },
     {
       "id": "scripts_run_a2_pseudobulk_benchmark",
@@ -14125,6 +14846,69 @@
       "file_type": "code",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
       "source_location": "L40"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc",
+      "label": "test_benchmark_a1_seqc_maqc.py",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_auc_separates_classes_and_handles_ties",
+      "label": "test_auc_separates_classes_and_handles_ties()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_returns_none_when_absent",
+      "label": "test_load_bundle_returns_none_when_absent()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_write_bundle",
+      "label": "_write_bundle()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_parses_staged_files",
+      "label": "test_load_bundle_parses_staged_files()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_runner_skips_honestly_without_bundle",
+      "label": "test_runner_skips_honestly_without_bundle()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L62"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "label": "test_score_seqc_maqc_recovers_reference_truth()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L71"
+    },
+    {
+      "id": "tests_test_benchmark_a1_seqc_maqc_test_a1_seqc_maqc_real_bundle",
+      "label": "test_a1_seqc_maqc_real_bundle()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L117"
     },
     {
       "id": "tests_test_benchmark_atac_da",
@@ -20426,32 +21210,10 @@
       "contributor": null
     },
     {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -20470,10 +21232,10 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -20503,8 +21265,19 @@
       "contributor": null
     },
     {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "aria_rna_env",
-      "label": "aria-rna-env",
+      "label": "ARIA RNA Environment",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
       "source_location": null,
@@ -20515,42 +21288,9 @@
     },
     {
       "id": "aria_chromatin_env",
-      "label": "aria-chromatin-env",
+      "label": "ARIA Chromatin Environment",
       "file_type": "code",
       "source_file": "envs/aria-chromatin-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_hic_env",
-      "label": "aria-hic-env",
-      "file_type": "code",
-      "source_file": "envs/aria-hic-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_integration_env",
-      "label": "aria-integration-env",
-      "file_type": "code",
-      "source_file": "envs/aria-integration-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_bench_env",
-      "label": "aria-bench-env",
-      "file_type": "code",
-      "source_file": "envs/aria-bench-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -42202,6 +42942,539 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/setup_agent.py",
       "source_location": "L707",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_finite_float",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_finite_float",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_finite_float",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_auc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_auc",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_auc",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_auc",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "aria_benchmarks_reference_seqc_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_group_means_cpm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_group_means_cpm",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_group_means_cpm",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L331",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L380",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "aria_benchmarks_reference_seqc_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "target": "benchmarks_reference_seqc_finite_float",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "benchmarks_reference_seqc_finite_float",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L223",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "benchmarks_reference_seqc_auc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "benchmarks_reference_seqc_group_means_cpm",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L251",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "benchmarks_reference_seqc_finite_float",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L337",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "target": "aria_benchmarks_reference_seqc_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L374",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L391",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_benchmarks_reference_seqc_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L412",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "benchmarks_reference_seqc_write_seqc_maqc_a1_figure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L419",
       "weight": 1.0
     },
     {
@@ -65196,6 +66469,726 @@
       "weight": 1.0
     },
     {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts_figure_svg",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_artifacts_manifest_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_n_genes_scored",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_n_signal_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_pearson",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_signal_floor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_spearman",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_lfc_concordance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_lfc_concordance_spearman_signal",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_auc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_empirical_fdr_ref",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_called_total",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_negative",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_n_positive",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_recall_at_padj",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_taqman_de_threshold",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_taqman_de_detection",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_taqman_de_detection_taqman_null_threshold",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_fraction_monotone",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_n_evaluated",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_n_monotone",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_order",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axes_titration_monotonicity",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_titration_monotonicity_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_axis_pass_taqman_de_detection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_benchmark_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison_denominator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_comparison_numerator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_messages",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_method_under_test",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_image",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_groups_present",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_n_denominator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_samples_n_numerator",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_count_table",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_env",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_fetched_utc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_references",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_sha256",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_counts_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_sha256",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_samples_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_sha256",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_sha256_taqman_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_source_truth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds_lfc_threshold",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_thresholds_padj",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances_min_auc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_tolerances_min_lfc_pearson",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5",
+      "target": "a1_seqc_maqc_a1_seqc_maqc_v4_5_5_warnings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/a1_seqc_maqc/a1_seqc_maqc_v4.5.5.json",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
       "source": "benchmark_results_a2_pseudobulk_v4_5_5",
       "target": "benchmark_results_a2_pseudobulk_v4_5_5_artifact_version",
       "relation": "contains",
@@ -65935,7 +67928,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -65988,7 +67981,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -65998,7 +67991,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66008,7 +68001,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66018,7 +68011,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66028,7 +68021,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66203,8 +68196,86 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_fetch_seqc_maqc_reference",
+      "target": "scripts_fetch_seqc_maqc_reference_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_sha256",
+      "target": "scripts_fetch_seqc_maqc_reference_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_sha256",
+      "target": "scripts_fetch_seqc_maqc_reference_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference",
+      "target": "scripts_fetch_seqc_maqc_reference_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_main",
+      "target": "scripts_fetch_seqc_maqc_reference_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_main",
+      "target": "scripts_fetch_seqc_maqc_reference_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_main",
+      "target": "scripts_fetch_seqc_maqc_reference_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_fetch_seqc_maqc_reference_main",
+      "target": "scripts_fetch_seqc_maqc_reference_sha256",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/fetch_seqc_maqc_reference.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_djzewf_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -66213,7 +68284,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_djzewf_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -66248,7 +68319,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66258,7 +68329,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_axqcsz_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_djzewf_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -66381,6 +68452,35 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_a1_external_comparators.py",
       "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_seqc_maqc_benchmark",
+      "target": "scripts_run_a1_seqc_maqc_benchmark_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_seqc_maqc_benchmark_main",
+      "target": "scripts_run_a1_seqc_maqc_benchmark_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_a1_seqc_maqc_benchmark_main",
+      "target": "scripts_run_a1_seqc_maqc_benchmark_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -66901,6 +69001,99 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
       "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_auc_separates_classes_and_handles_ties",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_returns_none_when_absent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_write_bundle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_write_bundle",
+      "target": "tests_test_benchmark_a1_seqc_maqc_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_parses_staged_files",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_runner_skips_honestly_without_bundle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "tests_test_benchmark_a1_seqc_maqc_test_a1_seqc_maqc_real_bundle",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_parses_staged_files",
+      "target": "tests_test_benchmark_a1_seqc_maqc_write_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "target": "tests_test_benchmark_a1_seqc_maqc_write_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
@@ -80047,6 +82240,26 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_reference_seqc",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L411",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_atac_da",
       "target": "benchmarks_synthetic_de_debenchmarkresult",
       "relation": "imports",
@@ -81687,6 +83900,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_seqc_maqc_benchmark",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_a2_pseudobulk_benchmark",
       "target": "benchmarks_synthetic_de_run_pseudobulk_a2_benchmark",
       "relation": "imports",
@@ -81774,6 +83997,56 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
       "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "benchmarks_reference_seqc_auc",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -85257,6 +87530,26 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L192",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/reference_seqc.py",
+      "source_location": "L415",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_synthetic_atac_da_run_atac_da_benchmark",
       "target": "benchmarks_synthetic_de_debenchmarkresult",
       "relation": "calls",
@@ -86387,6 +88680,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_a1_seqc_maqc_benchmark_main",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_a1_seqc_maqc_benchmark.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_a2_pseudobulk_benchmark_main",
       "target": "benchmarks_synthetic_de_run_pseudobulk_a2_benchmark",
       "relation": "calls",
@@ -86494,6 +88797,76 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_a1_external_comparators.py",
       "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_auc_separates_classes_and_handles_ties",
+      "target": "benchmarks_reference_seqc_auc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_returns_none_when_absent",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_load_bundle_parses_staged_files",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_runner_skips_honestly_without_bundle",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "target": "benchmarks_synthetic_de_simulate_bulk_dataset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "target": "benchmarks_reference_seqc_load_seqc_maqc_bundle",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_score_seqc_maqc_recovers_reference_truth",
+      "target": "benchmarks_reference_seqc_score_seqc_maqc_a1",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -91956,6 +94329,17 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_benchmark_a1_seqc_maqc_test_a1_seqc_maqc_real_bundle",
+      "target": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_benchmark_a1_seqc_maqc.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_bulk_rna_test_infer_groups_naming_patterns",
       "target": "scripts_rna_bulk_de_infer_groups",
       "relation": "calls",
@@ -92053,37 +94437,7 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -92103,7 +94457,7 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -92115,17 +94469,17 @@
     {
       "source": "narrative_agent",
       "target": "claim_compiler",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/reporting_and_outputs.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
+      "source": "biological_synthesis_agent",
+      "target": "claim_compiler",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/biological_synthesis.md",
@@ -92133,8 +94487,8 @@
       "weight": 1.0
     },
     {
-      "source": "biological_synthesis_agent",
-      "target": "claim_compiler",
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
