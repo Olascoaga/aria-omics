@@ -94,6 +94,7 @@ jobs:
             tests/test_benchmark_b1_design_governance.py \
             tests/test_benchmark_b2_claim_narrative.py \
             tests/test_benchmark_b4_null_narrative.py \
+            tests/test_benchmark_scatac_da.py \
             tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout
@@ -162,6 +163,7 @@ jobs:
             tests/test_benchmark_synthetic_de.py \
             tests/test_benchmark_a1_seqc_maqc.py \
             tests/test_benchmark_a2_kang_muscat.py \
+            tests/test_benchmark_scatac_da.py \
             tests/test_calibration_spike_in.py \
             tests/test_lfc_shrinkage.py \
             tests/test_composition_collinearity.py \

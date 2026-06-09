@@ -1,0 +1,57 @@
+{
+  "aria_version": "4.6.0-alpha",
+  "artifacts": {
+    "manifest_json": "docs/benchmark_results/scatac_da/a_scatac_da_v4.5.5.json"
+  },
+  "benchmark": "A_scatac_pseudobulk_da",
+  "benchmark_version": "v1",
+  "dataset": {
+    "base_rate": 0.06,
+    "donor_sigma": 0.15,
+    "max_abs_log2fc": 2.5,
+    "min_abs_log2fc": 1.0,
+    "n_cells_per_condition": 600,
+    "n_da": 300,
+    "n_peaks": 3000,
+    "n_replicates_per_condition": 4,
+    "seed": 11
+  },
+  "empirical_fdr": 0.0,
+  "messages": [
+    "recall=0.667 (>= 0.5); empirical_fdr=0.000 (<= 0.2); called=200, true_da=300",
+    "Validates the chromatin pseudobulk DA lane that single-sample real inputs (e.g. HC11) cannot exercise; uses the shared DESeq2 core."
+  ],
+  "method_under_test": "ARIA chromatin pseudobulk DA (_pseudobulk_da -> _run_deseq2)",
+  "n_called": 200,
+  "n_false_positive": 0,
+  "n_true_da": 300,
+  "n_true_positive": 200,
+  "provenance": {
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "7a5734ae6cdafc2640a3e76a6113b9998c1223ce",
+    "git_describe": "v4.5.5-33-g7a5734a-dirty",
+    "git_dirty": true,
+    "git_sha": "7a5734ae6cdafc2640a3e76a6113b9998c1223ce",
+    "git_tree_sha": "38142dfae327482eea310d5142c200f92d77f3ed",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.0-alpha",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "19531ea1e6fa8ac013a24ca23e0a69e5452bf9da72fd4803f8f64512bf464205",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "recall": 0.6667,
+  "scope": "synthetic_truth_chromatin_da",
+  "status": "pass",
+  "tolerances": {
+    "max_empirical_fdr": 0.2,
+    "min_recall": 0.5
+  }
+}
