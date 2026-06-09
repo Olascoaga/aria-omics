@@ -108,6 +108,18 @@ near-constant per-site TaqMan Pearson **0.940–0.944**. ARIA's DE result is
 effectively independent of the sequencing site. Artifact:
 `docs/benchmark_results/a1_seqc_maqc/a1_seqc_multisite_v4.5.5.json`.
 
+ERCC spike-in dose-response (executed, ADR-038): `run_ercc_dose_response`
+(`scripts/run_a1_ercc_dose_response.py`) scores ARIA's recovery of the 92 ERCC
+controls — fold-change recovery (measured log2(A/B) vs known Mix1/Mix2 ratio per
+subgroup) and dynamic-range linearity (measured CPM vs known input
+concentration). ERCC counts come from the SEQC table; the concentration/
+fold-change truth is the Thermo ERCC RNA Spike-In table. Executed result (BGI,
+87/92 detected): fold-change Pearson **0.902**, slope **0.919**; dynamic-range
+Pearson **0.976** over **6.3 orders of magnitude**. The per-subgroup negative
+offset is the known ERCC compositional-normalization artifact, reported honestly.
+This closes the ERCC part of the SEQC/MAQC/ERCC reference validation; only the
+Kang + muscat A2 external lane remains.
+
 v4.5.5 executable artifact: the preliminary synthetic-truth A1 lane is
 implemented by `scripts/run_a1_bulk_de_benchmark.py` and writes a versioned
 manifest plus Fig 1 SVG under `docs/benchmark_results/`. It runs ARIA's real

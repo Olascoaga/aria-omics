@@ -401,6 +401,14 @@ Use these tests as impact anchors when editing the graph's major nodes:
   untouched). Real result: mean off-diagonal cross-site Pearson 0.980 (min
   0.978), per-site TaqMan Pearson 0.940–0.944. Matrix-math guard is the
   no-pydeseq2 `test_multisite_cross_concordance_matrix`. ADR-037.
+  ERCC dose-response: `score_ercc_dose_response` / `run_ercc_dose_response` +
+  `scripts/run_a1_ercc_dose_response.py` score the 92 ERCC spike-ins (CPM-only,
+  no pydeseq2) — fold-change recovery vs known Mix1/Mix2 ratio per subgroup, and
+  dynamic-range linearity vs known concentration. ERCC counts come from the
+  fetcher's `ercc_counts.tsv` (no longer dropped) + `ercc_truth.tsv` (Thermo
+  cms_095046, downloaded by the Python fetcher). Real result (BGI): FC Pearson
+  0.902 / slope 0.919, dynamic-range Pearson 0.976 over 6.3 log10. Guard
+  `test_ercc_dose_response_recovers_known_design` (no pydeseq2). ADR-038.
 - Benchmark A2 preliminary donor-aware pseudobulk artifact (v4.5.5):
   `scripts/run_a2_pseudobulk_benchmark.py` calls
   `aria.benchmarks.synthetic_de.run_pseudobulk_a2_benchmark`, which executes the
