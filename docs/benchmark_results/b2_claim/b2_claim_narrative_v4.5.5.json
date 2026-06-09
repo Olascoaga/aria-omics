@@ -1,0 +1,152 @@
+{
+  "aria_version": "4.6.0-alpha",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/b2_claim/fig4_b2_claim_narrative_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/b2_claim/b2_claim_narrative_v4.5.5.json"
+  },
+  "axis_pass": {
+    "governs_causal_overreach": true,
+    "reduces_false_narrative": true
+  },
+  "benchmark": "B2_claim_narrative",
+  "benchmark_version": "v1-preliminary",
+  "messages": [
+    "B2 preliminary: hand-labelled claim corpus scores ARIA governance vs an ungoverned arm; full multi-annotator human B2 remains preprint work."
+  ],
+  "method_under_test": "ARIA verify_block_claim_support + classify_claim + causal guard",
+  "per_claim": [
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.clean.count",
+      "label": "clean",
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.clean.descriptive",
+      "label": "clean",
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.clean.lowpower_caveat",
+      "label": "clean",
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.unsupported.count",
+      "label": "unsupported",
+      "supported": false,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.fabricated.gene",
+      "label": "fabricated",
+      "supported": false,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.fabricated.pathway",
+      "label": "fabricated",
+      "supported": false,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": true,
+      "id": "b2.overclaim.robust",
+      "label": "overclaim",
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "causal",
+      "false_survives": false,
+      "id": "b2.causal.drives",
+      "label": "causal_inflation",
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "causal",
+      "false_survives": false,
+      "id": "b2.causal.mechanism",
+      "label": "causal_inflation",
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "causal_survives": false,
+      "claim_type": "comparative",
+      "false_survives": false,
+      "id": "b2.missingcaveat.lowpower",
+      "label": "missing_caveat",
+      "supported": true,
+      "tier": "associative"
+    }
+  ],
+  "provenance": {
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "58617b8fd2e559be1d0a0a3747251c15f864f612",
+    "git_describe": "v4.5.5-31-g58617b8",
+    "git_dirty": true,
+    "git_sha": "58617b8fd2e559be1d0a0a3747251c15f864f612",
+    "git_tree_sha": "c0764c336b68407011e57783450c1c36726ff3fc",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.0-alpha",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "2238a4ea306f23dc928f000747e2ea794043ddd71a43ac6ce26c7e38c2efed3e",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "governance_claim_ablation",
+  "status": "pass",
+  "summary": {
+    "false_narrative_reduction": 0.3,
+    "governed_causal_overreach_rate": 0.0,
+    "governed_false_narrative_rate": 0.1,
+    "n_causal_labelled": 2,
+    "n_claims": 10,
+    "n_false_labelled": 4,
+    "naive_causal_overreach_rate": 1.0,
+    "naive_false_narrative_rate": 0.4
+  }
+}

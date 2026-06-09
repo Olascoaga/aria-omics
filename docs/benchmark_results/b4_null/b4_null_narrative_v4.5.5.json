@@ -1,0 +1,162 @@
+{
+  "aria_version": "4.6.0-alpha",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/b4_null/fig5_b4_null_narrative_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/b4_null/b4_null_narrative_v4.5.5.json"
+  },
+  "axis_pass": {
+    "honest_not_over_flagged": true,
+    "no_fabricated_slips_through": true
+  },
+  "benchmark": "B4_null_narrative",
+  "benchmark_version": "v1",
+  "messages": [
+    "B4 drives ARIA's evidence verifier + claim compiler over null-evidence narrative blocks; fabricated biology must not slip through (rate 0)."
+  ],
+  "method_under_test": "ARIA verify_block_claim_support (W-CLAIM) + classify_claim",
+  "per_block": [
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.honest.0",
+      "kind": "honest",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.honest.1",
+      "kind": "honest",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.honest.2",
+      "kind": "honest",
+      "licensed_biological": true,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "associative"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.honest.3",
+      "kind": "honest",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.unsupported_genes",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 2,
+      "slipped": false,
+      "supported": false,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.causal",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.pathway",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.count_overclaim",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 1,
+      "slipped": false,
+      "supported": false,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.mechanism",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 1,
+      "slipped": false,
+      "supported": false,
+      "tier": "descriptive"
+    },
+    {
+      "causal_blocked": false,
+      "false_flag": false,
+      "id": "null.fab.direction",
+      "kind": "fabricated",
+      "licensed_biological": false,
+      "n_unsupported": 0,
+      "slipped": false,
+      "supported": true,
+      "tier": "descriptive"
+    }
+  ],
+  "provenance": {
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "58617b8fd2e559be1d0a0a3747251c15f864f612",
+    "git_describe": "v4.5.5-31-g58617b8",
+    "git_dirty": true,
+    "git_sha": "58617b8fd2e559be1d0a0a3747251c15f864f612",
+    "git_tree_sha": "c0764c336b68407011e57783450c1c36726ff3fc",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.0-alpha",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "b395b2a28ce4742d454b22c2789523d4a501a19a3e215147f2ac13e81630c6ab",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "governance_null_controls",
+  "status": "pass",
+  "summary": {
+    "fabricated_caught_rate": 1.0,
+    "fabricated_hard_rejected": 3,
+    "fabricated_narrative_rate": 0.0,
+    "fabricated_tier_capped_descriptive": 3,
+    "honest_false_flag_rate": 0.0,
+    "n_blocks": 10,
+    "n_fabricated": 6,
+    "n_honest": 4
+  }
+}
