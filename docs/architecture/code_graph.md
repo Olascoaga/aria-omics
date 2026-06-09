@@ -379,6 +379,7 @@ Use these tests as impact anchors when editing the graph's major nodes:
   recall gap vs DESeq2/edgeR/limma is effect-size policy, not engine (ADR-035).
   Guards: `test_a1_lfc_threshold_frontier_isolates_effect_size_policy`,
   `test_a1_runner_manifest_carries_lfc_threshold_frontier` (pydeseq2-gated).
+- scATAC DA calibration (W-CALIB chromatin, ADR-041): `aria/benchmarks/synthetic_atac_da.py` simulates a replicated two-condition accessibility matrix with known true-DA peaks; `aria_pseudobulk_da_caller` runs ARIA's REAL `chromatin_diffacc._pseudobulk_da` (shared `_run_deseq2` core) as the `da_fn` and `run_atac_pseudobulk_da_benchmark` scores recall/empirical-FDR. Real result: recall 0.667 / FDR 0.0 at 4 donors/condition (power scales with replicates; FDR <= 0.01). Validates the pseudobulk DA lane HC11 (single-sample) could not. Runner `scripts/run_scatac_da_benchmark.py`; guard `tests/test_benchmark_scatac_da.py` (pydeseq2 recovery gate in the rna-env lane).
 - Benchmark B governance lanes (ARIA's contribution; pure-Python, no pydeseq2):
   `aria/benchmarks/governance_b1.py` (B1 DesignAgent) drives the REAL
   `ScRNAAuditAgent` readiness + `validate_design_matrix` over a 23-case
