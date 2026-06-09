@@ -902,7 +902,7 @@ def write_bulk_de_a1_figure(manifest: dict[str, Any], path: str) -> str:
         ("Top-k Jaccard", float(axes.get("ranking_concordance", {}).get("top_k_jaccard", 0.0))),
         ("Call recall", float(axes.get("significant_call_concordance", {}).get("recall", 0.0))),
     ]
-    width, height = 760, 390
+    width = 760
     left, top = 190, 70
     bar_w, bar_h, gap = 430, 42, 26
     rows = []
@@ -916,6 +916,44 @@ def write_bulk_de_a1_figure(manifest: dict[str, Any], path: str) -> str:
             f'<rect x="{left}" y="{y}" width="{bar_w * v:.1f}" height="{bar_h}" fill="{fill}"/>'
             f'<text x="{left + bar_w + 18}" y="{y + 27}" font-size="17" fill="#1f2933">{v:.2f}</text>'
         )
+
+    # Second panel: the lfcThreshold recall/precision frontier (descriptive).
+    frontier = manifest.get("lfc_threshold_frontier") or {}
+    fpoints = [p for p in frontier.get("points", []) if p.get("status") == "success"]
+    frontier_rows: list[str] = []
+    panel_top = top + len(vals) * (bar_h + gap) + 44
+    if fpoints:
+        frontier_rows.append(
+            f'<text x="28" y="{panel_top}" font-size="16" font-weight="700" fill="#111827">'
+            'lfcThreshold frontier &#8212; recall (gap vs DESeq2 is policy, not engine)</text>'
+        )
+        fb_w, fb_h, fgap = 360, 30, 16
+        for i, p in enumerate(fpoints):
+            y = panel_top + 18 + i * (fb_h + fgap)
+            v = max(0.0, min(1.0, float(p.get("recall", 0.0))))
+            tag = ""
+            if p.get("is_matched_null"):
+                tag, fill = " (= DESeq2 null)", "#2F6F73"
+            elif p.get("is_policy_default"):
+                tag, fill = " (ARIA default)", "#3b6ea2"
+            else:
+                fill = "#7a8a99"
+            label = f"lfc={p.get('lfc_threshold')}{tag}"
+            meta = (
+                f"recall {v:.2f} | prec {float(p.get('precision', 0.0)):.2f} | "
+                f"FDR {float(p.get('empirical_fdr', 0.0)):.3f} | n={p.get('n_called')}"
+            )
+            frontier_rows.append(
+                f'<text x="28" y="{y + 21}" font-size="14" fill="#1f2933">{label}</text>'
+                f'<rect x="{left}" y="{y}" width="{fb_w}" height="{fb_h}" fill="#e8edf0"/>'
+                f'<rect x="{left}" y="{y}" width="{fb_w * v:.1f}" height="{fb_h}" fill="{fill}"/>'
+                f'<text x="{left + fb_w + 14}" y="{y + 21}" font-size="13" fill="#4b5563">{meta}</text>'
+            )
+        caption_y = panel_top + 18 + len(fpoints) * (fb_h + fgap) + 18
+    else:
+        caption_y = panel_top
+
+    height = int(caption_y + 24)
     status = manifest.get("status", "unknown").upper()
     svg = (
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" '
@@ -924,9 +962,10 @@ def write_bulk_de_a1_figure(manifest: dict[str, Any], path: str) -> str:
         '<text x="28" y="34" font-size="22" font-weight="700" fill="#111827">'
         'Fig. 1 preliminary: A1 bulk DE validation</text>'
         f'<text x="630" y="34" font-size="18" font-weight="700" fill="#2F6F73">{status}</text>'
-        '<text x="28" y="366" font-size="13" fill="#4b5563">'
+        f'<text x="28" y="{caption_y}" font-size="13" fill="#4b5563">'
         'Synthetic truth; external R comparators are separate aria-bench-env work.</text>'
         + "".join(rows)
+        + "".join(frontier_rows)
         + "</svg>"
     )
     out = Path(path)
