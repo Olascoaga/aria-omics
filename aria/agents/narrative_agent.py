@@ -703,24 +703,57 @@ for small-effect genes."
                 f"{integ_str}{pb_str}{pw_str}{traj_str}{ccc_str}"
             )
 
-        # Chromatin
+        # Chromatin. ChromatinAgent nests analysis findings under a per-modality
+        # wrapper; unwrap to the flat analysis keys (qc/lsi/differential_
+        # accessibility/motifs) so the LLM sees the v4.6 scATAC matrix-pipeline
+        # outputs and cannot claim clustering/DR/motifs "did not run".
         chrom = agent_results.get("chromatin_agent", {})
         if chrom.get("status") == "done":
-            chrom_f = chrom.get("findings", {}) or {}
+            from aria.agents.narrative.narrators.chromatin import (
+                unwrap_chromatin_findings,
+            )
+            af = unwrap_chromatin_findings(chrom)
             chrom_lines = []
-            for assay in ("scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN"):
-                af = chrom_f.get(assay, {}).get("findings", {})
-                peaks = af.get("peaks", {})
-                if peaks.get("n_peaks"):
-                    frip = peaks.get("frip", "?")
-                    frip_str = (f"{frip:.2f}" if isinstance(frip, float)
-                                else str(frip))
-                    chrom_lines.append(
-                        f"{assay}: {peaks['n_peaks']:,} peaks "
-                        f"(FRiP={frip_str})"
-                    )
+            # Legacy fragment/BAM peak-calling path.
+            peaks = af.get("peaks", {}) or {}
+            if peaks.get("n_peaks"):
+                frip = peaks.get("frip", "?")
+                frip_str = (f"{frip:.2f}" if isinstance(frip, float)
+                            else str(frip))
+                chrom_lines.append(
+                    f"peaks called: {peaks['n_peaks']:,} (FRiP={frip_str})")
+            # v4.6 peak-matrix (.h5mu) pipeline.
+            qc = af.get("qc", {}) or {}
+            if isinstance(qc, dict) and qc.get("n_cells") and qc.get("n_peaks"):
+                chrom_lines.append(
+                    f"QC: {qc['n_cells']:,} cells x {qc['n_peaks']:,} peaks")
+            lsi = af.get("lsi", {}) or {}
+            if isinstance(lsi, dict) and lsi.get("n_clusters"):
+                dropped = lsi.get("dropped_components") or []
+                chrom_lines.append(
+                    f"LSI/clustering RAN: {lsi['n_clusters']} clusters over "
+                    f"{lsi.get('n_components_used', '?')} LSI components "
+                    f"({len(dropped)} depth-associated removed)")
+            da = af.get("differential_accessibility", {}) or {}
+            pc = (da.get("per_cluster") or {}) if isinstance(da, dict) else {}
+            if pc.get("ran"):
+                n_with = sum(1 for v in (pc.get("n_da_by_cluster") or {}).values()
+                             if v)
+                chrom_lines.append(
+                    f"differential accessibility RAN: {pc.get('n_da_total', 0):,} "
+                    f"DA peaks across {n_with} cluster(s)")
+            motifs = af.get("motifs", {}) or {}
+            if isinstance(motifs, dict) and motifs.get("ran"):
+                src = motifs.get("motif_source") or {}
+                per_group = motifs.get("per_group") or {}
+                n_with = sum(1 for g in per_group.values()
+                             if (g or {}).get("n_enriched"))
+                chrom_lines.append(
+                    f"TF motif enrichment RAN: {src.get('n_motifs', '?')} motifs "
+                    f"tested ({src.get('collection', '?')}), enriched in "
+                    f"{n_with}/{len(per_group)} peak group(s)")
             if chrom_lines:
-                lines.append("CHROMATIN: " + "; ".join(chrom_lines) + ".")
+                lines.append("CHROMATIN (scATAC): " + "; ".join(chrom_lines) + ".")
 
         # 3D genome / HiC
         hic = agent_results.get("genome_arch_agent", {})

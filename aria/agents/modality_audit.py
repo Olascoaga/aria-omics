@@ -283,18 +283,24 @@ class ChromatinAuditAgent:
             card["checks"]["validation"] = {
                 "validated": False,
                 "stage": "alpha",
-                "live_orchestrator_run": "pending",
+                # Closed 2026-06-09 (ADR-034): a real headless orchestrator/bus
+                # run on the HC11 paired .h5mu drove CP1 -> CP2 -> CP3.5 ack ->
+                # live dispatch into aria-chromatin-env (QC -> LSI/clustering ->
+                # differential accessibility -> motif enrichment) -> an honest,
+                # internally consistent report. scATAC stays alpha + requires_ack.
+                "live_orchestrator_run": "done",
             }
             card["findings"].append(_finding(
                 "warning",
                 "chromatin_readiness_alpha_ack_required",
                 (
-                    "scATAC is alpha: core scripts are dispatchable, but a live "
-                    "orchestrator/TUI validation run is still pending."
+                    "scATAC is alpha: core scripts are dispatchable and the live "
+                    "orchestrator/bus validation run has closed; outputs remain "
+                    "alpha pending broader multi-sample/expert review."
                 ),
                 (
                     "Proceed only after explicit CP3.5 acknowledgement and treat "
-                    "outputs as alpha until the live validation run closes."
+                    "outputs as alpha (single-sample live-validated)."
                 ),
                 modality=modality,
             ))

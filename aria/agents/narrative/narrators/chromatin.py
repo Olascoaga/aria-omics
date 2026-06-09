@@ -42,6 +42,40 @@ def _ok(result) -> bool:
         "success", "done")
 
 
+# ChromatinAgent.run() returns findings keyed by modality, with the analysis
+# results nested one level deeper, e.g.
+#   {"findings": {"scATAC": {"status": "done",
+#                            "findings": {"qc": ..., "lsi": ..., ...}}}}.
+# Both the narrator and the run-ledger reconcile against the FLAT analysis keys
+# (qc/lsi/differential_accessibility/motifs), so unwrap the per-modality wrapper
+# first. A flat findings dict (used by older tests / a direct script feed) is
+# returned unchanged.
+_CHROMATIN_MODALITY_KEYS = (
+    "scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG",
+)
+
+
+def unwrap_chromatin_findings(agent_result: dict) -> dict:
+    """Flatten ChromatinAgent's per-modality finding wrapper to analysis keys."""
+    if not isinstance(agent_result, dict):
+        return {}
+    findings = agent_result.get("findings", agent_result)
+    if not isinstance(findings, dict):
+        return {}
+    modality_subs = {
+        k: v for k, v in findings.items()
+        if k in _CHROMATIN_MODALITY_KEYS and isinstance(v, dict)
+    }
+    if not modality_subs:
+        return findings
+    out: dict = {}
+    for sub in modality_subs.values():
+        nested = sub.get("findings", sub)
+        if isinstance(nested, dict):
+            out.update(nested)
+    return out
+
+
 class ChromatinNarrator:
     name = "chromatin"
 
@@ -49,12 +83,12 @@ class ChromatinNarrator:
         return (
             agent_name == "chromatin_agent"
             and isinstance(agent_result, dict)
-            and bool(agent_result.get("findings", agent_result))
+            and bool(unwrap_chromatin_findings(agent_result))
         )
 
     def collect(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[NarrativeBlock]:
-        findings = agent_result.get("findings", {}) or {}
+        findings = unwrap_chromatin_findings(agent_result)
         blocks: list[NarrativeBlock] = []
 
         qc = findings.get("qc")

@@ -141,6 +141,42 @@ class DesignAgent(BaseAgent):
             self._batch_covariate = inferred_design.get("batch_covariate")
             self._pseudobulk_design = inferred_design.get("pseudobulk", {}) or {}
         elif not raw_files:
+            # No RNA samples and no inferred DE groups. A chromatin-only run
+            # (scATAC / bulk_ATAC / ChIP / CUT&RUN / CUT&TAG) needs no
+            # differential-expression design phase: skip it honestly with a
+            # minimal design so the orchestrator can dispatch the modality
+            # agent directly. This keeps the DE design path byte-identical for
+            # RNA runs while unblocking the live scATAC orchestrator dispatch.
+            modalities = exp_context.get("modalities", {}) or {}
+            rna_modalities = [
+                m for m in modalities
+                if m in ("bulk_RNA", "bulk_RNA_raw", "scRNA")
+            ]
+            if modalities and not rna_modalities:
+                self._step = DesignStep.DONE
+                minimal_design = {
+                    "organism": exp_context.get("organism") or "unknown",
+                    "genome":   exp_context.get("genome") or "unknown",
+                    "groups": {},
+                    "main_factor": None,
+                    "design_formula": None,
+                    "n_total_samples": 0,
+                    "pseudobulk": {},
+                    "design_type": "no_de_design",
+                    "modalities_without_de": sorted(modalities.keys()),
+                }
+                self.publish_finding(
+                    experiment_id,
+                    {"summary": (
+                        "No differential-expression design needed for "
+                        f"modality(ies) {sorted(modalities.keys())}; "
+                        "proceeding directly to modality dispatch."
+                    )},
+                    Confidence.HIGH,
+                )
+                return {"status": "skipped",
+                        "reason": "no_de_design_needed",
+                        "design": minimal_design}
             self.publish_finding(
                 experiment_id,
                 {"summary": "No sample files found for design phase."},

@@ -142,9 +142,15 @@ def _scrna_findings(agent_results: dict) -> dict:
 
 def _chromatin_findings(agent_results: dict) -> dict:
     ch = (agent_results or {}).get("chromatin_agent", {})
-    if isinstance(ch, dict):
-        return ch.get("findings", ch) or {}
-    return {}
+    if not isinstance(ch, dict):
+        return {}
+    # ChromatinAgent nests analysis findings under a per-modality wrapper
+    # (findings -> scATAC -> findings -> {qc, lsi, ...}); flatten to the analysis
+    # keys this reconciler expects (mirrors the narrator's unwrap).
+    from aria.agents.narrative.narrators.chromatin import (
+        unwrap_chromatin_findings,
+    )
+    return unwrap_chromatin_findings(ch) or {}
 
 
 def _bulk_findings_normalized(agent_results: dict) -> dict:

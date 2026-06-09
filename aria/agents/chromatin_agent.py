@@ -755,20 +755,37 @@ class ChromatinAgent(BaseAgent):
         warnings = qc_result.get("warnings", [])
         conf = Confidence.HIGH if not warnings else Confidence.MEDIUM
 
-        # Flag critical QC failures
-        frip      = qc_result.get("frip", 1.0)
-        tss_score = qc_result.get("tss_enrichment", 10.0)
+        # FRiP/TSS are honestly None for a pre-called peak matrix (.h5mu) until a
+        # reference TSS annotation / called peaks exist (ADR-002 / B9). Only flag
+        # low quality when they were actually computed — never fabricate a value
+        # or crash on the None contract.
+        frip      = qc_result.get("frip")
+        tss_score = qc_result.get("tss_enrichment")
 
-        if frip < 0.2 or tss_score < 4:
+        if (frip is not None and frip < 0.2) or \
+           (tss_score is not None and tss_score < 4):
             conf = Confidence.LOW
+
+        def _fmt(value, fmt: str) -> str:
+            return format(value, fmt) if isinstance(value, (int, float)) \
+                else "not computed"
+
+        summary = f"{modality} QC: FRiP={_fmt(frip, '.3f')}, " \
+                  f"TSS={_fmt(tss_score, '.2f')}"
+        n_cells = qc_result.get("n_cells")
+        n_peaks = qc_result.get("n_peaks")
+        if isinstance(n_cells, int) and isinstance(n_peaks, int):
+            summary = (f"{modality} QC: {n_cells:,} cells x {n_peaks:,} peaks; "
+                       f"FRiP={_fmt(frip, '.3f')}, TSS={_fmt(tss_score, '.2f')}")
 
         self.publish_finding(
             experiment_id,
-            {"summary":    f"{modality} QC: "
-                           f"FRiP={frip:.3f}, TSS={tss_score:.2f}",
+            {"summary":    summary,
              "modality":   modality,
              "frip":       frip,
              "tss_score":  tss_score,
+             "n_cells":    n_cells,
+             "n_peaks":    n_peaks,
              "warnings":   warnings},
             conf,
         )

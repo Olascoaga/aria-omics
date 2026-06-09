@@ -257,6 +257,20 @@ class OrchestratorAgent(BaseAgent):
         # Diseño completado → enriquecer contexto y pasar a CP2
         design = result["design"]
         exp_context = session.exp_context or {}
+        return self._complete_design_and_publish_plan(
+            experiment_id, exp_context, design)
+
+    def _complete_design_and_publish_plan(
+        self, experiment_id: str, exp_context: dict, design: dict,
+    ) -> dict:
+        """Enrich the context with the confirmed (or skipped) design, run design
+        intelligence, build the analysis plan, and publish CP2.
+
+        Shared by the normal DE design-completion path and the chromatin-only
+        ``no_de_design`` skip path (DesignAgent returns ``status="skipped"``),
+        so both reach plan/dispatch through identical wiring.
+        """
+        session = self._get_session(experiment_id)
         exp_context["organism"] = design["organism"]
         exp_context["genome"]   = design["genome"]
         exp_context["design"]   = design
@@ -480,6 +494,17 @@ class OrchestratorAgent(BaseAgent):
 
         if result.get("status") == "failed":
             return {"status": "cancelled", "reason": result.get("reason", "Design failed")}
+
+        # Chromatin-only (non-DE) run: DesignAgent skipped the DE design phase
+        # and synthesized a minimal design. Proceed straight to plan/CP2 so the
+        # modality agent (e.g. ChromatinAgent for scATAC) reaches dispatch.
+        if result.get("status") == "skipped":
+            session = self._get_session(experiment_id)
+            session.exp_context = exp_context
+            self._experiment_plans[experiment_id]["exp_context"] = exp_context
+            self._sync_plan_record(session)
+            return self._complete_design_and_publish_plan(
+                experiment_id, exp_context, result["design"])
 
         # Guardar el agente activo para seguir recibiendo sus checkpoints
         session = self._get_session(experiment_id)
