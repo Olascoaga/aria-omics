@@ -1,0 +1,198 @@
+{
+  "aria_version": "4.6.0-alpha",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/a2_kang_muscat/fig2_a2_kang_muscat_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/a2_kang_muscat/a2_kang_muscat_v4.5.5.json"
+  },
+  "axis_pass": {
+    "lfc_concordance": true,
+    "sig_overlap": true
+  },
+  "benchmark": "A2_kang_muscat",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "ctrl",
+    "numerator": "stim"
+  },
+  "dataset": "Kang et al. 2018 (muscData Kang18_8vs8, 8 donors ctrl/stim IFN-beta); reference = muscat edgeR-QLF pseudobulk",
+  "messages": [
+    "A2 external: ARIA's pseudobulk DE vs muscat on identical per-cluster pseudobulk from the real Kang dataset. Counts + muscat reference come from the staged export, not from ARIA."
+  ],
+  "method_under_test": "ARIA pseudobulk DE (_run_deseq2) vs muscat pbDS",
+  "per_cluster": {
+    "B_cells": {
+      "lfc_pearson": 0.9965,
+      "lfc_spearman": 0.9961,
+      "lfc_spearman_sig": 0.9988,
+      "n_aria_sig": 731,
+      "n_genes_common": 1815,
+      "n_muscat_sig": 525,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 448,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.5545,
+      "status": "success",
+      "top_k_jaccard": 0.8018
+    },
+    "CD14_Monocytes": {
+      "lfc_pearson": 0.9995,
+      "lfc_spearman": 0.9997,
+      "lfc_spearman_sig": 0.9997,
+      "n_aria_sig": 3384,
+      "n_genes_common": 3651,
+      "n_muscat_sig": 2380,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 2068,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.5595,
+      "status": "success",
+      "top_k_jaccard": 0.6529
+    },
+    "CD4_T_cells": {
+      "lfc_pearson": 0.9956,
+      "lfc_spearman": 0.9958,
+      "lfc_spearman_sig": 0.9985,
+      "n_aria_sig": 978,
+      "n_genes_common": 4795,
+      "n_muscat_sig": 965,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 802,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.7029,
+      "status": "success",
+      "top_k_jaccard": 0.8182
+    },
+    "CD8_T_cells": {
+      "lfc_pearson": 0.9556,
+      "lfc_spearman": 0.9523,
+      "lfc_spearman_sig": 0.9597,
+      "n_aria_sig": 237,
+      "n_genes_common": 821,
+      "n_muscat_sig": 172,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 138,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.5092,
+      "status": "success",
+      "top_k_jaccard": 0.8519
+    },
+    "Dendritic_cells": {
+      "lfc_pearson": 0.9655,
+      "lfc_spearman": 0.9615,
+      "lfc_spearman_sig": 0.9386,
+      "n_aria_sig": 629,
+      "n_genes_common": 983,
+      "n_muscat_sig": 378,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 314,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.4531,
+      "status": "success",
+      "top_k_jaccard": 0.8692
+    },
+    "FCGR3A_Monocytes": {
+      "lfc_pearson": 0.9985,
+      "lfc_spearman": 0.999,
+      "lfc_spearman_sig": 0.9988,
+      "n_aria_sig": 1424,
+      "n_genes_common": 1948,
+      "n_muscat_sig": 977,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 851,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.549,
+      "status": "success",
+      "top_k_jaccard": 0.7241
+    },
+    "Megakaryocytes": {
+      "lfc_pearson": 0.8996,
+      "lfc_spearman": 0.9397,
+      "lfc_spearman_sig": 0.9912,
+      "n_aria_sig": 66,
+      "n_genes_common": 207,
+      "n_muscat_sig": 14,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 10,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.1429,
+      "status": "success",
+      "top_k_jaccard": 0.9231
+    },
+    "NK_cells": {
+      "lfc_pearson": 0.994,
+      "lfc_spearman": 0.9963,
+      "lfc_spearman_sig": 0.9962,
+      "n_aria_sig": 431,
+      "n_genes_common": 1382,
+      "n_muscat_sig": 369,
+      "n_samples": {
+        "denominator": 8,
+        "numerator": 8
+      },
+      "n_shared_sig": 290,
+      "shared_sig_direction_agreement": 1.0,
+      "sig_jaccard": 0.5686,
+      "status": "success",
+      "top_k_jaccard": 0.9231
+    }
+  },
+  "provenance": {
+    "aria_version": "4.6.0-alpha",
+    "git_commit": "6489f87222f43bcbfa6d8d29d9ad48a2261cb22d",
+    "git_describe": "v4.5.5-28-g6489f87-dirty",
+    "git_dirty": true,
+    "git_sha": "6489f87222f43bcbfa6d8d29d9ad48a2261cb22d",
+    "git_tree_sha": "e1509320f1a29c9492e7c7a0a1597e46d42368c6",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.0-alpha",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "0e21555c10eef60d171335c1f6e70109dec2a9f039413583cef3d708cd84e1b3",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "external_reference_kang_muscat",
+  "status": "pass",
+  "summary": {
+    "mean_lfc_pearson": 0.9756,
+    "mean_lfc_spearman": 0.9801,
+    "mean_lfc_spearman_sig": 0.9852,
+    "mean_shared_sig_direction_agreement": 1.0,
+    "mean_sig_jaccard": 0.505,
+    "mean_top_k_jaccard": 0.8205,
+    "min_lfc_pearson": 0.8996,
+    "n_clusters_scored": 8,
+    "total_shared_sig": 4921
+  },
+  "tolerances": {
+    "min_mean_lfc_pearson": 0.7,
+    "min_mean_sig_jaccard": 0.3
+  }
+}
