@@ -133,8 +133,10 @@ MODALITY_VALIDATION = {
         "level": "alpha",
         "dispatch_enabled": True,
         "reason": (
-            "scATAC alpha dispatch requires explicit CP3.5 acknowledgement; "
-            "a live orchestrator/TUI validation run is still pending."
+            "scATAC alpha dispatch requires explicit CP3.5 acknowledgement. "
+            "The path is live-validated end to end (ADR-034) and multi-sample "
+            "validated (ADR-042/043); it stays alpha pending expert review, not "
+            "publication-grade or fully autonomous."
         ),
     },
     "bulk_ATAC": {
