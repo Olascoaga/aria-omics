@@ -334,20 +334,6 @@ def _sentences(text: str) -> list[str]:
     ]
 
 
-def _claim_numbers(sentence: str) -> set[str]:
-    numbers = set()
-    for raw in _numbers_in(sentence):
-        # Very small values usually represent thresholds (FDR < 0.05), signs,
-        # or ordinal prose. Large integers/counts are the support-critical facts.
-        try:
-            value = float(raw.rstrip("%"))
-        except ValueError:
-            continue
-        if abs(value) >= 2:
-            numbers.add(raw)
-    return numbers
-
-
 # Hyphenated digit ranges are GROUP/COMPARISON LABELS (for example "10-20",
 # "10-20_vs_30-40"), not measured claims; their numbers must not be required on
 # the evidence card. Thousands separators ("123,456") must collapse so a
@@ -357,6 +343,50 @@ def _claim_numbers(sentence: str) -> set[str]:
 # is NOT mistaken for a range.
 _RANGE_LABEL_RE = re.compile(r"\d+(?:-\d+)+")
 _THOUSANDS_SEP_RE = re.compile(r"(?<=\d),(?=\d{3}(?:\D|$))")
+
+# C2 (audit 2026-06-11): the claim numeric gate must decide WHICH number is a
+# measured quantity (verify it) vs an identifier/decision-rule (exempt it).
+# A number immediately preceded by one of these generic, dataset-agnostic
+# group/label nouns is an IDENTIFIER ("cluster 3", "subclass 7"), not a
+# measurement — requiring it on the evidence card aborts the report under strict
+# verification. This is technical/statistical vocabulary, the same category as
+# block types and the causal lexicon, not biological content (ADR-011).
+_LABEL_NOUNS = frozenset({
+    "cluster", "subcluster", "subclass", "class", "group", "leiden",
+    "community", "sample", "donor", "subject", "batch", "lane", "replicate",
+    "rep", "module", "component", "factor", "dimension", "pc", "comparison",
+    "contrast", "condition", "level", "type", "celltype", "well", "plate", "k",
+})
+# Threshold inequalities ("FDR < 0.25") state a decision rule, not a measured
+# claim. NOTE: '=' is intentionally NOT here — "NES=5.43" is an effect size and
+# MUST be verified.
+_COMPARATORS = ("<", ">", "≤", "≥")
+_LABEL_WORD_RE = re.compile(r"([A-Za-z][A-Za-z_]*)$")
+
+
+def _claim_numbers(sentence: str) -> set[str]:
+    """Numbers a claim ASSERTS as measured quantities, which therefore must be
+    on the evidence card.
+
+    Position-aware (unlike the card-side ``_numbers_in``) so it can exempt, by
+    context: (i) hyphenated range labels ("10-20"); (ii) group-label identifiers
+    ("cluster 3"); (iii) inequality thresholds ("FDR < 0.25"). Everything else
+    — INCLUDING effect sizes below |2| (correlations, log2FC, NES, odds ratios)
+    — is verified (C2, audit 2026-06-11: the old ``abs(value) >= 2`` blanket
+    exempted exactly the scientifically loaded small numbers).
+    """
+    text = _THOUSANDS_SEP_RE.sub("", str(sentence or ""))
+    text = _RANGE_LABEL_RE.sub(" ", text)  # (i) range labels carry no measurement
+    numbers: set[str] = set()
+    for m in _NUMBER_RE.finditer(text):
+        prefix = text[:m.start()].rstrip()
+        if prefix.endswith(_COMPARATORS):          # (iii) inequality threshold
+            continue
+        last_word = _LABEL_WORD_RE.search(prefix)  # (ii) group-label identifier
+        if last_word and last_word.group(1).lower() in _LABEL_NOUNS:
+            continue
+        numbers.add(_normalize_number(m.group(0)))
+    return numbers
 
 
 def _numbers_in(text: str) -> set[str]:
