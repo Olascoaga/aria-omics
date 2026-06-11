@@ -1,0 +1,113 @@
+import sys
+import types
+
+
+_litellm = types.ModuleType("litellm")
+_litellm.completion = lambda *args, **kwargs: None
+_litellm.suppress_debug_info = False
+_litellm.drop_params = False
+sys.modules.setdefault("litellm", _litellm)
+
+from aria.agents.narrative import report_sections
+from aria.agents.narrative.report_builder import ReportBuilderMixin
+
+
+class _ReportHarness(ReportBuilderMixin):
+    _plain_text_to_html = staticmethod(report_sections._plain_text_to_html)
+
+    def __init__(self, tmp_path):
+        self.reports_dir = tmp_path
+        self.memory = type("M", (), {"db_path": ":memory:"})()
+
+    def _stage_artifacts(self, agent_results, report_dir):
+        return None
+
+    def _collect_narrative_blocks(self, agent_results, exp_ctx):
+        return []
+
+    def _build_findings_table(self, grouped_findings):
+        return ""
+
+    def _build_decisions_table(self, decisions):
+        return ""
+
+    def _build_provenance_section(self, **kwargs):
+        return ""
+
+    def _build_findings_section(self, *args, **kwargs):
+        return ""
+
+    def _build_qc_section(self, *args, **kwargs):
+        return ""
+
+    def _build_methodology_json(self, **kwargs):
+        return {}
+
+    def _fallback_executive_summary(self, grouped, intent):
+        return (
+            "ARIA completed the analysis for "
+            f"{intent.get('summary', 'the submitted biological question')}."
+        )
+
+    def _summarize_agent_results_for_llm(self, agent_results):
+        return "(no concrete outputs recorded)"
+
+
+def _agent(tmp_path):
+    agent = _ReportHarness(tmp_path)
+    agent.reports_dir = tmp_path
+    return agent
+
+
+def test_executive_summary_causal_or_unsupported_numbers_fall_back(tmp_path):
+    agent = _agent(tmp_path)
+    grouped = {"high": [], "medium": [], "low": [], "insufficient": []}
+    intent = {"summary": "test free-text executive-summary governance"}
+    agent_results = {}
+
+    executive_summary = "GENEX drives disease and reports a correlation of 0.97."
+    assert "drives disease" in executive_summary
+
+    report = agent._render_html_report(
+        experiment_id="exec_summary_guard",
+        exp_ctx={"organism": "Homo sapiens", "genome": "hg38"},
+        intent=intent,
+        executive_summary=executive_summary,
+        findings_sections={"conflicts": "none"},
+        grouped_findings=grouped,
+        methods="methods",
+        decisions=[],
+        agent_results=agent_results,
+        report_dir=tmp_path / "report",
+    )
+    html = report.read_text(encoding="utf-8")
+
+    assert "drives disease" not in html
+    assert "correlation of 0.97" not in html
+    assert "Executive summary governance" in html
+    assert "deterministic fallback" in html
+    assert "ARIA completed the analysis" in html
+
+
+def test_existing_fallback_executive_summary_is_not_reflagged(tmp_path):
+    agent = _agent(tmp_path)
+    grouped = {"high": [], "medium": [], "low": [], "insufficient": []}
+    intent = {"summary": "test deterministic fallback"}
+    executive_summary = agent._fallback_executive_summary(grouped, intent)
+
+    report = agent._render_html_report(
+        experiment_id="exec_summary_fallback",
+        exp_ctx={"organism": "Homo sapiens", "genome": "hg38"},
+        intent=intent,
+        executive_summary=executive_summary,
+        findings_sections={"conflicts": "none"},
+        grouped_findings=grouped,
+        methods="methods",
+        decisions=[],
+        agent_results={},
+        report_dir=tmp_path / "report",
+    )
+    html = report.read_text(encoding="utf-8")
+
+    assert "ARIA completed the analysis" in html
+    assert "Executive summary governance" not in html

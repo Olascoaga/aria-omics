@@ -11,14 +11,50 @@ from __future__ import annotations
 import json
 import logging
 import html as _html
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
 from aria import __version__ as ARIA_VERSION
+from aria.agents.narrative.validators import (
+    collect_named_entities,
+    find_causal_language,
+)
 from aria.utils.provenance import collect_llm_usage, collect_provenance
 
 log = logging.getLogger("aria.narrative")
+
+_EXEC_SUMMARY_RANGE_LABEL_RE = re.compile(r"\d+(?:-\d+)+")
+_EXEC_SUMMARY_THOUSANDS_RE = re.compile(r"(?<=\d),(?=\d{3}(?:\D|$))")
+_EXEC_SUMMARY_NUMBER_RE = re.compile(
+    r"(?<![A-Za-z])[-+]?\d+(?:,\d{3})*(?:\.\d+)?%?(?![A-Za-z])"
+)
+
+
+def _normalize_exec_summary_number(raw: str) -> str:
+    raw = str(raw).strip()
+    pct = raw.endswith("%")
+    if pct:
+        raw = raw[:-1]
+    try:
+        value = float(raw)
+    except ValueError:
+        return raw
+    if value.is_integer():
+        out = str(int(value))
+    else:
+        out = f"{value:.6g}"
+    return out + ("%" if pct else "")
+
+
+def _executive_summary_numbers(text: str) -> set[str]:
+    cleaned = _EXEC_SUMMARY_RANGE_LABEL_RE.sub(" ", str(text or ""))
+    cleaned = _EXEC_SUMMARY_THOUSANDS_RE.sub("", cleaned)
+    return {
+        _normalize_exec_summary_number(match.group(0))
+        for match in _EXEC_SUMMARY_NUMBER_RE.finditer(cleaned)
+    }
 
 
 class ReportBuilderMixin:
@@ -207,6 +243,22 @@ class ReportBuilderMixin:
             narrative_blocks=narrative_blocks,
             report_dir=report_dir,
         )
+        executive_summary, executive_summary_warning = (
+            self._govern_executive_summary(
+                executive_summary=executive_summary,
+                grouped_findings=grouped_findings,
+                intent=intent,
+                agent_results=agent_results,
+                narrative_blocks=narrative_blocks,
+            )
+        )
+        executive_summary_warning_html = ""
+        if executive_summary_warning:
+            executive_summary_warning_html = (
+                "<p style='color:var(--amber);font-size:0.9rem;margin-top:0.75rem'>"
+                f"{_html.escape(executive_summary_warning)}"
+                "</p>"
+            )
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -395,6 +447,7 @@ class ReportBuilderMixin:
 <h2>Executive Summary</h2>
 <div class="card">
   <p>{self._plain_text_to_html(executive_summary)}</p>
+  {executive_summary_warning_html}
 </div>
 
 <h2>Provenance</h2>
@@ -496,6 +549,66 @@ class ReportBuilderMixin:
             self._write_memory_snapshot(report_dir)
         log.info(f"Report written to {report_path}")
         return report_path
+
+    def _govern_executive_summary(self, executive_summary: str,
+                                  grouped_findings: dict,
+                                  intent: dict,
+                                  agent_results: dict,
+                                  narrative_blocks: list) -> tuple[str, str]:
+        """Guard free-text executive summaries before they reach HTML."""
+        text = str(executive_summary or "")
+        fallback = ""
+        try:
+            fallback = self._fallback_executive_summary(grouped_findings, intent)
+        except Exception:
+            fallback = ""
+        if fallback and text.strip() == str(fallback).strip():
+            return text, ""
+
+        named_entities: list[str] = []
+        for block in narrative_blocks or []:
+            try:
+                named_entities.extend(collect_named_entities(block))
+            except Exception:
+                continue
+
+        violations: list[str] = []
+        causal_hit = find_causal_language(text, exclude=named_entities)
+        if causal_hit:
+            violations.append("unlicensed causal language")
+
+        unsupported_numbers = self._unsupported_executive_summary_numbers(
+            text, agent_results
+        )
+        if unsupported_numbers:
+            violations.append("unsupported numeric claims")
+
+        if not violations:
+            return text, ""
+
+        if not fallback:
+            fallback = (
+                "ARIA completed the analysis. See the findings table below for "
+                "the governed results and limitations."
+            )
+        warning = (
+            "Executive summary governance: free-text summary failed "
+            f"{' and '.join(violations)} checks; deterministic fallback shown."
+        )
+        return fallback, warning
+
+    def _unsupported_executive_summary_numbers(self, text: str,
+                                               agent_results: dict) -> set[str]:
+        observed = _executive_summary_numbers(text)
+        if not observed:
+            return set()
+        concrete = ""
+        try:
+            concrete = self._summarize_agent_results_for_llm(agent_results)
+        except Exception:
+            concrete = ""
+        allowed = _executive_summary_numbers(concrete)
+        return observed - allowed
 
     def _write_memory_snapshot(self, report_dir: Path) -> None:
         try:
