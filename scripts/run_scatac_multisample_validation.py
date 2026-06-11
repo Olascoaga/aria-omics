@@ -104,6 +104,35 @@ MIN_CELLS_PEAK = int(os.environ.get("ARIA_SCATAC_MIN_CELLS_PEAK", "10"))
 MAX_PEAKS = int(os.environ.get("ARIA_SCATAC_MAX_PEAKS", "25000"))
 SEED = int(os.environ.get("ARIA_SCATAC_SEED", "0"))
 
+# Lever A: genomic-overlap peak unification. Cell Ranger ARC calls peaks PER
+# sample, so the same regulatory region gets slightly different boundaries in
+# each donor (e.g. chr1_9797_10686 vs chr1_9800_10690). The consensus pipeline
+# matched peaks by EXACT STRING, so those boundary-shifted versions of one region
+# became separate, donor-specific columns -> each consensus column carried counts
+# from ~1 donor (97% zeros), making the pseudobulk DA a present/absent artifact
+# (the 2^50 |LFC| in ADR-042). They are NOT biologically disjoint: per-donor peaks
+# overlap ~66% in genomic space. Merging overlapping peaks into one interval and
+# summing their counts collapses the ~9 donor-specific duplicates of each region
+# into one comparable column (142,228 peaks -> ~16k intervals, median donors/peak
+# 1 -> 8). This needs NO fragment files. On by default; set 0 for the legacy
+# exact-string (block-structured) matrix used in ADR-042.
+UNIFY_PEAKS = os.environ.get("ARIA_SCATAC_UNIFY_PEAKS", "1") not in ("0", "", "false")
+_CANON_CHROMS = {f"chr{i}" for i in range(1, 23)} | {"chrX", "chrY"}
+
+# Lever B: contrast-aware presence filter. Keep only peaks present in at least
+# MIN_DONOR_FRAC of the donors in BOTH contrast groups, where a donor "has" a
+# peak when >= MIN_CELLS_DONOR_PRESENT of its cells are open there. This drops
+# present/absent peaks whose extreme |LFC| (2^50-ish) is a 0-count + pseudocount
+# artifact, leaving quantitatively comparable peaks. Set frac<=0 to disable.
+# Most useful AFTER Lever A (on the block-structured matrix it removes ~everything).
+MIN_DONOR_FRAC = float(os.environ.get("ARIA_SCATAC_MIN_DONOR_FRAC", "0.0"))
+MIN_CELLS_DONOR_PRESENT = int(os.environ.get("ARIA_SCATAC_MIN_CELLS_DONOR_PRESENT", "3"))
+
+# The validation target is the inferential pseudobulk multi-sample DA, not the
+# descriptive per-cluster Wilcoxon lane (single-threaded scipy CSR slicing that
+# stalls on the multi-donor pool). Skip it by default here; set 0 to re-enable.
+SKIP_PER_CLUSTER = os.environ.get("ARIA_SCATAC_SKIP_PER_CLUSTER", "1") not in ("0", "", "false")
+
 # Barcode = "<donor>_<16bp cell barcode>-<digit>"; donor may itself contain "_"
 # (e.g. "hc29_deep"), so strip the trailing _<ACGTN...>-<n> instead of split("_").
 _BC_RE = re.compile(r"_[ACGTN]+-\d+$")
@@ -164,6 +193,89 @@ def build_combined_adata():
     return combined
 
 
+def _parse_peak(name):
+    """'chr1_9797_10686' -> ('chr1', 9797, 10686); None if malformed/non-canonical."""
+    parts = str(name).rsplit("_", 2)
+    if len(parts) != 3:
+        return None
+    chrom, s, e = parts
+    if chrom not in _CANON_CHROMS:
+        return None
+    try:
+        return chrom, int(s), int(e)
+    except ValueError:
+        return None
+
+
+def _unify_peaks_by_overlap(adata, report):
+    """Lever A: merge consensus peak columns that overlap in genomic space into a
+    single interval, summing their counts. This collapses the boundary-shifted
+    per-donor duplicates of each region (a Cell Ranger ARC per-sample artifact)
+    that exact-string consensus matching left as separate donor-specific columns.
+
+    The merge is a standard bedtools-style sweep: sort canonical peaks by
+    (chrom, start) and union any that overlap or are book-ended. Each original
+    column maps to exactly one merged interval (it is part of that union), so a
+    one-hot mapping matrix M gives X @ M = counts re-aggregated onto the merged
+    intervals. No fragment files are needed. Disabled by UNIFY_PEAKS=0.
+    """
+    import numpy as np
+    import scipy.sparse as sp
+
+    if not UNIFY_PEAKS:
+        return adata
+
+    n0 = int(adata.n_vars)
+    parsed = [(_parse_peak(n), i) for i, n in enumerate(adata.var_names)]
+    keep = [(p, i) for p, i in parsed if p is not None]
+    if not keep:
+        print("      unify (A): no canonical peaks parsed; skipping", flush=True)
+        return adata
+    chrom = np.array([p[0] for p, _ in keep])
+    start = np.array([p[1] for p, _ in keep], dtype=np.int64)
+    end = np.array([p[2] for p, _ in keep], dtype=np.int64)
+    orig_idx = np.array([i for _, i in keep], dtype=np.int64)
+
+    order = np.lexsort((start, chrom))
+    merged_id = np.empty(len(order), dtype=np.int64)
+    m_chrom, m_start, m_end = [], [], []
+    mid, cur_c, cur_s, cur_e = -1, None, -1, -1
+    for rank, k in enumerate(order):
+        c, s, e = chrom[k], int(start[k]), int(end[k])
+        if c != cur_c or s > cur_e:            # disjoint -> open a new interval
+            mid += 1
+            cur_c, cur_s, cur_e = c, s, e
+            m_chrom.append(c); m_start.append(s); m_end.append(e)
+        else:                                   # overlap/book-ended -> extend
+            if e > cur_e:
+                cur_e = e
+            m_end[mid] = cur_e
+        merged_id[rank] = mid
+    n_merged = mid + 1
+    col_to_merged = np.empty(len(orig_idx), dtype=np.int64)
+    col_to_merged[order] = merged_id
+
+    Xc = adata.X.tocsc()[:, orig_idx].tocsr()
+    M = sp.csr_matrix((np.ones(len(orig_idx)), (np.arange(len(orig_idx)), col_to_merged)),
+                      shape=(len(orig_idx), n_merged))
+    Xm = (Xc @ M).tocsr()
+    merged_names = [f"{m_chrom[j]}_{m_start[j]}_{m_end[j]}" for j in range(n_merged)]
+
+    import anndata as ad
+    merged = ad.AnnData(X=Xm, obs=adata.obs.copy())
+    merged.var_names = merged_names
+    report["unify_peaks"] = {
+        "method": "genomic_overlap_merge",
+        "peaks_before": n0, "peaks_after": int(n_merged),
+        "canonical_peaks_used": int(len(orig_idx)),
+        "peaks_per_merged": round(len(orig_idx) / max(n_merged, 1), 3),
+    }
+    print(f"      unify (A): {n_merged} merged intervals from {len(orig_idx)} "
+          f"canonical peaks ({len(orig_idx)/max(n_merged,1):.2f} peaks/region; "
+          f"dropped {n0 - len(orig_idx)} non-canonical/malformed)", flush=True)
+    return merged
+
+
 def _subsample_and_filter(adata, report):
     """Stratified cell subsample + peak filter -> tractable validation matrix.
 
@@ -222,6 +334,57 @@ def _subsample_and_filter(adata, report):
     return adata
 
 
+def _presence_filter(adata, report):
+    """Lever B: keep peaks present in >= MIN_DONOR_FRAC of donors in BOTH the
+    test and reference contrast groups (a donor "has" a peak when >=
+    MIN_CELLS_DONOR_PRESENT of its cells are open there).
+
+    This removes present/absent peaks -- open across one age group's donors and
+    ~zero across the other's -- whose 2^50-scale |LFC| is a 0-count + pseudocount
+    artifact, not a quantitative effect. What remains is comparable in both arms,
+    so DESeq2's LFC is interpretable. The gate is presence only (no effect-size
+    peeking), and it is contrast-aware on purpose. Disabled when frac <= 0.
+    """
+    import numpy as np
+    import scipy.sparse as sp
+
+    if MIN_DONOR_FRAC <= 0:
+        return adata
+
+    n0_peaks = int(adata.n_vars)
+    obs = adata.obs
+    age = obs["age_group"].astype(str).values
+    donor = obs["donor"].astype(str).values
+    Xb = adata.X.tocsr() if sp.issparse(adata.X) else sp.csr_matrix(adata.X)
+
+    keep = np.ones(adata.n_vars, dtype=bool)
+    per_group = {}
+    for grp in (TEST_AGE, REF_AGE):
+        grp_mask = age == grp
+        grp_donors = np.unique(donor[grp_mask])
+        present = np.zeros(adata.n_vars, dtype=np.int32)
+        for d in grp_donors:
+            dmask = grp_mask & (donor == d)
+            cells_open = np.asarray((Xb[dmask] > 0).sum(axis=0)).ravel()
+            present += (cells_open >= MIN_CELLS_DONOR_PRESENT)
+        frac = present / max(len(grp_donors), 1)
+        keep &= frac >= MIN_DONOR_FRAC
+        per_group[grp] = int(len(grp_donors))
+
+    adata = adata[:, keep].copy()
+    report["presence_filter"] = {
+        "min_donor_frac": MIN_DONOR_FRAC,
+        "min_cells_donor_present": MIN_CELLS_DONOR_PRESENT,
+        "contrast_groups": {"test": TEST_AGE, "ref": REF_AGE},
+        "donors_per_group": per_group,
+        "peaks_before": n0_peaks, "peaks_after": int(adata.n_vars),
+    }
+    print(f"      presence-filter (B): {adata.n_vars} of {n0_peaks} peaks kept "
+          f"(>= {MIN_DONOR_FRAC:.0%} donors open in both {TEST_AGE} & {REF_AGE})",
+          flush=True)
+    return adata
+
+
 def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     report: dict = {"cell_type": CELL_TYPE, "contrast": f"{TEST_AGE}_vs_{REF_AGE}"}
@@ -237,9 +400,14 @@ def main():
         combined = build_combined_adata()
         combined.write_h5ad(str(combined_full_path))
 
-    # Subsample + peak-filter to the validation matrix, then persist it; LSI and
-    # DA both run on this so they share one tractable, reproducible input.
+    # (Lever A) unify boundary-shifted per-donor peak duplicates by genomic
+    # overlap so the multi-sample matrix is quantitatively comparable across
+    # donors, THEN subsample + peak-filter to the validation matrix, then
+    # (lever B) optionally drop residual present/absent peaks. LSI and DA share
+    # one tractable, reproducible input. Persist it.
+    combined = _unify_peaks_by_overlap(combined, report)
     combined = _subsample_and_filter(combined, report)
+    combined = _presence_filter(combined, report)
     combined_path = OUT_DIR / f"{CELL_TYPE.lower()}_consensus_sub.h5ad"
     combined.write_h5ad(str(combined_path))
 
@@ -285,6 +453,11 @@ def main():
         "comparisons": [{"test": TEST_AGE, "reference": REF_AGE}],
         "output_dir": str(OUT_DIR),
         "n_cpus": _N_CPUS,
+        # The validation target is the inferential pseudobulk multi-sample DA.
+        # The descriptive per-cluster Wilcoxon lane is single-threaded scipy CSR
+        # slicing that stalls on the multi-donor pool; skip it so the run uses the
+        # DESeq2 pseudobulk lane (parallel over n_cpus). Set 0 to re-enable it.
+        "skip_per_cluster": SKIP_PER_CLUSTER,
     })
     report["diffacc"] = {
         "status": da.get("status"),

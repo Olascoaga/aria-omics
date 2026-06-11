@@ -366,6 +366,12 @@ def chromatin_diffacc(params: dict) -> dict:
     min_reps = int(params.get("min_replicates_per_condition", thr.min_replicates))
     n_cpus = params.get("n_cpus")
     n_cpus = int(n_cpus) if n_cpus else None
+    # Optional: skip the DESCRIPTIVE per-cluster Wilcoxon lane and go straight to
+    # the inferential pseudobulk DA. The per-cluster lane is single-threaded scipy
+    # CSR slicing (pct_in/pct_out) that scales pathologically with cluster count ×
+    # significant peaks on a large multi-sample pool; it adds no pseudobulk
+    # evidence. Default False keeps the production path unchanged.
+    skip_per_cluster = bool(params.get("skip_per_cluster", False))
 
     in_path = Path(data_path)
     if not in_path.exists():
@@ -404,10 +410,19 @@ def chromatin_diffacc(params: dict) -> dict:
 
     warnings: list = []
 
-    per_cluster = _per_cluster_accessibility(
-        adata, groupby, padj_max, lfc_min, top_n, warnings)
-    n_clusters = per_cluster.pop("n_clusters", None) or int(
-        adata.obs[groupby].astype(str).nunique())
+    if skip_per_cluster:
+        per_cluster = {
+            "ran": False,
+            "reason": "skipped (skip_per_cluster=True): descriptive lane "
+                      "disabled to run the inferential pseudobulk DA directly",
+            "n_da_total": 0, "n_da_by_cluster": {}, "da_peaks_by_cluster": {},
+        }
+        n_clusters = int(adata.obs[groupby].astype(str).nunique())
+    else:
+        per_cluster = _per_cluster_accessibility(
+            adata, groupby, padj_max, lfc_min, top_n, warnings)
+        n_clusters = per_cluster.pop("n_clusters", None) or int(
+            adata.obs[groupby].astype(str).nunique())
 
     # Persist per-cluster table.
     pc_rows = per_cluster.pop("_rows", [])

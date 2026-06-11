@@ -127,3 +127,142 @@ def test_subsample_preserves_donors_and_filters_peaks(monkeypatch):
     s = report["subsample"]
     assert s["cells_before"] == 2400 and s["peaks_before"] == 100
     assert s["cells_after"] == out.n_obs and s["peaks_after"] == out.n_vars
+
+
+def test_presence_filter_drops_present_absent_and_rare_peaks(monkeypatch):
+    """Lever B keeps peaks present in >=50% of donors in BOTH contrast groups,
+    dropping (a) present/absent peaks (open in one age group, zero in the other)
+    whose extreme |LFC| is a pseudocount artifact, and (b) rare peaks present in
+    too few donors. A peak shared across both arms must survive."""
+    ad = pytest.importorskip("anndata")
+    sp = pytest.importorskip("scipy.sparse")
+    import numpy as np
+    import pandas as pd
+
+    h = _load_harness()
+    monkeypatch.setattr(h, "TEST_AGE", "80-100")
+    monkeypatch.setattr(h, "REF_AGE", "20-39")
+    monkeypatch.setattr(h, "MIN_DONOR_FRAC", 0.5)
+    monkeypatch.setattr(h, "MIN_CELLS_DONOR_PRESENT", 1)
+
+    cells_per_donor = 3
+    rows, donor_of_cell, age_of_cell = [], [], []
+    for age in ("80-100", "20-39"):
+        for d in range(4):
+            for _ in range(cells_per_donor):
+                rows.append(f"{age}-d{d}")
+                age_of_cell.append(age)
+    n = len(rows)
+    X = np.zeros((n, 3), dtype="float32")
+    age_arr = np.array(age_of_cell)
+    donor_arr = np.array(rows)
+    X[:, 0] = 1                                   # peak0 shared -> kept
+    X[age_arr == "80-100", 1] = 1                 # peak1 present/absent -> dropped
+    X[(donor_arr == "80-100-d0") | (donor_arr == "20-39-d0"), 2] = 1  # rare -> dropped
+    obs = pd.DataFrame({"donor": donor_arr, "age_group": age_arr})
+    obs["donor"] = obs["donor"].astype("category")
+    obs["age_group"] = obs["age_group"].astype("category")
+    obs.index = [f"c{i}" for i in range(n)]
+    a = ad.AnnData(X=sp.csr_matrix(X), obs=obs)
+    a.var_names = ["shared", "present_absent", "rare"]
+
+    out = h._presence_filter(a, {})
+    assert list(out.var_names) == ["shared"]
+
+    # Disabled (frac<=0) is a pass-through.
+    monkeypatch.setattr(h, "MIN_DONOR_FRAC", 0.0)
+    assert h._presence_filter(a, {}).n_vars == 3
+
+
+def test_unify_peaks_merges_overlapping_and_sums_counts(monkeypatch):
+    """Lever A collapses boundary-shifted per-donor duplicates of one region into
+    a single column and sums their counts. Cell Ranger ARC calls peaks per sample,
+    so the same region appears as chr1_100_200 in donor A and chr1_103_205 in
+    donor B (exact-string disjoint, genomically overlapping); exact-string
+    consensus matching left them as separate donor-specific columns (the block
+    structure). Overlap-merge must (a) unite genomically overlapping peaks, (b)
+    keep disjoint peaks separate, (c) drop non-canonical contigs, and (d) sum the
+    counts of merged columns so the region's signal is donor-comparable."""
+    ad = pytest.importorskip("anndata")
+    sp = pytest.importorskip("scipy.sparse")
+    import numpy as np
+
+    h = _load_harness()
+    monkeypatch.setattr(h, "UNIFY_PEAKS", True)
+
+    # 2 cells x 4 peaks: two overlapping (same region, shifted) + one disjoint on
+    # the same chrom + one on a non-canonical contig (must be dropped).
+    peaks = ["chr1_100_200", "chr1_150_260", "chr1_5000_5100", "GL000009.2_10_90"]
+    X = np.array([[1, 2, 5, 7],
+                  [0, 3, 0, 9]], dtype="float32")
+    a = ad.AnnData(X=sp.csr_matrix(X))
+    a.var_names = peaks
+
+    out = h._unify_peaks_by_overlap(a, {})
+    # chr1_100_200 & chr1_150_260 overlap -> one merged interval chr1_100_260;
+    # chr1_5000_5100 stays separate; GL000009.2 dropped (non-canonical).
+    assert list(out.var_names) == ["chr1_100_260", "chr1_5000_5100"]
+    # Merged column sums the two overlapping peaks per cell; disjoint untouched.
+    merged = out.X.toarray() if sp.issparse(out.X) else np.asarray(out.X)
+    assert merged[0, 0] == 3 and merged[1, 0] == 3   # (1+2), (0+3)
+    assert merged[0, 1] == 5 and merged[1, 1] == 0   # chr1_5000_5100 unchanged
+
+    # Disabled (UNIFY_PEAKS=0) is a pass-through.
+    monkeypatch.setattr(h, "UNIFY_PEAKS", False)
+    assert h._unify_peaks_by_overlap(a, {}).n_vars == 4
+
+
+def test_diffacc_skip_per_cluster_runs_pseudobulk_only(monkeypatch, tmp_path):
+    """skip_per_cluster=True must bypass the single-threaded descriptive
+    per-cluster Wilcoxon lane (reporting it honestly as not-run) while the
+    pseudobulk lane still dispatches. Default (absent) keeps per-cluster on.
+    Both heavy lanes are stubbed so this stays a fast, deps-light gating guard."""
+    ad = pytest.importorskip("anndata")
+    sp = pytest.importorskip("scipy.sparse")
+    import numpy as np
+    import pandas as pd
+    from aria.scripts import chromatin_diffacc as cd
+
+    # Tiny clustered AnnData with the columns chromatin_diffacc requires.
+    n = 8
+    obs = pd.DataFrame({
+        "leiden": ["0", "1"] * (n // 2),
+        "age_group": ["80-100"] * (n // 2) + ["20-39"] * (n // 2),
+        "donor": [f"d{i}" for i in range(n)],
+    }, index=[f"c{i}" for i in range(n)])
+    a = ad.AnnData(X=sp.csr_matrix(np.ones((n, 5), dtype="float32")), obs=obs)
+    a.var_names = [f"chr1_{i}_100" for i in range(5)]
+    data_path = tmp_path / "clustered.h5ad"
+    a.write_h5ad(str(data_path))
+
+    calls = {"per_cluster": 0, "pseudobulk": 0}
+
+    def _spy_pc(*args, **kwargs):
+        calls["per_cluster"] += 1
+        return {"ran": True, "reason": None, "n_da_total": 0,
+                "n_da_by_cluster": {}, "da_peaks_by_cluster": {},
+                "_rows": [], "n_clusters": 2}
+
+    def _stub_pb(*args, **kwargs):
+        calls["pseudobulk"] += 1
+        return {"ran": True, "reason": None, "comparisons": [], "_rows": []}
+
+    monkeypatch.setattr(cd, "_per_cluster_accessibility", _spy_pc)
+    monkeypatch.setattr(cd, "_pseudobulk_da", _stub_pb)
+
+    base = {"data_path": str(data_path), "groupby": "leiden",
+            "condition_col": "age_group", "replicate_col": "donor",
+            "comparisons": [{"test": "80-100", "reference": "20-39"}],
+            "output_dir": str(tmp_path)}
+
+    # Skipped: per-cluster spy NOT called, pseudobulk still runs.
+    out = cd.chromatin_diffacc({**base, "skip_per_cluster": True})
+    assert out["status"] == "success"
+    assert calls["per_cluster"] == 0 and calls["pseudobulk"] == 1
+    assert out["per_cluster"]["ran"] is False
+    assert "skip_per_cluster" in out["per_cluster"]["reason"]
+
+    # Default (absent): per-cluster lane runs as before.
+    out2 = cd.chromatin_diffacc(base)
+    assert calls["per_cluster"] == 1 and calls["pseudobulk"] == 2
+    assert out2["per_cluster"]["ran"] is True
