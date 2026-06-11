@@ -173,6 +173,45 @@ def _abs_corr(x, y) -> float | None:
     return float(abs(np.corrcoef(x, y)[0, 1]))
 
 
+def _composition_covariate_decision(comp_vals, cond_ind, max_corr):
+    """A3 (audit 2026-06-11): decide whether to include the self-proportion
+    composition covariate for one DE block. Returns ``(use, skipped_reason)``.
+
+    Conservative by construction: when the covariate is collinear with the
+    contrast it is dropped (C3/ADR-021, the variance-inflation case), and when
+    collinearity CANNOT be measured (no variance in either vector) it is ALSO
+    dropped rather than added — the old code fell through and added an unvetted
+    term in the unmeasurable case.
+    """
+    corr = _abs_corr(comp_vals, cond_ind)
+    if corr is None:
+        return False, "collinearity_unmeasurable"
+    if corr >= max_corr:
+        return False, (
+            f"collinear_with_condition (|r|={corr:.2f} >= {max_corr})"
+        )
+    return True, None
+
+
+def _expressed_background(counts, gene_names):
+    """A3: per-dataset expressed-gene ORA background, with an EXPLICIT degradation
+    flag instead of a silent fallback. Returns ``(genes, degraded)``; ``degraded``
+    is True when the expressed-mask computation failed and the universe fell back
+    to all genes (which would otherwise inflate per-cluster enrichment silently).
+    """
+    import numpy as np
+    from scipy import sparse
+    try:
+        if sparse.issparse(counts):
+            expressed_mask = np.asarray((counts > 0).sum(axis=0)).ravel() > 0
+        else:
+            expressed_mask = (np.asarray(counts) > 0).sum(axis=0) > 0
+        genes = [str(g) for g, keep in zip(gene_names, expressed_mask) if keep]
+        return genes, False
+    except Exception:
+        return list(map(str, gene_names)), True
+
+
 def _fdr_filtering_basis(successful_blocks) -> dict:
     """B2 (audit 2026-06-11): disclose and QUANTIFY that the local and global BH
     families do NOT share a base hypothesis set.
@@ -328,16 +367,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
         counts     = adata.X
         gene_names = list(adata.var_names)
 
-    try:
-        if sparse.issparse(counts):
-            expressed_mask = np.asarray((counts > 0).sum(axis=0)).ravel() > 0
-        else:
-            expressed_mask = (np.asarray(counts) > 0).sum(axis=0) > 0
-        background_genes = [
-            str(g) for g, keep in zip(gene_names, expressed_mask) if keep
-        ]
-    except Exception:
-        background_genes = list(map(str, gene_names))
+    background_genes, background_genes_degraded = _expressed_background(
+        counts, gene_names
+    )
 
     integerlike, max_val, count_classification = _looks_integerlike(counts)
     needs_recovery       = False
@@ -567,24 +599,22 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     # DESeq2 errors on a constant factor.
                     composition_skipped_reason = "constant_within_block"
                 else:
-                    # C3: refuse the covariate when it is collinear with the
-                    # contrast (the variance-inflation case). The abundance shift
-                    # is still reported by the differential-abundance layer.
+                    # C3/ADR-021: refuse the covariate when it is collinear with
+                    # the contrast (variance inflation). A3: also refuse it when
+                    # collinearity is unmeasurable (no variance) — conservative,
+                    # the abundance shift is still reported by the DA layer.
                     comp_vals = pd.to_numeric(
                         meta_sub[COMPOSITION_COL], errors="coerce"
                     ).to_numpy(dtype=float)
                     cond_ind = (
                         meta_sub[condition_col] == test_lvl
                     ).to_numpy(dtype=float)
-                    comp_corr = _abs_corr(comp_vals, cond_ind)
-                    if (comp_corr is not None
-                            and comp_corr >= COMPOSITION_COLLINEARITY_MAX):
-                        composition_skipped_reason = (
-                            f"collinear_with_condition "
-                            f"(|r|={comp_corr:.2f} >= "
-                            f"{COMPOSITION_COLLINEARITY_MAX})"
+                    use_comp, composition_skipped_reason = (
+                        _composition_covariate_decision(
+                            comp_vals, cond_ind, COMPOSITION_COLLINEARITY_MAX
                         )
-                    else:
+                    )
+                    if use_comp:
                         design_factors = design_factors + [COMPOSITION_COL]
                         block_corrected_for_composition = True
             design_check = validate_design_matrix(
@@ -957,7 +987,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "auto_paired_donor_covariate":      auto_paired_donor_covariate,
         "background_genes": background_genes,
         "background_size":  len(background_genes),
-        "background_source": "dataset_expressed_genes",
+        "background_source": ("all_genes_fallback" if background_genes_degraded
+                              else "dataset_expressed_genes"),
+        "background_degraded": background_genes_degraded,
         "multiple_testing": {
             "fdr_strategy":   fdr_strategy,
             "primary_family": ("per-cluster BH" if fdr_strategy == "per_cluster"
