@@ -258,6 +258,7 @@ def _issues_for_sentence(
         or str(block.analysis or "").startswith("integration")
         or str(block.analysis or "") in {
             "integrated_signal", "convergent_evidence", "divergent_evidence",
+            "executive_summary",
         }
     )
     required = _required_family(low)

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 from aria import __version__ as ARIA_VERSION
+from aria.agents.narrative.types import Caveat, EvidenceItem, NarrativeBlock
 from aria.agents.narrative.validators import (
     collect_named_entities,
     find_causal_language,
@@ -159,6 +160,27 @@ class ReportBuilderMixin:
         report_dir.mkdir(parents=True, exist_ok=True)
         self._stage_artifacts(agent_results, report_dir)
         narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
+        executive_summary, executive_summary_warning = (
+            self._govern_executive_summary(
+                executive_summary=executive_summary,
+                grouped_findings=grouped_findings,
+                intent=intent,
+                agent_results=agent_results,
+                narrative_blocks=narrative_blocks,
+            )
+        )
+        executive_summary, executive_summary_warning, executive_summary_block = (
+            self._build_executive_summary_block(
+                executive_summary=executive_summary,
+                executive_summary_warning=executive_summary_warning,
+                grouped_findings=grouped_findings,
+                intent=intent,
+                exp_ctx=exp_ctx,
+                agent_results=agent_results,
+                narrative_blocks=narrative_blocks,
+            )
+        )
+        narrative_blocks = [executive_summary_block, *list(narrative_blocks or [])]
 
         # P-DEVIL: run the deterministic devil's advocate before rendering so its
         # info caveats appear in the HTML blocks (claim tiers were annotated when
@@ -175,9 +197,15 @@ class ReportBuilderMixin:
         try:
             from aria.agents.narrative.run_ledger import build_run_ledger
             run_ledger = build_run_ledger(exp_ctx, agent_results)
+            self._ensure_executive_summary_ledger_node(
+                run_ledger, executive_summary_block
+            )
         except Exception as exc:
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
             run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
+            self._ensure_executive_summary_ledger_node(
+                run_ledger, executive_summary_block
+            )
 
         # W-LEDGER: verify that no associative-or-stronger claim cites a ledger
         # node the run marked not-run/skipped/error. This cross-references TWO
@@ -242,15 +270,6 @@ class ReportBuilderMixin:
             agent_results,
             narrative_blocks=narrative_blocks,
             report_dir=report_dir,
-        )
-        executive_summary, executive_summary_warning = (
-            self._govern_executive_summary(
-                executive_summary=executive_summary,
-                grouped_findings=grouped_findings,
-                intent=intent,
-                agent_results=agent_results,
-                narrative_blocks=narrative_blocks,
-            )
         )
         executive_summary_warning_html = ""
         if executive_summary_warning:
@@ -610,6 +629,172 @@ class ReportBuilderMixin:
         allowed = _executive_summary_numbers(concrete)
         return observed - allowed
 
+    def _build_executive_summary_block(self, executive_summary: str,
+                                       executive_summary_warning: str,
+                                       grouped_findings: dict,
+                                       intent: dict,
+                                       exp_ctx: dict,
+                                       agent_results: dict,
+                                       narrative_blocks: list
+                                       ) -> tuple[str, str, NarrativeBlock]:
+        """Represent the executive summary as a governed narrative block."""
+        text = str(executive_summary or "")
+        warning = str(executive_summary_warning or "")
+        block = self._make_executive_summary_block(
+            text, warning, grouped_findings, intent, exp_ctx, agent_results,
+            narrative_blocks,
+        )
+        try:
+            from aria.agents.narrative.evidence_verifier import (
+                verify_block_claim_support,
+            )
+            block.metadata["claim_verification"] = verify_block_claim_support(
+                block, strict=True
+            )
+            return text, warning, block
+        except Exception as exc:
+            log.warning(
+                "Executive summary W-CLAIM verification failed; using "
+                "deterministic fallback: %s",
+                exc,
+            )
+            try:
+                fallback = self._fallback_executive_summary(
+                    grouped_findings, intent
+                )
+            except Exception:
+                fallback = (
+                    "ARIA completed the analysis. See the governed findings "
+                    "and limitations below."
+                )
+            if warning:
+                warning = (
+                    f"{warning} W-CLAIM verification also failed; "
+                    "deterministic fallback shown."
+                )
+            else:
+                warning = (
+                    "Executive summary governance: W-CLAIM verification failed; "
+                    "deterministic fallback shown."
+                )
+            block = self._make_executive_summary_block(
+                fallback, warning, grouped_findings, intent, exp_ctx,
+                agent_results, narrative_blocks,
+            )
+            try:
+                from aria.agents.narrative.evidence_verifier import (
+                    verify_block_claim_support,
+                )
+                block.metadata["claim_verification"] = verify_block_claim_support(
+                    block, strict=True
+                )
+            except Exception as fallback_exc:
+                log.warning(
+                    "Fallback executive summary verification failed: %s",
+                    fallback_exc,
+                )
+            return fallback, warning, block
+
+    def _make_executive_summary_block(self, text: str, warning: str,
+                                      grouped_findings: dict,
+                                      intent: dict,
+                                      exp_ctx: dict,
+                                      agent_results: dict,
+                                      narrative_blocks: list) -> NarrativeBlock:
+        concrete = ""
+        try:
+            concrete = self._summarize_agent_results_for_llm(agent_results)
+        except Exception:
+            concrete = "(concrete result summary unavailable)"
+        total_findings = sum(len(v) for v in (grouped_findings or {}).values())
+        question = intent.get(
+            "summary", (exp_ctx or {}).get("user_question", "")
+        )
+        evidence = [
+            EvidenceItem(
+                label="concrete pipeline results",
+                value=concrete,
+                source="agent_results",
+            ),
+            EvidenceItem(
+                label="biological question",
+                value=question,
+                source="intent",
+            ),
+            EvidenceItem(
+                label="findings recorded",
+                value=total_findings,
+                source="message_bus",
+            ),
+            EvidenceItem(
+                label="high-confidence findings",
+                value=len((grouped_findings or {}).get("high", [])),
+                source="message_bus",
+            ),
+            EvidenceItem(
+                label="narrative blocks summarized",
+                value=len(narrative_blocks or []),
+                source="narrative_registry",
+            ),
+            EvidenceItem(
+                label="allowed confidence labels",
+                value="HIGH MEDIUM LOW INSUFFICIENT",
+                source="report_policy",
+            ),
+        ]
+        caveats = [Caveat(warning, "warning")] if warning else []
+        return NarrativeBlock(
+            id="executive_summary",
+            modality="report",
+            analysis="executive_summary",
+            block_type="summary",
+            title="Executive Summary",
+            status="success",
+            confidence="medium",
+            claim=text,
+            evidence=evidence,
+            caveats=caveats,
+            metrics={
+                "n_findings": total_findings,
+                "n_high_confidence": len(
+                    (grouped_findings or {}).get("high", [])
+                ),
+                "n_narrative_blocks_summarized": len(narrative_blocks or []),
+            },
+            metadata={"render_surface": "executive_summary"},
+        )
+
+    @staticmethod
+    def _ensure_executive_summary_ledger_node(run_ledger: dict,
+                                              block: NarrativeBlock | None
+                                              ) -> None:
+        if not isinstance(run_ledger, dict) or block is None:
+            return
+        entries = run_ledger.setdefault("entries", [])
+        node_id = "ledger://report/executive_summary"
+        if not any(
+            isinstance(e, dict) and e.get("node_id") == node_id
+            for e in entries
+        ):
+            entries.append({
+                "modality": "report",
+                "analysis": "executive_summary",
+                "label": "Executive summary",
+                "node_id": node_id,
+                "planned": True,
+                "status": "ran",
+                "reason": "rendered",
+                "divergence": False,
+            })
+        modalities = run_ledger.setdefault("modalities", [])
+        if "report" not in modalities:
+            modalities.append("report")
+        run_ledger["divergences"] = [
+            e for e in entries
+            if isinstance(e, dict) and e.get("divergence")
+        ]
+        run_ledger["n_divergences"] = len(run_ledger["divergences"])
+
     def _write_memory_snapshot(self, report_dir: Path) -> None:
         try:
             import shutil
@@ -682,6 +867,14 @@ class ReportBuilderMixin:
                 log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
                 run_ledger = {"entries": [], "divergences": [],
                               "n_divergences": 0}
+        exec_block = next(
+            (
+                block for block in (narrative_blocks or [])
+                if getattr(block, "analysis", None) == "executive_summary"
+            ),
+            None,
+        )
+        self._ensure_executive_summary_ledger_node(run_ledger, exec_block)
         # W-LEDGER: link every compiled claim to its ledger node so each claim is
         # traceable to both an evidence card (W-CLAIM) and a run-ledger node. The
         # per-claim ledger_node_id/ledger_status are written in place; the summary

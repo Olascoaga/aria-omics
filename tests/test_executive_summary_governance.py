@@ -1,5 +1,6 @@
 import sys
 import types
+import json
 
 
 _litellm = types.ModuleType("litellm")
@@ -40,7 +41,7 @@ class _ReportHarness(ReportBuilderMixin):
     def _build_qc_section(self, *args, **kwargs):
         return ""
 
-    def _build_methodology_json(self, **kwargs):
+    def _collect_tool_versions(self, *args, **kwargs):
         return {}
 
     def _fallback_executive_summary(self, grouped, intent):
@@ -111,3 +112,40 @@ def test_existing_fallback_executive_summary_is_not_reflagged(tmp_path):
 
     assert "ARIA completed the analysis" in html
     assert "Executive summary governance" not in html
+
+
+def test_executive_summary_is_first_class_claim_manifest(tmp_path):
+    agent = _agent(tmp_path)
+    grouped = {"high": [], "medium": [], "low": [], "insufficient": []}
+    intent = {"summary": "test executive summary block"}
+
+    report = agent._render_html_report(
+        experiment_id="exec_summary_block",
+        exp_ctx={"organism": "Homo sapiens", "genome": "hg38"},
+        intent=intent,
+        executive_summary="ARIA completed the analysis for test executive summary block.",
+        findings_sections={"conflicts": "none"},
+        grouped_findings=grouped,
+        methods="methods",
+        decisions=[],
+        agent_results={},
+        report_dir=tmp_path / "report",
+    )
+    methodology = json.loads((report.parent / "methodology.json").read_text())
+
+    block_ids = [block["id"] for block in methodology["narrative_blocks"]]
+    assert "executive_summary" in block_ids
+
+    claim = next(
+        claim for claim in methodology["claims"]
+        if claim["claim_id"] == "executive_summary"
+    )
+    assert claim["analysis"] == "executive_summary"
+    assert claim["evidence_card_id"] == "executive_summary#evidence"
+    assert claim["tier"] in {
+        "descriptive", "associative", "weak_mechanistic",
+        "strong_mechanistic", "causal_experimental",
+    }
+    assert claim["verification"]["status"] == "supported"
+    assert claim["ledger_node_id"] == "ledger://report/executive_summary"
+    assert claim["ledger_status"] == "ran"

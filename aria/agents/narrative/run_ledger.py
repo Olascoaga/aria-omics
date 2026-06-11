@@ -282,6 +282,8 @@ _LEDGER_KEY_ALIASES = {
 def _ledger_modality_group(modality: str) -> str:
     """Map a block/claim modality label to a ledger modality group."""
     m = str(modality or "").lower()
+    if "report" in m:
+        return "report"
     if "bulk" in m:
         return "bulk"
     if "atac" in m or "chromatin" in m:

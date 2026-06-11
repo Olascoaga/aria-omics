@@ -51,6 +51,7 @@ _ANALYSIS_EVIDENCE = {
     "qc": "descriptive",
     "sample_qc": "descriptive",
     "power": "descriptive",
+    "executive_summary": "descriptive",
     "differential_expression": "expression_change",
     "contrast": "expression_change",
     "pseudobulk_de": "expression_change",
