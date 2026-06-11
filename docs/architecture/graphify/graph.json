@@ -18324,7 +18324,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18541,7 +18541,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18563,7 +18563,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -18975,56 +18975,77 @@
       "label": "_donor_of()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L112"
+      "source_location": "L141"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L112"
+      "source_location": "L141"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_read_lines",
       "label": "_read_lines()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L116"
+      "source_location": "L145"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L116"
+      "source_location": "L145"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_build_combined_adata",
       "label": "build_combined_adata()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L121"
+      "source_location": "L150"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_parse_peak",
+      "label": "_parse_peak()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L196"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_unify_peaks_by_overlap",
+      "label": "_unify_peaks_by_overlap()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L210"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_subsample_and_filter",
       "label": "_subsample_and_filter()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L167"
+      "source_location": "L279"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_presence_filter",
+      "label": "_presence_filter()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L337"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_main",
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L225"
+      "source_location": "L388"
     },
     {
       "id": "scripts_run_scatac_multisample_validation_save",
       "label": "_save()",
       "file_type": "code",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L317"
+      "source_location": "L490"
     },
     {
       "id": "scripts_update_version_metadata",
@@ -25453,6 +25474,27 @@
       "source_location": "L101"
     },
     {
+      "id": "tests_test_scatac_multisample_validation_test_presence_filter_drops_present_absent_and_rare_peaks",
+      "label": "test_presence_filter_drops_present_absent_and_rare_peaks()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L132"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_unify_peaks_merges_overlapping_and_sums_counts",
+      "label": "test_unify_peaks_merges_overlapping_and_sums_counts()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L177"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_diffacc_skip_per_cluster_runs_pseudobulk_only",
+      "label": "test_diffacc_skip_per_cluster_runs_pseudobulk_only()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L215"
+    },
+    {
       "id": "tests_test_script_contracts",
       "label": "test_script_contracts.py",
       "file_type": "code",
@@ -25960,6 +26002,17 @@
       "label": "NarrativeAgent",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -57278,7 +57331,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L407",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -57288,7 +57341,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L423",
+      "source_location": "L438",
       "weight": 1.0
     },
     {
@@ -80108,7 +80161,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -80161,7 +80214,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80171,7 +80224,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80181,7 +80234,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80191,7 +80244,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80201,7 +80254,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80494,7 +80547,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -80503,7 +80556,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -80538,7 +80591,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80548,7 +80601,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_9kxnur_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80999,7 +81052,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L112",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -81009,7 +81062,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L112",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -81019,7 +81072,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L112",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -81028,7 +81081,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L116",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -81038,7 +81091,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L116",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -81048,7 +81101,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L116",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -81057,7 +81110,25 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L121",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_parse_peak",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L196",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_unify_peaks_by_overlap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -81066,7 +81137,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L167",
+      "source_location": "L279",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_presence_filter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -81075,7 +81155,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L225",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -81084,7 +81164,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L317",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -81094,7 +81174,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L134",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
@@ -81104,7 +81184,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L141",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_unify_peaks_by_overlap",
+      "target": "scripts_run_scatac_multisample_validation_parse_peak",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L229",
       "weight": 1.0
     },
     {
@@ -81114,7 +81204,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L237",
+      "source_location": "L400",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_run_scatac_multisample_validation_unify_peaks_by_overlap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L408",
       "weight": 1.0
     },
     {
@@ -81124,7 +81224,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L242",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_run_scatac_multisample_validation_presence_filter",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L410",
       "weight": 1.0
     },
     {
@@ -81134,7 +81244,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L270",
+      "source_location": "L438",
       "weight": 1.0
     },
     {
@@ -91936,6 +92046,33 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_presence_filter_drops_present_absent_and_rare_peaks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_unify_peaks_merges_overlapping_and_sums_counts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_diffacc_skip_per_cluster_runs_pseudobulk_only",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L215",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_scatac_multisample_validation_test_donor_parsing_handles_deep_suffix",
       "target": "tests_test_scatac_multisample_validation_load_harness",
       "relation": "calls",
@@ -91983,6 +92120,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_scatac_multisample_validation.py",
       "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_presence_filter_drops_present_absent_and_rare_peaks",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_unify_peaks_merges_overlapping_and_sums_counts",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -95719,7 +95876,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L382",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -95729,7 +95886,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L382",
+      "source_location": "L388",
       "weight": 1.0
     },
     {
@@ -97119,7 +97276,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L259",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -97129,7 +97286,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L279",
+      "source_location": "L447",
       "weight": 1.0
     },
     {
@@ -101389,7 +101546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L394",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -101399,7 +101556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L398",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -102349,7 +102506,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L260",
+      "source_location": "L428",
       "weight": 1.0
     },
     {
@@ -102359,7 +102516,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_multisample_validation.py",
-      "source_location": "L280",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -108272,8 +108429,18 @@
     },
     {
       "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
+      "target": "claim_compiler",
       "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "biological_synthesis_agent",
+      "target": "claim_compiler",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/biological_synthesis.md",
@@ -108287,6 +108454,16 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     }
