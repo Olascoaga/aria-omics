@@ -351,7 +351,9 @@ def _run_multiqc(fastp_dir: Path, output_dir: Path,
 def _mock_fastp_result(name, r1_in, r2_in, r1_out, r2_out, paired) -> dict:
     """Mock result when fastp not installed."""
     import random
-    random.seed(hash(name) % 1000)
+    import zlib
+    # A2: deterministic across processes (builtin hash() is PYTHONHASHSEED-salted).
+    random.seed(zlib.crc32(str(name).encode()))
     n_raw = random.randint(20_000_000, 50_000_000)
     pct   = random.uniform(92, 98)
     return {

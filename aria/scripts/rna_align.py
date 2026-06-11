@@ -323,7 +323,10 @@ def _parse_star_log(log_file: Path) -> dict:
 def _mock_alignment(name: str, prefix: str) -> dict:
     """Mock alignment result when STAR not installed."""
     import random
-    random.seed(hash(name) % 1000)
+    import zlib
+    # A2: zlib.crc32 is stable across processes; builtin hash() is randomized by
+    # PYTHONHASHSEED, so the same sample produced different mock numbers per run.
+    random.seed(zlib.crc32(str(name).encode()))
     return {
         "status":      "success",
         "bam":         f"{prefix}Aligned.sortedByCoord.out.bam",
