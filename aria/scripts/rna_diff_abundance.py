@@ -31,12 +31,13 @@ Method.
            This respects the compositional constraint (cell-type proportions
            sum to one) and tests shifts at the biological replicate level rather
            than treating cells as independent observations (P1-3, audit
-           2026-06-02). BH correction is across all cell types in the
+           2026-06-02). BH correction is across donor-level CLR tests in the
            comparison. statsmodels.
   Fallback: Fisher's exact test per cell type on a 2x2 table of
-           (cells_in_type, cells_in_other_types) x (test, ref) with
-           BH correction. Only used when statsmodels is missing or the
-           compositional model fails for a cell type.
+           (cells_in_type, cells_in_other_types) x (test, ref). Fisher results
+           are cell-level diagnostics and are not included in donor-level FDR.
+           Only used when statsmodels is missing or the compositional model
+           fails for a cell type.
 
 Input params:
     data_path:        str — path to annotated .h5ad
@@ -75,7 +76,10 @@ Output:
                                              // CLR scale; null for fallback
              "dispersion": float,   // retained for backward compatibility;
                                     // NaN for compositional/fallback paths
-             "padj": float,         // BH within this comparison
+             "padj": float | null,  // BH within donor-level CLR tests only;
+                                    // null for cell-level Fisher diagnostics
+             "fdr_included": bool,
+             "pval_role": "donor_level_primary"|"cell_level_diagnostic",
              "direction": "up"|"down"|"none",
              "significant": bool},
             ...
@@ -264,7 +268,6 @@ def rna_diff_abundance(params: dict) -> dict:
 
         cell_types = list(sub_pivot.columns)
         rows = []
-        pvals = []
 
         for ct in cell_types:
             y = sub_pivot[ct].astype(float).values
@@ -314,10 +317,12 @@ def rna_diff_abundance(params: dict) -> dict:
                 except Exception as exc:
                     # Singular X / zero residual df / convergence failure:
                     # surface via warning and fall through to Fisher for this
-                    # cell type rather than reporting a fabricated p-value.
+                    # cell type as a diagnostic rather than reporting a
+                    # fabricated donor-level p-value.
                     warnings.append(
                         f"[{comp_key}/{ct}] donor-level CLR model failed "
-                        f"({exc!s:.120}); using Fisher exact for this cell type."
+                        f"({exc!s:.120}); using Fisher exact as a cell-level "
+                        "diagnostic for this cell type."
                     )
                     pval = float("nan")
 
@@ -337,6 +342,13 @@ def rna_diff_abundance(params: dict) -> dict:
                     )
                     pval = 1.0
 
+            row_model = (
+                "fisher_exact_fallback"
+                if clr_log_ratio is None else "donor_clr_ols_hc3"
+            )
+            fdr_included = bool(
+                row_model == "donor_clr_ols_hc3" and math.isfinite(pval)
+            )
             rows.append({
                 "name":             str(ct),
                 "n_test":           n_t,
@@ -347,20 +359,32 @@ def rna_diff_abundance(params: dict) -> dict:
                 "pval":             pval,
                 "dispersion":       dispersion,
                 "clr_log_ratio":    clr_log_ratio,
-                "model":            (
-                    "fisher_exact_fallback"
-                    if clr_log_ratio is None else "donor_clr_ols_hc3"
+                "model":            row_model,
+                "fdr_included":     fdr_included,
+                "pval_role":        (
+                    "donor_level_primary"
+                    if fdr_included else "cell_level_diagnostic"
                 ),
             })
-            pvals.append(pval)
 
-        # BH correction across cell types within this comparison
+        # BH correction across donor-level CLR tests within this comparison.
+        # Cell-level Fisher fallbacks are diagnostics only; mixing them into
+        # the same FDR family would treat cells as independent for one row while
+        # using biological replicates for another.
         if rows:
-            if multipletests is not None:
+            primary_rows = [r for r in rows if r["fdr_included"]]
+            pvals = [r["pval"] for r in primary_rows]
+            if not primary_rows:
+                padj_arr = []
+            elif multipletests is not None:
                 _, padj_arr, _, _ = multipletests(pvals, method="fdr_bh")
             else:
                 padj_arr = _bh_correct(pvals)
-            for r, padj in zip(rows, padj_arr):
+            for r in rows:
+                r["padj"] = None
+                r["significant"] = False
+                r["direction"] = "none"
+            for r, padj in zip(primary_rows, padj_arr):
                 r["padj"] = float(padj)
                 r["significant"] = bool(r["padj"] < alpha)
                 if r["significant"]:
@@ -373,12 +397,42 @@ def rna_diff_abundance(params: dict) -> dict:
                     r["direction"] = "none"
 
         n_sig = sum(1 for r in rows if r["significant"])
+        n_fisher = sum(1 for r in rows if r.get("model") == "fisher_exact_fallback")
+        degraded = n_fisher > 0
+        degradation_reason = None
+        caveats = []
+        if degraded:
+            degradation_reason = (
+                f"{n_fisher} cell type(s) used Fisher exact as a cell-level "
+                "diagnostic and were excluded from donor-level FDR."
+            )
+            caveats.append(degradation_reason)
+
+        def _row_sort_key(row):
+            padj = row.get("padj")
+            if padj is None:
+                return (float("inf"), str(row.get("name", "")))
+            try:
+                padj_float = float(padj)
+            except (TypeError, ValueError):
+                return (float("inf"), str(row.get("name", "")))
+            if math.isnan(padj_float):
+                return (float("inf"), str(row.get("name", "")))
+            return (padj_float, str(row.get("name", "")))
+
         per_comparison[comp_key] = {
             "status":         "success",
             "model":          method,
             "transform":      "centered_log_ratio",
             "covariance":     "HC3",
-            "per_cell_type":  sorted(rows, key=lambda r: r["padj"]),
+            "fdr_family":     "donor_level_clr_only",
+            "n_fdr_tests":    sum(1 for r in rows if r.get("fdr_included")),
+            "n_fisher_diagnostic": n_fisher,
+            "degraded":       degraded,
+            "confidence":     "degraded" if degraded else "standard",
+            "degradation_reason": degradation_reason,
+            "caveats":        caveats,
+            "per_cell_type":  sorted(rows, key=_row_sort_key),
             "n_significant":  n_sig,
             "n_replicates":   {"test": n_test_reps, "ref": n_ref_reps},
         }

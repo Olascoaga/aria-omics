@@ -143,6 +143,41 @@ def test_scrna_narrator_generates_blocks_for_all_synthetic_results():
     assert any("PAGA/DPT is exploratory" in c.text for c in trajectory.caveats)
 
 
+def test_scrna_narrator_surfaces_degraded_abundance_fdr_caveat():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    comp = findings["differential_abundance"]["per_comparison"][
+        "condition_a_vs_condition_b"
+    ]
+    comp.update({
+        "degraded": True,
+        "confidence": "degraded",
+        "fdr_family": "donor_level_clr_only",
+        "n_fdr_tests": 2,
+        "n_fisher_diagnostic": 1,
+        "degradation_reason": (
+            "1 cell type used Fisher exact as a cell-level diagnostic and "
+            "was excluded from donor-level FDR."
+        ),
+        "caveats": [
+            "1 cell type used Fisher exact as a cell-level diagnostic and "
+            "was excluded from donor-level FDR."
+        ],
+    })
+
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    da = next(
+        b for b in blocks
+        if b.id == "scrna.composition.condition_a_vs_condition_b"
+    )
+
+    assert da.confidence == "low"
+    assert any("Fisher exact" in caveat.text for caveat in da.caveats)
+
+
 def test_scrna_narrator_flags_lognorm_recovered_counts():
     """F-SCI-LOGNORM (audit 2026-05-28): when DESeq2 counts were
     reverse-engineered from log-normalized values, every pseudobulk block must

@@ -215,6 +215,12 @@ class ScrnaNarrator:
                     row.get("direction"),
                     "differential_abundance",
                 ))
+            caveat_texts = [
+                str(text) for text in (comp.get("caveats") or []) if text
+            ]
+            reason = comp.get("degradation_reason")
+            if comp.get("degraded") and reason and reason not in caveat_texts:
+                caveat_texts.append(str(reason))
             blocks.append(NarrativeBlock(
                 id=f"scrna.composition.{_safe_id(comp_key)}",
                 modality="scRNA-seq",
@@ -222,12 +228,13 @@ class ScrnaNarrator:
                 block_type="result",
                 title=f"Cell-type abundance {comp_key}",
                 status="success",
-                confidence="medium",
+                confidence="low" if comp.get("degraded") else "medium",
                 claim=(
                     f"{n_sig} cell type(s) shifted in abundance for {comp_key}."
                 ),
                 evidence=evidence,
                 metrics={"n_significant": n_sig},
+                caveats=[Caveat(text) for text in caveat_texts],
             ))
         return blocks
 
