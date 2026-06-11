@@ -173,6 +173,54 @@ def _abs_corr(x, y) -> float | None:
     return float(abs(np.corrcoef(x, y)[0, 1]))
 
 
+def _fdr_filtering_basis(successful_blocks) -> dict:
+    """B2 (audit 2026-06-11): disclose and QUANTIFY that the local and global BH
+    families do NOT share a base hypothesis set.
+
+    DESeq2 applies independent filtering to the LOCAL padj — low-count genes get
+    ``padj_local = NaN`` and drop out of the local BH denominator — while the
+    GLOBAL pool is every gene with a finite p-value (no independent filtering).
+    The robustness intersection is therefore a conservative CROSS-family
+    comparison, not two corrections of one identical test set. This counts the
+    genes that sit in the global pool but were independent-filtered out of the
+    local family, so the report states the gap instead of implying equivalence.
+    """
+    import numpy as np
+
+    n_pool = 0
+    n_filtered_into_global = 0
+    for block in successful_blocks or []:
+        res = block.get("results")
+        if res is None or "pvalue" not in res:
+            continue
+        pvals = np.asarray(res["pvalue"], dtype=float)
+        valid = np.isfinite(pvals)
+        n_pool += int(valid.sum())
+        if "padj_local" in res:
+            padj_local = np.asarray(res["padj_local"], dtype=float)
+            n_filtered_into_global += int((valid & ~np.isfinite(padj_local)).sum())
+    return {
+        "local_family": (
+            "DESeq2 padj WITH independent filtering: low-count genes are set to "
+            "NaN and excluded from the local BH denominator."
+        ),
+        "global_family": (
+            "BH recomputed over every gene with a finite p-value, WITHOUT "
+            "independent filtering."
+        ),
+        "same_base_hypothesis_set": n_filtered_into_global == 0,
+        "n_global_pool_tests": n_pool,
+        "n_independent_filtered_into_global": n_filtered_into_global,
+        "note": (
+            "The local and global BH families do NOT share a base hypothesis "
+            "set: DESeq2 independent filtering removes low-count genes from the "
+            "local padj but not from the global pool. The FDR-family robustness "
+            "intersection is therefore a conservative cross-family comparison, "
+            "not two corrections of one identical test set."
+        ),
+    }
+
+
 def rna_pseudobulk_de(params: dict) -> dict:
     import warnings as _w
     _w.filterwarnings("ignore")
@@ -685,6 +733,11 @@ def rna_pseudobulk_de(params: dict) -> dict:
         global_pvals.extend(pvals[valid].tolist())
 
     n_tests_global = int(len(global_pvals))
+    # B2 (audit 2026-06-11): the local (DESeq2 independent-filtered) and global
+    # (unfiltered) BH families do not share a base hypothesis set. Quantify the
+    # gap once so the robustness comparison is honest, not presented as two
+    # corrections of one identical test set.
+    fdr_filtering_basis = _fdr_filtering_basis(successful_blocks)
     # F-SCI-POWER (audit 2026-05-28): the empirical BH cutoff is the largest
     # raw p-value whose global-BH adjusted value still clears padj_max. This is
     # the per-test alpha actually applied, which is far stricter than the
@@ -797,9 +850,12 @@ def rna_pseudobulk_de(params: dict) -> dict:
                     "composition_axis_rerun": False,
                     "fdr_axis_evaluated": True,
                     "fdr_axis_evaluation": (
-                        "local and global BH families evaluated from the same "
-                        "DESeq2 p-value table in this run"
+                        "local and global BH families evaluated from this run's "
+                        "p-value table; they do NOT share a base hypothesis set "
+                        "(independent filtering applies to local padj only — see "
+                        "multiple_testing.fdr_family_basis)"
                     ),
+                    "fdr_family_basis": fdr_filtering_basis,
                     "stability_basis": "gene_id_intersection",
                     "stable_significant_genes": int(len(stable_gene_ids)),
                     "stable_gene_ids": stable_gene_ids[:top_n],
@@ -911,6 +967,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
             "local_method":   "BH",
             "global_method":  "BH",
             "n_tests_global": n_tests_global,
+            # B2 (audit 2026-06-11): local (independent-filtered) vs global
+            # (unfiltered) BH do not share a base hypothesis set; quantified.
+            "fdr_family_basis": fdr_filtering_basis,
             # P1-2 closure (ADR-027): IHW + s-values are honestly disclosed as
             # not implemented (no validated Python estimator; pydeseq2 has no
             # s-values), never faked. Primary FDR stays pre-registered BH.
