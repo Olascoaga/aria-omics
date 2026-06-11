@@ -185,7 +185,7 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
 
 def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                    padj_max, lfc_min, top_n, min_cells, min_reps,
-                   allow_mock, warnings):
+                   allow_mock, warnings, n_cpus=None):
     """Per-condition pseudobulk DA on peaks via the shared validated DESeq2 core.
 
     Returns a structured result. The lane is gated: it requires the condition +
@@ -298,6 +298,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             counts_df, meta_df, condition_col, test, ref,
             padj_max, lfc_min, allow_mock=allow_mock,
             min_replicates_per_condition=min_reps,
+            n_cpus=n_cpus,
         )
         warnings.extend(de_warn)
         if de.get("status") != "success":
@@ -363,6 +364,8 @@ def chromatin_diffacc(params: dict) -> dict:
     lfc_min = float(params.get("lfc_min", thr.log2fc))
     min_cells = int(params.get("min_cells_per_pseudosample", thr.min_cells))
     min_reps = int(params.get("min_replicates_per_condition", thr.min_replicates))
+    n_cpus = params.get("n_cpus")
+    n_cpus = int(n_cpus) if n_cpus else None
 
     in_path = Path(data_path)
     if not in_path.exists():
@@ -419,7 +422,8 @@ def chromatin_diffacc(params: dict) -> dict:
 
     pseudobulk = _pseudobulk_da(
         adata, condition_col, replicate_col, comparisons,
-        padj_max, lfc_min, top_n, min_cells, min_reps, allow_mock, warnings)
+        padj_max, lfc_min, top_n, min_cells, min_reps, allow_mock, warnings,
+        n_cpus=n_cpus)
     pb_rows = pseudobulk.pop("_rows", [])
     pb_csv = None
     if pb_rows:

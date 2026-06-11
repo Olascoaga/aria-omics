@@ -1703,7 +1703,8 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 allow_mock: bool = False,
                 min_replicates_per_condition: int = 3,
                 covariates: list = None,
-                lfc_shrink: bool = True) -> tuple:
+                lfc_shrink: bool = True,
+                n_cpus: int = None) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -1805,6 +1806,13 @@ def _run_deseq2(counts, metadata, design_factor: str,
         # so the disabled path is byte-identical to the legacy behavior.
         ref_kwargs = {"ref_level": [design_factor, denominator]} if lfc_shrink else {}
 
+        # Optional multi-core: pydeseq2 parallelizes the per-gene dispersion/LFC
+        # fits over n_cpus (DeseqStats reuses dds.inference, so the Wald tests
+        # follow). Default None leaves the established RNA path byte-identical;
+        # only callers that explicitly request it (e.g. the scATAC pseudobulk
+        # validation harness) pay for / benefit from the extra cores.
+        par_kwargs = {"n_cpus": int(n_cpus)} if n_cpus else {}
+
         # pydeseq2 expects samples × genes. The public API changed from
         # design_factors=... to design="~ factor"; support both.
         try:
@@ -1815,6 +1823,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 refit_cooks=True,
                 quiet=True,
                 **ref_kwargs,
+                **par_kwargs,
             )
         except TypeError:
             dds = DeseqDataSet(
@@ -1823,6 +1832,7 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 design_factors=usable_covariates + [design_factor],
                 refit_cooks=True,
                 **ref_kwargs,
+                **par_kwargs,
             )
         dds.deseq2()
 
