@@ -203,6 +203,35 @@ def _score_methods(
     return methods
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _repo_relative(value):
+    """A1 (audit 2026-06-11): serialize artifact paths relative to the repo root
+    so public benchmark JSONs never embed a machine-absolute path (privacy leak +
+    non-relocatable). Non-strings and already-relative strings pass through; an
+    absolute path outside the repo falls back to its basename. The R comparator
+    writes ``results_tsv`` via ``normalizePath`` (absolute), which is why the
+    persisted manifest needs this on the SERIALIZED value — the real path is still
+    used for scoring before this runs."""
+    if not isinstance(value, str) or not value.startswith("/"):
+        return value
+    p = Path(value)
+    try:
+        return str(p.resolve().relative_to(_REPO_ROOT))
+    except ValueError:
+        return p.name
+
+
+def _relativize_paths(obj):
+    """Recursively relativize absolute filesystem paths in a JSON-able object."""
+    if isinstance(obj, dict):
+        return {k: _relativize_paths(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_relativize_paths(v) for v in obj]
+    return _repo_relative(obj)
+
+
 def benchmark_a1_external_comparators(params: dict[str, Any]) -> dict[str, Any]:
     seed = int(params.get("seed", 11))
     quick = bool(params.get("quick", False))
@@ -277,6 +306,12 @@ def benchmark_a1_external_comparators(params: dict[str, Any]) -> dict[str, Any]:
     methods = _score_methods(
         dataset, r_payload, padj_max=padj_max, lfc_min=lfc_min, top_k=top_k
     )
+    # A1: scoring above already read the real (absolute) TSV paths; persist the
+    # R payload with repo-relative paths so the committed r_comparators.json is
+    # relocatable too.
+    r_json.write_text(
+        json.dumps(_relativize_paths(r_payload), indent=2), encoding="utf-8"
+    )
     method_status = {
         key: rec.get("status") == "success" and "scores" in rec
         for key, rec in methods.items()
@@ -308,6 +343,9 @@ def benchmark_a1_external_comparators(params: dict[str, Any]) -> dict[str, Any]:
         params.get("manifest_name", "a1_external_comparators_v4.5.5.json")
     )
     manifest["artifacts"]["manifest_json"] = str(manifest_path)
+    # A1: no machine-absolute path may reach the public manifest, regardless of
+    # whether output_dir was passed absolute or relative.
+    manifest = _relativize_paths(manifest)
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
     return manifest
 

@@ -4,21 +4,21 @@
     "deseq2": {
       "status": "success",
       "method": "DESeq2",
-      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/deseq2.tsv",
+      "results_tsv": "docs/benchmark_results/a1_external/r_outputs/deseq2.tsv",
       "n_tested": 1000,
       "n_called": 106
     },
     "edgeR_QLF": {
       "status": "success",
       "method": "edgeR-QLF",
-      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/edgeR_QLF.tsv",
+      "results_tsv": "docs/benchmark_results/a1_external/r_outputs/edgeR_QLF.tsv",
       "n_tested": 1000,
       "n_called": 100
     },
     "limma_voom": {
       "status": "success",
       "method": "limma-voom",
-      "results_tsv": "/home/medusa/Samael/ARIA/docs/benchmark_results/a1_external/r_outputs/limma_voom.tsv",
+      "results_tsv": "docs/benchmark_results/a1_external/r_outputs/limma_voom.tsv",
       "n_tested": 1000,
       "n_called": 92
     }
