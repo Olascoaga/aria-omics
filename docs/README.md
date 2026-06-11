@@ -16,6 +16,7 @@ model, and the conclusions.
 - [Biological Synthesis (Integrated Discussion)](architecture/biological_synthesis.md)
 - [Installation Guide](INSTALLATION.md)
 - [Validation Status](validation_status.md)
+- [v4.6 Release Notes](release_notes_v4.6.md)
 - [v4.6.0-alpha Release Notes](release_notes_v4.6.0-alpha.md)
 - [v4.5.5 Release Notes](release_notes_v4.5.5.md)
 - [v4.5.4 Release Notes](release_notes_v4.5.4.md)
