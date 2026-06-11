@@ -7747,7 +7747,7 @@
       "label": "chromatin_diffacc()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L346"
+      "source_location": "L347"
     },
     {
       "id": "scripts_chromatin_lsi_clustering",
@@ -8881,7 +8881,7 @@
       "label": "_mock_de_result()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1960"
+      "source_location": "L1970"
     },
     {
       "id": "scripts_rna_cellcomm",
@@ -18324,7 +18324,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18541,7 +18541,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_1cujia_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18563,7 +18563,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_1cujia_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -18962,6 +18962,69 @@
       "file_type": "code",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation",
+      "label": "run_scatac_multisample_validation.py",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_donor_of",
+      "label": "_donor_of()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L112"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L112"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_read_lines",
+      "label": "_read_lines()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L116"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L116"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_build_combined_adata",
+      "label": "build_combined_adata()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L121"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_subsample_and_filter",
+      "label": "_subsample_and_filter()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L167"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L225"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_validation_save",
+      "label": "_save()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L317"
     },
     {
       "id": "scripts_update_version_metadata",
@@ -25341,6 +25404,55 @@
       "source_location": "L208"
     },
     {
+      "id": "tests_test_scatac_multisample_validation",
+      "label": "test_scatac_multisample_validation.py",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_load_harness",
+      "label": "_load_harness()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_donor_parsing_handles_deep_suffix",
+      "label": "test_donor_parsing_handles_deep_suffix()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L29"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_harness_wires_real_aria_scripts",
+      "label": "test_harness_wires_real_aria_scripts()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_combined_builder_real_data_smoke",
+      "label": "test_combined_builder_real_data_smoke()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_synth_adata",
+      "label": "_synth_adata()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "tests_test_scatac_multisample_validation_test_subsample_preserves_donors_and_filters_peaks",
+      "label": "test_subsample_preserves_donors_and_filters_peaks()",
+      "file_type": "code",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L101"
+    },
+    {
       "id": "tests_test_script_contracts",
       "label": "test_script_contracts.py",
       "file_type": "code",
@@ -25792,121 +25904,111 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
-    },
-    {
-      "id": "genome_arch_agent",
-      "label": "GenomeArchAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/genome_arch_agent.py"
-    },
-    {
-      "id": "integration_agent",
-      "label": "IntegrationAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/integration_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
-      "id": "parameter_advisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "aria/utils/parameter_advisor.py"
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/sqlite_memory.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py (LIANA)",
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py"
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py (PAGA+DPT)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
@@ -57156,7 +57258,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L346",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -57176,7 +57278,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L404",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -57186,7 +57288,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L420",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -60731,12 +60833,22 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_rna_bulk_de_run_deseq2",
+      "target": "aria_scripts_rna_bulk_de_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L1700",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_rna_bulk_de",
       "target": "scripts_rna_bulk_de_mock_de_result",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1960",
+      "source_location": "L1970",
       "weight": 1.0
     },
     {
@@ -60906,7 +61018,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1742",
+      "source_location": "L1743",
       "weight": 1.0
     },
     {
@@ -60916,7 +61028,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1800",
+      "source_location": "L1801",
       "weight": 1.0
     },
     {
@@ -60926,7 +61038,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1864",
+      "source_location": "L1874",
       "weight": 1.0
     },
     {
@@ -60936,7 +61048,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1941",
+      "source_location": "L1951",
       "weight": 1.0
     },
     {
@@ -79996,7 +80108,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -80049,7 +80161,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80059,7 +80171,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80069,7 +80181,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80079,7 +80191,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80089,7 +80201,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80382,7 +80494,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_1cujia_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -80391,7 +80503,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_1cujia_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -80426,7 +80538,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80436,7 +80548,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_1cujia_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ztzllw_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -80879,6 +80991,150 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_donor_of",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_donor_of",
+      "target": "scripts_run_scatac_multisample_validation_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_donor_of",
+      "target": "scripts_run_scatac_multisample_validation_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_read_lines",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_read_lines",
+      "target": "scripts_run_scatac_multisample_validation_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_read_lines",
+      "target": "scripts_run_scatac_multisample_validation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_build_combined_adata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_subsample_and_filter",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L225",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_run_scatac_multisample_validation_save",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L317",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_build_combined_adata",
+      "target": "scripts_run_scatac_multisample_validation_read_lines",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_build_combined_adata",
+      "target": "scripts_run_scatac_multisample_validation_donor_of",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_run_scatac_multisample_validation_build_combined_adata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L237",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_run_scatac_multisample_validation_subsample_and_filter",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L242",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_run_scatac_multisample_validation_save",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L270",
       "weight": 1.0
     },
     {
@@ -91626,6 +91882,110 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_donor_parsing_handles_deep_suffix",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_harness_wires_real_aria_scripts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_combined_builder_real_data_smoke",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_synth_adata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "tests_test_scatac_multisample_validation_test_subsample_preserves_donors_and_filters_peaks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_donor_parsing_handles_deep_suffix",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_harness_wires_real_aria_scripts",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_combined_builder_real_data_smoke",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_subsample_preserves_donors_and_filters_peaks",
+      "target": "tests_test_scatac_multisample_validation_load_harness",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation_test_subsample_preserves_donors_and_filters_peaks",
+      "target": "tests_test_scatac_multisample_validation_synth_adata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_script_contracts",
       "target": "tests_test_script_contracts_manager",
       "relation": "contains",
@@ -95349,7 +95709,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L359",
+      "source_location": "L360",
       "weight": 1.0
     },
     {
@@ -95359,7 +95719,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L379",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -95369,7 +95729,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L379",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -95959,7 +96319,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1751",
+      "source_location": "L1752",
       "weight": 1.0
     },
     {
@@ -95969,7 +96329,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1776",
+      "source_location": "L1777",
       "weight": 1.0
     },
     {
@@ -96750,6 +97110,26 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_chromatin_lsi_clustering_chromatin_lsi_clustering",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation",
+      "target": "scripts_chromatin_diffacc_chromatin_diffacc",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -100113,6 +100493,26 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "scripts_chromatin_lsi_clustering_chromatin_lsi_clustering",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_scatac_multisample_validation",
+      "target": "scripts_chromatin_diffacc_chromatin_diffacc",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_scatac_multisample_validation.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_script_contracts",
       "target": "utils_environment_manager_environmentmanager",
       "relation": "imports",
@@ -100979,7 +101379,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L357",
+      "source_location": "L358",
       "weight": 1.0
     },
     {
@@ -100989,7 +101389,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L391",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -100999,7 +101399,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L395",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -101369,7 +101769,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1752",
+      "source_location": "L1753",
       "weight": 1.0
     },
     {
@@ -101379,7 +101779,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1790",
+      "source_location": "L1791",
       "weight": 1.0
     },
     {
@@ -101940,6 +102340,26 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_chromatin_lsi_clustering_chromatin_lsi_clustering",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L260",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_validation_main",
+      "target": "scripts_chromatin_diffacc_chromatin_diffacc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_validation.py",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -107816,7 +108236,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -107824,31 +108246,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "scrna_agent",
@@ -107856,23 +108266,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "narrative_agent",
@@ -107880,15 +108276,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "audit_agent",
-      "target": "setup_agent",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
