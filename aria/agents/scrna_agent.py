@@ -137,6 +137,7 @@ class scRNAAgent(BaseAgent):
         if not current_h5ad or not Path(current_h5ad).exists():
             return {"status": "failed", "reason": "qc_no_output",
                     "findings": findings}
+        raw_counts_h5ad = current_h5ad
 
         # 2. Integration (if batch present) ───────────────────────────────
         # When QC concatenated multiple samples, it returns the batch_col
@@ -314,7 +315,8 @@ class scRNAAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Pseudobulk DE between conditions...", 0.84)
             pb_result = self._run_pseudobulk(
-                experiment_id, current_h5ad, exp_ctx, intent, annotation
+                experiment_id, current_h5ad, exp_ctx, intent, annotation,
+                raw_counts_h5ad=raw_counts_h5ad,
             )
             if pb_result.get("status") == "success":
                 findings["pseudobulk_de"] = pb_result.get("pseudobulk_de")
@@ -1576,7 +1578,8 @@ Rules:
     def _run_pseudobulk(self, experiment_id: str,
                          current_h5ad: str,
                          exp_ctx: dict, intent: dict,
-                         annotation: dict) -> dict:
+                         annotation: dict,
+                         raw_counts_h5ad: str | None = None) -> dict:
         """
         Pseudobulk DE between condition groups identified by DesignAgent.
 
@@ -1763,6 +1766,8 @@ Rules:
             script_path="aria/scripts/rna_pseudobulk_de.py",
             params={
                 "data_path":     str(pb_input),
+                **({"counts_data_path": str(raw_counts_h5ad)}
+                   if raw_counts_h5ad else {}),
                 "groupby":       cell_type_col,
                 "condition_col": factor,
                 "replicate_col": replicate_col,
@@ -1839,6 +1844,9 @@ Rules:
             "multiple_testing": pb.get("multiple_testing", {}),
             "background_size": pb.get("background_size"),
             "background_source": pb.get("background_source"),
+            "count_source": pb.get("count_source"),
+            "count_source_data_path": pb.get("count_source_data_path"),
+            "lognorm_recovered": pb.get("lognorm_recovered"),
             "params_sha256": pb.get("params_sha256"),
             "differential_abundance_params_sha256": da_result.get("params_sha256"),
             "paired_design": pb.get("paired_design"),

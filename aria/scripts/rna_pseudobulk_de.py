@@ -11,9 +11,15 @@ inflates statistical significance by 1-2 orders of magnitude. Pseudobulk
 respects the biological replication unit (the donor/sample).
 
 Input params:
-    data_path:        str   — preprocessed .h5ad. Must have `.raw` populated
-                              with integer counts, OR `X` itself must be raw
-                              counts (use_raw=False).
+    data_path:        str   — labelled/analyzed .h5ad carrying the obs columns
+                              used for groupby, condition, and replicate.
+                              Must have `.raw` populated with integer counts,
+                              OR `X` itself must be raw counts (use_raw=False),
+                              unless `counts_data_path` is supplied.
+    counts_data_path: str   (optional) — h5ad whose X matrix carries raw counts
+                              for the same cells. When supplied, cells are
+                              aligned by obs_names and obs/labels remain sourced
+                              from `data_path`.
     groupby:          str   — obs column to stratify by (e.g. "subclass",
                               "leiden", "cell_type"). One DESeq2 model is
                               fit per level of this column.
@@ -274,6 +280,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     from aria.utils.safe_h5ad import read_h5ad
 
     data_path                     = params["data_path"]
+    counts_data_path              = params.get("counts_data_path")
     groupby                       = params["groupby"]
     condition_col                 = params["condition_col"]
     replicate_col                 = params["replicate_col"]
@@ -329,8 +336,29 @@ def rna_pseudobulk_de(params: dict) -> dict:
         return {"status": "error",
                 "error_type": "FileNotFound",
                 "details": f"data_path does not exist: {data_path}"}
+    if counts_data_path and not Path(counts_data_path).exists():
+        return {"status": "error",
+                "error_type": "FileNotFound",
+                "details": f"counts_data_path does not exist: {counts_data_path}"}
 
     adata = read_h5ad(data_path)
+    counts_adata = None
+    if counts_data_path:
+        counts_adata = read_h5ad(counts_data_path)
+        missing = adata.obs_names[
+            counts_adata.obs_names.get_indexer(adata.obs_names) < 0
+        ]
+        if len(missing):
+            return {
+                "status": "error",
+                "error_type": "CellAlignmentError",
+                "details": (
+                    f"counts_data_path is missing {len(missing)} cells present "
+                    f"in data_path; first missing cell: {str(missing[0])}"
+                ),
+            }
+        indexer = counts_adata.obs_names.get_indexer(adata.obs_names)
+        counts_adata = counts_adata[indexer, :].copy()
 
     # ── Resolve count source ──────────────────────────────────────────────
     count_classification = {}
@@ -340,7 +368,11 @@ def rna_pseudobulk_de(params: dict) -> dict:
         # old first-200-row probe was biased when the h5ad is ordered by cell
         # type or condition. Raw counts are non-negative integers with a large
         # max; log-normalized data sits in [0, ~10].
-        info = classify_matrix(mat, gene_ids=gene_names, source_hint=data_path)
+        info = classify_matrix(
+            mat,
+            gene_ids=gene_names,
+            source_hint=(counts_data_path or data_path),
+        )
         return bool(info["is_raw_counts"]), float(info["max"]), info
 
     def _validate_lognorm_recovery(mat, lib_sizes) -> bool:
@@ -360,7 +392,10 @@ def rna_pseudobulk_de(params: dict) -> dict:
         frac_int   = float((np.abs(recovered - np.round(recovered)) < 0.05).mean())
         return frac_int >= 0.85
 
-    if use_raw and adata.raw is not None:
+    if counts_adata is not None:
+        counts = counts_adata.X
+        gene_names = list(counts_adata.var_names)
+    elif use_raw and adata.raw is not None:
         counts     = adata.raw.X
         gene_names = list(adata.raw.var_names)
     else:
@@ -374,6 +409,15 @@ def rna_pseudobulk_de(params: dict) -> dict:
     integerlike, max_val, count_classification = _looks_integerlike(counts)
     needs_recovery       = False
     if not integerlike:
+        if counts_adata is not None:
+            return {"status":     "error",
+                    "error_type": "NonIntegerCounts",
+                    "count_classification": count_classification,
+                    "details":    (f"counts_data_path was supplied but its X "
+                                   f"matrix is not raw integer counts "
+                                   f"(kind={count_classification.get('kind')}, "
+                                   f"score={count_classification.get('raw_count_score', 0):.2f}, "
+                                   f"max={max_val:.2f}).")}
         if not allow_lognorm_recovery:
             return {"status":     "error",
                     "error_type": "NonIntegerCounts",
@@ -956,6 +1000,8 @@ def rna_pseudobulk_de(params: dict) -> dict:
     # log-normalized values, so the report can disclose it honestly.
     if needs_recovery:
         count_source = "recovered_from_lognorm"
+    elif counts_adata is not None:
+        count_source = "raw_counts"
     elif use_raw and adata.raw is not None:
         count_source = "raw_counts"
     else:
@@ -971,6 +1017,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
         "replicate_col":                   replicate_col,
         "covariates":                      covariates,
         "count_source":                    count_source,
+        "count_source_data_path":          str(counts_data_path) if counts_data_path else None,
         "count_classification":            count_classification,
         "lognorm_recovered":               bool(needs_recovery),
         "norm_scale_factor_used":          (norm_scale_factor if needs_recovery else None),

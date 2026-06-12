@@ -280,6 +280,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         validation_level="production",
         inputs=(
             _f("data_path", "path", allow_empty=False, path_must_exist=True),
+            _f("counts_data_path", "path", required=False,
+               allow_empty=False, path_must_exist=True),
             _f("groupby", "str", allow_empty=False),
             _f("condition_col", "str", allow_empty=False),
             _f("replicate_col", "str", allow_empty=False),
