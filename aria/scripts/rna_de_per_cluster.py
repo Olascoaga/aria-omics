@@ -20,6 +20,7 @@ Output:
     {
       "status":               "success" | "error",
       "groupby":              str,
+      "marker_source":        str,
       "padj_max":             float,
       "lfc_min":              float,
       "n_significant_total":  int,
@@ -68,16 +69,35 @@ def rna_de_per_cluster(params: dict) -> dict:
             "reason": f"Only {n_clusters} cluster(s) — DE requires ≥2.",
         }
 
-    # Wilcoxon DE — cluster vs rest. Use raw counts if present, fall back to .X.
-    use_raw = adata.raw is not None
-    sc.tl.rank_genes_groups(
-        adata, groupby=groupby, method="wilcoxon",
-        use_raw=use_raw, key_added="aria_de",
-    )
-    rgg = adata.uns["aria_de"]
+    cluster_ids = {str(c) for c in adata.obs[groupby].unique()}
 
-    # Compute pct_in / pct_out using raw or normalized counts. This guards
-    # against marker calls that look strong by LFC alone but are detected
+    def _compatible_rank_genes_groups(candidate: dict | None) -> bool:
+        if not candidate:
+            return False
+        required = ("names", "logfoldchanges", "pvals_adj")
+        if any(k not in candidate for k in required):
+            return False
+        field_names = getattr(getattr(candidate["names"], "dtype", None), "names", None)
+        return field_names is not None and {str(c) for c in field_names} == cluster_ids
+
+    # Wilcoxon marker ranking — cluster vs rest. Reuse clustering's compatible
+    # rank_genes_groups table when present; otherwise compute it here. The .raw
+    # matrix produced by rna_clustering is log-normalized full-feature data, not
+    # raw counts, and lets marker ranking address non-HVG genes.
+    use_raw = adata.raw is not None
+    if _compatible_rank_genes_groups(adata.uns.get("rank_genes_groups")):
+        rgg = adata.uns["rank_genes_groups"]
+        marker_source = "rank_genes_groups"
+    else:
+        sc.tl.rank_genes_groups(
+            adata, groupby=groupby, method="wilcoxon",
+            use_raw=use_raw, key_added="aria_de",
+        )
+        rgg = adata.uns["aria_de"]
+        marker_source = "computed_aria_de"
+
+    # Compute pct_in / pct_out on the same matrix backing marker lookup. This
+    # guards against marker calls that look strong by LFC alone but are detected
     # in <10% of cluster cells (likely noise).
     X = adata.raw.X if use_raw else adata.X
     var_names = list(adata.raw.var_names) if use_raw else list(adata.var_names)
@@ -151,6 +171,7 @@ def rna_de_per_cluster(params: dict) -> dict:
     return {
         "status":                "success",
         "groupby":               groupby,
+        "marker_source":         marker_source,
         "padj_max":              padj_max,
         "lfc_min":               lfc_min,
         "min_pct_in":            min_pct_in,

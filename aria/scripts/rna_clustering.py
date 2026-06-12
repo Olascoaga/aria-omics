@@ -11,8 +11,8 @@ corrected embedding, without re-doing PCA.
 
 Reproducible: random_state pinned everywhere it matters.
 
-Preserves raw counts in .raw before HVG subsetting so downstream DE,
-pathway, and cell-comm scripts can access all genes.
+Preserves the log-normalized full-feature matrix in .raw before HVG subsetting
+so downstream DE, pathway, and cell-comm scripts can access all genes.
 
 Executed inside aria-rna-env by EnvironmentManager.
 
@@ -203,9 +203,9 @@ def rna_clustering(params: dict) -> dict:
     preprocessing_skipped = "X_pca" in adata.obsm
 
     if not preprocessing_skipped:
-        # Preserve all genes in .raw BEFORE HVG subsetting so downstream
-        # DE / pathway / cell-comm can still address non-HVG genes (housekeeping
-        # ligand-receptor pairs, MT, ribo, etc.).
+        # Preserve log-normalized all-gene data in .raw BEFORE HVG subsetting
+        # so downstream DE / pathway / cell-comm can still address non-HVG
+        # genes (housekeeping ligand-receptor pairs, MT, ribo, etc.).
         sc.pp.normalize_total(adata, target_sum=1e4)
         sc.pp.log1p(adata)
         if adata.raw is None:
@@ -243,11 +243,11 @@ def rna_clustering(params: dict) -> dict:
         )
         groupby = "leiden"
 
-    # Marker genes per cluster — use raw counts if available so Wilcoxon
-    # operates on the full feature set, not just HVGs. When the input has a
-    # scaled X with no usable raw counts (Seurat-exported h5ads), Wilcoxon
-    # on the scaled matrix still produces a valid ranking; we mark the
-    # warning so downstream knows.
+    # Marker genes per cluster. Prefer .raw when available because clustering
+    # stores log-normalized full-feature data there before HVG subsetting, so
+    # Wilcoxon can rank all genes, not just HVGs. When the input only has a
+    # scaled X (for example Seurat-exported h5ads), Wilcoxon still produces a
+    # ranking; we mark the warning only if Scanpy cannot compute it.
     use_raw = adata.raw is not None
     marker_warning = None
     try:
