@@ -1,0 +1,111 @@
+"""B-QC1/B-QC2 guards for scRNA QC threshold policy."""
+
+from __future__ import annotations
+
+
+def _write_processed_qc_h5ad(tmp_path, name, *, mt_values, counts, genes):
+    pytest = __import__("pytest")
+    ad = pytest.importorskip("anndata")
+    np = pytest.importorskip("numpy")
+    pd = pytest.importorskip("pandas")
+
+    n_cells = len(mt_values)
+    obs = pd.DataFrame(
+        {
+            "nFeature_RNA": genes,
+            "nCount_RNA": counts,
+            "percent.mt": mt_values,
+        },
+        index=[f"{name}_cell_{i}" for i in range(n_cells)],
+    )
+    adata = ad.AnnData(
+        X=np.ones((n_cells, 8), dtype=float),
+        obs=obs,
+        var=pd.DataFrame(index=[f"gene_{i}" for i in range(8)]),
+    )
+    path = tmp_path / f"{name}.h5ad"
+    adata.write_h5ad(path)
+    return path
+
+
+def test_mt_threshold_is_not_driven_by_user_question(tmp_path, monkeypatch):
+    pytest = __import__("pytest")
+    monkeypatch.setenv("NUMBA_CACHE_DIR", str(tmp_path / "numba-cache"))
+    monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
+    pytest.importorskip("scanpy")
+
+    from aria.scripts.rna_qc import rna_qc
+
+    neutral_path = _write_processed_qc_h5ad(
+        tmp_path,
+        "neutral",
+        mt_values=[10.0] * 6 + [30.0] * 6,
+        counts=[2000] * 12,
+        genes=[600] * 12,
+    )
+    stress_path = _write_processed_qc_h5ad(
+        tmp_path,
+        "stress",
+        mt_values=[10.0] * 6 + [30.0] * 6,
+        counts=[2000] * 12,
+        genes=[600] * 12,
+    )
+
+    neutral = rna_qc(
+        {
+            "data_path": str(neutral_path),
+            "organism": "Homo sapiens",
+            "biological_context": {"user_question": "compare baseline groups"},
+            "output_dir": str(tmp_path / "neutral_out"),
+        }
+    )
+    stress = rna_qc(
+        {
+            "data_path": str(stress_path),
+            "organism": "Homo sapiens",
+            "biological_context": {"user_question": "senescence stress response"},
+            "output_dir": str(tmp_path / "stress_out"),
+        }
+    )
+
+    assert neutral["status"] == "success"
+    assert stress["status"] == "success"
+    assert neutral["mt_threshold_used"] == stress["mt_threshold_used"]
+    assert neutral["n_cells_after"] == stress["n_cells_after"]
+    assert neutral["stress_context"] is False
+    assert stress["stress_context"] is False
+
+
+def test_qc_applies_bilateral_mad_for_counts_and_genes(tmp_path, monkeypatch):
+    pytest = __import__("pytest")
+    monkeypatch.setenv("NUMBA_CACHE_DIR", str(tmp_path / "numba-cache"))
+    monkeypatch.setenv("NUMBA_DISABLE_JIT", "1")
+    pytest.importorskip("scanpy")
+    ad = pytest.importorskip("anndata")
+
+    from aria.scripts.rna_qc import rna_qc
+
+    input_path = _write_processed_qc_h5ad(
+        tmp_path,
+        "outlier",
+        mt_values=[5.0] * 11,
+        counts=[2000] * 10 + [200000],
+        genes=[600] * 10 + [9000],
+    )
+
+    result = rna_qc(
+        {
+            "data_path": str(input_path),
+            "organism": "Homo sapiens",
+            "output_dir": str(tmp_path / "outlier_out"),
+        }
+    )
+
+    assert result["status"] == "success"
+    assert result["n_cells_before"] == 11
+    assert result["n_cells_after"] == 10
+    assert result["max_counts_used"] == 2000.0
+    assert result["max_genes_used"] == 600.0
+
+    filtered = ad.read_h5ad(result["output_path"])
+    assert "outlier_cell_10" not in set(filtered.obs_names)

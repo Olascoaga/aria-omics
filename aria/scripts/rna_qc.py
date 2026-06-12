@@ -6,7 +6,7 @@ Executed inside aria-rna-env by EnvironmentManager.
 
 QC pipeline:
   1. MT% / total_counts / n_genes_by_counts filtering (MAD-adaptive,
-     stress-context-aware via biological_context).
+     dataset-intrinsic; user prose does not alter thresholds).
   2. Doublet detection via Scrublet (single-cell only, opt-out with
      `run_scrublet=False`). Operates on raw counts BEFORE normalization.
   3. Persist filtered .h5ad with doublet_score / predicted_doublet in obs.
@@ -23,9 +23,8 @@ Input params:
                                         no-op (records reason) when no backend.
     ambient_method:  str  (optional) — "auto"|"decontx"|"soupx" (default: auto)
     expected_doublet_rate: float (optional) — 10x rate-of-thumb (default: 0.06)
-    biological_context: dict (optional) — from OrchestratorAgent intent
-                                          used to adjust thresholds for
-                                          stress/senescence phenotypes
+    biological_context: dict (optional) — from OrchestratorAgent intent;
+                                          not used to alter QC thresholds
     sample_id:       str (optional) — per-sample label injected into
                                         obs["sample_id"]/obs["batch"]; also
                                         used to name the output as
@@ -112,7 +111,6 @@ def _run_ambient_decontamination(adata, params: dict) -> dict:
 
 
 def _cache_params(params: dict) -> dict:
-    bio_ctx = params.get("biological_context") or {}
     return {
         "organism": str(params.get("organism", "Homo sapiens")),
         "mt_threshold": (
@@ -128,12 +126,11 @@ def _cache_params(params: dict) -> dict:
         "ambient_method": str(params.get("ambient_method", "auto")),
         "expected_doublet_rate": float(params.get("expected_doublet_rate", 0.06)),
         "sample_id": None if params.get("sample_id") is None else str(params.get("sample_id")),
-        "user_question": str(bio_ctx.get("user_question", "")),
     }
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 3 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 4 and cached.get("cache_params") == expected
 
 
 def rna_qc(params: dict) -> dict:
@@ -144,7 +141,6 @@ def rna_qc(params: dict) -> dict:
 
     data_path             = params["data_path"]
     organism              = params.get("organism", "Homo sapiens")
-    bio_ctx               = params.get("biological_context", {})
     run_scrublet          = bool(params.get("run_scrublet", True))
     expected_doublet_rate = float(params.get("expected_doublet_rate", 0.06))
     # Multi-sample workflow: caller injects a per-sample label so the output
@@ -348,46 +344,57 @@ def rna_qc(params: dict) -> dict:
         return median - n_mad * mad, median + n_mad * mad
 
     counts_low, counts_high = mad_bounds(adata.obs["total_counts"].values)
-    genes_low,  _           = mad_bounds(adata.obs["n_genes_by_counts"].values)
+    genes_low,  genes_high  = mad_bounds(adata.obs["n_genes_by_counts"].values)
     _,          mt_high     = mad_bounds(adata.obs["pct_counts_mt"].values)
 
-    # ── Biological context adjustments ───────────────────────────────────
-    # Senescent, stressed, or apoptotic cells have elevated MT% — do not
-    # discard them if user explicitly mentioned these phenotypes
-    STRESS_KEYWORDS = [
-        "senescen", "stress", "hypox", "apoptot", "dying",
-        "activat", "inflam", "exhausted",
-    ]
-    question = bio_ctx.get("user_question", "").lower()
-    is_stress_context = any(kw in question for kw in STRESS_KEYWORDS)
+    def _finite_or(value: float, fallback: float) -> float:
+        return float(value) if np.isfinite(value) else float(fallback)
 
-    if is_stress_context:
-        mt_ceiling = 35.0   # relaxed for stress phenotypes
-        warnings_list.append(
-            "MT% threshold relaxed to 35% due to stress/activation context. "
-            "Review MT% distribution before publishing."
-        )
-    else:
-        mt_ceiling = 25.0   # standard
+    mt_ceiling = 25.0
+    mt_default = min(_finite_or(mt_high, mt_ceiling), mt_ceiling)
 
     # Apply user overrides if provided
-    mt_threshold = float(params.get("mt_threshold", min(mt_high, mt_ceiling)))
-    min_genes    = int(params.get("min_genes", max(int(genes_low), 200)))
+    mt_threshold = float(params.get("mt_threshold", mt_default))
+    min_genes    = int(params.get(
+        "min_genes",
+        max(int(_finite_or(genes_low, 200)), 200),
+    ))
     min_cells    = int(params.get("min_cells", 3))
+    min_counts   = float(params.get(
+        "min_counts",
+        max(_finite_or(counts_low, 0.0), 0.0),
+    ))
+    max_counts   = float(params.get(
+        "max_counts",
+        _finite_or(counts_high, float("inf")),
+    ))
+    max_genes    = float(params.get(
+        "max_genes",
+        _finite_or(genes_high, float("inf")),
+    ))
 
     # ── Filter ────────────────────────────────────────────────────────────
-    if use_existing_h5ad_qc:
-        qc_mask = (
-            np.isfinite(adata.obs["n_genes_by_counts"].astype(float))
-            & np.isfinite(adata.obs["pct_counts_mt"].astype(float))
-            & (adata.obs["n_genes_by_counts"].astype(float) >= min_genes)
-            & (adata.obs["pct_counts_mt"].astype(float) <= mt_threshold)
+    def _qc_mask(frame):
+        n_genes = frame["n_genes_by_counts"].astype(float)
+        counts = frame["total_counts"].astype(float)
+        mt = frame["pct_counts_mt"].astype(float)
+        return (
+            np.isfinite(n_genes)
+            & np.isfinite(counts)
+            & np.isfinite(mt)
+            & (n_genes >= min_genes)
+            & (n_genes <= max_genes)
+            & (counts >= min_counts)
+            & (counts <= max_counts)
+            & (mt <= mt_threshold)
         )
-        adata = adata[qc_mask].copy()
+
+    if use_existing_h5ad_qc:
+        adata = adata[_qc_mask(adata.obs)].copy()
     else:
         sc.pp.filter_cells(adata, min_genes=min_genes)
         sc.pp.filter_genes(adata, min_cells=min_cells)
-        adata = adata[adata.obs["pct_counts_mt"] <= mt_threshold].copy()
+        adata = adata[_qc_mask(adata.obs)].copy()
 
     if adata.n_obs == 0:
         return {
@@ -395,10 +402,16 @@ def rna_qc(params: dict) -> dict:
             "error_type": "NoCellsAfterQC",
             "details":    (f"No cells survived QC "
                            f"(min_genes={min_genes}, "
+                           f"min_counts={min_counts:.3f}, "
+                           f"max_counts={max_counts:.3f}, "
+                           f"max_genes={max_genes:.3f}, "
                            f"mt_threshold={mt_threshold:.3f})."),
             "n_cells_before": int(n_cells_before),
             "n_cells_after":  0,
             "min_genes_used": int(min_genes),
+            "min_counts_used": float(min_counts),
+            "max_counts_used": float(max_counts),
+            "max_genes_used": float(max_genes),
             "mt_threshold_used": float(mt_threshold),
             "warnings": warnings_list,
         }
@@ -488,6 +501,9 @@ def rna_qc(params: dict) -> dict:
             "n_cells_before": int(n_cells_before),
             "n_cells_after":  0,
             "min_genes_used": int(min_genes),
+            "min_counts_used": float(min_counts),
+            "max_counts_used": float(max_counts),
+            "max_genes_used": float(max_genes),
             "mt_threshold_used": float(mt_threshold),
             "warnings": warnings_list,
         }
@@ -531,7 +547,11 @@ def rna_qc(params: dict) -> dict:
         "pct_removed":       float(pct_removed),
         "mt_threshold_used": float(mt_threshold),
         "min_genes_used":    int(min_genes),
-        "stress_context":    bool(is_stress_context),
+        "min_counts_used":   float(min_counts),
+        "max_counts_used":   float(max_counts),
+        "max_genes_used":    float(max_genes),
+        "stress_context":    False,
+        "qc_threshold_policy": "dataset_mad_no_user_question",
         "ambient_correction": ambient_report,
         "scrublet":          scrublet_report,
         "warnings":          warnings_list,
@@ -540,7 +560,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 3,
+        "cache_version": 4,
         "cache_params": cache_params,
     }
     try:
