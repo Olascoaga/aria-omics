@@ -11,7 +11,10 @@ import math
 
 import pytest
 
-from aria.scripts.rna_celltypist import _summarize_annotation_confidence
+from aria.scripts.rna_celltypist import (
+    _resolve_celltypist_model,
+    _summarize_annotation_confidence,
+)
 
 
 def test_frequency_reflects_raw_label_agreement_not_collapsed_majority():
@@ -58,3 +61,42 @@ def test_missing_probabilities_degrade_to_none_confidence():
     info = _summarize_annotation_confidence(cluster_ids, raw, assigned, conf)["0"]
     assert info["frequency"] == pytest.approx(0.75)
     assert info["mean_confidence"] is None   # not faked as 0 or 1
+
+
+# ── N-ANNO3 (scRNA annotation audit 2026-06-12): annotating any tissue with the
+# immune default model when no hint was given is a silent wrong-model risk. The
+# fallback must be disclosed, not hidden.
+
+def test_explicit_model_is_not_flagged():
+    model, source, warning = _resolve_celltypist_model(
+        "Adult_Human_Kidney.pkl", "Homo sapiens", "")
+    assert model == "Adult_Human_Kidney.pkl"
+    assert source == "explicit"
+    assert warning is None
+
+
+def test_tissue_hint_match_is_not_flagged():
+    model, source, warning = _resolve_celltypist_model(None, "Homo sapiens", "pbmc")
+    assert model == "Immune_All_Low.pkl"
+    assert source == "tissue_hint"
+    assert warning is None
+
+
+def test_no_hint_falls_back_to_immune_default_with_warning():
+    model, source, warning = _resolve_celltypist_model(None, "Homo sapiens", "")
+    assert model == "Immune_All_Low.pkl"
+    assert source == "default_immune_fallback"
+    assert warning and "immune" in warning.lower()
+
+
+def test_unknown_tissue_hint_also_flagged():
+    model, source, warning = _resolve_celltypist_model(None, "Homo sapiens", "tumor")
+    assert source == "default_immune_fallback"
+    assert warning is not None
+
+
+def test_mouse_no_hint_flags_human_immune_model_mismatch():
+    model, source, warning = _resolve_celltypist_model(None, "Mus musculus", "")
+    assert source == "default_immune_fallback"
+    # The default is a human immune model on a mouse dataset — must be disclosed.
+    assert warning and ("mouse" in warning.lower() or "human" in warning.lower())

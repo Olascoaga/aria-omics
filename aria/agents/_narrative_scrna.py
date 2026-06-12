@@ -998,11 +998,22 @@ def build_scrna_methods(findings: dict) -> str:
             )
 
     ct = findings.get("cell_types") or {}
-    if ct.get("model_used"):
-        lines.append(
+    ct_typist = ct.get("celltypist") or {}
+    model_used = ct.get("model_used") or ct_typist.get("model_used")
+    if model_used:
+        line = (
             f"Cell-type annotation used CellTypist with model "
-            f"'{ct['model_used']}', assigning a majority label per cluster."
+            f"'{model_used}', assigning a majority label per cluster."
         )
+        # N-ANNO3: disclose a silent immune-default fallback in Methods.
+        if (ct_typist.get("model_source") == "default_immune_fallback"
+                or ct_typist.get("model_warning")):
+            line += (
+                " No tissue or model hint was supplied, so this immune-default "
+                "model may not match the tissue; cell-type labels are reported "
+                "as model-derived and potentially mismatched."
+            )
+        lines.append(line)
 
     pb = findings.get("pseudobulk_de") or {}
     if pb:

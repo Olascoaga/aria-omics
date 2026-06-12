@@ -69,6 +69,47 @@ _MOUSE_MODELS = {
     "immune": "Mouse_Isocortex_Hippocampus.pkl",
 }
 
+# The catalog fallback when no explicit model and no usable tissue hint exist.
+_IMMUNE_DEFAULT_MODEL = "Immune_All_Low.pkl"
+
+
+def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
+    """N-ANNO3: resolve the CellTypist model and DISCLOSE a silent default.
+
+    Returns ``(model_name, model_source, warning)`` where ``model_source`` is one
+    of ``"explicit"``, ``"tissue_hint"``, ``"default_immune_fallback"``.
+
+    Annotating an arbitrary tissue with the immune-only default
+    (``Immune_All_Low.pkl``) produces biologically wrong labels that then define
+    the per-cell-type DE groupings, so a fallback (no explicit model AND no
+    matching tissue hint) is flagged with a ``warning`` string rather than chosen
+    silently. The model is NOT forced — the caller decides; only the assumption
+    is surfaced. Pure / dependency-light for unit testing.
+    """
+    if model_explicit:
+        return str(model_explicit), "explicit", None
+
+    org = (organism or "").lower()
+    is_mouse = "musculus" in org or org == "mus musculus"
+    catalog = _MOUSE_MODELS if is_mouse else _DEFAULT_MODELS
+    hint = (tissue_hint or "").lower().strip()
+    if hint and hint in catalog:
+        return catalog[hint], "tissue_hint", None
+
+    warning = (
+        f"No CellTypist model or tissue hint was provided, so annotation fell "
+        f"back to the immune default '{_IMMUNE_DEFAULT_MODEL}'. If this dataset "
+        f"is not immune/PBMC tissue, the cell-type labels may be biologically "
+        f"wrong, and they define the per-cell-type DE groupings. Provide an "
+        f"explicit model or tissue hint to remove this assumption."
+    )
+    if is_mouse:
+        warning += (
+            " The dataset is mouse but the default is a HUMAN immune model — a "
+            "species mismatch on top of the tissue mismatch."
+        )
+    return _IMMUNE_DEFAULT_MODEL, "default_immune_fallback", warning
+
 
 def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
                                      conf_scores, *, top_k: int = 3) -> dict:
@@ -175,12 +216,10 @@ def rna_celltypist(params: dict) -> dict:
     output_dir      = params.get("output_dir", str(Path(data_path).parent))
     out_dir         = Path(output_dir)
 
-    # Resolve model
-    if model_explicit:
-        model_name = model_explicit
-    else:
-        catalog = _MOUSE_MODELS if "musculus" in organism else _DEFAULT_MODELS
-        model_name = catalog.get(tissue_hint, "Immune_All_Low.pkl")
+    # Resolve model (N-ANNO3: disclose a silent immune-default fallback).
+    model_name, model_source, model_warning = _resolve_celltypist_model(
+        model_explicit, organism, tissue_hint
+    )
 
     try:
         import celltypist
@@ -316,6 +355,8 @@ def rna_celltypist(params: dict) -> dict:
     return {
         "status":           "success",
         "model_used":       model_name,
+        "model_source":     model_source,
+        "model_warning":    model_warning,
         "label_col":        "cell_type_celltypist",
         "prediction_label_col": prediction_label_col,
         "n_cells":          int(adata.n_obs),

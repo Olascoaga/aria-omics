@@ -412,3 +412,30 @@ def test_pseudobulk_block_flags_low_confidence_annotation():
     b_caveats = " ".join(c.text for c in b.caveats).lower()
     assert not ("annotation confidence" in b_caveats)
     assert b.confidence == "medium"
+
+
+def test_data_quality_block_surfaces_immune_default_model_warning():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    findings["cell_types"] = {
+        "celltypist": {
+            "ran": True,
+            "model_used": "Immune_All_Low.pkl",
+            "model_source": "default_immune_fallback",
+            "model_warning": (
+                "No CellTypist model or tissue hint was provided, so annotation "
+                "fell back to the immune default 'Immune_All_Low.pkl'. If this "
+                "dataset is not immune/PBMC tissue, the cell-type labels may be "
+                "biologically wrong, and they define the per-cell-type DE groupings."
+            ),
+        },
+    }
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    dq = next((b for b in blocks if b.id == "scrna.data_quality"), None)
+    assert dq is not None
+    texts = " ".join(c.text for c in dq.caveats).lower()
+    assert "immune default" in texts
+    assert "tissue" in texts

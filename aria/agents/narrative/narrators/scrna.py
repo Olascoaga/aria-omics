@@ -214,6 +214,13 @@ class ScrnaNarrator:
                     f"{issue.get('recommendation', '')}".strip(),
                     sev,
                 ))
+        # N-ANNO3: surface a silent immune-default CellTypist model fallback as a
+        # visible limitation — annotating a non-immune tissue with the immune
+        # default produces wrong labels that define the per-cell-type DE groupby.
+        celltypist = (findings.get("cell_types") or {}).get("celltypist") or {}
+        model_warning = celltypist.get("model_warning")
+        if model_warning:
+            caveats.append(Caveat(f"Annotation model: {model_warning}", "warning"))
         if not caveats:
             return []
         return [NarrativeBlock(
