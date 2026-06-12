@@ -52,6 +52,13 @@ _ANALYSIS_EVIDENCE = {
     "sample_qc": "descriptive",
     "power": "descriptive",
     "executive_summary": "descriptive",
+    # B-DD1 (scRNA-lane audit 2026-06-11): per-cluster marker discovery is a
+    # cluster-vs-rest test run on the SAME cells/embedding that defined the
+    # clusters (Leiden on the same PCA/HVG). Its p-values are anti-conservative
+    # by selection-then-test (double-dipping), so they rank candidate markers
+    # but are NOT valid inferential significance. Cap it to descriptive — the
+    # between-condition inferential weight is the pseudobulk DE, never markers.
+    "marker_discovery": "descriptive",
     "differential_expression": "expression_change",
     "contrast": "expression_change",
     "pseudobulk_de": "expression_change",

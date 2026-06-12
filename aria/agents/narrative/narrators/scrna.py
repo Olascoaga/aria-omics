@@ -56,6 +56,7 @@ class ScrnaNarrator:
         blocks.extend(self._qc_blocks(findings))
         blocks.extend(self._data_quality_blocks(findings))
         blocks.extend(self._error_blocks(findings))
+        blocks.extend(self._marker_blocks(findings))
         blocks.extend(self._composition_blocks(findings))
         blocks.extend(self._pseudobulk_blocks(findings))
         blocks.extend(self._pathway_blocks(findings))
@@ -182,6 +183,62 @@ class ScrnaNarrator:
                 )],
             ))
         return blocks
+
+    def _marker_blocks(self, findings: dict) -> list[NarrativeBlock]:
+        """B-DD1 (scRNA-lane audit 2026-06-11): surface per-cluster marker
+        discovery as a DESCRIPTIVE ranking with an explicit double-dipping
+        caveat. Clusters are defined and tested on the same cells/embedding, so
+        cluster-vs-rest p-values are anti-conservative (selection-then-test) and
+        must never be reported as inferential significance. The between-condition
+        inferential weight lives in the pseudobulk DE blocks, not here."""
+        de = findings.get("differential_expression") or {}
+        # Only the SUCCESS path; the error path is handled by _error_blocks.
+        if de.get("status") not in (None, "success", "done"):
+            return []
+        # Require actual marker payload (avoid firing on an empty dict).
+        n_sig_by_cluster = de.get("n_sig_by_cluster") or {}
+        n_candidates = de.get("n_significant", de.get("n_significant_genes"))
+        if not n_sig_by_cluster and n_candidates is None:
+            return []
+
+        n_clusters = de.get("n_clusters")
+        if n_clusters is None:
+            n_clusters = len(n_sig_by_cluster)
+        n_candidates = int(n_candidates or 0)
+        groupby = de.get("groupby", "cluster")
+
+        evidence = [
+            _evidence("clusters", int(n_clusters), "marker_discovery"),
+            _evidence("ranked candidate markers", n_candidates, "marker_discovery"),
+        ]
+        return [NarrativeBlock(
+            id="scrna.marker_discovery",
+            modality="scRNA-seq",
+            analysis="marker_discovery",
+            block_type="exploratory",
+            title="Per-cluster marker discovery",
+            status="success",
+            confidence="low",
+            claim=(
+                f"Per-cluster marker discovery ranked candidate marker genes "
+                f"across {int(n_clusters)} {groupby} clusters "
+                f"(Wilcoxon cluster-vs-rest, descriptive ranking only)."
+            ),
+            evidence=evidence,
+            caveats=[Caveat(
+                "Clusters were defined and tested on the same cells (Leiden on "
+                "the same PCA/HVG embedding), so cluster-vs-rest marker p-values "
+                "are anti-conservative by selection-then-test (double-dipping). "
+                "They rank candidate markers but are NOT valid inferential "
+                "significance; between-condition inference is the donor-level "
+                "pseudobulk DE.",
+                "warning",
+            )],
+            metrics={
+                "n_sig_by_cluster": n_sig_by_cluster,
+                "n_ranked_candidates": n_candidates,
+            },
+        )]
 
     def _composition_blocks(self, findings: dict) -> list[NarrativeBlock]:
         da = findings.get("differential_abundance") or {}

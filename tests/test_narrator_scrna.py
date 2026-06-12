@@ -296,3 +296,71 @@ def test_scrna_narrator_methods_reuse_legacy_methods():
     methods = ScrnaNarrator().methods("scrna_agent", agent_result)
     assert len(methods) == 1
     assert "pseudobulk aggregation" in methods[0]
+
+
+# ── B-DD1 (scRNA-lane audit 2026-06-11): per-cluster marker discovery is a
+# double-dipped (selection-then-test) within-data ranking. It must be surfaced
+# as a DESCRIPTIVE ranking with an explicit circularity caveat — never as
+# inferential significance — and the ClaimCompiler must cap it to descriptive.
+
+def _synthetic_marker_success_findings():
+    findings = _synthetic_scrna_findings()
+    findings["differential_expression"] = {
+        "status": "success",
+        "groupby": "leiden",
+        "n_clusters": 4,
+        "n_significant": 320,
+        "n_significant_genes": 320,
+        "n_sig_by_cluster": {"0": 120, "1": 90, "2": 70, "3": 40},
+        "de_genes_by_cluster": {
+            "0": [{"gene": "MARKER_A", "log2fc": 3.1, "padj": 1e-9}],
+        },
+        "padj_max": 0.05,
+        "lfc_min": 0.5,
+    }
+    return findings
+
+
+def test_scrna_marker_block_is_descriptive_with_double_dip_caveat():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    agent_result = {
+        "status": "done",
+        "findings": {"scRNA": {"findings": _synthetic_marker_success_findings()}},
+    }
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    marker = next((b for b in blocks if b.id == "scrna.marker_discovery"), None)
+    assert marker is not None
+    assert marker.status == "success"
+    # Markers are an exploratory ranking, not a stats-gated DE result.
+    assert marker.block_type == "exploratory"
+    assert marker.analysis == "marker_discovery"
+    assert marker.confidence == "low"
+
+    # The claim must NOT present markers as significance.
+    assert "significant" not in marker.claim.lower()
+
+    # An explicit double-dipping / circularity caveat must be present.
+    caveat_text = " ".join(c.text for c in marker.caveats).lower()
+    assert ("double-dip" in caveat_text or "double dip" in caveat_text
+            or "selection" in caveat_text or "circular" in caveat_text)
+
+
+def test_claim_compiler_caps_marker_discovery_to_descriptive():
+    from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
+    from aria.agents.narrative.claim_compiler import classify_claim
+
+    block = NarrativeBlock(
+        id="scrna.marker_discovery",
+        modality="scRNA-seq",
+        analysis="marker_discovery",
+        block_type="exploratory",
+        title="Per-cluster marker discovery",
+        status="success",
+        confidence="low",
+        claim="Per-cluster marker discovery ranked candidate markers across 4 clusters.",
+        evidence=[EvidenceItem(label="clusters", value=4, source="marker_discovery")],
+    )
+    c = classify_claim(block)
+    assert c.tier == "descriptive"
+    assert c.licensed_language == "descriptive"
