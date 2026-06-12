@@ -6,7 +6,7 @@ Executed inside aria-rna-env by EnvironmentManager (standalone entry point).
 
 Methods (in order of application):
   1. PAGA         — graph abstraction of cluster connectivity (always)
-  2. DPT          — diffusion pseudotime from a root cell (always)
+  2. DPT          — diffusion pseudotime when a defensible root is available
   3. scVelo       — RNA velocity (only if spliced/unspliced layers present)
 
 Input params:
@@ -22,7 +22,9 @@ Output:
       "pseudotime": {
           "computed": bool,
           "pseudotime_by_group": {group: mean_pt, ...},
-          "root_used": str,
+          "root_used": str | None,
+          "root_selection_policy": str,
+          "reason": str  (only when not computed),
       },
       "velocity": {"computed": bool, "method": str | "reason": str},
       "groupby":  str,
@@ -107,26 +109,31 @@ def rna_trajectory(params: dict) -> dict:
     # ── 2. Diffusion Pseudotime ───────────────────────────────────────────
     dpt_result: dict = {"computed": False}
     try:
-        sc.tl.diffmap(adata)
-
         # Root selection
         #
         # Order of preference:
-        #   1. Explicit `root_cell_type` from the caller (user / intent).
-        #   2. Auto-detect a progenitor-like cell type from generic wording
-        #      ("stem", "progenitor", "precursor") without hardcoded
-        #      tissue-specific abbreviations.
-        #   3. Last-resort heuristic: cell with fewest genes ("min complexity").
+        #   1. Precomputed `adata.uns["iroot"]` from an upstream curated file.
+        #   2. Explicit `root_cell_type` from the caller (user / intent).
+        #   3. Auto-detect a progenitor-like cell type from generic wording
+        #      ("stem", "progenitor", "precursor") in the annotation column.
+        #
+        # No low-complexity fallback: low n_genes can indicate low-quality cells,
+        # so using it as DPT root gives a false sense of biological direction.
         PROGENITOR_TOKENS = (
             "stem", "progenitor", "precursor",
         )
-        root_used = "auto"
-        if root_cell_type and cell_type_col in adata.obs.columns:
+        root_used = None
+        root_policy = "explicit_or_progenitor_label_required"
+        if "iroot" in adata.uns:
+            root_used = "precomputed iroot"
+            root_policy = "precomputed_iroot"
+        elif root_cell_type and cell_type_col in adata.obs.columns:
             mask = adata.obs[cell_type_col] == root_cell_type
             if mask.sum() > 0:
                 adata.uns["iroot"] = int(np.where(mask)[0][0])
                 root_used = root_cell_type
-        if "iroot" not in adata.uns and cell_type_col in adata.obs.columns:
+                root_policy = "explicit_root_cell_type"
+        if root_used is None and cell_type_col in adata.obs.columns:
             labels = [
                 str(x) for x in adata.obs[cell_type_col].unique() if x
             ]
@@ -145,32 +152,35 @@ def rna_trajectory(params: dict) -> dict:
                 mask = adata.obs[cell_type_col] == best_label
                 adata.uns["iroot"] = int(np.where(mask)[0][0])
                 root_used = f"auto (progenitor match: {best_label})"
-        if "iroot" not in adata.uns:
-            # Heuristic: cell with fewest genes (least differentiated)
-            if "n_genes_by_counts" in adata.obs.columns:
-                adata.uns["iroot"] = int(
-                    adata.obs["n_genes_by_counts"].values.argmin()
-                )
-            else:
-                adata.uns["iroot"] = 0
-            root_used = "auto (min complexity)"
+                root_policy = "progenitor_label"
 
-        sc.tl.dpt(adata)
+        if root_used is None:
+            dpt_result = {
+                "computed": False,
+                "reason": "root_unresolved",
+                "root_used": None,
+                "root_selection_policy": root_policy,
+            }
+        else:
+            sc.tl.diffmap(adata)
 
-        # Mean pseudotime per group
-        col = cell_type_col if cell_type_col in adata.obs.columns else groupby
-        pt_by_group = (
-            adata.obs.groupby(col)["dpt_pseudotime"]
-            .mean()
-            .sort_values()
-            .round(4)
-            .to_dict()
-        )
-        dpt_result = {
-            "computed":             True,
-            "pseudotime_by_group":  pt_by_group,
-            "root_used":            root_used,
-        }
+            sc.tl.dpt(adata)
+
+            # Mean pseudotime per group
+            col = cell_type_col if cell_type_col in adata.obs.columns else groupby
+            pt_by_group = (
+                adata.obs.groupby(col)["dpt_pseudotime"]
+                .mean()
+                .sort_values()
+                .round(4)
+                .to_dict()
+            )
+            dpt_result = {
+                "computed":             True,
+                "pseudotime_by_group":  pt_by_group,
+                "root_used":            root_used,
+                "root_selection_policy": root_policy,
+            }
     except Exception as e:
         dpt_result = {"computed": False, "reason": str(e)}
 
