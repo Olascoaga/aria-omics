@@ -20,6 +20,74 @@ def _evidence(label: str, value, source: str,
     return EvidenceItem(label=label, value=value, source=source, path=path)
 
 
+# N-ANNO1 (scRNA annotation audit 2026-06-12): the pseudobulk DE block groups by
+# a cell-type LABEL, but annotation confidence is computed PER CLUSTER. Aggregate
+# it to the label level so a DE block on an uncertainly-annotated cell type can
+# carry an annotation-uncertainty caveat (p-values are never changed).
+_ANNOTATION_CONF_LOW = 0.5
+
+
+def _annotation_confidence_by_label(per_cluster: dict) -> dict:
+    """Aggregate per-cluster CellTypist confidence to the per-label level.
+
+    `per_cluster` is {cluster_id: {"label", "mean_confidence", "frequency",
+    "n_cells", ...}} as produced by
+    `rna_celltypist._summarize_annotation_confidence`. A cell-type label can span
+    several clusters, so the mean confidence is cell-count weighted. Returns
+    {label: {"mean_confidence", "min_confidence", "n_clusters", "uncertain"}}.
+    A label is `uncertain` when its weighted confidence is below
+    `_ANNOTATION_CONF_LOW` (the model was not confident on the cells that define
+    the group). Labels with no probability available are left non-uncertain
+    (never faked).
+    """
+    acc: dict = {}
+    for info in (per_cluster or {}).values():
+        if not isinstance(info, dict):
+            continue
+        label = str(info.get("label", "")).strip()
+        if not label:
+            continue
+        conf = info.get("mean_confidence")
+        n = info.get("n_cells") or 0
+        entry = acc.setdefault(
+            label, {"weight_sum": 0.0, "conf_weight": 0.0,
+                    "min_confidence": None, "n_clusters": 0}
+        )
+        entry["n_clusters"] += 1
+        try:
+            n = int(n)
+        except (TypeError, ValueError):
+            n = 0
+        if conf is not None:
+            try:
+                conf = float(conf)
+            except (TypeError, ValueError):
+                conf = None
+        if conf is not None:
+            w = float(n) if n > 0 else 1.0
+            entry["weight_sum"] += w
+            entry["conf_weight"] += w * conf
+            entry["min_confidence"] = (
+                conf if entry["min_confidence"] is None
+                else min(entry["min_confidence"], conf)
+            )
+
+    out: dict = {}
+    for label, entry in acc.items():
+        mean_conf = (entry["conf_weight"] / entry["weight_sum"]
+                     if entry["weight_sum"] > 0 else None)
+        out[label] = {
+            "mean_confidence": (round(mean_conf, 3) if mean_conf is not None
+                                else None),
+            "min_confidence": (round(entry["min_confidence"], 3)
+                               if entry["min_confidence"] is not None else None),
+            "n_clusters": entry["n_clusters"],
+            "uncertain": bool(mean_conf is not None
+                              and mean_conf < _ANNOTATION_CONF_LOW),
+        }
+    return out
+
+
 def _design_issues(comp: dict, severities: set[str] | None = None) -> list[dict]:
     issues = ((comp.get("design_check") or {}).get("issues") or [])
     if severities is None:
@@ -297,6 +365,13 @@ class ScrnaNarrator:
 
     def _pseudobulk_blocks(self, findings: dict) -> list[NarrativeBlock]:
         pb = findings.get("pseudobulk_de") or {}
+        # N-ANNO1: map the DE groupby label -> annotation confidence so a block
+        # on an uncertainly-annotated cell type carries a visible caveat.
+        per_cluster = (
+            ((findings.get("cell_types") or {}).get("celltypist") or {})
+            .get("per_cluster") or {}
+        )
+        label_conf = _annotation_confidence_by_label(per_cluster)
         blocks = []
         for group, info in (pb.get("per_group", {}) or {}).items():
             for comp_key, comp in (info.get("per_comparison", {}) or {}).items():
@@ -382,6 +457,24 @@ class ScrnaNarrator:
                         "No composition covariate was used for this DE block.",
                         "info",
                     ))
+                # N-ANNO1: disclose when this cell-type group was annotated with
+                # low model confidence. The DE p-values are unchanged; the caveat
+                # and the confidence cap only adjust how much trust the report
+                # places in the cell-type identity that defines the comparison.
+                annotation_conf = label_conf.get(str(group))
+                annotation_uncertain = bool(
+                    annotation_conf and annotation_conf.get("uncertain")
+                )
+                if annotation_uncertain:
+                    mc = annotation_conf.get("mean_confidence")
+                    caveats.append(Caveat(
+                        f"The '{group}' cell-type annotation is low confidence "
+                        f"(mean CellTypist probability "
+                        f"{mc if mc is not None else 'n/a'}); the DE result is "
+                        f"reliable for the cells as grouped, but the cell-type "
+                        f"label assigned to this group is uncertain.",
+                        "warning",
+                    ))
                 blocks.append(NarrativeBlock(
                     id=block_id,
                     modality="scRNA-seq",
@@ -389,7 +482,10 @@ class ScrnaNarrator:
                     block_type="result",
                     title=f"{group} {comp_key}",
                     status="success",
-                    confidence="low" if lognorm_recovered else "medium",
+                    confidence=(
+                        "low" if (lognorm_recovered or annotation_uncertain)
+                        else "medium"
+                    ),
                     claim=f"{group} {comp_key} had {n_sig} {fdr_label} DE genes.",
                     evidence=evidence,
                     caveats=caveats,
@@ -411,6 +507,11 @@ class ScrnaNarrator:
                         "lognorm_recovered": lognorm_recovered,
                         "corrected_for_composition": bool(
                             comp.get("corrected_for_composition")
+                        ),
+                        "annotation_uncertain": annotation_uncertain,
+                        "annotation_mean_confidence": (
+                            annotation_conf.get("mean_confidence")
+                            if annotation_conf else None
                         ),
                     },
                 ))

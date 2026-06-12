@@ -364,3 +364,51 @@ def test_claim_compiler_caps_marker_discovery_to_descriptive():
     c = classify_claim(block)
     assert c.tier == "descriptive"
     assert c.licensed_language == "descriptive"
+
+
+# ── N-ANNO1 (scRNA annotation audit 2026-06-12): the per-cell-type pseudobulk DE
+# block must carry an annotation-uncertainty caveat when the cell type it groups
+# on was annotated with low confidence — without changing any p-values.
+
+def _findings_with_annotation_confidence(group_a_conf, group_b_conf):
+    findings = _synthetic_scrna_findings()
+    findings["cell_types"] = {
+        "celltypist": {
+            "ran": True,
+            "per_cluster": {
+                "0": {"label": "GroupA", "mean_confidence": group_a_conf,
+                      "frequency": 0.55, "n_cells": 120, "alt_labels": [
+                          {"label": "Other", "frequency": 0.40}]},
+                "1": {"label": "GroupB", "mean_confidence": group_b_conf,
+                      "frequency": 0.97, "n_cells": 90, "alt_labels": []},
+            },
+        },
+    }
+    return findings
+
+
+def test_pseudobulk_block_flags_low_confidence_annotation():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    # GroupA annotated at low model probability (0.30); GroupB confident (0.95).
+    findings = _findings_with_annotation_confidence(0.30, 0.95)
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+
+    a = next(b for b in blocks
+             if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    b = next(b for b in blocks
+             if b.id == "scrna.pseudobulk.GroupB.condition_a_vs_condition_b")
+
+    a_caveats = " ".join(c.text for c in a.caveats).lower()
+    assert "annotation" in a_caveats
+    assert "confidence" in a_caveats or "uncertain" in a_caveats
+    # An uncertainly-annotated cell type must not be presented at medium trust.
+    assert a.confidence == "low"
+    # p-values are untouched: the significance counts are unchanged.
+    assert a.metrics["n_significant"] == 180
+
+    b_caveats = " ".join(c.text for c in b.caveats).lower()
+    assert not ("annotation confidence" in b_caveats)
+    assert b.confidence == "medium"
