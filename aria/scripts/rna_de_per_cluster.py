@@ -11,6 +11,8 @@ Input params:
     groupby:      str    (optional) — obs column to group by (default: "leiden")
     padj_max:     float  (optional) — adjusted p-value threshold (default: 0.05)
     lfc_min:      float  (optional) — minimum |log2FC| (default: 0.5)
+    min_pct_in:   float  (optional) — minimum fraction of cells in-cluster
+                                      detecting the marker (default: 0.10)
     top_n:        int    (optional) — top hits per cluster to return (default: 20)
     output_dir:   str    (optional)
 
@@ -45,6 +47,7 @@ def rna_de_per_cluster(params: dict) -> dict:
     groupby    = params.get("groupby", "leiden")
     padj_max   = float(params.get("padj_max", 0.05))
     lfc_min    = float(params.get("lfc_min", 0.5))
+    min_pct_in = float(params.get("min_pct_in", 0.10))
     top_n      = int(params.get("top_n", 20))
     output_dir = params.get("output_dir", str(Path(data_path).parent))
 
@@ -121,6 +124,8 @@ def rna_de_per_cluster(params: dict) -> dict:
             gi = var_idx[gene]
             pct_in  = _pct(gi, mask_in)  if mask_in  is not None else None
             pct_out = _pct(gi, mask_out) if mask_out is not None else None
+            if pct_in is not None and pct_in < min_pct_in:
+                continue
             record = {
                 "cluster": cl_str,
                 "gene":    gene,
@@ -148,6 +153,7 @@ def rna_de_per_cluster(params: dict) -> dict:
         "groupby":               groupby,
         "padj_max":              padj_max,
         "lfc_min":               lfc_min,
+        "min_pct_in":            min_pct_in,
         "n_clusters":            n_clusters,
         "n_significant_total":   n_significant_total,
         "n_sig_by_cluster":      n_sig_by_cluster,
