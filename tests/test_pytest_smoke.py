@@ -1083,18 +1083,19 @@ def test_qc_cache_requires_matching_parameters():
     expected = _cache_params(params)
 
     assert _cache_matches(
-        {"cache_version": 4, "cache_params": expected},
+        {"cache_version": 5, "cache_params": expected},
         expected,
     )
     assert "user_question" not in expected
     stale = {**expected, "min_genes": 500}
     assert not _cache_matches(
-        {"cache_version": 3, "cache_params": stale},
+        {"cache_version": 4, "cache_params": stale},
         expected,
     )
-    # Older cache schemas must not be reused after QC-threshold policy changes.
+    # Older cache schemas must not be reused after QC-threshold policy changes
+    # (N-QC1 moved the count/gene MAD bounds to log space → bump 4→5).
     assert not _cache_matches(
-        {"cache_version": 2, "cache_params": expected},
+        {"cache_version": 4, "cache_params": expected},
         expected,
     )
     assert not _cache_matches(

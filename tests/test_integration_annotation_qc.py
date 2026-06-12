@@ -37,6 +37,23 @@ def test_integration_flags_overcorrection_on_negative_cluster_silhouette():
     assert "overcorrection" in msg.lower()
 
 
+def test_integration_classic_overcorrection_signature_is_blocking():
+    """N-INT1: strong batch mixing AND collapsed cluster structure is the classic
+    overcorrection signature and must escalate from a soft warning to blocking."""
+    res = assess_integration_quality(
+        silhouette_before=0.40, silhouette_after=0.01, cluster_silhouette=-0.05)
+    oc = next(i for i in res["issues"] if i["check"] == "possible_overcorrection")
+    assert oc["severity"] == "blocking"
+
+
+def test_integration_overcorrection_without_strong_mixing_stays_warning():
+    # Structure collapsed but mixing barely changed -> not the classic signature.
+    res = assess_integration_quality(
+        silhouette_before=0.05, silhouette_after=0.04, cluster_silhouette=-0.05)
+    oc = next(i for i in res["issues"] if i["check"] == "possible_overcorrection")
+    assert oc["severity"] == "warning"
+
+
 def test_integration_handles_missing_metrics():
     res = assess_integration_quality(None, None, None)
     assert res["status"] == "clean"

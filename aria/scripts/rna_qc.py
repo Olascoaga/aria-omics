@@ -130,7 +130,32 @@ def _cache_params(params: dict) -> dict:
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 4 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 5 and cached.get("cache_params") == expected
+
+
+def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False):
+    """Median ± n_mad·MAD outlier bounds.
+
+    N-QC1: `total_counts` / `n_genes_by_counts` are right-skewed (≈log-normal),
+    so a MAD bound on RAW values clips the legitimate high tail (large but real
+    cells). With `log_space=True` the MAD is computed on `log1p(values)` and the
+    bounds are mapped back with `expm1` — the sc-best-practices convention — which
+    is symmetric on the log scale and never returns a negative lower bound.
+    """
+    import numpy as np
+
+    v = np.asarray(values, dtype=float)
+    if log_space:
+        v = np.log1p(v)
+    median = float(np.nanmedian(v))
+    mad = float(np.nanmedian(np.abs(v - median)))
+    lo, hi = median - n_mad * mad, median + n_mad * mad
+    if log_space:
+        # These metrics are integer counts; round the back-transformed bounds to
+        # the nearest integer so the expm1(log1p(x)) float round-trip does not
+        # leave a bound at e.g. 899.9999 that would wrongly clip a 900-gene cell.
+        lo, hi = float(round(float(np.expm1(lo)))), float(round(float(np.expm1(hi))))
+    return lo, hi
 
 
 def rna_qc(params: dict) -> dict:
@@ -338,14 +363,14 @@ def rna_qc(params: dict) -> dict:
     # ── Adaptive MAD thresholds ───────────────────────────────────────────
     # Use nanmedian: pct_counts_mt is NaN when a cell has total_counts=0,
     # which can still slip through if initial_min_genes is lowered.
-    def mad_bounds(values: np.ndarray, n_mad: float = 3.0):
-        median = float(np.nanmedian(values))
-        mad    = float(np.nanmedian(np.abs(values - median)))
-        return median - n_mad * mad, median + n_mad * mad
-
-    counts_low, counts_high = mad_bounds(adata.obs["total_counts"].values)
-    genes_low,  genes_high  = mad_bounds(adata.obs["n_genes_by_counts"].values)
-    _,          mt_high     = mad_bounds(adata.obs["pct_counts_mt"].values)
+    # N-QC1: count-like metrics are right-skewed → compute their MAD bounds in
+    # log space so the upper bound does not clip legitimately large cells. MT% is
+    # a bounded percentage, not log-normal, so it stays on the linear scale.
+    counts_low, counts_high = _mad_bounds(
+        adata.obs["total_counts"].values, log_space=True)
+    genes_low,  genes_high  = _mad_bounds(
+        adata.obs["n_genes_by_counts"].values, log_space=True)
+    _,          mt_high     = _mad_bounds(adata.obs["pct_counts_mt"].values)
 
     def _finite_or(value: float, fallback: float) -> float:
         return float(value) if np.isfinite(value) else float(fallback)
@@ -551,7 +576,7 @@ def rna_qc(params: dict) -> dict:
         "max_counts_used":   float(max_counts),
         "max_genes_used":    float(max_genes),
         "stress_context":    False,
-        "qc_threshold_policy": "dataset_mad_no_user_question",
+        "qc_threshold_policy": "dataset_logspace_mad_no_user_question",
         "ambient_correction": ambient_report,
         "scrublet":          scrublet_report,
         "warnings":          warnings_list,
@@ -560,7 +585,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 4,
+        "cache_version": 5,
         "cache_params": cache_params,
     }
     try:

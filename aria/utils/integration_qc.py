@@ -98,11 +98,14 @@ def assess_integration_quality(
         rec = ("Verify integration did not erase biology: compare marker "
                "separation before/after, lower integration strength, or skip "
                "integration if batches are biologically distinct.")
-        # If mixing improved a lot while structure collapsed, escalate wording.
+        # N-INT1: strong mixing AND collapsed structure is the classic
+        # overcorrection signature — escalate from a soft warning to blocking so
+        # the report does not bury a destroyed-biology run among minor warnings.
         if sb is not None and sa is not None and sa < sb - 0.05:
+            sev = "blocking"
             msg = ("Batches were strongly mixed but " + msg[0].lower() + msg[1:]
                    + " This pattern is the classic overcorrection signature.")
-        issues.append(QCIssue("warning", "possible_overcorrection", msg, rec))
+        issues.append(QCIssue(sev, "possible_overcorrection", msg, rec))
 
     status = "warnings" if issues else "clean"
     return {

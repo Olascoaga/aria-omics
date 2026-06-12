@@ -1,6 +1,33 @@
-"""B-QC1/B-QC2 guards for scRNA QC threshold policy."""
+"""B-QC1/B-QC2 + N-QC1 guards for scRNA QC threshold policy."""
 
 from __future__ import annotations
+
+
+def test_mad_bounds_log_space_is_less_aggressive_on_skewed_upper_tail():
+    """N-QC1: total_counts / n_genes_by_counts are right-skewed (log-normal),
+    so an upper MAD bound on RAW values clips the legitimate high tail. The
+    sc-best-practices approach computes MAD in log space."""
+    from aria.scripts.rna_qc import _mad_bounds
+
+    counts = [1000, 1200, 1500, 1800, 2000, 2500, 3000, 4000, 6000, 10000]
+
+    _, hi_raw = _mad_bounds(counts)
+    _, hi_log = _mad_bounds(counts, log_space=True)
+
+    # Log-space upper bound is less aggressive on the skewed right tail.
+    assert hi_log > hi_raw
+    # A legitimately high-count cell clipped by raw MAD survives in log space.
+    assert 6000 > hi_raw       # raw MAD would discard it
+    assert 6000 <= hi_log      # log-space MAD keeps it
+
+
+def test_mad_bounds_log_space_keeps_lower_bound_nonnegative():
+    from aria.scripts.rna_qc import _mad_bounds
+
+    counts = [500, 800, 1000, 1200, 1500, 2000, 3000, 5000]
+    lo, hi = _mad_bounds(counts, log_space=True)
+    assert lo >= 0.0
+    assert hi > lo
 
 
 def _write_processed_qc_h5ad(tmp_path, name, *, mt_values, counts, genes):
