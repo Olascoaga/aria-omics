@@ -1,10 +1,10 @@
 # ARIA Documentation
 
 ARIA is documented by validation level. The project intentionally separates
-workflows that are validated on controlled + small real datasets from beta
-paths and scaffolded roadmap modules. "Validated" never means publication-grade
-for a specific study — a domain expert must still review the design, the fitted
-model, and the conclusions.
+workflows that are validated on controlled + small real datasets from beta,
+alpha, and scaffolded roadmap modules. "Validated" never means
+publication-grade for a specific study — a domain expert must still review the
+design, the fitted model, and the conclusions.
 
 ## Start Here
 
@@ -37,15 +37,22 @@ model, and the conclusions.
 
 ## Validated / Beta Workflows
 
-- [Trajectory analysis: PAGA + DPT](workflows/trajectory.md)
+- [Trajectory analysis: PAGA + root-gated DPT](workflows/trajectory.md)
 - [Cell-cell communication: LIANA](workflows/cell_communication.md)
+
+## Alpha Workflows
+
+These paths can dispatch only behind explicit acknowledgement and remain
+review-required.
+
+- [Chromatin roadmap: scATAC matrix workflow](workflows/chromatin_roadmap.md)
 
 ## Scaffolded Roadmap Workflows
 
 These modules exist in code, but should not yet be described as stable
 production workflows.
 
-- [Chromatin roadmap: scATAC, ATAC, ChIP, CUT&RUN, CUT&TAG](workflows/chromatin_roadmap.md)
+- [Chromatin roadmap: bulk ATAC, ChIP, CUT&RUN, CUT&TAG](workflows/chromatin_roadmap.md)
 - [Genome architecture roadmap: Hi-C / Micro-C](workflows/hic_roadmap.md)
 - [Multimodal integration roadmap: WNN, MOFA+, peak-to-gene](workflows/integration_roadmap.md)
 

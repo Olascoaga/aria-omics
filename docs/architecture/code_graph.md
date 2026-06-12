@@ -95,7 +95,7 @@ flowchart TD
     SCRNA_TRAJ --> SCRNA_OUT
 
     AUDIT --> MUDATA[aria/utils/mudata_io.py .h5mu real reader]
-    DISPATCH --> CHROM[aria/agents/chromatin_agent.py scaffolded]
+    DISPATCH --> CHROM[aria/agents/chromatin_agent.py alpha scATAC / scaffolded other chromatin]
     CHROM --> CHROM_QC[aria/scripts/chromatin_qc.py measured-only QC]
     CHROM_QC --> MUDATA
     CHROM --> CHROM_LSI[aria/scripts/chromatin_lsi_clustering.py TF-IDF/LSI/depth-drop/Leiden]
@@ -477,15 +477,15 @@ Use these tests as impact anchors when editing the graph's major nodes:
   "not measured in this run" with NO metric when absent (the normal report — no
   fabrication), and shows the measured numbers + pass/fail when a manifest is
   attached. Tests: `tests/test_calibration_badge.py` (litellm-gated, light lane).
-- scATAC differential-accessibility calibration hook (P3-2, **v4.6 scaffold**):
+- scATAC differential-accessibility calibration (P3-2, **v4.6 alpha**):
   `aria/benchmarks/synthetic_atac_da.py` (`simulate_atac_da_dataset` +
-  `run_atac_da_benchmark`), `tests/test_benchmark_atac_da.py`. The ground-truth
-  simulator + recall/FDR scoring are real now, but there is NO validated scATAC DA
-  backend: `run_atac_da_benchmark` raises `NotImplementedError` unless the caller
-  injects the real DA function as `da_fn` — it never fabricates calibration
-  metrics. v4.6 fills the typed slot (`ATACDACaller`) and the regression goes live;
-  do not stub `da_fn` with a fake in production. Dependency-light (numpy/pandas/
-  anndata), runs in the light lane.
+  `run_atac_da_benchmark`), `scripts/run_scatac_da_benchmark.py`,
+  `tests/test_benchmark_scatac_da.py`. The ground-truth simulator + recall/FDR
+  scoring are real and the benchmark now injects ARIA's real
+  `chromatin_diffacc._pseudobulk_da` caller (shared DESeq2 core) as `da_fn`.
+  Missing callers still fail rather than fabricate calibration metrics. The
+  synthetic lane validates DA recovery/FDR; real HC11 and multi-sample runs are
+  tracked separately and do not promote scATAC beyond alpha.
 - GEO multi-organism (spike-in) inference: organism-from-gene-symbol style
   (`geo_connector._organism_from_gene_symbols`, a technical species detection /
   ADR-011 exception like `human_markers`) and column-name group recovery

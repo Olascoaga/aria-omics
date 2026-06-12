@@ -53,6 +53,12 @@ The same diagram is stored as
   instead of injecting filename-derived labels.
 - If metadata is not available in `obs`, ARIA may inject condition labels from
   the user-confirmed sample-to-group design before pseudobulk DE.
+- In production scRNA runs, labels and design metadata come from the annotated
+  h5ad, while raw counts come from the QC-filtered count h5ad through
+  `counts_data_path`. The two objects are aligned by cell barcode before
+  pseudobulk aggregation.
+- Cell-type labels with low CellTypist confidence are surfaced as annotation
+  caveats and cap trust in the label; they do not change DE p values.
 
 ## Outputs
 
@@ -62,7 +68,9 @@ The same diagram is stored as
 - summary bar plots;
 - supplementary TSV tables;
 - methods section with groupby, condition, replicate, covariate, and threshold
-  details.
+  details;
+- count-source provenance, including whether raw counts were used or a
+  log-normalized recovery path was required.
 
 ## Current Evidence
 
@@ -71,9 +79,13 @@ large processed object:
 
 - processed-h5ad QC retained cells using existing obs metrics;
 - pseudobulk DE ran across 18 subclasses;
-- pathway ORA, LIANA, and PAGA/DPT outputs were present;
+- pathway ORA, LIANA, and trajectory outputs were present; PAGA can be present
+  without DPT when no defensible pseudotime root is available;
 - narrative/report fixes were added after detecting a contradiction between
   executive summary and body sections.
+- post-v4.6 production E2E verified the raw-count handoff on a six-donor run:
+  `count_source=raw_counts` with `counts_data_path`, versus
+  `recovered_from_lognorm` without the handoff.
 
 Release policy: donor-level pseudobulk is the primary evidence for
 between-condition scRNA claims. `rna_de_per_cluster.py` is optional on

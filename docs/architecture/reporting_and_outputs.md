@@ -14,9 +14,12 @@ Examples:
 - pseudobulk DE is present only if `pseudobulk_de` contains successful group
   and comparison blocks;
 - pathway enrichment is present only if ORA/GSEA outputs exist;
-- trajectory is present only if PAGA/DPT results exist;
+- trajectory context is present only if structured PAGA results exist; DPT
+  pseudotime summaries are present only when a defensible root was resolved;
 - LIANA communication is present only if interaction tables exist;
-- annotation confidence must reflect CellTypist/fallback status.
+- annotation confidence must reflect CellTypist/fallback status;
+- QC blocks must reflect failure status when QC failed, not render as successful
+  completion.
 
 ## Narrative Kernel
 
@@ -26,13 +29,14 @@ small kernel under `aria.agents.narrative`.
 - `NarrativeBlock` is the unit of report evidence. A successful block must
   have a claim and at least one evidence item.
 - `ModalityNarrator` plugins convert agent outputs into blocks. scRNA and bulk
-  RNA have first-class narrators; unsupported modalities fall back to the
-  legacy renderer until their narrators exist.
+  RNA have first-class narrators; chromatin has alpha scATAC blocks; unsupported
+  modalities fall back to the legacy renderer until their narrators exist.
 - Validators enforce report integrity before rendering: missing successful
   evidence fails, failed analyses must explain the failure, low-confidence
   findings stay visible, causal language is downgraded unless causal evidence
-  is explicit, PAGA/DPT receives an exploratory caveat without velocity or
-  time-course support, and referenced figures/tables must exist at render time.
+  is explicit, trajectory blocks receive an exploratory caveat without velocity
+  or time-course support, and referenced figures/tables must exist at render
+  time.
 - `methodology.json` persists the serialized narrative blocks so a reviewer
   can audit claims, evidence, caveats, metrics, figures, and tables outside
   the HTML.
@@ -40,6 +44,12 @@ small kernel under `aria.agents.narrative`.
 As of `v4.5.4`, scRNA pseudobulk blocks name the FDR family used for the
 primary significance call. The default is per-cluster FDR; global FDR remains
 reported as audit context.
+
+As of the post-`v4.6` scRNA hardening, pseudobulk blocks also carry annotation
+confidence caveats when the cell-type label is low confidence. This caveat
+changes trust in the label, not the DE p values. Per-cluster marker blocks are
+exploratory/descriptive and must not use significance language for
+between-condition inference.
 
 ## Main Outputs
 
@@ -63,7 +73,7 @@ When available, scRNA reports can export:
 - pathway enrichment tables;
 - LIANA interaction tables;
 - PAGA connection tables;
-- DPT pseudotime summaries.
+- DPT pseudotime summaries, only when DPT was computed from a defensible root.
 
 ## Methods Section
 
@@ -78,6 +88,8 @@ Methods should include:
 - covariates;
 - pathway databases;
 - skipped analyses and reasons.
+- count-source provenance for scRNA pseudobulk when a separate raw-count h5ad is
+  used.
 
 ## Confidence and Caveats
 
@@ -96,3 +108,6 @@ If CellTypist is unavailable and ARIA uses marker-panel fallback labels, the
 report must warn that labels are curation targets. Downstream trajectory,
 communication, and pseudobulk sections should describe results as cluster or
 marker-label results rather than definitive cell identities.
+
+If CellTypist falls back to the default immune model because no explicit model
+or tissue hint was supplied, reports and Methods must disclose that fallback.

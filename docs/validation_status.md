@@ -1,6 +1,6 @@
 # Validation Status
 
-Last updated: June 6, 2026.
+Last updated: June 12, 2026.
 
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
@@ -23,26 +23,30 @@ provenance-stamped, and missing or low-power results stay visible.
 | Processed h5ad pseudobulk | Validated | 40-donor hippocampus rerun; report review confirmed pseudobulk, ORA, LIANA, trajectory, figures, and TSV exports |
 | Integrated RNA biological discussion | Validated for RNA-only reports | Bulk RNA and scRNA synthesis blocks are generated from structured ARIA outputs, evidence-verified, claim-tiered, and rendered through the normal NarrativeAgent governance |
 
-Current RNA/reporting baseline: release tag `v4.5.4`, with post-`v4.5.4`
-hardening on `main` through the June 6, 2026 chromatin entry-path validation.
-The post-tag hardening closed the scRNA W-CLAIM verifier regressions, removed
-embedded biological fallback knowledge from runtime paths, required explicit
-CellTypist tissue hints, and added governed scRNA biological synthesis. scRNA
-pseudobulk DE defaults to per-cluster FDR for the primary significance call while
-still reporting global FDR for audit; significant-gene counts can differ from
-pre-`v4.5.4` reports by design.
+Current RNA/reporting baseline: release tag `v4.6`, with post-`v4.6` hardening
+on `main` through the June 12, 2026 scRNA audits and production E2E closure. The
+post-tag hardening keeps donor-level pseudobulk as the primary scRNA inferential
+layer, preserves raw QC counts for production pseudobulk, treats per-cluster
+markers as descriptive rankings, removes prose-dependent QC thresholds, filters
+marker candidates by `pct_in`, reuses compatible clustering marker rankings,
+requires a defensible DPT root before pseudotime is computed, discloses
+CellTypist fallback/low-confidence annotations, escalates destructive
+integration-overcorrection signatures, treats a raw 10X MEX directory as one
+sample, and renders failed QC as failed.
 
-## Recent Post-v4.5.4 Closures
+## Recent Hardening Closures
 
-These changes are newer than the `v4.5.4` tag and explain why the `main` branch
-is stricter than the released baseline:
+These changes explain why the `main` branch may be stricter than older reports:
 
 | Closure | Status | What changed |
 |---|---|---|
 | scRNA W-CLAIM verification | Done | Diagnostic/error scRNA blocks, age-bin labels, thousands separators, LIANA tool names, and word-boundary analysis-family matching are handled without rejecting valid report text or accepting unsupported scientific claims |
 | Anti-hardcode cleanup | Done | Runtime ligand-receptor fallback biology, MOFA cell-cycle mock biology, peak-to-gene mechanism labels from correlation sign, dataset/gene examples in production docstrings, and prose-derived CellTypist tissue hints were removed or gated |
 | scRNA biological synthesis | Done | `BiologicalSynthesisAgent` now emits RNA-only scRNA integrated discussion blocks from measured pseudobulk, ORA, abundance, LIANA, trajectory, and reliability summaries; it remains data-only and makes no RNA+ATAC claims |
-| Chromatin `.h5mu` entry path | Done at scaffold level | The planned HC11 paired RNA+ATAC MuData file is readable through `chromatin_qc.py`, which reports real ATAC matrix dimensions while leaving FRiP/TSS/pass-QC uncomputed |
+| Chromatin scATAC alpha lane | Done for alpha | The scATAC matrix path is dispatchable behind explicit acknowledgement: measured QC, TF-IDF/LSI clustering, per-cluster DA, replicate-gated pseudobulk DA, local motif enrichment when resources exist, and chromatin narrative blocks. The modality remains alpha, not publication-grade autonomy |
+| scRNA-lane production audit | Done | Closed B-PB1, B-DD1, B-QC1/B-QC2, A-MARK1, A-CMT1/A-CLUST1, and B-TRAJ1. Production pseudobulk uses raw QC counts, marker claims remain descriptive, QC is data-intrinsic, and DPT is skipped with `root_unresolved` when no defensible root exists |
+| scRNA annotation/integration audit | Done | Closed N-ANNO1/N-ANNO2/N-ANNO3, N-QC1, and N-INT1. CellTypist confidence is genuine, low-confidence cell-type labels cap pseudobulk block confidence, default immune model fallback is disclosed, count-MAD QC is log-space, and destructive integration overcorrection is blocking |
+| scRNA production E2E verification | Done | Real raw 10X pbmc3k runs verified the above report surfaces. Raw 10X MEX directories are collapsed to one sample, QC failures render as errors, and multi-donor pseudobulk verified `count_source=raw_counts` with the handoff |
 
 ## Reliability, Governance & Reproducibility
 
@@ -73,9 +77,19 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | Area | Status | Notes |
 |---|---|---|
 | Bulk RNA FASTQ preprocessing | Beta | Scripted path exists; dependency and real-data coverage should expand |
-| Trajectory: PAGA + DPT | Beta | Validated on hippocampus subset; exploratory, not causal |
+| Trajectory: PAGA + root-gated DPT | Beta | PAGA validated on hippocampus subset; DPT requires precomputed `iroot`, an explicit matching root label, or a generic progenitor/stem/precursor label. If no root is available, pseudotime is skipped with `root_unresolved`; trajectory remains exploratory, not causal |
 | Cell-cell communication: LIANA | Beta | Validated on GSE278576 annotated h5ad; `n_perms=1000` default for stable ranks |
 | GEO/SRA connector | Beta | GSE183948 path validated; multi-organism (spike-in) organism inference added; public metadata remains heterogeneous |
+
+## Alpha
+
+Alpha modalities can dispatch only behind explicit acknowledgement and remain
+review-required. They must surface missing resources, low replication, and
+skipped lanes rather than fabricating output.
+
+| Area | Status | Required before stable |
+|---|---|---|
+| scATAC-seq matrix workflow | Alpha + requires acknowledgement | Expert review of biological conclusions; broader fixtures and datasets; chromVAR per-cell motif activity remains out of scope; stable promotion requires independent review beyond the current HC11/synthetic/multi-sample validation evidence |
 
 ## Scaffolded / Roadmap
 
@@ -86,22 +100,21 @@ explicit `NotImplemented` rather than any fabricated result.
 
 | Area | Status | Required before stable |
 |---|---|---|
-| scATAC-seq | Scaffolded (next, v4.6) | `.h5mu` entry path validated on the planned HC11 paired RNA+ATAC input; still needs LSI, clustering, differential accessibility, motifs, report section, fixtures |
 | Bulk ATAC-seq | Scaffolded | Peak count matrix, DA, QC summaries, report section |
 | ChIP-seq / CUT&RUN / CUT&TAG | Scaffolded | Clear assay-specific QC and peak interpretation |
 | Hi-C / Micro-C | Scaffolded — dispatch OFF | Runs only under `ARIA_ALLOW_EXPERIMENTAL_HIC=1` and are stamped not-publication-grade; needs E2E validation + memory-safe fixtures |
 | WNN / MOFA+ / peak-to-gene | Scaffolded | Stable standalone RNA + ATAC paths first; currently an explicit NotImplemented blocker, no fabricated weights or clusters |
 
-Chromatin QC (`chromatin_qc.py`) already emits only measured metrics: TSS
-enrichment and FRiP return null until a reference annotation / called peaks exist,
-never a fabricated placeholder.
+Chromatin QC (`chromatin_qc.py`) emits only measured metrics. TSS enrichment and
+FRiP are real when their inputs/resources exist and otherwise remain null with a
+concrete skip reason, never a fabricated placeholder.
 
-The v4.6 `.h5mu` entry path has been exercised on the planned local validation
-input (`hc11_paired.h5mu`): ARIA reads ATAC modality `atac` and reports real
-matrix dimensions of 3,143 cells x 60,990 peaks. This is not a production
-scATAC validation. FRiP, TSS enrichment, complete QC, and pass/fail remain
-explicitly not computed until the chromatin stack, peak calling, and
-reference-backed TSS computation are implemented.
+The v4.6 scATAC lane has been exercised on the local HC11 validation input
+(`hc11_paired.h5mu`): ARIA reads ATAC modality `atac`, reports real dimensions
+of 3,143 cells x 60,990 peaks, runs TF-IDF/LSI clustering, performs honest
+single-sample DA where possible, and returns pseudobulk DA as skipped when
+replicates/condition metadata are absent. Synthetic and real multi-sample
+validation cover the pseudobulk DA execution path, but scATAC remains alpha.
 
 ## Report Release Gate
 
@@ -120,7 +133,8 @@ closeout and extended since):
   masquerading as measured biology;
 - `rna_de_per_cluster.py` is treated as optional on atlas-scale inputs. If it times
   out, the pipeline may still be scientifically valid when donor-level pseudobulk,
-  pathway, communication, and trajectory outputs complete.
+  pathway, communication, and trajectory outputs complete. DPT pseudotime may be
+  absent by design when no defensible root is available.
 
 Latest reviewed hippocampus rerun produced real output tables and figures; newer
 reports state that Leiden was skipped when input annotations are reused, and carry

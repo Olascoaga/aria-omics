@@ -29,11 +29,13 @@ decisions, and writes a report grounded in real output files.
   expert must still review the design, the fitted model, and the conclusions
   before publication.
 - **Validated / beta:** bulk RNA-seq FASTQ preprocessing, trajectory
-  summaries, LIANA cell-cell communication, processed `.h5ad` recovery, and
-  GEO/SRA connector paths.
-- **Scaffolded / roadmap:** scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN /
-  CUT&TAG, full Hi-C / Micro-C workflows, and multimodal WNN/MOFA+
-  integration.
+  summaries (PAGA plus DPT only when a defensible root is available), LIANA
+  cell-cell communication, processed `.h5ad` recovery, and GEO/SRA connector
+  paths.
+- **Alpha:** scATAC-seq matrix workflows, dispatch-gated behind explicit
+  acknowledgement.
+- **Scaffolded / roadmap:** bulk ATAC-seq, ChIP-seq, CUT&RUN / CUT&TAG, full
+  Hi-C / Micro-C workflows, and multimodal WNN/MOFA+ integration.
 
 **ARIA produces:**
 
@@ -83,7 +85,7 @@ Diagrams are stored as Mermaid files under [docs/diagrams](docs/diagrams/).
 
 ---
 
-## Current Status — May 2026
+## Current Status — June 2026
 
 ```
 INFRASTRUCTURE                     STATUS
@@ -117,10 +119,14 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_de_per_cluster.py            optional — may time out on large atlases
   rna_pseudobulk_de.py             done — between-condition DE via pyDESeq2
   rna_pathway_per_cluster.py       done — also used for per (group, comp) ORA
-  rna_trajectory.py (PAGA+DPT)     beta — validated on hippocampus subset
+  rna_trajectory.py (PAGA + root-gated DPT)
+                                      beta — validated on hippocampus subset
   rna_cellcomm.py (LIANA)          beta — validated on GSE278576
-ChromatinAgent                     scaffolded — dispatch-gated until v4.6
+ChromatinAgent                     alpha — scATAC dispatch requires explicit ack
   chromatin_qc.py                  done — measured-only QC (no fabricated TSS/FRiP)
+  chromatin_lsi_clustering.py      alpha — TF-IDF/LSI clustering on peak matrices
+  chromatin_diffacc.py             alpha — per-cluster DA + gated pseudobulk DA
+  chromatin_motifs.py              alpha — local motif enrichment when resources exist
   chromatin_peaks.py (MACS3)       scaffolded
 GenomeArchAgent                    scaffolded — dispatch OFF by default
   hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
@@ -136,11 +142,12 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current stable baseline is `v4.5.5`: bulk RNA + scRNA core paths are
-closed for practical use, publication-readiness provenance is embedded in
-reports, raw-ingestion planning/conversion is available for supported 10X
-inputs, and reports are composed from validated modality blocks for scRNA and
-bulk RNA.
+The current release baseline is `v4.6`: bulk RNA + scRNA core paths are closed
+for practical use, publication-readiness provenance is embedded in reports,
+raw-ingestion planning/conversion is available for supported 10X inputs,
+reports are composed from validated modality blocks for scRNA and bulk RNA, and
+the scATAC matrix workflow is available as an alpha path behind explicit
+acknowledgement.
 
 `v4.5.3` tagged the pre-ATAC integrity freeze: centralized version metadata,
 installer secret hygiene, registry-integrity checks, scaffold dispatch gating,
@@ -161,9 +168,9 @@ FDR calibration, LFC concordance, ranking concordance, and significant-call
 concordance reported in a versioned manifest and simple Fig. 1 SVG. External R
 comparators remain in the separate `aria-bench-env` lane.
 
-Since `v4.5.4`, ARIA has been in a focused reliability, governance, and
-reproducibility hardening pass on the validated RNA baseline before the next
-modality (scATAC) begins. Shipped so far:
+Since `v4.5.4`, ARIA has gone through a focused reliability, governance, and
+reproducibility hardening pass on the validated RNA baseline, followed by the
+`v4.6` scATAC alpha line and post-`v4.6` scRNA production fixes. Shipped so far:
 
 - **Deterministic, auditable narrative** — every LLM call runs at
   `temperature=0` with a fixed seed, and each report records which model/tier
@@ -190,6 +197,14 @@ modality (scATAC) begins. Shipped so far:
   the guards, the real pyDESeq2 numerical-recovery benchmark, and a Docker
   env-solve; an air-gapped mode (`ARIA_AIR_GAPPED=1`) keeps sensitive runs
   local-only and redacts failed-run archives.
+- **scRNA production-lane hardening** — production pseudobulk keeps raw
+  QC-filtered counts through an explicit `counts_data_path` handoff, per-cluster
+  marker discovery is reported as descriptive because it is cluster-defined and
+  double-dipped, QC thresholds are data-intrinsic and use log-space MAD bounds
+  for count metrics, CellTypist fallback models and low-confidence labels are
+  disclosed in reports, overcorrection signatures can block integration quality,
+  raw 10X MEX directories are treated as one sample, and failed QC blocks render
+  as failures rather than success.
 
 **End-to-end validated on bulk RNA-seq** — human H9 cells (3 conditions × 3 replicates):
 
@@ -226,7 +241,8 @@ modality (scATAC) begins. Shipped so far:
   after QC. ARIA reused the existing `obs['subclass']` annotations, skipped
   Leiden clustering, and treated donor-level pseudobulk DE as the primary
   inferential layer. The report exported UMAPs, pseudobulk DE tables, ORA
-  tables, LIANA interactions, and PAGA/DPT trajectory summaries. The legacy
+  tables, LIANA interactions, and trajectory summaries. PAGA can be present
+  without DPT when no defensible pseudotime root is available. The legacy
   cell-level `rna_de_per_cluster.py` stage may time out on atlas-scale inputs;
   this is non-blocking when pseudobulk outputs are available.
 
@@ -238,18 +254,21 @@ sorted by significance with top up/down genes, ORA dotplots for the top
 cell types across GO_BP / KEGG / Reactome, Methods section with exact
 thresholds and design formula, and the parameter-decisions log.
 
-**Trajectory analysis (PAGA + DPT)** (v4.3.6) — preprocessed h5ads can
+**Trajectory analysis (PAGA + root-gated DPT)** (v4.3.6) — preprocessed h5ads can
 be dispatched with `--trajectory-h5ad PATH --trajectory-groupby COL
---trajectory-root TYPE`. Validated on a 50k-cell OPC + Oligo + Astro
-subset from the hippocampus dataset: DPT pseudotime correctly orders
-OPC (0.216) → Oligo (0.239) → Astro (0.367) with OPC selected as root.
-PAGA reports `max_connectivity = 0.00231` — characteristic of mature /
-non-developmental tissue — and the HTML embeds both a normal and a
-log-scaled cluster graph so weak adult-tissue edges remain visible
-without the report making false developmental claims. RNA velocity is
-automatically skipped (the dataset lacks spliced / unspliced layers);
-re-quantification via velocyto or kb-python `nac` mode is documented
-in the Methods section as the path to enable it.
+--trajectory-root TYPE`. PAGA connectivity can run without a root; DPT
+pseudotime is computed only when ARIA has a defensible root (`iroot`, an
+explicit matching `--trajectory-root`, or a generic progenitor/stem/precursor
+label). When no root is available, ARIA reports `root_unresolved` instead of
+choosing low-complexity cells as a proxy. Validated on a 50k-cell OPC + Oligo +
+Astro subset from the hippocampus dataset: with OPC selected as root, DPT
+pseudotime orders OPC (0.216) → Oligo (0.239) → Astro (0.367). PAGA reports
+`max_connectivity = 0.00231` — characteristic of mature / non-developmental
+tissue — and the HTML embeds both a normal and a log-scaled cluster graph so
+weak adult-tissue edges remain visible without the report making false
+developmental claims. RNA velocity is automatically skipped (the dataset lacks
+spliced / unspliced layers); re-quantification via velocyto or kb-python `nac`
+mode is documented in the Methods section as the path to enable it.
 
 **Cell-cell communication (LIANA)** (v4.3.7) — dispatch with
 `--cellcomm-h5ad PATH --cellcomm-groupby cell_type_celltypist`.
@@ -336,7 +355,8 @@ ARIA
   SetupAgent              Environment/genome readiness check before dispatch
   BulkRNAAgent            DESeq2, all pairwise contrasts, ORA, GSEA
   scRNAAgent              QC, clustering, annotation, DE
-  ChromatinAgent          ATAC + ChIP + CUT&RUN + CUT&TAG  [scaffolded]
+  ChromatinAgent          scATAC matrix workflow [alpha, requires ack]
+                          bulk ATAC + ChIP + CUT&RUN + CUT&TAG [scaffolded]
   GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
   IntegrationAgent        Conditional multimodal synthesis  [scaffolded]
   NarrativeAgent          HTML report + methods section
@@ -501,8 +521,8 @@ v4.3.4   done     Pseudobulk DE between conditions (rna_pseudobulk_de) +
                   lognorm-counts auto-recovery for Seurat-derived h5ads
 v4.3.5   done     NarrativeAgent E2E for scRNA / pseudobulk — UMAP +
                   per-cell-type DE table + pathway dotplots in HTML report
-v4.3.6   done     Trajectory analysis (PAGA + DPT) E2E + adaptive
-                  connectivity reporting for mature populations
+v4.3.6   done     Trajectory analysis (PAGA + root-gated DPT) E2E +
+                  adaptive connectivity reporting for mature populations
 v4.3.7   done     Cell-cell communication (LIANA) E2E + autocrine
                   exclusion + adaptive rank-metric fallback
 v4.3.8   done     TUI/Orchestrator → NarrativeAgent shape normalisation:
@@ -526,17 +546,25 @@ v4.4     done     Publication readiness — composition correction, global
                   lockfiles, methodology.json, reproducible mode
 v4.5     done     Raw ingestion bridge — deterministic 10X matrix-triplet
                   ingestion and gated FASTQ/kb planning/execution
-v4.5.x   active   Reliability, governance & reproducibility hardening before
+v4.5.x   done     Reliability, governance & reproducibility hardening before
                   scATAC — deterministic narrative + devil's advocate,
                   planned-vs-run ledger, single-source provenance stamping,
                   design honesty (covariates / explicit contrasts / no
                   filename fallback / propagated thresholds), anti-fabrication
                   guard, complete IPC contracts, blocking 3-tier CI,
                   air-gapped mode
-v4.6     next     scATAC end-to-end — chromatin_agent + chromatin_qc +
-                  chromatin_peaks already scaffolded; need LSI clustering
-                  + differential accessibility + motifs + narrative module
-v4.7              ATAC bulk end-to-end — DA via DESeq2 on peak counts
+v4.6     current  scATAC release line out of pre-release. scATAC matrix
+                  workflow is alpha + requires explicit acknowledgement:
+                  measured QC, TF-IDF/LSI clustering, per-cluster DA,
+                  replicate-gated pseudobulk DA, local motif enrichment, and
+                  chromatin narrative blocks. Bulk ATAC/ChIP/CUT&RUN/CUT&TAG
+                  remain scaffolded.
+post-v4.6 done    scRNA production hardening: raw-count pseudobulk handoff,
+                  descriptive marker claims, data-intrinsic QC, root-gated
+                  DPT, CellTypist confidence/fallback disclosure, integration
+                  overcorrection escalation, 10X MEX directory grouping, and
+                  honest QC-failure report blocks.
+v4.7              Bulk ATAC end-to-end — DA via DESeq2 on peak counts
 v4.8              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
                   until both modalities work standalone
 v4.9              Interactive HTML report (sortable tables, plotly figures)
