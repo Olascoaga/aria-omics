@@ -1120,8 +1120,11 @@ these per-cluster labels for {exp_ctx.get("organism", "?")} data.
 Biological question: {intent.get("summary", exp_ctx.get("user_question", "?"))}
 Tissue hint: {tissue_hint}
 
-CellTypist per-cluster results (label = majority-voted, frequency = fraction
-of cluster carrying that label, alt_labels = runner-up labels):
+CellTypist per-cluster results. `frequency` = fraction of cells whose RAW
+per-cell call (before majority voting) matches the cluster label — genuine
+within-cluster agreement, NOT a collapsed 1.0. `mean_confidence` = the model's
+mean per-cell probability for the assigned label (null when unavailable).
+`alt_labels` = competing raw calls in the cluster:
 {celltypist_evidence}
 
 Top marker genes per cluster (for cross-validation):
@@ -1143,9 +1146,12 @@ Return JSON ONLY (no markdown fences):
 Rules:
 - Default to the CellTypist label. Only override if the markers contradict
   it AND you can justify the override with a specific marker mismatch.
-- HIGH confidence: CellTypist frequency >= 0.85 AND markers consistent.
-- MEDIUM: frequency 0.5-0.85 OR markers partially support.
-- LOW: frequency < 0.5 OR markers contradict — say so explicitly.
+- HIGH confidence: frequency >= 0.85 AND (mean_confidence is null or >= 0.7)
+  AND markers consistent.
+- MEDIUM: frequency 0.5-0.85, OR mean_confidence 0.5-0.7, OR markers partially
+  support.
+- LOW: frequency < 0.5, OR mean_confidence < 0.5, OR markers contradict — say so
+  explicitly. Do NOT report HIGH confidence on a low-probability annotation.
 - If you override, set agrees_with_celltypist=false and explain in rationale.
 - Do NOT invent labels not supported by either source.
 """

@@ -70,6 +70,93 @@ _MOUSE_MODELS = {
 }
 
 
+def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
+                                     conf_scores, *, top_k: int = 3) -> dict:
+    """N-ANNO2: build a GENUINE per-cluster annotation-confidence summary.
+
+    The confidence proxy must not be structurally 1.0. With majority voting
+    over the clustering partition, the assigned (collapsed) label is constant
+    within each cluster, so a `frequency` computed over assigned labels is
+    always 1.0. We instead measure:
+
+      label           majority of the assigned (final) labels in the cluster.
+      frequency       fraction of cells whose RAW per-cell CellTypist label
+                      matches that majority label — the genuine within-cluster
+                      agreement, NOT the collapsed majority.
+      mean/median_confidence  central tendency of the model's per-cell
+                      probability for the assigned label (None when no finite
+                      probabilities are available — never faked as 0 or 1).
+      alt_labels      runner-up RAW labels with their cluster fractions, so the
+                      disagreement that majority voting hides stays visible.
+
+    Pure / dependency-light (lists or arrays only) so it is unit-testable
+    without celltypist or a model download.
+    """
+    from collections import Counter, defaultdict
+    import math as _math
+
+    by_cluster_raw: dict = defaultdict(list)
+    by_cluster_assigned: dict = defaultdict(list)
+    by_cluster_conf: dict = defaultdict(list)
+    for cl, raw, assigned, conf in zip(
+        cluster_ids, raw_labels, assigned_labels, conf_scores
+    ):
+        cl = str(cl)
+        by_cluster_raw[cl].append(str(raw))
+        by_cluster_assigned[cl].append(str(assigned))
+        try:
+            c = float(conf)
+        except (TypeError, ValueError):
+            c = _math.nan
+        by_cluster_conf[cl].append(c)
+
+    per_cluster: dict = {}
+    for cl in sorted(by_cluster_raw, key=lambda x: (len(x), x)):
+        raws = by_cluster_raw[cl]
+        assigned = by_cluster_assigned[cl]
+        confs = by_cluster_conf[cl]
+        n = len(raws)
+        if n == 0:
+            continue
+
+        # Final label = majority of the assigned (post-MV) labels.
+        majority_label = Counter(assigned).most_common(1)[0][0]
+
+        # Genuine agreement = fraction of RAW per-cell calls matching it.
+        raw_counts = Counter(raws)
+        frequency = round(raw_counts.get(majority_label, 0) / n, 3)
+
+        finite = [c for c in confs if c == c and _math.isfinite(c)]
+        if finite:
+            finite_sorted = sorted(finite)
+            mid = len(finite_sorted) // 2
+            median_conf = (
+                finite_sorted[mid] if len(finite_sorted) % 2
+                else (finite_sorted[mid - 1] + finite_sorted[mid]) / 2.0
+            )
+            mean_confidence = round(sum(finite) / len(finite), 3)
+            median_confidence = round(float(median_conf), 3)
+        else:
+            mean_confidence = None
+            median_confidence = None
+
+        alt_labels = [
+            {"label": str(label), "frequency": round(c / n, 3)}
+            for label, c in raw_counts.most_common()
+            if str(label) != str(majority_label)
+        ][: max(0, top_k - 1)]
+
+        per_cluster[cl] = {
+            "label":             majority_label,
+            "frequency":         frequency,
+            "mean_confidence":   mean_confidence,
+            "median_confidence": median_confidence,
+            "n_cells":           n,
+            "alt_labels":        alt_labels,
+        }
+    return per_cluster
+
+
 def rna_celltypist(params: dict) -> dict:
     import os
     os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/aria_numba_cache")
@@ -180,30 +267,43 @@ def rna_celltypist(params: dict) -> dict:
         "majority_voting" if "majority_voting" in pred_df.columns
         else "predicted_labels"
     )
-    adata.obs["cell_type_celltypist"] = pred_df[prediction_label_col].astype(str).values
+    assigned_labels = pred_df[prediction_label_col].astype(str).values
+    adata.obs["cell_type_celltypist"] = assigned_labels
 
-    # Aggregate to per-cluster summary
+    # Raw per-cell predicted labels (PRE majority voting). When majority voting
+    # is on, `cell_type_celltypist` is collapsed to one label per cluster, so a
+    # frequency computed over it is structurally 1.0 (N-ANNO2). We keep the raw
+    # calls to measure genuine within-cluster agreement.
+    raw_labels = pred_df["predicted_labels"].astype(str).values
+
+    # Per-cell probability of the ASSIGNED label, from CellTypist's probability
+    # matrix (cells × labels). This is the model's own confidence, which was
+    # previously discarded entirely (N-ANNO1 surfaces it downstream).
+    conf_scores = [float("nan")] * int(adata.n_obs)
+    prob_df = getattr(pred, "probability_matrix", None)
+    if prob_df is not None:
+        try:
+            prob_aligned = prob_df.reindex(adata.obs_names)
+            col_index = {str(c): i for i, c in enumerate(prob_aligned.columns)}
+            prob_mat = prob_aligned.to_numpy()
+            conf_scores = [
+                float(prob_mat[i, col_index[lab]])
+                if lab in col_index and prob_mat[i, col_index[lab]] == prob_mat[i, col_index[lab]]
+                else float("nan")
+                for i, lab in enumerate(map(str, assigned_labels))
+            ]
+        except Exception:
+            conf_scores = [float("nan")] * int(adata.n_obs)
+
+    # Aggregate to a GENUINE per-cluster confidence summary (pure helper).
     per_cluster: dict = {}
     if cluster_col in adata.obs.columns:
-        for cl in sorted(map(str, adata.obs[cluster_col].unique())):
-            mask = adata.obs[cluster_col].astype(str) == cl
-            labels = adata.obs.loc[mask, "cell_type_celltypist"]
-            n = int(mask.sum())
-            if n == 0:
-                continue
-            value_counts = labels.value_counts()
-            top_label    = str(value_counts.index[0])
-            top_freq     = round(float(value_counts.iloc[0]) / n, 3)
-            alt = [
-                {"label": str(label), "frequency": round(float(c) / n, 3)}
-                for label, c in value_counts.iloc[1:4].items()
-            ]
-            per_cluster[cl] = {
-                "label":      top_label,
-                "frequency":  top_freq,
-                "n_cells":    n,
-                "alt_labels": alt,
-            }
+        per_cluster = _summarize_annotation_confidence(
+            adata.obs[cluster_col].astype(str).tolist(),
+            list(map(str, raw_labels)),
+            list(map(str, assigned_labels)),
+            conf_scores,
+        )
 
     # Persist outputs
     out_dir.mkdir(parents=True, exist_ok=True)
