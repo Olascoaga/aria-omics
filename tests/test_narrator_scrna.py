@@ -414,6 +414,43 @@ def test_pseudobulk_block_flags_low_confidence_annotation():
     assert b.confidence == "medium"
 
 
+def test_qc_block_reflects_failure_status():
+    """E2E-2 (production verification 2026-06-12): a FAILED QC must not render as
+    a successful, high-confidence block. The integrity bug hardcoded
+    success/high regardless of qc['status']."""
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = {
+        "qc": {
+            "status": "error",
+            "error_type": "PerSampleQCFailed",
+            "details": "Sample barcodes: UnsupportedFormat — Cannot load barcodes.tsv.",
+        }
+    }
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    qc = next((b for b in blocks if b.id == "scrna.qc"), None)
+    assert qc is not None
+    assert qc.status != "success"
+    assert qc.confidence == "insufficient"
+    assert "completed" not in qc.claim.lower()
+    assert qc.error and "UnsupportedFormat" in qc.error
+
+
+def test_qc_block_still_succeeds_when_qc_succeeds():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = {"qc": {"status": "success", "n_cells_before": 2700,
+                       "n_cells_after": 2142, "pct_removed": 20.7}}
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    qc = next(b for b in blocks if b.id == "scrna.qc")
+    assert qc.status == "success"
+    assert qc.confidence == "high"
+
+
 def test_data_quality_block_surfaces_immune_default_model_warning():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
 

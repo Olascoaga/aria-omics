@@ -169,6 +169,28 @@ class ScrnaNarrator:
         qc = findings.get("qc") or {}
         if not qc:
             return []
+        # E2E-2: a failed QC must not render as a successful, high-confidence
+        # block. Surface the error instead of hardcoding success/high.
+        if qc.get("status") not in (None, "success", "done"):
+            err = qc.get("details") or qc.get("error_type") or qc.get("reason")
+            return [NarrativeBlock(
+                id="scrna.qc",
+                modality="scRNA-seq",
+                analysis="qc",
+                block_type="error",
+                title="scRNA quality control",
+                status=qc.get("status", "error"),
+                confidence="insufficient",
+                claim="",
+                error=str(err or "QC did not complete"),
+                caveats=[Caveat(
+                    "Quality control did not complete; no downstream scRNA "
+                    "results are drawn from this run.",
+                    "warning",
+                )],
+                metrics={k: v for k, v in qc.items()
+                         if isinstance(v, (int, float, str))},
+            )]
         n_after = qc.get("n_cells_after")
         n_before = qc.get("n_cells_before")
         claim = (

@@ -44,6 +44,7 @@ SIGNATURES = {
     "scRNA": [
         r"barcodes\.tsv(\.gz)?$",
         r"features\.tsv(\.gz)?$",
+        r"genes\.tsv(\.gz)?$",        # 10x v2 MEX component
         r"matrix\.mtx(\.gz)?$",
         r".*\.h5$",
         r".*\.h5ad$",
@@ -149,6 +150,45 @@ _DEFAULT_GENOME = {
     "Danio rerio": "danRer11",
     "S. cerevisiae": "sacCer3",
 }
+
+
+_MEX_MATRIX_RE = re.compile(r"matrix\.mtx(\.gz)?$", re.IGNORECASE)
+_MEX_COMPONENT_RE = re.compile(
+    r"(matrix\.mtx|barcodes\.tsv|genes\.tsv|features\.tsv)(\.gz)?$", re.IGNORECASE)
+
+
+def _collapse_mex_directories(paths: list) -> list:
+    """E2E-1: collapse 10x MEX component files into a single sample directory.
+
+    A 10x MEX sample is a directory holding ``matrix.mtx`` plus ``barcodes.tsv``
+    and ``genes.tsv``/``features.tsv`` (optionally gzipped). Classifying each
+    component as its own scRNA "file" makes the per-sample QC path treat
+    ``barcodes.tsv`` as a sample and abort (PerSampleQCFailed). Here, any
+    directory that contains a ``matrix.mtx`` collapses its component files into a
+    single entry = that directory, which ``rna_qc`` loads as one MEX sample.
+    Non-MEX inputs (``.h5ad``/``.h5``) and loose files are left untouched. Order
+    is preserved and each MEX directory is emitted once.
+    """
+    from pathlib import Path
+
+    paths = [str(p) for p in (paths or [])]
+    mex_dirs = {
+        str(Path(p).parent) for p in paths
+        if _MEX_MATRIX_RE.search(Path(p).name)
+    }
+    if not mex_dirs:
+        return paths
+    out: list = []
+    seen: set = set()
+    for p in paths:
+        pp = Path(p)
+        if str(pp.parent) in mex_dirs and _MEX_COMPONENT_RE.search(pp.name):
+            if str(pp.parent) not in seen:
+                out.append(str(pp.parent))
+                seen.add(str(pp.parent))
+            continue
+        out.append(p)
+    return out
 
 
 def default_genome_for_organism(organism: str | None) -> str | None:
@@ -670,7 +710,11 @@ class DataAuditAgent(BaseAgent):
             
             if not matched:
                 classified.setdefault("unknown", []).append(str(f))
-        
+
+        # E2E-1: a 10x MEX triplet is ONE sample (its directory), not 3 files.
+        if classified.get("scRNA"):
+            classified["scRNA"] = _collapse_mex_directories(classified["scRNA"])
+
         return classified
 
     def _record_assay_detection(self, path: Path, detection) -> None:
