@@ -28,9 +28,13 @@ def test_simulate_atac_da_dataset_has_known_truth():
     assert ds.n_da == 40
     assert set(ds.da_peaks).isdisjoint(set(ds.null_peaks))
     assert len(ds.da_peaks) + len(ds.null_peaks) == 400
-    # cells x peaks, two conditions, non-negative integer accessibility counts
+    # cells x peaks, two conditions, non-negative integer accessibility counts.
+    # T10: the simulator must honor n_cells_per_condition EXACTLY even when it is
+    # not divisible by the donor count (80 / 3 donors -> 26+27+27 = 80 per cond).
     assert ds.adata.shape == (160, 400)
     assert set(ds.adata.obs["condition"].unique()) == {"COND_A", "COND_B"}
+    assert (ds.adata.obs["condition"] == "COND_A").sum() == 80
+    assert (ds.adata.obs["condition"] == "COND_B").sum() == 80
     assert ds.adata.X.min() >= 0
     # deterministic for a fixed seed
     ds2 = simulate_atac_da_dataset(n_peaks=400, n_da=40, n_cells_per_condition=80,

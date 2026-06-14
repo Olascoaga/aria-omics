@@ -57,6 +57,25 @@ def test_script_contract_rejects_version_mismatch(tmp_path):
     assert "expected 1.0" in result["details"]
 
 
+# T10 (tri-audit 2026-06-14): the script subprocess is launched with
+# subprocess.Popen + start_new_session (ADR-020/R5 process-group reaping), not
+# subprocess.run. These tests mocked `subprocess.run`, so the mock no longer
+# intercepted, the real `conda run` executed, and they failed with SubprocessFailed
+# — silently dropping coverage of the output-contract path. The fake now patches
+# Popen with the same cmd[-1] → output_file convention the manager uses.
+
+def _fake_popen_factory(payload: dict):
+    class _FakePopen:
+        def __init__(self, cmd, *args, **kwargs):
+            Path(cmd[-1]).write_text(json.dumps(payload))
+            self.returncode = 0
+
+        def communicate(self, timeout=None):
+            return ("", "")
+
+    return _FakePopen
+
+
 def test_environment_manager_validates_script_output_contract(
     tmp_path, monkeypatch
 ):
@@ -66,20 +85,10 @@ def test_environment_manager_validates_script_output_contract(
     data_path = tmp_path / "input.h5ad"
     data_path.write_text("placeholder")
 
-    class _Result:
-        returncode = 0
-        stderr = ""
-        stdout = ""
-
-    def fake_run(cmd, *args, **kwargs):
-        output_file = Path(cmd[-1])
-        output_file.write_text(json.dumps({
-            "status": "success",
-            "n_cells_before": 10,
-        }))
-        return _Result()
-
-    monkeypatch.setattr(em.subprocess, "run", fake_run)
+    monkeypatch.setattr(em.subprocess, "Popen", _fake_popen_factory({
+        "status": "success",
+        "n_cells_before": 10,
+    }))
 
     result = mgr.run_in_stack(
         stack="rna",
@@ -105,21 +114,11 @@ def test_environment_manager_attaches_contract_metadata_on_success(
     data_path = tmp_path / "input.h5ad"
     data_path.write_text("placeholder")
 
-    class _Result:
-        returncode = 0
-        stderr = ""
-        stdout = ""
-
-    def fake_run(cmd, *args, **kwargs):
-        output_file = Path(cmd[-1])
-        output_file.write_text(json.dumps({
-            "status": "success",
-            "n_cells_before": 10,
-            "n_cells_after": 9,
-        }))
-        return _Result()
-
-    monkeypatch.setattr(em.subprocess, "run", fake_run)
+    monkeypatch.setattr(em.subprocess, "Popen", _fake_popen_factory({
+        "status": "success",
+        "n_cells_before": 10,
+        "n_cells_after": 9,
+    }))
 
     result = mgr.run_in_stack(
         stack="rna",

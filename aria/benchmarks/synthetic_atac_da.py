@@ -87,7 +87,15 @@ def simulate_atac_da_dataset(
     log2fc[da_idx] = signs * mags
     cond_b_fc = np.power(2.0, log2fc)
 
-    cells_per_rep = max(1, n_cells_per_condition // n_replicates_per_condition)
+    # Distribute cells across donors so each condition has EXACTLY
+    # n_cells_per_condition cells even when it is not divisible by the donor
+    # count (T10, tri-audit 2026-06-14: the old `n // n_replicates` floor silently
+    # dropped the remainder — e.g. 80 // 3 = 26 → 78 cells/condition — so the
+    # matrix did not match the recorded n_cells_per_condition). The first
+    # `remainder` donors get one extra cell; deterministic for a fixed seed.
+    base_per_rep, remainder = divmod(
+        max(n_cells_per_condition, 0), max(n_replicates_per_condition, 1)
+    )
     rows, conds, reps, cell_names = [], [], [], []
     for cond in ("COND_A", "COND_B"):
         cond_fc = cond_b_fc if cond == "COND_B" else np.ones(n_peaks)
@@ -96,7 +104,8 @@ def simulate_atac_da_dataset(
             # Donor-level random effect on every peak rate (biological variation).
             donor_effect = np.exp(rng.normal(0.0, donor_sigma, size=n_peaks))
             rate_vec = base * cond_fc * donor_effect
-            for c in range(cells_per_rep):
+            n_cells_this_donor = base_per_rep + (1 if d < remainder else 0)
+            for c in range(n_cells_this_donor):
                 depth = float(np.exp(rng.normal(0.0, 0.25)))
                 rows.append(rng.poisson(rate_vec * depth).astype(np.int64))
                 conds.append(cond)

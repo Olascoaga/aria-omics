@@ -88,5 +88,13 @@ def test_a1_external_comparator_runner_scores_mocked_r_output(tmp_path, monkeypa
 
     assert result["status"] == "success"
     assert set(result["methods"]) == {"deseq2", "edgeR_QLF", "limma_voom"}
-    assert Path(result["artifacts"]["manifest_json"]).exists()
+    # T10 (tri-audit 2026-06-14): the A1 relativizer keeps machine-absolute paths
+    # out of the public manifest, so artifacts["manifest_json"] is RELATIVE (a
+    # basename when output_dir is outside the repo, as a tmp_path is). The earlier
+    # `Path(manifest_json).exists()` wrongly assumed it resolved from the CWD.
+    # Verify the public path is non-absolute and the file exists where it was
+    # actually written (under output_dir). This is the A1 generator E2E exercise.
+    manifest_json = result["artifacts"]["manifest_json"]
+    assert not manifest_json.startswith("/")
+    assert (tmp_path / Path(manifest_json).name).exists()
     assert result["methods"]["deseq2"]["scores"]["significant_call_concordance"]["n_called"] == 0

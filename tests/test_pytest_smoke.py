@@ -476,7 +476,13 @@ def test_llm_provider_forces_deterministic_generation(monkeypatch, tmp_path):
 
     monkeypatch.setattr(provider_mod, "completion", fake_completion)
     monkeypatch.setattr(provider_mod, "record_llm_usage", usage_events.append)
-    monkeypatch.setattr(provider_mod.litellm, "completion_cost", lambda **_kw: 0.02)
+    # T10 (tri-audit 2026-06-14): a sibling test installs a bare `litellm` stub via
+    # sys.modules.setdefault before litellm is imported, so `provider_mod.litellm`
+    # can be a fake module without `completion_cost`. `completion_cost` is non-load-
+    # bearing here (production wraps it in try/except → cost 0.0, and this test does
+    # not assert cost), so set it with raising=False to stay order-independent.
+    monkeypatch.setattr(
+        provider_mod.litellm, "completion_cost", lambda **_kw: 0.02, raising=False)
     monkeypatch.setenv("ARIA_LLM_CACHE", "0")
 
     llm = LLMProvider(

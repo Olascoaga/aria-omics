@@ -42,7 +42,21 @@ def test_hic_experimental_flag_unblocks_but_marks_experimental(monkeypatch):
 
 
 def test_other_scaffolds_ignore_the_hic_flag(monkeypatch):
-    """The Hi-C opt-in must not unblock unrelated scaffold modalities."""
+    """The Hi-C opt-in must not unblock unrelated scaffold modalities.
+
+    T10 (tri-audit 2026-06-14): scATAC is no longer a scaffold (it is alpha +
+    dispatch-on-ack since ADR-033), so this regression must use a still-scaffolded
+    modality. `bulk_ATAC`/`ChIP` are scaffold + dispatch_enabled=False and have no
+    experimental opt-in, so the Hi-C flag must leave them blocked.
+    """
     monkeypatch.setenv("ARIA_ALLOW_EXPERIMENTAL_HIC", "1")
-    blocked = OrchestratorAgent._blocked_modalities({"scATAC": ["a.h5mu"]})
-    assert "scATAC" in blocked
+    blocked = OrchestratorAgent._blocked_modalities(
+        {"bulk_ATAC": ["a.bed"], "ChIP": ["b.bam"]}
+    )
+    assert "bulk_ATAC" in blocked
+    assert "ChIP" in blocked
+    # The Hi-C opt-in only ever affects Hi-C.
+    experimental = OrchestratorAgent._experimental_modalities(
+        {"bulk_ATAC": ["a.bed"], "ChIP": ["b.bam"]}
+    )
+    assert experimental == {}
