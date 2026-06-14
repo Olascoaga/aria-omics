@@ -142,6 +142,7 @@ class NarrativeAgent(ReportBuilderMixin, BaseAgent):
         # zero embedded PNGs).
         report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
         self._generate_scrna_figures(agent_results, report_dir)
+        self._generate_chromatin_figures(agent_results, report_dir)
 
         self.publish_status(experiment_id,
                             "Writing executive summary...", 0.2)

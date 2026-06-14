@@ -374,7 +374,20 @@ class ChromatinNarrator:
 
     def figures(self, agent_name: str, agent_result: dict,
                 report_dir: Path | None = None) -> list[dict]:
-        return []
+        # W0.1 (scATAC P0): surface figures rendered by
+        # `_narrative_chromatin.generate_figures` into findings["figures"]
+        # ({key: png_path}). Empty until the figure pipeline runs (honest).
+        findings = unwrap_chromatin_findings(agent_result)
+        figs = findings.get("figures") or {}
+        out = []
+        for key, value in figs.items():
+            if isinstance(value, str):
+                out.append({
+                    "id": key,
+                    "path": value,
+                    "caption": str(key).replace("_", " "),
+                })
+        return out
 
     def tables(self, agent_name: str, agent_result: dict,
                report_dir: Path | None = None) -> list[dict]:

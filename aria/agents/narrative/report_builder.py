@@ -125,6 +125,44 @@ class ReportBuilderMixin:
         except Exception as e:
             log.warning(f"scRNA figure generation failed: {e}", exc_info=True)
 
+    def _generate_chromatin_figures(self, agent_results: dict,
+                                    report_dir: Path) -> None:
+        """W0.1 (scATAC P0): render scATAC figures in the chromatin stack and
+        attach their paths so ``ChromatinNarrator.figures()`` surfaces them.
+
+        Mirrors ``_generate_scrna_figures``. Mutates the LIVE per-modality findings
+        dict (``_narrative_chromatin.live_findings``) so the narrator sees the
+        figures on its re-unwrap. No-op when there is no chromatin run, no
+        clustered ``.h5ad``, or the env manager is unavailable (honest absence).
+        """
+        ch = (agent_results or {}).get("chromatin_agent") or {}
+        try:
+            from aria.agents import _narrative_chromatin
+            from aria.agents.narrative.narrators.chromatin import (
+                unwrap_chromatin_findings,
+            )
+            from aria.utils.environment_manager import env_manager
+        except Exception as e:
+            log.warning(f"Cannot import chromatin figure helpers: {e}")
+            return
+        view = unwrap_chromatin_findings(ch)
+        if not view:
+            return
+        lsi = view.get("lsi") or view.get("lsi_clustering") or {}
+        h5ad_path = lsi.get("output_path")
+        live = _narrative_chromatin.live_findings(ch)
+        if live is None:
+            return
+        try:
+            _narrative_chromatin.generate_figures(
+                live,
+                h5ad_path,
+                Path(report_dir) / "figures",
+                env_manager=env_manager,
+            )
+        except Exception as e:
+            log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
+
     def _render_html_report(self, experiment_id: str,
                              exp_ctx: dict,
                              intent: dict,
