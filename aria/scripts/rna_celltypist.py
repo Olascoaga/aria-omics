@@ -137,6 +137,46 @@ def _celltypist_model_cached(model_name: str) -> bool:
     return False
 
 
+def _extract_assigned_confidences(prob_df, obs_names, assigned_labels):
+    """T7: per-cell probability of each assigned label + a degradation flag.
+
+    Returns ``(conf_scores, confidence_available, confidence_extraction_failed)``.
+
+      confidence_available          ``prob_df`` was produced at all (the model
+                                    emitted a probability matrix).
+      confidence_extraction_failed  ``prob_df`` was produced but yielded ZERO
+                                    finite per-cell scores — an exception, or
+                                    label columns that do not align with the
+                                    assigned labels. This is a SILENT degradation
+                                    that previously collapsed to the same all-NaN
+                                    result as "no probabilities available", so
+                                    downstream treated it as full confidence and
+                                    the N-ANNO1 caveat/cap never fired.
+
+    Pure / dependency-light (pandas DataFrame in, lists out) so the misaligned-
+    columns case is unit-testable without celltypist or a model download.
+    """
+    n = len(assigned_labels)
+    conf_scores = [float("nan")] * n
+    if prob_df is None:
+        return conf_scores, False, False
+    try:
+        prob_aligned = prob_df.reindex(obs_names)
+        col_index = {str(c): i for i, c in enumerate(prob_aligned.columns)}
+        prob_mat = prob_aligned.to_numpy()
+        conf_scores = [
+            float(prob_mat[i, col_index[lab]])
+            if lab in col_index and prob_mat[i, col_index[lab]] == prob_mat[i, col_index[lab]]
+            else float("nan")
+            for i, lab in enumerate(map(str, assigned_labels))
+        ]
+    except Exception:
+        conf_scores = [float("nan")] * n
+    # Degradation = probabilities WERE produced but no finite score survived.
+    extraction_failed = n > 0 and not any(c == c for c in conf_scores)
+    return conf_scores, True, extraction_failed
+
+
 def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
                                      conf_scores, *, top_k: int = 3) -> dict:
     """N-ANNO2: build a GENUINE per-cluster annotation-confidence summary.
@@ -378,21 +418,16 @@ def rna_celltypist(params: dict) -> dict:
     # Per-cell probability of the ASSIGNED label, from CellTypist's probability
     # matrix (cells × labels). This is the model's own confidence, which was
     # previously discarded entirely (N-ANNO1 surfaces it downstream).
-    conf_scores = [float("nan")] * int(adata.n_obs)
-    prob_df = getattr(pred, "probability_matrix", None)
-    if prob_df is not None:
-        try:
-            prob_aligned = prob_df.reindex(adata.obs_names)
-            col_index = {str(c): i for i, c in enumerate(prob_aligned.columns)}
-            prob_mat = prob_aligned.to_numpy()
-            conf_scores = [
-                float(prob_mat[i, col_index[lab]])
-                if lab in col_index and prob_mat[i, col_index[lab]] == prob_mat[i, col_index[lab]]
-                else float("nan")
-                for i, lab in enumerate(map(str, assigned_labels))
-            ]
-        except Exception:
-            conf_scores = [float("nan")] * int(adata.n_obs)
+    # T7: distinguish "no probabilities available" from "probabilities existed
+    # but extraction degraded" (exception / misaligned label columns). Both used
+    # to collapse to silent all-NaN, hiding the degradation from N-ANNO1.
+    conf_scores, confidence_available, confidence_extraction_failed = (
+        _extract_assigned_confidences(
+            getattr(pred, "probability_matrix", None),
+            adata.obs_names,
+            list(map(str, assigned_labels)),
+        )
+    )
 
     # Aggregate to a GENUINE per-cluster confidence summary (pure helper).
     per_cluster: dict = {}
@@ -422,6 +457,8 @@ def rna_celltypist(params: dict) -> dict:
         "n_cells":          int(adata.n_obs),
         "n_unique_labels":  int(adata.obs["cell_type_celltypist"].nunique()),
         "per_cluster":      per_cluster,
+        "confidence_available":         confidence_available,
+        "confidence_extraction_failed": confidence_extraction_failed,
         "predictions_path": pred_csv,
         "output_path":      annotated_path,
     }

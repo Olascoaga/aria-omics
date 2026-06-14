@@ -442,6 +442,69 @@ def test_pseudobulk_block_flags_low_confidence_annotation():
     assert b.confidence == "medium"
 
 
+# ── T7 (tri-auditoría 2026-06-14): when CellTypist produced probabilities but the
+# confidence extraction failed (e.g. misaligned label columns), per_cluster carries
+# mean_confidence=None for every cluster. Without a degradation flag, downstream
+# treats that as full-confidence (uncertain=False) and the N-ANNO1 caveat/cap never
+# fire. The narrator must surface the degradation distinctly — a visible caveat and
+# a confidence cap — WITHOUT fabricating label uncertainty.
+
+def _findings_with_confidence_extraction_failed():
+    findings = _synthetic_scrna_findings()
+    findings["cell_types"] = {
+        "celltypist": {
+            "ran": True,
+            "confidence_available": True,
+            "confidence_extraction_failed": True,
+            "per_cluster": {
+                "0": {"label": "GroupA", "mean_confidence": None,
+                      "frequency": 0.55, "n_cells": 120, "alt_labels": []},
+                "1": {"label": "GroupB", "mean_confidence": None,
+                      "frequency": 0.60, "n_cells": 90, "alt_labels": []},
+            },
+        },
+    }
+    return findings
+
+
+def test_pseudobulk_block_flags_confidence_extraction_failure():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _findings_with_confidence_extraction_failed()
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+
+    a = next(b for b in blocks
+             if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    a_caveats = " ".join(c.text for c in a.caveats).lower()
+    # The degradation must be visible and named as an extraction/verification
+    # failure, not as a low-confidence label (which would fabricate uncertainty).
+    assert "confidence" in a_caveats
+    assert "could not" in a_caveats or "failed" in a_caveats
+    # Trust is capped because the annotation confidence could not be verified...
+    assert a.confidence == "low"
+    # ...but the label itself is NOT marked uncertain (never faked).
+    assert a.metrics["annotation_uncertain"] is False
+    assert a.metrics["confidence_extraction_failed"] is True
+    # p-values untouched.
+    assert a.metrics["n_significant"] == 180
+
+
+def test_data_quality_block_surfaces_confidence_extraction_failure():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _findings_with_confidence_extraction_failed()
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    dq = next((b for b in blocks if b.id == "scrna.data_quality"), None)
+    assert dq is not None
+    texts = " ".join(c.text for c in dq.caveats).lower()
+    assert "confidence" in texts
+    assert "could not" in texts or "failed" in texts
+
+
 def test_qc_block_reflects_failure_status():
     """E2E-2 (production verification 2026-06-12): a FAILED QC must not render as
     a successful, high-confidence block. The integrity bug hardcoded

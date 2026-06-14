@@ -14,6 +14,7 @@ import types
 import pytest
 
 from aria.scripts.rna_celltypist import (
+    _extract_assigned_confidences,
     _resolve_celltypist_model,
     rna_celltypist,
     _summarize_annotation_confidence,
@@ -64,6 +65,64 @@ def test_missing_probabilities_degrade_to_none_confidence():
     info = _summarize_annotation_confidence(cluster_ids, raw, assigned, conf)["0"]
     assert info["frequency"] == pytest.approx(0.75)
     assert info["mean_confidence"] is None   # not faked as 0 or 1
+
+
+# ── T7 (tri-auditoría 2026-06-14): a failure to extract per-cell confidence from
+# CellTypist's probability_matrix must be reported as a DEGRADATION, distinct from
+# "the model produced no probabilities". A silent all-NaN result lets downstream
+# treat an extraction failure as full-confidence (uncertain=False), so the
+# N-ANNO1 caveat/cap never fire.
+
+def test_confidence_extraction_succeeds_with_aligned_columns():
+    pd = pytest.importorskip("pandas")
+    obs_names = ["c0", "c1", "c2"]
+    assigned = ["T cell", "B cell", "T cell"]
+    prob_df = pd.DataFrame(
+        {"T cell": [0.9, 0.1, 0.8], "B cell": [0.1, 0.95, 0.2]},
+        index=obs_names,
+    )
+
+    conf, available, failed = _extract_assigned_confidences(
+        prob_df, obs_names, assigned)
+
+    assert available is True
+    assert failed is False
+    assert conf[0] == pytest.approx(0.9)
+    assert conf[1] == pytest.approx(0.95)
+    assert conf[2] == pytest.approx(0.8)
+
+
+def test_no_probability_matrix_is_available_false_not_failed():
+    obs_names = ["c0", "c1"]
+    assigned = ["T cell", "B cell"]
+
+    conf, available, failed = _extract_assigned_confidences(
+        None, obs_names, assigned)
+
+    assert available is False     # the model produced no probabilities
+    assert failed is False        # NOT a degradation — legitimately absent
+    assert all(c != c for c in conf)   # all NaN, never faked
+
+
+def test_misaligned_probability_columns_flag_extraction_failure():
+    # The probability matrix EXISTS (the model produced it) but its label
+    # columns do not match the assigned labels, so every per-cell lookup misses
+    # and the result is silently all-NaN. This must be reported as a degradation,
+    # not as "no probabilities available".
+    pd = pytest.importorskip("pandas")
+    obs_names = ["c0", "c1", "c2"]
+    assigned = ["T cell", "B cell", "T cell"]
+    prob_df = pd.DataFrame(
+        {"Tcell": [0.9, 0.1, 0.8], "Bcell": [0.1, 0.95, 0.2]},  # no spaces
+        index=obs_names,
+    )
+
+    conf, available, failed = _extract_assigned_confidences(
+        prob_df, obs_names, assigned)
+
+    assert available is True       # probabilities WERE produced
+    assert failed is True          # but extraction yielded nothing usable
+    assert all(c != c for c in conf)
 
 
 # ── N-ANNO3 (scRNA annotation audit 2026-06-12): annotating any tissue with the

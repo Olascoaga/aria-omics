@@ -257,6 +257,19 @@ class ScrnaNarrator:
         model_warning = celltypist.get("model_warning")
         if model_warning:
             caveats.append(Caveat(f"Annotation model: {model_warning}", "warning"))
+        # T7: CellTypist produced a probability matrix but the per-cell confidence
+        # extraction degraded (exception / misaligned label columns), so no model
+        # confidence could be verified. Surface it distinctly from "no
+        # probabilities available" — without fabricating label uncertainty.
+        if celltypist.get("confidence_extraction_failed"):
+            caveats.append(Caveat(
+                "Annotation confidence could not be verified: CellTypist produced "
+                "per-cell probabilities, but extracting the confidence for the "
+                "assigned labels failed (e.g. label columns did not align). The "
+                "cell-type labels are still reported, but their model confidence "
+                "is unknown for this run.",
+                "warning",
+            ))
         if not caveats:
             return []
         return [NarrativeBlock(
@@ -417,11 +430,13 @@ class ScrnaNarrator:
         integration_block = _blocking_integration_caveat(findings)
         # N-ANNO1: map the DE groupby label -> annotation confidence so a block
         # on an uncertainly-annotated cell type carries a visible caveat.
-        per_cluster = (
-            ((findings.get("cell_types") or {}).get("celltypist") or {})
-            .get("per_cluster") or {}
-        )
+        celltypist = (findings.get("cell_types") or {}).get("celltypist") or {}
+        per_cluster = celltypist.get("per_cluster") or {}
         label_conf = _annotation_confidence_by_label(per_cluster)
+        # T7: probabilities existed but their extraction degraded — confidence
+        # could not be verified for any group annotated by this CellTypist run.
+        confidence_extraction_failed = bool(
+            celltypist.get("confidence_extraction_failed"))
         blocks = []
         for group, info in (pb.get("per_group", {}) or {}).items():
             for comp_key, comp in (info.get("per_comparison", {}) or {}).items():
@@ -515,6 +530,22 @@ class ScrnaNarrator:
                 annotation_uncertain = bool(
                     annotation_conf and annotation_conf.get("uncertain")
                 )
+                # T7: scope the extraction-failure disclosure to groups this
+                # CellTypist run actually annotated. It caps trust (confidence
+                # is unverifiable) but does NOT set annotation_uncertain — the
+                # label is not known to be uncertain, only unverified.
+                annotation_conf_degraded = bool(
+                    annotation_conf is not None and confidence_extraction_failed
+                )
+                if annotation_conf_degraded:
+                    caveats.append(Caveat(
+                        f"The model confidence for the '{group}' cell-type "
+                        f"annotation could not be verified (CellTypist produced "
+                        f"probabilities, but extracting them for the assigned "
+                        f"labels failed); the DE result is unchanged, but the "
+                        f"annotation backing this group is unverified.",
+                        "warning",
+                    ))
                 if annotation_uncertain:
                     mc = annotation_conf.get("mean_confidence")
                     caveats.append(Caveat(
@@ -538,6 +569,7 @@ class ScrnaNarrator:
                         "low" if (
                             lognorm_recovered
                             or annotation_uncertain
+                            or annotation_conf_degraded
                             or integration_block
                         )
                         else "medium"
@@ -569,6 +601,7 @@ class ScrnaNarrator:
                             annotation_conf.get("mean_confidence")
                             if annotation_conf else None
                         ),
+                        "confidence_extraction_failed": annotation_conf_degraded,
                     },
                 ))
         return blocks
