@@ -1513,6 +1513,129 @@ def test_scrna_pseudobulk_skips_when_annotation_unrecoverable(tmp_path):
     assert "annotation" in result["reason"]
 
 
+def test_scrna_pseudobulk_refuses_llm_only_annotation_groupby(tmp_path):
+    import types
+
+    sys.modules.setdefault(
+        "litellm",
+        types.SimpleNamespace(completion=lambda *args, **kwargs: None),
+    )
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "clustered.h5ad"
+    h5ad_path.write_text("placeholder")
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            raise AssertionError(
+                "LLM-only labels must not reach inferential pseudobulk dispatch"
+            )
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent._workspace = lambda *args, **kwargs: tmp_path
+    agent._log_decision = lambda *args, **kwargs: None
+    agent.publish_finding = lambda *args, **kwargs: None
+    agent.publish_escalation = lambda *args, **kwargs: None
+
+    annotation = {
+        "annotation_source": "llm_marker_only",
+        "annotation_for_report": True,
+        "trusted_groupby_for_inference": None,
+        "label_col": "cell_type_marker",
+        "celltypist": {"ran": False, "status": "error",
+                       "error_type": "CellTypistMissing"},
+        "cell_types": {
+            "0": {"cell_type": "TypeA", "confidence": "medium"},
+            "1": {"cell_type": "TypeA", "confidence": "medium"},
+        },
+    }
+
+    result = agent._run_pseudobulk(
+        "exp",
+        str(h5ad_path),
+        {
+            "organism": "Homo sapiens",
+            "design": {
+                "groups": {"young": ["y1", "y2", "y3"],
+                           "old": ["o1", "o2", "o3"]},
+                "main_factor": "age_group",
+                "pseudobulk": {
+                    "from_obs": True,
+                    "condition_col": "age_group",
+                    "replicate_col": "donor_id",
+                    "groupby_col": None,
+                    "covariates": [],
+                    "comparisons": [["old", "young"]],
+                },
+            },
+        },
+        {"summary": "young vs old"},
+        annotation,
+    )
+
+    assert result["status"] == "skipped"
+    assert result["reason"] == "llm_only_annotation_not_trusted_for_inference"
+
+
+def test_scrna_llm_only_annotation_is_report_only_not_obs_groupby(tmp_path):
+    import types
+
+    sys.modules.setdefault(
+        "litellm",
+        types.SimpleNamespace(completion=lambda *args, **kwargs: None),
+    )
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "clustered.h5ad"
+    h5ad_path.write_text("placeholder")
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            script = kwargs["script_path"]
+            if script.endswith("rna_celltypist.py"):
+                return {"status": "error", "error_type": "CellTypistMissing"}
+            if script.endswith("rna_apply_cluster_labels.py"):
+                raise AssertionError(
+                    "LLM-only labels must not be materialized as obs groupby"
+                )
+            raise AssertionError(f"unexpected script: {script}")
+
+    class FakeLLM:
+        def complete(self, **kwargs):
+            return json.dumps({
+                "0": {
+                    "cell_type": "TypeA",
+                    "confidence": "medium",
+                    "key_markers": ["GENE_A"],
+                    "rationale": "Marker-only hypothesis.",
+                }
+            })
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent.llm = FakeLLM()
+    agent._workspace = lambda *args, **kwargs: tmp_path
+    agent.publish_finding = lambda *args, **kwargs: None
+
+    annotation = agent._annotate_cell_types(
+        "exp",
+        str(h5ad_path),
+        top_markers={"0": ["GENE_A"]},
+        exp_ctx={"organism": "Homo sapiens"},
+        intent={"summary": "annotate clusters"},
+    )
+
+    assert annotation["annotation_source"] == "llm_marker_only"
+    assert annotation["annotation_for_report"]
+    assert annotation["trusted_groupby_for_inference"] is None
+    assert annotation["label_col"] is None
+    assert annotation["annotated_h5ad"] is None
+    assert annotation["cell_types"]["0"]["cell_type"] == "TypeA"
+
+
 def test_clustering_skip_leiden_when_cluster_col_provided():
     from aria.scripts.rna_clustering import _cache_params
 

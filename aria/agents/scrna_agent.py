@@ -1023,6 +1023,8 @@ class scRNAAgent(BaseAgent):
             "celltypist":        {"ran": False, "reason": "predefined_obs"},
             "tissue_hint":       None,
             "label_col":         cell_type_col,
+            "annotation_for_report": cell_type_col,
+            "trusted_groupby_for_inference": cell_type_col,
             "annotated_h5ad":    clustered_h5ad,
             "annotation_source": "input_obs",
         }
@@ -1099,6 +1101,8 @@ class scRNAAgent(BaseAgent):
                 "celltypist":     celltypist_result,
                 "tissue_hint":    tissue_hint,
                 "label_col":      None,
+                "annotation_for_report": None,
+                "trusted_groupby_for_inference": None,
                 "annotated_h5ad": None,
                 "annotation_source": "unrecoverable_matrix",
                 "warnings":       [
@@ -1242,9 +1246,17 @@ Rules:
                 agree_count == len(cell_types)
             ) else Confidence.MEDIUM,
         )
+        celltypist_success = celltypist_result.get("status") == "success"
         annotated_h5ad = celltypist_result.get("output_path")
         label_col = celltypist_result.get("label_col")
-        if not annotated_h5ad and cell_types:
+        trusted_groupby = label_col if celltypist_success else None
+        annotation_source = "celltypist" if celltypist_success else "llm_marker_only"
+        if (not celltypist_success and cell_types
+                and all(isinstance(v, dict)
+                        and v.get("annotation_source") == "unresolved_marker_fallback"
+                        for v in cell_types.values())):
+            annotation_source = "unresolved_marker_fallback"
+        if not annotated_h5ad and cell_types and celltypist_success:
             applied = self.env.run_in_stack(
                 stack="rna",
                 script_path="aria/scripts/rna_apply_cluster_labels.py",
@@ -1259,6 +1271,7 @@ Rules:
             if applied.get("status") == "success":
                 annotated_h5ad = applied.get("output_path")
                 label_col = applied.get("label_col", "cell_type_marker")
+                trusted_groupby = label_col
 
         return {
             "cell_types":     cell_types,
@@ -1267,7 +1280,10 @@ Rules:
             "celltypist":     celltypist_result,
             "tissue_hint":    tissue_hint,
             "label_col":      label_col,
+            "annotation_for_report": cell_types,
+            "trusted_groupby_for_inference": trusted_groupby,
             "annotated_h5ad": annotated_h5ad,
+            "annotation_source": annotation_source,
         }
 
     @staticmethod
@@ -1581,6 +1597,36 @@ Rules:
         )
         return result
 
+    @staticmethod
+    def _trusted_annotation_groupby(annotation: dict | None) -> str | None:
+        annotation = annotation or {}
+        trusted = annotation.get("trusted_groupby_for_inference")
+        if trusted:
+            return str(trusted)
+        if annotation.get("annotation_source") == "input_obs":
+            label_col = annotation.get("label_col")
+            return str(label_col) if label_col else None
+        celltypist = annotation.get("celltypist") or {}
+        if celltypist.get("status") == "success":
+            label_col = annotation.get("label_col") or celltypist.get("label_col")
+            return str(label_col) if label_col else "cell_type_celltypist"
+        return None
+
+    @staticmethod
+    def _annotation_is_report_only(annotation: dict | None) -> bool:
+        annotation = annotation or {}
+        if annotation.get("trusted_groupby_for_inference"):
+            return False
+        if annotation.get("annotation_source") in {
+            "llm_marker_only",
+            "unresolved_marker_fallback",
+        }:
+            return True
+        celltypist = annotation.get("celltypist") or {}
+        return bool(annotation.get("label_col")
+                    and celltypist.get("status") != "success"
+                    and annotation.get("annotation_for_report"))
+
     def _run_pseudobulk(self, experiment_id: str,
                          current_h5ad: str,
                          exp_ctx: dict, intent: dict,
@@ -1661,18 +1707,36 @@ Rules:
             pb_input = str(injected)
             replicate_col = inj.get("replicate_col") or "sample_id"
 
-        # 2. Choose groupby column: CellTypist labels > leiden
+        # 2. Choose groupby column. Report-only LLM/marker labels never define
+        # donor-level pseudobulk inferential units.
+        trusted_annotation_groupby = self._trusted_annotation_groupby(annotation)
         cell_type_col = pb_cfg.get("groupby_col")
         if (cell_type_col == "cell_type_celltypist"
                 and (annotation or {}).get("celltypist", {}).get("status") != "success"
-                and (annotation or {}).get("label_col")):
-            cell_type_col = (annotation or {}).get("label_col")
+                and trusted_annotation_groupby):
+            cell_type_col = trusted_annotation_groupby
         if not cell_type_col:
-            cell_type_col = (
-                "cell_type_celltypist"
-                if (annotation or {}).get("celltypist", {}).get("status") == "success"
-                else (annotation or {}).get("label_col") or "leiden"
+            cell_type_col = trusted_annotation_groupby or "leiden"
+
+        if (cell_type_col == "leiden"
+                and self._annotation_is_report_only(annotation)):
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "Pseudobulk DE was not run because cell-type labels "
+                        "were report-only LLM/marker annotations, not a "
+                        "trusted inferential grouping."
+                    ),
+                    "annotation_source": (annotation or {}).get("annotation_source"),
+                    "label_col": (annotation or {}).get("label_col"),
+                },
+                Confidence.INSUFFICIENT,
             )
+            return {
+                "status": "skipped",
+                "reason": "llm_only_annotation_not_trusted_for_inference",
+            }
 
         # Hard skip: when annotation failed for an unrecoverable matrix and
         # we would be left grouping by numeric Leiden IDs, pseudobulk between
