@@ -18590,7 +18590,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18807,7 +18807,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18829,7 +18829,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22322,6 +22322,55 @@
       "file_type": "code",
       "source_file": "tests/test_egress_governance.py",
       "source_location": "L108"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency",
+      "label": "test_env_lock_numpy_consistency.py",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "label": "_conda_numpy()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "label": "_pip_numpy()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "label": "test_env_pins_numpy_exactly_once_and_consistently()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
+      "label": "test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L68"
     },
     {
       "id": "tests_test_env_manager_cache",
@@ -82451,7 +82500,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -82504,7 +82553,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82514,7 +82563,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82524,7 +82573,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82534,7 +82583,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82544,7 +82593,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82837,7 +82886,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -82846,7 +82895,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -82881,7 +82930,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82891,7 +82940,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7ekftj_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6ckoan_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -88350,6 +88399,162 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_egress_governance.py",
       "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "target": "tests_test_env_lock_numpy_consistency_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
+      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
+      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
