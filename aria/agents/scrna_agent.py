@@ -200,6 +200,9 @@ class scRNAAgent(BaseAgent):
                     integ.get("silhouette_after"),
                     cluster_sil,
                 )
+                if self._integration_qc_has_blocking(findings["integration_qc"]):
+                    exp_ctx = dict(exp_ctx or {})
+                    exp_ctx["integration_qc"] = findings["integration_qc"]
             except Exception as exc:
                 log.warning(f"Integration QC assessment failed: {exc}")
 
@@ -1627,6 +1630,22 @@ Rules:
                     and celltypist.get("status") != "success"
                     and annotation.get("annotation_for_report"))
 
+    @staticmethod
+    def _integration_qc_has_blocking(integration_qc: dict | None) -> bool:
+        return any(
+            isinstance(issue, dict) and issue.get("severity") == "blocking"
+            for issue in ((integration_qc or {}).get("issues") or [])
+        )
+
+    @staticmethod
+    def _integration_qc_blocking_reason(integration_qc: dict | None) -> str:
+        for issue in ((integration_qc or {}).get("issues") or []):
+            if isinstance(issue, dict) and issue.get("severity") == "blocking":
+                msg = issue.get("message") or issue.get("check")
+                rec = issue.get("recommendation")
+                return " ".join(str(x) for x in (msg, rec) if x).strip()
+        return "Integration QC marked the integrated embedding as blocking."
+
     def _run_pseudobulk(self, experiment_id: str,
                          current_h5ad: str,
                          exp_ctx: dict, intent: dict,
@@ -1736,6 +1755,29 @@ Rules:
             return {
                 "status": "skipped",
                 "reason": "llm_only_annotation_not_trusted_for_inference",
+            }
+
+        integration_qc = (exp_ctx or {}).get("integration_qc") or {}
+        if self._integration_qc_has_blocking(integration_qc):
+            reason = self._integration_qc_blocking_reason(integration_qc)
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "Pseudobulk DE and differential abundance were not run "
+                        "because integration QC marked the embedding as "
+                        "blocking for overcorrection."
+                    ),
+                    "reason": reason,
+                    "integration_qc": integration_qc,
+                    "groupby": cell_type_col,
+                },
+                Confidence.INSUFFICIENT,
+            )
+            return {
+                "status": "skipped",
+                "reason": "integration_overcorrection_blocking",
+                "details": reason,
             }
 
         # Hard skip: when annotation failed for an unrecoverable matrix and

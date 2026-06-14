@@ -286,6 +286,34 @@ def test_scrna_narrator_emits_data_quality_block_for_qc_flags():
     assert "marker-verified" in texts.lower()
 
 
+def test_scrna_narrator_caps_pseudobulk_when_integration_qc_blocking():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = _synthetic_scrna_findings()
+    findings["integration_qc"] = {
+        "status": "warnings",
+        "issues": [{
+            "severity": "blocking",
+            "check": "possible_overcorrection",
+            "message": "Batches were strongly mixed but clusters collapsed.",
+            "recommendation": "Skip integration or lower strength.",
+        }],
+    }
+
+    agent_result = {"status": "done",
+                    "findings": {"scRNA": {"findings": findings}}}
+    blocks = ScrnaNarrator().collect("scrna_agent", agent_result)
+    pb = next(b for b in blocks
+              if b.id == "scrna.pseudobulk.GroupA.condition_a_vs_condition_b")
+    comp = next(b for b in blocks
+                if b.id == "scrna.composition.condition_a_vs_condition_b")
+
+    assert pb.confidence == "low"
+    assert comp.confidence == "low"
+    caveats = " ".join(c.text for c in [*pb.caveats, *comp.caveats])
+    assert "overcorrection" in caveats.lower()
+
+
 def test_scrna_narrator_methods_reuse_legacy_methods():
     from aria.agents.narrative.narrators.scrna import ScrnaNarrator
 

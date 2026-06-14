@@ -1636,6 +1636,75 @@ def test_scrna_llm_only_annotation_is_report_only_not_obs_groupby(tmp_path):
     assert annotation["cell_types"]["0"]["cell_type"] == "TypeA"
 
 
+def test_scrna_pseudobulk_skips_when_integration_qc_is_blocking(tmp_path):
+    import types
+
+    sys.modules.setdefault(
+        "litellm",
+        types.SimpleNamespace(completion=lambda *args, **kwargs: None),
+    )
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    h5ad_path = tmp_path / "annotated.h5ad"
+    h5ad_path.write_text("placeholder")
+
+    class FakeEnv:
+        def run_in_stack(self, **kwargs):
+            raise AssertionError(
+                "blocking integration QC must skip DA/pseudobulk dispatch"
+            )
+
+    agent = scRNAAgent.__new__(scRNAAgent)
+    agent.env = FakeEnv()
+    agent._workspace = lambda *args, **kwargs: tmp_path
+    agent._log_decision = lambda *args, **kwargs: None
+    findings = []
+    agent.publish_finding = lambda *args, **kwargs: findings.append(args)
+    agent.publish_escalation = lambda *args, **kwargs: None
+
+    result = agent._run_pseudobulk(
+        "exp",
+        str(h5ad_path),
+        {
+            "organism": "Homo sapiens",
+            "integration_qc": {
+                "status": "warnings",
+                "issues": [{
+                    "severity": "blocking",
+                    "check": "possible_overcorrection",
+                    "message": "Batches were strongly mixed but clusters collapsed.",
+                    "recommendation": "Skip integration or lower strength.",
+                }],
+            },
+            "design": {
+                "groups": {"old": ["o1", "o2", "o3"],
+                           "young": ["y1", "y2", "y3"]},
+                "main_factor": "age_group",
+                "pseudobulk": {
+                    "from_obs": True,
+                    "condition_col": "age_group",
+                    "replicate_col": "donor_id",
+                    "groupby_col": None,
+                    "covariates": [],
+                    "comparisons": [["old", "young"]],
+                },
+            },
+        },
+        {"summary": "young vs old"},
+        {
+            "annotation_source": "celltypist",
+            "trusted_groupby_for_inference": "cell_type_celltypist",
+            "label_col": "cell_type_celltypist",
+            "celltypist": {"status": "success", "ran": True},
+        },
+    )
+
+    assert result["status"] == "skipped"
+    assert result["reason"] == "integration_overcorrection_blocking"
+    assert findings
+
+
 def test_clustering_skip_leiden_when_cluster_col_provided():
     from aria.scripts.rna_clustering import _cache_params
 

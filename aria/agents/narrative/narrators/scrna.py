@@ -106,6 +106,20 @@ def _first_design_issue(comp: dict) -> str:
     return issue.get("message") or issue.get("check") or ""
 
 
+def _blocking_integration_caveat(findings: dict) -> str:
+    iqc = findings.get("integration_qc") or {}
+    for issue in iqc.get("issues", []) or []:
+        if isinstance(issue, dict) and issue.get("severity") == "blocking":
+            msg = issue.get("message") or issue.get("check") or ""
+            rec = issue.get("recommendation") or ""
+            text = " ".join(part for part in (msg, rec) if part).strip()
+            return (
+                "Integration QC marked the integrated embedding as blocking "
+                f"for possible overcorrection. {text}".strip()
+            )
+    return ""
+
+
 class ScrnaNarrator:
     name = "scrna"
 
@@ -339,6 +353,7 @@ class ScrnaNarrator:
 
     def _composition_blocks(self, findings: dict) -> list[NarrativeBlock]:
         da = findings.get("differential_abundance") or {}
+        integration_block = _blocking_integration_caveat(findings)
         blocks = []
         for comp_key, comp in (da.get("per_comparison") or {}).items():
             status = comp.get("status", "success")
@@ -375,6 +390,8 @@ class ScrnaNarrator:
             reason = comp.get("degradation_reason")
             if comp.get("degraded") and reason and reason not in caveat_texts:
                 caveat_texts.append(str(reason))
+            if integration_block and integration_block not in caveat_texts:
+                caveat_texts.append(integration_block)
             blocks.append(NarrativeBlock(
                 id=f"scrna.composition.{_safe_id(comp_key)}",
                 modality="scRNA-seq",
@@ -382,7 +399,10 @@ class ScrnaNarrator:
                 block_type="result",
                 title=f"Cell-type abundance {comp_key}",
                 status="success",
-                confidence="low" if comp.get("degraded") else "medium",
+                confidence=(
+                    "low" if (comp.get("degraded") or integration_block)
+                    else "medium"
+                ),
                 claim=(
                     f"{n_sig} cell type(s) shifted in abundance for {comp_key}."
                 ),
@@ -394,6 +414,7 @@ class ScrnaNarrator:
 
     def _pseudobulk_blocks(self, findings: dict) -> list[NarrativeBlock]:
         pb = findings.get("pseudobulk_de") or {}
+        integration_block = _blocking_integration_caveat(findings)
         # N-ANNO1: map the DE groupby label -> annotation confidence so a block
         # on an uncertainly-annotated cell type carries a visible caveat.
         per_cluster = (
@@ -504,6 +525,8 @@ class ScrnaNarrator:
                         f"label assigned to this group is uncertain.",
                         "warning",
                     ))
+                if integration_block:
+                    caveats.append(Caveat(integration_block, "blocking"))
                 blocks.append(NarrativeBlock(
                     id=block_id,
                     modality="scRNA-seq",
@@ -512,7 +535,11 @@ class ScrnaNarrator:
                     title=f"{group} {comp_key}",
                     status="success",
                     confidence=(
-                        "low" if (lognorm_recovered or annotation_uncertain)
+                        "low" if (
+                            lognorm_recovered
+                            or annotation_uncertain
+                            or integration_block
+                        )
                         else "medium"
                     ),
                     claim=f"{group} {comp_key} had {n_sig} {fdr_label} DE genes.",
