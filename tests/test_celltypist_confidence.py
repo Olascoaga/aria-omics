@@ -105,6 +105,23 @@ def test_mouse_no_hint_flags_human_immune_model_mismatch():
     assert warning and ("mouse" in warning.lower() or "human" in warning.lower())
 
 
+def test_celltypist_blocks_unknown_tissue_without_override(tmp_path):
+    result = rna_celltypist({
+        "data_path": str(tmp_path / "input.h5ad"),
+        "organism": "Homo sapiens",
+        "tissue_hint": "tumor",
+        "output_dir": str(tmp_path),
+    })
+
+    assert result["status"] == "error"
+    assert result["error_type"] == "DefaultImmuneModelRequiresAck"
+    assert result["requires_ack"] is True
+    assert result["ack_param"] == "allow_default_immune_model"
+    assert result["model_source"] == "default_immune_fallback"
+    assert "Immune_All_Low.pkl" in result["details"]
+    assert result["tissue_hint"] == "tumor"
+
+
 def test_celltypist_model_download_respects_air_gapped(monkeypatch, tmp_path):
     calls = []
 

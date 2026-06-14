@@ -16,6 +16,8 @@ Input params:
     tissue_hint:    str  (optional) — "pbmc" | "blood" | "brain" | "fetal"
                                        | "kidney" | "lung" | "intestine"
                                        Picks a default model if `model` is empty.
+    allow_default_immune_model: bool (optional) — explicit ACK allowing the
+                                       immune fallback when no model/hint matches.
     cluster_col:    str  (optional) — obs column for cluster IDs (default: "leiden")
     majority_voting: bool (optional) — collapse labels per cluster (default: True)
     over_clustering: str (optional) — column for majority voting groups
@@ -72,6 +74,14 @@ _MOUSE_MODELS = {
 
 # The catalog fallback when no explicit model and no usable tissue hint exist.
 _IMMUNE_DEFAULT_MODEL = "Immune_All_Low.pkl"
+
+
+def _as_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
@@ -221,6 +231,7 @@ def rna_celltypist(params: dict) -> dict:
     organism        = params.get("organism", "Homo sapiens").lower()
     model_explicit  = params.get("model")
     tissue_hint     = (params.get("tissue_hint") or "").lower().strip()
+    allow_default   = _as_bool(params.get("allow_default_immune_model"))
     cluster_col     = params.get("cluster_col", "leiden")
     majority_voting = bool(params.get("majority_voting", True))
     output_dir      = params.get("output_dir", str(Path(data_path).parent))
@@ -230,6 +241,27 @@ def rna_celltypist(params: dict) -> dict:
     model_name, model_source, model_warning = _resolve_celltypist_model(
         model_explicit, organism, tissue_hint
     )
+
+    if model_source == "default_immune_fallback" and not allow_default:
+        return {
+            "status":        "error",
+            "error_type":    "DefaultImmuneModelRequiresAck",
+            "details":       (
+                f"CellTypist would use the immune default '{model_name}' because "
+                "no explicit model or matching tissue hint was provided. This "
+                "can create biologically wrong cell-type labels for non-PBMC "
+                "tissue and must not define downstream cell-type DE groupings. "
+                "Provide an explicit CellTypist model or matching tissue_hint, "
+                "or set allow_default_immune_model=true to acknowledge this "
+                "assumption explicitly."
+            ),
+            "model_used":    model_name,
+            "model_source":  model_source,
+            "model_warning": model_warning,
+            "requires_ack":  True,
+            "ack_param":     "allow_default_immune_model",
+            "tissue_hint":   tissue_hint or None,
+        }
 
     try:
         import celltypist

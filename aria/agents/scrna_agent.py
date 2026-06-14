@@ -940,6 +940,19 @@ class scRNAAgent(BaseAgent):
                     return value.strip().lower()
         return None
 
+    @staticmethod
+    def _allow_default_immune_model(exp_ctx: dict, intent: dict) -> bool:
+        """Return True only when the user/config explicitly accepts fallback."""
+        for source in (exp_ctx or {}, intent or {}):
+            value = source.get("allow_default_immune_model")
+            if isinstance(value, bool):
+                return value
+            if isinstance(value, str) and value.strip().lower() in {
+                "1", "true", "yes", "on",
+            }:
+                return True
+        return False
+
     def _predefined_celltype_col(self, h5ad_path: str,
                                   exp_ctx: dict) -> str | None:
         """
@@ -1042,6 +1055,9 @@ class scRNAAgent(BaseAgent):
 
         # ── Layer 1: CellTypist (database-backed, code-guarantee) ────────
         tissue_hint = self._infer_tissue_hint(exp_ctx, intent)
+        allow_default_immune_model = self._allow_default_immune_model(
+            exp_ctx, intent
+        )
         celltypist_result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_celltypist.py",
@@ -1049,6 +1065,7 @@ class scRNAAgent(BaseAgent):
                 "data_path":    clustered_h5ad,
                 "organism":     exp_ctx.get("organism", "Homo sapiens"),
                 "tissue_hint":  tissue_hint,
+                "allow_default_immune_model": allow_default_immune_model,
                 "cluster_col":  "leiden",
                 "majority_voting": True,
                 "output_dir":   str(self._workspace(experiment_id, "annotation")),

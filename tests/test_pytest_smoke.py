@@ -7,6 +7,7 @@ import subprocess
 import sys
 import threading
 import time
+import types
 from pathlib import Path
 
 import pytest
@@ -1456,6 +1457,11 @@ def test_scrna_annotation_from_obs_skips_celltypist(tmp_path):
 
 
 def test_scrna_celltypist_tissue_hint_requires_explicit_context():
+    sys.modules.setdefault(
+        "litellm",
+        types.SimpleNamespace(completion=lambda *args, **kwargs: None),
+    )
+
     from aria.agents.scrna_agent import scRNAAgent
 
     assert scRNAAgent._infer_tissue_hint(
@@ -1467,6 +1473,28 @@ def test_scrna_celltypist_tissue_hint_requires_explicit_context():
         {"celltypist_tissue_hint": "brain"},
         {"summary": "single-cell atlas"},
     ) == "brain"
+
+
+def test_scrna_celltypist_default_immune_model_requires_explicit_ack():
+    sys.modules.setdefault(
+        "litellm",
+        types.SimpleNamespace(completion=lambda *args, **kwargs: None),
+    )
+
+    from aria.agents.scrna_agent import scRNAAgent
+
+    assert scRNAAgent._allow_default_immune_model(
+        {"user_question": "use the default immune model if needed"},
+        {"summary": "single-cell atlas"},
+    ) is False
+    assert scRNAAgent._allow_default_immune_model(
+        {"allow_default_immune_model": True},
+        {},
+    ) is True
+    assert scRNAAgent._allow_default_immune_model(
+        {},
+        {"allow_default_immune_model": "yes"},
+    ) is True
 
 
 def test_scrna_pseudobulk_skips_when_annotation_unrecoverable(tmp_path):
