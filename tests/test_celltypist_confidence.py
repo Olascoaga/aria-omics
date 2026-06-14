@@ -8,11 +8,14 @@ reflect the RAW per-cell predicted labels and the model's probability matrix.
 """
 
 import math
+import sys
+import types
 
 import pytest
 
 from aria.scripts.rna_celltypist import (
     _resolve_celltypist_model,
+    rna_celltypist,
     _summarize_annotation_confidence,
 )
 
@@ -100,3 +103,37 @@ def test_mouse_no_hint_flags_human_immune_model_mismatch():
     assert source == "default_immune_fallback"
     # The default is a human immune model on a mouse dataset — must be disclosed.
     assert warning and ("mouse" in warning.lower() or "human" in warning.lower())
+
+
+def test_celltypist_model_download_respects_air_gapped(monkeypatch, tmp_path):
+    calls = []
+
+    class FakeModels:
+        @staticmethod
+        def download_models(**kwargs):
+            calls.append(kwargs)
+            raise AssertionError("download_models must not be called")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "celltypist",
+        types.SimpleNamespace(models=FakeModels),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "scanpy",
+        types.SimpleNamespace(pp=types.SimpleNamespace()),
+    )
+    monkeypatch.setenv("ARIA_AIR_GAPPED", "1")
+
+    result = rna_celltypist({
+        "data_path": str(tmp_path / "input.h5ad"),
+        "organism": "Homo sapiens",
+        "model": "ARIA_T3_Not_Cached_Model.pkl",
+        "output_dir": str(tmp_path),
+    })
+
+    assert calls == []
+    assert result["status"] == "error"
+    assert result["error_type"] == "EgressBlocked"
+    assert "celltypist_model_hub" in result["details"]

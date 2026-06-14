@@ -42,6 +42,7 @@ Output:
 
 from __future__ import annotations
 import sys, os
+from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
@@ -109,6 +110,21 @@ def _resolve_celltypist_model(model_explicit, organism, tissue_hint):
             "species mismatch on top of the tissue mismatch."
         )
     return _IMMUNE_DEFAULT_MODEL, "default_immune_fallback", warning
+
+
+def _celltypist_model_cached(model_name: str) -> bool:
+    """Return True when the requested model is already available locally."""
+    model_path = Path(str(model_name)).expanduser()
+    if model_path.is_file():
+        return True
+
+    for cache_dir in (
+        Path.home() / ".celltypist" / "data" / "models",
+        Path.home() / ".celltypist" / "models",
+    ):
+        if (cache_dir / str(model_name)).is_file():
+            return True
+    return False
 
 
 def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
@@ -199,13 +215,7 @@ def _summarize_annotation_confidence(cluster_ids, raw_labels, assigned_labels,
 
 
 def rna_celltypist(params: dict) -> dict:
-    import os
     os.environ.setdefault("NUMBA_CACHE_DIR", "/tmp/aria_numba_cache")
-    import scanpy as sc
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    from aria.utils.safe_h5ad import read_h5ad
 
     data_path       = params["data_path"]
     organism        = params.get("organism", "Homo sapiens").lower()
@@ -232,17 +242,35 @@ def rna_celltypist(params: dict) -> dict:
                           "Run: pip install celltypist",
         }
 
-    # Download model if not cached. download_models with model_name skips
-    # download when present, so this is cheap on subsequent runs.
-    try:
-        models.download_models(model=model_name, force_update=False)
-    except Exception as e:
-        return {
-            "status":     "error",
-            "error_type": "ModelDownloadFailed",
-            "details":    f"Could not download CellTypist model "
-                          f"'{model_name}': {e}",
-        }
+    # Download only when the model is missing locally. Under W-PRIV,
+    # ARIA_AIR_GAPPED governs this model-hub egress too, not only LLM calls.
+    if not _celltypist_model_cached(model_name):
+        try:
+            from aria.utils.privacy import EgressBlocked, assert_egress_allowed
+            assert_egress_allowed("celltypist_model_hub")
+        except EgressBlocked as e:
+            return {
+                "status":        "error",
+                "error_type":    "EgressBlocked",
+                "details":       str(e),
+                "model_used":    model_name,
+                "model_source":  model_source,
+                "model_warning": model_warning,
+            }
+
+        try:
+            models.download_models(model=model_name, force_update=False)
+        except Exception as e:
+            return {
+                "status":     "error",
+                "error_type": "ModelDownloadFailed",
+                "details":    f"Could not download CellTypist model "
+                              f"'{model_name}': {e}",
+            }
+
+    import scanpy as sc
+    import numpy as np
+    from aria.utils.safe_h5ad import read_h5ad
 
     adata = read_h5ad(data_path)
 
