@@ -11,7 +11,73 @@ sys.modules.setdefault("litellm", _litellm)
 
 from aria.agents.narrative import report_sections
 from aria.agents.narrative.report_builder import ReportBuilderMixin
+from aria.agents.narrative.evidence_verifier import (
+    build_evidence_card,
+    verify_block_claim_support,
+)
+from aria.agents.narrative.types import EvidenceItem, NarrativeBlock
 from aria.agents.narrative_agent import NarrativeAgent
+
+
+def _exec_summary_block(claim: str, concrete: str) -> NarrativeBlock:
+    """Build an executive-summary block whose only numeric evidence is the
+    concrete pipeline-results dump (mirrors _make_executive_summary_block)."""
+    return NarrativeBlock(
+        id="executive_summary",
+        modality="report",
+        analysis="executive_summary",
+        block_type="summary",
+        title="Executive Summary",
+        status="success",
+        confidence="medium",
+        claim=claim,
+        evidence=[EvidenceItem(
+            label="concrete pipeline results",
+            value=concrete,
+            source="agent_results",
+        )],
+    )
+
+
+# ── T8 (tri-auditoría 2026-06-14): the exec-summary W-CLAIM check flattened every
+# number of the concrete dump into one set, so an IDENTIFIER number ("cluster 7")
+# could "support" a measured COUNT claim ("7 DE genes") even when the real count
+# differs. The evidence card must be role-aware: identifier numbers in the dump
+# must not back a measured-quantity claim.
+
+def test_exec_summary_reused_identifier_as_count_is_unsupported():
+    # The dump says cluster 7 had 42 DE genes; the summary reuses "7" as the count.
+    block = _exec_summary_block(
+        claim="Cluster 7 had 7 differentially expressed genes.",
+        concrete="Cluster 7 had 42 differentially expressed genes.",
+    )
+    manifest = verify_block_claim_support(block, strict=False)
+    assert manifest["status"] == "unsupported"
+    reasons = " ".join(i["reason"] for i in manifest["unsupported"])
+    assert "7" in reasons
+    # The identifier number must NOT be admitted to the card as a measurement.
+    assert "7" not in build_evidence_card(block).numbers
+
+
+def test_exec_summary_correct_count_is_supported():
+    block = _exec_summary_block(
+        claim="Cluster 7 had 42 differentially expressed genes.",
+        concrete="Cluster 7 had 42 differentially expressed genes.",
+    )
+    manifest = verify_block_claim_support(block, strict=False)
+    assert manifest["status"] == "supported"
+
+
+def test_exec_summary_role_aware_keeps_real_measurement_after_label_word():
+    # A measured count that simply follows a non-label word ("had 42") must still
+    # be admitted; only label-noun identifiers ("cluster 7") are exempt.
+    card = build_evidence_card(_exec_summary_block(
+        claim="x", concrete="Cluster 3 had 42 DE genes; module 5 had 18 DE genes.",
+    ))
+    assert "42" in card.numbers
+    assert "18" in card.numbers
+    assert "3" not in card.numbers   # cluster identifier
+    assert "5" not in card.numbers   # module identifier
 
 
 class _ReportHarness(ReportBuilderMixin):

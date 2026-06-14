@@ -157,7 +157,19 @@ def verify_block_claim_support(
 
 
 def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
-    """Return the structured evidence card used to verify one block."""
+    """Return the structured evidence card used to verify one block.
+
+    T8: the executive summary's evidence is a free-text dump of EVERY concrete
+    result, so a context-free number harvest (``_numbers_in``) flattens IDENTIFIER
+    numbers ("cluster 7") into the supporting set and lets them back a measured-
+    quantity claim ("7 DE genes"). For that block the evidence-value harvest is
+    role-aware: it uses the same position-aware exemptions as the claim side
+    (``_claim_numbers``), so an identifier number cannot support a measurement.
+    Labeled metric numbers (block.metrics) are real measurements and stay as-is.
+    """
+    role_aware = str(block.analysis or "") == "executive_summary"
+    harvest_value = _claim_numbers if role_aware else _numbers_in
+
     refs: list[dict[str, Any]] = []
     support_parts = [
         block.id,
@@ -180,7 +192,7 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
         support_parts.extend(
             str(x) for x in (ev.label, ev.value, ev.source, ev.path) if x is not None
         )
-        numbers.update(_numbers_in(" ".join(str(x) for x in (ev.label, ev.value))))
+        numbers.update(harvest_value(" ".join(str(x) for x in (ev.label, ev.value))))
 
     for key, value in _flatten_mapping(block.metrics or {}):
         refs.append({
