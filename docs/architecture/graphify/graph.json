@@ -9056,28 +9056,49 @@
       "label": "_resolve_celltypist_model()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L76"
+      "source_location": "L77"
+    },
+    {
+      "id": "scripts_rna_celltypist_celltypist_model_cached",
+      "label": "_celltypist_model_cached()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115"
+    },
+    {
+      "id": "aria_scripts_rna_celltypist_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115"
+    },
+    {
+      "id": "aria_scripts_rna_celltypist_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115"
     },
     {
       "id": "scripts_rna_celltypist_summarize_annotation_confidence",
       "label": "_summarize_annotation_confidence()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L114"
+      "source_location": "L130"
     },
     {
       "id": "aria_scripts_rna_celltypist_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L114"
+      "source_location": "L130"
     },
     {
       "id": "scripts_rna_celltypist_rna_celltypist",
       "label": "rna_celltypist()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L201"
+      "source_location": "L217"
     },
     {
       "id": "scripts_rna_clustering",
@@ -18513,7 +18534,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18730,7 +18751,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_oeozri_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18752,7 +18773,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_oeozri_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -20711,56 +20732,63 @@
       "label": "test_frequency_reflects_raw_label_agreement_not_collapsed_majority()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L20"
+      "source_location": "L23"
     },
     {
       "id": "tests_test_celltypist_confidence_test_confident_homogeneous_cluster_stays_high",
       "label": "test_confident_homogeneous_cluster_stays_high()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L43"
+      "source_location": "L46"
     },
     {
       "id": "tests_test_celltypist_confidence_test_missing_probabilities_degrade_to_none_confidence",
       "label": "test_missing_probabilities_degrade_to_none_confidence()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L55"
+      "source_location": "L58"
     },
     {
       "id": "tests_test_celltypist_confidence_test_explicit_model_is_not_flagged",
       "label": "test_explicit_model_is_not_flagged()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L70"
+      "source_location": "L73"
     },
     {
       "id": "tests_test_celltypist_confidence_test_tissue_hint_match_is_not_flagged",
       "label": "test_tissue_hint_match_is_not_flagged()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L78"
+      "source_location": "L81"
     },
     {
       "id": "tests_test_celltypist_confidence_test_no_hint_falls_back_to_immune_default_with_warning",
       "label": "test_no_hint_falls_back_to_immune_default_with_warning()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L85"
+      "source_location": "L88"
     },
     {
       "id": "tests_test_celltypist_confidence_test_unknown_tissue_hint_also_flagged",
       "label": "test_unknown_tissue_hint_also_flagged()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L92"
+      "source_location": "L95"
     },
     {
       "id": "tests_test_celltypist_confidence_test_mouse_no_hint_flags_human_immune_model_mismatch",
       "label": "test_mouse_no_hint_flags_human_immune_model_mismatch()",
       "file_type": "code",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L98"
+      "source_location": "L101"
+    },
+    {
+      "id": "tests_test_celltypist_confidence_test_celltypist_model_download_respects_air_gapped",
+      "label": "test_celltypist_model_download_respects_air_gapped()",
+      "file_type": "code",
+      "source_file": "tests/test_celltypist_confidence.py",
+      "source_location": "L108"
     },
     {
       "id": "tests_test_chromatin_agent",
@@ -26876,10 +26904,10 @@
       "contributor": null
     },
     {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
+      "id": "setup_agent",
+      "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
+      "source_file": "aria/agents/setup_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -26891,6 +26919,17 @@
       "label": "BulkRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -26957,6 +26996,50 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_qc",
+      "label": "rna_qc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_qc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_cellcomm",
+      "label": "rna_cellcomm.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_cellcomm.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_trajectory",
+      "label": "rna_trajectory.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_trajectory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "devils_advocate",
+      "label": "Devil's Advocate",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/devils_advocate.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -62730,7 +62813,36 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L76",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist",
+      "target": "scripts_rna_celltypist_celltypist_model_cached",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist_celltypist_model_cached",
+      "target": "aria_scripts_rna_celltypist_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist_celltypist_model_cached",
+      "target": "aria_scripts_rna_celltypist_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -62739,7 +62851,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L114",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -62749,7 +62861,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L114",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -62758,7 +62870,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L201",
+      "source_location": "L217",
       "weight": 1.0
     },
     {
@@ -62768,7 +62880,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L220",
+      "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist_rna_celltypist",
+      "target": "scripts_rna_celltypist_celltypist_model_cached",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -62778,7 +62900,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L340",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -81887,7 +82009,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -81940,7 +82062,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -81950,7 +82072,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -81960,7 +82082,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -81970,7 +82092,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -81980,7 +82102,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82273,7 +82395,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_oeozri_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -82282,7 +82404,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_oeozri_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -82317,7 +82439,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82327,7 +82449,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_oeozri_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_scbvxs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -85375,7 +85497,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L20",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -85384,7 +85506,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L43",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -85393,7 +85515,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L55",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -85402,7 +85524,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L70",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -85411,7 +85533,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L78",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -85420,7 +85542,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L85",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -85429,7 +85551,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L92",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
@@ -85438,7 +85560,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L98",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_celltypist_confidence",
+      "target": "tests_test_celltypist_confidence_test_celltypist_model_download_respects_air_gapped",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_celltypist_confidence.py",
+      "source_location": "L108",
       "weight": 1.0
     },
     {
@@ -99368,7 +99499,27 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L46",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist",
+      "target": "utils_privacy_egressblocked",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L249",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist",
+      "target": "utils_privacy_assert_egress_allowed",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -99378,7 +99529,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L208",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -100978,7 +101129,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L14",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_celltypist_confidence",
+      "target": "scripts_rna_celltypist_rna_celltypist",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_celltypist_confidence.py",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -100988,7 +101149,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L14",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -105023,12 +105184,22 @@
     },
     {
       "source": "scripts_rna_celltypist_rna_celltypist",
+      "target": "utils_privacy_assert_egress_allowed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_celltypist.py",
+      "source_location": "L250",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_celltypist_rna_celltypist",
       "target": "utils_safe_h5ad_read_h5ad",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_celltypist.py",
-      "source_location": "L247",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -106958,7 +107129,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L29",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -106968,7 +107139,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L49",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -106978,7 +107149,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L61",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -106988,7 +107159,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L71",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -106998,7 +107169,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L79",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -107008,7 +107179,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L86",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -107018,7 +107189,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L93",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -107028,7 +107199,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
-      "source_location": "L99",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_celltypist_confidence_test_celltypist_model_download_respects_air_gapped",
+      "target": "scripts_rna_celltypist_rna_celltypist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_celltypist_confidence.py",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -112071,7 +112252,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -112081,7 +112262,57 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_qc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -112091,17 +112322,27 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "rna_bulk_de",
+      "source": "scrna_agent",
+      "target": "rna_cellcomm",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_trajectory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -112111,17 +112352,17 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_file": "aria/agents/narrative_agent.py",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
-      "target": "rna_bulk_de",
+      "source": "narrative_agent",
+      "target": "devils_advocate",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/narrative_agent.py",
       "source_location": null,
       "weight": 1.0
     }
