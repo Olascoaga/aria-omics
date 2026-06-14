@@ -95,3 +95,38 @@ def test_inequality_threshold_value_is_not_required_on_card():
     )
     manifest = verify_block_claim_support(block, strict=True)
     assert manifest["status"] == "supported"
+
+
+# ── T11 (tri-audit 2026-06-14): mixed-case (mouse/rat) gene symbols must be
+# verified too. The all-caps-only entity pattern silently skipped Sox2/Olig2, so a
+# fabricated mixed-case gene in prose was never checked against the evidence card.
+
+def test_unsupported_mixed_case_mouse_gene_is_flagged():
+    block = _block(
+        "The population was marked by Sox2 and Olig2 expression.",
+        [EvidenceItem(label="DE genes", value=12, source="contrast")],
+    )
+    with pytest.raises(EvidenceVerificationError):
+        verify_block_claim_support(block, strict=True)
+
+
+def test_supported_mixed_case_mouse_gene_passes():
+    block = _block(
+        "The population was marked by Sox2 expression.",
+        [
+            EvidenceItem(label="DE genes", value=12, source="contrast"),
+            EvidenceItem(label="top gene Sox2", value=2.1, source="contrast"),
+        ],
+    )
+    manifest = verify_block_claim_support(block, strict=True)
+    assert manifest["status"] == "supported"
+
+
+def test_deseq2_tool_token_is_not_treated_as_gene():
+    """A digit-bearing tool token (DESeq2) must not be required on the card as if
+    it were a gene — it is a stopword."""
+    from aria.agents.narrative.evidence_verifier import _claim_entities
+
+    ents = _claim_entities("Counts were modeled with DESeq2 and Sox2 was tested.")
+    assert "Sox2" in ents
+    assert "DESeq2" not in ents

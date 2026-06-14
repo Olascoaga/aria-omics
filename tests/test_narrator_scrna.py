@@ -505,6 +505,40 @@ def test_data_quality_block_surfaces_confidence_extraction_failure():
     assert "could not" in texts or "failed" in texts
 
 
+# ── T12 (tri-auditoría 2026-06-14): "shifted in abundance" is significance at the
+# differential-abundance FDR threshold (default 0.10, more permissive than 0.05),
+# so the composition claim must name the threshold rather than assert a bare shift.
+
+def test_composition_claim_names_the_fdr_threshold():
+    from aria.agents.narrative.narrators.scrna import ScrnaNarrator
+
+    findings = {
+        "differential_abundance": {
+            "significance_alpha": 0.10,
+            "per_comparison": {
+                "treat_vs_ctrl": {
+                    "status": "success",
+                    "n_significant": 2,
+                    "per_cell_type": [
+                        {"name": "B", "significant": True, "direction": "up"},
+                        {"name": "A", "significant": True, "direction": "down"},
+                        {"name": "C", "significant": False, "direction": "none"},
+                    ],
+                }
+            },
+        }
+    }
+    block = next(
+        b for b in ScrnaNarrator()._composition_blocks(findings)
+        if b.analysis == "differential_abundance"
+    )
+    assert "FDR < 0.1" in block.claim
+    # The threshold value is exempt from numeric verification (it follows "<"),
+    # but it is also recorded as evidence, and the block stays W-CLAIM clean.
+    from aria.agents.narrative.evidence_verifier import verify_block_claim_support
+    assert verify_block_claim_support(block, strict=True)["status"] == "supported"
+
+
 def test_qc_block_reflects_failure_status():
     """E2E-2 (production verification 2026-06-12): a FAILED QC must not render as
     a successful, high-confidence block. The integrity bug hardcoded

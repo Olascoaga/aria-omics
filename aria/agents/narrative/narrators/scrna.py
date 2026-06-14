@@ -367,6 +367,10 @@ class ScrnaNarrator:
     def _composition_blocks(self, findings: dict) -> list[NarrativeBlock]:
         da = findings.get("differential_abundance") or {}
         integration_block = _blocking_integration_caveat(findings)
+        # T12 (tri-audit 2026-06-14): "shifted" is significance at this FDR
+        # threshold (default 0.10, more permissive than the conventional 0.05), so
+        # the claim must name it instead of asserting a bare shift.
+        alpha = da.get("significance_alpha", 0.10)
         blocks = []
         for comp_key, comp in (da.get("per_comparison") or {}).items():
             status = comp.get("status", "success")
@@ -390,6 +394,8 @@ class ScrnaNarrator:
             evidence = [
                 _evidence("cell types tested", len(rows), "differential_abundance"),
                 _evidence("significant shifts", n_sig, "differential_abundance"),
+                _evidence("significance threshold (FDR)", alpha,
+                          "differential_abundance"),
             ]
             for row in top:
                 evidence.append(_evidence(
@@ -417,7 +423,8 @@ class ScrnaNarrator:
                     else "medium"
                 ),
                 claim=(
-                    f"{n_sig} cell type(s) shifted in abundance for {comp_key}."
+                    f"{n_sig} cell type(s) shifted in abundance "
+                    f"(FDR < {alpha}) for {comp_key}."
                 ),
                 evidence=evidence,
                 metrics={"n_significant": n_sig},

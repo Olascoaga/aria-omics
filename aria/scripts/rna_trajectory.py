@@ -33,9 +33,32 @@ Output:
 """
 
 from __future__ import annotations
+import re
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+
+
+# T14 (tri-audit 2026-06-14): PAGA "strong" cluster adjacency threshold. `n_strong`
+# counts off-diagonal connectivities at or above this value. (top_connections is a
+# separate display list — the top 25 edges by connectivity, no floor applied.)
+_PAGA_STRONG_CONNECTIVITY = 0.05
+
+# T13 (tri-audit 2026-06-14): progenitor-like cell-type tokens for DPT root
+# auto-detection. Matched as WHOLE WORDS (with optional plural) so "stem" does NOT
+# fire on "brainstem"; a plain `tok in label` substring test rooted pseudotime on
+# unrelated populations.
+_PROGENITOR_TOKENS = ("stem", "progenitor", "precursor")
+_PROGENITOR_RE = re.compile(
+    r"\b(?:" + "|".join(_PROGENITOR_TOKENS) + r")s?\b", re.IGNORECASE
+)
+
+
+def _is_progenitor_label(label: str) -> bool:
+    """True iff a cell-type label names a progenitor-like population by a generic
+    token as a WHOLE WORD ("neural stem cell", "Radial glia progenitors") — never
+    by substring ("brainstem", "stemness")."""
+    return bool(_PROGENITOR_RE.search(str(label or "")))
 
 
 def rna_trajectory(params: dict) -> dict:
@@ -86,11 +109,10 @@ def rna_trajectory(params: dict) -> dict:
         cats = (list(adata.obs[groupby].cat.categories)
                 if hasattr(adata.obs[groupby], "cat")
                 else sorted(adata.obs[groupby].unique()))
-        # Adaptive threshold: scanpy's default for PAGA is 0.01, but for
-        # mature / well-separated populations (adult tissue) connectivity
-        # can be orders of magnitude lower. We keep top-N edges regardless,
-        # plus any edge above a floor of 0.005, so weak-but-real adjacency
-        # in adult datasets isn't silently dropped.
+        # We record EVERY off-diagonal connectivity (top_connections below keeps
+        # the strongest 25 for display, no floor applied) and separately count the
+        # "strong" adjacencies at or above `_PAGA_STRONG_CONNECTIVITY` (0.05) as
+        # `n_strong` — see the constant for the single source of truth.
         for i, g1 in enumerate(cats):
             for j, g2 in enumerate(cats):
                 if i < j:
@@ -104,7 +126,9 @@ def rna_trajectory(params: dict) -> dict:
     top_connections = dict(
         sorted(paga_conn.items(), key=lambda x: -x[1])[:25]
     )
-    n_strong = sum(1 for v in paga_conn.values() if v >= 0.05)
+    n_strong = sum(
+        1 for v in paga_conn.values() if v >= _PAGA_STRONG_CONNECTIVITY
+    )
 
     # ── 2. Diffusion Pseudotime ───────────────────────────────────────────
     dpt_result: dict = {"computed": False}
@@ -115,13 +139,11 @@ def rna_trajectory(params: dict) -> dict:
         #   1. Precomputed `adata.uns["iroot"]` from an upstream curated file.
         #   2. Explicit `root_cell_type` from the caller (user / intent).
         #   3. Auto-detect a progenitor-like cell type from generic wording
-        #      ("stem", "progenitor", "precursor") in the annotation column.
+        #      ("stem", "progenitor", "precursor") in the annotation column,
+        #      matched as WHOLE WORDS (so "stem" never fires on "brainstem").
         #
         # No low-complexity fallback: low n_genes can indicate low-quality cells,
         # so using it as DPT root gives a false sense of biological direction.
-        PROGENITOR_TOKENS = (
-            "stem", "progenitor", "precursor",
-        )
         root_used = None
         root_policy = "explicit_or_progenitor_label_required"
         if "iroot" in adata.uns:
@@ -142,8 +164,7 @@ def rna_trajectory(params: dict) -> dict:
             best_label = None
             best_size  = -1
             for lab in labels:
-                lab_lc = lab.lower()
-                if any(tok in lab_lc for tok in PROGENITOR_TOKENS):
+                if _is_progenitor_label(lab):
                     n = int((adata.obs[cell_type_col] == lab).sum())
                     if n > best_size:
                         best_size = n

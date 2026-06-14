@@ -3,6 +3,36 @@
 from __future__ import annotations
 
 
+# ── T13 (tri-audit 2026-06-14): progenitor root tokens must match WHOLE WORDS, so
+# "stem" does not fire on "brainstem". ──────────────────────────────────────────
+
+def test_progenitor_label_matches_whole_words_only():
+    from aria.scripts.rna_trajectory import _is_progenitor_label
+
+    # Genuine progenitor-like populations (whole word, incl. plural).
+    assert _is_progenitor_label("Neural stem cells")
+    assert _is_progenitor_label("Radial glia progenitors")
+    assert _is_progenitor_label("Oligodendrocyte precursor cells")
+    assert _is_progenitor_label("stem")
+    # Substrings must NOT match.
+    assert not _is_progenitor_label("Brainstem neurons")
+    assert not _is_progenitor_label("Astrocytes")
+    assert not _is_progenitor_label("Microglia")
+
+
+# ── T14 (tri-audit 2026-06-14): the PAGA "strong" connectivity threshold is 0.05
+# (the code), not the 0.005 the stale comment claimed. Lock the operative value. ──
+
+def test_paga_strong_connectivity_threshold_is_0_05():
+    from aria.scripts.rna_trajectory import _PAGA_STRONG_CONNECTIVITY
+
+    assert _PAGA_STRONG_CONNECTIVITY == 0.05
+    # A 0.02 edge is weak (below 0.05); were the threshold wrongly lowered to the
+    # commented 0.005 it would be counted as strong.
+    assert not (0.02 >= _PAGA_STRONG_CONNECTIVITY)
+    assert 0.2 >= _PAGA_STRONG_CONNECTIVITY
+
+
 def test_trajectory_skips_dpt_without_biological_root(tmp_path, monkeypatch):
     import sys
     import types

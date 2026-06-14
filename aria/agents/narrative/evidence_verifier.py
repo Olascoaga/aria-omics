@@ -57,10 +57,22 @@ _GENE_STOPWORDS = {
     "ARIA", "ATAC", "BAM", "CTRL", "DE", "DNA", "DPT", "FDR", "FRIP",
     "GEO", "GO", "GSEA", "HTML", "IF", "KEGG", "LIANA", "LLM", "NES",
     "ORA", "PAGA", "PBMC", "QC", "RNA", "SRA", "TAD", "UMAP", "VST",
+    # Mixed-case tool/identifier tokens that the T11 digit-bearing pattern would
+    # otherwise treat as gene symbols.
+    "DESeq2",
 }
 
 _NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])-?\d+(?:\.\d+)?%?")
 _GENE_LIKE_RE = re.compile(r"\b[A-Z][A-Z0-9_-]{2,}\b")
+# T11 (tri-audit 2026-06-14): mouse/rat gene symbols are Title-case (Sox2, Olig2,
+# Gad1, S100b), so the ALL-CAPS-only pattern above silently skipped them — a
+# fabricated mixed-case gene in LLM prose was never verified against the evidence
+# card. Catch mixed-case symbols that CONTAIN A DIGIT: these are unambiguously
+# gene/identifier-shaped, so ordinary Title-case English words are not flagged (no
+# report-aborting false positives). Pure-alpha Title-case symbols (e.g. Gfap) stay
+# out of scope on purpose — they are lexically indistinguishable from prose without
+# a gene dictionary, and flagging them would abort reports on words like "Both".
+_MIXED_CASE_GENE_RE = re.compile(r"\b[A-Z][A-Za-z]*\d[A-Za-z0-9]*\b")
 
 
 @dataclass
@@ -426,13 +438,14 @@ def _normalize_number(raw: str) -> str:
 
 def _claim_entities(sentence: str) -> set[str]:
     entities = set()
-    for match in _GENE_LIKE_RE.finditer(sentence):
-        token = match.group(0)
-        if token in _GENE_STOPWORDS:
-            continue
-        if token.startswith("X_"):
-            continue
-        entities.add(token)
+    for regex in (_GENE_LIKE_RE, _MIXED_CASE_GENE_RE):
+        for match in regex.finditer(sentence):
+            token = match.group(0)
+            if token in _GENE_STOPWORDS:
+                continue
+            if token.startswith("X_"):
+                continue
+            entities.add(token)
     return entities
 
 
