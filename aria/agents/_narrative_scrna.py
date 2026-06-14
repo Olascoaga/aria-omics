@@ -571,6 +571,18 @@ def summarize_scrna_text(findings: dict) -> str:
         ):
             method_desc += " and donor fixed effects for the paired design"
         alpha = da.get("significance_alpha", 0.10)
+        # T9: disclose the compositional-dependence assumption of the per-type
+        # CLR + BH approach (CLR values are sum-to-zero; per-type tests are not
+        # independent). The runtime method is unchanged.
+        if method == "donor_clr_ols_hc3":
+            lines.append(
+                "Compositional-dependence assumption: per-cell-type CLR tests "
+                "are fit independently and BH-corrected together, but CLR values "
+                "are sum-to-zero, so per-type abundance directions are not "
+                "independent and should be read jointly as one compositional "
+                "shift. A joint compositional model (e.g. scCODA or propeller) "
+                "would model this dependence directly."
+            )
         for comp_key, comp_info in (da.get("per_comparison") or {}).items():
             if comp_info.get("status") != "success":
                 lines.append(

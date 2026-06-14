@@ -398,9 +398,29 @@ def rna_diff_abundance(params: dict) -> dict:
 
         n_sig = sum(1 for r in rows if r["significant"])
         n_fisher = sum(1 for r in rows if r.get("model") == "fisher_exact_fallback")
+        n_clr = sum(1 for r in rows if r.get("fdr_included"))
         degraded = n_fisher > 0
         degradation_reason = None
         caveats = []
+        # T9: CLR components are sum-to-zero (compositionally dependent). We fit an
+        # independent OLS per cell type and BH-correct across them, which does NOT
+        # model that dependence: a genuine increase in one cell type mechanically
+        # forces apparent decreases in the others. Disclose the assumption so the
+        # per-type directions are read jointly, not as independent shifts. The
+        # runtime method is unchanged (a joint compositional model would replace
+        # it; out of scope here).
+        compositional_dependence_caveat = None
+        if n_clr > 0:
+            compositional_dependence_caveat = (
+                "Compositional dependence: per-cell-type CLR abundance tests are "
+                "fit independently and BH-corrected together, but CLR values are "
+                "sum-to-zero (compositionally dependent), so an increase in one "
+                "cell type mechanically forces apparent decreases in the others. "
+                "Interpret the per-type directions jointly as one compositional "
+                "shift, not as independent changes; a joint compositional model "
+                "(e.g. scCODA or propeller) would model this dependence directly."
+            )
+            caveats.append(compositional_dependence_caveat)
         if degraded:
             degradation_reason = (
                 f"{n_fisher} cell type(s) used Fisher exact as a cell-level "
@@ -431,6 +451,7 @@ def rna_diff_abundance(params: dict) -> dict:
             "degraded":       degraded,
             "confidence":     "degraded" if degraded else "standard",
             "degradation_reason": degradation_reason,
+            "compositional_dependence_caveat": compositional_dependence_caveat,
             "caveats":        caveats,
             "per_cell_type":  sorted(rows, key=_row_sort_key),
             "n_significant":  n_sig,
