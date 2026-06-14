@@ -30,6 +30,35 @@ def test_mad_bounds_log_space_keeps_lower_bound_nonnegative():
     assert hi > lo
 
 
+def test_mad_bounds_zero_mad_does_not_collapse_to_median():
+    """T6: when most cells share an identical value MAD=0, so the bounds collapse
+    to the median (zero width) and clip legitimate minimal variation. A minimum-
+    width fallback must keep a near-median cell while still removing a gross
+    outlier."""
+    from aria.scripts.rna_qc import _mad_bounds
+
+    # 10 cells at 2000 + 1 at 2050 + 1 gross outlier -> MAD over abs-devs is 0.
+    counts = [2000] * 10 + [2050, 200000]
+    lo, hi = _mad_bounds(counts, log_space=True)
+
+    # Zero-width bug would set hi == 2000 and discard the 2050 cell.
+    assert hi >= 2050           # legitimate minimal variation survives
+    assert hi < 200000          # the gross outlier is still removed
+    assert 0.0 <= lo < 2000     # lower bound stays below the bulk, non-negative
+
+
+def test_mad_bounds_floor_does_not_widen_legitimate_nonzero_mad():
+    """The minimum-width floor must only ever rescue a degenerate MAD=0; it must
+    not widen a healthy, non-degenerate spread."""
+    from aria.scripts.rna_qc import _mad_bounds
+
+    counts = [1000, 1200, 1500, 1800, 2000, 2500, 3000, 4000, 6000, 10000]
+    lo_floor, hi_floor = _mad_bounds(counts, log_space=True)
+    # Same call with the floor disabled must match (MAD is well above the floor).
+    lo_raw, hi_raw = _mad_bounds(counts, log_space=True, min_mad_rel=0.0)
+    assert (lo_floor, hi_floor) == (lo_raw, hi_raw)
+
+
 def _write_processed_qc_h5ad(tmp_path, name, *, mt_values, counts, genes):
     pytest = __import__("pytest")
     ad = pytest.importorskip("anndata")
@@ -131,8 +160,13 @@ def test_qc_applies_bilateral_mad_for_counts_and_genes(tmp_path, monkeypatch):
     assert result["status"] == "success"
     assert result["n_cells_before"] == 11
     assert result["n_cells_after"] == 10
-    assert result["max_counts_used"] == 2000.0
-    assert result["max_genes_used"] == 600.0
+    # T6: with a degenerate MAD=0 (10 identical + 1 outlier) the upper bound no
+    # longer collapses to the exact median; the minimum-width fallback widens it
+    # above the bulk while still removing the gross outlier.
+    assert result["max_counts_used"] > 2000.0
+    assert result["max_counts_used"] < 200000.0
+    assert result["max_genes_used"] > 600.0
+    assert result["max_genes_used"] < 9000.0
 
     filtered = ad.read_h5ad(result["output_path"])
     assert "outlier_cell_10" not in set(filtered.obs_names)

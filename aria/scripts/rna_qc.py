@@ -130,10 +130,11 @@ def _cache_params(params: dict) -> dict:
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
-    return cached.get("cache_version") == 5 and cached.get("cache_params") == expected
+    return cached.get("cache_version") == 6 and cached.get("cache_params") == expected
 
 
-def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False):
+def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False,
+                min_mad_rel: float = 0.05):
     """Median ± n_mad·MAD outlier bounds.
 
     N-QC1: `total_counts` / `n_genes_by_counts` are right-skewed (≈log-normal),
@@ -141,6 +142,15 @@ def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False):
     cells). With `log_space=True` the MAD is computed on `log1p(values)` and the
     bounds are mapped back with `expm1` — the sc-best-practices convention — which
     is symmetric on the log scale and never returns a negative lower bound.
+
+    T6: when most cells share an identical value the MAD is 0, collapsing the
+    bounds to the median (zero width) and clipping legitimate minimal technical
+    variation. A degenerate MAD is floored to a minimum width relative to the
+    median (`min_mad_rel`·|median|, computed in the working — possibly log —
+    space). The floor only ever WIDENS the bounds (so it can only ever keep MORE
+    cells, never filter more aggressively) and, being a fixed fraction of the
+    median, never pushes the log-space lower bound below 0. Set `min_mad_rel=0`
+    to disable. A healthy non-degenerate MAD (≫ floor) is unaffected.
     """
     import numpy as np
 
@@ -149,6 +159,7 @@ def _mad_bounds(values, n_mad: float = 3.0, *, log_space: bool = False):
         v = np.log1p(v)
     median = float(np.nanmedian(v))
     mad = float(np.nanmedian(np.abs(v - median)))
+    mad = max(mad, abs(median) * float(min_mad_rel))
     lo, hi = median - n_mad * mad, median + n_mad * mad
     if log_space:
         # These metrics are integer counts; round the back-transformed bounds to
@@ -585,7 +596,7 @@ def rna_qc(params: dict) -> dict:
             "mean": round(float(adata.obs["pct_counts_mt"].mean()), 3),
             "max":  round(float(adata.obs["pct_counts_mt"].max()), 3),
         },
-        "cache_version": 5,
+        "cache_version": 6,
         "cache_params": cache_params,
     }
     try:

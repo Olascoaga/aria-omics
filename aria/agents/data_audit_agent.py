@@ -157,38 +157,101 @@ _MEX_COMPONENT_RE = re.compile(
     r"(matrix\.mtx|barcodes\.tsv|genes\.tsv|features\.tsv)(\.gz)?$", re.IGNORECASE)
 
 
+_MEX_BARCODES_RE = re.compile(r"barcodes\.tsv(\.gz)?$", re.IGNORECASE)
+_MEX_FEATURES_RE = re.compile(r"(genes|features)\.tsv(\.gz)?$", re.IGNORECASE)
+
+
+def _mex_dir_components(paths: list) -> dict:
+    """Map each directory that holds a ``matrix.mtx`` to the MEX components it
+    contains: ``{dir: {"matrix", "barcodes", "features"}}`` (set membership).
+
+    Pure helper over path strings so completeness can be reasoned about (and
+    unit-tested) without touching disk. Shared by ``_collapse_mex_directories``
+    (T5: collapse only complete triplets) and ``_incomplete_mex_warnings``.
+    """
+    from pathlib import Path
+
+    dirs: dict = {}
+    for p in (paths or []):
+        pp = Path(str(p))
+        name = pp.name
+        if not _MEX_COMPONENT_RE.search(name):
+            continue
+        parent = str(pp.parent)
+        comps = dirs.setdefault(parent, set())
+        if _MEX_MATRIX_RE.search(name):
+            comps.add("matrix")
+        elif _MEX_BARCODES_RE.search(name):
+            comps.add("barcodes")
+        elif _MEX_FEATURES_RE.search(name):
+            comps.add("features")
+    # Only directories that actually contain a matrix.mtx are MEX candidates.
+    return {d: c for d, c in dirs.items() if "matrix" in c}
+
+
 def _collapse_mex_directories(paths: list) -> list:
-    """E2E-1: collapse 10x MEX component files into a single sample directory.
+    """E2E-1 + T5: collapse a COMPLETE 10x MEX triplet into one sample directory.
 
     A 10x MEX sample is a directory holding ``matrix.mtx`` plus ``barcodes.tsv``
     and ``genes.tsv``/``features.tsv`` (optionally gzipped). Classifying each
     component as its own scRNA "file" makes the per-sample QC path treat
-    ``barcodes.tsv`` as a sample and abort (PerSampleQCFailed). Here, any
-    directory that contains a ``matrix.mtx`` collapses its component files into a
-    single entry = that directory, which ``rna_qc`` loads as one MEX sample.
+    ``barcodes.tsv`` as a sample and abort (PerSampleQCFailed). Here, a directory
+    that holds the COMPLETE triplet collapses its component files into a single
+    entry = that directory, which ``rna_qc`` loads as one MEX sample.
+
+    T5: a directory with ``matrix.mtx`` but MISSING ``barcodes`` or
+    ``features``/``genes`` is NOT a loadable sample, so it is left untouched (its
+    component files stay) and surfaced via ``_incomplete_mex_warnings`` at CP1,
+    rather than collapsed and failing late in ``sc.read_10x_mtx``.
+
     Non-MEX inputs (``.h5ad``/``.h5``) and loose files are left untouched. Order
-    is preserved and each MEX directory is emitted once.
+    is preserved and each collapsed MEX directory is emitted once.
     """
     from pathlib import Path
 
     paths = [str(p) for p in (paths or [])]
-    mex_dirs = {
-        str(Path(p).parent) for p in paths
-        if _MEX_MATRIX_RE.search(Path(p).name)
+    components = _mex_dir_components(paths)
+    complete_dirs = {
+        d for d, comps in components.items()
+        if {"matrix", "barcodes", "features"} <= comps
     }
-    if not mex_dirs:
+    if not complete_dirs:
         return paths
     out: list = []
     seen: set = set()
     for p in paths:
         pp = Path(p)
-        if str(pp.parent) in mex_dirs and _MEX_COMPONENT_RE.search(pp.name):
+        if str(pp.parent) in complete_dirs and _MEX_COMPONENT_RE.search(pp.name):
             if str(pp.parent) not in seen:
                 out.append(str(pp.parent))
                 seen.add(str(pp.parent))
             continue
         out.append(p)
     return out
+
+
+def _incomplete_mex_warnings(paths: list) -> list:
+    """T5: warn at CP1 for every directory that has a ``matrix.mtx`` but is
+    missing the ``barcodes`` and/or ``features``/``genes`` component, naming what
+    is missing. An incomplete MEX cannot be loaded as a sample, so this surfaces
+    the problem early instead of failing late inside ``rna_qc``.
+    """
+    warnings: list = []
+    for d in sorted(_mex_dir_components(paths)):
+        comps = _mex_dir_components(paths)[d]
+        missing = []
+        if "barcodes" not in comps:
+            missing.append("barcodes.tsv")
+        if "features" not in comps:
+            missing.append("features.tsv/genes.tsv")
+        if not missing:
+            continue
+        warnings.append(
+            f"Incomplete 10x MEX directory '{d}': found matrix.mtx but missing "
+            f"{', '.join(missing)}. It cannot be loaded as a scRNA sample; "
+            f"provide the missing component(s) or remove the directory."
+        )
+    return warnings
 
 
 def default_genome_for_organism(organism: str | None) -> str | None:
@@ -408,6 +471,7 @@ class DataAuditAgent(BaseAgent):
         warnings = self._validate_design(classified)
         warnings.extend(self._scan_report_warnings())
         warnings.extend(self._assay_detection_warnings())
+        warnings.extend(getattr(self, "_mex_warnings", []))
         if ignored_intermediates:
             warnings.append(
                 "Ignored ARIA intermediate h5ad output(s) during data audit: "
@@ -712,8 +776,13 @@ class DataAuditAgent(BaseAgent):
                 classified.setdefault("unknown", []).append(str(f))
 
         # E2E-1: a 10x MEX triplet is ONE sample (its directory), not 3 files.
+        # T5: an incomplete MEX (matrix.mtx without barcodes/features) is NOT
+        # collapsed and is reported at CP1 with the missing component named.
         if classified.get("scRNA"):
+            self._mex_warnings = _incomplete_mex_warnings(classified["scRNA"])
             classified["scRNA"] = _collapse_mex_directories(classified["scRNA"])
+        else:
+            self._mex_warnings = []
 
         return classified
 
