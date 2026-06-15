@@ -11,7 +11,7 @@ from rich.console import Console
 
 from aria.runtime.experiment_view import (
     ExperimentSnapshot, FindingView, CheckpointView, LedgerNodeView,
-    ProgressEvent,
+    ModalityCardView, ProgressEvent,
 )
 from aria.ui import render
 
@@ -120,3 +120,28 @@ def test_ledger_empty_state():
     out = _capture(render.render_ledger(_snap(ledger=[])))
     assert "no ledger yet" in out
     assert "0 divergence" in out
+
+
+def test_readiness_cards_render():
+    cards = [
+        ModalityCardView(modality="scRNA", validation_level="validated",
+                         status="green", dispatch_policy="allowed", reason=""),
+        ModalityCardView(modality="scATAC", validation_level="alpha",
+                         status="yellow", dispatch_policy="requires_ack",
+                         reason="alpha lane",
+                         findings=["scATAC requires explicit acknowledgement."]),
+        ModalityCardView(modality="bulk_ATAC", validation_level="scaffold",
+                         status="red", dispatch_policy="blocked",
+                         reason="not validated for dispatch"),
+    ]
+    out = _capture(render.render_readiness(_snap(readiness=cards)))
+    assert "scRNA" in out and "allowed" in out
+    assert "scATAC" in out and "requires_ack" in out
+    assert "alpha" in out
+    assert "bulk_ATAC" in out and "blocked" in out
+    assert "requires explicit acknowledgement" in out
+
+
+def test_readiness_empty_state():
+    out = _capture(render.render_readiness(_snap(readiness=[])))
+    assert "No readiness cards yet" in out

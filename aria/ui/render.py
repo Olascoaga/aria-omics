@@ -32,6 +32,9 @@ _LEDGER_STATUS_STYLE = {
     "ran": "green", "skipped": "yellow", "not_run": "red", "error": "red bold",
 }
 
+_READINESS_STATUS_STYLE = {"green": "green", "yellow": "yellow", "red": "red"}
+_READINESS_MARK = {"green": "●", "yellow": "▲", "red": "■"}
+
 
 def _fmt_duration(seconds: float) -> str:
     seconds = int(max(0.0, seconds))
@@ -175,3 +178,30 @@ def render_ledger(snap: ExperimentSnapshot) -> Panel:
     title = (f"[bold]Run ledger[/]  "
              f"[{'red' if n_div else 'green'}]{n_div} divergence(s)[/]")
     return Panel(table, title=title, border_style=border, padding=(0, 1))
+
+
+def render_readiness(snap: ExperimentSnapshot) -> Panel:
+    """U3 — per-modality readiness cards (green/yellow/red), registry-driven."""
+    t = Text()
+    if not snap.readiness:
+        t.append("No readiness cards yet "
+                 "(computed at the quality-audit checkpoint).", style="dim")
+        return Panel(t, title="[bold]Modality readiness[/]",
+                     border_style="dim", padding=(0, 1))
+
+    worst = "green"
+    for card in snap.readiness:
+        style = _READINESS_STATUS_STYLE.get(card.status, "white")
+        mark = _READINESS_MARK.get(card.status, "?")
+        if card.status == "red" or (card.status == "yellow" and worst != "red"):
+            worst = card.status
+        t.append(f"{mark} {card.modality}", style=f"bold {style}")
+        t.append(f"  [{card.validation_level}] ", style="dim")
+        t.append(f"{card.dispatch_policy}\n", style=style)
+        if card.reason:
+            t.append(f"    {card.reason}\n", style="dim")
+        for msg in card.findings[:3]:
+            t.append(f"    · {msg}\n", style=style)
+    border = _READINESS_STATUS_STYLE.get(worst, "green")
+    return Panel(t, title="[bold]Modality readiness[/]", border_style=border,
+                 padding=(0, 1))

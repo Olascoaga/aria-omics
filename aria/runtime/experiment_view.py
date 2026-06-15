@@ -111,6 +111,16 @@ class LedgerNodeView:
 
 
 @dataclass(frozen=True)
+class ModalityCardView:
+    modality: str
+    validation_level: str    # validated | alpha | beta | scaffold | unknown
+    status: str              # green | yellow | red
+    dispatch_policy: str     # allowed | requires_ack | blocked
+    reason: str
+    findings: list[str] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
 class ExperimentSnapshot:
     experiment_id: str
     phase: str               # audit | design | dispatch | report | done
@@ -123,6 +133,9 @@ class ExperimentSnapshot:
     done: bool
     elapsed_s: float
     silent_s: float
+    # U3 — per-modality readiness cards (from exp_context); defaulted so older
+    # constructions stay valid.
+    readiness: list[ModalityCardView] = field(default_factory=list)
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
@@ -218,6 +231,36 @@ def _ledger_views(session: Any) -> list[LedgerNodeView]:
     return out
 
 
+def _readiness_views(session: Any) -> list[ModalityCardView]:
+    if session is None:
+        return []
+    exp_ctx = getattr(session, "exp_context", None) or {}
+    cards = exp_ctx.get("readiness_cards")
+    if not cards:
+        cards = (exp_ctx.get("capability_matrix") or {}).get("cards")
+    if not isinstance(cards, dict):
+        return []
+    out: list[ModalityCardView] = []
+    for modality, card in cards.items():
+        if not isinstance(card, dict):
+            continue
+        findings = [
+            str(f.get("message", ""))
+            for f in card.get("findings", []) or []
+            if isinstance(f, dict) and f.get("message")
+        ]
+        out.append(ModalityCardView(
+            modality=str(card.get("modality", modality)),
+            validation_level=str(card.get("validation_level", "unknown")),
+            status=str(card.get("status", "green")),
+            dispatch_policy=str(card.get("dispatch_policy", "allowed")),
+            reason=str(card.get("reason", "")),
+            findings=findings,
+        ))
+    out.sort(key=lambda c: c.modality)
+    return out
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 def build_snapshot(experiment_id: str, *,
@@ -303,4 +346,5 @@ def build_snapshot(experiment_id: str, *,
         done=done,
         elapsed_s=elapsed_s,
         silent_s=silent_s,
+        readiness=_readiness_views(session),
     )

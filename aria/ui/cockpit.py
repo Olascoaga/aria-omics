@@ -41,11 +41,13 @@ class AriaCockpit(App):
     Static { height: auto; }
     #findings { height: 1fr; }
     #ledger { height: 1fr; }
+    #readiness { height: 1fr; }
     """
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("l", "toggle_ledger", "Ledger"),
+        Binding("r", "toggle_readiness", "Readiness"),
         Binding("e", "edit_design", "Edit groups"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
@@ -71,7 +73,7 @@ class AriaCockpit(App):
         self._poll_interval = poll_interval
         self._exit_on_done = exit_on_done
         self._snap: Optional[ExperimentSnapshot] = None
-        self._show_ledger = False
+        self._center_mode = "findings"   # findings | ledger | readiness
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
@@ -80,6 +82,7 @@ class AriaCockpit(App):
                 Static(id="timeline"),
                 Static(id="findings"),
                 Static(id="ledger"),
+                Static(id="readiness"),
                 id="center",
             ),
             Vertical(Static(id="checkpoint"), id="right"),
@@ -88,9 +91,17 @@ class AriaCockpit(App):
         yield Footer()
 
     def on_mount(self) -> None:
-        self.query_one("#ledger", Static).display = False
+        self._apply_center_mode()
         self.refresh_snapshot()
         self.set_interval(self._poll_interval, self.refresh_snapshot)
+
+    def _apply_center_mode(self) -> None:
+        self.query_one("#findings", Static).display = \
+            self._center_mode == "findings"
+        self.query_one("#ledger", Static).display = \
+            self._center_mode == "ledger"
+        self.query_one("#readiness", Static).display = \
+            self._center_mode == "readiness"
 
     # ── Rendering ────────────────────────────────────────────────────────────
     def refresh_snapshot(self) -> None:
@@ -115,6 +126,8 @@ class AriaCockpit(App):
         self.query_one("#timeline", Static).update(render.render_timeline(snap))
         self.query_one("#findings", Static).update(render.render_findings(snap))
         self.query_one("#ledger", Static).update(render.render_ledger(snap))
+        self.query_one("#readiness", Static).update(
+            render.render_readiness(snap))
         self.query_one("#checkpoint", Static).update(
             render.render_checkpoint(snap))
 
@@ -123,9 +136,14 @@ class AriaCockpit(App):
 
     # ── Actions ──────────────────────────────────────────────────────────────
     def action_toggle_ledger(self) -> None:
-        self._show_ledger = not self._show_ledger
-        self.query_one("#ledger", Static).display = self._show_ledger
-        self.query_one("#findings", Static).display = not self._show_ledger
+        self._center_mode = "findings" if self._center_mode == "ledger" \
+            else "ledger"
+        self._apply_center_mode()
+
+    def action_toggle_readiness(self) -> None:
+        self._center_mode = "findings" if self._center_mode == "readiness" \
+            else "readiness"
+        self._apply_center_mode()
 
     def action_edit_design(self) -> None:
         """Open the U2 tabular design editor for the groups checkpoint (CP2.1)."""

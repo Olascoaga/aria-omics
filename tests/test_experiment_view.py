@@ -192,3 +192,30 @@ def test_ledger_empty_without_session():
     _status(eid, "scrna_agent", "working", 0.4)
     snap = build_snapshot(eid)
     assert snap.ledger == []
+
+
+def test_readiness_maps_from_session():
+    eid = _eid()
+    _status(eid, "scrna_agent", "working", 0.4)
+    session = ExperimentSession(experiment_id=eid)
+    session.exp_context = {"readiness_cards": {
+        "scRNA": {"modality": "scRNA", "validation_level": "validated",
+                  "status": "green", "dispatch_policy": "allowed",
+                  "reason": "", "findings": []},
+        "scATAC": {"modality": "scATAC", "validation_level": "alpha",
+                   "status": "yellow", "dispatch_policy": "requires_ack",
+                   "reason": "alpha lane",
+                   "findings": [{"message": "requires ack", "severity": "warning"}]},
+    }}
+    snap = build_snapshot(eid, session=session)
+    cards = {c.modality: c for c in snap.readiness}
+    assert cards["scATAC"].dispatch_policy == "requires_ack"
+    assert cards["scATAC"].validation_level == "alpha"
+    assert cards["scATAC"].findings == ["requires ack"]
+    assert cards["scRNA"].status == "green"
+
+
+def test_readiness_empty_without_session():
+    eid = _eid()
+    _status(eid, "scrna_agent", "working", 0.4)
+    assert build_snapshot(eid).readiness == []

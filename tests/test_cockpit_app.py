@@ -163,3 +163,25 @@ def test_ledger_toggle_shows_and_hides():
             assert ledger.display is False
 
     asyncio.run(_run())
+
+
+def test_readiness_toggle_shows_and_hides():
+    async def _run():
+        app = AriaCockpit(lambda: _snap(pending=None), lambda **k: None,
+                          experiment_id="e1", exit_on_done=False)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static
+            readiness = app.query_one("#readiness", Static)
+            findings = app.query_one("#findings", Static)
+            assert readiness.display is False
+            await pilot.press("r")
+            await pilot.pause()
+            assert readiness.display is True
+            assert findings.display is False
+            await pilot.press("r")
+            await pilot.pause()
+            assert readiness.display is False
+            assert findings.display is True
+
+    asyncio.run(_run())
