@@ -487,6 +487,23 @@ def _resolve_geo_accession(accession: str) -> dict | None:
     return result
 
 
+def _resolve_textual_intake_data(raw: str) -> tuple[Path, dict | None] | None:
+    """Resolve a Textual intake data value into the classic run inputs."""
+    raw = raw.strip()
+    if _GEO_ACCESSION_RE.match(raw):
+        geo_result = _resolve_geo_accession(raw.upper())
+        if geo_result:
+            return Path(geo_result["local_dir"]), geo_result
+        return None
+
+    path = Path(raw).expanduser().resolve()
+    if path.exists() and path.is_dir():
+        return path, None
+
+    console.print(f"\n  [{C['red']}]Directory not found: {path}[/]\n")
+    return None
+
+
 def ask_biological_question() -> str:
     print_section("Biological Question", C['cyan'])
     console.print(
@@ -914,6 +931,93 @@ def _use_cockpit(reproducible_mode: bool) -> bool:
         return False
 
 
+def _launch_context(data_dir: Path, question: str,
+                    geo_meta: dict | None,
+                    reproducible_mode: bool) -> dict:
+    ctx: dict = {
+        "data_dir": str(data_dir),
+        "user_question": question,
+        "reproducible_mode": reproducible_mode,
+    }
+    if geo_meta:
+        ctx["geo_metadata"] = geo_meta
+    return ctx
+
+
+def _data_summary_lines(data_dir: Path, geo_meta: dict | None) -> str:
+    if not geo_meta:
+        return f"  [{C['cyan']}]Data:[/]          [{C['dim']}]{data_dir}[/]"
+
+    acc = geo_meta.get("accession", "")
+    title = geo_meta.get("title", "")[:70]
+    org = geo_meta.get("organism", "")
+    dtype = geo_meta.get("data_type", "")
+    n_sam = geo_meta.get("n_samples", "")
+    return (
+        f"  [{C['cyan']}]Accession:[/]     [{C['dim']}]{acc}[/]\n"
+        f"  [{C['cyan']}]Title:[/]         [{C['text']}]{title}[/]\n"
+        + (f"  [{C['cyan']}]Organism:[/]     [{C['dim']}]{org}[/]\n" if org else "")
+        + (f"  [{C['cyan']}]Type / Samples:[/] [{C['dim']}]{dtype}  ·  {n_sam} samples[/]\n" if dtype or n_sam else "")
+        + f"  [{C['cyan']}]Local cache:[/]  [{C['dim']}]{data_dir}[/]"
+    )
+
+
+def _print_launch_summary(experiment_id: str, data_dir: Path,
+                          geo_meta: dict | None, question: str) -> None:
+    console.print(Panel(
+        f"  [{C['cyan']}]Experiment ID:[/] [{C['dim']}]{experiment_id}[/]\n"
+        + _data_summary_lines(data_dir, geo_meta) + "\n"
+        + f"  [{C['cyan']}]Question:[/]      [{C['text']}]{question}[/]",
+        border_style=C['border'],
+        padding=(0, 1),
+    ))
+
+
+def _run_cockpit_front_door(memory: ARIAMemory,
+                            orchestrator: OrchestratorAgent,
+                            reproducible_mode: bool) -> bool:
+    """Run the Textual intake first, then transition to the cockpit run view."""
+    from aria.ui.cockpit import launch_cockpit
+    from aria.ui.intake import launch_intake
+
+    intake = launch_intake(
+        startup_context=memory.startup_context(),
+        experiments=memory.list_wings(),
+        version=VERSION,
+    )
+    if intake is None:
+        console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
+        return True
+
+    resolved = _resolve_textual_intake_data(intake.data_input)
+    if resolved is None:
+        return True
+    data_dir, geo_meta = resolved
+    experiment_id = str(uuid.uuid4())[:12]
+    ctx = _launch_context(
+        data_dir, intake.question, geo_meta, reproducible_mode
+    )
+    launch_cockpit(orchestrator, experiment_id, ctx)
+    _print_final_summary(experiment_id)
+    return True
+
+
+def _print_llm_runtime_error(exc: RuntimeError) -> bool:
+    """Return True if a RuntimeError was handled as an LLM config failure."""
+    msg = str(exc)
+    if "models failed for tier" not in msg and "No model is configured" not in msg:
+        return False
+    from aria.llm.provider import diagnose_llm_failure
+    console.print(Panel(
+        diagnose_llm_failure(exc),
+        border_style=C['red'],
+        title=f"[{C['red']}]LLM provider unavailable[/]",
+        title_align="left",
+        padding=(0, 1),
+    ))
+    return True
+
+
 def main():
     args = [arg for arg in sys.argv[1:] if arg != "--reproducible"]
     if args and args[0] == "doctor":
@@ -934,85 +1038,59 @@ def main():
     memory       = ARIAMemory()
     orchestrator = OrchestratorAgent(memory)
 
-    os.system("clear" if os.name != "nt" else "cls")
-    print_banner()
-
-    startup_ctx = memory.startup_context()
-    if "No experiments" not in startup_ctx:
-        console.print(Panel(
-            Text(startup_ctx, style=C['muted']),
-            border_style=C['border'],
-            title=f"[{C['dim']}]Memory[/]",
-            title_align="left",
-            padding=(0, 1),
-        ))
-        console.print()
-
-    show_existing_experiments(memory)
-    print_section("New Analysis", C['cyan'])
-
-    action = _prompt_action()
-    if action == "exit":
-        console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
-        return
-
-    data_dir, geo_meta = select_data_directory()
-    question           = ask_biological_question()
-    experiment_id      = str(uuid.uuid4())[:12]
-
-    console.print()
-    if geo_meta:
-        acc   = geo_meta.get("accession", "")
-        title = geo_meta.get("title", "")[:70]
-        org   = geo_meta.get("organism", "")
-        dtype = geo_meta.get("data_type", "")
-        n_sam = geo_meta.get("n_samples", "")
-        data_line = (
-            f"  [{C['cyan']}]Accession:[/]     [{C['dim']}]{acc}[/]\n"
-            f"  [{C['cyan']}]Title:[/]         [{C['text']}]{title}[/]\n"
-            + (f"  [{C['cyan']}]Organism:[/]     [{C['dim']}]{org}[/]\n" if org else "")
-            + (f"  [{C['cyan']}]Type / Samples:[/] [{C['dim']}]{dtype}  ·  {n_sam} samples[/]\n" if dtype or n_sam else "")
-            + f"  [{C['cyan']}]Local cache:[/]  [{C['dim']}]{data_dir}[/]"
-        )
-    else:
-        data_line = f"  [{C['cyan']}]Data:[/]          [{C['dim']}]{data_dir}[/]"
-
-    console.print(Panel(
-        f"  [{C['cyan']}]Experiment ID:[/] [{C['dim']}]{experiment_id}[/]\n"
-        + data_line + "\n"
-        + f"  [{C['cyan']}]Question:[/]      [{C['text']}]{question}[/]",
-        border_style=C['border'],
-        padding=(0, 1),
-    ))
-    console.print()
-
-    _discard_queued_stdin_lines()
-    if not Confirm.ask(
-        f"  [bold {C['cyan']}]Launch ARIA?[/]",
-        default=True, console=console
-    ):
-        console.print(f"\n  [{C['muted']}]Cancelled.[/]\n")
-        return
-
-    ctx: dict = {
-        "data_dir": str(data_dir),
-        "user_question": question,
-        "reproducible_mode": reproducible_mode,
-    }
-    if geo_meta:
-        ctx["geo_metadata"] = geo_meta
-
     try:
         if _use_cockpit(reproducible_mode):
-            from aria.ui.cockpit import launch_cockpit
-            launch_cockpit(orchestrator, experiment_id, ctx)
-            _print_final_summary(experiment_id)
-        else:
-            run_analysis(
-                orchestrator=orchestrator,
-                experiment_id=experiment_id,
-                context=ctx,
-            )
+            if _run_cockpit_front_door(
+                memory, orchestrator, reproducible_mode
+            ):
+                return
+
+        os.system("clear" if os.name != "nt" else "cls")
+        print_banner()
+
+        startup_ctx = memory.startup_context()
+        if "No experiments" not in startup_ctx:
+            console.print(Panel(
+                Text(startup_ctx, style=C['muted']),
+                border_style=C['border'],
+                title=f"[{C['dim']}]Memory[/]",
+                title_align="left",
+                padding=(0, 1),
+            ))
+            console.print()
+
+        show_existing_experiments(memory)
+        print_section("New Analysis", C['cyan'])
+
+        action = _prompt_action()
+        if action == "exit":
+            console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
+            return
+
+        data_dir, geo_meta = select_data_directory()
+        question           = ask_biological_question()
+        experiment_id      = str(uuid.uuid4())[:12]
+
+        console.print()
+        _print_launch_summary(experiment_id, data_dir, geo_meta, question)
+        console.print()
+
+        _discard_queued_stdin_lines()
+        if not Confirm.ask(
+            f"  [bold {C['cyan']}]Launch ARIA?[/]",
+            default=True, console=console
+        ):
+            console.print(f"\n  [{C['muted']}]Cancelled.[/]\n")
+            return
+
+        ctx = _launch_context(
+            data_dir, question, geo_meta, reproducible_mode
+        )
+        run_analysis(
+            orchestrator=orchestrator,
+            experiment_id=experiment_id,
+            context=ctx,
+        )
     except KeyboardInterrupt:
         console.print(
             f"\n\n  [{C['amber']}]Interrupted. "
@@ -1021,17 +1099,7 @@ def main():
     except RuntimeError as exc:
         # An unreachable LLM provider should give an actionable hint, not a raw
         # traceback (real-run bug 2026-06-04).
-        msg = str(exc)
-        if "models failed for tier" in msg or "No model is configured" in msg:
-            from aria.llm.provider import diagnose_llm_failure
-            console.print(Panel(
-                diagnose_llm_failure(exc),
-                border_style=C['red'],
-                title=f"[{C['red']}]LLM provider unavailable[/]",
-                title_align="left",
-                padding=(0, 1),
-            ))
-        else:
+        if not _print_llm_runtime_error(exc):
             raise
     finally:
         memory.close()

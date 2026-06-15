@@ -803,6 +803,49 @@ def test_cockpit_is_selected_on_interactive_tty(monkeypatch):
     assert tui._use_cockpit(reproducible_mode=False) is True
 
 
+def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp_path):
+    litellm_stub = types.ModuleType("litellm")
+    litellm_stub.completion = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
+
+    from aria import tui
+
+    class FakeMemory:
+        def startup_context(self):
+            return "No experiments yet"
+
+        def list_wings(self):
+            return []
+
+    class FakeIntake:
+        data_input = str(tmp_path)
+        question = "What changed?"
+
+    intake_stub = types.ModuleType("aria.ui.intake")
+    intake_stub.launch_intake = lambda **kwargs: FakeIntake()
+    cockpit_stub = types.ModuleType("aria.ui.cockpit")
+    calls: list[dict] = []
+    cockpit_stub.launch_cockpit = lambda orchestrator, experiment_id, ctx: calls.append(ctx)
+    monkeypatch.setitem(sys.modules, "aria.ui.intake", intake_stub)
+    monkeypatch.setitem(sys.modules, "aria.ui.cockpit", cockpit_stub)
+    monkeypatch.setattr(
+        tui, "_prompt_action",
+        lambda: (_ for _ in ()).throw(AssertionError("legacy prompt called")),
+    )
+    monkeypatch.setattr(tui, "_print_final_summary", lambda experiment_id: None)
+
+    handled = tui._run_cockpit_front_door(
+        FakeMemory(), object(), reproducible_mode=False
+    )
+
+    assert handled is True
+    assert calls == [{
+        "data_dir": str(tmp_path),
+        "user_question": "What changed?",
+        "reproducible_mode": False,
+    }]
+
+
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():
     from aria.agents.data_audit_agent import DataAuditAgent
 

@@ -18,6 +18,7 @@ from aria.runtime.experiment_view import (  # noqa: E402
     ExperimentSnapshot, CheckpointView,
 )
 from aria.ui.cockpit import AriaCockpit  # noqa: E402
+from aria.ui.intake import AriaIntakeApp, IntakeResult  # noqa: E402
 
 
 def _snap(*, pending=None, done=False, ledger=None) -> ExperimentSnapshot:
@@ -207,3 +208,42 @@ def test_resources_toggle_shows_and_hides():
             assert findings.display is True
 
     asyncio.run(_run())
+
+
+def test_intake_submits_data_and_question(tmp_path):
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input, TextArea
+            app.query_one("#data-input", Input).value = str(tmp_path)
+            app.query_one("#question-input", TextArea).load_text(
+                "Which cell types differ?"
+            )
+            app.action_start()
+            await pilot.pause()
+        return app.submitted
+
+    submitted = asyncio.run(_run())
+
+    assert submitted == IntakeResult(
+        data_input=str(tmp_path),
+        question="Which cell types differ?",
+    )
+
+
+def test_intake_requires_question(tmp_path):
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input
+            app.query_one("#data-input", Input).value = str(tmp_path)
+            app.action_start()
+            await pilot.pause()
+            return app.submitted, app.status_message
+
+    submitted, status = asyncio.run(_run())
+
+    assert submitted is None
+    assert "biological question" in status
