@@ -132,7 +132,9 @@ def _scatac_qc(files: list, genome: str,
         # here. TSS enrichment (needs a reference TSS + snapatac2/episcanpy) and
         # FRiP (needs called peaks) are reported as not-computed rather than
         # fabricated (ADR-002).
-        tss_enrichment = _compute_tss_enrichment(frag_file, genome)  # None scaffold
+        # W0.5: real TSS enrichment (snapatac2 + governed annotation); returns
+        # (value, reason). reason carries the concrete not-computed cause.
+        tss_enrichment, tss_reason = _compute_tss_enrichment(frag_file, genome)
         frag_sizes = _compute_fragment_sizes(frag_file)
 
         mito_chr   = "chrM" if "sapiens" in organism.lower() else "chrMT"
@@ -154,8 +156,8 @@ def _scatac_qc(files: list, genome: str,
 
         if tss_enrichment is None:
             not_computed.append(
-                "tss_enrichment (requires a reference TSS annotation + "
-                "snapatac2/episcanpy)"
+                f"tss_enrichment ({tss_reason})" if tss_reason
+                else "tss_enrichment (not computed)"
             )
         elif tss_enrichment < MIN_TSS:
             qc_failures.append(
@@ -187,8 +189,7 @@ def _scatac_qc(files: list, genome: str,
         warnings.extend(qc_failures)
         if not_computed:
             warnings.append(
-                "Scaffold QC did not compute: " + "; ".join(not_computed)
-                + ". These need the v4.6 chromatin stack and peak calling."
+                "QC metrics not computed: " + "; ".join(not_computed) + "."
             )
         if frag_sizes.get("scan_truncated"):
             warnings.append(
@@ -439,15 +440,55 @@ _SIZE_SAMPLE_LIMIT = 100_000   # fragments kept for the size distribution
 
 
 def _compute_tss_enrichment(frag_file: str, genome: str):
+    """REAL TSS enrichment (scATAC P0 W0.5): per-cell TSSe via snapatac2 + the
+    assembly's gene annotation, reported as the sample-level MEDIAN. Never
+    fabricated, never silent egress.
+
+    Returns ``(value|None, reason|None)``:
+      - value = median per-cell TSSe when snapatac2 + a resolvable annotation are
+        available;
+      - None + a concrete reason when the assembly is unknown, snapatac2 is
+        missing, egress is disabled (air-gapped) and the annotation would need a
+        download, or the computation fails.
+
+    The annotation comes from ``snap.genome.<attr>`` (governed auto-fetch, cached);
+    under ``ARIA_AIR_GAPPED`` ARIA does not fetch it (W-PRIV) and skips honestly.
     """
-    TSS enrichment requires a reference TSS annotation for the genome plus a
-    real signal-vs-background computation (snapatac2 / episcanpy). ARIA does
-    NOT fabricate it (ADR-002): until that machinery is wired in v4.6, the
-    metric is reported as not-computed (None) rather than an invented number.
-    The previous implementation returned `base + hash(frag_file) % 30`, a
-    function of file size and a string hash — not TSS signal.
-    """
-    return None
+    from aria.utils import genomes
+    attr = genomes.snapatac2_attr(genome)
+    if not attr:
+        return None, (f"no snapatac2 gene annotation for assembly "
+                      f"'{genome or 'unknown'}' (TSS enrichment needs a known "
+                      f"assembly)")
+
+    from aria.utils import privacy
+    if not privacy.egress_allowed():
+        return None, (f"air-gapped: the TSS annotation for '{genome}' is a "
+                      f"governed snapatac2 auto-fetch and was not downloaded "
+                      f"(set ARIA_AIR_GAPPED=0 or stage it to compute TSS "
+                      f"enrichment)")
+
+    try:
+        import snapatac2 as snap
+    except ImportError as e:
+        return None, (f"snapatac2 unavailable ({e}); TSS enrichment not computed")
+
+    try:
+        import numpy as np
+        gobj = getattr(snap.genome, attr, None)
+        if gobj is None:
+            return None, f"snapatac2 has no genome annotation '{attr}'"
+        adata = snap.pp.import_data(
+            frag_file, chrom_sizes=gobj, sorted_by_barcode=False, file=None,
+        )
+        snap.metrics.tsse(adata, gobj)
+        tsse = np.asarray(adata.obs["tsse"], dtype=float)
+        tsse = tsse[np.isfinite(tsse)]
+        if tsse.size == 0:
+            return None, "TSS enrichment produced no finite per-cell values"
+        return float(np.median(tsse)), None
+    except Exception as e:
+        return None, f"TSS enrichment computation failed: {e!s:.160}"
 
 
 def _compute_fragment_sizes(frag_file: str) -> dict:
@@ -538,14 +579,106 @@ def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float:
         return 0.05
 
 
-def _estimate_frip(frag_file: str):
+def _peaks_by_chrom_from_bed(peaks_bed: str) -> dict:
+    """Read a BED of called peaks into ``{chrom: sorted [(start, end), ...]}``."""
+    import gzip
+    out: dict = {}
+    opener = gzip.open if str(peaks_bed).endswith(".gz") else open
+    with opener(peaks_bed, "rt") as f:
+        for line in f:
+            if not line or line[0] in "#\n" or line.startswith("track"):
+                continue
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) < 3:
+                continue
+            try:
+                out.setdefault(parts[0], []).append((int(parts[1]), int(parts[2])))
+            except ValueError:
+                continue
+    for chrom in out:
+        out[chrom].sort()
+    return out
+
+
+def _frip_from_intervals(fragments, peaks_by_chrom) -> tuple:
+    """REAL FRiP (scATAC P0 W0.5): fraction of fragments overlapping any peak.
+
+    Pure / dependency-light so it is unit-testable without a fragments file or
+    snapatac2. ``fragments`` is an iterable of ``(chrom, start, end)``;
+    ``peaks_by_chrom`` is ``{chrom: sorted [(start, end), ...]}``. A fragment
+    overlaps a peak when ``start < peak_end`` and ``end > peak_start``. Returns
+    ``(frip|None, n_fragments)``; None when there are no fragments.
     """
-    FRiP (fraction of reads in peaks) is undefined before peak calling. ARIA
-    does not fabricate it (ADR-002): the previous implementation returned a
-    constant 0.35. Returns None here; the real value is produced after
-    `chromatin_peaks` calls peaks and reads are counted in/out of them.
-    """
-    return None
+    import bisect
+
+    starts_by_chrom = {c: [p[0] for p in iv] for c, iv in peaks_by_chrom.items()}
+    n_total = 0
+    n_in = 0
+    for chrom, start, end in fragments:
+        n_total += 1
+        ivs = peaks_by_chrom.get(chrom)
+        if not ivs:
+            continue
+        starts = starts_by_chrom[chrom]
+        # Peaks with peak_start < frag_end are candidates; scan left from there
+        # while peak_end > frag_start (intervals are short, overlap span small).
+        j = bisect.bisect_left(starts, end)
+        hit = False
+        k = j - 1
+        while k >= 0:
+            ps, pe = ivs[k]
+            if pe <= start:
+                # Could still be an earlier long peak, but peaks are short and
+                # sorted by start; once peak_start is far left of frag_start, stop.
+                if ps < start - 1_000_000:
+                    break
+                k -= 1
+                continue
+            if ps < end and pe > start:
+                hit = True
+                break
+            k -= 1
+        if hit:
+            n_in += 1
+    if n_total == 0:
+        return None, 0
+    return n_in / n_total, n_total
+
+
+def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
+                   scan_limit: int = 2_000_000):
+    """FRiP (fraction of reads in peaks). REAL when a called-peak BED is supplied
+    (scATAC P0 W0.5, via `_frip_from_intervals`); honest None without peaks (FRiP
+    is undefined before peak calling — never the old fabricated 0.35). The QC
+    fragments path has no peaks yet, so it passes None; a post-peak-calling caller
+    supplies `peaks_bed`."""
+    if not peaks_bed:
+        return None
+    try:
+        import gzip
+        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+        if not peaks_by_chrom:
+            return None
+
+        def _frag_iter():
+            opener = gzip.open if str(frag_file).endswith(".gz") else open
+            with opener(frag_file, "rt") as f:
+                for i, line in enumerate(f):
+                    if i >= scan_limit:
+                        break
+                    if not line or line[0] == "#":
+                        continue
+                    parts = line.rstrip("\n").split("\t")
+                    if len(parts) >= 3:
+                        try:
+                            yield parts[0], int(parts[1]), int(parts[2])
+                        except ValueError:
+                            continue
+
+        frip, _ = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
+        return frip
+    except Exception:
+        return None
 
 
 def _estimate_frip_bulk(data_type: str):

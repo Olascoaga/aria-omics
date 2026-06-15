@@ -24,9 +24,14 @@ def test_tss_and_frip_are_not_fabricated(tmp_path):
     f = tmp_path / "fragments.tsv"
     f.write_text("chr1\t100\t250\tAAA\t1\n")
     # TSS used to be base + hash(frag_file) % 30; FRiP a constant 0.35; the bulk
-    # FRiP a per-assay constant. All must now be not-computed.
-    assert _compute_tss_enrichment(str(f), "hg38") is None
-    assert _estimate_frip(str(f)) is None
+    # FRiP a per-assay constant. None may be a fabricated number.
+    # W0.5: _compute_tss_enrichment now returns (value, reason) and computes a REAL
+    # median TSSe via snapatac2 when available; here (no snapatac2/annotation in
+    # this env) the VALUE is honestly None with a concrete reason — never faked.
+    tss_value, tss_reason = _compute_tss_enrichment(str(f), "hg38")
+    assert tss_value is None
+    assert tss_reason   # honest not-computed reason, never a silent/fake value
+    assert _estimate_frip(str(f)) is None          # no peaks -> undefined -> None
     assert _estimate_frip_bulk("bulk_ATAC") is None
     assert _estimate_frip_bulk("ChIP") is None
 
