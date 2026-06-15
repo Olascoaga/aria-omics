@@ -17,7 +17,7 @@ pytest.importorskip("textual")
 from textual.app import App  # noqa: E402
 
 from aria.runtime.experiment_view import (  # noqa: E402
-    ExperimentSnapshot, CheckpointView, ExperimentHistoryView,
+    ArtifactView, ExperimentSnapshot, CheckpointView, ExperimentHistoryView,
 )
 from aria.ui.cockpit import AriaCockpit  # noqa: E402
 from aria.ui.intake import (  # noqa: E402
@@ -25,7 +25,8 @@ from aria.ui.intake import (  # noqa: E402
 )
 
 
-def _snap(*, pending=None, done=False, ledger=None) -> ExperimentSnapshot:
+def _snap(*, pending=None, done=False, ledger=None, artifacts=None,
+          report_path=None) -> ExperimentSnapshot:
     return ExperimentSnapshot(
         experiment_id="e1",
         phase="audit" if pending else ("done" if done else "dispatch"),
@@ -35,10 +36,11 @@ def _snap(*, pending=None, done=False, ledger=None) -> ExperimentSnapshot:
                                 "INSUFFICIENT": []},
         pending_checkpoint=pending,
         ledger=ledger or [],
-        report_path=None,
+        report_path=report_path,
         done=done,
         elapsed_s=1.0,
         silent_s=0.0,
+        artifacts=artifacts or [],
     )
 
 
@@ -234,6 +236,48 @@ def test_artifacts_toggle_shows_and_hides():
             assert findings.display is True
 
     asyncio.run(_run())
+
+
+def test_cockpit_stays_open_on_done_by_default_and_shows_artifacts():
+    artifacts = [
+        ArtifactView(category="report", name="report.html", status="present",
+                     detail="HTML report.", path="/tmp/report.html")
+    ]
+
+    async def _run():
+        app = AriaCockpit(
+            lambda: _snap(done=True, artifacts=artifacts,
+                          report_path="/tmp/report.html"),
+            lambda **k: None,
+            experiment_id="e1",
+        )
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static
+            artifacts_widget = app.query_one("#artifacts", Static)
+            findings = app.query_one("#findings", Static)
+            agents = app.query_one("#agents", Static)
+            assert app._exit_on_done is False
+            assert app._done_seen is True
+            assert app._center_mode == "artifacts"
+            assert artifacts_widget.display is True
+            assert findings.display is False
+            assert agents.display is True
+
+    asyncio.run(_run())
+
+
+def test_cockpit_exit_on_done_remains_available_for_callers_that_request_it():
+    async def _run():
+        app = AriaCockpit(lambda: _snap(done=True), lambda **k: None,
+                          experiment_id="e1", exit_on_done=True)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            return app.return_value
+
+    result = asyncio.run(_run())
+    assert isinstance(result, ExperimentSnapshot)
+    assert result.done is True
 
 
 class _IntakeHost(App):

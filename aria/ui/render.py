@@ -121,6 +121,63 @@ def render_status_banner(message: str, version: str = "",
     return Panel(t, title="[bold]Run[/]", border_style=style, padding=(0, 1))
 
 
+def _progress_bar(value: float, *, width: int = 14) -> Text:
+    pct = max(0.0, min(1.0, float(value or 0.0)))
+    filled = int(round(pct * width))
+    t = Text()
+    t.append("[", style="dim")
+    t.append("█" * filled, style="green" if pct >= 1.0 else "cyan")
+    t.append("·" * (width - filled), style="dim")
+    t.append("]", style="dim")
+    return t
+
+
+def _event_sort_key(event) -> float:
+    ts = getattr(event, "ts", None)
+    if hasattr(ts, "timestamp"):
+        return float(ts.timestamp())
+    try:
+        return float(ts or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def render_agent_progress(snap: ExperimentSnapshot, *, limit: int = 10) -> Panel:
+    """Left panel: latest progress/status per sender.
+
+    This restores the cockpit's "agents are working" affordance: the global
+    pipeline still shows the phase, while this panel shows which agents have
+    emitted status and where each one is in its own work.
+    """
+    table = Table(expand=True, show_edge=False, pad_edge=False)
+    table.add_column("agent", style="cyan", no_wrap=True)
+    table.add_column("progress", no_wrap=True)
+    table.add_column("status")
+
+    events = list(snap.agent_progress or [])
+    events.sort(key=_event_sort_key)
+    if not events:
+        table.add_row("orchestrator", Text("[··············]", style="dim"),
+                      Text("Waiting for status.", style="dim"))
+        return Panel(table, title="[bold]Agents[/]", border_style="dim",
+                     padding=(0, 1))
+
+    hidden = max(0, len(events) - limit)
+    for event in events[-limit:]:
+        pct = int(round(max(0.0, min(1.0, event.progress or 0.0)) * 100))
+        progress = _progress_bar(event.progress)
+        progress.append(f" {pct:3d}%", style="dim")
+        status = (event.text or "").strip() or "working"
+        table.add_row(event.sender, progress, Text(status[:48], style="dim"))
+    if hidden:
+        table.add_row("…", Text("", style="dim"),
+                      Text(f"{hidden} older agent status rows hidden",
+                           style="dim"))
+    border = "green" if snap.done else "cyan"
+    return Panel(table, title="[bold]Agents[/]", border_style=border,
+                 padding=(0, 1))
+
+
 def render_timeline(snap: ExperimentSnapshot) -> Panel:
     """Center-top panel: pipeline stage progress."""
     here = _PHASE_INDEX.get(snap.phase, 0)
@@ -210,6 +267,7 @@ def render_checkpoint(snap: ExperimentSnapshot) -> Panel:
             if snap.report_path:
                 msg.append("\nReport\n", style="cyan")
                 msg.append(snap.report_path, style="dim")
+            msg.append("\n\nPress q to exit.", style="dim")
             border = "green"
         else:
             msg = Text("No pending checkpoint.", style="dim")

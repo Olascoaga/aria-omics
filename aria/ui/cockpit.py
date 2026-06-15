@@ -43,6 +43,7 @@ class AriaCockpit(App):
     #right { width: 46; }
     #center { width: 1fr; }
     Static { height: auto; }
+    #agents { height: 1fr; }
     #mode-bar { height: 1; margin-bottom: 1; }
     #findings { height: 1fr; }
     #ledger { height: 1fr; }
@@ -72,7 +73,7 @@ class AriaCockpit(App):
                  version: str = "",
                  meta_provider: Optional[MetaProvider] = None,
                  poll_interval: float = 0.5,
-                 exit_on_done: bool = True,
+                 exit_on_done: bool = False,
                  intake_screen_factory: Optional[IntakeScreenFactory] = None,
                  run_starter: Optional[RunStarter] = None):
         super().__init__()
@@ -88,12 +89,13 @@ class AriaCockpit(App):
         self._intake_screen_factory = intake_screen_factory
         self._run_starter = run_starter
         self._snap: Optional[ExperimentSnapshot] = None
+        self._done_seen = False
         # findings | ledger | readiness | resources | artifacts
         self._center_mode = "findings"
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
-            Vertical(Static(id="run-header"), id="left"),
+            Vertical(Static(id="run-header"), Static(id="agents"), id="left"),
             Vertical(
                 Static(id="timeline"),
                 Static(id="mode-bar"),
@@ -200,6 +202,8 @@ class AriaCockpit(App):
             air_gapped=bool(meta.get("air_gapped")),
         ))
         self.query_one("#timeline", Static).update(render.render_timeline(snap))
+        self.query_one("#agents", Static).update(
+            render.render_agent_progress(snap))
         self.query_one("#findings", Static).update(render.render_findings(snap))
         self.query_one("#ledger", Static).update(render.render_ledger(snap))
         self.query_one("#readiness", Static).update(
@@ -211,6 +215,11 @@ class AriaCockpit(App):
         self.query_one("#checkpoint", Static).update(
             render.render_checkpoint(snap))
 
+        if snap.done and not self._done_seen:
+            self._done_seen = True
+            if snap.artifacts:
+                self._center_mode = "artifacts"
+                self._apply_center_mode()
         if snap.done and self._exit_on_done:
             self.exit(snap)
 
@@ -278,6 +287,9 @@ class AriaCockpit(App):
             # re-surfaces the still-pending checkpoint.
             return
         self.refresh_snapshot()
+
+    def action_quit(self) -> None:
+        self.exit(self._snap)
 
 
 # ── Launcher / availability ──────────────────────────────────────────────────

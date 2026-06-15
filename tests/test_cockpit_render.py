@@ -64,6 +64,21 @@ def test_timeline_marks_current_phase():
     assert "Running clustering..." in out
 
 
+def test_agent_progress_shows_each_sender_progress():
+    snap = _snap(agent_progress=[
+        ProgressEvent(ts=1, sender="data_audit_agent",
+                      text="Scanning files...", progress=0.25),
+        ProgressEvent(ts=2, sender="raw_ingestion_agent",
+                      text="Converting 10X matrix sampleA...", progress=0.60),
+    ])
+    out = _capture(render.render_agent_progress(snap))
+    assert "data_audit_agent" in out
+    assert "raw_ingestion_agent" in out
+    assert "25%" in out
+    assert "60%" in out
+    assert "Converting 10X matrix" in out
+
+
 def test_findings_counts_and_stream():
     snap = _snap(findings_by_confidence={
         "HIGH": [FindingView(ts=1, sender="a", confidence="HIGH",
@@ -95,8 +110,9 @@ def test_checkpoint_lists_numbered_options():
 def test_checkpoint_idle_and_complete():
     assert "No pending checkpoint" in _capture(
         render.render_checkpoint(_snap()))
-    assert "Run complete" in _capture(
-        render.render_checkpoint(_snap(done=True)))
+    complete = _capture(render.render_checkpoint(_snap(done=True)))
+    assert "Run complete" in complete
+    assert "Press q to exit" in complete
 
 
 def test_ledger_highlights_divergence():

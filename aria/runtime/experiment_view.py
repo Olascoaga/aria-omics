@@ -180,6 +180,9 @@ class ExperimentSnapshot:
     resources: list[ResourceView] = field(default_factory=list)
     # U6 — report artifacts (report/figs/tables/methodology/claims), read-only.
     artifacts: list[ArtifactView] = field(default_factory=list)
+    # Latest STATUS per sender/agent, used by the cockpit to show the run as a
+    # set of active workers instead of a single global percent.
+    agent_progress: list[ProgressEvent] = field(default_factory=list)
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
@@ -785,8 +788,10 @@ def build_snapshot(experiment_id: str, *,
     now = now or datetime.now()
     log = bus.get_log(experiment_id)
 
-    # Latest STATUS message -> progress + last_status banner.
+    # Latest STATUS message -> progress + last_status banner, plus the latest
+    # STATUS per sender for the cockpit's per-agent progress panel.
     last_status: Optional[ProgressEvent] = None
+    latest_by_sender: dict[str, ProgressEvent] = {}
     progress = 0.0
     last_msg_ts: Optional[datetime] = None
     for m in log:
@@ -803,6 +808,7 @@ def build_snapshot(experiment_id: str, *,
                 ts=m.timestamp, sender=m.sender,
                 text=status_text(payload), progress=p,
             )
+            latest_by_sender[m.sender] = last_status
             progress = p
 
     # Findings grouped by confidence (served from the bus index).
@@ -847,6 +853,8 @@ def build_snapshot(experiment_id: str, *,
         phase=phase,
         progress=progress,
         last_status=last_status,
+        agent_progress=sorted(
+            latest_by_sender.values(), key=lambda event: event.ts),
         findings_by_confidence=grouped,
         pending_checkpoint=pending,
         ledger=_ledger_views(session),
