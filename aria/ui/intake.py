@@ -12,7 +12,10 @@ from dataclasses import dataclass
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
+from textual.events import Paste
 from textual.widgets import Button, Footer, Input, Static, TextArea
+
+from aria.ui.brand import ARIA_BANNER, TAGLINE
 
 
 @dataclass(frozen=True)
@@ -28,9 +31,11 @@ class AriaIntakeApp(App):
 
     CSS = """
     #body { height: 1fr; }
-    #left { width: 34; padding: 1 2; border-right: solid $accent; }
+    #left { width: 48; padding: 1 2; border-right: solid $accent; }
     #main { width: 1fr; padding: 1 3; }
-    #app-title { text-style: bold; margin-bottom: 1; }
+    #brand-logo { text-style: bold; color: $accent; margin-bottom: 1; }
+    #brand-tagline { color: $text-muted; margin-bottom: 1; }
+    #app-version { color: $text-muted; margin-bottom: 1; }
     #form-title { text-style: bold; margin-bottom: 1; }
     #memory { height: 1fr; color: $text-muted; }
     #experiments { height: auto; color: $text-muted; }
@@ -63,7 +68,9 @@ class AriaIntakeApp(App):
     def compose(self) -> ComposeResult:
         yield Horizontal(
             Vertical(
-                Static(f"ARIA {self.version}".strip(), id="app-title"),
+                Static(ARIA_BANNER, id="brand-logo"),
+                Static(TAGLINE, id="brand-tagline"),
+                Static(self.version, id="app-version"),
                 Static(self._memory_text(), id="memory"),
                 Static(self._experiments_text(), id="experiments"),
                 id="left",
@@ -92,6 +99,17 @@ class AriaIntakeApp(App):
     def on_mount(self) -> None:
         self.query_one("#data-input", Input).focus()
 
+    def on_paste(self, event: Paste) -> None:
+        """Route terminal paste into the focused intake field.
+
+        Textual widgets have paste handlers, but terminal/emulator paste events
+        can arrive at the app level. Handling it here keeps the startup form
+        usable for long paths and multi-line biological questions.
+        """
+        if self._paste_into_focused(event.text):
+            event.prevent_default()
+            event.stop()
+
     def _memory_text(self) -> str:
         text = (self.startup_context or "").strip()
         if not text or "No experiments" in text:
@@ -113,6 +131,16 @@ class AriaIntakeApp(App):
     def _set_status(self, message: str) -> None:
         self.status_message = message
         self.query_one("#status", Static).update(message)
+
+    def _paste_into_focused(self, text: str) -> bool:
+        focused = self.focused
+        if isinstance(focused, Input):
+            focused.insert_text_at_cursor(text.strip("\r\n"))
+            return True
+        if isinstance(focused, TextArea):
+            focused.insert(text)
+            return True
+        return False
 
     def _values(self) -> tuple[str, str]:
         data_input = self.query_one("#data-input", Input).value.strip()

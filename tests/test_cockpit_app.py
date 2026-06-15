@@ -247,3 +247,37 @@ def test_intake_requires_question(tmp_path):
 
     assert submitted is None
     assert "biological question" in status
+
+
+def test_intake_routes_paste_to_data_input(tmp_path):
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input
+            data_input = app.query_one("#data-input", Input)
+            app.set_focus(data_input)
+            assert app._paste_into_focused(str(tmp_path) + "\n") is True
+            await pilot.pause()
+            return data_input.value
+
+    assert asyncio.run(_run()) == str(tmp_path)
+
+
+def test_intake_routes_multiline_paste_to_question():
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static, TextArea
+            logo = app.query_one("#brand-logo", Static)
+            question = app.query_one("#question-input", TextArea)
+            app.set_focus(question)
+            assert app._paste_into_focused("line one\nline two") is True
+            await pilot.pause()
+            return str(logo.render()), question.text
+
+    logo, text = asyncio.run(_run())
+
+    assert "########" in logo
+    assert text == "line one\nline two"

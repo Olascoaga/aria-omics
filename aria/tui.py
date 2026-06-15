@@ -49,6 +49,7 @@ from aria.memory.memory import ARIAMemory
 from aria.agents.orchestrator_agent import OrchestratorAgent
 from aria.bus.message_bus import bus, MessageType, Message
 from aria.runtime.experiment_view import status_text, build_snapshot
+from aria.ui.brand import ARIA_BANNER, TAGLINE
 from aria.version import __version__
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
@@ -133,17 +134,6 @@ CHECKPOINT_TITLES = {
 
 console = Console(highlight=False)
 
-ARIA_BANNER = r"""
-   ########    ########  ###    ########
-  ##      ## ##      ## ###   ##      ##
-  ##      ## ##      ## ###   ##      ##
-  ##      ## ######### ###    ##      ##
- ########### ##      ## ###  ###########
-  ##      ## ##      ## ###   ##      ##
-  ##      ## ##      ## ###   ##      ##
-  ##         ##      ## ##    ##
-"""
-TAGLINE = "Agentic Research Intelligence for -omics Analysis"
 VERSION = f"v{__version__}"
 
 
