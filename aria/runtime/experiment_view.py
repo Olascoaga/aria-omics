@@ -93,6 +93,9 @@ class CheckpointView:
     options: list[str]
     resolved: bool = False
     decision: Any = None
+    # Structured escalation context (e.g. CP2.1 carries
+    # {"proposed_groups": {group: [samples]}}) for richer editors like U2.
+    context: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -279,6 +282,7 @@ def build_snapshot(experiment_id: str, *,
             options=list(payload.get("options", ["Continue", "Cancel"])),
             resolved=bool(payload.get("resolved")),
             decision=payload.get("user_decision"),
+            context=dict(payload.get("context") or {}),
         )
 
     done, report_path = _detect_completion(log)

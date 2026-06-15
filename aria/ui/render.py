@@ -135,6 +135,9 @@ def render_checkpoint(snap: ExperimentSnapshot) -> Panel:
     for i, opt in enumerate(cp.options, start=1):
         t.append(f"  [{i}] ", style="cyan")
         t.append(f"{opt}\n")
+    if cp.number == 2.1 and (cp.context or {}).get("proposed_groups"):
+        t.append("\n  [e] ", style="bold green")
+        t.append("open tabular design editor", style="green")
     return Panel(t, title="[bold]Decision required[/]", border_style="yellow",
                  padding=(0, 1))
 

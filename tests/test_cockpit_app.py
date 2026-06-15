@@ -89,6 +89,61 @@ def test_choice_ignored_when_no_pending_checkpoint():
     assert calls == []
 
 
+def test_design_editor_submits_json_to_callback():
+    from textual.app import App
+
+    from aria.ui.design_editor import DesignEditorScreen
+
+    captured: list[str] = []
+
+    class _Host(App):
+        def __init__(self, screen):
+            super().__init__()
+            self._screen = screen
+
+        def on_mount(self):
+            self.push_screen(self._screen)
+
+    screen = DesignEditorScreen({"treated": ["s1", "s2"], "control": ["s3"]},
+                                lambda j: captured.append(j))
+
+    async def _run():
+        async with _Host(screen).run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("c")     # row 0 = s1: treated -> control
+            await pilot.press("s")     # submit
+            await pilot.pause()
+
+    asyncio.run(_run())
+
+    assert len(captured) == 1
+    import json
+    groups = json.loads(captured[0])
+    assert "s1" in groups["control"]      # s1 moved to control
+    assert groups["treated"] == ["s2"]
+
+
+def test_cockpit_e_opens_design_editor():
+    from aria.ui.design_editor import DesignEditorScreen
+
+    cp = CheckpointView(message_id="m1", number=2.1,
+                        title="Experimental Groups",
+                        question="Confirm groups?",
+                        options=["Yes — confirm groups", "Cancel experiment"],
+                        context={"proposed_groups": {"a": ["s1"], "b": ["s2"]}})
+
+    async def _run():
+        app = AriaCockpit(lambda: _snap(pending=cp), lambda **k: None,
+                          experiment_id="e1", exit_on_done=False)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.press("e")
+            await pilot.pause()
+            assert isinstance(app.screen, DesignEditorScreen)
+
+    asyncio.run(_run())
+
+
 def test_ledger_toggle_shows_and_hides():
     async def _run():
         app = AriaCockpit(lambda: _snap(pending=None), lambda **k: None,

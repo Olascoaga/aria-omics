@@ -46,6 +46,7 @@ class AriaCockpit(App):
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("l", "toggle_ledger", "Ledger"),
+        Binding("e", "edit_design", "Edit groups"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
         Binding("3", "choose(3)", "Opt 3", show=False),
@@ -125,6 +126,30 @@ class AriaCockpit(App):
         self._show_ledger = not self._show_ledger
         self.query_one("#ledger", Static).display = self._show_ledger
         self.query_one("#findings", Static).display = not self._show_ledger
+
+    def action_edit_design(self) -> None:
+        """Open the U2 tabular design editor for the groups checkpoint (CP2.1)."""
+        snap = self._snap
+        if snap is None or snap.pending_checkpoint is None:
+            return
+        cp = snap.pending_checkpoint
+        proposed = (cp.context or {}).get("proposed_groups")
+        if cp.number != 2.1 or not proposed:
+            return
+
+        def _on_submit(groups_json: str) -> None:
+            try:
+                self._resolver(
+                    message_id=cp.message_id,
+                    user_decision=groups_json,
+                    experiment_id=self.experiment_id,
+                )
+            except Exception:
+                return
+            self.refresh_snapshot()
+
+        from aria.ui.design_editor import DesignEditorScreen
+        self.push_screen(DesignEditorScreen(proposed, _on_submit))
 
     def action_choose(self, idx: int) -> None:
         snap = self._snap
