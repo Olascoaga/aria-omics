@@ -10,8 +10,9 @@ from __future__ import annotations
 from rich.console import Console
 
 from aria.runtime.experiment_view import (
-    ArtifactView, ExperimentSnapshot, FindingView, CheckpointView,
-    LedgerNodeView, ModalityCardView, ProgressEvent, ResourceView,
+    ArtifactView, ExperimentHistoryView, ExperimentSnapshot, FindingView,
+    CheckpointView, LedgerNodeView, ModalityCardView, ProgressEvent,
+    ResourceView,
 )
 from aria.ui import render
 
@@ -200,3 +201,32 @@ def test_artifacts_render_bundle_and_claims():
 def test_artifacts_empty_state():
     out = _capture(render.render_artifacts(_snap(artifacts=[])))
     assert "No artifacts yet" in out
+
+
+def test_history_renders_prior_runs_and_resume_points():
+    history = [
+        ExperimentHistoryView(
+            experiment_id="abcd1234efgh", name="H9 RNA timecourse",
+            organism="Homo sapiens", genome="hg38",
+            updated_at="2026-06-10T09:30:00", summary="DEGs found.",
+            n_decisions=4, last_decision="CP2.6: confirm",
+            modalities=["bulk_RNA"], report_path="/r/report.html",
+            has_report=True),
+        ExperimentHistoryView(
+            experiment_id=" zz99", name="ATAC pilot",
+            organism="Mus musculus", genome="mm10",
+            updated_at="2026-06-09T12:00:00", summary="",
+            n_decisions=1, last_decision=None,
+            modalities=["scATAC"], report_path=None, has_report=False),
+    ]
+    out = _capture(render.render_history(history))
+    assert "H9 RNA timecourse" in out
+    assert "bulk_RNA" in out
+    assert "report" in out
+    assert "no report" in out
+    assert "1 with report" in out
+
+
+def test_history_empty_state():
+    out = _capture(render.render_history([]))
+    assert "No prior experiments yet" in out

@@ -14,7 +14,9 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from aria.runtime.experiment_view import ExperimentSnapshot
+from aria.runtime.experiment_view import (
+    ExperimentSnapshot, ExperimentHistoryView,
+)
 
 # Ordered pipeline stages shown in the cockpit timeline.
 _STAGES = ["audit", "design", "dispatch", "report"]
@@ -300,3 +302,42 @@ def render_artifacts(snap: ExperimentSnapshot) -> Panel:
     if n_violation:
         title += f"  [red]{n_violation} claim violation(s)[/]"
     return Panel(table, title=title, border_style=border, padding=(0, 1))
+
+
+def render_history(history: list[ExperimentHistoryView]) -> Panel:
+    """U7 — resume/history: prior experiments and their on-disk resume points.
+
+    Rendered as compact text (not a wide table) so it stays readable in the
+    narrow intake sidebar. Each entry shows identity, modalities, decision count,
+    and whether a report bundle exists on disk (the honest resume point).
+    """
+    if not history:
+        return Panel(Text("No prior experiments yet.", style="dim"),
+                     title="[bold]Resume / history[/]", border_style="dim",
+                     padding=(0, 1))
+
+    t = Text()
+    n_resumable = 0
+    for h in history:
+        if h.has_report:
+            n_resumable += 1
+        mark, mark_style = ("✓", "green") if h.has_report else ("·", "dim")
+        t.append(f"{mark} ", style=mark_style)
+        t.append(f"{h.name}", style="bold cyan")
+        t.append(f"  [{(h.experiment_id or '?')[:8]}]\n", style="dim")
+        meta = h.organism
+        if h.modalities:
+            meta += " · " + ", ".join(h.modalities)
+        meta += f" · {h.n_decisions} decision(s)"
+        t.append(f"    {meta}\n", style="dim")
+        resume = ("✓ report on disk" if h.has_report else "— no report on disk")
+        when = (h.updated_at or "")[:10]
+        t.append(f"    {resume}", style=mark_style)
+        if when:
+            t.append(f" · {when}", style="dim")
+        t.append("\n")
+
+    title = "[bold]Resume / history[/]"
+    if n_resumable:
+        title += f"  [green]{n_resumable} with report[/]"
+    return Panel(t, title=title, border_style="cyan", padding=(0, 1))

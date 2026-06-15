@@ -15,7 +15,7 @@ import pytest
 pytest.importorskip("textual")
 
 from aria.runtime.experiment_view import (  # noqa: E402
-    ExperimentSnapshot, CheckpointView,
+    ExperimentSnapshot, CheckpointView, ExperimentHistoryView,
 )
 from aria.ui.cockpit import AriaCockpit  # noqa: E402
 from aria.ui.intake import AriaIntakeApp, IntakeResult  # noqa: E402
@@ -303,3 +303,31 @@ def test_intake_routes_multiline_paste_to_question():
 
     assert "########" in logo
     assert text == "line one\nline two"
+
+
+def test_intake_renders_resume_history():
+    history = [
+        ExperimentHistoryView(
+            experiment_id="abcd1234efgh", name="H9 RNA timecourse",
+            organism="Homo sapiens", genome="hg38",
+            updated_at="2026-06-10T09:30:00", summary="DEGs found.",
+            n_decisions=3, last_decision="CP2.6: confirm",
+            modalities=["bulk_RNA"], report_path="/r/report.html",
+            has_report=True),
+    ]
+
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1", history=history)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from rich.console import Console
+            # The intake wires history -> render_history -> Panel into #experiments.
+            renderable = app._experiments_renderable()
+            console = Console(width=80, record=True)
+            with console.capture() as cap:
+                console.print(renderable)
+            return cap.get()
+
+    out = asyncio.run(_run())
+    assert "H9 RNA timecourse" in out
+    assert "report on disk" in out

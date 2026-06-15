@@ -143,6 +143,24 @@ class ArtifactView:
 
 
 @dataclass(frozen=True)
+class ExperimentHistoryView:
+    """One prior experiment (a memory "wing"), for the U7 resume/history view."""
+    experiment_id: str
+    name: str
+    organism: str
+    genome: str
+    updated_at: str
+    summary: str
+    n_decisions: int
+    last_decision: Optional[str]
+    modalities: list[str]
+    # Resume point: the on-disk report, resolved best-effort. ``None`` means no
+    # report bundle was found — honest, never fabricated.
+    report_path: Optional[str]
+    has_report: bool
+
+
+@dataclass(frozen=True)
 class ExperimentSnapshot:
     experiment_id: str
     phase: str               # audit | design | dispatch | report | done
@@ -649,6 +667,106 @@ def _artifact_views(report_path: Optional[str]) -> list[ArtifactView]:
     out.extend(_list_dir_artifacts(report_dir, "tables", "table"))
     out.extend(_claim_artifact_views(_read_methodology(report_dir)))
     return out
+
+
+# ── U7 resume/history ─────────────────────────────────────────────────────────
+
+def _default_reports_dir() -> Path:
+    return Path.home() / ".aria" / "reports"
+
+
+def _resolve_report_dir(experiment_id: str,
+                        reports_dir: Path) -> Optional[Path]:
+    """Best-effort resume point: the most recent report bundle for a wing.
+
+    Report dirs are named ``aria_<ts>_<slug>_<suffix>`` where ``suffix`` is the
+    experiment id's last 4 chars (``report_builder._build_report_dir``). We match
+    on that suffix and require a ``report.html`` so a half-built dir is not
+    surfaced as a finished run. Returns ``None`` when nothing matches — never a
+    fabricated path.
+    """
+    if not experiment_id:
+        return None
+    suffix = experiment_id[-4:] if len(experiment_id) >= 4 else experiment_id
+    try:
+        if not reports_dir.is_dir():
+            return None
+        candidates = [
+            d for d in reports_dir.iterdir()
+            if d.is_dir() and d.name.endswith(f"_{suffix}")
+            and (d / "report.html").is_file()
+        ]
+    except Exception:
+        return None
+    if not candidates:
+        return None
+    try:
+        return max(candidates, key=lambda d: d.stat().st_mtime)
+    except Exception:
+        return candidates[-1]
+
+
+def _history_view_for_wing(memory: Any, wing: dict,
+                           reports_dir: Path) -> ExperimentHistoryView:
+    eid = str(wing.get("id", ""))
+    decisions: list = []
+    halls: list = []
+    try:
+        decisions = memory.get_decisions(eid) or []
+    except Exception:
+        decisions = []
+    try:
+        halls = memory.get_halls(eid) or []
+    except Exception:
+        halls = []
+    last_decision: Optional[str] = None
+    if decisions:
+        last = decisions[-1]
+        cp = str(last.get("checkpoint") or "").strip()
+        dec = str(last.get("decision") or "").strip()
+        last_decision = f"CP{cp}: {dec}" if cp else (dec or None)
+    modalities = sorted({
+        str(h.get("modality")) for h in halls
+        if isinstance(h, dict) and h.get("modality")
+    })
+    report_dir = _resolve_report_dir(eid, reports_dir)
+    report_path = str(report_dir / "report.html") if report_dir else None
+    return ExperimentHistoryView(
+        experiment_id=eid,
+        name=str(wing.get("name", "untitled")),
+        organism=str(wing.get("organism") or "?"),
+        genome=str(wing.get("genome") or "?"),
+        updated_at=str(wing.get("updated_at") or ""),
+        summary=str(wing.get("summary") or ""),
+        n_decisions=len(decisions),
+        last_decision=last_decision,
+        modalities=modalities,
+        report_path=report_path,
+        has_report=report_path is not None,
+    )
+
+
+def build_history(memory: Any, *,
+                  reports_dir: Optional[Path | str] = None,
+                  limit: int = 10) -> list[ExperimentHistoryView]:
+    """Build the U7 resume/history view from the ARIA memory store.
+
+    Reads prior experiments (wings) and their decisions/modalities from
+    ``memory`` (duck-typed: ``list_wings``/``get_decisions``/``get_halls``) and
+    resolves each one's on-disk report as a resume point. It invents no separate
+    history index — the memory store is the source of truth. Returns the most
+    recently updated experiments first, capped at ``limit``.
+    """
+    if memory is None:
+        return []
+    try:
+        wings = memory.list_wings() or []
+    except Exception:
+        return []
+    base = Path(reports_dir).expanduser() if reports_dir else _default_reports_dir()
+    wings = [w for w in wings if isinstance(w, dict)]
+    wings.sort(key=lambda w: str(w.get("updated_at") or ""), reverse=True)
+    return [_history_view_for_wing(memory, w, base) for w in wings[:limit]]
 
 
 # ── Public API ───────────────────────────────────────────────────────────────

@@ -969,10 +969,12 @@ def _run_cockpit_front_door(memory: ARIAMemory,
     """Run the Textual intake first, then transition to the cockpit run view."""
     from aria.ui.cockpit import launch_cockpit
     from aria.ui.intake import launch_intake
+    from aria.runtime.experiment_view import build_history
 
     intake = launch_intake(
         startup_context=memory.startup_context(),
         experiments=memory.list_wings(),
+        history=build_history(memory),
         version=VERSION,
     )
     if intake is None:

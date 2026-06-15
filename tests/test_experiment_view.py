@@ -320,3 +320,49 @@ def test_artifacts_empty_until_report_path_known():
     from aria.runtime.experiment_view import _artifact_views
     assert _artifact_views(None) == []
     assert _artifact_views("/nonexistent/dir/report.html") == []
+
+
+def test_build_history_from_memory_with_resume_points(tmp_path):
+    from aria.memory.memory import ARIAMemory
+    from aria.runtime.experiment_view import build_history
+
+    mem = ARIAMemory(":memory:")
+    # Two wings; only the first has a finished report bundle on disk.
+    mem.create_wing("aaaa0000done", "RNA run", organism="Homo sapiens",
+                    genome="hg38")
+    mem.update_wing_summary("aaaa0000done", "DEGs detected.")
+    mem.create_hall("h1", "aaaa0000done", "bulk_RNA")
+    mem.store_decision("d1", "aaaa0000done", 2.6, "Confirm design?",
+                       "confirm", made_by="user")
+    mem.create_wing("bbbb1111none", "ATAC pilot", organism="Mus musculus",
+                    genome="mm10")
+
+    reports = tmp_path / "reports"
+    done_dir = reports / "aria_20260610_rna_done"  # suffix == exp[-4:]
+    done_dir.mkdir(parents=True)
+    (done_dir / "report.html").write_text("<html></html>", encoding="utf-8")
+
+    history = {h.experiment_id: h for h in build_history(mem, reports_dir=reports)}
+    done = history["aaaa0000done"]
+    assert done.has_report is True
+    assert done.report_path.endswith("aria_20260610_rna_done/report.html")
+    assert done.n_decisions == 1
+    assert done.last_decision == "CP2.6: confirm"
+    assert done.modalities == ["bulk_RNA"]
+
+    none = history["bbbb1111none"]
+    assert none.has_report is False
+    assert none.report_path is None
+    assert none.n_decisions == 0
+    mem.close()
+
+
+def test_build_history_empty_and_robust():
+    from aria.runtime.experiment_view import build_history
+    assert build_history(None) == []
+
+    class _Broken:
+        def list_wings(self):
+            raise RuntimeError("db gone")
+
+    assert build_history(_Broken()) == []

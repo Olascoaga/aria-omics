@@ -15,7 +15,9 @@ from textual.containers import Horizontal, Vertical
 from textual.events import Paste
 from textual.widgets import Button, Footer, Input, Static, TextArea
 
+from aria.runtime.experiment_view import ExperimentHistoryView
 from aria.ui.brand import ARIA_BANNER, TAGLINE
+from aria.ui.render import render_history
 
 
 @dataclass(frozen=True)
@@ -56,11 +58,13 @@ class AriaIntakeApp(App):
         *,
         startup_context: str = "",
         experiments: list[dict] | None = None,
+        history: list[ExperimentHistoryView] | None = None,
         version: str = "",
     ):
         super().__init__()
         self.startup_context = startup_context
         self.experiments = experiments or []
+        self.history = history or []
         self.version = version
         self.submitted: IntakeResult | None = None
         self.status_message = ""
@@ -72,7 +76,7 @@ class AriaIntakeApp(App):
                 Static(TAGLINE, id="brand-tagline"),
                 Static(self.version, id="app-version"),
                 Static(self._memory_text(), id="memory"),
-                Static(self._experiments_text(), id="experiments"),
+                Static(self._experiments_renderable(), id="experiments"),
                 id="left",
             ),
             Vertical(
@@ -115,6 +119,18 @@ class AriaIntakeApp(App):
         if not text or "No experiments" in text:
             return "No prior experiment context."
         return text
+
+    def _experiments_renderable(self):
+        """U7 resume/history panel, with a plain-text fallback.
+
+        When the caller supplies rich :class:`ExperimentHistoryView` rows (which
+        carry the on-disk resume point), render them through the shared
+        ``render_history``. Otherwise fall back to the thin wing list so the
+        front door still works without the history read-model.
+        """
+        if self.history:
+            return render_history(self.history)
+        return self._experiments_text()
 
     def _experiments_text(self) -> str:
         if not self.experiments:
@@ -176,6 +192,7 @@ def launch_intake(
     *,
     startup_context: str = "",
     experiments: list[dict] | None = None,
+    history: list[ExperimentHistoryView] | None = None,
     version: str = "",
 ) -> IntakeResult | None:
     """Run the Textual intake and return submitted fields, or ``None``."""
@@ -183,6 +200,7 @@ def launch_intake(
     app = AriaIntakeApp(
         startup_context=startup_context,
         experiments=experiments,
+        history=history,
         version=version,
     )
     return app.run()
