@@ -48,8 +48,11 @@ def _umap_color_keys(findings: dict) -> list:
     lsi = findings.get("lsi") or findings.get("lsi_clustering") or {}
     groupby = da.get("groupby") or lsi.get("cluster_key") or "leiden"
     keys: list = []
+    # `log10_n_fragments` is the per-cell accessibility depth lsi writes to obs
+    # (W0.2 leftover): a standard scATAC UMAP QC overlay. rna_figure_umap silently
+    # skips obs columns that are absent, so listing it is safe on older outputs.
     for candidate in (groupby, "leiden", "sample", "sample_id", "batch",
-                      "condition"):
+                      "condition", "log10_n_fragments"):
         if candidate and candidate not in keys:
             keys.append(candidate)
     return keys

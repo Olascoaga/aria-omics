@@ -62,6 +62,9 @@ def chromatin_qc(params: dict) -> dict:
     genome      = params.get("genome", "hg38")
     organism    = params.get("organism", "Homo sapiens")
     assay_class = params.get("assay_class", "tf")
+    # P0 W0.5 wire: a called-peak BED (e.g. chromatin_peaks `peaks_path`) makes
+    # FRiP computable from the fragments. Absent → FRiP stays honest None.
+    peaks_bed   = params.get("peaks_bed") or params.get("peaks_path")
     allow_mocks = mocks_allowed(params)
 
     warnings = []
@@ -83,7 +86,8 @@ def chromatin_qc(params: dict) -> dict:
     if data_type == "scATAC":
         if h5mu_files:
             return _h5mu_atac_qc(h5mu_files[0], genome, organism, warnings)
-        return _scatac_qc(valid_files, genome, organism, warnings, allow_mocks)
+        return _scatac_qc(valid_files, genome, organism, warnings, allow_mocks,
+                          peaks_bed=peaks_bed)
     elif data_type in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         return _bulk_chromatin_qc(
             valid_files, data_type, genome, assay_class, warnings, allow_mocks
@@ -98,7 +102,7 @@ def chromatin_qc(params: dict) -> dict:
 
 def _scatac_qc(files: list, genome: str,
                organism: str, warnings: list,
-               allow_mocks: bool = False) -> dict:
+               allow_mocks: bool = False, peaks_bed: str | None = None) -> dict:
     """QC for single-cell ATAC-seq using episcanpy or muon."""
     try:
         import muon as mu
@@ -142,7 +146,8 @@ def _scatac_qc(files: list, genome: str,
 
         n_cells    = frag_sizes.get("n_barcodes", 0)
         n_fragments = frag_sizes.get("n_fragments", 0)
-        frip = _estimate_frip(frag_file)  # None until chromatin_peaks runs
+        # FRiP is real when a called-peak BED is supplied (W0.5 wire); else None.
+        frip = _estimate_frip(frag_file, peaks_bed=peaks_bed)
 
         # ── QC thresholds (standard ENCODE ATAC-seq) ──────────────────────
         MIN_TSS     = 4.0     # below this = failed library prep

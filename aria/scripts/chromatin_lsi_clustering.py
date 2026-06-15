@@ -307,6 +307,13 @@ def chromatin_lsi_clustering(params: dict) -> dict:
         for c in adata.obs["leiden"].unique()
     }
 
+    # P0 W0.2 leftover: persist the per-cell accessibility depth so the report can
+    # colour the UMAP by it (a standard scATAC QC overlay). TSS/FRiP are sample-
+    # level QC (fragments path), not per-cell on this peak matrix, so they are not
+    # added here — only the genuinely per-cell metric is.
+    adata.obs["n_fragments"] = cell_totals
+    adata.obs["log10_n_fragments"] = np.log10(np.maximum(cell_totals, 1.0))
+
     adata.uns["aria_n_cells_total"] = n_cells_total
     adata.write_h5ad(str(output_path))
 
