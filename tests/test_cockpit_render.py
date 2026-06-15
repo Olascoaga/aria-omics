@@ -95,6 +95,25 @@ def test_overview_summarizes_run_for_non_console_users():
     assert "Review" in out
 
 
+def test_overview_surfaces_long_running_agent_heartbeat():
+    snap = _snap(
+        last_status=ProgressEvent(
+            ts=None, sender="scrna_agent",
+            text="Heartbeat 35m: still running; 36m since last update",
+            progress=0.55),
+        agent_progress=[
+            ProgressEvent(
+                ts=1, sender="scrna_agent",
+                text="Heartbeat 35m: still running; 36m since last update",
+                progress=0.55),
+        ],
+    )
+    out = _capture(render.render_overview(snap))
+    assert "Heartbeat 35m" in out
+    assert "55%" in out
+    assert "▰" in out
+
+
 def test_overview_surfaces_decision_and_completion_states():
     cp = CheckpointView(message_id="m1", number=1,
                         title="Data Audit Results", question="Confirm?",

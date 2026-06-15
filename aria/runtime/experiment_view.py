@@ -53,6 +53,8 @@ _DESIGN_CHECKPOINTS = {2, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6}
 _REPORT_SAVED_RE = re.compile(r"Report saved:\s*(\S+)")
 
 _CONFIDENCE_BUCKETS = ("HIGH", "MEDIUM", "LOW", "INSUFFICIENT")
+HEARTBEAT_AFTER_S = 30 * 60
+HEARTBEAT_INTERVAL_S = 5 * 60
 
 
 def status_text(payload: Optional[dict]) -> str:
@@ -186,6 +188,38 @@ class ExperimentSnapshot:
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
+
+def _progress_float(raw: Any) -> float:
+    try:
+        return float(raw or 0.0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _heartbeat_event(event: ProgressEvent, now: datetime) -> ProgressEvent:
+    """Return a presentation-only heartbeat event for a long-stale active agent.
+
+    The bus remains the source of truth; this derives a visible liveness signal
+    for UI polling when a real analysis step legitimately runs silently.
+    """
+    if event.progress >= 1.0 or not hasattr(event.ts, "timestamp"):
+        return event
+    age_s = (now - event.ts).total_seconds()
+    if age_s < HEARTBEAT_AFTER_S:
+        return event
+    bucket = int((age_s - HEARTBEAT_AFTER_S) // HEARTBEAT_INTERVAL_S)
+    heartbeat_min = int((HEARTBEAT_AFTER_S + bucket * HEARTBEAT_INTERVAL_S) / 60)
+    silent_min = int(age_s / 60)
+    stage = (event.text or "working").strip()
+    text = (
+        f"Heartbeat {heartbeat_min}m: still running; "
+        f"{silent_min}m since last update"
+    )
+    if stage:
+        text = f"{text} - {stage}"
+    return ProgressEvent(
+        ts=now, sender=event.sender, text=text, progress=event.progress,
+    )
 
 def _confidence_label(msg: Message) -> str:
     raw = msg.payload.get("confidence")
@@ -799,11 +833,7 @@ def build_snapshot(experiment_id: str, *,
             last_msg_ts = m.timestamp
         if m.type == MessageType.STATUS:
             payload = m.payload or {}
-            p = payload.get("progress") or 0
-            try:
-                p = float(p)
-            except (TypeError, ValueError):
-                p = 0.0
+            p = _progress_float(payload.get("progress"))
             last_status = ProgressEvent(
                 ts=m.timestamp, sender=m.sender,
                 text=status_text(payload), progress=p,
@@ -844,6 +874,12 @@ def build_snapshot(experiment_id: str, *,
 
     done, report_path = _detect_completion(log)
     phase = _phase(progress, done, pending)
+
+    if last_status is not None and not done:
+        current = _heartbeat_event(last_status, now)
+        if current is not last_status:
+            last_status = current
+            latest_by_sender[current.sender] = current
 
     elapsed_s = (now - start_time).total_seconds() if start_time else 0.0
     silent_s = (now - last_msg_ts).total_seconds() if last_msg_ts else 0.0

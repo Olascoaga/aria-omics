@@ -48,7 +48,12 @@ from rich import box
 from aria.memory.memory import ARIAMemory
 from aria.agents.orchestrator_agent import OrchestratorAgent
 from aria.bus.message_bus import bus, MessageType, Message
-from aria.runtime.experiment_view import status_text, build_snapshot
+from aria.runtime.experiment_view import (
+    HEARTBEAT_AFTER_S,
+    HEARTBEAT_INTERVAL_S,
+    build_snapshot,
+    status_text,
+)
 from aria.ui.brand import ARIA_BANNER, TAGLINE
 from aria.version import __version__
 
@@ -714,6 +719,8 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
     Idle handling:
       - If no new messages for `idle_warning_after` seconds (default 30 min),
         print a gentle reminder that the analysis is still working.
+      - After the same long-silence threshold, print a heartbeat every 5 min
+        so long single-agent stages do not look frozen.
       - STAR alignment on a full human bulk RNA-seq dataset routinely takes
         2-3 hours per sample sequentially, so we expect long silences.
 
@@ -769,8 +776,10 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
             )
             idle_warning_shown = True
 
-        # Heartbeat every 5 min during extended silence (keeps you informed)
-        if silent > 300 and (time.time() - last_heartbeat_time) > 300:
+        # Heartbeat every 5 min after the long-silence threshold.
+        if (silent > HEARTBEAT_AFTER_S
+                and (time.time() - last_heartbeat_time)
+                > HEARTBEAT_INTERVAL_S):
             stage_label = last_status_text[:60] if last_status_text else "working"
             console.print(
                 f"  [{C['dim']}]● heartbeat: {stage_label} "

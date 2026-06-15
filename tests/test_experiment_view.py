@@ -164,6 +164,38 @@ def test_elapsed_and_silent_seconds():
     assert 25 <= snap.silent_s <= 35
 
 
+def test_snapshot_adds_heartbeat_for_long_running_active_agent():
+    eid = _eid()
+    now = datetime.now()
+    _status(
+        eid, "scrna_agent", "Running pseudobulk DE...", 0.55,
+        ts=now - timedelta(minutes=31),
+    )
+
+    snap = build_snapshot(eid, now=now)
+
+    assert snap.last_status is not None
+    assert snap.last_status.sender == "scrna_agent"
+    assert "Heartbeat 30m" in snap.last_status.text
+    assert "31m since last update" in snap.last_status.text
+    assert "Running pseudobulk DE" in snap.last_status.text
+    assert snap.agent_progress[-1].text == snap.last_status.text
+
+
+def test_snapshot_does_not_heartbeat_before_long_running_threshold():
+    eid = _eid()
+    now = datetime.now()
+    _status(
+        eid, "scrna_agent", "Running pseudobulk DE...", 0.55,
+        ts=now - timedelta(minutes=29),
+    )
+
+    snap = build_snapshot(eid, now=now)
+
+    assert snap.last_status is not None
+    assert snap.last_status.text == "Running pseudobulk DE..."
+
+
 # ── run-ledger mapping from a session ────────────────────────────────────────
 
 def test_ledger_maps_planned_but_not_run():
