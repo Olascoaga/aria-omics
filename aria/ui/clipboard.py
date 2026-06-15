@@ -17,6 +17,7 @@ paths, biological questions). It is:
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 
@@ -24,17 +25,40 @@ import subprocess
 # WSL2 (Windows clipboard via interop) first, then Wayland, X11, and macOS.
 _BACKENDS: list[list[str]] = [
     ["powershell.exe", "-NoProfile", "-Command", "Get-Clipboard"],
+    ["pwsh.exe", "-NoProfile", "-Command", "Get-Clipboard"],
     ["wl-paste", "--no-newline"],
     ["xclip", "-selection", "clipboard", "-o"],
     ["xsel", "-b", "-o"],
     ["pbpaste"],
 ]
 
+# Absolute fallbacks for tools that WSL interop can execute even when the Windows
+# paths are not on a (login-stripped) PATH. Only used when `shutil.which` misses.
+_FALLBACK_PATHS: dict[str, list[str]] = {
+    "powershell.exe": [
+        "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+    ],
+    "pwsh.exe": [
+        "/mnt/c/Program Files/PowerShell/7/pwsh.exe",
+    ],
+}
+
+
+def _resolve(cmd: str) -> str | None:
+    """Resolve a backend command to a runnable path (PATH first, then fallbacks)."""
+    hit = shutil.which(cmd)
+    if hit:
+        return hit
+    for path in _FALLBACK_PATHS.get(cmd, []):
+        if os.path.isfile(path):
+            return path
+    return None
+
 
 def clipboard_backend() -> str | None:
     """Return the name of the first available clipboard backend, or ``None``."""
     for argv in _BACKENDS:
-        if shutil.which(argv[0]) is not None:
+        if _resolve(argv[0]) is not None:
             return argv[0]
     return None
 
@@ -47,11 +71,13 @@ def read_clipboard(*, timeout: float = 2.0) -> str | None:
     question does not carry stray carriage returns or a terminal newline.
     """
     for argv in _BACKENDS:
-        if shutil.which(argv[0]) is None:
+        resolved = _resolve(argv[0])
+        if resolved is None:
             continue
         try:
             proc = subprocess.run(
-                argv, capture_output=True, text=True, timeout=timeout
+                [resolved, *argv[1:]], capture_output=True, text=True,
+                timeout=timeout,
             )
         except Exception:
             continue
