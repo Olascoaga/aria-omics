@@ -314,6 +314,53 @@ def test_intake_pastes_multiline_question_once():
     assert asyncio.run(_run()) == "line one\nline two"
 
 
+def test_intake_ctrl_v_pastes_os_clipboard_into_path(monkeypatch):
+    """Ctrl+V reads the OS clipboard (not Textual's empty in-app clipboard).
+
+    Regression guard for the 'nothing pastes on Ctrl+V' bug: terminals that pass
+    Ctrl+V through trigger `action_paste`, which must read the OS clipboard.
+    """
+    from aria.ui import clipboard
+    monkeypatch.setattr(clipboard, "read_clipboard",
+                        lambda *a, **k: "/data/exp1\nignored second line")
+
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input
+            data_input = app.query_one("#data-input", Input)
+            app.set_focus(data_input)
+            await pilot.pause()
+            await pilot.press("ctrl+v")
+            await pilot.pause()
+            return data_input.value
+
+    # Path field keeps the first line only.
+    assert asyncio.run(_run()) == "/data/exp1"
+
+
+def test_intake_ctrl_v_pastes_os_clipboard_into_question(monkeypatch):
+    from aria.ui import clipboard
+    monkeypatch.setattr(clipboard, "read_clipboard",
+                        lambda *a, **k: "q line 1\nq line 2")
+
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1")
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import TextArea
+            question = app.query_one("#question-input", TextArea)
+            app.set_focus(question)
+            await pilot.pause()
+            await pilot.press("ctrl+v")
+            await pilot.pause()
+            return question.text
+
+    # Question field keeps the full multi-line text.
+    assert asyncio.run(_run()) == "q line 1\nq line 2"
+
+
 def test_intake_renders_resume_history():
     history = [
         ExperimentHistoryView(

@@ -15,6 +15,7 @@ from textual.containers import Horizontal, Vertical
 from textual.widgets import Button, Footer, Input, Static, TextArea
 
 from aria.runtime.experiment_view import ExperimentHistoryView
+from aria.ui import clipboard
 from aria.ui.brand import ARIA_BANNER, TAGLINE
 from aria.ui.render import render_history
 
@@ -25,6 +26,54 @@ class IntakeResult:
 
     data_input: str
     question: str
+
+
+class _ClipboardInput(Input):
+    """Single-line input whose Ctrl+V pastes from the OS clipboard.
+
+    Textual's default ``action_paste`` reads the empty in-app clipboard; this
+    reads the real OS clipboard (first line only, since this field is a path or
+    accession). Bracketed-paste from the terminal still flows through the native
+    ``_on_paste`` unchanged.
+    """
+
+    def action_paste(self) -> None:
+        text = clipboard.read_clipboard()
+        if not text:
+            self._notify_no_clipboard()
+            return
+        line = text.splitlines()[0]
+        start, end = self.selection
+        self.replace(line, start, end)
+
+    def _notify_no_clipboard(self) -> None:
+        if clipboard.clipboard_backend() is None:
+            self.app.bell()
+            self.notify(
+                "No clipboard tool found. Install xclip/wl-clipboard, or use the "
+                "terminal paste (Shift+Insert or right-click).",
+                severity="warning", timeout=6,
+            )
+
+
+class _ClipboardTextArea(TextArea):
+    """Multi-line text area whose Ctrl+V pastes the full OS clipboard text."""
+
+    def action_paste(self) -> None:
+        if self.read_only:
+            return
+        text = clipboard.read_clipboard()
+        if not text:
+            if clipboard.clipboard_backend() is None:
+                self.app.bell()
+                self.notify(
+                    "No clipboard tool found. Install xclip/wl-clipboard, or use "
+                    "the terminal paste (Shift+Insert or right-click).",
+                    severity="warning", timeout=6,
+                )
+            return
+        if result := self._replace_via_keyboard(text, *self.selection):
+            self.move_cursor(result.end_location)
 
 
 class AriaIntakeApp(App):
@@ -81,12 +130,12 @@ class AriaIntakeApp(App):
             Vertical(
                 Static("New analysis", id="form-title"),
                 Static("Data directory or GEO/SRA accession"),
-                Input(
+                _ClipboardInput(
                     placeholder="/data/my_experiment or GSE183948",
                     id="data-input",
                 ),
                 Static("Biological question"),
-                TextArea(id="question-input"),
+                _ClipboardTextArea(id="question-input"),
                 Static("", id="status"),
                 Horizontal(
                     Button("Start", id="start", variant="primary"),
