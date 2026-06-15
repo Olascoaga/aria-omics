@@ -85,11 +85,25 @@
       "source_location": "L144"
     },
     {
+      "id": "agents_narrative_chromatin_render_fragment_size_figure",
+      "label": "render_fragment_size_figure()",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L203"
+    },
+    {
+      "id": "agents_narrative_chromatin_marker_peaks_by_cluster",
+      "label": "_marker_peaks_by_cluster()",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L244"
+    },
+    {
       "id": "agents_narrative_chromatin_generate_figures",
       "label": "generate_figures()",
       "file_type": "code",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L203"
+      "source_location": "L257"
     },
     {
       "id": "agents_narrative_scrna",
@@ -7995,6 +8009,34 @@
       "source_location": "L414"
     },
     {
+      "id": "scripts_chromatin_figure_clusters",
+      "label": "chromatin_figure_clusters.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_chromatin_figure_clusters_marker_heatmap",
+      "label": "_marker_heatmap()",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "scripts_chromatin_figure_clusters_qc_depth_violin",
+      "label": "_qc_depth_violin()",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "scripts_chromatin_figure_clusters_make_cluster_figures",
+      "label": "make_cluster_figures()",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L127"
+    },
+    {
       "id": "scripts_chromatin_lsi_clustering",
       "label": "chromatin_lsi_clustering.py",
       "file_type": "code",
@@ -8230,35 +8272,35 @@
       "label": "_compute_mito_fraction()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510"
+      "source_location": "L521"
     },
     {
       "id": "aria_scripts_chromatin_qc_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510"
+      "source_location": "L521"
     },
     {
       "id": "scripts_chromatin_qc_estimate_frip",
       "label": "_estimate_frip()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L530"
+      "source_location": "L541"
     },
     {
       "id": "scripts_chromatin_qc_estimate_frip_bulk",
       "label": "_estimate_frip_bulk()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L540"
+      "source_location": "L551"
     },
     {
       "id": "scripts_chromatin_qc_estimate_dup_rate",
       "label": "_estimate_dup_rate()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L548"
+      "source_location": "L559"
     },
     {
       "id": "scripts_hic_inspect",
@@ -18681,7 +18723,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18898,7 +18940,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_xmov85_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18920,7 +18962,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_xmov85_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -21313,7 +21355,77 @@
       "label": "test_report_builder_wires_chromatin_figures_to_narrator()",
       "file_type": "code",
       "source_file": "tests/test_chromatin_figures_w01.py",
-      "source_location": "L96"
+      "source_location": "L97"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02",
+      "label": "test_chromatin_figures_w02.py",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_fragment_size_figure_renders_from_histogram",
+      "label": "test_fragment_size_figure_renders_from_histogram()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_fragment_size_figure_honest_none_without_histogram",
+      "label": "test_fragment_size_figure_honest_none_without_histogram()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_qc_emits_size_histogram_in_fragment_sizes",
+      "label": "test_qc_emits_size_histogram_in_fragment_sizes()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_marker_peaks_by_cluster_extraction",
+      "label": "test_marker_peaks_by_cluster_extraction()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_fakeem",
+      "label": "_FakeEM",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_fakeem_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L66"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_fakeem_run_in_stack",
+      "label": ".run_in_stack()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_generate_figures_renders_cluster_figures_in_chromatin_stack",
+      "label": "test_generate_figures_renders_cluster_figures_in_chromatin_stack()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "tests_test_chromatin_figures_w02_test_generate_figures_skips_cluster_figures_without_env",
+      "label": "test_generate_figures_skips_cluster_figures_without_env()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L103"
     },
     {
       "id": "tests_test_chromatin_lsi_clustering",
@@ -27446,17 +27558,6 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -27534,54 +27635,10 @@
       "contributor": null
     },
     {
-      "id": "rna_qc",
-      "label": "rna_qc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_qc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
       "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_rna_env",
-      "label": "aria-rna-env",
-      "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -27717,11 +27774,49 @@
     },
     {
       "source": "agents_narrative_chromatin",
-      "target": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_render_fragment_size_figure",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
       "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_fragment_size_figure",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_fragment_size_figure",
+      "target": "aria_agents_narrative_chromatin_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin",
+      "target": "agents_narrative_chromatin_marker_peaks_by_cluster",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L244",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin",
+      "target": "agents_narrative_chromatin_generate_figures",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -27731,7 +27826,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L203",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -27765,13 +27860,23 @@
       "weight": 1.0
     },
     {
+      "source": "agents_narrative_chromatin_render_fragment_size_figure",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
       "source": "agents_narrative_chromatin_generate_figures",
       "target": "aria_agents_narrative_chromatin_py_path",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L214",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -27781,7 +27886,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L220",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -27791,7 +27896,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L248",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -27801,7 +27906,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L256",
+      "source_location": "L310",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_render_fragment_size_figure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L315",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_marker_peaks_by_cluster",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L331",
       "weight": 1.0
     },
     {
@@ -59901,6 +60026,53 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_figure_clusters",
+      "target": "scripts_chromatin_figure_clusters_marker_heatmap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_figure_clusters",
+      "target": "scripts_chromatin_figure_clusters_qc_depth_violin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_figure_clusters",
+      "target": "scripts_chromatin_figure_clusters_make_cluster_figures",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_figure_clusters_make_cluster_figures",
+      "target": "scripts_chromatin_figure_clusters_marker_heatmap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_figure_clusters_make_cluster_figures",
+      "target": "scripts_chromatin_figure_clusters_qc_depth_violin",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_lsi_clustering",
       "target": "scripts_chromatin_lsi_clustering_cache_params",
       "relation": "contains",
@@ -60504,7 +60676,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -60514,7 +60686,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -60524,7 +60696,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -60534,7 +60706,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L510",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -60543,7 +60715,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L530",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -60553,7 +60725,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L530",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -60562,7 +60734,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L540",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -60572,7 +60744,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L540",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -60581,7 +60753,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L548",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -60591,7 +60763,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_qc.py",
-      "source_location": "L548",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -83007,7 +83179,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -83060,7 +83232,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83070,7 +83242,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83080,7 +83252,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83090,7 +83262,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83100,7 +83272,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83393,7 +83565,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_xmov85_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -83402,7 +83574,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_xmov85_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -83437,7 +83609,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83447,7 +83619,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_xmov85_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87068,7 +87240,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w01.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -87118,7 +87290,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w01.py",
-      "source_location": "L101",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -87128,7 +87300,98 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w01.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_fragment_size_figure_renders_from_histogram",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_fragment_size_figure_honest_none_without_histogram",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_qc_emits_size_histogram_in_fragment_sizes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_marker_peaks_by_cluster_extraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_fakeem",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_fakeem",
+      "target": "tests_test_chromatin_figures_w02_fakeem_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_fakeem",
+      "target": "tests_test_chromatin_figures_w02_fakeem_run_in_stack",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_generate_figures_renders_cluster_figures_in_chromatin_stack",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "tests_test_chromatin_figures_w02_test_generate_figures_skips_cluster_figures_without_env",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
       "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_test_generate_figures_renders_cluster_figures_in_chromatin_stack",
+      "target": "tests_test_chromatin_figures_w02_fakeem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -100680,6 +100943,26 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_figure_clusters",
+      "target": "scripts_base_run_script",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_figure_clusters",
+      "target": "utils_safe_h5ad_read_h5ad",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_lsi_clustering",
       "target": "scripts_base_run_script",
       "relation": "imports",
@@ -103116,7 +103399,27 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w01.py",
-      "source_location": "L98",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "agents_narrative_chromatin_render_fragment_size_figure",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02",
+      "target": "agents_narrative_chromatin_marker_peaks_by_cluster",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -106770,6 +107073,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_figure_clusters_make_cluster_figures",
+      "target": "utils_safe_h5ad_read_h5ad",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_figure_clusters.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_lsi_clustering_load_atac_adata",
       "target": "utils_mudata_io_read_h5mu_atac",
       "relation": "calls",
@@ -109386,7 +109699,37 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w01.py",
-      "source_location": "L112",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_test_fragment_size_figure_renders_from_histogram",
+      "target": "agents_narrative_chromatin_render_fragment_size_figure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_test_fragment_size_figure_honest_none_without_histogram",
+      "target": "agents_narrative_chromatin_render_fragment_size_figure",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_figures_w02_test_marker_peaks_by_cluster_extraction",
+      "target": "agents_narrative_chromatin_marker_peaks_by_cluster",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -114665,38 +115008,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_qc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -114715,9 +115028,9 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -114726,8 +115039,8 @@
     },
     {
       "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
+      "target": "environment_manager",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -114735,9 +115048,9 @@
       "weight": 1.0
     },
     {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
+      "source": "biological_synthesis_agent",
+      "target": "narrative_agent",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/biological_synthesis.md",
@@ -114745,18 +115058,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
+      "source": "chromatin_agent",
+      "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
