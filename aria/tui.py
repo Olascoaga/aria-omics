@@ -168,6 +168,27 @@ def print_section(title: str, color: str = None):
     console.print()
 
 
+def _prompt_action() -> str:
+    """Read the top-level action, exiting cleanly when stdin is closed.
+
+    `conda run aria` can be launched from non-interactive runners with stdin at
+    EOF. Rich's Prompt.ask raises EOFError in that case; treat it as "exit" so
+    the CLI does not print a traceback before any analysis has started.
+    """
+    try:
+        return Prompt.ask(
+            f"  [{C['cyan']}]Action[/]",
+            choices=["new", "exit"],
+            default="new",
+            console=console,
+        )
+    except EOFError:
+        console.print(
+            f"\n  [{C['muted']}]No interactive input available; exiting.[/]\n"
+        )
+        return "exit"
+
+
 def print_agent_message(agent: str, message: str):
     color  = AGENT_COLORS.get(agent, C['muted'])
     icon   = AGENT_ICONS.get(agent, "[-]")
@@ -928,12 +949,7 @@ def main():
     show_existing_experiments(memory)
     print_section("New Analysis", C['cyan'])
 
-    action = Prompt.ask(
-        f"  [{C['cyan']}]Action[/]",
-        choices=["new", "exit"],
-        default="new",
-        console=console,
-    )
+    action = _prompt_action()
     if action == "exit":
         console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
         return

@@ -727,6 +727,21 @@ def test_tui_multiline_question_uses_end_sentinel(monkeypatch):
     assert tui._read_multiline_question() == "first line\n\nthird line"
 
 
+def test_tui_action_prompt_exits_cleanly_on_eof(monkeypatch):
+    litellm_stub = types.ModuleType("litellm")
+    litellm_stub.completion = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
+
+    from aria import tui
+
+    def raise_eof(*args, **kwargs):
+        raise EOFError
+
+    monkeypatch.setattr(tui.Prompt, "ask", raise_eof)
+
+    assert tui._prompt_action() == "exit"
+
+
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():
     from aria.agents.data_audit_agent import DataAuditAgent
 
