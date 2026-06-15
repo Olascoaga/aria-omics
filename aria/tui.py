@@ -477,6 +477,27 @@ def _resolve_geo_accession(accession: str) -> dict | None:
     return result
 
 
+def _validate_textual_intake_data(raw: str) -> str | None:
+    """Validate an intake data value without resolving GEO over the network.
+
+    Returns an error message (kept visible in the intake) or ``None`` when the
+    value is a GEO/SRA accession or an existing local directory. This mirrors the
+    classic re-prompt loop so a bad path keeps the user in the front door instead
+    of silently dropping to the terminal after the TUI closes.
+    """
+    raw = (raw or "").strip()
+    if not raw:
+        return "Enter a data directory or accession."
+    if _GEO_ACCESSION_RE.match(raw):
+        return None
+    path = Path(raw).expanduser()
+    if not path.exists():
+        return f"Path not found: {path}"
+    if not path.is_dir():
+        return f"That is a file, not a folder. Enter its directory: {path.parent}"
+    return None
+
+
 def _resolve_textual_intake_data(raw: str) -> tuple[Path, dict | None] | None:
     """Resolve a Textual intake data value into the classic run inputs."""
     raw = raw.strip()
@@ -976,6 +997,7 @@ def _run_cockpit_front_door(memory: ARIAMemory,
         experiments=memory.list_wings(),
         history=build_history(memory),
         version=VERSION,
+        data_validator=_validate_textual_intake_data,
     )
     if intake is None:
         console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
@@ -983,13 +1005,28 @@ def _run_cockpit_front_door(memory: ARIAMemory,
 
     resolved = _resolve_textual_intake_data(intake.data_input)
     if resolved is None:
+        # Pre-validated for local paths, so this is a GEO/SRA accession that did
+        # not resolve. Be explicit instead of dropping silently to the terminal.
+        console.print(
+            f"\n  [{C['red']}]Could not resolve "
+            f"'{intake.data_input}'.[/] "
+            f"[{C['muted']}]Check the accession or your network/air-gap "
+            f"settings and run ARIA again.[/]\n"
+        )
         return True
     data_dir, geo_meta = resolved
     experiment_id = str(uuid.uuid4())[:12]
     ctx = _launch_context(
         data_dir, intake.question, geo_meta, reproducible_mode
     )
-    launch_cockpit(orchestrator, experiment_id, ctx)
+    result = launch_cockpit(orchestrator, experiment_id, ctx)
+    if result is None:
+        console.print(
+            f"\n  [{C['red']}]The analysis could not start.[/] "
+            f"[{C['muted']}]See the log at "
+            f"~/.aria/logs/exp_{experiment_id}.log[/]\n"
+        )
+        return True
     _print_final_summary(experiment_id)
     return True
 

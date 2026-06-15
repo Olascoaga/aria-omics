@@ -825,7 +825,12 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
     intake_stub.launch_intake = lambda **kwargs: FakeIntake()
     cockpit_stub = types.ModuleType("aria.ui.cockpit")
     calls: list[dict] = []
-    cockpit_stub.launch_cockpit = lambda orchestrator, experiment_id, ctx: calls.append(ctx)
+
+    def _fake_launch(orchestrator, experiment_id, ctx):
+        calls.append(ctx)
+        return object()  # truthy: the analysis ran (not a start failure)
+
+    cockpit_stub.launch_cockpit = _fake_launch
     monkeypatch.setitem(sys.modules, "aria.ui.intake", intake_stub)
     monkeypatch.setitem(sys.modules, "aria.ui.cockpit", cockpit_stub)
     monkeypatch.setattr(
@@ -844,6 +849,24 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
         "user_question": "What changed?",
         "reproducible_mode": False,
     }]
+
+
+def test_validate_textual_intake_data(tmp_path):
+    from aria import tui
+
+    # Existing directory is valid.
+    assert tui._validate_textual_intake_data(str(tmp_path)) is None
+    # GEO/SRA accession is valid (resolved later, over the network).
+    assert tui._validate_textual_intake_data("GSE183948") is None
+    # Empty, missing, and file paths return an explanatory error (kept visible
+    # in the intake) instead of silently dropping to the terminal.
+    assert tui._validate_textual_intake_data("   ") is not None
+    assert "not found" in tui._validate_textual_intake_data(
+        str(tmp_path / "nope")).lower()
+    a_file = tmp_path / "counts.csv"
+    a_file.write_text("x", encoding="utf-8")
+    msg = tui._validate_textual_intake_data(str(a_file))
+    assert msg is not None and "file" in msg.lower()
 
 
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():

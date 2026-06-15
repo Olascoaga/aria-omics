@@ -8,6 +8,7 @@ back to ``aria.tui``. It owns no analysis logic.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable, Optional
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -108,12 +109,17 @@ class AriaIntakeApp(App):
         experiments: list[dict] | None = None,
         history: list[ExperimentHistoryView] | None = None,
         version: str = "",
+        data_validator: Optional[Callable[[str], Optional[str]]] = None,
     ):
         super().__init__()
         self.startup_context = startup_context
         self.experiments = experiments or []
         self.history = history or []
         self.version = version
+        # Returns an error message for an invalid data input, or None if valid.
+        # Keeps the user in the intake (like the classic re-prompt loop) instead
+        # of exiting to the terminal when the path/accession does not resolve.
+        self._data_validator = data_validator
         self.submitted: IntakeResult | None = None
         self.status_message = ""
 
@@ -204,6 +210,14 @@ class AriaIntakeApp(App):
             self._set_status("Enter a data directory or accession.")
             self.query_one("#data-input", Input).focus()
             return
+        if self._data_validator is not None:
+            error = self._data_validator(data_input)
+            if error:
+                # Stay in the intake and explain, instead of exiting to the
+                # terminal and failing the path resolution after the TUI closes.
+                self._set_status(error)
+                self.query_one("#data-input", Input).focus()
+                return
         if not question:
             self._set_status("Enter a biological question.")
             self.query_one("#question-input", TextArea).focus()
@@ -229,6 +243,7 @@ def launch_intake(
     experiments: list[dict] | None = None,
     history: list[ExperimentHistoryView] | None = None,
     version: str = "",
+    data_validator: Optional[Callable[[str], Optional[str]]] = None,
 ) -> IntakeResult | None:
     """Run the Textual intake and return submitted fields, or ``None``."""
 
@@ -237,5 +252,6 @@ def launch_intake(
         experiments=experiments,
         history=history,
         version=version,
+        data_validator=data_validator,
     )
     return app.run()

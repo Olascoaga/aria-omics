@@ -340,6 +340,45 @@ def test_intake_ctrl_v_pastes_os_clipboard_into_path(monkeypatch):
     assert asyncio.run(_run()) == "/data/exp1"
 
 
+def test_intake_invalid_data_keeps_app_open(tmp_path):
+    """A failing data validation stays in the intake instead of exiting."""
+    def _validator(value: str):
+        return None if value == "OK" else "Path not found: " + value
+
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1", data_validator=_validator)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input, TextArea
+            app.query_one("#data-input", Input).value = "/bad/path"
+            app.query_one("#question-input", TextArea).load_text("Q?")
+            app.action_start()
+            await pilot.pause()
+            return app.submitted, app.status_message
+
+    submitted, status = asyncio.run(_run())
+    assert submitted is None                  # did NOT exit the TUI
+    assert "Path not found" in status         # told the user why
+
+
+def test_intake_valid_data_submits_with_validator():
+    def _validator(value: str):
+        return None if value == "OK" else "bad"
+
+    async def _run():
+        app = AriaIntakeApp(version="4.6.1", data_validator=_validator)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Input, TextArea
+            app.query_one("#data-input", Input).value = "OK"
+            app.query_one("#question-input", TextArea).load_text("Q?")
+            app.action_start()
+            await pilot.pause()
+            return app.submitted
+
+    assert asyncio.run(_run()) == IntakeResult(data_input="OK", question="Q?")
+
+
 def test_intake_ctrl_v_pastes_os_clipboard_into_question(monkeypatch):
     from aria.ui import clipboard
     monkeypatch.setattr(clipboard, "read_clipboard",
