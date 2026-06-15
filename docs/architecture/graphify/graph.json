@@ -7852,84 +7852,84 @@
       "label": "LedgerNodeView",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L99"
+      "source_location": "L102"
     },
     {
       "id": "runtime_experiment_view_experimentsnapshot",
       "label": "ExperimentSnapshot",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L111"
+      "source_location": "L114"
     },
     {
       "id": "runtime_experiment_view_confidence_label",
       "label": "_confidence_label()",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L127"
+      "source_location": "L130"
     },
     {
       "id": "aria_runtime_experiment_view_py_message",
       "label": "Message",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L127"
+      "source_location": "L130"
     },
     {
       "id": "runtime_experiment_view_detect_completion",
       "label": "_detect_completion()",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135"
+      "source_location": "L138"
     },
     {
       "id": "aria_runtime_experiment_view_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135"
+      "source_location": "L138"
     },
     {
       "id": "runtime_experiment_view_phase",
       "label": "_phase()",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168"
+      "source_location": "L171"
     },
     {
       "id": "aria_runtime_experiment_view_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168"
+      "source_location": "L171"
     },
     {
       "id": "runtime_experiment_view_ledger_views",
       "label": "_ledger_views()",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L189"
+      "source_location": "L192"
     },
     {
       "id": "aria_runtime_experiment_view_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L189"
+      "source_location": "L192"
     },
     {
       "id": "runtime_experiment_view_build_snapshot",
       "label": "build_snapshot()",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220"
+      "source_location": "L223"
     },
     {
       "id": "datetime",
       "label": "datetime",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220"
+      "source_location": "L223"
     },
     {
       "id": "scripts_base",
@@ -10694,140 +10694,336 @@
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "snapshotprovider",
       "label": "SnapshotProvider",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "checkpointresolver",
       "label": "CheckpointResolver",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "aria_ui_cockpit_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "metaprovider",
       "label": "MetaProvider",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "aria_ui_cockpit_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "aria_ui_cockpit_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57"
+      "source_location": "L58"
     },
     {
       "id": "ui_cockpit_ariacockpit_compose",
       "label": ".compose()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L75"
+      "source_location": "L76"
     },
     {
       "id": "composeresult",
       "label": "ComposeResult",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L75"
+      "source_location": "L76"
     },
     {
       "id": "ui_cockpit_ariacockpit_on_mount",
       "label": ".on_mount()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L89"
+      "source_location": "L90"
     },
     {
       "id": "ui_cockpit_ariacockpit_refresh_snapshot",
       "label": ".refresh_snapshot()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L95"
+      "source_location": "L96"
     },
     {
       "id": "ui_cockpit_ariacockpit_action_toggle_ledger",
       "label": ".action_toggle_ledger()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L124"
+      "source_location": "L125"
+    },
+    {
+      "id": "ui_cockpit_ariacockpit_action_edit_design",
+      "label": ".action_edit_design()",
+      "file_type": "code",
+      "source_file": "aria/ui/cockpit.py",
+      "source_location": "L130"
     },
     {
       "id": "ui_cockpit_ariacockpit_action_choose",
       "label": ".action_choose()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L129"
+      "source_location": "L154"
     },
     {
       "id": "aria_ui_cockpit_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L129"
+      "source_location": "L154"
     },
     {
       "id": "ui_cockpit_cockpit_available",
       "label": "cockpit_available()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L152"
+      "source_location": "L177"
     },
     {
       "id": "ui_cockpit_session_for",
       "label": "_session_for()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161"
+      "source_location": "L186"
     },
     {
       "id": "aria_ui_cockpit_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161"
+      "source_location": "L186"
     },
     {
       "id": "ui_cockpit_meta_for",
       "label": "_meta_for()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168"
+      "source_location": "L193"
     },
     {
       "id": "ui_cockpit_launch_cockpit",
       "label": "launch_cockpit()",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182"
+      "source_location": "L207"
     },
     {
       "id": "aria_ui_cockpit_py_experimentsnapshot",
       "label": "ExperimentSnapshot",
       "file_type": "code",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182"
+      "source_location": "L207"
+    },
+    {
+      "id": "ui_design_editor",
+      "label": "design_editor.py",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen",
+      "label": "DesignEditorScreen",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "modalscreen",
+      "label": "ModalScreen",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_init",
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "aria_ui_design_editor_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_compose",
+      "label": ".compose()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L46"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_on_mount",
+      "label": ".on_mount()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L57"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_current_sample",
+      "label": "._current_sample()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_refresh_status",
+      "label": "._refresh_status()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_action_cycle",
+      "label": ".action_cycle()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_action_new_group",
+      "label": ".action_new_group()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L91"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_on_input_submitted",
+      "label": ".on_input_submitted()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "submitted",
+      "label": "Submitted",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_action_submit",
+      "label": ".action_submit()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L110"
+    },
+    {
+      "id": "ui_design_editor_designeditorscreen_action_cancel",
+      "label": ".action_cancel()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L123"
+    },
+    {
+      "id": "ui_design_model",
+      "label": "design_model.py",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "ui_design_model_designdraft",
+      "label": "DesignDraft",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "ui_design_model_designdraft_from_proposed",
+      "label": ".from_proposed()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "aria_ui_design_model_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "ui_design_model_designdraft_group_of",
+      "label": ".group_of()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "ui_design_model_designdraft_add_group",
+      "label": ".add_group()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "ui_design_model_designdraft_assign",
+      "label": ".assign()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L50"
+    },
+    {
+      "id": "ui_design_model_designdraft_cycle",
+      "label": ".cycle()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L57"
+    },
+    {
+      "id": "ui_design_model_designdraft_to_groups",
+      "label": ".to_groups()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "ui_design_model_designdraft_to_json",
+      "label": ".to_json()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L80"
+    },
+    {
+      "id": "ui_design_model_designdraft_is_valid",
+      "label": ".is_valid()",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "aria_ui_design_model_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L83"
     },
     {
       "id": "ui_render",
@@ -10918,7 +11114,7 @@
       "label": "render_ledger()",
       "file_type": "code",
       "source_file": "aria/ui/render.py",
-      "source_location": "L142"
+      "source_location": "L145"
     },
     {
       "id": "utils_ambient_qc",
@@ -19444,7 +19640,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -19661,7 +19857,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -19683,7 +19879,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22933,11 +23129,25 @@
       "source_location": "L74"
     },
     {
+      "id": "tests_test_cockpit_app_test_design_editor_submits_json_to_callback",
+      "label": "test_design_editor_submits_json_to_callback()",
+      "file_type": "code",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "tests_test_cockpit_app_test_cockpit_e_opens_design_editor",
+      "label": "test_cockpit_e_opens_design_editor()",
+      "file_type": "code",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L126"
+    },
+    {
       "id": "tests_test_cockpit_app_test_ledger_toggle_shows_and_hides",
       "label": "test_ledger_toggle_shows_and_hides()",
       "file_type": "code",
       "source_file": "tests/test_cockpit_app.py",
-      "source_location": "L92"
+      "source_location": "L147"
     },
     {
       "id": "tests_test_cockpit_render",
@@ -23477,6 +23687,55 @@
       "file_type": "code",
       "source_file": "tests/test_design_matrix_validator.py",
       "source_location": "L64"
+    },
+    {
+      "id": "tests_test_design_model",
+      "label": "test_design_model.py",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_design_model_test_from_proposed_and_to_groups_roundtrip",
+      "label": "test_from_proposed_and_to_groups_roundtrip()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_design_model_test_cycle_round_robin",
+      "label": "test_cycle_round_robin()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_design_model_test_assign_registers_new_group_and_drops_empty",
+      "label": "test_assign_registers_new_group_and_drops_empty()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_test_design_model_test_is_valid_requires_two_nonempty_groups",
+      "label": "test_is_valid_requires_two_nonempty_groups()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_design_model_test_to_json_is_valid_json",
+      "label": "test_to_json_is_valid_json()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L51"
+    },
+    {
+      "id": "tests_test_design_model_test_json_roundtrips_through_design_agent_manual_path",
+      "label": "test_json_roundtrips_through_design_agent_manual_path()",
+      "file_type": "code",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L57"
     },
     {
       "id": "tests_test_diff_abundance_no_mixed_fdr",
@@ -28690,199 +28949,115 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/data_audit_agent.py"
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/design_agent.py"
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/audit_agent.py"
     },
     {
       "id": "setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/setup_agent.py"
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/bulk_rna_agent.py"
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/scrna_agent.py"
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/chromatin_agent.py"
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative_agent.py"
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
-      "id": "llm_provider",
-      "label": "LLMProvider",
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
       "file_type": "code",
-      "source_file": "aria/llm/provider.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative/claim_compiler.py"
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/runtime/aria_memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/utils/environment_manager.py"
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
+      "id": "rna_qc",
+      "label": "rna_qc.py",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_qc.py"
     },
     {
-      "id": "run_ledger",
-      "label": "Run Ledger",
+      "id": "rna_cellcomm",
+      "label": "rna_cellcomm.py (LIANA)",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_cellcomm.py"
+    },
+    {
+      "id": "rna_trajectory",
+      "label": "rna_trajectory.py (PAGA/DPT)",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_trajectory.py"
+    },
+    {
+      "id": "aria_rna_env",
+      "label": "aria-rna-env",
+      "file_type": "code",
+      "source_file": "envs/aria-rna-env.yml"
+    },
+    {
+      "id": "aria_chromatin_env",
+      "label": "aria-chromatin-env",
+      "file_type": "code",
+      "source_file": "envs/aria-chromatin-env.yml"
     }
   ],
   "edges": [
@@ -60782,7 +60957,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L99",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -60791,7 +60966,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L111",
+      "source_location": "L114",
       "weight": 1.0
     },
     {
@@ -60800,7 +60975,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -60810,7 +60985,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -60820,7 +60995,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L127",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -60829,7 +61004,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60839,7 +61014,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60849,7 +61024,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60859,7 +61034,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L135",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60868,7 +61043,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -60878,7 +61053,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -60888,7 +61063,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -60898,7 +61073,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -60908,7 +61083,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L168",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -60917,7 +61092,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L189",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -60927,7 +61102,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L189",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -60937,7 +61112,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L189",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -60946,7 +61121,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -60956,7 +61131,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -60966,7 +61141,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -60976,7 +61151,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -60986,7 +61161,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -60996,7 +61171,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L220",
+      "source_location": "L223",
       "weight": 1.0
     },
     {
@@ -61006,7 +61181,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L156",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -61016,7 +61191,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L205",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -61026,7 +61201,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L248",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -61036,7 +61211,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L250",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -61046,7 +61221,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L257",
+      "source_location": "L260",
       "weight": 1.0
     },
     {
@@ -61056,7 +61231,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L257",
+      "source_location": "L260",
       "weight": 1.0
     },
     {
@@ -61066,7 +61241,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L274",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -61076,7 +61251,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L284",
+      "source_location": "L288",
       "weight": 1.0
     },
     {
@@ -61086,7 +61261,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L285",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -61096,7 +61271,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L290",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -61106,7 +61281,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L297",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -70030,7 +70205,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70040,7 +70215,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70050,7 +70225,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70060,7 +70235,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70070,7 +70245,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70080,7 +70255,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70090,7 +70265,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70100,7 +70275,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -70109,7 +70284,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -70119,7 +70294,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L75",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -70128,7 +70303,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L89",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -70137,7 +70312,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L95",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -70146,7 +70321,16 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L124",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_cockpit_ariacockpit",
+      "target": "ui_cockpit_ariacockpit_action_edit_design",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/cockpit.py",
+      "source_location": "L130",
       "weight": 1.0
     },
     {
@@ -70155,7 +70339,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L129",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -70165,7 +70349,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L129",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -70174,7 +70358,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L152",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -70184,7 +70368,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L152",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -70193,7 +70377,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -70203,7 +70387,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -70213,7 +70397,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -70223,7 +70407,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L161",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -70232,7 +70416,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -70242,7 +70426,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -70252,7 +70436,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -70262,7 +70446,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -70272,7 +70456,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L168",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -70281,7 +70465,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -70291,7 +70475,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -70301,7 +70485,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -70311,7 +70495,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L182",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -70321,7 +70505,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -70331,7 +70515,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L147",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -70341,7 +70525,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L170",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -70351,7 +70535,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L209",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -70361,7 +70545,446 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L214",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor",
+      "target": "ui_design_editor_designeditorscreen",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "modalscreen",
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_init",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_init",
+      "target": "aria_ui_design_editor_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_compose",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_on_mount",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_current_sample",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_refresh_status",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_action_cycle",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_action_new_group",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_on_input_submitted",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_on_input_submitted",
+      "target": "submitted",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_action_submit",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen",
+      "target": "ui_design_editor_designeditorscreen_action_cancel",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_on_mount",
+      "target": "ui_design_editor_designeditorscreen_refresh_status",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_action_cycle",
+      "target": "ui_design_editor_designeditorscreen_current_sample",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_action_cycle",
+      "target": "ui_design_editor_designeditorscreen_refresh_status",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_on_input_submitted",
+      "target": "ui_design_editor_designeditorscreen_current_sample",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor_designeditorscreen_on_input_submitted",
+      "target": "ui_design_editor_designeditorscreen_refresh_status",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model",
+      "target": "ui_design_model_designdraft",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_from_proposed",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_from_proposed",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_from_proposed",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_group_of",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_group_of",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_group_of",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_add_group",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_add_group",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_assign",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_assign",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_assign",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_cycle",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_cycle",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_cycle",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_to_groups",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_to_groups",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_to_groups",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_to_json",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_to_json",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft",
+      "target": "ui_design_model_designdraft_is_valid",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_is_valid",
+      "target": "aria_ui_design_model_py_bool",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_is_valid",
+      "target": "aria_ui_design_model_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_assign",
+      "target": "ui_design_model_designdraft_add_group",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_cycle",
+      "target": "ui_design_model_designdraft_group_of",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_to_json",
+      "target": "ui_design_model_designdraft_to_groups",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_model_designdraft_is_valid",
+      "target": "ui_design_model_designdraft_to_groups",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_model.py",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -70575,7 +71198,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/render.py",
-      "source_location": "L142",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -70585,7 +71208,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/render.py",
-      "source_location": "L142",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -70595,7 +71218,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/render.py",
-      "source_location": "L142",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -70655,7 +71278,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/render.py",
-      "source_location": "L174",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -87294,7 +87917,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -87347,7 +87970,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87357,7 +87980,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87367,7 +87990,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87377,7 +88000,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87387,7 +88010,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87710,7 +88333,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -87719,7 +88342,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -87754,7 +88377,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -87764,7 +88387,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_lbvmjp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ppzcrm_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -92894,11 +93517,29 @@
     },
     {
       "source": "tests_test_cockpit_app",
-      "target": "tests_test_cockpit_app_test_ledger_toggle_shows_and_hides",
+      "target": "tests_test_cockpit_app_test_design_editor_submits_json_to_callback",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_cockpit_app.py",
       "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app",
+      "target": "tests_test_cockpit_app_test_cockpit_e_opens_design_editor",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app",
+      "target": "tests_test_cockpit_app_test_ledger_toggle_shows_and_hides",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -93834,6 +94475,60 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_design_matrix_validator.py",
       "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_from_proposed_and_to_groups_roundtrip",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_cycle_round_robin",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_assign_registers_new_group_and_drops_empty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_is_valid_requires_two_nonempty_groups",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_to_json_is_valid_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "tests_test_design_model_test_json_roundtrips_through_design_agent_manual_path",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -106002,7 +106697,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L197",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -107397,12 +108092,32 @@
     },
     {
       "source": "ui_cockpit",
+      "target": "ui_design_editor_designeditorscreen",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/cockpit.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_cockpit",
       "target": "runtime_experiment_view_build_snapshot",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L192",
+      "source_location": "L217",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_design_editor",
+      "target": "ui_design_model_designdraft",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/design_editor.py",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -109156,6 +109871,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_cockpit_app",
+      "target": "ui_design_editor_designeditorscreen",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_cockpit_render",
       "target": "runtime_experiment_view_experimentsnapshot",
       "relation": "imports",
@@ -109453,6 +110178,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_design_matrix_validator.py",
       "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "ui_design_model_designdraft",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_model",
+      "target": "agents_design_agent_designagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_model.py",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -112612,7 +113357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/runtime/experiment_view.py",
-      "source_location": "L198",
+      "source_location": "L201",
       "weight": 1.0
     },
     {
@@ -113552,7 +114297,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/cockpit.py",
-      "source_location": "L203",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -116156,13 +116901,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_cockpit_app_test_design_editor_submits_json_to_callback",
+      "target": "ui_design_editor_designeditorscreen",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app_test_cockpit_e_opens_design_editor",
+      "target": "runtime_experiment_view_checkpointview",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app_test_cockpit_e_opens_design_editor",
+      "target": "ui_cockpit_ariacockpit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_cockpit_app_test_ledger_toggle_shows_and_hides",
       "target": "ui_cockpit_ariacockpit",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_cockpit_app.py",
-      "source_location": "L94",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -121031,6 +121806,17 @@
       "weight": 1.0
     },
     {
+      "source": "ui_cockpit_ariacockpit_action_edit_design",
+      "target": "ui_design_editor_designeditorscreen",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/ui/cockpit.py",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
       "source": "utils_environment_manager_environmentmanager_run_in_stack",
       "target": "utils_provenance_hash_params",
       "relation": "calls",
@@ -121157,9 +121943,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -121167,69 +121951,23 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "data_audit_agent",
-      "target": "design_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "design_agent",
-      "target": "audit_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "audit_agent",
-      "target": "setup_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "setup_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "setup_agent",
+      "source": "orchestrator_agent",
       "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "bulk_rna_agent",
@@ -121237,19 +121975,15 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "bulk_rna_agent",
+      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "scrna_agent",
@@ -121257,39 +121991,31 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "narrative_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "scrna_agent",
-      "target": "narrative_agent",
-      "relation": "references",
+      "target": "rna_qc",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "chromatin_agent",
-      "target": "narrative_agent",
-      "relation": "references",
+      "source": "scrna_agent",
+      "target": "rna_cellcomm",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_trajectory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "narrative_agent",
@@ -121297,49 +122023,23 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "run_ledger",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
+      "source": "biological_synthesis_agent",
+      "target": "claim_compiler",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
-      "source": "orchestrator_agent",
-      "target": "llm_provider",
+      "source": "audit_agent",
+      "target": "setup_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     }
   ],
   "hyperedges": [],
