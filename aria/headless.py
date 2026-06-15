@@ -31,6 +31,7 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 from aria.bus.message_bus import bus
+from aria.runtime.experiment_view import build_snapshot
 
 
 # ── Answer policy ─────────────────────────────────────────────────────────
@@ -188,34 +189,19 @@ def run_headless(data_dir: str, question: str,
         return HeadlessResult(experiment_id, "cancelled", decisions=decisions)
 
     # Live loop: keep draining late checkpoints until narrative signals done.
-    # NOTE: agent STATUS messages do not always carry experiment_id, so we keep
-    # reading exp-less messages (the narrative "Report saved" completion signal
-    # can arrive without one). R6: but we now DROP messages explicitly tagged to
-    # a DIFFERENT experiment, so a concurrent run sharing the global bus cannot
-    # leak its events here. This mirrors aria.tui._live_analysis_loop.
-    seen: set = set()
+    # Read state through the shared U0 read-model (aria.runtime.experiment_view)
+    # so the headless runner and the TUI derive completion/report-path the same
+    # way. The snapshot scopes strictly to this experiment_id, so a concurrent
+    # run sharing the global bus cannot leak its events here.
     start = time.time()
-    report_path: Optional[str] = None
     while True:
-        for m in bus.get_log():
-            if m.experiment_id and m.experiment_id != experiment_id:
-                continue
-            if m.id in seen:
-                continue
-            seen.add(m.id)
-            payload = m.payload or {}
-            pr = payload.get("progress", "")
-            st = str(payload.get("status", ""))
-            if m.sender == "narrative_agent" and isinstance(pr, (int, float)) and pr >= 1.0:
-                mm = re.search(r"Report saved:\s*(\S+)", st)
-                if mm:
-                    report_path = mm.group(1)
         _s, more = drain_pending_checkpoints(orch, experiment_id, policy, log)
         decisions.extend(more)
-        if report_path is None:
-            # Filesystem fallback: the report dir is named with the experiment
-            # id suffix and contains report.html once narrative finishes.
-            report_path = _find_report_on_disk(experiment_id)
+        snap = build_snapshot(experiment_id)
+        # Bus-derived path first (now reads the right payload key), then the
+        # filesystem fallback: the report dir is named with the experiment id
+        # suffix and contains report.html once narrative finishes.
+        report_path = snap.report_path or _find_report_on_disk(experiment_id)
         if report_path:
             memory.close()
             return HeadlessResult(experiment_id, "completed", report_path, decisions)

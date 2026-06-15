@@ -48,6 +48,7 @@ from rich import box
 from aria.memory.memory import ARIAMemory
 from aria.agents.orchestrator_agent import OrchestratorAgent
 from aria.bus.message_bus import bus, MessageType, Message
+from aria.runtime.experiment_view import status_text, build_snapshot
 from aria.version import __version__
 
 # ── Theme ─────────────────────────────────────────────────────────────────────
@@ -306,7 +307,8 @@ def print_agent_progress(msg: Message):
     """Display a STATUS message from an agent with clear identification."""
     agent    = msg.sender
     progress = msg.payload.get("progress", 0)
-    status   = msg.payload.get("status", "")
+    # Agents publish the status text under "message"; read either key (U0).
+    status   = status_text(msg.payload)
     pct      = f"{int(progress * 100):3d}%"
     color    = AGENT_COLORS.get(agent, C['muted'])
     icon     = AGENT_ICONS.get(agent, f"({agent[:5]:<5})")
@@ -740,7 +742,7 @@ def _live_analysis_loop(orchestrator: OrchestratorAgent,
             if msg.type == MessageType.STATUS:
                 seen_message_ids.add(msg.id)
                 print_agent_progress(msg)
-                last_status_text = str(msg.payload.get("status", ""))
+                last_status_text = status_text(msg.payload)
                 # CRITICAL: only the NarrativeAgent reaching 1.0 signals
                 # the end of the pipeline. SetupAgent, BulkRNAAgent, etc.
                 # also hit 1.0 when they finish their own work — but the
@@ -853,14 +855,10 @@ def _print_final_summary(experiment_id: str):
             summary = f.payload.get("summary", "")[:100]
             console.print(f"  [{C['dim']}]●[/] [{C['text']}]{summary}[/]")
 
-    # Report path
-    report_msgs = [
-        m for m in bus.get_log()
-        if m.experiment_id == experiment_id
-        and "report_path" in m.payload
-    ]
-    if report_msgs:
-        report_path = report_msgs[-1].payload["report_path"]
+    # Report path (resolved by the shared U0 read-model: payload key OR the
+    # "Report saved: <path>" status line, which the old payload-only scan missed).
+    report_path = build_snapshot(experiment_id).report_path
+    if report_path:
         console.print()
         console.print(Panel(
             f"  [{C['cyan']}]Report:[/] [{C['dim']}]{report_path}[/]\n"
