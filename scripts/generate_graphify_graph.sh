@@ -30,7 +30,13 @@ git -C "$ROOT" archive --format=tar --output="$TMP_ROOT/repo.tar" HEAD -- \
   ':(exclude)docs/architecture/graphify/manifest.json'
 tar -xf "$TMP_ROOT/repo.tar" -C "$CORPUS"
 
-"$GRAPHIFY_BIN" extract "$CORPUS" --out "$RUN_OUT" --no-cluster
+if ! "$GRAPHIFY_BIN" extract "$CORPUS" --out "$RUN_OUT" --no-cluster; then
+  echo "[graphify extract] failed; falling back to code-only graphify update" >&2
+  "$GRAPHIFY_BIN" update "$CORPUS" --no-cluster
+  rm -rf "$RUN_OUT/graphify-out"
+  mkdir -p "$RUN_OUT"
+  cp -R "$CORPUS/graphify-out" "$RUN_OUT/graphify-out"
+fi
 
 # Structure-only: drop the inferred/semantic (confidence=INFERRED) and the
 # rationale/concept/document layers so the map reflects ARIA's REAL code
@@ -39,6 +45,39 @@ tar -xf "$TMP_ROOT/repo.tar" -C "$CORPUS"
 # filtered graph.
 python "$ROOT/scripts/graphify_structure_filter.py" \
   "$RUN_OUT/graphify-out/graph.json"
+
+if [[ ! -f "$RUN_OUT/graphify-out/manifest.json" ]]; then
+  python - "$RUN_OUT/graphify-out/graph.json" \
+    "$RUN_OUT/graphify-out/manifest.json" "$CORPUS" <<'PY'
+from pathlib import Path
+import hashlib
+import json
+import sys
+
+graph_path = Path(sys.argv[1])
+manifest_path = Path(sys.argv[2])
+corpus = Path(sys.argv[3])
+graph = json.loads(graph_path.read_text(encoding="utf-8"))
+files = sorted({
+    n.get("source_file")
+    for n in graph.get("nodes", [])
+    if n.get("file_type") == "code" and n.get("source_file")
+})
+manifest = {}
+for rel in files:
+    path = corpus / rel
+    if not path.is_file():
+        continue
+    data = path.read_bytes()
+    digest = hashlib.md5(data).hexdigest()
+    manifest[str(path)] = {
+        "mtime": path.stat().st_mtime,
+        "ast_hash": digest,
+        "semantic_hash": digest,
+    }
+manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+PY
+fi
 
 # cluster-only regenerates the human-readable report + html (god-files,
 # communities) FROM the structure-only graph.json. graphify computes communities

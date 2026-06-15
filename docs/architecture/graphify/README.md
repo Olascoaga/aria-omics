@@ -20,14 +20,14 @@ The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `d6127dfb` (regenerate to refresh)
+- Commit: `1456a123` (regenerate to refresh)
 - Generated: 2026-06-14
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Structure-only graph: **3849 code nodes / 8852 EXTRACTED structural edges** in
-  `graph.json` (filter dropped 912 non-code nodes + 1134
+- Structure-only graph: **4183 code nodes / 9760 EXTRACTED structural edges** in
+  `graph.json` (filter dropped 982 non-code nodes + 1248
   inferred edges, then removed non-structural edges)
-- Clustered report: 3844 nodes / 8021 edges / 212 communities in
+- Clustered report: 4177 nodes / 8846 edges / 233 communities in
   `GRAPH_REPORT.md` (community detection ignores a few isolated nodes — normal)
 - No LLM layer in the final graph: 0 input/output token counters; community naming
   is skipped (`--no-label` → "Community N" placeholders). The upstream extractor
@@ -77,3 +77,6 @@ scripts/generate_graphify_graph.sh
 Graphify currently emits NumPy 2 compatibility warnings from optional
 `pandas`/`pyarrow`/`numexpr` imports during report generation in the base Conda
 environment. The warning is noisy but the graph, report, and HTML are produced.
+If the semantic extractor hits an API quota, the script falls back to
+`graphify update` and the structure-only filter normalizes that code-only
+`links` schema into the same `edges` schema used by the committed graph.

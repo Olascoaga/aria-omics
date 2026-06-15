@@ -35,7 +35,13 @@ STRUCTURAL_RELATIONS = {
 
 def filter_graph(graph: dict) -> tuple[dict, dict]:
     nodes = graph.get("nodes", [])
-    edges = graph.get("edges", [])
+    # `graphify extract` writes `edges`; `graphify update` (code-only, no LLM)
+    # writes the same structural records under `links`. Normalize both so the
+    # structure-only reducer can run deterministically even when the semantic
+    # extractor is unavailable.
+    edges = graph.get("edges")
+    if edges is None:
+        edges = graph.get("links", [])
 
     keep_ids = {n["id"] for n in nodes if n.get("file_type") == "code"}
     new_nodes = [n for n in nodes if n["id"] in keep_ids]
@@ -64,6 +70,7 @@ def filter_graph(graph: dict) -> tuple[dict, dict]:
     out = dict(graph)
     out["nodes"] = new_nodes
     out["edges"] = new_edges
+    out.pop("links", None)
     out["hyperedges"] = []          # drop the inferred hyperedge layer
     out["input_tokens"] = 0         # no LLM layer in a structure-only graph
     out["output_tokens"] = 0
