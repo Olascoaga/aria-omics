@@ -183,6 +183,34 @@ def _per_cluster_accessibility(adata, groupby, padj_max, lfc_min, top_n,
     }
 
 
+def _gate_da_by_convergence(results_df, padj_max):
+    """T15 / scATAC P0 W0.4: a peak is reported SIGNIFICANT only if its padj clears
+    the threshold AND its apeGLM LFC fit converged.
+
+    On non-converged fits pydeseq2 can report a near-zero shrunk log2FoldChange with
+    a still-significant Wald p (the contradiction ADR-042/043 disclosed). When the
+    convergence flag is available (`lfc_converged` column, exposed opt-in by
+    `_run_deseq2`), those peaks are excluded from the significant set and counted.
+    When it is NOT available (older pydeseq2 / mock), NO gating is applied — we do
+    not fabricate a convergence verdict. Returns ``(sig_df, info)`` where ``info``
+    carries ``convergence_available`` + ``n_nonconverged_excluded``.
+    """
+    padj_sig = results_df[results_df["padj"] < padj_max]
+    if "lfc_converged" in results_df.columns:
+        converged = padj_sig["lfc_converged"].fillna(False).astype(bool)
+        sig = padj_sig[converged]
+        n_excluded = int((~converged).sum())
+        available = True
+    else:
+        sig = padj_sig
+        n_excluded = 0
+        available = False
+    return sig.sort_values("padj"), {
+        "convergence_available": available,
+        "n_nonconverged_excluded": n_excluded,
+    }
+
+
 def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                    padj_max, lfc_min, top_n, min_cells, min_reps,
                    allow_mock, warnings, n_cpus=None):
@@ -278,6 +306,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
 
     comp_results = []
     rows_csv = []
+    full_rows = []   # W0.3: every tested peak per comparison (for volcano/MA)
     for comp in comparisons:
         test = str(comp.get("test", "")).strip()
         ref = str(comp.get("reference", comp.get("ref", ""))).strip()
@@ -299,6 +328,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             padj_max, lfc_min, allow_mock=allow_mock,
             min_replicates_per_condition=min_reps,
             n_cpus=n_cpus,
+            expose_convergence=True,   # T15 / W0.4
         )
         warnings.extend(de_warn)
         if de.get("status") != "success":
@@ -310,12 +340,26 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             continue
 
         res_df = de["results"]
-        sig = res_df[res_df["padj"] < padj_max].sort_values("padj")
+        comp_key = f"{test}_vs_{ref}"
+        # T15 / W0.4: gate the significant set by apeGLM LFC convergence, then
+        # recompute the DA counts from the gated set (the shared _run_deseq2 n_sig
+        # stays convergence-agnostic for bulk RNA; the scATAC lane is stricter).
+        sig, conv_info = _gate_da_by_convergence(res_df, padj_max)
+        n_excluded = conv_info["n_nonconverged_excluded"]
+        if n_excluded:
+            warnings.append(
+                f"[{comp_key}] excluded {n_excluded} non-converged peak(s) from "
+                f"the DA significant set (apeGLM LFC≈0 with a significant Wald p; "
+                f"T15 convergence gate)."
+            )
+        n_up = int((sig["log2FoldChange"] > 0).sum())
+        n_down = int((sig["log2FoldChange"] < 0).sum())
+
         top_peaks = []
         for peak in list(sig.index)[:top_n]:
             r = sig.loc[peak]
             rec = {
-                "comparison": f"{test}_vs_{ref}",
+                "comparison": comp_key,
                 "peak": str(peak),
                 "log2fc": round(float(r["log2FoldChange"]), 3),
                 "padj": round(float(r["padj"]), 6),
@@ -323,14 +367,36 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             top_peaks.append(rec)
             rows_csv.append(rec)
 
+        # W0.3: persist the FULL per-peak table (all tested peaks) so the volcano /
+        # MA figures have the complete cloud, with the convergence flag carried
+        # through. Non-converged peaks are kept here (flagged) but never counted as
+        # significant nor plotted as real effects.
+        for peak in list(res_df.index):
+            r = res_df.loc[peak]
+            conv = r.get("lfc_converged") if "lfc_converged" in res_df.columns else None
+            base_mean = r.get("baseMean") if "baseMean" in res_df.columns else None
+            full_rows.append({
+                "comparison": comp_key,
+                "peak": str(peak),
+                "log2fc": float(r["log2FoldChange"]),
+                "padj": float(r["padj"]),
+                "base_mean": (float(base_mean) if base_mean is not None
+                              and base_mean == base_mean else None),
+                "lfc_converged": (bool(conv) if conv is not None and conv == conv
+                                  else None),
+                "significant": bool(peak in sig.index),
+            })
+
         comp_results.append({
             "test": test, "reference": ref, "status": "success",
-            "n_sig": int(de["n_sig"]),
-            "n_up": int(de["n_up"]),
-            "n_down": int(de["n_down"]),
+            "n_sig": int(len(sig)),
+            "n_up": n_up,
+            "n_down": n_down,
             "n_replicates": de.get("n_replicates"),
             "low_power_warning": de.get("low_power_warning", False),
             "fitted_design_formula": de.get("fitted_design_formula"),
+            "convergence_available": conv_info["convergence_available"],
+            "n_nonconverged_excluded": n_excluded,
             "top_peaks": top_peaks,
         })
 
@@ -341,6 +407,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
         "n_peaks_tested": int(counts_df.shape[0]),
         "comparisons": comp_results,
         "_rows": rows_csv,
+        "_full_rows": full_rows,
     }
 
 
@@ -448,6 +515,19 @@ def chromatin_diffacc(params: dict) -> dict:
         except Exception:
             pb_csv = None
     pseudobulk["output_csv"] = pb_csv
+
+    # W0.3: persist the FULL per-peak pseudobulk table (all tested peaks, with the
+    # convergence flag + significance) so the volcano/MA figures have the complete
+    # cloud, not just the top-N significant rows.
+    pb_full_rows = pseudobulk.pop("_full_rows", [])
+    pb_full_csv = None
+    if pb_full_rows:
+        pb_full_csv = str(out_dir / "chromatin_da_pseudobulk_full.csv")
+        try:
+            pd.DataFrame(pb_full_rows).to_csv(pb_full_csv, index=False)
+        except Exception:
+            pb_full_csv = None
+    pseudobulk["full_results_csv"] = pb_full_csv
 
     return {
         "status": "success",

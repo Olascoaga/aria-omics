@@ -1704,7 +1704,8 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 min_replicates_per_condition: int = 3,
                 covariates: list = None,
                 lfc_shrink: bool = True,
-                n_cpus: int = None) -> tuple:
+                n_cpus: int = None,
+                expose_convergence: bool = False) -> tuple:
     """
     Run DESeq2 via pydeseq2 with correct design factor.
     Returns (result_dict, warnings_list).
@@ -1885,6 +1886,16 @@ def _run_deseq2(counts, metadata, design_factor: str,
 
         results_df = stat_res.results_df.dropna(subset=["padj"])
         results_df["log2FoldChange_raw"] = raw_lfc.reindex(results_df.index)
+
+        # T15 (scATAC P0 W0.4): OPT-IN, additive exposure of pydeseq2's per-gene
+        # LFC-fit convergence flag (`dds.var["_LFC_converged"]`). Default OFF, so
+        # bulk RNA n_sig/n_up/n_down and every existing consumer are byte-identical;
+        # the scATAC DA lane turns it on to gate non-converged peaks (apeGLM LFC≈0
+        # with a significant Wald p). This does NOT change DESeq2 estimation.
+        if expose_convergence and "_LFC_converged" in dds.var.columns:
+            results_df["lfc_converged"] = (
+                dds.var["_LFC_converged"].reindex(results_df.index)
+            )
 
         sig = results_df[results_df["padj"] < padj_thr]
         # Sort by padj ascending (most significant first) so that
