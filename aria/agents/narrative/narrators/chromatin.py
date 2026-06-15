@@ -157,6 +157,9 @@ class ChromatinNarrator:
         n_peaks = lsi.get("n_peaks")
         dropped = lsi.get("dropped_components") or []
         n_used = lsi.get("n_components_used")
+        doublets = lsi.get("doublets") or {}
+        batch_qc = lsi.get("batch_qc") or {}
+        consensus = lsi.get("consensus_peaks") or {}
 
         evidence = [
             _ev("Method", "TF-IDF/LSI", "chromatin_lsi_clustering"),
@@ -167,6 +170,17 @@ class ChromatinNarrator:
             _ev("Depth-associated components removed", len(dropped),
                 "chromatin_lsi_clustering"),
         ]
+        if doublets:
+            evidence.extend([
+                _ev("Doublet detector", doublets.get("method"),
+                    "chromatin_lsi_clustering"),
+                _ev("Predicted doublets removed", doublets.get("removed", 0),
+                    "chromatin_lsi_clustering"),
+            ])
+        if consensus:
+            evidence.append(_ev(
+                "Consensus peak provenance", consensus.get("status"),
+                "chromatin_lsi_clustering"))
         evidence = [e for e in evidence if e.value is not None]
 
         caveats = [Caveat(
@@ -176,6 +190,24 @@ class ChromatinNarrator:
             caveats.append(Caveat(
                 "A random cell sketch was used before LSI; cluster assignments "
                 "cover the sketch.", severity="warning"))
+        if doublets and not doublets.get("ran"):
+            caveats.append(Caveat(
+                "scATAC doublet detection was not run: "
+                f"{doublets.get('reason', 'prerequisites missing')}.",
+                severity="warning"))
+        if batch_qc.get("issues"):
+            checks = ", ".join(
+                str(i.get("check")) for i in batch_qc.get("issues", [])
+            )
+            caveats.append(Caveat(
+                f"scATAC batch QC raised warning(s): {checks}.",
+                severity="warning"))
+        if consensus and consensus.get("status") != "verified":
+            caveats.append(Caveat(
+                "Consensus peak provenance is "
+                f"{consensus.get('status')}; peak reproducibility and rare-peak "
+                "preservation are not fully verified from this matrix alone.",
+                severity="warning"))
 
         claim = (
             f"TF-IDF/LSI over {n_peaks} peaks in {n_cells} cells produced "
@@ -189,7 +221,10 @@ class ChromatinNarrator:
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"resolution": lsi.get("resolution"),
                      "rep_used": lsi.get("rep_used"),
-                     "cluster_sizes": lsi.get("cluster_sizes")},
+                     "cluster_sizes": lsi.get("cluster_sizes"),
+                     "doublets": doublets,
+                     "batch_qc": batch_qc,
+                     "consensus_peaks": consensus},
         )
 
     # ── Differential accessibility ──────────────────────────────────────────

@@ -368,6 +368,9 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         ),
         success_outputs=(
             _f("n_clusters", "int", required=False),
+            _f("doublets", "dict", required=False),
+            _f("batch_qc", "dict", required=False),
+            _f("consensus_peaks", "dict", required=False),
         ),
     ),
     "aria/scripts/chromatin_diffacc.py": ScriptContract(

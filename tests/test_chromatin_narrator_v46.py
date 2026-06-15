@@ -30,6 +30,15 @@ def _findings(motifs_ran=True, pseudobulk_ran=False):
             "n_components_used": 49, "rep_used": "X_lsi", "n_clusters": 8,
             "cluster_sizes": {str(i): 300 for i in range(8)},
             "resolution": 1.0, "sketch_used": False,
+            "doublets": {
+                "ran": True, "method": "robust_depth_feature_outlier",
+                "n_doublets": 12, "doublet_rate": 0.0038, "removed": 12,
+            },
+            "batch_qc": {"status": "clean", "issues": [], "metrics": {}},
+            "consensus_peaks": {
+                "status": "verified", "n_peaks": 60990,
+                "coordinate_peak_fraction": 1.0, "issues": [],
+            },
             "output_path": "/tmp/x/lsi_clustered.h5ad",
         },
         "differential_accessibility": {
@@ -89,7 +98,35 @@ def test_clustering_claim_numbers_are_all_in_evidence():
                  if b.id == "chromatin.clustering")
     vals = {str(e.value) for e in block.evidence}
     assert {"8", "3143", "60990", "49", "1"} <= vals
+    labels = {e.label for e in block.evidence}
+    assert "Doublet detector" in labels
+    assert "Predicted doublets removed" in labels
+    assert "Consensus peak provenance" in labels
     assert block.confidence == "medium"
+
+
+def test_clustering_block_surfaces_p1_caveats():
+    findings = _findings()
+    findings["lsi"]["doublets"] = {
+        "ran": False,
+        "reason": "only 20 cells; doublet detection needs >= 50",
+        "method": "robust_depth_feature_outlier",
+        "removed": 0,
+    }
+    findings["lsi"]["batch_qc"] = {
+        "status": "warnings",
+        "issues": [{"check": "unmodeled_batch", "severity": "warning"}],
+    }
+    findings["lsi"]["consensus_peaks"] = {
+        "status": "unverified",
+        "issues": [{"check": "consensus_peak_provenance_unverified"}],
+    }
+    block = next(b for b in _collect(findings)
+                 if b.id == "chromatin.clustering")
+    caveats = " ".join(c.text.lower() for c in block.caveats)
+    assert "doublet detection was not run" in caveats
+    assert "unmodeled_batch" in caveats
+    assert "consensus peak provenance is unverified" in caveats
 
 
 def test_motif_block_is_association_only_with_provenance():
@@ -173,7 +210,15 @@ def test_agent_h5mu_flow_dispatches_and_stores_findings():
     agent = _bare_agent(env)
     exp_ctx = {"genome": "hg38", "organism": "Homo sapiens",
                "genome_fasta": "/g/GRCh38.fa",
-               "motif_collection": "JASPAR2024_CORE_vertebrates"}
+               "motif_collection": "JASPAR2024_CORE_vertebrates",
+               "condition_col": "condition",
+               "replicate_col": "donor",
+               "batch_covariate": "sequencing_lane",
+               "peak_provenance": {
+                   "method": "overlap_unified",
+                   "n_samples": 4,
+                   "overlap_fraction": 0.7,
+               }}
     res = agent._run_scatac(  # routes to _run_scatac_matrix on a .h5mu
         "exp1", exp_ctx, {}, ["/data/hc11_paired.h5mu"])
     assert res["status"] == "done"
@@ -188,6 +233,11 @@ def test_agent_h5mu_flow_dispatches_and_stores_findings():
     motif_params = next(p for s, p in env.calls if s.endswith("chromatin_motifs.py"))
     assert motif_params["genome_fasta"] == "/g/GRCh38.fa"
     assert motif_params["motif_collection"] == "JASPAR2024_CORE_vertebrates"
+    lsi_params = next(p for s, p in env.calls if s.endswith("chromatin_lsi_clustering.py"))
+    assert lsi_params["condition_col"] == "condition"
+    assert lsi_params["replicate_col"] == "donor"
+    assert lsi_params["batch_col"] == "sequencing_lane"
+    assert lsi_params["peak_provenance"]["method"] == "overlap_unified"
 
     # and the narrator turns those findings into the chromatin blocks
     blocks = ChromatinNarrator().collect("chromatin_agent", res, {})

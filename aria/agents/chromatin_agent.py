@@ -310,6 +310,32 @@ class ChromatinAgent(BaseAgent):
 
         # 2. LSI + Leiden clustering on the peak matrix
         self.publish_status(experiment_id, "scATAC LSI clustering...", 0.35)
+        design = exp_ctx.get("design") or {}
+        pseudobulk = design.get("pseudobulk") or {}
+        condition_col = (
+            exp_ctx.get("condition_col")
+            or pseudobulk.get("condition_col")
+            or design.get("condition_col")
+            or design.get("main_factor")
+        )
+        replicate_col = (
+            exp_ctx.get("replicate_col")
+            or pseudobulk.get("replicate_col")
+            or design.get("replicate_col")
+        )
+        batch_col = (
+            exp_ctx.get("batch_col")
+            or exp_ctx.get("batch_covariate")
+            or design.get("batch_col")
+            or design.get("batch_factor")
+            or design.get("batch_covariate")
+        )
+        peak_provenance = (
+            exp_ctx.get("peak_provenance")
+            or exp_ctx.get("consensus_peak_provenance")
+            or design.get("peak_provenance")
+            or design.get("consensus_peak_provenance")
+        )
         lsi_result = self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_lsi_clustering.py",
@@ -317,6 +343,10 @@ class ChromatinAgent(BaseAgent):
                 "data_path": h5mu_path,
                 "resolution": exp_ctx.get("leiden_resolution", 1.0),
                 "output_dir": out_dir,
+                "condition_col": condition_col,
+                "replicate_col": replicate_col,
+                "batch_col": batch_col,
+                "peak_provenance": peak_provenance,
             },
         )
         findings["lsi"] = lsi_result

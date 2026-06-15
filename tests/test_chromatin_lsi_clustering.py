@@ -125,7 +125,11 @@ def test_lsi_clustering_pipeline_structure(tmp_path):
     assert res["status"] == "success"
     assert res["input_kind"] == "h5ad"
     assert res["n_cells_total"] == 80
+    assert res["n_cells_after_doublet_filter"] <= res["n_cells_total"]
     assert res["n_peaks"] == 200
+    assert res["doublets"]["ran"] is True
+    assert "batch_qc" in res
+    assert res["consensus_peaks"]["status"] in {"verified", "partial", "unverified"}
     assert res["rep_used"] == "X_lsi"
     # two planted populations should separate into >= 2 clusters
     assert res["n_clusters"] >= 2

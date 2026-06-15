@@ -65,7 +65,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script, mocks_allowed
 
-CACHE_VERSION = 1
+CACHE_VERSION = 2
 
 
 def _cache_params(params: dict) -> dict:
@@ -76,7 +76,44 @@ def _cache_params(params: dict) -> dict:
         "depth_corr_cutoff": float(params.get("depth_corr_cutoff", 0.9)),
         "max_cells": int(params.get("max_cells", 200_000)),
         "seed": int(params.get("seed", 0)),
+        "doublet_detection": _as_bool(params.get("doublet_detection", True)),
+        "remove_doublets": _as_bool(params.get("remove_doublets", True)),
+        "doublet_min_cells": int(params.get("doublet_min_cells", 50)),
+        "doublet_depth_z": float(params.get("doublet_depth_z", 2.5)),
+        "doublet_feature_z": float(params.get("doublet_feature_z", 2.5)),
+        "doublet_max_rate": float(params.get("doublet_max_rate", 0.12)),
+        "condition_col": _string_or_none(params.get("condition_col")),
+        "replicate_col": _string_or_none(params.get("replicate_col")),
+        "batch_col": _string_or_none(
+            params.get("batch_col") or params.get("batch_covariate")
+        ),
+        "peak_provenance": _jsonable(params.get("peak_provenance")),
     }
+
+
+def _as_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() not in {"0", "false", "no", "off", ""}
+
+
+def _string_or_none(value):
+    if value is None:
+        return None
+    text = str(value)
+    return text if text else None
+
+
+def _jsonable(value):
+    if isinstance(value, dict):
+        return {str(k): _jsonable(v) for k, v in sorted(value.items())}
+    if isinstance(value, (list, tuple)):
+        return [_jsonable(v) for v in value]
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    return str(value)
 
 
 def _cache_matches(cached: dict, expected: dict) -> bool:
@@ -165,6 +202,12 @@ def chromatin_lsi_clustering(params: dict) -> dict:
     depth_corr_cutoff = cache_params["depth_corr_cutoff"]
     max_cells = cache_params["max_cells"]
     seed = cache_params["seed"]
+    doublet_detection = cache_params["doublet_detection"]
+    remove_doublets = cache_params["remove_doublets"]
+    batch_col = cache_params["batch_col"]
+    condition_col = cache_params["condition_col"]
+    replicate_col = cache_params["replicate_col"]
+    peak_provenance_param = cache_params["peak_provenance"]
     output_dir = params.get("output_dir")
     allow_mocks = mocks_allowed(params)
 
@@ -234,6 +277,65 @@ def chromatin_lsi_clustering(params: dict) -> dict:
             "details": (f"peak matrix too small for LSI: {n_cells_total} cells "
                         f"x {n_peaks} peaks."),
         }
+
+    # ── P1 W1.1: conservative ATAC doublet screen ──────────────────────────
+    from aria.utils.chromatin_robustness import (
+        assess_atac_batch_embedding,
+        assess_consensus_peak_provenance,
+        detect_atac_doublets,
+        public_doublet_summary,
+    )
+
+    if doublet_detection:
+        doublet_raw = detect_atac_doublets(
+            adata.X,
+            min_cells=cache_params["doublet_min_cells"],
+            depth_z=cache_params["doublet_depth_z"],
+            feature_z=cache_params["doublet_feature_z"],
+            max_rate=cache_params["doublet_max_rate"],
+        )
+        doublet_mask = list(doublet_raw.get("_doublet_mask") or [])
+        doublet_scores = list(doublet_raw.get("_doublet_score") or [])
+        if len(doublet_mask) == adata.n_obs:
+            adata.obs["aria_predicted_doublet"] = doublet_mask
+        if len(doublet_scores) == adata.n_obs:
+            adata.obs["aria_doublet_score"] = doublet_scores
+
+        removed_doublets = 0
+        if (remove_doublets and doublet_raw.get("ran")
+                and int(doublet_raw.get("n_doublets") or 0) > 0):
+            keep = np.asarray([not bool(v) for v in doublet_mask])
+            if int(keep.sum()) >= 2:
+                removed_doublets = int((~keep).sum())
+                adata = adata[keep, :].copy()
+                warnings.append(
+                    f"Removed {removed_doublets} predicted scATAC doublet(s) "
+                    f"using {doublet_raw.get('method')}."
+                )
+            else:
+                warnings.append(
+                    "Predicted scATAC doublets were not removed because fewer "
+                    "than two cells would remain."
+                )
+        elif not doublet_raw.get("ran"):
+            warnings.append(
+                "scATAC doublet detection skipped: "
+                f"{doublet_raw.get('reason')}"
+            )
+        doublets = public_doublet_summary(
+            doublet_raw, removed=removed_doublets
+        )
+    else:
+        doublets = {
+            "ran": False,
+            "reason": "disabled",
+            "method": "robust_depth_feature_outlier",
+            "n_cells": n_cells_total,
+            "n_doublets": 0,
+            "doublet_rate": 0.0,
+            "removed": 0,
+        }
+    n_cells_after_doublet_filter = int(adata.n_obs)
 
     # ── Optional random sketch for very large matrices ──────────────────────
     sketch_used = False
@@ -314,7 +416,52 @@ def chromatin_lsi_clustering(params: dict) -> dict:
     adata.obs["n_fragments"] = cell_totals
     adata.obs["log10_n_fragments"] = np.log10(np.maximum(cell_totals, 1.0))
 
+    # ── P1 W1.2/W1.3: batch diagnostics and peak-universe provenance ───────
+    batch_labels = None
+    if batch_col and batch_col in adata.obs.columns:
+        batch_labels = adata.obs[batch_col].astype(str).tolist()
+    batch_qc = assess_atac_batch_embedding(
+        obs_columns=[str(c) for c in adata.obs.columns],
+        embedding=adata.obsm.get("X_lsi"),
+        cluster_labels=adata.obs["leiden"].astype(str).tolist(),
+        batch_labels=batch_labels,
+        condition_col=condition_col,
+        replicate_col=replicate_col,
+        declared_batch=batch_col,
+    )
+    if batch_qc.get("issues"):
+        checks = ", ".join(str(i.get("check")) for i in batch_qc["issues"])
+        warnings.append(f"scATAC batch QC warning(s): {checks}.")
+
+    peak_provenance = peak_provenance_param
+    if not peak_provenance:
+        for key in (
+            "peak_provenance",
+            "aria_peak_provenance",
+            "consensus_peak_provenance",
+        ):
+            val = adata.uns.get(key)
+            if isinstance(val, dict):
+                peak_provenance = val
+                break
+    consensus_peaks = assess_consensus_peak_provenance(
+        adata.var_names,
+        metadata=peak_provenance if isinstance(peak_provenance, dict) else None,
+        input_kind=input_kind,
+    )
+    if consensus_peaks.get("status") != "verified":
+        warnings.append(
+            "Consensus peak provenance is "
+            f"{consensus_peaks.get('status')}; reproducibility/rare-peak "
+            "preservation cannot be fully verified from this matrix alone."
+        )
+
     adata.uns["aria_n_cells_total"] = n_cells_total
+    adata.uns["aria_doublets_json"] = json.dumps(doublets, sort_keys=True)
+    adata.uns["aria_batch_qc_json"] = json.dumps(batch_qc, sort_keys=True)
+    adata.uns["aria_consensus_peaks_json"] = json.dumps(
+        consensus_peaks, sort_keys=True
+    )
     adata.write_h5ad(str(output_path))
 
     result = {
@@ -322,8 +469,12 @@ def chromatin_lsi_clustering(params: dict) -> dict:
         "input_kind": input_kind,
         "atac_modality": atac_modality,
         "n_cells_total": n_cells_total,
+        "n_cells_after_doublet_filter": n_cells_after_doublet_filter,
         "n_cells_used": int(adata.n_obs),
         "n_peaks": n_peaks,
+        "doublets": doublets,
+        "batch_qc": batch_qc,
+        "consensus_peaks": consensus_peaks,
         "n_components_computed": int(lsi.shape[1]),
         "depth_correlations": [round(r, 4) for r in depth_corr],
         "dropped_components": dropped,
