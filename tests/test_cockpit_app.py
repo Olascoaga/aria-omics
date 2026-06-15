@@ -271,7 +271,10 @@ def test_intake_requires_question(tmp_path):
     assert "biological question" in status
 
 
-def test_intake_routes_paste_to_data_input(tmp_path):
+def test_intake_pastes_path_into_data_input_once(tmp_path):
+    """A terminal Paste into the focused path Input lands once (no double)."""
+    from textual import events
+
     async def _run():
         app = AriaIntakeApp(version="4.6.1")
         async with app.run_test() as pilot:
@@ -279,30 +282,36 @@ def test_intake_routes_paste_to_data_input(tmp_path):
             from textual.widgets import Input
             data_input = app.query_one("#data-input", Input)
             app.set_focus(data_input)
-            assert app._paste_into_focused(str(tmp_path) + "\n") is True
+            await pilot.pause()
+            # Post the Paste the way the driver does: to the app, which forwards
+            # it to the focused widget's native paste handler.
+            app.post_message(events.Paste(text=str(tmp_path)))
+            await pilot.pause()
             await pilot.pause()
             return data_input.value
 
     assert asyncio.run(_run()) == str(tmp_path)
 
 
-def test_intake_routes_multiline_paste_to_question():
+def test_intake_pastes_multiline_question_once():
+    """A multi-line Paste into the question TextArea is not double-inserted."""
+    from textual import events
+
     async def _run():
         app = AriaIntakeApp(version="4.6.1")
         async with app.run_test() as pilot:
             await pilot.pause()
-            from textual.widgets import Static, TextArea
-            logo = app.query_one("#brand-logo", Static)
+            from textual.widgets import TextArea
             question = app.query_one("#question-input", TextArea)
             app.set_focus(question)
-            assert app._paste_into_focused("line one\nline two") is True
             await pilot.pause()
-            return str(logo.render()), question.text
+            app.post_message(events.Paste(text="line one\nline two"))
+            await pilot.pause()
+            await pilot.pause()
+            return question.text
 
-    logo, text = asyncio.run(_run())
-
-    assert "########" in logo
-    assert text == "line one\nline two"
+    # Exactly once: regression guard for the TextArea double-paste bug.
+    assert asyncio.run(_run()) == "line one\nline two"
 
 
 def test_intake_renders_resume_history():

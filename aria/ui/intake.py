@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
-from textual.events import Paste
 from textual.widgets import Button, Footer, Input, Static, TextArea
 
 from aria.runtime.experiment_view import ExperimentHistoryView
@@ -103,16 +102,13 @@ class AriaIntakeApp(App):
     def on_mount(self) -> None:
         self.query_one("#data-input", Input).focus()
 
-    def on_paste(self, event: Paste) -> None:
-        """Route terminal paste into the focused intake field.
-
-        Textual widgets have paste handlers, but terminal/emulator paste events
-        can arrive at the app level. Handling it here keeps the startup form
-        usable for long paths and multi-line biological questions.
-        """
-        if self._paste_into_focused(event.text):
-            event.prevent_default()
-            event.stop()
+    # Paste is handled by the focused widget's native handler. Textual forwards a
+    # `Paste` event to `self.focused` (see App.on_event), so the `Input` and
+    # `TextArea` paste their own content: the path Input keeps the first line, the
+    # question TextArea keeps the full multi-line text. An app-level `on_paste`
+    # used to re-insert the text after the widget had already handled it, which
+    # double-pasted into the TextArea (the TextArea's native handler, unlike the
+    # Input's, does not stop the event before it bubbles up). Do NOT add one back.
 
     def _memory_text(self) -> str:
         text = (self.startup_context or "").strip()
@@ -147,16 +143,6 @@ class AriaIntakeApp(App):
     def _set_status(self, message: str) -> None:
         self.status_message = message
         self.query_one("#status", Static).update(message)
-
-    def _paste_into_focused(self, text: str) -> bool:
-        focused = self.focused
-        if isinstance(focused, Input):
-            focused.insert_text_at_cursor(text.strip("\r\n"))
-            return True
-        if isinstance(focused, TextArea):
-            focused.insert(text)
-            return True
-        return False
 
     def _values(self) -> tuple[str, str]:
         data_input = self.query_one("#data-input", Input).value.strip()
