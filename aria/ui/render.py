@@ -127,6 +127,34 @@ def render_timeline(snap: ExperimentSnapshot) -> Panel:
                  padding=(0, 1))
 
 
+# Center views and the key that toggles each (findings is the default view).
+_CENTER_MODES = [
+    ("findings", ""),
+    ("ledger", "l"),
+    ("readiness", "r"),
+    ("resources", "u"),
+    ("artifacts", "a"),
+]
+
+
+def render_mode_bar(active_mode: str) -> Text:
+    """Center-mode indicator: which view is showing and the key for each.
+
+    Discoverability for the cockpit's swappable center. The active view is
+    highlighted; the toggle key is shown in brackets (findings is the default).
+    """
+    t = Text()
+    for i, (mode, key) in enumerate(_CENTER_MODES):
+        if i:
+            t.append("  ", style="dim")
+        label = f"[{key}] {mode}" if key else mode
+        if mode == active_mode:
+            t.append(f" {label} ", style="bold black on cyan")
+        else:
+            t.append(label, style="dim")
+    return t
+
+
 def render_findings(snap: ExperimentSnapshot, *, limit: int = 12) -> Panel:
     """Center panel: findings stream with confidence badges."""
     counts = {k: len(v) for k, v in snap.findings_by_confidence.items()}
@@ -145,6 +173,10 @@ def render_findings(snap: ExperimentSnapshot, *, limit: int = 12) -> Panel:
     if not flat:
         body.append("No findings yet.", style="dim")
     else:
+        hidden = max(0, len(flat) - limit)
+        if hidden:
+            # Disclose, never silently drop: older findings are off-screen.
+            body.append(f"… +{hidden} older ({len(flat)} total)\n", style="dim")
         for f in flat[-limit:]:
             body.append(f"[{f.confidence[:4]}] ",
                         style=_CONF_STYLE.get(f.confidence, "white"))
@@ -157,9 +189,16 @@ def render_checkpoint(snap: ExperimentSnapshot) -> Panel:
     """Right panel: the pending checkpoint (decision point), or idle state."""
     cp = snap.pending_checkpoint
     if cp is None:
-        msg = (Text("Run complete.", style="green") if snap.done
-               else Text("No pending checkpoint.", style="dim"))
-        return Panel(msg, title="[bold]Checkpoint[/]", border_style="dim",
+        if snap.done:
+            msg = Text("Run complete.\n", style="green")
+            if snap.report_path:
+                msg.append("\nReport\n", style="cyan")
+                msg.append(snap.report_path, style="dim")
+            border = "green"
+        else:
+            msg = Text("No pending checkpoint.", style="dim")
+            border = "dim"
+        return Panel(msg, title="[bold]Checkpoint[/]", border_style=border,
                      padding=(0, 1))
     t = Text()
     t.append(f"CP{cp.number} · {cp.title}\n", style="bold yellow")

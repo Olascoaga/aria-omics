@@ -230,3 +230,36 @@ def test_history_renders_prior_runs_and_resume_points():
 def test_history_empty_state():
     out = _capture(render.render_history([]))
     assert "No prior experiments yet" in out
+
+
+def test_findings_disclose_truncated_older():
+    many = [
+        FindingView(ts=i, sender="a", confidence="MEDIUM",
+                    summary=f"finding {i}")
+        for i in range(20)
+    ]
+    snap = _snap(findings_by_confidence={
+        "HIGH": [], "MEDIUM": many, "LOW": [], "INSUFFICIENT": [],
+    })
+    out = _capture(render.render_findings(snap, limit=12))
+    # Older findings are disclosed, not silently dropped.
+    assert "+8 older" in out
+    assert "20 total" in out
+    assert "finding 19" in out      # most recent shown
+    assert "finding 0" not in out   # oldest is off-screen
+
+
+def test_checkpoint_complete_shows_report_path():
+    out = _capture(render.render_checkpoint(
+        _snap(done=True, report_path="/home/x/.aria/reports/run/report.html")))
+    assert "Run complete" in out
+    assert "/home/x/.aria/reports/run/report.html" in out
+
+
+def test_mode_bar_highlights_active_view():
+    out = _capture(render.render_mode_bar("ledger"))
+    for mode in ("findings", "ledger", "readiness", "resources", "artifacts"):
+        assert mode in out
+    # Toggle keys are surfaced for discoverability.
+    assert "[l] ledger" in out
+    assert "[a] artifacts" in out

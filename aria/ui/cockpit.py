@@ -39,6 +39,7 @@ class AriaCockpit(App):
     #right { width: 46; }
     #center { width: 1fr; }
     Static { height: auto; }
+    #mode-bar { height: 1; margin-bottom: 1; }
     #findings { height: 1fr; }
     #ledger { height: 1fr; }
     #readiness { height: 1fr; }
@@ -85,6 +86,7 @@ class AriaCockpit(App):
             Vertical(Static(id="run-header"), id="left"),
             Vertical(
                 Static(id="timeline"),
+                Static(id="mode-bar"),
                 Static(id="findings"),
                 Static(id="ledger"),
                 Static(id="readiness"),
@@ -113,6 +115,8 @@ class AriaCockpit(App):
             self._center_mode == "resources"
         self.query_one("#artifacts", Static).display = \
             self._center_mode == "artifacts"
+        self.query_one("#mode-bar", Static).update(
+            render.render_mode_bar(self._center_mode))
 
     # ── Rendering ────────────────────────────────────────────────────────────
     def refresh_snapshot(self) -> None:
