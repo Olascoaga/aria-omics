@@ -10,7 +10,7 @@ import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from aria.utils.provenance import hash_file, hash_params
 
@@ -18,6 +18,7 @@ from aria.utils.provenance import hash_file, hash_params
 TENX_BARCODE = "barcodes.tsv.gz"
 TENX_MATRIX = "matrix.mtx.gz"
 TENX_FEATURES = ("features.tsv.gz", "genes.tsv.gz")
+ProgressCallback = Callable[[str, dict[str, Any]], None]
 
 
 @dataclass(frozen=True)
@@ -35,16 +36,40 @@ class TenXTriplet:
         return [self.barcodes, self.features, self.matrix]
 
 
-def discover_10x_mtx_triplets(root: str | Path) -> list[TenXTriplet]:
+def discover_10x_mtx_triplets(
+    root: str | Path,
+    progress_callback: ProgressCallback | None = None,
+) -> list[TenXTriplet]:
     """Find valid Cell Ranger-style 10X matrix triplets under *root*."""
     root = Path(root)
     if root.is_file():
         root = root.parent
     candidates: set[Path] = set()
-    for matrix in root.rglob(TENX_MATRIX):
-        candidates.add(matrix.parent)
+    files_seen = 0
+    dirs_seen = 0
+    last_report = 0
+    for path in _walk_files(root):
+        files_seen += 1
+        if path.name == TENX_MATRIX:
+            candidates.add(path.parent)
+        parent_count = len(candidates)
+        if progress_callback and files_seen - last_report >= 1000:
+            last_report = files_seen
+            progress_callback(
+                "scan_10x_mtx",
+                {
+                    "files_seen": files_seen,
+                    "candidate_dirs": parent_count,
+                },
+            )
     if (root / TENX_MATRIX).exists():
         candidates.add(root)
+    candidate_count = len(candidates)
+    if progress_callback:
+        progress_callback(
+            "scan_10x_mtx",
+            {"files_seen": files_seen, "candidate_dirs": candidate_count},
+        )
 
     triplets: list[TenXTriplet] = []
     seen: set[Path] = set()
@@ -56,6 +81,14 @@ def discover_10x_mtx_triplets(root: str | Path) -> list[TenXTriplet]:
         if triplet.directory not in seen:
             triplets.append(triplet)
             seen.add(triplet.directory)
+            if progress_callback:
+                progress_callback(
+                    "validate_10x_mtx",
+                    {
+                        "validated_triplets": len(triplets),
+                        "candidate_dirs": candidate_count,
+                    },
+                )
     return triplets
 
 
@@ -86,6 +119,12 @@ def validate_10x_mtx_triplet(directory: str | Path) -> TenXTriplet:
 
     n_barcodes = _count_gzip_lines(barcodes)
     n_features = _count_gzip_lines(features)
+    barcode_summary = _inspect_10x_barcodes(barcodes)
+    if not _is_likely_10x_mtx_dir(directory, barcode_summary):
+        raise ValueError(
+            "10X matrix triplet lacks 10X-like cell barcode evidence: "
+            f"{directory}"
+        )
     mtx_rows, mtx_cols, n_nonzero = _read_matrix_market_shape(matrix)
     if mtx_rows != n_features or mtx_cols != n_barcodes:
         raise ValueError(
@@ -183,7 +222,10 @@ def ingest_10x_mtx_triplet(
     }
 
 
-def scan_fastq_plan(root: str | Path) -> dict[str, Any]:
+def scan_fastq_plan(
+    root: str | Path,
+    progress_callback: ProgressCallback | None = None,
+) -> dict[str, Any]:
     """
     Detect FASTQ groups and return a non-executing ingestion plan.
 
@@ -192,10 +234,25 @@ def scan_fastq_plan(root: str | Path) -> dict[str, Any]:
     checkpoint.
     """
     root = Path(root)
-    fastqs = sorted(
-        p for p in root.rglob("*")
-        if p.is_file() and _is_fastq_name(p.name)
-    )
+    fastqs = []
+    files_seen = 0
+    last_report = 0
+    for path in _walk_files(root):
+        files_seen += 1
+        if _is_fastq_name(path.name):
+            fastqs.append(path)
+        if progress_callback and files_seen - last_report >= 1000:
+            last_report = files_seen
+            progress_callback(
+                "scan_fastq",
+                {"files_seen": files_seen, "fastq_count": len(fastqs)},
+            )
+    fastqs = sorted(fastqs)
+    if progress_callback:
+        progress_callback(
+            "scan_fastq",
+            {"files_seen": files_seen, "fastq_count": len(fastqs)},
+        )
     groups: dict[str, dict[str, Any]] = {}
     warnings: list[str] = []
 
@@ -255,6 +312,30 @@ def scan_fastq_plan(root: str | Path) -> dict[str, Any]:
             "samples": normalized_groups,
         }),
     }
+
+
+def _walk_files(root: Path):
+    if not root.exists():
+        return
+    if root.is_file():
+        yield root
+        return
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        try:
+            with os.scandir(current) as entries:
+                for entry in entries:
+                    path = Path(entry.path)
+                    try:
+                        if entry.is_dir(follow_symlinks=False):
+                            stack.append(path)
+                        elif entry.is_file(follow_symlinks=False):
+                            yield path
+                    except OSError:
+                        continue
+        except OSError:
+            continue
 
 
 def build_kb_count_command(
@@ -435,6 +516,43 @@ def _validate_gzip(path: Path) -> None:
                 pass
     except Exception as exc:
         raise ValueError(f"Invalid gzip file {path}: {exc}") from exc
+
+
+def _inspect_10x_barcodes(path: Path) -> dict[str, Any]:
+    checked = 0
+    tenx_like = 0
+    examples: list[str] = []
+    with gzip.open(path, "rt", encoding="utf-8") as fh:
+        for line in fh:
+            value = line.strip().split("\t", 1)[0]
+            if not value:
+                continue
+            checked += 1
+            if len(examples) < 3:
+                examples.append(value)
+            if _looks_like_10x_cell_barcode(value):
+                tenx_like += 1
+            if checked >= 64:
+                break
+    return {
+        "barcode_rows_checked": checked,
+        "tenx_like_barcode_fraction": (
+            round(tenx_like / checked, 3) if checked else 0.0
+        ),
+        "barcode_examples": examples,
+    }
+
+
+def _is_likely_10x_mtx_dir(directory: Path, barcode_summary: dict[str, Any]) -> bool:
+    if directory.name.lower() in {"filtered_feature_bc_matrix", "raw_feature_bc_matrix"}:
+        return True
+    checked = int(barcode_summary.get("barcode_rows_checked") or 0)
+    fraction = float(barcode_summary.get("tenx_like_barcode_fraction") or 0.0)
+    return checked > 0 and fraction >= 0.80
+
+
+def _looks_like_10x_cell_barcode(value: str) -> bool:
+    return re.fullmatch(r"[ACGTNacgtn]{8,32}(?:-\d+)?", value.strip()) is not None
 
 
 def _count_gzip_lines(path: Path) -> int:

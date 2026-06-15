@@ -3592,7 +3592,7 @@ def _write_gzip(path: Path, text: str) -> None:
 
 def _write_minimal_10x_triplet(path: Path, *, mismatch: bool = False) -> None:
     path.mkdir(parents=True, exist_ok=True)
-    _write_gzip(path / "barcodes.tsv.gz", "cell1\ncell2\n")
+    _write_gzip(path / "barcodes.tsv.gz", "AAACCCAAGAAACACT-1\nAAACCCAAGAAACCAT-1\n")
     _write_gzip(
         path / "features.tsv.gz",
         "ENSG1\tGeneA\tGene Expression\nENSG2\tGeneB\tGene Expression\n",

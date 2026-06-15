@@ -56,7 +56,41 @@ class RawIngestionAgent(BaseAgent):
         errors = []
         requested_scrna_fastqs = self._scrna_fastq_inputs(exp_ctx)
 
-        triplets = discover_10x_mtx_triplets(data_dir)
+        def _progress(stage: str, report: dict) -> None:
+            if stage == "scan_10x_mtx":
+                self.publish_status(
+                    experiment_id,
+                    "RawIngestionAgent: scanning 10X MEX inputs "
+                    f"(files={report.get('files_seen', 0)}, "
+                    f"candidates={report.get('candidate_dirs', 0)})...",
+                    0.05,
+                )
+            elif stage == "validate_10x_mtx":
+                self.publish_status(
+                    experiment_id,
+                    "RawIngestionAgent: validating 10X MEX inputs "
+                    f"({report.get('validated_triplets', 0)}/"
+                    f"{report.get('candidate_dirs', 0)})...",
+                    0.10,
+                )
+            elif stage == "scan_fastq":
+                self.publish_status(
+                    experiment_id,
+                    "RawIngestionAgent: scanning scRNA FASTQ inputs "
+                    f"(files={report.get('files_seen', 0)}, "
+                    f"FASTQ={report.get('fastq_count', 0)})...",
+                    0.72,
+                )
+
+        if self._should_scan_scrna_mtx(exp_ctx):
+            self.publish_status(
+                experiment_id,
+                "RawIngestionAgent: scanning confirmed scRNA MEX inputs...",
+                0.03,
+            )
+            triplets = self._discover_10x_mtx_triplets(data_dir, _progress)
+        else:
+            triplets = []
         for i, triplet in enumerate(triplets):
             self.publish_status(
                 experiment_id,
@@ -79,7 +113,11 @@ class RawIngestionAgent(BaseAgent):
                     "details": str(exc),
                 })
 
-        fastq_plan = scan_fastq_plan(data_dir)
+        fastq_plan = (
+            self._scan_fastq_plan(data_dir, _progress)
+            if self._should_scan_scrna_fastq(exp_ctx) else
+            {"status": "no_fastq_found", "mode": "fastq_kb_plan", "fastq_count": 0}
+        )
         if fastq_plan.get("fastq_count", 0):
             records.append(fastq_plan)
             kb_params = (
@@ -199,6 +237,28 @@ class RawIngestionAgent(BaseAgent):
             timeout=int(params.get("timeout_seconds") or 86400),
         )
 
+    @staticmethod
+    def _discover_10x_mtx_triplets(data_dir: Path, progress_callback):
+        try:
+            return discover_10x_mtx_triplets(
+                data_dir,
+                progress_callback=progress_callback,
+            )
+        except TypeError:
+            # Tests and older embeddings may monkeypatch the helper with the
+            # pre-progress one-argument signature.
+            return discover_10x_mtx_triplets(data_dir)
+
+    @staticmethod
+    def _scan_fastq_plan(data_dir: Path, progress_callback) -> dict:
+        try:
+            return scan_fastq_plan(
+                data_dir,
+                progress_callback=progress_callback,
+            )
+        except TypeError:
+            return scan_fastq_plan(data_dir)
+
     def _resolve_fastq_kb_checkpoint(
         self,
         experiment_id: str,
@@ -306,6 +366,43 @@ class RawIngestionAgent(BaseAgent):
         modalities = exp_ctx.get("modalities", {}) or {}
         files = modalities.get("scRNA", []) or []
         return [str(path) for path in files if cls._is_fastq_path(path)]
+
+    @classmethod
+    def _should_scan_scrna_fastq(cls, exp_ctx: dict) -> bool:
+        modalities = exp_ctx.get("modalities", {}) or {}
+        if not modalities:
+            return True
+        return bool(cls._scrna_fastq_inputs(exp_ctx))
+
+    @classmethod
+    def _should_scan_scrna_mtx(cls, exp_ctx: dict) -> bool:
+        modalities = exp_ctx.get("modalities", {}) or {}
+        if not modalities:
+            return True
+        files = modalities.get("scRNA", []) or []
+        for path in files:
+            lower = str(path).lower()
+            if lower.endswith((".h5ad", ".h5")) or cls._is_fastq_path(lower):
+                continue
+            if any(
+                token in lower
+                for token in (
+                    "matrix.mtx",
+                    "barcodes.tsv",
+                    "features.tsv",
+                    "genes.tsv",
+                    "filtered_feature_bc_matrix",
+                    "raw_feature_bc_matrix",
+                )
+            ):
+                return True
+            p = Path(path)
+            if p.is_dir() and (
+                (p / "matrix.mtx.gz").exists()
+                or (p / "matrix.mtx").exists()
+            ):
+                return True
+        return False
 
     @classmethod
     def _scrna_canonical_inputs(cls, exp_ctx: dict) -> list[str]:

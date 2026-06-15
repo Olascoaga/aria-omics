@@ -779,12 +779,45 @@ class DataAuditAgent(BaseAgent):
         # T5: an incomplete MEX (matrix.mtx without barcodes/features) is NOT
         # collapsed and is reported at CP1 with the missing component named.
         if classified.get("scRNA"):
-            self._mex_warnings = _incomplete_mex_warnings(classified["scRNA"])
-            classified["scRNA"] = _collapse_mex_directories(classified["scRNA"])
+            classified = self._demote_non_tenx_mtx_sidecars(classified)
+            if classified.get("scRNA"):
+                self._mex_warnings = _incomplete_mex_warnings(classified["scRNA"])
+                classified["scRNA"] = _collapse_mex_directories(classified["scRNA"])
+            else:
+                self._mex_warnings = []
         else:
             self._mex_warnings = []
 
         return classified
+
+    def _demote_non_tenx_mtx_sidecars(
+        self, classified: dict[str, list[str]]
+    ) -> dict[str, list[str]]:
+        records = getattr(self, "_last_assay_detections", []) or []
+        ambiguous_dirs = {
+            str(Path(rec.get("path", "")).parent)
+            for rec in records
+            if "tenx_cell_barcode_evidence_missing"
+            in set(rec.get("blocking_issues") or [])
+        }
+        if not ambiguous_dirs:
+            return classified
+
+        out = {key: list(value) for key, value in classified.items()}
+        kept_scrna = []
+        demoted = []
+        for path in out.get("scRNA", []):
+            p = Path(path)
+            if str(p.parent) in ambiguous_dirs and _MEX_COMPONENT_RE.search(p.name):
+                demoted.append(path)
+            else:
+                kept_scrna.append(path)
+        if demoted:
+            out["scRNA"] = kept_scrna
+            out.setdefault("unknown", []).extend(demoted)
+        if not out.get("scRNA"):
+            out.pop("scRNA", None)
+        return out
 
     def _record_assay_detection(self, path: Path, detection) -> None:
         records = getattr(self, "_last_assay_detections", None)

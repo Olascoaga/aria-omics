@@ -91,6 +91,72 @@ def test_data_audit_classifies_count_table_by_numeric_content(tmp_path):
     assert classified == {"bulk_RNA": [str(p)]}
 
 
+def test_data_audit_does_not_promote_bulk_like_mtx_triplet_to_scrna(tmp_path):
+    mex = tmp_path / "featurecounts_mtx"
+    mex.mkdir()
+    (mex / "barcodes.tsv").write_text("WT_1\nWT_2\nKO_1\nKO_2\n")
+    (mex / "features.tsv").write_text(
+        "GeneA\tGeneA\tGene Expression\n"
+        "GeneB\tGeneB\tGene Expression\n"
+    )
+    matrix = mex / "matrix.mtx"
+    matrix.write_text(
+        "%%MatrixMarket matrix coordinate integer general\n"
+        "%\n"
+        "2 4 4\n"
+        "1 1 10\n"
+        "2 2 12\n"
+        "1 3 30\n"
+        "2 4 32\n"
+    )
+
+    agent = _agent()
+    classified = agent._classify_files([
+        matrix,
+        mex / "barcodes.tsv",
+        mex / "features.tsv",
+    ])
+
+    assert classified == {
+        "bulk_RNA": [str(matrix)],
+        "unknown": [str(mex / "barcodes.tsv"), str(mex / "features.tsv")],
+    }
+    record = agent._last_assay_detections[0]
+    assert record["confidence"] == "low"
+    assert record["evidence"]["format"] == "ambiguous_mtx_triplet"
+    assert "tenx_cell_barcode_evidence_missing" in record["blocking_issues"]
+
+
+def test_data_audit_classifies_10x_like_mtx_triplet_as_scrna(tmp_path):
+    mex = tmp_path / "sample_mtx"
+    mex.mkdir()
+    (mex / "barcodes.tsv").write_text(
+        "AAACCCAAGAAACACT-1\nAAACCCAAGAAACCAT-1\n"
+    )
+    (mex / "features.tsv").write_text(
+        "ENSG1\tGeneA\tGene Expression\n"
+        "ENSG2\tGeneB\tGene Expression\n"
+    )
+    matrix = mex / "matrix.mtx"
+    matrix.write_text(
+        "%%MatrixMarket matrix coordinate integer general\n"
+        "%\n"
+        "2 2 2\n"
+        "1 1 5\n"
+        "2 2 7\n"
+    )
+
+    agent = _agent()
+    classified = agent._classify_files([
+        matrix,
+        mex / "barcodes.tsv",
+        mex / "features.tsv",
+    ])
+
+    assert classified == {"scRNA": [str(mex)]}
+    assert agent._last_assay_detections[0]["confidence"] == "high"
+
+
 def test_data_audit_classifies_salmon_quant_with_opaque_name(tmp_path):
     p = tmp_path / "transcript_payload.out"
     p.write_text(

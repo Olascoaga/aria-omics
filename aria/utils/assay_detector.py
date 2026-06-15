@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import gzip
 import math
+import re
 import struct
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -168,6 +169,25 @@ class AssayDetector:
         )
         has_features = feature_name is not None
         if has_barcodes and has_features:
+            barcode_summary = _inspect_10x_barcodes(
+                siblings.get("barcodes.tsv") or siblings.get("barcodes.tsv.gz")
+            )
+            if not _is_likely_10x_mtx_dir(path.parent, barcode_summary):
+                return AssayDetection(
+                    modality="bulk_RNA",
+                    confidence="low",
+                    reason=(
+                        "MatrixMarket triplet has generic matrix/barcodes/"
+                        "features files but barcodes do not look like 10X cell "
+                        "barcodes."
+                    ),
+                    evidence={
+                        "format": "ambiguous_mtx_triplet",
+                        **barcode_summary,
+                    },
+                    possible_alternatives=("scRNA",),
+                    blocking_issues=("tenx_cell_barcode_evidence_missing",),
+                )
             feature_summary = _inspect_10x_feature_table(
                 siblings[feature_name] if feature_name else None
             )
@@ -440,6 +460,52 @@ def _inspect_10x_feature_table(path: Path | None) -> dict[str, object]:
         if len(parts) >= 4:
             genomes.append(parts[3])
     return _feature_type_summary(feature_types, genomes)
+
+
+def _inspect_10x_barcodes(path: Path | None) -> dict[str, object]:
+    checked = 0
+    tenx_like = 0
+    examples: list[str] = []
+    if path is None:
+        return {
+            "barcode_rows_checked": 0,
+            "tenx_like_barcode_fraction": 0.0,
+            "barcode_examples": [],
+        }
+    text = _read_text_prefix(path)
+    for line in text.splitlines()[:64]:
+        value = line.strip().split("\t", 1)[0]
+        if not value:
+            continue
+        checked += 1
+        if len(examples) < 3:
+            examples.append(value)
+        if _looks_like_10x_cell_barcode(value):
+            tenx_like += 1
+    return {
+        "barcode_rows_checked": checked,
+        "tenx_like_barcode_fraction": (
+            round(tenx_like / checked, 3) if checked else 0.0
+        ),
+        "barcode_examples": examples,
+    }
+
+
+def _is_likely_10x_mtx_dir(directory: Path, barcode_summary: dict[str, object]) -> bool:
+    if directory.name.lower() in {"filtered_feature_bc_matrix", "raw_feature_bc_matrix"}:
+        return True
+    checked = int(barcode_summary.get("barcode_rows_checked") or 0)
+    fraction = float(barcode_summary.get("tenx_like_barcode_fraction") or 0.0)
+    return checked > 0 and fraction >= 0.80
+
+
+def _looks_like_10x_cell_barcode(value: str) -> bool:
+    token = value.strip()
+    if not token:
+        return False
+    # 10X cell barcodes are nucleotide sequences, commonly suffixed with "-1".
+    # Sample IDs such as WT_1/KO_2 must not be treated as cells.
+    return re.fullmatch(r"[ACGTNacgtn]{8,32}(?:-\d+)?", token) is not None
 
 
 def _feature_type_summary(

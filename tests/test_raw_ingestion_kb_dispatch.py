@@ -315,3 +315,74 @@ def test_raw_ingestion_blocks_scrna_fastq_only_when_kb_fails(
     assert result["errors"][0]["error_type"] == "KbCountFailed"
     assert "kb count exited with return code 1" in result["details"]
     assert result["errors"][-1]["error_type"] == "CanonicalH5adMissing"
+
+
+def test_raw_ingestion_does_not_rescan_confirmed_bulk_raw_as_scrna(
+    tmp_path, monkeypatch
+):
+    import aria.agents.raw_ingestion_agent as raw_agent
+    from aria.agents.raw_ingestion_agent import RawIngestionAgent
+
+    def fail_discover(*args, **kwargs):
+        raise AssertionError("10X scRNA discovery should not run for bulk_RNA_raw")
+
+    def fail_fastq(*args, **kwargs):
+        raise AssertionError("scRNA FASTQ planning should not run for bulk_RNA_raw")
+
+    monkeypatch.setattr(raw_agent, "discover_10x_mtx_triplets", fail_discover)
+    monkeypatch.setattr(raw_agent, "scan_fastq_plan", fail_fastq)
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+    agent = RawIngestionAgent.__new__(RawIngestionAgent)
+    agent.publish_status = lambda *args, **kwargs: None
+
+    result = agent.run(
+        "exp123",
+        {
+            "exp_context": {
+                "data_dir": str(tmp_path),
+                "modalities": {
+                    "bulk_RNA_raw": [
+                        str(tmp_path / "sample_R1.fastq.gz"),
+                        str(tmp_path / "sample_R2.fastq.gz"),
+                    ]
+                },
+            }
+        },
+    )
+
+    assert result["status"] == "skipped"
+    assert result["reason"] == "No supported raw-ingestion inputs detected."
+
+
+def test_raw_ingestion_passes_progress_callback_to_scanners(tmp_path, monkeypatch):
+    import aria.agents.raw_ingestion_agent as raw_agent
+    from aria.agents.raw_ingestion_agent import RawIngestionAgent
+
+    calls = []
+    statuses = []
+
+    def fake_discover(root, progress_callback=None):
+        calls.append(("discover", progress_callback is not None))
+        progress_callback("scan_10x_mtx", {"files_seen": 10, "candidate_dirs": 1})
+        return []
+
+    def fake_fastq(root, progress_callback=None):
+        calls.append(("fastq", progress_callback is not None))
+        progress_callback("scan_fastq", {"files_seen": 20, "fastq_count": 0})
+        return {"status": "no_fastq_found", "mode": "fastq_kb_plan", "fastq_count": 0}
+
+    monkeypatch.setattr(raw_agent, "discover_10x_mtx_triplets", fake_discover)
+    monkeypatch.setattr(raw_agent, "scan_fastq_plan", fake_fastq)
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+
+    agent = RawIngestionAgent.__new__(RawIngestionAgent)
+    agent.publish_status = lambda *args, **kwargs: statuses.append(args)
+
+    result = agent.run("exp123", {"exp_context": {"data_dir": str(tmp_path)}})
+
+    assert result["status"] == "skipped"
+    assert calls == [("discover", True), ("fastq", True)]
+    rendered = "\n".join(str(args[1]) for args in statuses if len(args) > 1)
+    assert "scanning 10X MEX inputs" in rendered
+    assert "scanning scRNA FASTQ inputs" in rendered
