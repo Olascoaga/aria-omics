@@ -35,7 +35,7 @@ flowchart TD
     RCC --> GEO
     TUI --> ORCH[aria/agents/orchestrator_agent.py]
     COCKPIT[aria/ui/cockpit.py Textual cockpit U1 header+tabs layout]
-    COCKPIT --> RENDER[aria/ui/render.py pure Rich renderers incl. overview, per-agent progress, U5 ledger + U8 mode-bar/findings-disclosure]
+    COCKPIT --> RENDER[aria/ui/render.py pure Rich renderers incl. overview, sci-fi per-agent progress, U5 ledger + U8 mode-bar/findings-disclosure]
     COCKPIT --> VIEW
     HEADLESS[aria/headless.py canonical reproducible path] --> VIEW
     TUI --> VIEW[aria/runtime/experiment_view.py U0 read-model build_snapshot]
