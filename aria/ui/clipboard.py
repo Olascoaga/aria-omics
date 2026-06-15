@@ -13,6 +13,13 @@ paths, biological questions). It is:
 - local-only — no network egress, so it is unaffected by air-gapped mode;
 - best-effort — tries several backends and returns ``None`` if none work;
 - non-raising — a missing/failing backend never crashes the UI.
+
+Clipboard *source* matters under WSL2 + an X server (e.g. MobaXterm): text copied
+in a Linux app lands in the X11 clipboard, while ``powershell.exe Get-Clipboard``
+reads the *Windows* clipboard. Reading the wrong one pastes stale, unrelated text.
+So when a Linux display is present we try the X11/Wayland clipboard FIRST and use
+the Windows clipboard only as a fallback; with no display we prefer Windows (the
+common headless-WSL case).
 """
 
 from __future__ import annotations
@@ -21,14 +28,23 @@ import os
 import shutil
 import subprocess
 
-# Clipboard read commands, ordered by likelihood on ARIA's target environments:
-# WSL2 (Windows clipboard via interop) first, then Wayland, X11, and macOS.
-_BACKENDS: list[list[str]] = [
+# Backend command groups by clipboard source.
+_WINDOWS: list[list[str]] = [
     ["powershell.exe", "-NoProfile", "-Command", "Get-Clipboard"],
     ["pwsh.exe", "-NoProfile", "-Command", "Get-Clipboard"],
+]
+_WAYLAND: list[list[str]] = [
     ["wl-paste", "--no-newline"],
+]
+# X11 has two selections: CLIPBOARD (explicit copy) and PRIMARY (text selection,
+# which is how terminal copy-on-select often behaves). Try CLIPBOARD first.
+_X11: list[list[str]] = [
     ["xclip", "-selection", "clipboard", "-o"],
     ["xsel", "-b", "-o"],
+    ["xclip", "-selection", "primary", "-o"],
+    ["xsel", "-p", "-o"],
+]
+_MAC: list[list[str]] = [
     ["pbpaste"],
 ]
 
@@ -44,6 +60,19 @@ _FALLBACK_PATHS: dict[str, list[str]] = {
 }
 
 
+def _ordered_backends() -> list[list[str]]:
+    """Backend order matching the active GUI session's clipboard.
+
+    A copy made in the user's environment lands in the clipboard of whatever GUI
+    session they are in, so prefer that source and keep the others as fallback.
+    """
+    if os.environ.get("WAYLAND_DISPLAY"):
+        return _WAYLAND + _X11 + _WINDOWS + _MAC
+    if os.environ.get("DISPLAY"):
+        return _X11 + _WINDOWS + _WAYLAND + _MAC
+    return _WINDOWS + _WAYLAND + _X11 + _MAC
+
+
 def _resolve(cmd: str) -> str | None:
     """Resolve a backend command to a runnable path (PATH first, then fallbacks)."""
     hit = shutil.which(cmd)
@@ -57,7 +86,7 @@ def _resolve(cmd: str) -> str | None:
 
 def clipboard_backend() -> str | None:
     """Return the name of the first available clipboard backend, or ``None``."""
-    for argv in _BACKENDS:
+    for argv in _ordered_backends():
         if _resolve(argv[0]) is not None:
             return argv[0]
     return None
@@ -66,11 +95,12 @@ def clipboard_backend() -> str | None:
 def read_clipboard(*, timeout: float = 2.0) -> str | None:
     """Return the OS clipboard text, or ``None`` if it cannot be read.
 
-    Trailing newlines and CRLF line endings (notably from
-    ``powershell.exe Get-Clipboard``) are normalized so a pasted path or
-    question does not carry stray carriage returns or a terminal newline.
+    Backends are tried in session-appropriate order; the first that yields
+    non-empty text wins. Trailing newlines and CRLF line endings (notably from
+    ``powershell.exe Get-Clipboard``) are normalized so a pasted path or question
+    does not carry stray carriage returns or a terminal newline.
     """
-    for argv in _BACKENDS:
+    for argv in _ordered_backends():
         resolved = _resolve(argv[0])
         if resolved is None:
             continue

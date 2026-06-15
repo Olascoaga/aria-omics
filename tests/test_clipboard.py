@@ -1,11 +1,14 @@
 """OS clipboard reader for the Textual front door (offline, mocked backends).
 
 Textual's built-in Ctrl+V pastes from the empty in-app clipboard; ARIA reads the
-real OS clipboard instead. These tests pin backend selection (PATH + absolute
-WSL fallbacks) and normalization without touching a real clipboard.
+real OS clipboard instead. These tests pin backend selection (session-aware
+ordering, PATH + absolute WSL fallbacks) and normalization without touching a
+real clipboard.
 """
 
 from __future__ import annotations
+
+import pytest
 
 from aria.ui import clipboard
 
@@ -16,16 +19,21 @@ class _Proc:
         self.stdout = stdout
 
 
-def test_read_clipboard_none_when_no_backend(monkeypatch):
+@pytest.fixture
+def no_display(monkeypatch):
+    """Force the Windows-first order (headless WSL): no X11/Wayland session."""
+    monkeypatch.delenv("DISPLAY", raising=False)
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+
+
+def test_read_clipboard_none_when_no_backend(monkeypatch, no_display):
     monkeypatch.setattr(clipboard.shutil, "which", lambda name: None)
-    # No absolute fallback exists either.
     monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
     assert clipboard.clipboard_backend() is None
     assert clipboard.read_clipboard() is None
 
 
-def test_read_clipboard_normalizes_crlf_and_trailing_newline(monkeypatch):
-    # Only powershell.exe is "available"; it returns CRLF + trailing newline.
+def test_read_clipboard_normalizes_crlf_and_trailing_newline(monkeypatch, no_display):
     monkeypatch.setattr(
         clipboard.shutil, "which",
         lambda name: "/fake/ps" if name == "powershell.exe" else None,
@@ -39,7 +47,7 @@ def test_read_clipboard_normalizes_crlf_and_trailing_newline(monkeypatch):
     assert clipboard.read_clipboard() == "C:\\data\\exp\nsecond"
 
 
-def test_read_clipboard_uses_absolute_powershell_fallback(monkeypatch):
+def test_read_clipboard_uses_absolute_powershell_fallback(monkeypatch, no_display):
     # powershell.exe is NOT on PATH (login-stripped), but the WSL absolute path
     # exists and interop can run it.
     monkeypatch.setattr(clipboard.shutil, "which", lambda name: None)
@@ -57,12 +65,29 @@ def test_read_clipboard_uses_absolute_powershell_fallback(monkeypatch):
     assert seen["argv0"] == ps_path  # ran the resolved absolute path
 
 
-def test_read_clipboard_skips_failing_backend(monkeypatch):
+def test_x11_clipboard_preferred_over_windows_when_display_set(monkeypatch):
+    # MobaXterm/X11 session: a Linux copy lands in X11, not the Windows clipboard.
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+
+    def fake_run(argv, **kwargs):
+        if "xclip" in argv[0]:
+            return _Proc(0, "from-x11\n")
+        return _Proc(0, "stale-windows\n")
+
+    monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
+    assert clipboard.clipboard_backend() == "xclip"
+    assert clipboard.read_clipboard() == "from-x11"
+
+
+def test_read_clipboard_skips_failing_backend(monkeypatch, no_display):
     monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/fake/" + name)
     monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
 
     def fake_run(argv, **kwargs):
-        # First backend (powershell) fails; the next that yields output wins.
+        # First backend (powershell, Windows-first order) fails; next wins.
         if argv[0].endswith("powershell.exe"):
             return _Proc(1, "")
         return _Proc(0, "pasted\n")
@@ -71,7 +96,7 @@ def test_read_clipboard_skips_failing_backend(monkeypatch):
     assert clipboard.read_clipboard() == "pasted"
 
 
-def test_read_clipboard_swallows_backend_errors(monkeypatch):
+def test_read_clipboard_swallows_backend_errors(monkeypatch, no_display):
     monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/fake/" + name)
     monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
 
