@@ -121,14 +121,46 @@ def render_status_banner(message: str, version: str = "",
     return Panel(t, title="[bold]Run[/]", border_style=style, padding=(0, 1))
 
 
-def _progress_bar(value: float, *, width: int = 14) -> Text:
-    pct = max(0.0, min(1.0, float(value or 0.0)))
+def _progress_value(value: float) -> float:
+    return max(0.0, min(1.0, float(value or 0.0)))
+
+
+def _progress_style(value: float) -> str:
+    pct = _progress_value(value)
+    if pct >= 1.0:
+        return "bold green"
+    if pct >= 0.75:
+        return "bold cyan"
+    if pct >= 0.35:
+        return "cyan"
+    return "blue"
+
+
+def _progress_bar(value: float, *, width: int = 24) -> Text:
+    """Terminal-safe segmented progress bar with a restrained sci-fi feel."""
+    pct = _progress_value(value)
     filled = int(round(pct * width))
+    style = _progress_style(pct)
     t = Text()
-    t.append("[", style="dim")
-    t.append("█" * filled, style="green" if pct >= 1.0 else "cyan")
-    t.append("·" * (width - filled), style="dim")
-    t.append("]", style="dim")
+    t.append("▕", style="dim cyan")
+    if filled:
+        t.append("▰" * filled, style=style)
+    if filled < width:
+        t.append("▱" * (width - filled), style="dim")
+    t.append("▏", style="dim cyan")
+    return t
+
+
+def _agent_progress_line(sender: str, progress: float, text: str = "",
+                         *, width: int = 18) -> Text:
+    t = Text()
+    t.append(f"{sender:<22.22}", style="cyan")
+    t.append(" ")
+    t.append_text(_progress_bar(progress, width=width))
+    t.append(f" {int(round(_progress_value(progress) * 100)):3d}%",
+             style=_progress_style(progress))
+    if text:
+        t.append(f"  {text[:54]}", style="dim")
     return t
 
 
@@ -150,28 +182,24 @@ def render_agent_progress(snap: ExperimentSnapshot, *, limit: int = 10) -> Panel
     emitted status and where each one is in its own work.
     """
     table = Table(expand=True, show_edge=False, pad_edge=False)
-    table.add_column("agent", style="cyan", no_wrap=True)
-    table.add_column("progress", no_wrap=True)
-    table.add_column("status")
+    table.add_column("agent progress")
 
     events = list(snap.agent_progress or [])
     events.sort(key=_event_sort_key)
     if not events:
-        table.add_row("orchestrator", Text("[··············]", style="dim"),
-                      Text("Waiting for status.", style="dim"))
+        waiting = Text()
+        waiting.append_text(_agent_progress_line(
+            "orchestrator", 0.0, "Waiting for status."))
+        table.add_row(waiting)
         return Panel(table, title="[bold]Agents[/]", border_style="dim",
                      padding=(0, 1))
 
     hidden = max(0, len(events) - limit)
     for event in events[-limit:]:
-        pct = int(round(max(0.0, min(1.0, event.progress or 0.0)) * 100))
-        progress = _progress_bar(event.progress)
-        progress.append(f" {pct:3d}%", style="dim")
         status = (event.text or "").strip() or "working"
-        table.add_row(event.sender, progress, Text(status[:48], style="dim"))
+        table.add_row(_agent_progress_line(event.sender, event.progress, status))
     if hidden:
-        table.add_row("…", Text("", style="dim"),
-                      Text(f"{hidden} older agent status rows hidden",
+        table.add_row(Text(f"… {hidden} older agent status rows hidden",
                            style="dim"))
     border = "green" if snap.done else "cyan"
     return Panel(table, title="[bold]Agents[/]", border_style=border,
@@ -205,11 +233,8 @@ def render_overview(snap: ExperimentSnapshot) -> Panel:
         latest = active[-4:]
         agents = Text()
         for event in latest:
-            pct = int(round(max(0.0, min(1.0, event.progress or 0.0)) * 100))
-            agents.append(f"{event.sender}: ", style="cyan")
-            agents.append(f"{pct}%")
-            if event.text:
-                agents.append(f" · {event.text[:42]}", style="dim")
+            agents.append_text(_agent_progress_line(
+                event.sender, event.progress, event.text, width=14))
             agents.append("\n")
         table.add_row("Agents", agents)
     else:

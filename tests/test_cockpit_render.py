@@ -76,6 +76,8 @@ def test_agent_progress_shows_each_sender_progress():
     assert "raw_ingestion_agent" in out
     assert "25%" in out
     assert "60%" in out
+    assert "▰" in out
+    assert "▱" in out
     assert "Converting 10X matrix" in out
 
 
@@ -89,6 +91,7 @@ def test_overview_summarizes_run_for_non_console_users():
     assert "Now" in out
     assert "Agents" in out
     assert "data_audit_agent" in out
+    assert "▰" in out
     assert "Review" in out
 
 
