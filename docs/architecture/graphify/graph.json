@@ -10963,32 +10963,39 @@
       "source_location": "L1"
     },
     {
-      "id": "ui_clipboard_clipboard_backend",
-      "label": "clipboard_backend()",
+      "id": "ui_clipboard_resolve",
+      "label": "_resolve()",
       "file_type": "code",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L34"
+      "source_location": "L47"
     },
     {
       "id": "aria_ui_clipboard_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L34"
+      "source_location": "L47"
+    },
+    {
+      "id": "ui_clipboard_clipboard_backend",
+      "label": "clipboard_backend()",
+      "file_type": "code",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L58"
     },
     {
       "id": "ui_clipboard_read_clipboard",
       "label": "read_clipboard()",
       "file_type": "code",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L42"
+      "source_location": "L66"
     },
     {
       "id": "aria_ui_clipboard_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L42"
+      "source_location": "L66"
     },
     {
       "id": "ui_cockpit",
@@ -20221,7 +20228,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -20438,7 +20445,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -20460,7 +20467,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -23721,21 +23728,28 @@
       "label": "test_read_clipboard_normalizes_crlf_and_trailing_newline()",
       "file_type": "code",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L25"
+      "source_location": "L27"
+    },
+    {
+      "id": "tests_test_clipboard_test_read_clipboard_uses_absolute_powershell_fallback",
+      "label": "test_read_clipboard_uses_absolute_powershell_fallback()",
+      "file_type": "code",
+      "source_file": "tests/test_clipboard.py",
+      "source_location": "L42"
     },
     {
       "id": "tests_test_clipboard_test_read_clipboard_skips_failing_backend",
       "label": "test_read_clipboard_skips_failing_backend()",
       "file_type": "code",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L39"
+      "source_location": "L60"
     },
     {
       "id": "tests_test_clipboard_test_read_clipboard_swallows_backend_errors",
       "label": "test_read_clipboard_swallows_backend_errors()",
       "file_type": "code",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L52"
+      "source_location": "L74"
     },
     {
       "id": "tests_test_cockpit_app",
@@ -29819,217 +29833,10 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
-    },
-    {
-      "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "design_agent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py (LIANA)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py (PAGA/DPT)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
     }
   ],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -72588,11 +72395,40 @@
     },
     {
       "source": "ui_clipboard",
+      "target": "ui_clipboard_resolve",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_clipboard_resolve",
+      "target": "aria_ui_clipboard_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_clipboard_resolve",
+      "target": "aria_ui_clipboard_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_clipboard",
       "target": "ui_clipboard_clipboard_backend",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L34",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -72602,7 +72438,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L34",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -72611,7 +72447,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L42",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -72621,7 +72457,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L42",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -72631,7 +72467,27 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/clipboard.py",
-      "source_location": "L42",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_clipboard_clipboard_backend",
+      "target": "ui_clipboard_resolve",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_clipboard_read_clipboard",
+      "target": "ui_clipboard_resolve",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/clipboard.py",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -91199,7 +91055,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -91252,7 +91108,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91262,7 +91118,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91272,7 +91128,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91282,7 +91138,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91292,7 +91148,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91615,7 +91471,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -91624,7 +91480,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -91659,7 +91515,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -91669,7 +91525,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a7yczi_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ho5inj_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96813,7 +96669,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L25",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_clipboard",
+      "target": "tests_test_clipboard_test_read_clipboard_uses_absolute_powershell_fallback",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_clipboard.py",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -96822,7 +96687,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L39",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -96831,7 +96696,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L52",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -96841,7 +96706,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_clipboard.py",
-      "source_location": "L33",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -126320,150 +126185,8 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3699",
       "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "structure_only": true
 }
