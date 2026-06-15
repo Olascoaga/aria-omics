@@ -36,8 +36,8 @@
       "source_location": "L44"
     },
     {
-      "id": "agents_narrative_chromatin_generate_figures",
-      "label": "generate_figures()",
+      "id": "agents_narrative_chromatin_safe",
+      "label": "_safe()",
       "file_type": "code",
       "source_file": "aria/agents/_narrative_chromatin.py",
       "source_location": "L58"
@@ -48,6 +48,48 @@
       "file_type": "code",
       "source_file": "aria/agents/_narrative_chromatin.py",
       "source_location": "L58"
+    },
+    {
+      "id": "agents_narrative_chromatin_render_da_figures",
+      "label": "render_da_figures()",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "aria_agents_narrative_chromatin_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "aria_agents_narrative_chromatin_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "agents_narrative_chromatin_render_motif_dotplot",
+      "label": "render_motif_dotplot()",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144"
+    },
+    {
+      "id": "aria_agents_narrative_chromatin_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144"
+    },
+    {
+      "id": "agents_narrative_chromatin_generate_figures",
+      "label": "generate_figures()",
+      "file_type": "code",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L203"
     },
     {
       "id": "agents_narrative_scrna",
@@ -7932,18 +7974,25 @@
       "source_location": "L91"
     },
     {
+      "id": "scripts_chromatin_diffacc_gate_da_by_convergence",
+      "label": "_gate_da_by_convergence()",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L186"
+    },
+    {
       "id": "scripts_chromatin_diffacc_pseudobulk_da",
       "label": "_pseudobulk_da()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L186"
+      "source_location": "L214"
     },
     {
       "id": "scripts_chromatin_diffacc_chromatin_diffacc",
       "label": "chromatin_diffacc()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L347"
+      "source_location": "L414"
     },
     {
       "id": "scripts_chromatin_lsi_clustering",
@@ -9077,7 +9126,7 @@
       "label": "_mock_de_result()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1970"
+      "source_location": "L1981"
     },
     {
       "id": "scripts_rna_cellcomm",
@@ -18632,7 +18681,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -18849,7 +18898,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -18871,7 +18920,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -21034,6 +21083,62 @@
       "file_type": "code",
       "source_file": "tests/test_chromatin_agent.py",
       "source_location": "L83"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures",
+      "label": "test_chromatin_da_convergence_and_figures.py",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_excludes_nonconverged_significant_peaks",
+      "label": "test_convergence_gate_excludes_nonconverged_significant_peaks()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_no_gating_when_flag_absent",
+      "label": "test_convergence_gate_no_gating_when_flag_absent()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_run_deseq2_exposes_convergence_only_when_requested",
+      "label": "test_run_deseq2_exposes_convergence_only_when_requested()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L60"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_writes_volcano_and_ma",
+      "label": "test_render_da_figures_writes_volcano_and_ma()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_honest_empty_without_csv",
+      "label": "test_render_da_figures_honest_empty_without_csv()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_render_motif_dotplot",
+      "label": "test_render_motif_dotplot()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L99"
+    },
+    {
+      "id": "tests_test_chromatin_da_convergence_and_figures_test_generate_figures_attaches_da_and_motif_inline",
+      "label": "test_generate_figures_attaches_da_and_motif_inline()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L117"
     },
     {
       "id": "tests_test_chromatin_diffacc",
@@ -27341,6 +27446,17 @@
       "contributor": null
     },
     {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -27418,10 +27534,10 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "rna_qc",
+      "label": "rna_qc.py",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "aria/scripts/rna_qc.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -27429,10 +27545,32 @@
       "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
+      "id": "rna_cellcomm",
+      "label": "rna_cellcomm.py",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_file": "aria/scripts/rna_cellcomm.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_trajectory",
+      "label": "rna_trajectory.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_trajectory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -27482,11 +27620,108 @@
     },
     {
       "source": "agents_narrative_chromatin",
-      "target": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_safe",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
       "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_safe",
+      "target": "aria_agents_narrative_chromatin_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin",
+      "target": "agents_narrative_chromatin_render_da_figures",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_da_figures",
+      "target": "aria_agents_narrative_chromatin_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_da_figures",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_da_figures",
+      "target": "aria_agents_narrative_chromatin_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin",
+      "target": "agents_narrative_chromatin_render_motif_dotplot",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_motif_dotplot",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_motif_dotplot",
+      "target": "aria_agents_narrative_chromatin_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_motif_dotplot",
+      "target": "aria_agents_narrative_chromatin_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin",
+      "target": "agents_narrative_chromatin_generate_figures",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -27496,7 +27731,47 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L58",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_da_figures",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_da_figures",
+      "target": "agents_narrative_chromatin_safe",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_render_motif_dotplot",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L193",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_generate_figures",
+      "target": "aria_agents_narrative_chromatin_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -27506,7 +27781,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
-      "source_location": "L73",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_render_da_figures",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L248",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_narrative_chromatin_generate_figures",
+      "target": "agents_narrative_chromatin_render_motif_dotplot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/_narrative_chromatin.py",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -59540,7 +59835,7 @@
     },
     {
       "source": "scripts_chromatin_diffacc",
-      "target": "scripts_chromatin_diffacc_pseudobulk_da",
+      "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
@@ -59549,11 +59844,20 @@
     },
     {
       "source": "scripts_chromatin_diffacc",
+      "target": "scripts_chromatin_diffacc_pseudobulk_da",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_diffacc",
       "target": "scripts_chromatin_diffacc_chromatin_diffacc",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L347",
+      "source_location": "L414",
       "weight": 1.0
     },
     {
@@ -59567,13 +59871,23 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_diffacc_pseudobulk_da",
+      "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L347",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_diffacc_chromatin_diffacc",
       "target": "scripts_chromatin_diffacc_per_cluster_accessibility",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L422",
+      "source_location": "L489",
       "weight": 1.0
     },
     {
@@ -59583,7 +59897,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L438",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -63138,12 +63452,22 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_rna_bulk_de_run_deseq2",
+      "target": "aria_scripts_rna_bulk_de_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L1700",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_rna_bulk_de",
       "target": "scripts_rna_bulk_de_mock_de_result",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1970",
+      "source_location": "L1981",
       "weight": 1.0
     },
     {
@@ -63313,7 +63637,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1743",
+      "source_location": "L1744",
       "weight": 1.0
     },
     {
@@ -63323,7 +63647,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1801",
+      "source_location": "L1802",
       "weight": 1.0
     },
     {
@@ -63333,7 +63657,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1874",
+      "source_location": "L1875",
       "weight": 1.0
     },
     {
@@ -63343,7 +63667,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1951",
+      "source_location": "L1962",
       "weight": 1.0
     },
     {
@@ -82683,7 +83007,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -82736,7 +83060,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82746,7 +83070,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82756,7 +83080,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82766,7 +83090,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -82776,7 +83100,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83069,7 +83393,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -83078,7 +83402,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -83113,7 +83437,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -83123,7 +83447,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wzxcu2_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_eicd5f_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -86444,6 +86768,69 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_agent.py",
       "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_excludes_nonconverged_significant_peaks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_no_gating_when_flag_absent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_run_deseq2_exposes_convergence_only_when_requested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_writes_volcano_and_ma",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_honest_empty_without_csv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_render_motif_dotplot",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "tests_test_chromatin_da_convergence_and_figures_test_generate_figures_attaches_da_and_motif_inline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -100259,7 +100646,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L219",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -100269,7 +100656,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L360",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -100279,7 +100666,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L388",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -100289,7 +100676,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L388",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -100879,7 +101266,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1752",
+      "source_location": "L1753",
       "weight": 1.0
     },
     {
@@ -100889,7 +101276,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1777",
+      "source_location": "L1778",
       "weight": 1.0
     },
     {
@@ -102630,6 +103017,46 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_agent.py",
       "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "agents_narrative_chromatin_render_da_figures",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures",
+      "target": "agents_narrative_chromatin_render_motif_dotplot",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -106309,7 +106736,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L297",
+      "source_location": "L326",
       "weight": 1.0
     },
     {
@@ -106319,7 +106746,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L358",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -106329,7 +106756,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L400",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -106339,7 +106766,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L404",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -106709,7 +107136,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1753",
+      "source_location": "L1754",
       "weight": 1.0
     },
     {
@@ -106719,7 +107146,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1791",
+      "source_location": "L1792",
       "weight": 1.0
     },
     {
@@ -108800,6 +109227,56 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_celltypist_confidence.py",
       "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_excludes_nonconverged_significant_peaks",
+      "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures_test_convergence_gate_no_gating_when_flag_absent",
+      "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_writes_volcano_and_ma",
+      "target": "agents_narrative_chromatin_render_da_figures",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures_test_render_da_figures_honest_empty_without_csv",
+      "target": "agents_narrative_chromatin_render_da_figures",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_da_convergence_and_figures_test_render_motif_dotplot",
+      "target": "agents_narrative_chromatin_render_motif_dotplot",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -114173,7 +114650,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -114183,7 +114660,27 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -114193,7 +114690,17 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_qc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -114203,7 +114710,37 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_cellcomm",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_trajectory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -114213,43 +114750,13 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "scrna_agent",
       "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "biological_synthesis_agent",
-      "target": "narrative_agent",
-      "relation": "implements",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
