@@ -53,7 +53,7 @@ def test_run_header_shows_identity_and_airgapped():
     assert "4.6.1" in out
     assert "scRNA" in out
     assert "Homo sapiens" in out
-    assert "yes" in out          # air-gapped on
+    assert "blocked" in out      # air-gapped on
     assert "2m05s" in out        # elapsed 125s
 
 
@@ -77,6 +77,33 @@ def test_agent_progress_shows_each_sender_progress():
     assert "25%" in out
     assert "60%" in out
     assert "Converting 10X matrix" in out
+
+
+def test_overview_summarizes_run_for_non_console_users():
+    snap = _snap(agent_progress=[
+        ProgressEvent(ts=1, sender="data_audit_agent",
+                      text="Scanning files...", progress=0.25),
+    ])
+    out = _capture(render.render_overview(snap))
+    assert "Overview" in out
+    assert "Now" in out
+    assert "Agents" in out
+    assert "data_audit_agent" in out
+    assert "Review" in out
+
+
+def test_overview_surfaces_decision_and_completion_states():
+    cp = CheckpointView(message_id="m1", number=1,
+                        title="Data Audit Results", question="Confirm?",
+                        options=["Continue"])
+    decision = _capture(render.render_overview(_snap(pending_checkpoint=cp)))
+    assert "Decision required" in decision
+    assert "CP1" in decision
+
+    done = _capture(render.render_overview(
+        _snap(done=True, report_path="/tmp/report.html")))
+    assert "Analysis complete" in done
+    assert "/tmp/report.html" in done
 
 
 def test_findings_counts_and_stream():
@@ -283,8 +310,15 @@ def test_status_banner_shows_message_and_version():
 
 def test_mode_bar_highlights_active_view():
     out = _capture(render.render_mode_bar("ledger"))
-    for mode in ("findings", "ledger", "readiness", "resources", "artifacts"):
+    for mode in (
+        "overview", "agents", "decisions", "findings", "ledger",
+        "readiness", "resources", "artifacts",
+    ):
         assert mode in out
     # Toggle keys are surfaced for discoverability.
+    assert "[o] overview" in out
+    assert "[g] agents" in out
+    assert "[d] decisions" in out
+    assert "[f] findings" in out
     assert "[l] ledger" in out
     assert "[a] artifacts" in out

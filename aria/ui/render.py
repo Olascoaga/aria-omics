@@ -81,27 +81,27 @@ def render_run_header(snap: ExperimentSnapshot, *,
                       modalities: Optional[list[str]] = None,
                       organism: Optional[str] = None,
                       air_gapped: bool = False) -> Panel:
-    """Left panel: run identity + environment context."""
+    """Top header: compact run identity + environment context."""
     t = Text()
-    t.append("Experiment  ", style="cyan")
-    t.append(f"{snap.experiment_id}\n")
+    t.append("Experiment ", style="cyan")
+    t.append(str(snap.experiment_id), style="bold")
     if version:
-        t.append("ARIA        ", style="cyan")
-        t.append(f"v{version}\n", style="dim")
+        t.append("  |  ARIA ", style="dim")
+        t.append(f"v{version}", style="cyan")
     if modalities:
-        t.append("Modality    ", style="cyan")
-        t.append(f"{', '.join(modalities)}\n")
+        t.append("  |  ", style="dim")
+        t.append(", ".join(modalities), style="cyan")
     if organism:
-        t.append("Organism    ", style="cyan")
-        t.append(f"{organism}\n", style="dim")
-    if data_dir:
-        t.append("Data        ", style="cyan")
-        t.append(f"{data_dir}\n", style="dim")
-    t.append("Air-gapped  ", style="cyan")
-    t.append("yes\n" if air_gapped else "no\n",
-             style="yellow" if air_gapped else "dim")
-    t.append("Elapsed     ", style="cyan")
+        t.append("  |  ", style="dim")
+        t.append(str(organism), style="dim")
+    t.append("  |  elapsed ", style="dim")
     t.append(_fmt_duration(snap.elapsed_s), style="dim")
+    t.append("  |  egress ", style="dim")
+    t.append("blocked" if air_gapped else "available",
+             style="yellow" if air_gapped else "dim")
+    if data_dir:
+        t.append("\nData ", style="cyan")
+        t.append(str(data_dir), style="dim")
     return Panel(t, title="[bold]Run[/]", border_style="cyan", padding=(0, 1))
 
 
@@ -178,6 +178,74 @@ def render_agent_progress(snap: ExperimentSnapshot, *, limit: int = 10) -> Panel
                  padding=(0, 1))
 
 
+def render_overview(snap: ExperimentSnapshot) -> Panel:
+    """Default cockpit view: clear run state for non-console users."""
+    table = Table(expand=True, show_edge=False, pad_edge=False)
+    table.add_column("area", style="cyan", no_wrap=True)
+    table.add_column("status")
+
+    if snap.done:
+        state = Text("Analysis complete", style="bold green")
+        if snap.report_path:
+            state.append(f"\nReport: {snap.report_path}", style="dim")
+    elif snap.pending_checkpoint is not None:
+        state = Text("Decision required", style="bold yellow")
+        state.append(f"\nCP{snap.pending_checkpoint.number}: "
+                     f"{snap.pending_checkpoint.title}", style="dim")
+    elif snap.last_status is not None:
+        state = Text(snap.last_status.text or "Working", style="cyan")
+        state.append(f"\n{snap.last_status.sender}", style="dim")
+    else:
+        state = Text("Preparing run", style="cyan")
+    table.add_row("Now", state)
+
+    active = list(snap.agent_progress or [])
+    active.sort(key=_event_sort_key)
+    if active:
+        latest = active[-4:]
+        agents = Text()
+        for event in latest:
+            pct = int(round(max(0.0, min(1.0, event.progress or 0.0)) * 100))
+            agents.append(f"{event.sender}: ", style="cyan")
+            agents.append(f"{pct}%")
+            if event.text:
+                agents.append(f" · {event.text[:42]}", style="dim")
+            agents.append("\n")
+        table.add_row("Agents", agents)
+    else:
+        table.add_row("Agents", Text("Waiting for agent status.", style="dim"))
+
+    counts = {k: len(v) for k, v in snap.findings_by_confidence.items()}
+    findings = Text()
+    for conf in ("HIGH", "MEDIUM", "LOW", "INSUFFICIENT"):
+        findings.append(f"{conf[:4]}:{counts.get(conf, 0)}  ",
+                        style=_CONF_STYLE[conf])
+    table.add_row("Findings", findings)
+
+    if snap.artifacts:
+        arts = Text(f"{len(snap.artifacts)} artifact(s) available")
+        if snap.done:
+            arts.append(" · open [a] Artifacts", style="dim")
+    else:
+        arts = Text("Report artifacts appear when the run finishes.", style="dim")
+    table.add_row("Outputs", arts)
+
+    if snap.pending_checkpoint is not None:
+        next_step = Text("Open [d] Decisions or press an option number.",
+                         style="yellow")
+    elif snap.done:
+        next_step = Text("Review Artifacts or press q to exit.", style="green")
+    else:
+        next_step = Text("ARIA is running. Review [g] Agents for details.",
+                         style="dim")
+    table.add_row("Next", next_step)
+
+    border = "green" if snap.done else (
+        "yellow" if snap.pending_checkpoint is not None else "cyan")
+    return Panel(table, title="[bold]Overview[/]", border_style=border,
+                 padding=(0, 1))
+
+
 def render_timeline(snap: ExperimentSnapshot) -> Panel:
     """Center-top panel: pipeline stage progress."""
     here = _PHASE_INDEX.get(snap.phase, 0)
@@ -200,13 +268,16 @@ def render_timeline(snap: ExperimentSnapshot) -> Panel:
                  padding=(0, 1))
 
 
-# Center views and the key that toggles each (findings is the default view).
+# Cockpit tab views and their keys. Overview is the default view.
 _CENTER_MODES = [
-    ("findings", ""),
+    ("overview", "o"),
+    ("agents", "g"),
+    ("decisions", "d"),
+    ("findings", "f"),
+    ("artifacts", "a"),
+    ("resources", "u"),
     ("ledger", "l"),
     ("readiness", "r"),
-    ("resources", "u"),
-    ("artifacts", "a"),
 ]
 
 

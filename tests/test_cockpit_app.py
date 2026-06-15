@@ -158,16 +158,18 @@ def test_ledger_toggle_shows_and_hides():
         async with app.run_test() as pilot:
             await pilot.pause()
             from textual.widgets import Static
+            overview = app.query_one("#overview", Static)
             ledger = app.query_one("#ledger", Static)
-            findings = app.query_one("#findings", Static)
+            assert overview.display is True
             assert ledger.display is False
             await pilot.press("l")
             await pilot.pause()
             assert ledger.display is True
-            assert findings.display is False
+            assert overview.display is False
             await pilot.press("l")
             await pilot.pause()
             assert ledger.display is False
+            assert overview.display is True
 
     asyncio.run(_run())
 
@@ -179,17 +181,17 @@ def test_readiness_toggle_shows_and_hides():
         async with app.run_test() as pilot:
             await pilot.pause()
             from textual.widgets import Static
+            overview = app.query_one("#overview", Static)
             readiness = app.query_one("#readiness", Static)
-            findings = app.query_one("#findings", Static)
             assert readiness.display is False
             await pilot.press("r")
             await pilot.pause()
             assert readiness.display is True
-            assert findings.display is False
+            assert overview.display is False
             await pilot.press("r")
             await pilot.pause()
             assert readiness.display is False
-            assert findings.display is True
+            assert overview.display is True
 
     asyncio.run(_run())
 
@@ -201,17 +203,17 @@ def test_resources_toggle_shows_and_hides():
         async with app.run_test() as pilot:
             await pilot.pause()
             from textual.widgets import Static
+            overview = app.query_one("#overview", Static)
             resources = app.query_one("#resources", Static)
-            findings = app.query_one("#findings", Static)
             assert resources.display is False
             await pilot.press("u")
             await pilot.pause()
             assert resources.display is True
-            assert findings.display is False
+            assert overview.display is False
             await pilot.press("u")
             await pilot.pause()
             assert resources.display is False
-            assert findings.display is True
+            assert overview.display is True
 
     asyncio.run(_run())
 
@@ -223,17 +225,40 @@ def test_artifacts_toggle_shows_and_hides():
         async with app.run_test() as pilot:
             await pilot.pause()
             from textual.widgets import Static
+            overview = app.query_one("#overview", Static)
             artifacts = app.query_one("#artifacts", Static)
-            findings = app.query_one("#findings", Static)
             assert artifacts.display is False
             await pilot.press("a")
             await pilot.pause()
             assert artifacts.display is True
-            assert findings.display is False
+            assert overview.display is False
             await pilot.press("a")
             await pilot.pause()
             assert artifacts.display is False
-            assert findings.display is True
+            assert overview.display is True
+
+    asyncio.run(_run())
+
+
+def test_checkpoint_auto_focuses_decision_view_once():
+    cp = CheckpointView(message_id="m1", number=1, title="Data Audit Results",
+                        question="Confirm modality?", options=["Continue"])
+
+    async def _run():
+        app = AriaCockpit(lambda: _snap(pending=cp), lambda **k: None,
+                          experiment_id="e1", exit_on_done=False)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static
+            decisions = app.query_one("#checkpoint", Static)
+            overview = app.query_one("#overview", Static)
+            assert app._center_mode == "decisions"
+            assert decisions.display is True
+            assert overview.display is False
+            await pilot.press("o")
+            await pilot.pause()
+            assert app._center_mode == "overview"
+            assert overview.display is True
 
     asyncio.run(_run())
 
@@ -255,14 +280,14 @@ def test_cockpit_stays_open_on_done_by_default_and_shows_artifacts():
             await pilot.pause()
             from textual.widgets import Static
             artifacts_widget = app.query_one("#artifacts", Static)
-            findings = app.query_one("#findings", Static)
+            overview = app.query_one("#overview", Static)
             agents = app.query_one("#agents", Static)
             assert app._exit_on_done is False
             assert app._done_seen is True
             assert app._center_mode == "artifacts"
             assert artifacts_widget.display is True
-            assert findings.display is False
-            assert agents.display is True
+            assert overview.display is False
+            assert agents.display is False
 
     asyncio.run(_run())
 

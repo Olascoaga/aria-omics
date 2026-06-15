@@ -18,7 +18,7 @@ from typing import Any, Callable, Optional
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Vertical
 from textual.widgets import Footer, Static
 
 from aria.runtime.experiment_view import ExperimentSnapshot
@@ -39,12 +39,13 @@ class AriaCockpit(App):
 
     CSS = """
     #body { height: 1fr; }
-    #left { width: 34; }
-    #right { width: 46; }
-    #center { width: 1fr; }
     Static { height: auto; }
+    #run-header { margin-bottom: 1; }
+    #timeline { margin-bottom: 1; }
     #agents { height: 1fr; }
     #mode-bar { height: 1; margin-bottom: 1; }
+    #overview { height: 1fr; }
+    #checkpoint { height: 1fr; }
     #findings { height: 1fr; }
     #ledger { height: 1fr; }
     #readiness { height: 1fr; }
@@ -54,10 +55,14 @@ class AriaCockpit(App):
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
-        Binding("l", "toggle_ledger", "Ledger"),
-        Binding("r", "toggle_readiness", "Readiness"),
-        Binding("u", "toggle_resources", "Resources"),
-        Binding("a", "toggle_artifacts", "Artifacts"),
+        Binding("o", "show_overview", "Overview"),
+        Binding("g", "show_agents", "Agents"),
+        Binding("d", "show_decisions", "Decisions"),
+        Binding("f", "show_findings", "Findings"),
+        Binding("a", "show_artifacts", "Artifacts"),
+        Binding("u", "show_resources", "Resources"),
+        Binding("l", "show_ledger", "Ledger"),
+        Binding("r", "show_readiness", "Readiness"),
         Binding("e", "edit_design", "Edit groups"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
@@ -90,23 +95,22 @@ class AriaCockpit(App):
         self._run_starter = run_starter
         self._snap: Optional[ExperimentSnapshot] = None
         self._done_seen = False
-        # findings | ledger | readiness | resources | artifacts
-        self._center_mode = "findings"
+        self._focused_checkpoint_id: Optional[str] = None
+        self._center_mode = "overview"
 
     def compose(self) -> ComposeResult:
-        yield Horizontal(
-            Vertical(Static(id="run-header"), Static(id="agents"), id="left"),
-            Vertical(
-                Static(id="timeline"),
-                Static(id="mode-bar"),
-                Static(id="findings"),
-                Static(id="ledger"),
-                Static(id="readiness"),
-                Static(id="resources"),
-                Static(id="artifacts"),
-                id="center",
-            ),
-            Vertical(Static(id="checkpoint"), id="right"),
+        yield Vertical(
+            Static(id="run-header"),
+            Static(id="timeline"),
+            Static(id="mode-bar"),
+            Static(id="overview"),
+            Static(id="agents"),
+            Static(id="checkpoint"),
+            Static(id="findings"),
+            Static(id="artifacts"),
+            Static(id="resources"),
+            Static(id="ledger"),
+            Static(id="readiness"),
             id="body",
         )
         yield Footer()
@@ -166,16 +170,22 @@ class AriaCockpit(App):
         self._begin_polling()
 
     def _apply_center_mode(self) -> None:
+        self.query_one("#overview", Static).display = \
+            self._center_mode == "overview"
+        self.query_one("#agents", Static).display = \
+            self._center_mode == "agents"
+        self.query_one("#checkpoint", Static).display = \
+            self._center_mode == "decisions"
         self.query_one("#findings", Static).display = \
             self._center_mode == "findings"
+        self.query_one("#artifacts", Static).display = \
+            self._center_mode == "artifacts"
+        self.query_one("#resources", Static).display = \
+            self._center_mode == "resources"
         self.query_one("#ledger", Static).display = \
             self._center_mode == "ledger"
         self.query_one("#readiness", Static).display = \
             self._center_mode == "readiness"
-        self.query_one("#resources", Static).display = \
-            self._center_mode == "resources"
-        self.query_one("#artifacts", Static).display = \
-            self._center_mode == "artifacts"
         self.query_one("#mode-bar", Static).update(
             render.render_mode_bar(self._center_mode))
 
@@ -202,6 +212,7 @@ class AriaCockpit(App):
             air_gapped=bool(meta.get("air_gapped")),
         ))
         self.query_one("#timeline", Static).update(render.render_timeline(snap))
+        self.query_one("#overview", Static).update(render.render_overview(snap))
         self.query_one("#agents", Static).update(
             render.render_agent_progress(snap))
         self.query_one("#findings", Static).update(render.render_findings(snap))
@@ -215,6 +226,19 @@ class AriaCockpit(App):
         self.query_one("#checkpoint", Static).update(
             render.render_checkpoint(snap))
 
+        if snap.pending_checkpoint is not None:
+            cp_id = snap.pending_checkpoint.message_id
+            if cp_id != self._focused_checkpoint_id:
+                self._focused_checkpoint_id = cp_id
+                self._center_mode = "decisions"
+                self._apply_center_mode()
+        elif self._center_mode == "decisions":
+            self._focused_checkpoint_id = None
+            self._center_mode = "overview"
+            self._apply_center_mode()
+        else:
+            self._focused_checkpoint_id = None
+
         if snap.done and not self._done_seen:
             self._done_seen = True
             if snap.artifacts:
@@ -224,25 +248,34 @@ class AriaCockpit(App):
             self.exit(snap)
 
     # ── Actions ──────────────────────────────────────────────────────────────
-    def action_toggle_ledger(self) -> None:
-        self._center_mode = "findings" if self._center_mode == "ledger" \
-            else "ledger"
+    def _set_center_mode(self, mode: str) -> None:
+        self._center_mode = "overview" if self._center_mode == mode else mode
         self._apply_center_mode()
 
-    def action_toggle_readiness(self) -> None:
-        self._center_mode = "findings" if self._center_mode == "readiness" \
-            else "readiness"
+    def action_show_overview(self) -> None:
+        self._center_mode = "overview"
         self._apply_center_mode()
 
-    def action_toggle_resources(self) -> None:
-        self._center_mode = "findings" if self._center_mode == "resources" \
-            else "resources"
-        self._apply_center_mode()
+    def action_show_agents(self) -> None:
+        self._set_center_mode("agents")
 
-    def action_toggle_artifacts(self) -> None:
-        self._center_mode = "findings" if self._center_mode == "artifacts" \
-            else "artifacts"
-        self._apply_center_mode()
+    def action_show_decisions(self) -> None:
+        self._set_center_mode("decisions")
+
+    def action_show_findings(self) -> None:
+        self._set_center_mode("findings")
+
+    def action_show_artifacts(self) -> None:
+        self._set_center_mode("artifacts")
+
+    def action_show_resources(self) -> None:
+        self._set_center_mode("resources")
+
+    def action_show_ledger(self) -> None:
+        self._set_center_mode("ledger")
+
+    def action_show_readiness(self) -> None:
+        self._set_center_mode("readiness")
 
     def action_edit_design(self) -> None:
         """Open the U2 tabular design editor for the groups checkpoint (CP2.1)."""
