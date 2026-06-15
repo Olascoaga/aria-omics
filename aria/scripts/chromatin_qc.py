@@ -502,6 +502,17 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
                 ),
                 "pct_subnucleosomal": float(np.mean(sizes_arr < 150)),
             })
+            # W0.2 (scATAC P0): a binned size histogram (0-800 bp, 5 bp bins) so
+            # the report can plot the nucleosome banding pattern. Summary-only
+            # before; the raw sizes are not persisted (privacy + size).
+            counts, edges = np.histogram(
+                sizes_arr[(sizes_arr >= 0) & (sizes_arr <= 800)],
+                bins=160, range=(0, 800),
+            )
+            out["size_histogram"] = {
+                "bin_edges": [float(e) for e in edges],
+                "counts":    [int(c) for c in counts],
+            }
         return out
     except Exception:
         return {"n_barcodes": 0, "n_fragments": 0, "scan_truncated": False}

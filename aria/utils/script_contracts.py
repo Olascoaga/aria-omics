@@ -475,6 +475,19 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("figures", "dict", required=False),
         ),
     ),
+    # scATAC cluster QC figures (P0 W0.2): marker-peak heatmap + per-cluster depth
+    # violin, rendered in the chromatin stack from the clustered .h5ad.
+    "aria/scripts/chromatin_figure_clusters.py": ScriptContract(
+        script_path="aria/scripts/chromatin_figure_clusters.py",
+        validation_level="beta",
+        inputs=(
+            _f("h5ad_path", "str", allow_empty=False),
+            _f("output_dir", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("figures", "dict", required=False),
+        ),
+    ),
     # FASTQ preprocessing flow (beta).
     "aria/scripts/rna_fastq_qc.py": ScriptContract(
         script_path="aria/scripts/rna_fastq_qc.py",

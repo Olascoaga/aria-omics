@@ -85,10 +85,11 @@ def test_generate_figures_renders_umap_in_chromatin_stack(tmp_path):
         findings, "/clustered.h5ad", tmp_path / "figures", env_manager=em)
 
     assert out["figures"]["umap_leiden"].endswith("leiden.png")
-    assert len(em.calls) == 1
-    call = em.calls[0]
+    # W0.2 added a second chromatin-stack call (cluster figures); assert the UMAP
+    # call specifically rather than exclusivity.
+    call = next(c for c in em.calls
+                if c["script_path"] == "aria/scripts/rna_figure_umap.py")
     assert call["stack"] == "chromatin"
-    assert call["script_path"] == "aria/scripts/rna_figure_umap.py"
     assert "leiden" in call["params"]["color_by"]
     assert call["params"]["h5ad_path"] == "/clustered.h5ad"
 

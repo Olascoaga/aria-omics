@@ -200,6 +200,60 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
         return None
 
 
+def render_fragment_size_figure(qc: dict, out_path: Path) -> Optional[str]:
+    """W0.2: fragment-size / nucleosome-banding plot from the QC size histogram
+    (`qc["fragment_sizes"]["size_histogram"]`). Rendered INLINE. Returns None when
+    no histogram was computed (e.g. a `.h5mu` peak-matrix run with no fragments) —
+    honest absence, never a fabricated distribution."""
+    hist = ((qc or {}).get("fragment_sizes") or {}).get("size_histogram") or {}
+    edges = hist.get("bin_edges") or []
+    counts = hist.get("counts") or []
+    if len(edges) < 2 or not counts or sum(counts) == 0:
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    edges = np.asarray(edges, dtype=float)
+    counts = np.asarray(counts, dtype=float)
+    centers = 0.5 * (edges[:-1] + edges[1:])
+    n = min(len(centers), len(counts))
+    try:
+        fig, ax = plt.subplots(figsize=(6.5, 4), dpi=160)
+        ax.fill_between(centers[:n], counts[:n], step="mid", alpha=0.6,
+                        color="#34699a")
+        ax.plot(centers[:n], counts[:n], lw=0.8, color="#1f4068")
+        for x in (147, 294):   # mono- / di-nucleosome guides
+            ax.axvline(x, color="grey", lw=0.5, ls="--")
+        ax.set_xlabel("fragment size (bp)", fontsize=9)
+        ax.set_ylabel("fragment count", fontsize=9)
+        ax.set_title("Fragment-size distribution (nucleosome banding)",
+                     fontsize=10, fontweight="bold")
+        ax.tick_params(labelsize=7)
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
+        plt.close(fig)
+        return str(out_path)
+    except Exception as e:
+        log.warning("fragment-size figure failed: %s", e)
+        return None
+
+
+def _marker_peaks_by_cluster(findings: dict) -> dict:
+    """Extract {cluster_id: [peak, ...]} from the per-cluster DA findings."""
+    da = findings.get("differential_accessibility") or {}
+    pc = da.get("per_cluster") or {}
+    by_cluster = pc.get("da_peaks_by_cluster") or {}
+    out: dict = {}
+    for cl, recs in by_cluster.items():
+        peaks = [str(r.get("peak")) for r in (recs or []) if r.get("peak")]
+        if peaks:
+            out[str(cl)] = peaks
+    return out
+
+
 def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                      env_manager=None) -> dict:
     """Generate scATAC figures into ``findings['figures']`` (mutates + returns it).
@@ -256,5 +310,37 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
         path = render_motif_dotplot(motifs, output_dir / "motif_dotplot.png")
         if path:
             figs["motif_dotplot"] = path
+
+    # 4. Fragment-size / nucleosome banding (inline) from the QC size histogram.
+    path = render_fragment_size_figure(
+        findings.get("qc") or {}, output_dir / "fragment_size.png")
+    if path:
+        figs["fragment_size"] = path
+
+    # 5. Marker-peak heatmap + per-cluster QC depth violin (W0.2). These need the
+    # AnnData matrix, so they render in the chromatin stack like the UMAP.
+    if h5ad_path and env_manager is not None:
+        try:
+            res = env_manager.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/chromatin_figure_clusters.py",
+                params={
+                    "h5ad_path":    str(h5ad_path),
+                    "output_dir":   str(output_dir),
+                    "cluster_key":  _umap_color_keys(findings)[0],
+                    "marker_peaks": _marker_peaks_by_cluster(findings),
+                },
+            )
+            if res.get("status") == "success":
+                for key, path in (res.get("figures") or {}).items():
+                    if isinstance(path, str):
+                        figs[key] = path
+            else:
+                log.warning(
+                    "chromatin cluster figures failed: %s — %s",
+                    res.get("error_type"), str(res.get("details", ""))[:200],
+                )
+        except Exception as e:
+            log.warning("chromatin cluster figure subprocess crashed: %s", e)
 
     return findings
