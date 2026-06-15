@@ -185,3 +185,25 @@ def test_readiness_toggle_shows_and_hides():
             assert findings.display is True
 
     asyncio.run(_run())
+
+
+def test_resources_toggle_shows_and_hides():
+    async def _run():
+        app = AriaCockpit(lambda: _snap(pending=None), lambda **k: None,
+                          experiment_id="e1", exit_on_done=False)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static
+            resources = app.query_one("#resources", Static)
+            findings = app.query_one("#findings", Static)
+            assert resources.display is False
+            await pilot.press("u")
+            await pilot.pause()
+            assert resources.display is True
+            assert findings.display is False
+            await pilot.press("u")
+            await pilot.pause()
+            assert resources.display is False
+            assert findings.display is True
+
+    asyncio.run(_run())

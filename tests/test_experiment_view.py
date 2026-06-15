@@ -219,3 +219,58 @@ def test_readiness_empty_without_session():
     eid = _eid()
     _status(eid, "scrna_agent", "working", 0.4)
     assert build_snapshot(eid).readiness == []
+
+
+def test_resources_map_local_stores_and_airgap(tmp_path, monkeypatch):
+    eid = _eid()
+    _status(eid, "scrna_agent", "working", 0.4)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+
+    gmt_base = tmp_path / "genesets"
+    gmt_lib = gmt_base / "GO_TEST"
+    gmt_lib.mkdir(parents=True)
+    (gmt_lib / "GO_TEST.gmt").write_text(
+        "term\tdesc\tGENE1\tGENE2\n", encoding="utf-8")
+    monkeypatch.setenv("ARIA_GMT_DIR", str(gmt_base))
+
+    motif_base = tmp_path / "motifs"
+    motif_lib = motif_base / "JASPAR_TEST"
+    motif_lib.mkdir(parents=True)
+    (motif_lib / "JASPAR_TEST.meme").write_text(
+        "MEME version 4\n\nMOTIF X\n", encoding="utf-8")
+    monkeypatch.setenv("ARIA_MOTIF_DIR", str(motif_base))
+
+    genome_base = tmp_path / "genomes"
+    (genome_base / "hg38").mkdir(parents=True)
+    (genome_base / "hg38" / "hg38.fa").write_text(">chr1\nACGT\n",
+                                                    encoding="utf-8")
+    monkeypatch.setenv("ARIA_GENOME_DIR", str(genome_base))
+    monkeypatch.delenv("ARIA_GENOME_FASTA", raising=False)
+    monkeypatch.setenv("ARIA_AIR_GAPPED", "1")
+
+    session = ExperimentSession(experiment_id=eid)
+    session.exp_context = {
+        "modalities": {"scRNA": ["sample.h5ad"], "scATAC": ["sample.h5mu"]},
+        "organism": "Homo sapiens",
+        "genome": "hg38",
+        "motif_collection": "JASPAR_TEST",
+        "celltypist_tissue_hint": "brain",
+        "air_gapped": True,
+    }
+    session.agent_results = {"setup_agent": {"status": "done"}}
+
+    snap = build_snapshot(eid, session=session)
+    resources = {(r.category, r.name): r for r in snap.resources}
+    assert resources[("env", "aria-rna-env")].status == "ready"
+    assert resources[("env", "aria-chromatin-env")].status == "ready"
+
+    by_category = {r.category: r for r in snap.resources}
+    assert by_category["geneset"].status == "ready"
+    assert by_category["motif"].status == "ready"
+    assert by_category["genome"].status == "ready"
+    assert by_category["privacy"].status == "blocked"
+
+    celltypist = [r for r in snap.resources if r.category == "celltypist"]
+    assert celltypist
+    assert celltypist[0].name == "CellTypist: Adult_Human_PrefrontalCortex.pkl"
+    assert celltypist[0].status == "missing"

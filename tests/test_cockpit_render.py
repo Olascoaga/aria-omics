@@ -11,7 +11,7 @@ from rich.console import Console
 
 from aria.runtime.experiment_view import (
     ExperimentSnapshot, FindingView, CheckpointView, LedgerNodeView,
-    ModalityCardView, ProgressEvent,
+    ModalityCardView, ProgressEvent, ResourceView,
 )
 from aria.ui import render
 
@@ -145,3 +145,30 @@ def test_readiness_cards_render():
 def test_readiness_empty_state():
     out = _capture(render.render_readiness(_snap(readiness=[])))
     assert "No readiness cards yet" in out
+
+
+def test_resources_render_local_state():
+    resources = [
+        ResourceView(category="env", name="aria-rna-env", status="ready",
+                     detail="SetupAgent completed environment checks."),
+        ResourceView(category="geneset", name="Local GMT libraries",
+                     status="missing", detail="No local GMT libraries staged.",
+                     path="/tmp/genesets",
+                     action="Run scripts/fetch_genesets.py explicitly."),
+        ResourceView(category="privacy", name="Network egress",
+                     status="blocked",
+                     detail="Air-gapped mode is active; network fetches are blocked.",
+                     action="Use local staged resources/caches."),
+    ]
+    out = _capture(render.render_resources(_snap(resources=resources)))
+    assert "aria-rna-env" in out
+    assert "Local GMT libraries" in out
+    assert "missing" in out
+    assert "Network egress" in out
+    assert "blocked" in out
+    assert "/tmp/genesets" in out
+
+
+def test_resources_empty_state():
+    out = _capture(render.render_resources(_snap(resources=[])))
+    assert "No resource snapshot yet" in out

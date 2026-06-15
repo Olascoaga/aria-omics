@@ -34,6 +34,20 @@ _LEDGER_STATUS_STYLE = {
 
 _READINESS_STATUS_STYLE = {"green": "green", "yellow": "yellow", "red": "red"}
 _READINESS_MARK = {"green": "●", "yellow": "▲", "red": "■"}
+_RESOURCE_STATUS_STYLE = {
+    "ready": "green",
+    "missing": "yellow",
+    "blocked": "red",
+    "pending": "cyan",
+    "info": "dim",
+}
+_RESOURCE_MARK = {
+    "ready": "✓",
+    "missing": "!",
+    "blocked": "■",
+    "pending": "…",
+    "info": "·",
+}
 
 
 def _fmt_duration(seconds: float) -> str:
@@ -204,4 +218,36 @@ def render_readiness(snap: ExperimentSnapshot) -> Panel:
             t.append(f"    · {msg}\n", style=style)
     border = _READINESS_STATUS_STYLE.get(worst, "green")
     return Panel(t, title="[bold]Modality readiness[/]", border_style=border,
+                 padding=(0, 1))
+
+
+def render_resources(snap: ExperimentSnapshot) -> Panel:
+    """U4 — local resource center: envs, references, caches, and egress policy."""
+    table = Table(expand=True, show_edge=False, pad_edge=False)
+    table.add_column("resource", style="cyan", no_wrap=True)
+    table.add_column("status", no_wrap=True)
+    table.add_column("detail")
+    table.add_column("path/action")
+
+    worst = "ready"
+    rank = {"ready": 0, "info": 0, "pending": 1, "missing": 2, "blocked": 3}
+    for res in snap.resources:
+        status = str(res.status)
+        if rank.get(status, 0) > rank.get(worst, 0):
+            worst = status
+        style = _RESOURCE_STATUS_STYLE.get(status, "white")
+        mark = _RESOURCE_MARK.get(status, "?")
+        tail = res.path or res.action or "—"
+        table.add_row(
+            f"{res.category}: {res.name}",
+            Text(f"{mark} {status}", style=style),
+            res.detail,
+            Text(str(tail), style="dim"),
+        )
+
+    if not snap.resources:
+        table.add_row("resources", "—", "No resource snapshot yet.", "—")
+
+    border = _RESOURCE_STATUS_STYLE.get(worst, "cyan")
+    return Panel(table, title="[bold]Resources[/]", border_style=border,
                  padding=(0, 1))

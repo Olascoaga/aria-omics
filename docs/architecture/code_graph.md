@@ -72,6 +72,11 @@ flowchart TD
     BULK_SCRIPT --> PATHWAY_VIZ[aria/scripts/rna_pathway_viz.py]
     BULK_SCRIPT --> ORA[aria/utils/ora.py local hypergeometric ORA + versioned GMTs]
     ORA --> GMT[(ARIA_GMT_DIR versioned .gmt + manifest)]
+    VIEW --> RESOURCES[U4 resource snapshot: envs/GMTs/motifs/genomes/CellTypist/air-gap]
+    RESOURCES --> GMT
+    RESOURCES --> MOTIFDIR
+    RESOURCES --> GENOMES[aria/utils/genomes.py local FASTA resolver]
+    RESOURCES --> PRIV
     BULK_SCRIPT --> BULK_OUT[bulk findings: QC, DE, ORA, GSEA, figures, tables]
 
     DISPATCH --> SCRNA_AGENT[aria/agents/scrna_agent.py]
@@ -160,6 +165,7 @@ flowchart TD
 | `geo_connector.py` inferred design schema | `data_audit_agent.py`, `design_agent.py`, `bulk_rna_agent.py`, TUI GEO flow | GEO groups, organism, aliases, and sample IDs seed the entire design path. |
 | `data_audit_agent.py` h5ad or GEO design inference | `design_agent.py`, `scrna_agent.py`, `design_intelligence.py`, CP1 text | A wrong condition/replicate/groupby guess can run valid code on the wrong biological design. |
 | `design_agent.py` design dict | `bulk_rna_agent.py`, `scrna_agent.py`, `design_intelligence.py`, methods/provenance | `groups`, `main_factor`, covariates, aliases, and pseudobulk settings are consumed downstream. |
+| `runtime/experiment_view.py` U0/U4 read-model resource snapshot | `aria/ui/cockpit.py`, `aria/ui/render.py`, setup/resource visibility, privacy/resource policy | U4 is a presentation-only resource center for envs, local GMTs, motif collections, genome FASTAs, CellTypist cache, and air-gap state. It must inspect local files/env vars and already-published `SetupAgent` state only: no `conda env list` polling, no downloads, no environment creation, no dispatch decisions. Missing resources must be shown honestly with actions; local staged resources/caches may be marked ready. Guards: `tests/test_experiment_view.py`, `tests/test_cockpit_render.py`, `tests/test_cockpit_app.py`. |
 | `bulk_rna_agent.py` | `rna_bulk_de.py`, narrative bulk narrator, methods, release validation | It maps confirmed design onto count matrix columns, writes `confirmed_design_metadata.tsv`, passes it as `metadata_file`, and owns bulk result shape. Without that metadata handoff, `rna_bulk_de.py` falls back to column-name group inference (`B/R/WT`) and confirmed contrasts such as `BMAL1_KO vs WT` can all fail. |
 | `bulk_rna_agent.py` design resolution / `_filename_fallback_allowed` / `_discover_groups` | production stop behavior, `ARIA_ALLOW_FILENAME_FALLBACK`, bulk findings | P0-6: file/column-name group inference is a GUESS, OFF in production. A confirmed design that fails to apply (or no design at all) STOPS with `status=failed`, `reason=design_application_failed`/`no_confirmed_design` + an INSUFFICIENT finding; name-based inference runs only under `ARIA_ALLOW_FILENAME_FALLBACK=1` with a loud LOW-confidence not-publication-grade warning. Do not restore the silent `design=None` degrade-to-`_discover_groups` path. |
 | `rna_bulk_de.py` result schema | `BulkRnaNarrator`, `NarrativeAgent`, bulk workflow docs, tests | Report claims, figures, tables, ORA, GSEA, and methodology depend on specific keys. |

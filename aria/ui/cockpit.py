@@ -1,4 +1,4 @@
-"""ARIA cockpit — Textual presentation shell (U1) with the run-ledger view (U5).
+"""ARIA cockpit — Textual presentation shell.
 
 The cockpit renders the U0 read-model on a timer and routes checkpoint decisions
 back through the orchestrator's existing ``on_checkpoint_resolved`` — it is a skin
@@ -42,12 +42,14 @@ class AriaCockpit(App):
     #findings { height: 1fr; }
     #ledger { height: 1fr; }
     #readiness { height: 1fr; }
+    #resources { height: 1fr; }
     """
 
     BINDINGS = [
         Binding("q", "quit", "Quit"),
         Binding("l", "toggle_ledger", "Ledger"),
         Binding("r", "toggle_readiness", "Readiness"),
+        Binding("u", "toggle_resources", "Resources"),
         Binding("e", "edit_design", "Edit groups"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
@@ -73,7 +75,7 @@ class AriaCockpit(App):
         self._poll_interval = poll_interval
         self._exit_on_done = exit_on_done
         self._snap: Optional[ExperimentSnapshot] = None
-        self._center_mode = "findings"   # findings | ledger | readiness
+        self._center_mode = "findings"   # findings | ledger | readiness | resources
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
@@ -83,6 +85,7 @@ class AriaCockpit(App):
                 Static(id="findings"),
                 Static(id="ledger"),
                 Static(id="readiness"),
+                Static(id="resources"),
                 id="center",
             ),
             Vertical(Static(id="checkpoint"), id="right"),
@@ -102,6 +105,8 @@ class AriaCockpit(App):
             self._center_mode == "ledger"
         self.query_one("#readiness", Static).display = \
             self._center_mode == "readiness"
+        self.query_one("#resources", Static).display = \
+            self._center_mode == "resources"
 
     # ── Rendering ────────────────────────────────────────────────────────────
     def refresh_snapshot(self) -> None:
@@ -128,6 +133,8 @@ class AriaCockpit(App):
         self.query_one("#ledger", Static).update(render.render_ledger(snap))
         self.query_one("#readiness", Static).update(
             render.render_readiness(snap))
+        self.query_one("#resources", Static).update(
+            render.render_resources(snap))
         self.query_one("#checkpoint", Static).update(
             render.render_checkpoint(snap))
 
@@ -143,6 +150,11 @@ class AriaCockpit(App):
     def action_toggle_readiness(self) -> None:
         self._center_mode = "findings" if self._center_mode == "readiness" \
             else "readiness"
+        self._apply_center_mode()
+
+    def action_toggle_resources(self) -> None:
+        self._center_mode = "findings" if self._center_mode == "resources" \
+            else "resources"
         self._apply_center_mode()
 
     def action_edit_design(self) -> None:

@@ -22,8 +22,10 @@ regardless of which key carried them.
 from __future__ import annotations
 
 import re
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Optional
 
 from aria.bus.message_bus import bus, Message, MessageType
@@ -121,6 +123,16 @@ class ModalityCardView:
 
 
 @dataclass(frozen=True)
+class ResourceView:
+    category: str            # env | geneset | motif | genome | celltypist | privacy
+    name: str
+    status: str              # ready | missing | blocked | pending | info
+    detail: str
+    path: Optional[str] = None
+    action: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class ExperimentSnapshot:
     experiment_id: str
     phase: str               # audit | design | dispatch | report | done
@@ -136,6 +148,8 @@ class ExperimentSnapshot:
     # U3 — per-modality readiness cards (from exp_context); defaulted so older
     # constructions stay valid.
     readiness: list[ModalityCardView] = field(default_factory=list)
+    # U4 — local resources and egress policy, presentation-only.
+    resources: list[ResourceView] = field(default_factory=list)
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
@@ -261,6 +275,245 @@ def _readiness_views(session: Any) -> list[ModalityCardView]:
     return out
 
 
+def _all_input_files(exp_ctx: dict) -> list[str]:
+    out: list[str] = []
+    for files in (exp_ctx.get("modalities") or {}).values():
+        if isinstance(files, list):
+            out.extend(str(f) for f in files)
+    return out
+
+
+def _has_fastq(exp_ctx: dict) -> bool:
+    return any(
+        f.lower().endswith((".fastq.gz", ".fq.gz", ".fastq", ".fq"))
+        for f in _all_input_files(exp_ctx)
+    )
+
+
+def _needed_envs(exp_ctx: dict) -> list[str]:
+    modalities = set((exp_ctx.get("modalities") or {}).keys())
+    has_fastq = _has_fastq(exp_ctx)
+    envs: list[str] = []
+    if has_fastq and "scRNA" in modalities:
+        envs.append("aria-ingestion-env")
+    if has_fastq and ({"bulk_RNA", "bulk_RNA_raw"} & modalities):
+        envs.append("aria-rnaseq-env")
+    if {"scRNA", "bulk_RNA"} & modalities:
+        envs.append("aria-rna-env")
+    if {"scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"} & modalities:
+        envs.append("aria-chromatin-env")
+    if {"HiC", "Micro-C"} & modalities:
+        envs.append("aria-hic-env")
+    return list(dict.fromkeys(envs))
+
+
+def _path_exists(path: str | os.PathLike | None) -> bool:
+    if not path:
+        return False
+    try:
+        return Path(path).expanduser().exists()
+    except Exception:
+        return False
+
+
+def _count_children_with_suffix(base: Path, suffix: str) -> int:
+    try:
+        if not base.exists():
+            return 0
+        return sum(1 for p in base.glob(f"*/*{suffix}") if p.is_file())
+    except Exception:
+        return 0
+
+
+def _resource_setup_views(exp_ctx: dict, agent_results: dict) -> list[ResourceView]:
+    setup = agent_results.get("setup_agent") or {}
+    needed = _needed_envs(exp_ctx)
+    if not needed:
+        return [ResourceView(
+            category="env", name="Conda stacks", status="pending",
+            detail="No modality-specific stack selected yet.",
+            action="Confirm input modalities to compute required envs.",
+        )]
+
+    status = "ready" if setup.get("status") == "done" else "pending"
+    detail = "SetupAgent completed environment checks." if status == "ready" else (
+        "SetupAgent has not completed for this run yet."
+    )
+    warnings = setup.get("warnings") or []
+    if warnings:
+        detail = f"{detail} {len(warnings)} warning(s) recorded."
+    return [ResourceView(
+        category="env", name=env_name, status=status, detail=detail,
+        action=None if status == "ready" else "SetupAgent will verify/install it.",
+    ) for env_name in needed]
+
+
+def _resource_geneset_view() -> ResourceView:
+    try:
+        from aria.utils import ora
+        base = ora.genesets_dir()
+        n_libs = _count_children_with_suffix(base, ".gmt")
+        if n_libs:
+            return ResourceView(
+                category="geneset", name="Local GMT libraries", status="ready",
+                detail=f"{n_libs} versioned GMT librar(ies) staged.",
+                path=str(base),
+            )
+        return ResourceView(
+            category="geneset", name="Local GMT libraries", status="missing",
+            detail="No local GMT libraries staged for offline ORA.",
+            path=str(base), action="Run scripts/fetch_genesets.py explicitly.",
+        )
+    except Exception as exc:
+        return ResourceView(
+            category="geneset", name="Local GMT libraries", status="missing",
+            detail=f"Could not inspect GMT directory: {exc}",
+        )
+
+
+def _resource_motif_view(exp_ctx: dict) -> ResourceView:
+    try:
+        from aria.utils import motifs
+        collection = exp_ctx.get("motif_collection") or motifs.DEFAULT_COLLECTION
+        base = motifs.motifs_dir()
+        local = motifs.load_local_motif_collection(collection)
+        if local is not None:
+            meme_path, version = local
+            return ResourceView(
+                category="motif", name=f"Motifs: {collection}", status="ready",
+                detail=f"{version.get('n_motifs', 0)} motifs staged.",
+                path=meme_path,
+            )
+        n_collections = _count_children_with_suffix(base, ".meme")
+        detail = "Requested collection is not staged."
+        if n_collections:
+            detail += f" {n_collections} other collection(s) are present."
+        return ResourceView(
+            category="motif", name=f"Motifs: {collection}", status="missing",
+            detail=detail, path=str(base),
+            action="Run scripts/fetch_motifs.py explicitly.",
+        )
+    except Exception as exc:
+        return ResourceView(
+            category="motif", name="Motif collections", status="missing",
+            detail=f"Could not inspect motif directory: {exc}",
+        )
+
+
+def _resource_genome_view(exp_ctx: dict) -> ResourceView:
+    assembly = exp_ctx.get("genome") or exp_ctx.get("assembly")
+    if not assembly:
+        return ResourceView(
+            category="genome", name="Reference genome", status="pending",
+            detail="No assembly selected yet.",
+            action="Confirm organism/genome during design.",
+        )
+    try:
+        from aria.utils import genomes
+        fasta, source = genomes.resolve_local_genome_fasta(str(assembly))
+        if fasta:
+            return ResourceView(
+                category="genome", name=f"Reference genome: {assembly}",
+                status="ready", detail=f"Resolved locally via {source}.",
+                path=fasta,
+            )
+        snap_attr = genomes.snapatac2_attr(str(assembly))
+        action = (
+            f"Stage FASTA under {genomes.GENOME_DIR_ENV}/{assembly}."
+        )
+        if snap_attr:
+            action += " Governed snapatac2 fetch may be offered later."
+        return ResourceView(
+            category="genome", name=f"Reference genome: {assembly}",
+            status="missing", detail="No local FASTA resolved.",
+            path=str(genomes.genome_dir()), action=action,
+        )
+    except Exception as exc:
+        return ResourceView(
+            category="genome", name=f"Reference genome: {assembly}",
+            status="missing", detail=f"Could not inspect genome store: {exc}",
+        )
+
+
+def _celltypist_cache_dirs() -> list[Path]:
+    return [
+        Path.home() / ".celltypist" / "data" / "models",
+        Path.home() / ".celltypist" / "models",
+    ]
+
+
+def _celltypist_model_cached(model_name: str) -> bool:
+    explicit = Path(str(model_name)).expanduser()
+    if explicit.is_file():
+        return True
+    return any((d / str(model_name)).is_file() for d in _celltypist_cache_dirs())
+
+
+def _celltypist_model_from_context(exp_ctx: dict) -> tuple[str, str]:
+    model = (exp_ctx.get("celltypist_model")
+             or exp_ctx.get("celltypist_model_path"))
+    organism = str(exp_ctx.get("organism") or "")
+    hint = str(exp_ctx.get("celltypist_tissue_hint")
+               or exp_ctx.get("tissue_hint")
+               or exp_ctx.get("tissue")
+               or "").lower().strip()
+    try:
+        from aria.scripts.rna_celltypist import _resolve_celltypist_model
+        resolved, source, _warning = _resolve_celltypist_model(
+            model, organism, hint)
+        return str(resolved), str(source)
+    except Exception:
+        if model:
+            return str(model), "explicit"
+        return "Immune_All_Low.pkl", "default_immune_fallback"
+
+
+def _resource_celltypist_view(exp_ctx: dict) -> list[ResourceView]:
+    if "scRNA" not in set((exp_ctx.get("modalities") or {}).keys()):
+        return []
+    model, source = _celltypist_model_from_context(exp_ctx)
+    cached = _celltypist_model_cached(model)
+    status = "ready" if cached else "missing"
+    detail = f"Model source: {source}; cache {'hit' if cached else 'miss'}."
+    action = None if cached else "Stage model locally or allow governed model-hub egress."
+    return [ResourceView(
+        category="celltypist", name=f"CellTypist: {model}",
+        status=status, detail=detail,
+        path=str(Path(model).expanduser()) if _path_exists(model) else None,
+        action=action,
+    )]
+
+
+def _resource_privacy_view(exp_ctx: dict) -> ResourceView:
+    enabled = bool(exp_ctx.get("air_gapped"))
+    if not enabled:
+        try:
+            from aria.utils.privacy import air_gapped_enabled
+            enabled = air_gapped_enabled()
+        except Exception:
+            enabled = False
+    return ResourceView(
+        category="privacy", name="Network egress", status="blocked" if enabled else "info",
+        detail=("Air-gapped mode is active; network fetches are blocked."
+                if enabled else "Network egress is allowed unless a run opts into air-gap."),
+        action=("Use local staged resources/caches."
+                if enabled else "Use air-gapped mode for sensitive data."),
+    )
+
+
+def _resource_views(session: Any) -> list[ResourceView]:
+    exp_ctx = getattr(session, "exp_context", None) or {}
+    agent_results = getattr(session, "agent_results", None) or {}
+    resources: list[ResourceView] = []
+    resources.extend(_resource_setup_views(exp_ctx, agent_results))
+    resources.append(_resource_geneset_view())
+    resources.append(_resource_motif_view(exp_ctx))
+    resources.append(_resource_genome_view(exp_ctx))
+    resources.extend(_resource_celltypist_view(exp_ctx))
+    resources.append(_resource_privacy_view(exp_ctx))
+    return resources
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 def build_snapshot(experiment_id: str, *,
@@ -347,4 +600,5 @@ def build_snapshot(experiment_id: str, *,
         elapsed_s=elapsed_s,
         silent_s=silent_s,
         readiness=_readiness_views(session),
+        resources=_resource_views(session),
     )
