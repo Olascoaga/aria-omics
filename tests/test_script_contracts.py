@@ -67,11 +67,23 @@ def test_script_contract_rejects_version_mismatch(tmp_path):
 def _fake_popen_factory(payload: dict):
     class _FakePopen:
         def __init__(self, cmd, *args, **kwargs):
-            Path(cmd[-1]).write_text(json.dumps(payload))
+            self._cmd = list(cmd)
             self.returncode = 0
+            # run_in_stack also enumerates envs via `Popen(["conda","env","list",
+            # "--json"])`; ONLY the script execution (`conda run ... <output.json>`)
+            # writes the result. Gating on "run" stops the enumeration call from
+            # creating a stray ./--json (cmd[-1] == "--json") in the repo root.
+            if "run" in self._cmd:
+                Path(self._cmd[-1]).write_text(json.dumps(payload))
 
         def communicate(self, timeout=None):
             return ("", "")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
 
     return _FakePopen
 
