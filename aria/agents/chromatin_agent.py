@@ -85,6 +85,7 @@ class ChromatinAgent(BaseAgent):
         "aria/scripts/chromatin_lsi_clustering.py",
         "aria/scripts/chromatin_diffacc.py",
         "aria/scripts/chromatin_motifs.py",
+        "aria/scripts/chromatin_regulatory.py",
     )
     PLANNED_SCRIPTS = (
         "aria/scripts/chromatin_footprinting.py",
@@ -423,6 +424,45 @@ class ChromatinAgent(BaseAgent):
                 },
             )
             findings["motifs"] = motif_result
+
+            # 5. Optional P2 regulatory layers. Each sub-layer self-gates on
+            # explicit inputs and returns ran:false with a concrete reason when
+            # prerequisites are absent; no labels are trusted for inference.
+            self.publish_status(experiment_id, "scATAC regulatory layers...", 0.9)
+            fragments_file = (
+                exp_ctx.get("fragments_file")
+                or exp_ctx.get("fragments_path")
+                or exp_ctx.get("fragment_file")
+            )
+            regulatory_result = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/chromatin_regulatory.py",
+                params={
+                    "data_path": clustered,
+                    "output_dir": out_dir,
+                    "motif_peak_map": exp_ctx.get("motif_peak_map"),
+                    "gtf_path": (
+                        exp_ctx.get("gtf_path")
+                        or exp_ctx.get("gene_annotation_gtf")
+                    ),
+                    "rna_data_path": (
+                        exp_ctx.get("rna_data_path")
+                        or exp_ctx.get("scrna_data_path")
+                    ),
+                    "rna_label_col": (
+                        exp_ctx.get("rna_label_col")
+                        or exp_ctx.get("scrna_label_col")
+                    ),
+                    "fragments_file": fragments_file,
+                    "motif_sites_bed": exp_ctx.get("motif_sites_bed"),
+                    "tn5_bias_model": exp_ctx.get("tn5_bias_model"),
+                    "gene_score_window_bp": exp_ctx.get("gene_score_window_bp"),
+                    "peak_gene_distance_bp": exp_ctx.get("peak_gene_distance_bp"),
+                    "min_peak_gene_corr": exp_ctx.get("min_peak_gene_corr"),
+                    "min_shared_cells": exp_ctx.get("min_shared_cells"),
+                },
+            )
+            findings["regulatory"] = regulatory_result
 
         return {"status": "done", "findings": findings}
 

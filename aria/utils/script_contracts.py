@@ -393,6 +393,20 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("ran", "bool", required=False),
         ),
     ),
+    "aria/scripts/chromatin_regulatory.py": ScriptContract(
+        script_path="aria/scripts/chromatin_regulatory.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("data_path", "path", allow_empty=False, path_must_exist=True),
+        ),
+        success_outputs=(
+            _f("motif_activity", "dict", required=False),
+            _f("gene_scores", "dict", required=False),
+            _f("footprinting", "dict", required=False),
+            _f("peak_to_gene", "dict", required=False),
+            _f("label_transfer", "dict", required=False),
+        ),
+    ),
 
     # ── P1-12: contracts for the remaining dispatchable scripts ──────────────
     # scRNA helper scripts (validated path).

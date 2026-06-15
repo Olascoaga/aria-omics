@@ -89,7 +89,7 @@ skipped lanes rather than fabricating output.
 
 | Area | Status | Required before stable |
 |---|---|---|
-| scATAC-seq matrix workflow | Alpha + requires acknowledgement | Expert review of biological conclusions; broader fixtures and datasets; chromVAR per-cell motif activity remains out of scope; stable promotion requires independent review beyond the current HC11/synthetic/multi-sample validation evidence |
+| scATAC-seq matrix workflow | Alpha + requires acknowledgement | Expert review of biological conclusions; broader fixtures and datasets; P2 regulatory layers are now input-gated alpha outputs (motif activity, gene scores, peak-to-gene, label-transfer hypotheses; Tn5 footprinting requires fragments + bias model); stable promotion requires independent review beyond the current HC11/synthetic/multi-sample validation evidence |
 
 ## Scaffolded / Roadmap
 

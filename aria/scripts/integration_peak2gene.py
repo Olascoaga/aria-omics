@@ -48,7 +48,7 @@ Output:
 from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from aria.scripts._base import mocks_allowed, run_script
+from aria.scripts._base import run_script
 
 
 def integration_peak2gene(params: dict) -> dict:
@@ -63,7 +63,6 @@ def integration_peak2gene(params: dict) -> dict:
     distance_kb = int(params.get("distance_kb", 500))
     min_corr    = float(params.get("min_corr", 0.3))
     output_dir  = params.get("output_dir", "/tmp/aria_p2g")
-    allow_mock  = mocks_allowed(params)
     warnings    = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -118,8 +117,6 @@ def integration_peak2gene(params: dict) -> dict:
             atac = None
 
         if atac is None:
-            if allow_mock:
-                return _mock_peak2gene(reason="ATAC matrix not loadable")
             return {
                 "status":     "error",
                 "error_type": "ATACMatrixNotLoadable",
@@ -267,12 +264,14 @@ def integration_peak2gene(params: dict) -> dict:
         }
 
     except ImportError as e:
-        if allow_mock:
-            return _mock_peak2gene(reason=str(e))
         return {
             "status":     "error",
             "error_type": "MissingDependency",
-            "details":    f"Peak-to-gene dependencies are required: {e}",
+            "details":    (
+                f"Peak-to-gene dependencies are required: {e}. "
+                "Mock peak-to-gene links were removed; ARIA never fabricates "
+                "regulatory links."
+            ),
             "warnings":   warnings,
         }
     except Exception as e:
@@ -424,37 +423,6 @@ def _get_peak_coordinates(peaks_path: str, peak_names) -> dict:
             pass
 
     return coords
-
-
-def _mock_peak2gene(reason: str) -> dict:
-    """Mock peak-to-gene result when libraries not available."""
-    mock_links = [
-        {"gene": "CD3E",   "peak": "chr11:118300000-118302000",
-         "correlation": 0.71, "p_value": 1e-12,
-         "distance_kb": 12.3, "direction": "positive"},
-        {"gene": "FOXP3",  "peak": "chrX:49100000-49102000",
-         "correlation": 0.65, "p_value": 2e-10,
-         "distance_kb": 8.7,  "direction": "positive"},
-        {"gene": "IL2RA",  "peak": "chr10:6000000-6002000",
-         "correlation": 0.58, "p_value": 5e-9,
-         "distance_kb": 45.2, "direction": "positive"},
-        {"gene": "PDCD1",  "peak": "chr2:241800000-241802000",
-         "correlation": -0.44, "p_value": 1e-6,
-         "distance_kb": 22.1, "direction": "negative"},
-    ]
-    return {
-        "status":                  "success",
-        "n_links":                 847,
-        "n_tested":                15000,
-        "n_positive_correlations": 721,
-        "n_negative_correlations": 126,
-        "top_links":               mock_links,
-        "output_path":             None,
-        "ctcf_validated":          False,
-        "hic_corroborated":        False,
-        "warnings":                [f"Mock peak-to-gene — install aria-integration-env. ({reason})"],
-        "note":                    f"Mock peak-to-gene — {reason}",
-    }
 
 
 if __name__ == "__main__":

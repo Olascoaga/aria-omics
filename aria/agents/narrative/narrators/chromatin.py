@@ -107,6 +107,10 @@ class ChromatinNarrator:
         if isinstance(motifs, dict) and _ok(motifs):
             blocks.append(self._motif_block(motifs))
 
+        regulatory = findings.get("regulatory")
+        if isinstance(regulatory, dict) and _ok(regulatory):
+            blocks.append(self._regulatory_block(regulatory))
+
         return blocks
 
     # ── QC ────────────────────────────────────────────────────────────────
@@ -372,6 +376,79 @@ class ChromatinNarrator:
                      "motif_source": src},
         )
 
+    # ── P2 regulatory layers ────────────────────────────────────────────────
+    def _regulatory_block(self, regulatory: dict) -> NarrativeBlock:
+        layers = {
+            "motif_activity": "Motif activity",
+            "gene_scores": "Gene activity scores",
+            "footprinting": "Tn5 footprinting",
+            "peak_to_gene": "Peak-to-gene links",
+            "label_transfer": "scRNA label transfer",
+        }
+        ran = [key for key in layers if (regulatory.get(key) or {}).get("ran")]
+        skipped = [key for key in layers if key not in ran]
+
+        evidence = [
+            _ev("Analysis", "scATAC regulatory layers", "chromatin_regulatory"),
+            _ev("Optional layers", len(layers), "chromatin_regulatory"),
+            _ev("Layers run", len(ran), "chromatin_regulatory"),
+            _ev("Layers skipped", len(skipped), "chromatin_regulatory"),
+        ]
+        for key in ran:
+            sub = regulatory.get(key) or {}
+            label = layers[key]
+            if key == "motif_activity":
+                evidence.append(_ev(label, sub.get("n_motifs"),
+                                    "chromatin_regulatory"))
+            elif key == "gene_scores":
+                evidence.append(_ev(label, sub.get("n_genes_scored"),
+                                    "chromatin_regulatory"))
+            elif key == "peak_to_gene":
+                evidence.append(_ev(label, sub.get("n_links"),
+                                    "chromatin_regulatory"))
+            elif key == "label_transfer":
+                evidence.append(_ev(label, sub.get("n_labeled_cells"),
+                                    "chromatin_regulatory"))
+            else:
+                evidence.append(_ev(label, sub.get("method"),
+                                    "chromatin_regulatory"))
+        evidence = [e for e in evidence if e.value is not None]
+
+        caveats = [
+            Caveat(
+                "Regulatory layers are associative. Motif activity, gene scores, "
+                "footprints, peak-to-gene links, and transferred labels do not "
+                "establish causal regulation.",
+                severity="info",
+            ),
+            Caveat(
+                "Transferred scRNA labels are report hypotheses only and are "
+                "not trusted as inferential groupby columns.",
+                severity="info",
+            ),
+        ]
+        for key in skipped:
+            sub = regulatory.get(key) or {}
+            caveats.append(Caveat(
+                f"{layers[key]} not run: "
+                f"{sub.get('reason', 'prerequisites missing')}.",
+                severity="info"))
+
+        claim = (
+            f"scATAC regulatory-layer analysis ran {len(ran)} of "
+            f"{len(layers)} optional layer(s); skipped layers are reported with "
+            f"their prerequisites.")
+        status = "success" if ran else "limitation"
+        block_type = "result" if ran else "limitation"
+        return NarrativeBlock(
+            id="chromatin.regulatory_layers", modality="chromatin",
+            analysis="regulatory_layers", block_type=block_type,
+            title="scATAC regulatory layers", status=status,
+            confidence="low" if ran else "insufficient",
+            claim=claim if ran else "", evidence=evidence, caveats=caveats,
+            metrics={key: regulatory.get(key) for key in layers},
+        )
+
     # ── Methods + tables ────────────────────────────────────────────────────
     def methods(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[str]:
@@ -405,6 +482,15 @@ class ChromatinNarrator:
                 f"of DA peak sets against background using the versioned local "
                 f"{src.get('collection','motif')} collection "
                 f"(release {src.get('release','?')}); offline, no network egress.")
+        regulatory = findings.get("regulatory")
+        if _ok(regulatory):
+            out.append(
+                "scATAC regulatory layers are optional and input-gated: motif "
+                "activity requires an explicit motif-to-peak map, gene scores "
+                "and peak-to-gene links require local gene coordinates, Tn5 "
+                "footprinting requires fragments plus a Tn5 bias model, and "
+                "scRNA label transfer is report-only rather than an inferential "
+                "grouping.")
         return out
 
     def figures(self, agent_name: str, agent_result: dict,
@@ -444,4 +530,16 @@ class ChromatinNarrator:
             tables.append({"id": "chromatin.motif_enrichment",
                            "path": motifs["output_csv"],
                            "label": "TF motif enrichment"})
+        regulatory = findings.get("regulatory") or {}
+        for key, label in (
+            ("motif_activity", "Motif activity"),
+            ("gene_scores", "Gene activity scores"),
+            ("peak_to_gene", "Peak-to-gene links"),
+            ("label_transfer", "scRNA label-transfer hypotheses"),
+        ):
+            sub = regulatory.get(key) or {}
+            if sub.get("output_csv"):
+                tables.append({"id": f"chromatin.{key}",
+                               "path": sub["output_csv"],
+                               "label": label})
         return tables

@@ -76,8 +76,13 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
                  "differential peak"],
      "finding_keys": ["differential_accessibility"]},
     {"key": "motif_enrichment", "label": "TF motif enrichment",
-     "plan_kw": ["motif", "transcription factor", "chromvar", "tf enrichment"],
+     "plan_kw": ["motif enrichment", "transcription factor enrichment",
+                 "tf enrichment"],
      "finding_keys": ["motifs"]},
+    {"key": "regulatory_layers", "label": "Regulatory layers",
+     "plan_kw": ["chromvar", "footprint", "peak-to-gene", "peak to gene",
+                 "gene activity", "gene score", "label transfer"],
+     "finding_keys": ["regulatory"]},
 ]
 
 

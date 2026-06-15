@@ -73,6 +73,31 @@ def _findings(motifs_ran=True, pseudobulk_ran=False):
             {"status": "success", "ran": False,
              "reason": "motif collection not staged; run scripts/fetch_motifs.py"}
         ),
+        "regulatory": {
+            "status": "success", "validation_level": "alpha", "ran": True,
+            "motif_activity": {
+                "ran": True, "method": "motif_peak_accessibility_deviation",
+                "n_motifs": 12, "output_csv": "/tmp/x/motif_activity.csv",
+            },
+            "gene_scores": {
+                "ran": True, "method": "peak_window_gene_activity",
+                "n_genes_scored": 40, "output_csv": "/tmp/x/gene_scores.csv",
+            },
+            "footprinting": {
+                "ran": False, "reason": "tn5_bias_model was not provided",
+                "method": "tn5_bias_corrected_footprint",
+            },
+            "peak_to_gene": {
+                "ran": True, "method": "paired_cell_peak_gene_correlation",
+                "n_links": 3, "output_csv": "/tmp/x/peak_to_gene.csv",
+            },
+            "label_transfer": {
+                "ran": True, "method": "barcode_matched_label_hypothesis",
+                "n_labeled_cells": 200, "trusted_for_inference": False,
+                "output_csv": "/tmp/x/labels.csv",
+            },
+            "warnings": ["footprinting skipped: tn5_bias_model was not provided"],
+        },
     }
     return f
 
@@ -89,6 +114,7 @@ def test_narrator_emits_clustering_da_and_motif_blocks():
     assert "chromatin.clustering" in ids
     assert "chromatin.differential_accessibility.per_cluster" in ids
     assert "chromatin.motifs" in ids
+    assert "chromatin.regulatory_layers" in ids
     # pseudobulk honestly skipped -> a limitation block, not a fabricated result
     assert "chromatin.differential_accessibility.pseudobulk_skipped" in ids
 
@@ -136,6 +162,17 @@ def test_motif_block_is_association_only_with_provenance():
     assert "chromvar" in text          # per-cell activity disclosed as out-of-scope
     labels = {e.label for e in block.evidence}
     assert "Motif collection" in labels and "Motifs tested" in labels
+
+
+def test_regulatory_block_is_associative_and_label_transfer_not_inferential():
+    block = next(b for b in _collect(_findings())
+                 if b.id == "chromatin.regulatory_layers")
+    text = " ".join(c.text.lower() for c in block.caveats)
+    assert "associative" in text
+    assert "not trusted as inferential groupby" in text
+    labels = {e.label for e in block.evidence}
+    assert "Motif activity" in labels
+    assert "Peak-to-gene links" in labels
 
 
 def test_blocks_pass_strict_wclaim_render():
@@ -193,6 +230,8 @@ class _FakeEnv:
             return f["differential_accessibility"]
         if script_path.endswith("chromatin_motifs.py"):
             return f["motifs"]
+        if script_path.endswith("chromatin_regulatory.py"):
+            return f["regulatory"]
         return {"status": "error", "error_type": "Unexpected"}
 
 
@@ -223,12 +262,14 @@ def test_agent_h5mu_flow_dispatches_and_stores_findings():
         "exp1", exp_ctx, {}, ["/data/hc11_paired.h5mu"])
     assert res["status"] == "done"
     findings = res["findings"]
-    assert set(findings) >= {"qc", "lsi", "differential_accessibility", "motifs"}
+    assert set(findings) >= {
+        "qc", "lsi", "differential_accessibility", "motifs", "regulatory"}
 
     # dispatched scripts in order, on the chromatin stack
     scripts = [Path_basename(c[0]) for c in env.calls]
     assert scripts == ["chromatin_qc.py", "chromatin_lsi_clustering.py",
-                       "chromatin_diffacc.py", "chromatin_motifs.py"]
+                       "chromatin_diffacc.py", "chromatin_motifs.py",
+                       "chromatin_regulatory.py"]
     # genome + motif collection forwarded to the motif script
     motif_params = next(p for s, p in env.calls if s.endswith("chromatin_motifs.py"))
     assert motif_params["genome_fasta"] == "/g/GRCh38.fa"
@@ -238,10 +279,15 @@ def test_agent_h5mu_flow_dispatches_and_stores_findings():
     assert lsi_params["replicate_col"] == "donor"
     assert lsi_params["batch_col"] == "sequencing_lane"
     assert lsi_params["peak_provenance"]["method"] == "overlap_unified"
+    regulatory_params = next(
+        p for s, p in env.calls if s.endswith("chromatin_regulatory.py"))
+    assert regulatory_params["data_path"] == "/tmp/x/lsi_clustered.h5ad"
+    assert regulatory_params["rna_data_path"] is None
 
     # and the narrator turns those findings into the chromatin blocks
     blocks = ChromatinNarrator().collect("chromatin_agent", res, {})
-    assert {"chromatin.clustering", "chromatin.motifs"} <= {b.id for b in blocks}
+    assert {"chromatin.clustering", "chromatin.motifs",
+            "chromatin.regulatory_layers"} <= {b.id for b in blocks}
 
 
 def Path_basename(p):
