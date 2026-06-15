@@ -184,7 +184,9 @@ def _prompt_action() -> str:
         )
     except EOFError:
         console.print(
-            f"\n  [{C['muted']}]No interactive input available; exiting.[/]\n"
+            f"\n  [{C['muted']}]No interactive terminal detected; exiting.[/]\n"
+            f"  [{C['muted']}]Launch ARIA from a real shell with:[/]\n"
+            f"  [{C['cyan']}]conda activate aria-env && aria[/]\n"
         )
         return "exit"
 
@@ -903,7 +905,7 @@ def _use_cockpit(reproducible_mode: bool) -> bool:
         return False
     if "--classic-tui" in sys.argv:
         return False
-    if not sys.stdout.isatty():
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
         return False
     try:
         from aria.ui.cockpit import cockpit_available

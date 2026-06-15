@@ -742,6 +742,67 @@ def test_tui_action_prompt_exits_cleanly_on_eof(monkeypatch):
     assert tui._prompt_action() == "exit"
 
 
+def test_tui_action_prompt_eof_names_interactive_launch(monkeypatch):
+    litellm_stub = types.ModuleType("litellm")
+    litellm_stub.completion = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
+
+    from aria import tui
+
+    monkeypatch.setattr(tui.Prompt, "ask",
+                        lambda *args, **kwargs: (_ for _ in ()).throw(EOFError))
+    printed: list[str] = []
+    monkeypatch.setattr(tui.console, "print",
+                        lambda *args, **kwargs: printed.append(" ".join(map(str, args))))
+
+    assert tui._prompt_action() == "exit"
+    assert "conda activate aria-env && aria" in "\n".join(printed)
+
+
+def test_cockpit_requires_stdin_and_stdout_tty(monkeypatch):
+    litellm_stub = types.ModuleType("litellm")
+    litellm_stub.completion = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
+
+    from aria import tui
+
+    class FakeStream:
+        def __init__(self, tty):
+            self._tty = tty
+
+        def isatty(self):
+            return self._tty
+
+    monkeypatch.delenv("ARIA_NO_TUI", raising=False)
+    monkeypatch.setattr(tui.sys, "argv", ["aria"])
+    monkeypatch.setattr(tui.sys, "stdin", FakeStream(False))
+    monkeypatch.setattr(tui.sys, "stdout", FakeStream(True))
+
+    assert tui._use_cockpit(reproducible_mode=False) is False
+
+
+def test_cockpit_is_selected_on_interactive_tty(monkeypatch):
+    litellm_stub = types.ModuleType("litellm")
+    litellm_stub.completion = lambda *args, **kwargs: None
+    monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
+
+    from aria import tui
+
+    class FakeStream:
+        def isatty(self):
+            return True
+
+    monkeypatch.delenv("ARIA_NO_TUI", raising=False)
+    monkeypatch.setattr(tui.sys, "argv", ["aria"])
+    monkeypatch.setattr(tui.sys, "stdin", FakeStream())
+    monkeypatch.setattr(tui.sys, "stdout", FakeStream())
+    cockpit_stub = types.ModuleType("aria.ui.cockpit")
+    cockpit_stub.cockpit_available = lambda: True
+    monkeypatch.setitem(sys.modules, "aria.ui.cockpit", cockpit_stub)
+
+    assert tui._use_cockpit(reproducible_mode=False) is True
+
+
 def test_data_audit_ignores_stale_aria_h5ad_intermediates():
     from aria.agents.data_audit_agent import DataAuditAgent
 
