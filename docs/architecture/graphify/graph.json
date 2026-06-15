@@ -10624,258 +10624,265 @@
       "label": "print_banner()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L152"
+      "source_location": "L142"
     },
     {
       "id": "aria_tui_print_section",
       "label": "print_section()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L162"
+      "source_location": "L152"
     },
     {
       "id": "aria_tui_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L162"
+      "source_location": "L152"
     },
     {
       "id": "aria_tui_prompt_action",
       "label": "_prompt_action()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L171"
+      "source_location": "L161"
     },
     {
       "id": "aria_tui_print_agent_message",
       "label": "print_agent_message()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L194"
+      "source_location": "L184"
     },
     {
       "id": "aria_tui_collect_metadata_corrections",
       "label": "_collect_metadata_corrections()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L202"
+      "source_location": "L192"
     },
     {
       "id": "aria_tui_print_checkpoint",
       "label": "print_checkpoint()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L279"
+      "source_location": "L269"
     },
     {
       "id": "aria_tui_print_agent_progress",
       "label": "print_agent_progress()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L329"
+      "source_location": "L319"
     },
     {
       "id": "aria_tui_py_message",
       "label": "Message",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L329"
+      "source_location": "L319"
     },
     {
       "id": "aria_tui_print_finding",
       "label": "print_finding()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L352"
+      "source_location": "L342"
     },
     {
       "id": "aria_tui_select_data_directory",
       "label": "select_data_directory()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L381"
+      "source_location": "L371"
     },
     {
       "id": "aria_tui_resolve_geo_accession",
       "label": "_resolve_geo_accession()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L419"
+      "source_location": "L409"
     },
     {
       "id": "aria_tui_resolve_textual_intake_data",
       "label": "_resolve_textual_intake_data()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L490"
+      "source_location": "L480"
     },
     {
       "id": "aria_tui_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L490"
+      "source_location": "L480"
     },
     {
       "id": "aria_tui_ask_biological_question",
       "label": "ask_biological_question()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L507"
+      "source_location": "L497"
     },
     {
       "id": "aria_tui_read_multiline_question",
       "label": "_read_multiline_question()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L520"
+      "source_location": "L510"
     },
     {
       "id": "aria_tui_read_pasted_stdin_lines",
       "label": "_read_pasted_stdin_lines()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L536"
+      "source_location": "L526"
     },
     {
       "id": "aria_tui_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L536"
+      "source_location": "L526"
     },
     {
       "id": "aria_tui_discard_queued_stdin_lines",
       "label": "_discard_queued_stdin_lines()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L565"
+      "source_location": "L555"
     },
     {
       "id": "aria_tui_show_existing_experiments",
       "label": "show_existing_experiments()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L570"
+      "source_location": "L560"
     },
     {
       "id": "aria_tui_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L570"
+      "source_location": "L560"
     },
     {
       "id": "aria_tui_run_analysis",
       "label": "run_analysis()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L593"
+      "source_location": "L583"
     },
     {
       "id": "aria_tui_py_orchestratoragent",
       "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L593"
+      "source_location": "L583"
     },
     {
       "id": "aria_tui_drain_checkpoints",
       "label": "_drain_checkpoints()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L636"
+      "source_location": "L626"
     },
     {
       "id": "aria_tui_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L636"
+      "source_location": "L626"
     },
     {
       "id": "aria_tui_live_analysis_loop",
       "label": "_live_analysis_loop()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L690"
+      "source_location": "L680"
     },
     {
       "id": "aria_tui_print_final_summary",
       "label": "_print_final_summary()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L853"
+      "source_location": "L843"
     },
     {
       "id": "aria_tui_use_cockpit",
       "label": "_use_cockpit()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L913"
+      "source_location": "L903"
     },
     {
       "id": "aria_tui_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L913"
+      "source_location": "L903"
     },
     {
       "id": "aria_tui_launch_context",
       "label": "_launch_context()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L934"
+      "source_location": "L924"
     },
     {
       "id": "aria_tui_data_summary_lines",
       "label": "_data_summary_lines()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L947"
+      "source_location": "L937"
     },
     {
       "id": "aria_tui_print_launch_summary",
       "label": "_print_launch_summary()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L965"
+      "source_location": "L955"
     },
     {
       "id": "aria_tui_run_cockpit_front_door",
       "label": "_run_cockpit_front_door()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L976"
+      "source_location": "L966"
     },
     {
       "id": "aria_tui_print_llm_runtime_error",
       "label": "_print_llm_runtime_error()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L1005"
+      "source_location": "L995"
     },
     {
       "id": "aria_tui_py_runtimeerror",
       "label": "RuntimeError",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L1005"
+      "source_location": "L995"
     },
     {
       "id": "aria_tui_main",
       "label": "main()",
       "file_type": "code",
       "source_file": "aria/tui.py",
-      "source_location": "L1021"
+      "source_location": "L1011"
     },
     {
       "id": "ui_init",
       "label": "__init__.py",
       "file_type": "code",
       "source_file": "aria/ui/__init__.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "ui_brand",
+      "label": "brand.py",
+      "file_type": "code",
+      "source_file": "aria/ui/brand.py",
       "source_location": "L1"
     },
     {
@@ -11268,14 +11275,14 @@
       "label": "IntakeResult",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L19"
+      "source_location": "L22"
     },
     {
       "id": "ui_intake_ariaintakeapp",
       "label": "AriaIntakeApp",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L26"
+      "source_location": "L29"
     },
     {
       "id": "app",
@@ -11289,98 +11296,126 @@
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L49"
+      "source_location": "L54"
     },
     {
       "id": "aria_ui_intake_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L49"
+      "source_location": "L54"
     },
     {
       "id": "ui_intake_ariaintakeapp_compose",
       "label": ".compose()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L63"
+      "source_location": "L68"
     },
     {
       "id": "aria_ui_intake_py_composeresult",
       "label": "ComposeResult",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L63"
+      "source_location": "L68"
     },
     {
       "id": "ui_intake_ariaintakeapp_on_mount",
       "label": ".on_mount()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L92"
+      "source_location": "L99"
+    },
+    {
+      "id": "ui_intake_ariaintakeapp_on_paste",
+      "label": ".on_paste()",
+      "file_type": "code",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L102"
+    },
+    {
+      "id": "paste",
+      "label": "Paste",
+      "file_type": "code",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L102"
     },
     {
       "id": "ui_intake_ariaintakeapp_memory_text",
       "label": "._memory_text()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L95"
+      "source_location": "L113"
     },
     {
       "id": "ui_intake_ariaintakeapp_experiments_text",
       "label": "._experiments_text()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L101"
+      "source_location": "L119"
     },
     {
       "id": "ui_intake_ariaintakeapp_set_status",
       "label": "._set_status()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L113"
+      "source_location": "L131"
+    },
+    {
+      "id": "ui_intake_ariaintakeapp_paste_into_focused",
+      "label": "._paste_into_focused()",
+      "file_type": "code",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "aria_ui_intake_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L135"
     },
     {
       "id": "ui_intake_ariaintakeapp_values",
       "label": "._values()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L117"
+      "source_location": "L145"
     },
     {
       "id": "ui_intake_ariaintakeapp_action_start",
       "label": ".action_start()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L122"
+      "source_location": "L150"
     },
     {
       "id": "ui_intake_ariaintakeapp_action_cancel",
       "label": ".action_cancel()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L136"
+      "source_location": "L164"
     },
     {
       "id": "ui_intake_ariaintakeapp_on_button_pressed",
       "label": ".on_button_pressed()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L140"
+      "source_location": "L168"
     },
     {
       "id": "pressed",
       "label": "Pressed",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L140"
+      "source_location": "L168"
     },
     {
       "id": "ui_intake_launch_intake",
       "label": "launch_intake()",
       "file_type": "code",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L147"
+      "source_location": "L175"
     },
     {
       "id": "ui_render",
@@ -20004,7 +20039,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -20221,7 +20256,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_l244ek_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -20243,7 +20278,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_l244ek_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -23540,6 +23575,20 @@
       "file_type": "code",
       "source_file": "tests/test_cockpit_app.py",
       "source_location": "L235"
+    },
+    {
+      "id": "tests_test_cockpit_app_test_intake_routes_paste_to_data_input",
+      "label": "test_intake_routes_paste_to_data_input()",
+      "file_type": "code",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L252"
+    },
+    {
+      "id": "tests_test_cockpit_app_test_intake_routes_multiline_paste_to_question",
+      "label": "test_intake_routes_multiline_paste_to_question()",
+      "file_type": "code",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L267"
     },
     {
       "id": "tests_test_cockpit_render",
@@ -29420,195 +29469,10 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
-    },
-    {
-      "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "design_agent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py (LIANA)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py (PAGA/DPT)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_rna_env",
-      "label": "ARIA RNA Environment",
-      "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
     }
   ],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -70599,7 +70463,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L52",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -70608,7 +70472,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L152",
+      "source_location": "L142",
       "weight": 1.0
     },
     {
@@ -70617,7 +70481,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L162",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -70627,7 +70491,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L162",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -70637,7 +70501,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L162",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -70646,7 +70510,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L171",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -70656,7 +70520,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L171",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -70665,7 +70529,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L194",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -70675,7 +70539,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L194",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -70685,7 +70549,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L194",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -70694,7 +70558,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L202",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -70703,7 +70567,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L279",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -70713,7 +70577,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L279",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -70723,7 +70587,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L279",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -70733,7 +70597,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L279",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -70743,7 +70607,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L279",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -70752,7 +70616,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L329",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -70762,7 +70626,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L329",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -70771,7 +70635,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L352",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -70781,7 +70645,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L352",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -70790,7 +70654,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L381",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -70799,7 +70663,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L419",
+      "source_location": "L409",
       "weight": 1.0
     },
     {
@@ -70809,7 +70673,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L419",
+      "source_location": "L409",
       "weight": 1.0
     },
     {
@@ -70818,7 +70682,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L490",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -70828,7 +70692,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L490",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -70838,7 +70702,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L490",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -70847,7 +70711,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L507",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -70857,7 +70721,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L507",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -70866,7 +70730,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L520",
+      "source_location": "L510",
       "weight": 1.0
     },
     {
@@ -70876,7 +70740,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L520",
+      "source_location": "L510",
       "weight": 1.0
     },
     {
@@ -70885,7 +70749,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L536",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -70895,7 +70759,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L536",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -70905,7 +70769,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L536",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -70914,7 +70778,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L565",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -70924,7 +70788,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L565",
+      "source_location": "L555",
       "weight": 1.0
     },
     {
@@ -70933,7 +70797,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L570",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -70943,7 +70807,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L570",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -70952,7 +70816,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L593",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -70962,7 +70826,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L593",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -70972,7 +70836,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L593",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -70981,7 +70845,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L636",
+      "source_location": "L626",
       "weight": 1.0
     },
     {
@@ -70991,7 +70855,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L636",
+      "source_location": "L626",
       "weight": 1.0
     },
     {
@@ -71001,7 +70865,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L636",
+      "source_location": "L626",
       "weight": 1.0
     },
     {
@@ -71011,7 +70875,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L636",
+      "source_location": "L626",
       "weight": 1.0
     },
     {
@@ -71020,7 +70884,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71030,7 +70894,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71040,7 +70904,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71050,7 +70914,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71060,7 +70924,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71070,7 +70934,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L690",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -71079,7 +70943,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L853",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -71089,7 +70953,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L853",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -71098,7 +70962,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L913",
+      "source_location": "L903",
       "weight": 1.0
     },
     {
@@ -71108,7 +70972,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L913",
+      "source_location": "L903",
       "weight": 1.0
     },
     {
@@ -71118,7 +70982,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L913",
+      "source_location": "L903",
       "weight": 1.0
     },
     {
@@ -71127,7 +70991,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L934",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -71137,7 +71001,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L934",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -71147,7 +71011,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L934",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -71157,7 +71021,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L934",
+      "source_location": "L924",
       "weight": 1.0
     },
     {
@@ -71166,7 +71030,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L947",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -71176,7 +71040,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L947",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -71186,7 +71050,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L947",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -71195,7 +71059,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L965",
+      "source_location": "L955",
       "weight": 1.0
     },
     {
@@ -71205,7 +71069,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L965",
+      "source_location": "L955",
       "weight": 1.0
     },
     {
@@ -71215,7 +71079,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L965",
+      "source_location": "L955",
       "weight": 1.0
     },
     {
@@ -71225,7 +71089,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L965",
+      "source_location": "L955",
       "weight": 1.0
     },
     {
@@ -71234,7 +71098,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L976",
+      "source_location": "L966",
       "weight": 1.0
     },
     {
@@ -71244,7 +71108,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L976",
+      "source_location": "L966",
       "weight": 1.0
     },
     {
@@ -71254,7 +71118,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L976",
+      "source_location": "L966",
       "weight": 1.0
     },
     {
@@ -71264,7 +71128,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L976",
+      "source_location": "L966",
       "weight": 1.0
     },
     {
@@ -71274,7 +71138,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L976",
+      "source_location": "L966",
       "weight": 1.0
     },
     {
@@ -71283,7 +71147,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1005",
+      "source_location": "L995",
       "weight": 1.0
     },
     {
@@ -71293,7 +71157,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1005",
+      "source_location": "L995",
       "weight": 1.0
     },
     {
@@ -71303,7 +71167,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1005",
+      "source_location": "L995",
       "weight": 1.0
     },
     {
@@ -71312,7 +71176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1021",
+      "source_location": "L1011",
       "weight": 1.0
     },
     {
@@ -71322,7 +71186,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L307",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -71332,7 +71196,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L386",
+      "source_location": "L376",
       "weight": 1.0
     },
     {
@@ -71342,7 +71206,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L399",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -71352,7 +71216,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L405",
+      "source_location": "L395",
       "weight": 1.0
     },
     {
@@ -71362,7 +71226,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L494",
+      "source_location": "L484",
       "weight": 1.0
     },
     {
@@ -71372,7 +71236,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L496",
+      "source_location": "L486",
       "weight": 1.0
     },
     {
@@ -71382,7 +71246,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L508",
+      "source_location": "L498",
       "weight": 1.0
     },
     {
@@ -71392,7 +71256,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L517",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -71402,7 +71266,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L567",
+      "source_location": "L557",
       "weight": 1.0
     },
     {
@@ -71412,7 +71276,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L574",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -71422,7 +71286,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L616",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -71432,7 +71296,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L620",
+      "source_location": "L610",
       "weight": 1.0
     },
     {
@@ -71442,7 +71306,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L627",
+      "source_location": "L617",
       "weight": 1.0
     },
     {
@@ -71452,7 +71316,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L633",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -71462,7 +71326,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L656",
+      "source_location": "L646",
       "weight": 1.0
     },
     {
@@ -71472,7 +71336,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L667",
+      "source_location": "L657",
       "weight": 1.0
     },
     {
@@ -71482,7 +71346,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L682",
+      "source_location": "L672",
       "weight": 1.0
     },
     {
@@ -71492,7 +71356,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L714",
+      "source_location": "L704",
       "weight": 1.0
     },
     {
@@ -71502,7 +71366,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L784",
+      "source_location": "L774",
       "weight": 1.0
     },
     {
@@ -71512,7 +71376,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L801",
+      "source_location": "L791",
       "weight": 1.0
     },
     {
@@ -71522,7 +71386,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L820",
+      "source_location": "L810",
       "weight": 1.0
     },
     {
@@ -71532,7 +71396,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L839",
+      "source_location": "L829",
       "weight": 1.0
     },
     {
@@ -71542,7 +71406,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L850",
+      "source_location": "L840",
       "weight": 1.0
     },
     {
@@ -71552,7 +71416,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L855",
+      "source_location": "L845",
       "weight": 1.0
     },
     {
@@ -71562,7 +71426,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L969",
+      "source_location": "L959",
       "weight": 1.0
     },
     {
@@ -71572,7 +71436,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L992",
+      "source_location": "L982",
       "weight": 1.0
     },
     {
@@ -71582,7 +71446,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L997",
+      "source_location": "L987",
       "weight": 1.0
     },
     {
@@ -71592,7 +71456,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1001",
+      "source_location": "L991",
       "weight": 1.0
     },
     {
@@ -71602,7 +71466,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1038",
+      "source_location": "L1028",
       "weight": 1.0
     },
     {
@@ -71612,7 +71476,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1039",
+      "source_location": "L1029",
       "weight": 1.0
     },
     {
@@ -71622,7 +71486,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1042",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -71632,7 +71496,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1043",
+      "source_location": "L1033",
       "weight": 1.0
     },
     {
@@ -71642,7 +71506,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1049",
+      "source_location": "L1039",
       "weight": 1.0
     },
     {
@@ -71652,7 +71516,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1062",
+      "source_location": "L1052",
       "weight": 1.0
     },
     {
@@ -71662,7 +71526,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1063",
+      "source_location": "L1053",
       "weight": 1.0
     },
     {
@@ -71672,7 +71536,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1065",
+      "source_location": "L1055",
       "weight": 1.0
     },
     {
@@ -71682,7 +71546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1070",
+      "source_location": "L1060",
       "weight": 1.0
     },
     {
@@ -71692,7 +71556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1071",
+      "source_location": "L1061",
       "weight": 1.0
     },
     {
@@ -71702,7 +71566,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1075",
+      "source_location": "L1065",
       "weight": 1.0
     },
     {
@@ -71712,7 +71576,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1078",
+      "source_location": "L1068",
       "weight": 1.0
     },
     {
@@ -71722,7 +71586,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1086",
+      "source_location": "L1076",
       "weight": 1.0
     },
     {
@@ -71732,7 +71596,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1089",
+      "source_location": "L1079",
       "weight": 1.0
     },
     {
@@ -71742,7 +71606,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1102",
+      "source_location": "L1092",
       "weight": 1.0
     },
     {
@@ -72624,7 +72488,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L19",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -72633,7 +72497,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L26",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -72642,7 +72506,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L26",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -72651,7 +72515,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L49",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -72661,7 +72525,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L49",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -72671,7 +72535,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L49",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -72680,7 +72544,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L63",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -72690,7 +72554,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L63",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -72699,7 +72563,26 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L92",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp",
+      "target": "ui_intake_ariaintakeapp_on_paste",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp_on_paste",
+      "target": "paste",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -72708,7 +72591,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L95",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -72718,7 +72601,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L95",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -72727,7 +72610,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L101",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
@@ -72737,7 +72620,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L101",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
@@ -72746,7 +72629,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L113",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -72756,7 +72639,36 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L113",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp",
+      "target": "ui_intake_ariaintakeapp_paste_into_focused",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp_paste_into_focused",
+      "target": "aria_ui_intake_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp_paste_into_focused",
+      "target": "aria_ui_intake_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -72765,7 +72677,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L117",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -72775,7 +72687,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L117",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -72785,7 +72697,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L117",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -72794,7 +72706,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L122",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -72803,7 +72715,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L136",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -72812,7 +72724,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L140",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -72822,7 +72734,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L140",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -72831,7 +72743,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L147",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -72841,7 +72753,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L147",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -72851,7 +72763,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L147",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -72861,7 +72773,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L147",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -72871,7 +72783,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L67",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -72881,7 +72793,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L68",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "ui_intake_ariaintakeapp_on_paste",
+      "target": "ui_intake_ariaintakeapp_paste_into_focused",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/ui/intake.py",
+      "source_location": "L109",
       "weight": 1.0
     },
     {
@@ -72891,7 +72813,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L123",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -72901,7 +72823,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L125",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -72911,7 +72833,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L132",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -72921,7 +72843,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L142",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -72931,7 +72853,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L144",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -72941,7 +72863,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/ui/intake.py",
-      "source_location": "L155",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -89952,7 +89874,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -90005,7 +89927,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90015,7 +89937,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90025,7 +89947,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90035,7 +89957,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90045,7 +89967,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90368,7 +90290,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_l244ek_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -90377,7 +90299,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_l244ek_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -90412,7 +90334,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -90422,7 +90344,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_s1uqs1_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_l244ek_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95611,6 +95533,24 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_cockpit_app.py",
       "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app",
+      "target": "tests_test_cockpit_app_test_intake_routes_paste_to_data_input",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L252",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app",
+      "target": "tests_test_cockpit_app_test_intake_routes_multiline_paste_to_question",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -110356,7 +110296,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L208",
+      "source_location": "L198",
       "weight": 1.0
     },
     {
@@ -110366,7 +110306,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L421",
+      "source_location": "L411",
       "weight": 1.0
     },
     {
@@ -110376,7 +110316,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L928",
+      "source_location": "L918",
       "weight": 1.0
     },
     {
@@ -110386,7 +110326,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L980",
+      "source_location": "L970",
       "weight": 1.0
     },
     {
@@ -110396,7 +110336,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L981",
+      "source_location": "L971",
       "weight": 1.0
     },
     {
@@ -110406,7 +110346,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1010",
+      "source_location": "L1000",
       "weight": 1.0
     },
     {
@@ -110416,7 +110356,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1024",
+      "source_location": "L1014",
       "weight": 1.0
     },
     {
@@ -110426,7 +110366,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1033",
+      "source_location": "L1023",
       "weight": 1.0
     },
     {
@@ -116596,7 +116536,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L261",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -116606,7 +116546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L334",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -116616,7 +116556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L433",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -116626,7 +116566,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L785",
+      "source_location": "L775",
       "weight": 1.0
     },
     {
@@ -116636,7 +116576,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L900",
+      "source_location": "L890",
       "weight": 1.0
     },
     {
@@ -116646,7 +116586,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L929",
+      "source_location": "L919",
       "weight": 1.0
     },
     {
@@ -116656,7 +116596,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L983",
+      "source_location": "L973",
       "weight": 1.0
     },
     {
@@ -116666,7 +116606,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1000",
+      "source_location": "L990",
       "weight": 1.0
     },
     {
@@ -116676,7 +116616,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1012",
+      "source_location": "L1002",
       "weight": 1.0
     },
     {
@@ -116686,7 +116626,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1026",
+      "source_location": "L1016",
       "weight": 1.0
     },
     {
@@ -116696,7 +116636,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1035",
+      "source_location": "L1025",
       "weight": 1.0
     },
     {
@@ -116706,7 +116646,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/tui.py",
-      "source_location": "L1039",
+      "source_location": "L1029",
       "weight": 1.0
     },
     {
@@ -119407,6 +119347,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_cockpit_app.py",
       "source_location": "L237",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app_test_intake_routes_paste_to_data_input",
+      "target": "ui_intake_ariaintakeapp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L254",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_cockpit_app_test_intake_routes_multiline_paste_to_question",
+      "target": "ui_intake_ariaintakeapp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_cockpit_app.py",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -124475,130 +124435,8 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3699",
       "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": "calls _run_deseq2 shared core",
-      "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "structure_only": true
 }
