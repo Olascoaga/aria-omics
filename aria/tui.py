@@ -870,6 +870,27 @@ def _print_final_summary(experiment_id: str):
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 
+def _use_cockpit(reproducible_mode: bool) -> bool:
+    """Use the Textual cockpit when it is available, on a TTY, and not opted out.
+
+    Falls back to the classic Rich TUI otherwise. The headless runner remains the
+    canonical reproducible path and is never affected by this choice.
+    """
+    if reproducible_mode:
+        return False
+    if os.environ.get("ARIA_NO_TUI"):
+        return False
+    if "--classic-tui" in sys.argv:
+        return False
+    if not sys.stdout.isatty():
+        return False
+    try:
+        from aria.ui.cockpit import cockpit_available
+        return cockpit_available()
+    except Exception:
+        return False
+
+
 def main():
     args = [arg for arg in sys.argv[1:] if arg != "--reproducible"]
     if args and args[0] == "doctor":
@@ -964,11 +985,16 @@ def main():
         ctx["geo_metadata"] = geo_meta
 
     try:
-        run_analysis(
-            orchestrator=orchestrator,
-            experiment_id=experiment_id,
-            context=ctx,
-        )
+        if _use_cockpit(reproducible_mode):
+            from aria.ui.cockpit import launch_cockpit
+            launch_cockpit(orchestrator, experiment_id, ctx)
+            _print_final_summary(experiment_id)
+        else:
+            run_analysis(
+                orchestrator=orchestrator,
+                experiment_id=experiment_id,
+                context=ctx,
+            )
     except KeyboardInterrupt:
         console.print(
             f"\n\n  [{C['amber']}]Interrupted. "

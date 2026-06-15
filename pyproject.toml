@@ -61,6 +61,11 @@ dev = [
     "black>=23.0.0,<26.0",
     "ruff>=0.1.0,<1.0",
 ]
+# Optional Textual cockpit (ARIA Control Center). Opt-in so the validated
+# analysis stack and air-gapped installs are unaffected: pip install aria-omics[tui]
+tui = [
+    "textual>=0.50,<9.0",
+]
 
 [project.scripts]
 aria = "aria.tui:main"
