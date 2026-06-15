@@ -987,47 +987,43 @@ def _print_launch_summary(experiment_id: str, data_dir: Path,
 def _run_cockpit_front_door(memory: ARIAMemory,
                             orchestrator: OrchestratorAgent,
                             reproducible_mode: bool) -> bool:
-    """Run the Textual intake first, then transition to the cockpit run view."""
-    from aria.ui.cockpit import launch_cockpit
-    from aria.ui.intake import launch_intake
+    """Run the intake and cockpit as ONE Textual app (seamless transition).
+
+    The intake is the app's first screen; on Start the run begins on a worker
+    thread and the cockpit run view takes over in the same app, so the user
+    never sees the invoking console flash between the two stages.
+    """
+    from aria.ui.cockpit import run_control_center
     from aria.runtime.experiment_view import build_history
 
-    intake = launch_intake(
-        startup_context=memory.startup_context(),
-        experiments=memory.list_wings(),
-        history=build_history(memory),
-        version=VERSION,
-        data_validator=_validate_textual_intake_data,
-    )
-    if intake is None:
-        console.print(f"\n  [{C['muted']}]Goodbye.[/]\n")
-        return True
+    def resolve_context(result):
+        resolved = _resolve_textual_intake_data(result.data_input)
+        if resolved is None:
+            return None
+        data_dir, geo_meta = resolved
+        experiment_id = str(uuid.uuid4())[:12]
+        ctx = _launch_context(
+            data_dir, result.question, geo_meta, reproducible_mode
+        )
+        return experiment_id, ctx
 
-    resolved = _resolve_textual_intake_data(intake.data_input)
-    if resolved is None:
-        # Pre-validated for local paths, so this is a GEO/SRA accession that did
-        # not resolve. Be explicit instead of dropping silently to the terminal.
-        console.print(
-            f"\n  [{C['red']}]Could not resolve "
-            f"'{intake.data_input}'.[/] "
-            f"[{C['muted']}]Check the accession or your network/air-gap "
-            f"settings and run ARIA again.[/]\n"
-        )
-        return True
-    data_dir, geo_meta = resolved
-    experiment_id = str(uuid.uuid4())[:12]
-    ctx = _launch_context(
-        data_dir, intake.question, geo_meta, reproducible_mode
+    snap = run_control_center(
+        orchestrator,
+        version=VERSION,
+        intake_kwargs=dict(
+            startup_context=memory.startup_context(),
+            experiments=memory.list_wings(),
+            history=build_history(memory),
+            version=VERSION,
+            data_validator=_validate_textual_intake_data,
+        ),
+        resolve_context=resolve_context,
     )
-    result = launch_cockpit(orchestrator, experiment_id, ctx)
-    if result is None:
-        console.print(
-            f"\n  [{C['red']}]The analysis could not start.[/] "
-            f"[{C['muted']}]See the log at "
-            f"~/.aria/logs/exp_{experiment_id}.log[/]\n"
-        )
+    # snap is the final snapshot when the run completed, or None if the user
+    # exited the intake or the run failed to start (already shown in the TUI).
+    if snap is None:
         return True
-    _print_final_summary(experiment_id)
+    _print_final_summary(getattr(snap, "experiment_id", "") or "")
     return True
 
 

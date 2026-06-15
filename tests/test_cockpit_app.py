@@ -14,11 +14,15 @@ import pytest
 
 pytest.importorskip("textual")
 
+from textual.app import App  # noqa: E402
+
 from aria.runtime.experiment_view import (  # noqa: E402
     ExperimentSnapshot, CheckpointView, ExperimentHistoryView,
 )
 from aria.ui.cockpit import AriaCockpit  # noqa: E402
-from aria.ui.intake import AriaIntakeApp, IntakeResult  # noqa: E402
+from aria.ui.intake import (  # noqa: E402
+    AriaIntakeApp, AriaIntakeScreen, IntakeResult,
+)
 
 
 def _snap(*, pending=None, done=False, ledger=None) -> ExperimentSnapshot:
@@ -232,23 +236,57 @@ def test_artifacts_toggle_shows_and_hides():
     asyncio.run(_run())
 
 
-def test_intake_submits_data_and_question(tmp_path):
+class _IntakeHost(App):
+    """Hosts AriaIntakeScreen and captures its dismiss result WITHOUT exiting,
+    so tests can inspect the screen and result freely."""
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        self._kwargs = kwargs
+        self.result = "UNSET"
+        self.intake = None
+
+    def on_mount(self) -> None:
+        self.intake = AriaIntakeScreen(**self._kwargs)
+        self.push_screen(self.intake, self._captured)
+
+    def _captured(self, result) -> None:
+        self.result = result  # do not exit; let the test assert
+
+
+async def _mounted_intake(app, pilot):
+    """Wait until the intake screen is mounted and return it."""
+    await pilot.pause()
+    await pilot.pause()
+    return app.intake
+
+
+def test_intake_app_hosts_the_screen():
+    """The standalone AriaIntakeApp (used by launch_intake) mounts the screen."""
     async def _run():
         app = AriaIntakeApp(version="4.6.1")
         async with app.run_test() as pilot:
             await pilot.pause()
+            await pilot.pause()
+            return type(app.screen).__name__
+
+    assert asyncio.run(_run()) == "AriaIntakeScreen"
+
+
+def test_intake_submits_data_and_question(tmp_path):
+    async def _run():
+        app = _IntakeHost(version="4.6.1")
+        async with app.run_test() as pilot:
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input, TextArea
-            app.query_one("#data-input", Input).value = str(tmp_path)
-            app.query_one("#question-input", TextArea).load_text(
+            scr.query_one("#data-input", Input).value = str(tmp_path)
+            scr.query_one("#question-input", TextArea).load_text(
                 "Which cell types differ?"
             )
-            app.action_start()
-            await pilot.pause()
-        return app.submitted
+            scr.action_start()
+            return scr.submitted
 
-    submitted = asyncio.run(_run())
-
-    assert submitted == IntakeResult(
+    assert asyncio.run(_run()) == IntakeResult(
         data_input=str(tmp_path),
         question="Which cell types differ?",
     )
@@ -256,17 +294,15 @@ def test_intake_submits_data_and_question(tmp_path):
 
 def test_intake_requires_question(tmp_path):
     async def _run():
-        app = AriaIntakeApp(version="4.6.1")
+        app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input
-            app.query_one("#data-input", Input).value = str(tmp_path)
-            app.action_start()
-            await pilot.pause()
-            return app.submitted, app.status_message
+            scr.query_one("#data-input", Input).value = str(tmp_path)
+            scr.action_start()
+            return scr.submitted, scr.status_message
 
     submitted, status = asyncio.run(_run())
-
     assert submitted is None
     assert "biological question" in status
 
@@ -276,11 +312,11 @@ def test_intake_pastes_path_into_data_input_once(tmp_path):
     from textual import events
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1")
+        app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input
-            data_input = app.query_one("#data-input", Input)
+            data_input = scr.query_one("#data-input", Input)
             app.set_focus(data_input)
             await pilot.pause()
             # Post the Paste the way the driver does: to the app, which forwards
@@ -298,11 +334,11 @@ def test_intake_pastes_multiline_question_once():
     from textual import events
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1")
+        app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import TextArea
-            question = app.query_one("#question-input", TextArea)
+            question = scr.query_one("#question-input", TextArea)
             app.set_focus(question)
             await pilot.pause()
             app.post_message(events.Paste(text="line one\nline two"))
@@ -325,11 +361,11 @@ def test_intake_ctrl_v_pastes_os_clipboard_into_path(monkeypatch):
                         lambda *a, **k: "/data/exp1\nignored second line")
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1")
+        app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input
-            data_input = app.query_one("#data-input", Input)
+            data_input = scr.query_one("#data-input", Input)
             app.set_focus(data_input)
             await pilot.pause()
             await pilot.press("ctrl+v")
@@ -340,24 +376,25 @@ def test_intake_ctrl_v_pastes_os_clipboard_into_path(monkeypatch):
     assert asyncio.run(_run()) == "/data/exp1"
 
 
-def test_intake_invalid_data_keeps_app_open(tmp_path):
-    """A failing data validation stays in the intake instead of exiting."""
+def test_intake_invalid_data_keeps_app_open():
+    """A failing data validation stays on the intake instead of dismissing."""
     def _validator(value: str):
         return None if value == "OK" else "Path not found: " + value
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1", data_validator=_validator)
+        app = _IntakeHost(version="4.6.1", data_validator=_validator)
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input, TextArea
-            app.query_one("#data-input", Input).value = "/bad/path"
-            app.query_one("#question-input", TextArea).load_text("Q?")
-            app.action_start()
+            scr.query_one("#data-input", Input).value = "/bad/path"
+            scr.query_one("#question-input", TextArea).load_text("Q?")
+            scr.action_start()
             await pilot.pause()
-            return app.submitted, app.status_message
+            return app.result, scr.submitted, scr.status_message
 
-    submitted, status = asyncio.run(_run())
-    assert submitted is None                  # did NOT exit the TUI
+    result, submitted, status = asyncio.run(_run())
+    assert result == "UNSET"                  # never dismissed
+    assert submitted is None
     assert "Path not found" in status         # told the user why
 
 
@@ -366,15 +403,14 @@ def test_intake_valid_data_submits_with_validator():
         return None if value == "OK" else "bad"
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1", data_validator=_validator)
+        app = _IntakeHost(version="4.6.1", data_validator=_validator)
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import Input, TextArea
-            app.query_one("#data-input", Input).value = "OK"
-            app.query_one("#question-input", TextArea).load_text("Q?")
-            app.action_start()
-            await pilot.pause()
-            return app.submitted
+            scr.query_one("#data-input", Input).value = "OK"
+            scr.query_one("#question-input", TextArea).load_text("Q?")
+            scr.action_start()
+            return scr.submitted
 
     assert asyncio.run(_run()) == IntakeResult(data_input="OK", question="Q?")
 
@@ -385,11 +421,11 @@ def test_intake_ctrl_v_pastes_os_clipboard_into_question(monkeypatch):
                         lambda *a, **k: "q line 1\nq line 2")
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1")
+        app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from textual.widgets import TextArea
-            question = app.query_one("#question-input", TextArea)
+            question = scr.query_one("#question-input", TextArea)
             app.set_focus(question)
             await pilot.pause()
             await pilot.press("ctrl+v")
@@ -412,12 +448,12 @@ def test_intake_renders_resume_history():
     ]
 
     async def _run():
-        app = AriaIntakeApp(version="4.6.1", history=history)
+        app = _IntakeHost(version="4.6.1", history=history)
         async with app.run_test() as pilot:
-            await pilot.pause()
+            scr = await _mounted_intake(app, pilot)
             from rich.console import Console
-            # The intake wires history -> render_history -> Panel into #experiments.
-            renderable = app._experiments_renderable()
+            # history -> render_history -> Panel into #experiments.
+            renderable = scr._experiments_renderable()
             console = Console(width=80, record=True)
             with console.capture() as cap:
                 console.print(renderable)
@@ -426,3 +462,50 @@ def test_intake_renders_resume_history():
     out = asyncio.run(_run())
     assert "H9 RNA timecourse" in out
     assert "report on disk" in out
+
+
+def test_unified_front_door_transitions_intake_to_run(monkeypatch):
+    """The intake screen and the run view live in ONE app (no console flash)."""
+    from datetime import datetime
+    from aria.ui.cockpit import AriaCockpit
+    from aria.runtime.experiment_view import ExperimentSnapshot, ProgressEvent
+
+    def _snap_provider():
+        return ExperimentSnapshot(
+            experiment_id="EXP1", phase="audit", progress=0.0,
+            last_status=ProgressEvent(ts=datetime.now(), sender="orchestrator",
+                                      text="scanning", progress=0.0),
+            findings_by_confidence={"HIGH": [], "MEDIUM": [], "LOW": [],
+                                    "INSUFFICIENT": []},
+            pending_checkpoint=None, ledger=[], report_path=None, done=False,
+            elapsed_s=1.0, silent_s=0.0)
+
+    started = {}
+
+    def starter(result):
+        started["result"] = result
+        return ("EXP1", _snap_provider, lambda **k: None, lambda: {})
+
+    async def _run():
+        app = AriaCockpit(
+            version="4.6.1", exit_on_done=False,
+            intake_screen_factory=lambda: AriaIntakeScreen(version="4.6.1"),
+            run_starter=starter,
+        )
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await pilot.pause()
+            from textual.widgets import Input, TextArea
+            assert type(app.screen).__name__ == "AriaIntakeScreen"
+            app.screen.query_one("#data-input", Input).value = "/tmp"
+            app.screen.query_one("#question-input", TextArea).load_text("Q?")
+            app.screen.action_start()
+            await pilot.pause()
+            await app.workers.wait_for_complete()
+            await pilot.pause()
+            return started.get("result"), app.experiment_id, app._provider is not None
+
+    result, exp_id, provider_set = asyncio.run(_run())
+    assert result == IntakeResult(data_input="/tmp", question="Q?")
+    assert exp_id == "EXP1"           # transitioned to the run within one app
+    assert provider_set is True

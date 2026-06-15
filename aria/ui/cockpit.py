@@ -28,6 +28,10 @@ SnapshotProvider = Callable[[], ExperimentSnapshot]
 # (message_id, user_decision, experiment_id) -> Any
 CheckpointResolver = Callable[..., Any]
 MetaProvider = Callable[[], dict]
+# Front-door wiring (single-app intake -> run transition):
+IntakeScreenFactory = Callable[[], Any]
+# IntakeResult -> (experiment_id, provider, resolver, meta_provider) | None
+RunStarter = Callable[[Any], Optional[tuple]]
 
 
 class AriaCockpit(App):
@@ -62,13 +66,15 @@ class AriaCockpit(App):
         Binding("6", "choose(6)", "Opt 6", show=False),
     ]
 
-    def __init__(self, snapshot_provider: SnapshotProvider,
-                 checkpoint_resolver: CheckpointResolver, *,
+    def __init__(self, snapshot_provider: Optional[SnapshotProvider] = None,
+                 checkpoint_resolver: Optional[CheckpointResolver] = None, *,
                  experiment_id: str = "",
                  version: str = "",
                  meta_provider: Optional[MetaProvider] = None,
                  poll_interval: float = 0.5,
-                 exit_on_done: bool = True):
+                 exit_on_done: bool = True,
+                 intake_screen_factory: Optional[IntakeScreenFactory] = None,
+                 run_starter: Optional[RunStarter] = None):
         super().__init__()
         self._provider = snapshot_provider
         self._resolver = checkpoint_resolver
@@ -77,6 +83,10 @@ class AriaCockpit(App):
         self._meta_provider = meta_provider or (lambda: {})
         self._poll_interval = poll_interval
         self._exit_on_done = exit_on_done
+        # Front-door mode: collect intake in this SAME app, then start the run,
+        # so there is no flicker back to the console between two App.run() calls.
+        self._intake_screen_factory = intake_screen_factory
+        self._run_starter = run_starter
         self._snap: Optional[ExperimentSnapshot] = None
         # findings | ledger | readiness | resources | artifacts
         self._center_mode = "findings"
@@ -101,8 +111,57 @@ class AriaCockpit(App):
 
     def on_mount(self) -> None:
         self._apply_center_mode()
+        if self._intake_screen_factory is not None:
+            # Front door: collect intake first (same app), then begin the run.
+            self.push_screen(self._intake_screen_factory(), self._on_intake_result)
+            return
+        self._begin_polling()
+
+    def _begin_polling(self) -> None:
         self.refresh_snapshot()
         self.set_interval(self._poll_interval, self.refresh_snapshot)
+
+    # ── Front-door transition (intake screen -> run view, one app) ────────────
+    def _on_intake_result(self, result: Any) -> None:
+        if result is None:
+            self.exit(None)
+            return
+        # The intake screen has popped; reveal the run view with a banner while
+        # the run starts off the UI thread (data scan can take a moment).
+        try:
+            self.query_one("#run-header", Static).update(
+                render.render_status_banner("Starting analysis…", self._version))
+        except Exception:
+            pass
+        self.run_worker(lambda: self._start_run(result), thread=True,
+                        exclusive=True, name="start_run")
+
+    def _start_run(self, result: Any) -> None:
+        handles: Optional[tuple] = None
+        try:
+            if self._run_starter is not None:
+                handles = self._run_starter(result)
+        except Exception:
+            handles = None
+        self.call_from_thread(self._begin_run, handles)
+
+    def _begin_run(self, handles: Optional[tuple]) -> None:
+        if not handles:
+            # Honest, in-TUI failure instead of a silent drop to the console.
+            try:
+                self.query_one("#run-header", Static).update(
+                    render.render_status_banner(
+                        "Could not start the analysis. Press q to exit.",
+                        self._version, error=True))
+            except Exception:
+                pass
+            return
+        experiment_id, provider, resolver, meta_provider = handles
+        self.experiment_id = experiment_id
+        self._provider = provider
+        self._resolver = resolver
+        self._meta_provider = meta_provider or (lambda: {})
+        self._begin_polling()
 
     def _apply_center_mode(self) -> None:
         self.query_one("#findings", Static).display = \
@@ -120,6 +179,8 @@ class AriaCockpit(App):
 
     # ── Rendering ────────────────────────────────────────────────────────────
     def refresh_snapshot(self) -> None:
+        if self._provider is None:
+            return
         try:
             snap = self._provider()
         except Exception:
@@ -251,18 +312,16 @@ def _meta_for(orchestrator: Any, experiment_id: str, *,
     }
 
 
-def launch_cockpit(orchestrator: Any, experiment_id: str,
-                   context: dict) -> Optional[ExperimentSnapshot]:
-    """Drive a full run through the Textual cockpit.
+def _start_run_handles(orchestrator: Any, experiment_id: str, context: dict,
+                       version: str) -> Optional[tuple]:
+    """Start the orchestrator + audit and return the cockpit run handles.
 
-    Mirrors ``aria.tui.run_analysis`` but renders via the cockpit and resolves
-    checkpoints through the read-model. Returns the final snapshot (or ``None``
-    if the orchestrator failed to start).
+    Returns ``(experiment_id, provider, resolver, meta_provider)`` or ``None``
+    if the orchestrator failed to start. Blocking (``run_audit`` scans data); in
+    the front door this runs on a worker thread so the UI stays responsive.
     """
     from datetime import datetime
-
     from aria.runtime.experiment_view import build_snapshot
-    from aria.version import __version__
 
     started = orchestrator.run(experiment_id, context)
     if started.get("status") != "started":
@@ -278,14 +337,66 @@ def launch_cockpit(orchestrator: Any, experiment_id: str,
             start_time=start,
         )
 
+    def meta_provider() -> dict:
+        return _meta_for(orchestrator, experiment_id,
+                         version=version, data_dir=context.get("data_dir"))
+
+    return (experiment_id, provider, orchestrator.on_checkpoint_resolved,
+            meta_provider)
+
+
+def launch_cockpit(orchestrator: Any, experiment_id: str,
+                   context: dict) -> Optional[ExperimentSnapshot]:
+    """Drive a full run through the Textual cockpit (immediate-run path).
+
+    Mirrors ``aria.tui.run_analysis`` but renders via the cockpit and resolves
+    checkpoints through the read-model. Returns the final snapshot (or ``None``
+    if the orchestrator failed to start).
+    """
+    from aria.version import __version__
+
+    handles = _start_run_handles(orchestrator, experiment_id, context,
+                                 __version__)
+    if handles is None:
+        return None
+    experiment_id, provider, resolver, meta_provider = handles
     app = AriaCockpit(
-        provider,
-        orchestrator.on_checkpoint_resolved,
+        provider, resolver,
         experiment_id=experiment_id,
         version=__version__,
-        meta_provider=lambda: _meta_for(
-            orchestrator, experiment_id,
-            version=__version__, data_dir=context.get("data_dir"),
-        ),
+        meta_provider=meta_provider,
+    )
+    return app.run()
+
+
+def run_control_center(orchestrator: Any, *,
+                       version: str,
+                       intake_kwargs: dict,
+                       resolve_context: Callable[[Any], Optional[tuple]],
+                       ) -> Optional[ExperimentSnapshot]:
+    """Run the intake and the cockpit as ONE Textual app (no console flicker).
+
+    The intake screen is the app's first screen; on submit, the run starts on a
+    worker thread and the cockpit run view takes over in the same app. The
+    transition never leaves the alternate screen, so the user does not see the
+    invoking console between the two stages.
+
+    ``resolve_context`` maps an ``IntakeResult`` to ``(experiment_id, context)``
+    (or ``None``); it runs on the worker thread. Returns the final snapshot, or
+    ``None`` if the user exited the intake or the run failed to start.
+    """
+    from aria.ui.intake import AriaIntakeScreen
+
+    def starter(result: Any) -> Optional[tuple]:
+        resolved = resolve_context(result)
+        if not resolved:
+            return None
+        experiment_id, context = resolved
+        return _start_run_handles(orchestrator, experiment_id, context, version)
+
+    app = AriaCockpit(
+        version=version,
+        intake_screen_factory=lambda: AriaIntakeScreen(**intake_kwargs),
+        run_starter=starter,
     )
     return app.run()

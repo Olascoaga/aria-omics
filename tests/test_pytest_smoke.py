@@ -809,6 +809,7 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
     monkeypatch.setitem(sys.modules, "litellm", litellm_stub)
 
     from aria import tui
+    from aria.ui.intake import IntakeResult
 
     class FakeMemory:
         def startup_context(self):
@@ -817,21 +818,21 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
         def list_wings(self):
             return []
 
-    class FakeIntake:
-        data_input = str(tmp_path)
-        question = "What changed?"
+    # The unified front door calls run_control_center with the intake config and
+    # a resolve_context callback. Stub it, exercise resolve_context, and confirm
+    # the built run context — without launching a real Textual app or the legacy
+    # prompt.
+    captured: dict = {}
 
-    intake_stub = types.ModuleType("aria.ui.intake")
-    intake_stub.launch_intake = lambda **kwargs: FakeIntake()
+    def _fake_rcc(orchestrator, *, version, intake_kwargs, resolve_context):
+        captured["intake_kwargs"] = intake_kwargs
+        captured["resolved"] = resolve_context(
+            IntakeResult(data_input=str(tmp_path), question="What changed?")
+        )
+        return None  # simulate the user exiting without a completed run
+
     cockpit_stub = types.ModuleType("aria.ui.cockpit")
-    calls: list[dict] = []
-
-    def _fake_launch(orchestrator, experiment_id, ctx):
-        calls.append(ctx)
-        return object()  # truthy: the analysis ran (not a start failure)
-
-    cockpit_stub.launch_cockpit = _fake_launch
-    monkeypatch.setitem(sys.modules, "aria.ui.intake", intake_stub)
+    cockpit_stub.run_control_center = _fake_rcc
     monkeypatch.setitem(sys.modules, "aria.ui.cockpit", cockpit_stub)
     monkeypatch.setattr(
         tui, "_prompt_action",
@@ -844,11 +845,15 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
     )
 
     assert handled is True
-    assert calls == [{
+    experiment_id, ctx = captured["resolved"]
+    assert ctx == {
         "data_dir": str(tmp_path),
         "user_question": "What changed?",
         "reproducible_mode": False,
-    }]
+    }
+    assert experiment_id  # a run id was minted
+    # The intake is wired with the data validator (in-place path validation).
+    assert "data_validator" in captured["intake_kwargs"]
 
 
 def test_validate_textual_intake_data(tmp_path):

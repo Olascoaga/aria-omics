@@ -105,6 +105,22 @@ def render_run_header(snap: ExperimentSnapshot, *,
     return Panel(t, title="[bold]Run[/]", border_style="cyan", padding=(0, 1))
 
 
+def render_status_banner(message: str, version: str = "",
+                         *, error: bool = False) -> Panel:
+    """Left-panel banner shown while the run is starting (front-door transition).
+
+    Used between the intake screen and the first snapshot so the cockpit shows a
+    clear state instead of an empty panel; ``error=True`` styles a start failure.
+    """
+    style = "red" if error else "cyan"
+    t = Text()
+    if version:
+        t.append("ARIA  ", style="cyan")
+        t.append(f"v{version}\n\n", style="dim")
+    t.append(message, style=style)
+    return Panel(t, title="[bold]Run[/]", border_style=style, padding=(0, 1))
+
+
 def render_timeline(snap: ExperimentSnapshot) -> Panel:
     """Center-top panel: pipeline stage progress."""
     here = _PHASE_INDEX.get(snap.phase, 0)

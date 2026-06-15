@@ -256,6 +256,15 @@ def test_checkpoint_complete_shows_report_path():
     assert "/home/x/.aria/reports/run/report.html" in out
 
 
+def test_status_banner_shows_message_and_version():
+    out = _capture(render.render_status_banner("Starting analysis…", "4.6.1"))
+    assert "Starting analysis" in out
+    assert "4.6.1" in out
+    err = _capture(render.render_status_banner("Could not start", "4.6.1",
+                                               error=True))
+    assert "Could not start" in err
+
+
 def test_mode_bar_highlights_active_view():
     out = _capture(render.render_mode_bar("ledger"))
     for mode in ("findings", "ledger", "readiness", "resources", "artifacts"):

@@ -3,6 +3,11 @@
 This is intentionally thin: it collects the same data/accession + biological
 question that the classic Rich intake asks for, then hands the existing context
 back to ``aria.tui``. It owns no analysis logic.
+
+The intake is a :class:`Screen` so it can be hosted either by its own thin
+:class:`AriaIntakeApp` (standalone use / tests) or pushed as the first screen of
+the cockpit app, giving a seamless intake → control-center transition within a
+single Textual app (no flicker back to the console between two ``App.run()``).
 """
 
 from __future__ import annotations
@@ -13,6 +18,7 @@ from typing import Callable, Optional
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
+from textual.screen import Screen
 from textual.widgets import Button, Footer, Input, Static, TextArea
 
 from aria.runtime.experiment_view import ExperimentHistoryView
@@ -77,8 +83,14 @@ class _ClipboardTextArea(TextArea):
             self.move_cursor(result.end_location)
 
 
-class AriaIntakeApp(App):
-    """Minimal Textual intake screen shown before a run starts."""
+class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
+    """The intake form, as a screen so the cockpit can host it directly.
+
+    Dismisses with an :class:`IntakeResult` on Start, or ``None`` on Exit. When
+    a ``data_validator`` is supplied, an invalid data value keeps the user on the
+    screen with a status message (mirroring the classic re-prompt loop) instead
+    of dismissing.
+    """
 
     CSS = """
     #body { height: 1fr; }
@@ -116,9 +128,6 @@ class AriaIntakeApp(App):
         self.experiments = experiments or []
         self.history = history or []
         self.version = version
-        # Returns an error message for an invalid data input, or None if valid.
-        # Keeps the user in the intake (like the classic re-prompt loop) instead
-        # of exiting to the terminal when the path/accession does not resolve.
         self._data_validator = data_validator
         self.submitted: IntakeResult | None = None
         self.status_message = ""
@@ -213,8 +222,8 @@ class AriaIntakeApp(App):
         if self._data_validator is not None:
             error = self._data_validator(data_input)
             if error:
-                # Stay in the intake and explain, instead of exiting to the
-                # terminal and failing the path resolution after the TUI closes.
+                # Stay on the intake and explain, instead of dismissing and
+                # failing the path resolution after the form closes.
                 self._set_status(error)
                 self.query_one("#data-input", Input).focus()
                 return
@@ -224,17 +233,46 @@ class AriaIntakeApp(App):
             return
         result = IntakeResult(data_input=data_input, question=question)
         self.submitted = result
-        self.exit(result)
+        self.dismiss(result)
 
     def action_cancel(self) -> None:
         self.submitted = None
-        self.exit(None)
+        self.dismiss(None)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "start":
             self.action_start()
         elif event.button.id == "exit":
             self.action_cancel()
+
+
+class AriaIntakeApp(App):
+    """Thin host that runs :class:`AriaIntakeScreen` standalone.
+
+    Used for the standalone intake and tests; the cockpit hosts the same screen
+    directly for the seamless front-door transition.
+    """
+
+    def __init__(
+        self,
+        *,
+        startup_context: str = "",
+        experiments: list[dict] | None = None,
+        history: list[ExperimentHistoryView] | None = None,
+        version: str = "",
+        data_validator: Optional[Callable[[str], Optional[str]]] = None,
+    ):
+        super().__init__()
+        self._screen_kwargs = dict(
+            startup_context=startup_context,
+            experiments=experiments,
+            history=history,
+            version=version,
+            data_validator=data_validator,
+        )
+
+    def on_mount(self) -> None:
+        self.push_screen(AriaIntakeScreen(**self._screen_kwargs), self.exit)
 
 
 def launch_intake(
