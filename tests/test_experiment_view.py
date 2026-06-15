@@ -274,3 +274,49 @@ def test_resources_map_local_stores_and_airgap(tmp_path, monkeypatch):
     assert celltypist
     assert celltypist[0].name == "CellTypist: Adult_Human_PrefrontalCortex.pkl"
     assert celltypist[0].status == "missing"
+
+
+def test_artifacts_read_report_bundle_from_disk(tmp_path):
+    import json
+    from aria.runtime.experiment_view import _artifact_views
+
+    report_dir = tmp_path / "report_x"
+    (report_dir / "figures").mkdir(parents=True)
+    (report_dir / "tables").mkdir(parents=True)
+    report_file = report_dir / "report.html"
+    report_file.write_text("<html></html>", encoding="utf-8")
+    (report_dir / "figures" / "volcano.png").write_bytes(b"\x89PNG")
+    (report_dir / "tables" / "de.tsv").write_text("gene\tlfc\n", encoding="utf-8")
+    methodology = {
+        "claims": [
+            {"claim_id": "bulk.de.exec", "text": "DEGs detected.",
+             "tier": "descriptive", "confidence": "high",
+             "ledger_status": "ran"},
+            {"claim_id": "bulk.de.path", "text": "Pathway X is causal.",
+             "tier": "associative", "confidence": "low",
+             "ledger_status": "not_run"},
+        ],
+        "run_ledger": {
+            "claim_linkage": {
+                "violations": [{"claim_id": "bulk.de.path",
+                                "ledger_status": "not_run"}],
+            }
+        },
+    }
+    (report_dir / "methodology.json").write_text(
+        json.dumps(methodology), encoding="utf-8")
+
+    arts = {(a.category, a.name): a for a in _artifact_views(str(report_file))}
+    assert arts[("report", "report.html")].status == "present"
+    assert arts[("methodology", "methodology.json")].status == "present"
+    assert arts[("figure", "volcano.png")].status == "present"
+    assert arts[("table", "de.tsv")].status == "present"
+    assert arts[("claim", "bulk.de.exec")].status == "ok"
+    # The not-run associative claim is flagged via the existing claim_linkage.
+    assert arts[("claim", "bulk.de.path")].status == "violation"
+
+
+def test_artifacts_empty_until_report_path_known():
+    from aria.runtime.experiment_view import _artifact_views
+    assert _artifact_views(None) == []
+    assert _artifact_views("/nonexistent/dir/report.html") == []

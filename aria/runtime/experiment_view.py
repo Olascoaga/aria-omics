@@ -133,6 +133,16 @@ class ResourceView:
 
 
 @dataclass(frozen=True)
+class ArtifactView:
+    category: str            # report | methodology | figure | table | claim
+    name: str
+    # present | missing for files; ok | warn | violation for claims.
+    status: str
+    detail: str
+    path: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class ExperimentSnapshot:
     experiment_id: str
     phase: str               # audit | design | dispatch | report | done
@@ -150,6 +160,8 @@ class ExperimentSnapshot:
     readiness: list[ModalityCardView] = field(default_factory=list)
     # U4 — local resources and egress policy, presentation-only.
     resources: list[ResourceView] = field(default_factory=list)
+    # U6 — report artifacts (report/figs/tables/methodology/claims), read-only.
+    artifacts: list[ArtifactView] = field(default_factory=list)
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
@@ -514,6 +526,131 @@ def _resource_views(session: Any) -> list[ResourceView]:
     return resources
 
 
+# ── U6 artifact browser ──────────────────────────────────────────────────────
+
+# A compiled claim's run-ledger status maps to an artifact-browser status. A
+# violation (non-descriptive claim citing a not-run/error node) is detected
+# upstream by `link_claims_to_ledger` and surfaced here verbatim, so U6 reuses
+# the report-builder's evidence graph rather than re-deriving tier logic.
+_CLAIM_LEDGER_STATUS = {
+    "ran": "ok",
+    "skipped": "warn",
+    "not_run": "warn",
+    "error": "warn",
+    "no_ledger_node": "warn",
+}
+
+
+def _read_methodology(report_dir: Path) -> Optional[dict]:
+    path = report_dir / "methodology.json"
+    if not path.is_file():
+        return None
+    try:
+        import json
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _list_dir_artifacts(report_dir: Path, sub: str,
+                        category: str) -> list[ArtifactView]:
+    base = report_dir / sub
+    out: list[ArtifactView] = []
+    try:
+        if not base.is_dir():
+            return out
+        for p in sorted(base.iterdir()):
+            if not p.is_file():
+                continue
+            try:
+                size = p.stat().st_size
+            except Exception:
+                size = 0
+            out.append(ArtifactView(
+                category=category, name=p.name, status="present",
+                detail=f"{size:,} bytes", path=str(p),
+            ))
+    except Exception:
+        return out
+    return out
+
+
+def _claim_artifact_views(methodology: Optional[dict]) -> list[ArtifactView]:
+    if not methodology:
+        return []
+    claims = methodology.get("claims")
+    if not isinstance(claims, list):
+        return []
+    linkage = ((methodology.get("run_ledger") or {}).get("claim_linkage")) or {}
+    violation_ids = {
+        v.get("claim_id")
+        for v in (linkage.get("violations") or [])
+        if isinstance(v, dict)
+    }
+    out: list[ArtifactView] = []
+    for c in claims:
+        if not isinstance(c, dict):
+            continue
+        cid = c.get("claim_id")
+        ledger_status = str(c.get("ledger_status") or "no_ledger_node")
+        if cid in violation_ids:
+            status = "violation"
+        else:
+            status = _CLAIM_LEDGER_STATUS.get(ledger_status, "warn")
+        tier = str(c.get("tier") or "—")
+        conf = str(c.get("confidence") or "—")
+        text = str(c.get("text") or "").strip()
+        detail = f"tier={tier} · {conf} · ledger={ledger_status}"
+        if text:
+            detail = f"{detail} · {text}"
+        out.append(ArtifactView(
+            category="claim", name=str(cid or "claim"),
+            status=status, detail=detail,
+        ))
+    return out
+
+
+def _artifact_views(report_path: Optional[str]) -> list[ArtifactView]:
+    """Surface the on-disk report bundle: report/methodology/figures/tables/claims.
+
+    Read-only and honest: returns ``[]`` until the report path is known, and
+    reflects exactly what is on disk. Claims and their ledger status are read
+    from the report-builder's ``methodology.json`` (which already ran
+    ``link_claims_to_ledger``), so U6 never invents a separate artifact graph.
+    """
+    if not report_path:
+        return []
+    report_file = Path(report_path).expanduser()
+    report_dir = report_file.parent
+    if not report_dir.is_dir():
+        return []
+
+    out: list[ArtifactView] = []
+    report_present = report_file.is_file()
+    out.append(ArtifactView(
+        category="report", name=report_file.name,
+        status="present" if report_present else "missing",
+        detail=("Narrative HTML report." if report_present
+                else "Report file not found on disk."),
+        path=str(report_file) if report_present else None,
+    ))
+
+    meth_path = report_dir / "methodology.json"
+    meth_present = meth_path.is_file()
+    out.append(ArtifactView(
+        category="methodology", name="methodology.json",
+        status="present" if meth_present else "missing",
+        detail=("Provenance, thresholds, tools, claims, run-ledger."
+                if meth_present else "Methodology manifest not found."),
+        path=str(meth_path) if meth_present else None,
+    ))
+
+    out.extend(_list_dir_artifacts(report_dir, "figures", "figure"))
+    out.extend(_list_dir_artifacts(report_dir, "tables", "table"))
+    out.extend(_claim_artifact_views(_read_methodology(report_dir)))
+    return out
+
+
 # ── Public API ───────────────────────────────────────────────────────────────
 
 def build_snapshot(experiment_id: str, *,
@@ -601,4 +738,5 @@ def build_snapshot(experiment_id: str, *,
         silent_s=silent_s,
         readiness=_readiness_views(session),
         resources=_resource_views(session),
+        artifacts=_artifact_views(report_path),
     )

@@ -210,6 +210,28 @@ def test_resources_toggle_shows_and_hides():
     asyncio.run(_run())
 
 
+def test_artifacts_toggle_shows_and_hides():
+    async def _run():
+        app = AriaCockpit(lambda: _snap(pending=None), lambda **k: None,
+                          experiment_id="e1", exit_on_done=False)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Static
+            artifacts = app.query_one("#artifacts", Static)
+            findings = app.query_one("#findings", Static)
+            assert artifacts.display is False
+            await pilot.press("a")
+            await pilot.pause()
+            assert artifacts.display is True
+            assert findings.display is False
+            await pilot.press("a")
+            await pilot.pause()
+            assert artifacts.display is False
+            assert findings.display is True
+
+    asyncio.run(_run())
+
+
 def test_intake_submits_data_and_question(tmp_path):
     async def _run():
         app = AriaIntakeApp(version="4.6.1")

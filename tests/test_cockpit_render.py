@@ -10,8 +10,8 @@ from __future__ import annotations
 from rich.console import Console
 
 from aria.runtime.experiment_view import (
-    ExperimentSnapshot, FindingView, CheckpointView, LedgerNodeView,
-    ModalityCardView, ProgressEvent, ResourceView,
+    ArtifactView, ExperimentSnapshot, FindingView, CheckpointView,
+    LedgerNodeView, ModalityCardView, ProgressEvent, ResourceView,
 )
 from aria.ui import render
 
@@ -172,3 +172,31 @@ def test_resources_render_local_state():
 def test_resources_empty_state():
     out = _capture(render.render_resources(_snap(resources=[])))
     assert "No resource snapshot yet" in out
+
+
+def test_artifacts_render_bundle_and_claims():
+    artifacts = [
+        ArtifactView(category="report", name="report.html", status="present",
+                     detail="Narrative HTML report.", path="/tmp/r/report.html"),
+        ArtifactView(category="methodology", name="methodology.json",
+                     status="present", detail="Provenance, claims, run-ledger.",
+                     path="/tmp/r/methodology.json"),
+        ArtifactView(category="figure", name="volcano.png", status="present",
+                     detail="12,345 bytes", path="/tmp/r/figures/volcano.png"),
+        ArtifactView(category="claim", name="bulk.de.executive_summary",
+                     status="ok", detail="tier=descriptive · HIGH · ledger=ran"),
+        ArtifactView(category="claim", name="bulk.de.pathway",
+                     status="violation",
+                     detail="tier=associative · LOW · ledger=not_run"),
+    ]
+    out = _capture(render.render_artifacts(_snap(artifacts=artifacts)))
+    assert "report.html" in out
+    assert "methodology.json" in out
+    assert "volcano.png" in out
+    assert "violation" in out
+    assert "claim violation(s)" in out
+
+
+def test_artifacts_empty_state():
+    out = _capture(render.render_artifacts(_snap(artifacts=[])))
+    assert "No artifacts yet" in out

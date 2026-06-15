@@ -43,6 +43,7 @@ class AriaCockpit(App):
     #ledger { height: 1fr; }
     #readiness { height: 1fr; }
     #resources { height: 1fr; }
+    #artifacts { height: 1fr; }
     """
 
     BINDINGS = [
@@ -50,6 +51,7 @@ class AriaCockpit(App):
         Binding("l", "toggle_ledger", "Ledger"),
         Binding("r", "toggle_readiness", "Readiness"),
         Binding("u", "toggle_resources", "Resources"),
+        Binding("a", "toggle_artifacts", "Artifacts"),
         Binding("e", "edit_design", "Edit groups"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
@@ -75,7 +77,8 @@ class AriaCockpit(App):
         self._poll_interval = poll_interval
         self._exit_on_done = exit_on_done
         self._snap: Optional[ExperimentSnapshot] = None
-        self._center_mode = "findings"   # findings | ledger | readiness | resources
+        # findings | ledger | readiness | resources | artifacts
+        self._center_mode = "findings"
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
@@ -86,6 +89,7 @@ class AriaCockpit(App):
                 Static(id="ledger"),
                 Static(id="readiness"),
                 Static(id="resources"),
+                Static(id="artifacts"),
                 id="center",
             ),
             Vertical(Static(id="checkpoint"), id="right"),
@@ -107,6 +111,8 @@ class AriaCockpit(App):
             self._center_mode == "readiness"
         self.query_one("#resources", Static).display = \
             self._center_mode == "resources"
+        self.query_one("#artifacts", Static).display = \
+            self._center_mode == "artifacts"
 
     # ── Rendering ────────────────────────────────────────────────────────────
     def refresh_snapshot(self) -> None:
@@ -135,6 +141,8 @@ class AriaCockpit(App):
             render.render_readiness(snap))
         self.query_one("#resources", Static).update(
             render.render_resources(snap))
+        self.query_one("#artifacts", Static).update(
+            render.render_artifacts(snap))
         self.query_one("#checkpoint", Static).update(
             render.render_checkpoint(snap))
 
@@ -155,6 +163,11 @@ class AriaCockpit(App):
     def action_toggle_resources(self) -> None:
         self._center_mode = "findings" if self._center_mode == "resources" \
             else "resources"
+        self._apply_center_mode()
+
+    def action_toggle_artifacts(self) -> None:
+        self._center_mode = "findings" if self._center_mode == "artifacts" \
+            else "artifacts"
         self._apply_center_mode()
 
     def action_edit_design(self) -> None:

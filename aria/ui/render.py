@@ -48,6 +48,20 @@ _RESOURCE_MARK = {
     "pending": "…",
     "info": "·",
 }
+_ARTIFACT_STATUS_STYLE = {
+    "present": "green",
+    "ok": "green",
+    "missing": "yellow",
+    "warn": "yellow",
+    "violation": "red bold",
+}
+_ARTIFACT_MARK = {
+    "present": "✓",
+    "ok": "✓",
+    "missing": "!",
+    "warn": "▲",
+    "violation": "■",
+}
 
 
 def _fmt_duration(seconds: float) -> str:
@@ -251,3 +265,38 @@ def render_resources(snap: ExperimentSnapshot) -> Panel:
     border = _RESOURCE_STATUS_STYLE.get(worst, "cyan")
     return Panel(table, title="[bold]Resources[/]", border_style=border,
                  padding=(0, 1))
+
+
+def render_artifacts(snap: ExperimentSnapshot) -> Panel:
+    """U6 — report artifact browser: report/figs/tables/methodology/claims."""
+    table = Table(expand=True, show_edge=False, pad_edge=False)
+    table.add_column("artifact", style="cyan", no_wrap=True)
+    table.add_column("status", no_wrap=True)
+    table.add_column("detail")
+
+    worst = "present"
+    rank = {"present": 0, "ok": 0, "missing": 1, "warn": 1, "violation": 2}
+    n_violation = 0
+    for art in snap.artifacts:
+        status = str(art.status)
+        if status == "violation":
+            n_violation += 1
+        if rank.get(status, 0) > rank.get(worst, 0):
+            worst = status
+        style = _ARTIFACT_STATUS_STYLE.get(status, "white")
+        mark = _ARTIFACT_MARK.get(status, "?")
+        table.add_row(
+            f"{art.category}: {art.name}",
+            Text(f"{mark} {status}", style=style),
+            art.detail,
+        )
+
+    if not snap.artifacts:
+        table.add_row("artifacts", "—",
+                      "No artifacts yet (the report is written at the end of the run).")
+
+    border = _ARTIFACT_STATUS_STYLE.get(worst, "cyan")
+    title = "[bold]Artifacts[/]"
+    if n_violation:
+        title += f"  [red]{n_violation} claim violation(s)[/]"
+    return Panel(table, title=title, border_style=border, padding=(0, 1))
