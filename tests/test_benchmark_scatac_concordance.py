@@ -273,4 +273,35 @@ def test_reference_driver_honest_not_run_when_snapatac2_absent(tmp_path):
     res = benchmark_scatac_reference_snapatac2({"input_path": str(h5ad)})
     assert res["status"] == "not_run"
     assert res["error_type"] == "MissingDependency"
-    assert "aria-bench-env" in res["reason"]
+    assert "aria-bench-atac-env" in res["reason"]
+
+
+def test_ranked_motifs_from_enrichment_orders_and_dedups():
+    # Pure helper: rank most-enriched first (smallest adjusted p, then largest
+    # log2FC), upper-case TF names, keep each motif's strongest cross-group signal.
+    from aria.scripts.benchmark_scatac_reference_snapatac2 import (
+        _ranked_motifs_from_enrichment,
+    )
+
+    class _FakeDF:
+        def __init__(self, rows):
+            self._rows = rows
+            self.columns = ["name", "adjusted p-value", "log2(fold change)"]
+
+        def iter_rows(self, named=True):  # noqa: ARG002 - mirror polars API
+            return iter(self._rows)
+
+    enrichment = {
+        "0": _FakeDF([
+            {"name": "Klf5_1.00", "adjusted p-value": 0.10, "log2(fold change)": 1.0},
+            {"name": "TEAD1", "adjusted p-value": 0.50, "log2(fold change)": 0.2},
+        ]),
+        "1": _FakeDF([
+            # stronger signal for the same KLF5 motif -> must win the dedup
+            {"name": "KLF5", "adjusted p-value": 0.001, "log2(fold change)": 3.0},
+            {"name": "SP1", "adjusted p-value": 0.02, "log2(fold change)": 2.0},
+        ]),
+    }
+    ranked = _ranked_motifs_from_enrichment(enrichment)
+    assert ranked == ["KLF5", "SP1", "TEAD1"]  # by best adjusted p-value
+    assert ranked.count("KLF5") == 1  # deduped across groups

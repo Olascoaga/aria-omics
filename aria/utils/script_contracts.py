@@ -299,6 +299,12 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("input_path", "path", required=False, allow_empty=False),
             _f("output_json", "path", required=False, allow_empty=False),
             _f("resolution", "float", required=False),
+            _f("random_state", "int", required=False),
+            _f("n_features", "int", required=False),
+            _f("marker_pvalue", "float", required=False),
+            _f("genome_fasta", "path", required=False, allow_empty=False),
+            _f("enable_motifs", "bool", required=False),
+            _f("work_dir", "path", required=False, allow_empty=False),
         ),
         success_outputs=(
             _f("status", "str"),

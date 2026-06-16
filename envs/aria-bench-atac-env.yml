@@ -1,0 +1,24 @@
+name: aria-bench-atac-env
+
+# External scATAC reference-comparator environment for the scATAC P3b lane
+# (master-plan W3.1). Intentionally separate from aria-bench-env: the R/
+# Bioconductor RNA comparators there pin numpy<2.0, while SnapATAC2 needs
+# numpy>=2. Keeping the ATAC reference tool in its own env avoids disturbing the
+# validated RNA comparator lock. The SnapATAC2 driver
+# (aria/scripts/benchmark_scatac_reference_snapatac2.py) PRODUCES the reference
+# outputs that the pure-numpy P3a scorer (aria/benchmarks/concordance_atac.py)
+# CONSUMES; cell order is aligned to ARIA so cluster ARI/NMI compares the same
+# cells. scATAC stays alpha + requires_ack; this is benchmark scaffolding only.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    # SnapATAC2 brings its own anndata/scanpy/numpy>=2 stack via wheels.
+    - snapatac2==2.9.0
+    - scanpy==1.11.5
