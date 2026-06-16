@@ -77,7 +77,7 @@ class ChromatinAgent(BaseAgent):
         "Chromatin accessibility and protein-DNA interaction analysis. "
         "Handles scATAC-seq, bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG."
     )
-    validation_level = "alpha"
+    validation_level = "beta"  # de-alpha 2026-06-15 (ADR-048); requires_ack retained
     dispatch_enabled = True
     REQUIRED_SCRIPTS = (
         "aria/scripts/chromatin_qc.py",

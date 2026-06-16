@@ -1,4 +1,4 @@
-def test_orchestrator_allows_alpha_scatac_after_readiness_ack_gate():
+def test_orchestrator_allows_beta_scatac_after_readiness_ack_gate():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION, OrchestratorAgent
 
     blocked = OrchestratorAgent._blocked_modalities({
@@ -7,7 +7,8 @@ def test_orchestrator_allows_alpha_scatac_after_readiness_ack_gate():
     })
 
     assert blocked == {}
-    assert MODALITY_VALIDATION["scATAC"]["level"] == "alpha"
+    # De-alpha 2026-06-15 (ADR-048): scATAC is beta but still requires_ack.
+    assert MODALITY_VALIDATION["scATAC"]["level"] == "beta"
     assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
 
 

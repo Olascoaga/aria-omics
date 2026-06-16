@@ -273,34 +273,41 @@ class ChromatinAuditAgent:
             card = _base_card(
                 modality,
                 agent="chromatin_agent",
-                validation_level="alpha",
+                validation_level="beta",
                 status="yellow",
                 reason=(
-                    "scATAC alpha dispatch is available only after explicit "
+                    "scATAC beta dispatch is available only after explicit "
                     "user acknowledgement."
                 ),
             )
             card["checks"]["validation"] = {
-                "validated": False,
-                "stage": "alpha",
+                "validated": True,
+                "stage": "beta",
                 # Closed 2026-06-09 (ADR-034): a real headless orchestrator/bus
                 # run on the HC11 paired .h5mu drove CP1 -> CP2 -> CP3.5 ack ->
                 # live dispatch into aria-chromatin-env (QC -> LSI/clustering ->
-                # differential accessibility -> motif enrichment) -> an honest,
-                # internally consistent report. scATAC stays alpha + requires_ack.
+                # differential accessibility -> motif enrichment).
                 "live_orchestrator_run": "done",
+                # De-alpha 2026-06-15 (ADR-048): clustering + motif externally
+                # concordant (SnapATAC2/HC11); pseudobulk condition-DA validated
+                # vs edgeR/limma/DESeq2 on real biological replicates. scATAC is
+                # beta + requires_ack.
+                "external_concordance": "done",
             }
             card["findings"].append(_finding(
                 "warning",
-                "chromatin_readiness_alpha_ack_required",
+                "chromatin_readiness_beta_ack_required",
                 (
-                    "scATAC is alpha: core scripts are dispatchable and the live "
-                    "orchestrator/bus validation run has closed; outputs remain "
-                    "alpha pending broader multi-sample/expert review."
+                    "scATAC is beta: P0-P3 closed, clustering + motif are externally "
+                    "concordant, and the pseudobulk condition-DA lane is validated "
+                    "against edgeR/limma/DESeq2 on real biological replicates. The "
+                    "per-cluster wilcoxon marker path is exploratory (single-sample "
+                    "fragile)."
                 ),
                 (
-                    "Proceed only after explicit CP3.5 acknowledgement and treat "
-                    "outputs as alpha (single-sample live-validated)."
+                    "Proceed only after explicit CP3.5 acknowledgement; use the "
+                    "pseudobulk DA lane with biological replicates and treat the "
+                    "per-cluster wilcoxon markers as exploratory."
                 ),
                 modality=modality,
             ))

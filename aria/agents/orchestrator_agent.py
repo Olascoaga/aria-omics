@@ -130,13 +130,17 @@ MODALITY_VALIDATION = {
         "dispatch_enabled": True,
     },
     "scATAC": {
-        "level": "alpha",
+        "level": "beta",
         "dispatch_enabled": True,
         "reason": (
-            "scATAC alpha dispatch requires explicit CP3.5 acknowledgement. "
-            "The path is live-validated end to end (ADR-034) and multi-sample "
-            "validated (ADR-042/043); it stays alpha pending expert review, not "
-            "publication-grade or fully autonomous."
+            "scATAC beta dispatch requires explicit CP3.5 acknowledgement. "
+            "De-alpha closed 2026-06-15 (ADR-048): P0-P3 done; clustering + motif "
+            "are externally concordant (SnapATAC2 on HC11), and the pseudobulk "
+            "condition-DA lane is validated against edgeR/limma/DESeq2 on real "
+            "biological replicates (5 young vs 5 old GSE278576 donors; ARIA a clean "
+            "subset of R-DESeq2, LFC Spearman 0.61-0.76). The per-cluster wilcoxon "
+            "marker path is exploratory/single-sample-fragile and stays caveated. "
+            "Beta + requires_ack: dispatchable after ack, not fully autonomous."
         ),
     },
     "bulk_ATAC": {

@@ -85,6 +85,22 @@ def test_capability_matrix_marks_beta_and_scatac_alpha_as_yellow():
     assert matrix["dispatch"]["blocked"] == []
 
 
+def test_scatac_card_is_beta_requires_ack_after_dealpha():
+    # De-alpha 2026-06-15 (ADR-048): the ChromatinAuditAgent card reports beta +
+    # the beta readiness finding, and scATAC still requires explicit ack.
+    matrix = build_capability_matrix(
+        {"modalities": {"scATAC": ["/data/a.h5mu"]}},
+        modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
+    )
+    card = matrix["cards"]["scATAC"]
+    assert card["validation_level"] == "beta"
+    assert card["status"] == "yellow"
+    assert card["dispatch_policy"] == "requires_ack"
+    codes = {f["check"] for f in card["findings"]}
+    assert "chromatin_readiness_beta_ack_required" in codes
+    assert "chromatin_readiness_alpha_ack_required" not in codes
+
+
 def test_capability_matrix_keeps_non_scatac_chromatin_scaffold_red():
     matrix = build_capability_matrix(
         {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},

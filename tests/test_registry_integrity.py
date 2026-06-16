@@ -22,10 +22,11 @@ def test_every_dispatch_modality_has_validation_metadata():
     assert all(MODALITY_VALIDATION[m].get("level") for m in MODALITY_TO_AGENT)
 
 
-def test_scatac_alpha_is_dispatchable_with_readiness_ack():
+def test_scatac_beta_is_dispatchable_with_readiness_ack():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
-    assert MODALITY_VALIDATION["scATAC"]["level"] == "alpha"
+    # De-alpha 2026-06-15 (ADR-048): scATAC promoted alpha -> beta; requires_ack kept.
+    assert MODALITY_VALIDATION["scATAC"]["level"] == "beta"
     assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
 
 
