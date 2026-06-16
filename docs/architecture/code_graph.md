@@ -440,7 +440,17 @@ Use these tests as impact anchors when editing the graph's major nodes:
   evidence; B2 false-narrative 0.4→0.1 and causal-overreach 1.0→0.0 vs an
   ungoverned arm. These benchmarks call ARIA's governance as the system under
   test against independent hand-labels; do not let the scorer become ARIA's own
-  Claim Compiler judging itself. Runners `scripts/run_b{1,2,4}_*.py`; guards
+  Claim Compiler judging itself. **B2 preprint scaffolding (2026-06-15):**
+  `aria/benchmarks/b2_annotation.py` is the pure multi-annotator kit for the FULL
+  B2 gold (the preliminary inline labels become an independent human gold) —
+  `export_labeling_sheet` (blind CSV, gold not leaked), `load_annotations`
+  (taxonomy-validated), `cohen_kappa` + `krippendorff_alpha` (inter-annotator
+  agreement), `adjudicate` (unanimous/majority/needs_adjudication + adjudicator
+  override). Single-source taxonomy `B2_LABELS` matches `governance_b2` +
+  `docs/benchmark_results/b2_claim/B2_RUBRIC.md`. Guard `tests/test_b2_annotation.py`.
+  Still TODO for the preprint: expand the corpus to 50-100 claims across modalities
+  and finalize the 4-arm ablation (naive-LLM / guards-off / governed / template-only).
+  Runners `scripts/run_b{1,2,4}_*.py`; guards
   `tests/test_benchmark_b{1,2,4}_*.py` in the CI PR lane; artifacts
   `docs/benchmark_results/b{1,2,4}_*/`. ADR-040.
 - Benchmark A1 SEQC/MAQC reference lane (external TaqMan truth):
