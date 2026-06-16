@@ -29,6 +29,15 @@ from aria.benchmarks.synthetic_atac_da import (
     simulate_atac_da_dataset,
     run_atac_da_benchmark,
 )
+from aria.benchmarks.concordance_atac import (
+    ConcordanceResult,
+    adjusted_rand_index,
+    normalized_mutual_info,
+    peak_set_overlap,
+    motif_concordance,
+    seed_stability,
+    score_atac_concordance,
+)
 
 __all__ = [
     "SyntheticDEDataset",
@@ -53,4 +62,12 @@ __all__ = [
     "ATACDACaller",
     "simulate_atac_da_dataset",
     "run_atac_da_benchmark",
+    # P3a: scATAC external-concordance scoring (ARIA vs SnapATAC2/ArchR/Signac).
+    "ConcordanceResult",
+    "adjusted_rand_index",
+    "normalized_mutual_info",
+    "peak_set_overlap",
+    "motif_concordance",
+    "seed_stability",
+    "score_atac_concordance",
 ]

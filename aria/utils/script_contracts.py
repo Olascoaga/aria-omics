@@ -275,6 +275,36 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("artifacts", "dict"),
         ),
     ),
+    "aria/scripts/benchmark_scatac_concordance.py": ScriptContract(
+        script_path="aria/scripts/benchmark_scatac_concordance.py",
+        validation_level="beta",
+        inputs=(
+            _f("aria_outputs_json", "path", required=False, allow_empty=False),
+            _f("external_outputs_json", "path", required=False, allow_empty=False),
+            _f("tool", "str", required=False, allow_empty=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+            _f("manifest_name", "str", required=False, allow_empty=False),
+            _f("top_k_motifs", "int", required=False),
+            _f("slack", "int", required=False),
+        ),
+        success_outputs=(
+            _f("status", "str"),
+            _f("tool", "str"),
+        ),
+    ),
+    "aria/scripts/benchmark_scatac_reference_snapatac2.py": ScriptContract(
+        script_path="aria/scripts/benchmark_scatac_reference_snapatac2.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("input_path", "path", required=False, allow_empty=False),
+            _f("output_json", "path", required=False, allow_empty=False),
+            _f("resolution", "float", required=False),
+        ),
+        success_outputs=(
+            _f("status", "str"),
+            _f("tool", "str"),
+        ),
+    ),
     "aria/scripts/rna_diff_abundance.py": ScriptContract(
         script_path="aria/scripts/rna_diff_abundance.py",
         validation_level="production",
