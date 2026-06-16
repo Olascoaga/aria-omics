@@ -5986,32 +5986,109 @@
       "source_location": "L230"
     },
     {
+      "id": "benchmarks_concordance_atac_spearman",
+      "label": "_spearman()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L262"
+    },
+    {
+      "id": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "label": "score_da_lfc_concordance()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287"
+    },
+    {
       "id": "benchmarks_concordance_atac_seed_stability",
       "label": "seed_stability()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L262"
+      "source_location": "L336"
     },
     {
       "id": "benchmarks_concordance_atac_concordanceresult",
       "label": "ConcordanceResult",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L285"
+      "source_location": "L359"
     },
     {
       "id": "benchmarks_concordance_atac_concordanceresult_to_manifest",
       "label": ".to_manifest()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L295"
+      "source_location": "L369"
     },
     {
       "id": "benchmarks_concordance_atac_score_atac_concordance",
       "label": "score_atac_concordance()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301"
+      "source_location": "L375"
+    },
+    {
+      "id": "benchmarks_consensus_pseudobulk",
+      "label": "consensus_pseudobulk.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "label": "merge_consensus_peaks()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "benchmarks_consensus_pseudobulk_consensus_index",
+      "label": "_consensus_index()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "label": "remap_to_consensus()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "aria_benchmarks_consensus_pseudobulk_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "aria_benchmarks_consensus_pseudobulk_py_ndarray",
+      "label": "ndarray",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "label": "build_consensus_pseudobulk()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99"
     },
     {
       "id": "benchmarks_governance_b1",
@@ -20420,204 +20497,204 @@
       "source_location": "L6"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_da_certifying",
-      "label": "da_certifying",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L11"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_dataset",
-      "label": "dataset",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L12"
-    },
-    {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design",
       "label": "design",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L13"
+      "source_location": "L10"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_aria_da_core",
       "label": "aria_da_core",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L14"
+      "source_location": "L11"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_comparators",
       "label": "comparators",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L15"
+      "source_location": "L12"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_consensus_peaks",
       "label": "consensus_peaks",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L16"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_contrast",
-      "label": "contrast",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L17"
+      "source_location": "L13"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_feature_space",
       "label": "feature_space",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L18"
+      "source_location": "L14"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_n_per_group",
       "label": "n_per_group",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_n_per_group_cond_a",
+      "label": "COND_A",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_n_per_group_cond_b",
+      "label": "COND_B",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_reference_group_cond_a",
+      "label": "reference_group_COND_A",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L19"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_old_donors",
-      "label": "old_donors",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_test_group_cond_b",
+      "label": "test_group_COND_B",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L20"
+      "source_location": "L26"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_tested_after_filter",
       "label": "tested_after_filter",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L27"
+      "source_location": "L33"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_thresholds",
       "label": "thresholds",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L28"
+      "source_location": "L34"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_thresholds_lfc",
       "label": "lfc",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L29"
+      "source_location": "L35"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_thresholds_padj",
       "label": "padj",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L30"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_design_young_donors",
-      "label": "young_donors",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L32"
+      "source_location": "L36"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_methods",
       "label": "methods",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L40"
+      "source_location": "L39"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
       "label": "deseq2",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L41"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_genomic_overlap_fraction",
-      "label": "genomic_overlap_fraction",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L42"
+      "source_location": "L40"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_lfc_pearson",
       "label": "lfc_pearson",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L43"
+      "source_location": "L41"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_lfc_sign_agreement",
       "label": "lfc_sign_agreement",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L44"
+      "source_location": "L42"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_lfc_spearman",
       "label": "lfc_spearman",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L43"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_aria_sig",
+      "label": "n_aria_sig",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L44"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_aria_tested",
+      "label": "n_aria_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L45"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_ref_sig",
+      "label": "n_ref_sig",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L46"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_ref_tested",
+      "label": "n_ref_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L47"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_shared_tested",
       "label": "n_shared_tested",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L46"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_r_n_sig",
-      "label": "r_n_sig",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L47"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_aria_in_r",
-      "label": "recall_aria_in_r",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L48"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_r_in_aria",
-      "label": "recall_r_in_aria",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_aria_in_ref",
+      "label": "recall_aria_in_ref",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L49"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_ref_in_aria",
+      "label": "recall_ref_in_aria",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L50"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_intersection",
       "label": "sig_intersection",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L50"
+      "source_location": "L51"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_jaccard",
       "label": "sig_jaccard",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L51"
+      "source_location": "L52"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
       "label": "edgeR_QLF",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L53"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_genomic_overlap_fraction",
-      "label": "genomic_overlap_fraction",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L54"
@@ -20644,263 +20721,298 @@
       "source_location": "L57"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_shared_tested",
-      "label": "n_shared_tested",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_aria_sig",
+      "label": "n_aria_sig",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L58"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_r_n_sig",
-      "label": "r_n_sig",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_aria_tested",
+      "label": "n_aria_tested",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L59"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_aria_in_r",
-      "label": "recall_aria_in_r",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_ref_sig",
+      "label": "n_ref_sig",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L60"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_r_in_aria",
-      "label": "recall_r_in_aria",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_ref_tested",
+      "label": "n_ref_tested",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L61"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_shared_tested",
+      "label": "n_shared_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L62"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_aria_in_ref",
+      "label": "recall_aria_in_ref",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L63"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_ref_in_aria",
+      "label": "recall_ref_in_aria",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L64"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_intersection",
       "label": "sig_intersection",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L62"
+      "source_location": "L65"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_jaccard",
       "label": "sig_jaccard",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L63"
+      "source_location": "L66"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
       "label": "limma_voom",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L65"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_genomic_overlap_fraction",
-      "label": "genomic_overlap_fraction",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L66"
+      "source_location": "L68"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_lfc_pearson",
       "label": "lfc_pearson",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L67"
+      "source_location": "L69"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_lfc_sign_agreement",
       "label": "lfc_sign_agreement",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L68"
+      "source_location": "L70"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_lfc_spearman",
       "label": "lfc_spearman",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L69"
+      "source_location": "L71"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_aria_sig",
+      "label": "n_aria_sig",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L72"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_aria_tested",
+      "label": "n_aria_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L73"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_ref_sig",
+      "label": "n_ref_sig",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L74"
+    },
+    {
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_ref_tested",
+      "label": "n_ref_tested",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L75"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_shared_tested",
       "label": "n_shared_tested",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L70"
+      "source_location": "L76"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_r_n_sig",
-      "label": "r_n_sig",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_aria_in_ref",
+      "label": "recall_aria_in_ref",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L71"
+      "source_location": "L77"
     },
     {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_aria_in_r",
-      "label": "recall_aria_in_r",
+      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_ref_in_aria",
+      "label": "recall_ref_in_aria",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L72"
-    },
-    {
-      "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_r_in_aria",
-      "label": "recall_r_in_aria",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L73"
+      "source_location": "L78"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_intersection",
       "label": "sig_intersection",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L74"
+      "source_location": "L79"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_jaccard",
       "label": "sig_jaccard",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L75"
+      "source_location": "L80"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance",
       "label": "provenance",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L78"
+      "source_location": "L83"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_aria_version",
       "label": "aria_version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L79"
+      "source_location": "L84"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_git_commit",
       "label": "git_commit",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L80"
+      "source_location": "L85"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_git_describe",
       "label": "git_describe",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L81"
+      "source_location": "L86"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_git_dirty",
       "label": "git_dirty",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L82"
+      "source_location": "L87"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_git_sha",
       "label": "git_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L83"
+      "source_location": "L88"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_git_tree_sha",
       "label": "git_tree_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L84"
+      "source_location": "L89"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_image",
       "label": "image",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L85"
+      "source_location": "L90"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_containerized",
       "label": "containerized",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L86"
+      "source_location": "L91"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_digest",
       "label": "digest",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L87"
+      "source_location": "L92"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_env_lock_sha256",
       "label": "env_lock_sha256",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L88"
+      "source_location": "L93"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_kind",
       "label": "kind",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L89"
+      "source_location": "L94"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_reference",
       "label": "reference",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L90"
+      "source_location": "L95"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_revision",
       "label": "revision",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L91"
+      "source_location": "L96"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_image_validation",
       "label": "validation",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L92"
+      "source_location": "L97"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_version",
       "label": "version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L94"
+      "source_location": "L99"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_version_source",
       "label": "version_source",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L95"
+      "source_location": "L100"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_workflow_hash",
       "label": "workflow_hash",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L96"
+      "source_location": "L101"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_provenance_workflow_hash_algorithm",
       "label": "workflow_hash_algorithm",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L97"
+      "source_location": "L102"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance_scope",
       "label": "scope",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L99"
+      "source_location": "L104"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2",
@@ -21670,7 +21782,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -21734,6 +21846,34 @@
         "language": "bash",
         "kind": "bash_function"
       }
+    },
+    {
+      "id": "scripts_aria_pseudobulk_da_from_tsv",
+      "label": "aria_pseudobulk_da_from_tsv.py",
+      "file_type": "code",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_aria_pseudobulk_da_from_tsv_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "scripts_aria_pseudobulk_da_from_tsv_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23"
+    },
+    {
+      "id": "scripts_aria_pseudobulk_da_from_tsv_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23"
     },
     {
       "id": "scripts_fetch_genesets",
@@ -21887,7 +22027,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_yqetca_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -21909,7 +22049,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_yqetca_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22336,6 +22476,69 @@
       "file_type": "code",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance",
+      "label": "run_scatac_multisample_da_concordance.py",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_index_key",
+      "label": "_index_key()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "label": "_donor_atac_pseudobulk()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_py_ndarray",
+      "label": "ndarray",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_conda_run",
+      "label": "_conda_run()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L59"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "scripts_run_scatac_multisample_da_concordance_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L63"
     },
     {
       "id": "scripts_run_scatac_multisample_validation",
@@ -25871,6 +26074,55 @@
       "file_type": "code",
       "source_file": "tests/test_compositional_abundance.py",
       "source_location": "L166"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da",
+      "label": "test_consensus_pseudobulk_da.py",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_merge_consensus_peaks_unions_overlap_keeps_disjoint",
+      "label": "test_merge_consensus_peaks_unions_overlap_keeps_disjoint()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_merge_consensus_skips_unparseable",
+      "label": "test_merge_consensus_skips_unparseable()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_build_consensus_pseudobulk_remaps_counts_by_midpoint",
+      "label": "test_build_consensus_pseudobulk_remaps_counts_by_midpoint()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_spearman_monotone_and_ties",
+      "label": "test_spearman_monotone_and_ties()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_perfect_and_sets",
+      "label": "test_score_da_lfc_concordance_perfect_and_sets()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_no_shared_is_honest_none",
+      "label": "test_score_da_lfc_concordance_no_shared_is_honest_none()",
+      "file_type": "code",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L58"
     },
     {
       "id": "tests_test_contrast_family_fdr",
@@ -31639,110 +31891,10 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
-    },
-    {
-      "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
-    },
-    {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
-    },
-    {
-      "id": "design_agent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py"
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
-    },
-    {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py"
-    },
-    {
-      "id": "run_ledger",
-      "label": "Run Ledger",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/run_ledger.py"
     }
   ],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -55070,11 +55222,139 @@
     },
     {
       "source": "benchmarks_concordance_atac",
-      "target": "benchmarks_concordance_atac_seed_stability",
+      "target": "benchmarks_concordance_atac_spearman",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
       "source_location": "L262",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_spearman",
+      "target": "aria_benchmarks_concordance_atac_py_ndarray",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L262",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_spearman",
+      "target": "aria_benchmarks_concordance_atac_py_ndarray",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L262",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_spearman",
+      "target": "aria_benchmarks_concordance_atac_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L262",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac",
+      "target": "benchmarks_concordance_atac_seed_stability",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -55084,7 +55364,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L262",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -55094,7 +55374,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L262",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -55104,7 +55384,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L262",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -55113,7 +55393,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L285",
+      "source_location": "L359",
       "weight": 1.0
     },
     {
@@ -55122,7 +55402,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L295",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -55132,7 +55412,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L295",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -55142,7 +55422,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L295",
+      "source_location": "L369",
       "weight": 1.0
     },
     {
@@ -55151,7 +55431,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55161,7 +55441,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55171,7 +55451,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55181,7 +55461,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55191,7 +55471,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55201,7 +55481,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55211,7 +55491,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55221,7 +55501,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55231,7 +55511,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55241,7 +55521,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L301",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -55285,13 +55565,23 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "target": "benchmarks_concordance_atac_spearman",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L312",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_concordance_atac_seed_stability",
       "target": "benchmarks_concordance_atac_adjusted_rand_index",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L271",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -55301,7 +55591,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L323",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -55311,7 +55601,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L330",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -55321,7 +55611,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L331",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -55331,7 +55621,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L351",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -55341,7 +55631,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L352",
+      "source_location": "L426",
       "weight": 1.0
     },
     {
@@ -55351,7 +55641,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L359",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -55361,7 +55651,283 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L365",
+      "source_location": "L439",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_consensus_index",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_ndarray",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_ndarray",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "aria_benchmarks_consensus_pseudobulk_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_consensus_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "target": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -95108,29 +95674,11 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_da_certifying",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L11",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_dataset",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L12",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance",
       "target": "scatac_concordance_p3_multisample_aging_da_concordance_design",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L13",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -95139,7 +95687,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L14",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -95148,7 +95696,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L15",
+      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -95157,16 +95705,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L16",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_design",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_design_contrast",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L17",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -95175,7 +95714,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L18",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -95184,16 +95723,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_design_n_per_group",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_n_per_group_cond_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_design_n_per_group",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_n_per_group_cond_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_design",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_design_reference_group_cond_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L19",
       "weight": 1.0
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_design",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_design_old_donors",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_design_test_group_cond_b",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L20",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -95202,7 +95768,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L27",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -95211,7 +95777,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L28",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -95220,7 +95786,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -95229,16 +95795,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L30",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_design",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_design_young_donors",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L32",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -95247,7 +95804,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L40",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -95256,16 +95813,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L41",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_genomic_overlap_fraction",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L42",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -95274,7 +95822,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L43",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -95283,7 +95831,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L44",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -95292,12 +95840,30 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_aria_sig",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_aria_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L45",
       "weight": 1.0
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_shared_tested",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_ref_sig",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95306,7 +95872,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_r_n_sig",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_ref_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95315,7 +95881,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_aria_in_r",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_n_shared_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95324,7 +95890,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_r_in_aria",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_aria_in_ref",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95333,7 +95899,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_intersection",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_recall_ref_in_aria",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95342,7 +95908,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_jaccard",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_intersection",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95350,17 +95916,17 @@
       "weight": 1.0
     },
     {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_deseq2",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_deseq2_sig_jaccard",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L53",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_genomic_overlap_fraction",
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95396,7 +95962,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_shared_tested",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_aria_sig",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95405,7 +95971,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_r_n_sig",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_aria_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95414,7 +95980,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_aria_in_r",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_ref_sig",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95423,7 +95989,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_r_in_aria",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_ref_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95432,7 +95998,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_intersection",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_n_shared_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95441,11 +96007,38 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_jaccard",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_aria_in_ref",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_recall_ref_in_aria",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_intersection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_edger_qlf",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_edger_qlf_sig_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -95454,16 +96047,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L65",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_genomic_overlap_fraction",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L66",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -95472,7 +96056,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L67",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -95481,7 +96065,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L68",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -95490,30 +96074,12 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L69",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_shared_tested",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L70",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_r_n_sig",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L71",
       "weight": 1.0
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_aria_in_r",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_aria_sig",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95522,7 +96088,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_r_in_aria",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_aria_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95531,7 +96097,7 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_intersection",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_ref_sig",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
@@ -95540,11 +96106,56 @@
     },
     {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
-      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_jaccard",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_ref_tested",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
       "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_n_shared_tested",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_aria_in_ref",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_recall_ref_in_aria",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_intersection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3_multisample_aging_da_concordance_methods_limma_voom",
+      "target": "scatac_concordance_p3_multisample_aging_da_concordance_limma_voom_sig_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -95553,7 +96164,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L78",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -95562,7 +96173,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L79",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -95571,7 +96182,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L80",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -95580,7 +96191,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L81",
+      "source_location": "L86",
       "weight": 1.0
     },
     {
@@ -95589,7 +96200,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L82",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -95598,7 +96209,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L83",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -95607,7 +96218,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L84",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -95616,7 +96227,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L85",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -95625,7 +96236,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L86",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -95634,7 +96245,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L87",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -95643,7 +96254,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L88",
+      "source_location": "L93",
       "weight": 1.0
     },
     {
@@ -95652,7 +96263,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L89",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
@@ -95661,7 +96272,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L90",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
@@ -95670,7 +96281,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L91",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -95679,7 +96290,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L92",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -95688,7 +96299,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L94",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -95697,7 +96308,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L95",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -95706,7 +96317,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L96",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -95715,7 +96326,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L97",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -95724,7 +96335,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3_multisample_aging_da_concordance.json",
-      "source_location": "L99",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -96683,7 +97294,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -96736,7 +97347,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96746,7 +97357,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96756,7 +97367,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96766,7 +97377,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96776,7 +97387,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -96784,6 +97395,35 @@
       "source_location": "L82",
       "weight": 1.0,
       "context": "call"
+    },
+    {
+      "source": "scripts_aria_pseudobulk_da_from_tsv",
+      "target": "scripts_aria_pseudobulk_da_from_tsv_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_aria_pseudobulk_da_from_tsv_main",
+      "target": "scripts_aria_pseudobulk_da_from_tsv_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_aria_pseudobulk_da_from_tsv_main",
+      "target": "scripts_aria_pseudobulk_da_from_tsv_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L23",
+      "weight": 1.0
     },
     {
       "source": "scripts_fetch_genesets",
@@ -97099,7 +97739,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_yqetca_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -97108,7 +97748,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_yqetca_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -97143,7 +97783,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97153,7 +97793,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_yqetca_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ff8i6j_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97625,6 +98265,172 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "scripts_run_scatac_multisample_da_concordance_index_key",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_index_key",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_ndarray",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "scripts_run_scatac_multisample_da_concordance_conda_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_conda_run",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_conda_run",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "scripts_run_scatac_multisample_da_concordance_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "target": "scripts_run_scatac_multisample_da_concordance_index_key",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "scripts_run_scatac_multisample_da_concordance_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "scripts_run_scatac_multisample_da_concordance_donor_atac_pseudobulk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "scripts_run_scatac_multisample_da_concordance_conda_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -103659,6 +104465,60 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_compositional_abundance.py",
       "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_merge_consensus_peaks_unions_overlap_keeps_disjoint",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_merge_consensus_skips_unparseable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_build_consensus_pseudobulk_remaps_counts_by_midpoint",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_spearman_monotone_and_ties",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_perfect_and_sets",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_no_shared_is_honest_none",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -116289,6 +117149,16 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_consensus_pseudobulk",
+      "target": "benchmarks_concordance_atac_parse_peak",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_governance_b1",
       "target": "agents_modality_audit_scrnaauditagent",
       "relation": "imports",
@@ -118469,6 +119339,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_aria_pseudobulk_da_from_tsv",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_fetch_genesets",
       "target": "utils_ora_genesets_dir",
       "relation": "imports",
@@ -118606,6 +119486,36 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -120406,6 +121316,46 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_compositional_abundance.py",
       "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da",
+      "target": "benchmarks_concordance_atac_spearman",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L10",
       "weight": 1.0
     },
     {
@@ -123349,6 +124299,36 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "target": "benchmarks_concordance_atac_parse_peak",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_consensus_index",
+      "target": "benchmarks_concordance_atac_parse_peak",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_consensus_pseudobulk_remap_to_consensus",
+      "target": "benchmarks_concordance_atac_parse_peak",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/consensus_pseudobulk.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_governance_b1_aria_decision",
       "target": "agents_modality_audit_scrnaauditagent",
       "relation": "calls",
@@ -124919,6 +125899,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_aria_pseudobulk_da_from_tsv_main",
+      "target": "scripts_rna_bulk_de_run_deseq2",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_fetch_genesets_main",
       "target": "utils_ora_genesets_dir",
       "relation": "calls",
@@ -125056,6 +126046,36 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_da_benchmark.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_multisample_da_concordance_main",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_multisample_da_concordance.py",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -128016,6 +129036,66 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_compositional_abundance.py",
       "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_merge_consensus_peaks_unions_overlap_keeps_disjoint",
+      "target": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_merge_consensus_skips_unparseable",
+      "target": "benchmarks_consensus_pseudobulk_merge_consensus_peaks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_build_consensus_pseudobulk_remaps_counts_by_midpoint",
+      "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_spearman_monotone_and_ties",
+      "target": "benchmarks_concordance_atac_spearman",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_perfect_and_sets",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_consensus_pseudobulk_da_test_score_da_lfc_concordance_no_shared_is_honest_none",
+      "target": "benchmarks_concordance_atac_score_da_lfc_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_consensus_pseudobulk_da.py",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -133046,122 +134126,8 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3727",
       "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "narrative_agent",
-      "target": "run_ledger",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "audit_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "setup_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "setup_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "setup_agent",
-      "target": "chromatin_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
     }
   ],
   "hyperedges": [],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "structure_only": true
 }
