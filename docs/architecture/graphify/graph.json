@@ -8527,39 +8527,46 @@
       "source_location": "L1"
     },
     {
-      "id": "scripts_benchmark_scatac_reference_snapatac2_run_reference_pipeline",
-      "label": "_run_reference_pipeline()",
+      "id": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "label": "_ranked_motifs_from_enrichment()",
       "file_type": "code",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32"
-    },
-    {
-      "id": "aria_scripts_benchmark_scatac_reference_snapatac2_py_path",
-      "label": "Path",
-      "file_type": "code",
-      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32"
+      "source_location": "L42"
     },
     {
       "id": "aria_scripts_benchmark_scatac_reference_snapatac2_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32"
+      "source_location": "L42"
     },
     {
       "id": "aria_scripts_benchmark_scatac_reference_snapatac2_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32"
+      "source_location": "L42"
+    },
+    {
+      "id": "scripts_benchmark_scatac_reference_snapatac2_run_reference_pipeline",
+      "label": "_run_reference_pipeline()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L74"
+    },
+    {
+      "id": "aria_scripts_benchmark_scatac_reference_snapatac2_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L74"
     },
     {
       "id": "scripts_benchmark_scatac_reference_snapatac2_benchmark_scatac_reference_snapatac2",
       "label": "benchmark_scatac_reference_snapatac2()",
       "file_type": "code",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L61"
+      "source_location": "L167"
     },
     {
       "id": "scripts_chromatin_diffacc",
@@ -20420,277 +20427,361 @@
       "source_location": "L8"
     },
     {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_ari",
+      "label": "ari",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_n_cells",
+      "label": "n_cells",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_nmi",
+      "label": "nmi",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L11"
+    },
+    {
       "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
       "label": "da_peak_concordance",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L9"
+      "source_location": "L13"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_jaccard",
+      "label": "jaccard",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_matched_a",
+      "label": "matched_a",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_matched_b",
+      "label": "matched_b",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_mode",
+      "label": "mode",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_n_a",
+      "label": "n_a",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_n_b",
+      "label": "n_b",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_overlap_fraction",
+      "label": "overlap_fraction",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_recall_a_in_b",
+      "label": "recall_a_in_b",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_recall_b_in_a",
+      "label": "recall_b_in_a",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_slack",
+      "label": "slack",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L23"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs",
       "label": "inputs",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L10"
+      "source_location": "L25"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_dataset",
       "label": "dataset",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L11"
+      "source_location": "L26"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_external_tool_present",
       "label": "external_tool_present",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L12"
+      "source_location": "L27"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_modality",
       "label": "modality",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L13"
+      "source_location": "L28"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_n_cells",
       "label": "n_cells",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L14"
+      "source_location": "L29"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_n_cluster_seeds",
       "label": "n_cluster_seeds",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L15"
+      "source_location": "L30"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_n_da_peaks",
       "label": "n_da_peaks",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L16"
+      "source_location": "L31"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_inputs_n_motifs",
       "label": "n_motifs",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L17"
+      "source_location": "L32"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_messages",
       "label": "messages",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L19"
+      "source_location": "L34"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_motif_concordance",
       "label": "motif_concordance",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L22"
+      "source_location": "L37"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance",
       "label": "provenance",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L23"
+      "source_location": "L38"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_aria_version",
       "label": "aria_version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L24"
+      "source_location": "L39"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_git_commit",
       "label": "git_commit",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L25"
+      "source_location": "L40"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_git_describe",
       "label": "git_describe",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L26"
+      "source_location": "L41"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_git_dirty",
       "label": "git_dirty",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L27"
+      "source_location": "L42"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_git_sha",
       "label": "git_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L28"
+      "source_location": "L43"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_git_tree_sha",
       "label": "git_tree_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L29"
+      "source_location": "L44"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_image",
       "label": "image",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L30"
+      "source_location": "L45"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_containerized",
       "label": "containerized",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L31"
+      "source_location": "L46"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_digest",
       "label": "digest",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L32"
+      "source_location": "L47"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_env_lock_sha256",
       "label": "env_lock_sha256",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L33"
+      "source_location": "L48"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_kind",
       "label": "kind",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L34"
+      "source_location": "L49"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_reference",
       "label": "reference",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L35"
+      "source_location": "L50"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_revision",
       "label": "revision",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L36"
+      "source_location": "L51"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_image_validation",
       "label": "validation",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L37"
+      "source_location": "L52"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_version",
       "label": "version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L39"
+      "source_location": "L54"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_version_source",
       "label": "version_source",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L40"
+      "source_location": "L55"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_workflow_hash",
       "label": "workflow_hash",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L41"
+      "source_location": "L56"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_provenance_workflow_hash_algorithm",
       "label": "workflow_hash_algorithm",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L42"
-    },
-    {
-      "id": "scatac_concordance_p3a_concordance_snapatac2_reason",
-      "label": "reason",
-      "file_type": "code",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L44"
+      "source_location": "L57"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_scope",
       "label": "scope",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L45"
+      "source_location": "L59"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_seed_stability",
       "label": "seed_stability",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L46"
+      "source_location": "L60"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_seed_stability_mean_pairwise_ari",
       "label": "mean_pairwise_ari",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L47"
+      "source_location": "L61"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_seed_stability_min_pairwise_ari",
       "label": "min_pairwise_ari",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L48"
+      "source_location": "L62"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_seed_stability_n_pairs",
       "label": "n_pairs",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L49"
+      "source_location": "L63"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_seed_stability_n_seeds",
       "label": "n_seeds",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L50"
+      "source_location": "L64"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_status",
       "label": "status",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L52"
+      "source_location": "L66"
     },
     {
       "id": "scatac_concordance_p3a_concordance_snapatac2_tool",
       "label": "tool",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L53"
+      "source_location": "L67"
     },
     {
       "id": "scatac_da_a_scatac_da_v4_5_5",
@@ -21040,7 +21131,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -21257,7 +21348,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -21279,7 +21370,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22532,6 +22623,13 @@
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
       "source_location": "L258"
+    },
+    {
+      "id": "tests_test_benchmark_scatac_concordance_test_ranked_motifs_from_enrichment_orders_and_dedups",
+      "label": "test_ranked_motifs_from_enrichment_orders_and_dedups()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L279"
     },
     {
       "id": "tests_test_benchmark_scatac_da",
@@ -30995,162 +31093,10 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
-    },
-    {
-      "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "design_agent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
     }
   ],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -66047,11 +65993,50 @@
     },
     {
       "source": "scripts_benchmark_scatac_reference_snapatac2",
+      "target": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "target": "aria_scripts_benchmark_scatac_reference_snapatac2_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "target": "aria_scripts_benchmark_scatac_reference_snapatac2_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "target": "aria_scripts_benchmark_scatac_reference_snapatac2_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2",
       "target": "scripts_benchmark_scatac_reference_snapatac2_run_reference_pipeline",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66061,7 +66046,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66071,7 +66056,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66081,7 +66066,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66091,7 +66076,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66101,7 +66086,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L32",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -66110,7 +66095,27 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L61",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2_run_reference_pipeline",
+      "target": "aria_scripts_benchmark_scatac_reference_snapatac2_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_scatac_reference_snapatac2_run_reference_pipeline",
+      "target": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -66120,7 +66125,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L64",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -66130,7 +66135,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L88",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -94465,12 +94470,129 @@
       "weight": 1.0
     },
     {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_ari",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_n_cells",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_cluster_concordance_nmi",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
       "source": "scatac_concordance_p3a_concordance_snapatac2",
       "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L9",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_matched_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_matched_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_mode",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_n_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_n_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_overlap_fraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_recall_a_in_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_recall_b_in_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance",
+      "target": "scatac_concordance_p3a_concordance_snapatac2_da_peak_concordance_slack",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -94479,7 +94601,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L10",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -94488,7 +94610,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L11",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -94497,7 +94619,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L12",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -94506,7 +94628,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L13",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -94515,7 +94637,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L14",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -94524,7 +94646,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L15",
+      "source_location": "L30",
       "weight": 1.0
     },
     {
@@ -94533,7 +94655,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L16",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -94542,7 +94664,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L17",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -94551,7 +94673,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L19",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -94560,7 +94682,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L22",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -94569,7 +94691,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L23",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -94578,7 +94700,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L24",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -94587,7 +94709,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L25",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -94596,7 +94718,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L26",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -94605,7 +94727,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L27",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -94614,7 +94736,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L28",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -94623,7 +94745,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L29",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -94632,7 +94754,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L30",
+      "source_location": "L45",
       "weight": 1.0
     },
     {
@@ -94641,7 +94763,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L31",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -94650,7 +94772,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L32",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -94659,7 +94781,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L33",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -94668,7 +94790,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L34",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -94677,7 +94799,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L35",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -94686,7 +94808,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L36",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -94695,7 +94817,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L37",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -94704,7 +94826,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L39",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -94713,7 +94835,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L40",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -94722,7 +94844,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L41",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -94731,16 +94853,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L42",
-      "weight": 1.0
-    },
-    {
-      "source": "scatac_concordance_p3a_concordance_snapatac2",
-      "target": "scatac_concordance_p3a_concordance_snapatac2_reason",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L44",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -94749,7 +94862,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L45",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -94758,7 +94871,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L46",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -94767,7 +94880,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L47",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -94776,7 +94889,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L48",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -94785,7 +94898,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L49",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -94794,7 +94907,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L50",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -94803,7 +94916,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L52",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -94812,7 +94925,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json",
-      "source_location": "L53",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -95240,7 +95353,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -95293,7 +95406,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95303,7 +95416,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95313,7 +95426,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95323,7 +95436,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95333,7 +95446,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95656,7 +95769,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -95665,7 +95778,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -95700,7 +95813,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95710,7 +95823,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_1kcycg_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97370,6 +97483,15 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
       "source_location": "L258",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance",
+      "target": "tests_test_benchmark_scatac_concordance_test_ranked_motifs_from_enrichment_orders_and_dedups",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -115444,7 +115566,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_scatac_reference_snapatac2.py",
-      "source_location": "L29",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -117515,6 +117637,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
       "source_location": "L249",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance",
+      "target": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L282",
       "weight": 1.0
     },
     {
@@ -124085,6 +124217,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
       "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance_test_ranked_motifs_from_enrichment_orders_and_dedups",
+      "target": "scripts_benchmark_scatac_reference_snapatac2_ranked_motifs_from_enrichment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -131555,110 +131697,8 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3727",
       "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "structure_only": true
 }
