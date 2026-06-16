@@ -35,6 +35,16 @@ from pathlib import Path
 from aria.scripts._base import run_script
 
 
+def _save_dual(fig, png_path) -> str:
+    """P4.1: save a line-art figure as raster PNG (inlined in the report) AND a
+    publication-grade vector SVG alongside it (`<stem>.svg`), matching the RNA side.
+    Only the PNG path is returned/surfaced; the SVG sits next to it for manuscript use."""
+    png_path = Path(png_path)
+    fig.savefig(png_path, dpi=160, bbox_inches="tight", facecolor="white")
+    fig.savefig(png_path.with_suffix(".svg"), bbox_inches="tight", facecolor="white")
+    return str(png_path)
+
+
 def _marker_heatmap(adata, cluster_key, marker_peaks, top_per_cluster, out_path):
     import matplotlib
     matplotlib.use("Agg")
@@ -84,9 +94,9 @@ def _marker_heatmap(adata, cluster_key, marker_peaks, top_per_cluster, out_path)
     ax.set_title("Marker-peak accessibility (z-scored per peak)", fontsize=10,
                  fontweight="bold")
     plt.colorbar(im, ax=ax, fraction=0.03, pad=0.02, label="z(mean accessibility)")
-    fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
+    out = _save_dual(fig, out_path)
     plt.close(fig)
-    return str(out_path)
+    return out
 
 
 def _qc_depth_violin(adata, cluster_key, out_path):
@@ -119,9 +129,9 @@ def _qc_depth_violin(adata, cluster_key, out_path):
     ax.set_title("Per-cluster accessibility depth", fontsize=10,
                  fontweight="bold")
     ax.tick_params(labelsize=7)
-    fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
+    out = _save_dual(fig, out_path)
     plt.close(fig)
-    return str(out_path)
+    return out
 
 
 def make_cluster_figures(params: dict) -> dict:

@@ -87,6 +87,12 @@ def test_render_da_figures_writes_volcano_and_ma(tmp_path):
     assert "da_volcano_treat_vs_ctrl" in figs
     assert "da_ma_treat_vs_ctrl" in figs
     assert Path(figs["da_volcano_treat_vs_ctrl"]).exists()
+    # P4.1: line-art figures are dual PNG + publication-grade vector SVG. The dict
+    # surfaces only the PNG; the SVG sits alongside as `<stem>.svg`.
+    for key in ("da_volcano_treat_vs_ctrl", "da_ma_treat_vs_ctrl"):
+        png = Path(figs[key])
+        assert png.suffix == ".png"
+        assert png.with_suffix(".svg").exists(), f"missing vector SVG for {key}"
 
 
 def test_render_da_figures_honest_empty_without_csv(tmp_path):
@@ -110,8 +116,26 @@ def test_render_motif_dotplot(tmp_path):
     }}
     path = render_motif_dotplot(motifs, tmp_path / "motif_dotplot.png")
     assert path and Path(path).exists()
+    # P4.1: dual PNG + vector SVG.
+    assert Path(path).with_suffix(".svg").exists()
     # No enriched motifs -> honest None.
     assert render_motif_dotplot({"per_group": {}}, tmp_path / "x.png") is None
+
+
+def test_render_fragment_size_is_dual_png_and_svg(tmp_path):
+    """P4.1: the fragment-size / nucleosome-banding figure is dual PNG + vector SVG,
+    and stays an honest None when no size histogram was computed (fragment-less run)."""
+    from aria.agents._narrative_chromatin import render_fragment_size_figure
+
+    qc = {"fragment_sizes": {"size_histogram": {
+        "bin_edges": [float(i) for i in range(0, 401, 5)],
+        "counts": [i % 7 for i in range(80)],
+    }}}
+    path = render_fragment_size_figure(qc, tmp_path / "fragment_size.png")
+    assert path and Path(path).exists()
+    assert Path(path).with_suffix(".svg").exists()
+    # No histogram (e.g. a peak-matrix run with no fragments) -> honest None.
+    assert render_fragment_size_figure({}, tmp_path / "none.png") is None
 
 
 def test_generate_figures_attaches_da_and_motif_inline(tmp_path):

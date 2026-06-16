@@ -63,6 +63,18 @@ def _safe(value) -> str:
             .replace(":", "_").replace("|", "_"))
 
 
+def _save_dual(fig, png_path) -> str:
+    """P4.1: save a line-art chromatin figure as raster PNG (inlined in the HTML
+    report) AND a publication-grade vector SVG alongside it (`<stem>.svg`), matching
+    the RNA side's vector convention. Only the PNG path is returned/surfaced as the
+    report figure; the SVG sits next to it for manuscript use, so the narrator's
+    one-figure-per-key contract is unchanged. UMAP stays raster (rna_figure_umap)."""
+    png_path = Path(png_path)
+    fig.savefig(png_path, dpi=160, bbox_inches="tight", facecolor="white")
+    fig.savefig(png_path.with_suffix(".svg"), bbox_inches="tight", facecolor="white")
+    return str(png_path)
+
+
 def render_da_figures(da_full_csv: str, output_dir: Path,
                       padj_max: float = 0.05) -> dict:
     """W0.3: pseudobulk-DA volcano + MA per comparison, rendered INLINE (matplotlib
@@ -112,7 +124,7 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                       markerscale=2.0)
             ax.tick_params(labelsize=7)
             path = output_dir / f"da_volcano_{comp_s}.png"
-            fig.savefig(path, dpi=160, bbox_inches="tight", facecolor="white")
+            _save_dual(fig, path)
             plt.close(fig)
             out[f"da_volcano_{comp_s}"] = str(path)
         except Exception as e:
@@ -136,7 +148,7 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                           markerscale=2.0)
                 ax.tick_params(labelsize=7)
                 path = output_dir / f"da_ma_{comp_s}.png"
-                fig.savefig(path, dpi=160, bbox_inches="tight", facecolor="white")
+                _save_dual(fig, path)
                 plt.close(fig)
                 out[f"da_ma_{comp_s}"] = str(path)
             except Exception as e:
@@ -195,9 +207,9 @@ def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Option
         plt.colorbar(sc, ax=ax, fraction=0.04, pad=0.02, label="log2 enrichment")
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
+        out_path = _save_dual(fig, out_path)
         plt.close(fig)
-        return str(out_path)
+        return out_path
     except Exception as e:
         log.warning("motif dotplot failed: %s", e)
         return None
@@ -236,9 +248,9 @@ def render_fragment_size_figure(qc: dict, out_path: Path) -> Optional[str]:
         ax.tick_params(labelsize=7)
         out_path = Path(out_path)
         out_path.parent.mkdir(parents=True, exist_ok=True)
-        fig.savefig(out_path, dpi=160, bbox_inches="tight", facecolor="white")
+        out_path = _save_dual(fig, out_path)
         plt.close(fig)
-        return str(out_path)
+        return out_path
     except Exception as e:
         log.warning("fragment-size figure failed: %s", e)
         return None
