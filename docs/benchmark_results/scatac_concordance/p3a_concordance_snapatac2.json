@@ -5,21 +5,28 @@
   },
   "benchmark": "P3a_scatac_external_concordance",
   "benchmark_version": "v1",
+  "caveats": [
+    "HC11 is a SINGLE biological sample. Per-cluster DA lacks biological replication, so the DA-peak axis here is NOT certifying for de-alpha. ARIA cluster c2 alone produced ~9,900 wilcoxon-significant peaks (a single-sample power artifact). A multi-replicate scATAC dataset (donor-level pseudobulk) is required to certify the DA lane.",
+    "DA comparison is like-for-like: ARIA reported marker peaks (top-N per cluster, n=41 unique) vs SnapATAC2 marker_regions (n=74). An earlier revision mistakenly scored ARIA full significant-DA dump (~13,294) vs SnapATAC2 markers, a set-size confound that read ~chance (recall 0.27); this revision fixes that. Like-for-like marker overlap on HC11 is ~0.",
+    "Cluster axis is the trustworthy HC11 signal: ARI 0.532 / NMI 0.669 with 85-99% bidirectional cluster purity (the ARI penalty is granularity, not disagreement).",
+    "Motif axis null: SnapATAC2 CIS-BP vs ARIA JASPAR2024 namespace mismatch + local Ensembl-named genome vs UCSC chr* peaks."
+  ],
   "cluster_concordance": {
     "ari": 0.5321369427909449,
     "n_cells": 3143,
     "nmi": 0.6690003678494902
   },
+  "da_certifying": false,
   "da_peak_concordance": {
-    "jaccard": 0.0015037593984962407,
-    "matched_a": 20,
-    "matched_b": 20,
+    "jaccard": 0.0,
+    "matched_a": 0,
+    "matched_b": 0,
     "mode": "genomic",
-    "n_a": 13246,
+    "n_a": 41,
     "n_b": 74,
-    "overlap_fraction": 0.003003003003003003,
-    "recall_a_in_b": 0.0015098897780462027,
-    "recall_b_in_a": 0.2702702702702703,
+    "overlap_fraction": 0.0,
+    "recall_a_in_b": 0.0,
+    "recall_b_in_a": 0.0,
     "slack": 0
   },
   "inputs": {
@@ -28,7 +35,7 @@
     "modality": "scATAC",
     "n_cells": 3143,
     "n_cluster_seeds": 3,
-    "n_da_peaks": 13246,
+    "n_da_peaks": 41,
     "n_motifs": 50
   },
   "messages": [
@@ -37,11 +44,11 @@
   "motif_concordance": null,
   "provenance": {
     "aria_version": "4.6.1",
-    "git_commit": "e1ccb50305e5e0d42f6a1b7ed75fc934201c2af4",
-    "git_describe": "v4.6.1-66-ge1ccb50-dirty",
-    "git_dirty": true,
-    "git_sha": "e1ccb50305e5e0d42f6a1b7ed75fc934201c2af4",
-    "git_tree_sha": "0131e43c31bda89282a2fc68497ac918a13dce0f",
+    "git_commit": "ffef2b0d236f77aa251501f5e3d9591683f9f979",
+    "git_describe": "v4.6.1-68-gffef2b0",
+    "git_dirty": false,
+    "git_sha": "ffef2b0d236f77aa251501f5e3d9591683f9f979",
+    "git_tree_sha": "6569032cf5e5f6eb9e9701f89cc00d92157a0f8a",
     "image": {
       "containerized": false,
       "digest": null,
@@ -53,7 +60,7 @@
     },
     "version": "4.6.1",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "7a6991669130921a67be868045a59f69be1e912a57d88e06747bb7ff5837f255",
+    "workflow_hash": "e925166bd2c5ae0a3f8f24ff2e8e5b645f42a42b9bbf005683cc0d977563fb4d",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "external_tool_concordance",
