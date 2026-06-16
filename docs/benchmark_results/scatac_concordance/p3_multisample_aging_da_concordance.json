@@ -2,22 +2,28 @@
   "aria_n_sig": 2052,
   "aria_n_tested": 134276,
   "aria_version": "4.6.1",
-  "benchmark": "P3_multisample_aging_DA_concordance",
+  "benchmark": "P3_multisample_DA_concordance",
   "caveats": [
-    "This validates the pseudobulk CONDITION-DA path (donor-level, with biological replication and ARIA min_replicates_per_condition>=3). It does NOT validate the per-cluster wilcoxon marker path, which remains single-sample-fragile (see the HC11 artifact).",
-    "Consensus peaks are built by genomic-overlap merge of per-donor peaks (no fragment files available); pseudobulk counts are re-mapped by peak-midpoint containment. This is an approximation vs fragment-level re-quantification.",
-    "Method significant-set SIZES differ widely (ARIA 2052, R-DESeq2 6646, edgeR-QLF 9, limma-voom 249); the robust threshold-independent signal is LFC Spearman 0.61-0.76 + sign agreement 0.80-0.95, with ARIA a clean subset of R-DESeq2."
+    "Validates the pseudobulk CONDITION-DA path (donor-level, biological replication, min_replicates_per_condition>=3). NOT the per-cluster wilcoxon marker path (single-sample fragile).",
+    "Consensus is a genomic-overlap merge with midpoint-containment count re-mapping (approximation vs fragment-level re-quantification)."
   ],
-  "da_certifying": true,
-  "dataset": "GSE278576_hippocampus_scATAC_5young_vs_5old",
   "design": {
-    "aria_da_core": "rna_bulk_de._run_deseq2 (pydeseq2, lfcThreshold-in-Wald + apeGLM shrink) in aria-rna-env",
-    "comparators": "benchmark_a1_external_comparators.R (R-DESeq2, edgeR-QLF, limma-voom) in aria-bench-env",
+    "aria_da_core": "rna_bulk_de._run_deseq2 (pydeseq2)",
+    "comparators": "benchmark_a1_external_comparators.R",
     "consensus_peaks": 255079,
-    "contrast": "aging old-vs-young (COND_B vs COND_A)",
-    "feature_space": "genomic-overlap consensus peaks across the 10 donors (no fragments; pseudobulk re-mapped by interval overlap, ADR-043 lesson)",
-    "n_per_group": 5,
-    "old_donors": [
+    "feature_space": "genomic-overlap consensus peaks; pseudobulk re-mapped by peak-midpoint containment (no fragments)",
+    "n_per_group": {
+      "COND_A": 5,
+      "COND_B": 5
+    },
+    "reference_group_COND_A": [
+      "hc937",
+      "hc5579",
+      "hc13344",
+      "hc935",
+      "hc5614"
+    ],
+    "test_group_COND_B": [
       "hc26",
       "hc98",
       "hc35",
@@ -28,60 +34,59 @@
     "thresholds": {
       "lfc": 0.5,
       "padj": 0.05
-    },
-    "young_donors": [
-      "hc937",
-      "hc5579",
-      "hc13344",
-      "hc935",
-      "hc5614"
-    ]
+    }
   },
   "methods": {
     "deseq2": {
-      "genomic_overlap_fraction": 0.4718326051965969,
       "lfc_pearson": 0.19477178838777487,
       "lfc_sign_agreement": 0.9538338943668265,
       "lfc_spearman": 0.7560154102070976,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 6646,
+      "n_ref_tested": 134873,
       "n_shared_tested": 134276,
-      "r_n_sig": 6646,
-      "recall_aria_in_r": 1.0,
-      "recall_r_in_aria": 0.3087571471561842,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 0.3087571471561842,
       "sig_intersection": 2052,
       "sig_jaccard": 0.3087571471561842
     },
     "edgeR_QLF": {
-      "genomic_overlap_fraction": 0.008733624454148471,
       "lfc_pearson": 0.20009258517207215,
       "lfc_sign_agreement": 0.910341386398165,
       "lfc_spearman": 0.7494100643176329,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 9,
+      "n_ref_tested": 134873,
       "n_shared_tested": 134276,
-      "r_n_sig": 9,
-      "recall_aria_in_r": 0.0043859649122807015,
-      "recall_r_in_aria": 1.0,
+      "recall_aria_in_ref": 0.0043859649122807015,
+      "recall_ref_in_aria": 1.0,
       "sig_intersection": 9,
       "sig_jaccard": 0.0043859649122807015
     },
     "limma_voom": {
-      "genomic_overlap_fraction": 0.21555845284658845,
       "lfc_pearson": 0.14723294535236067,
       "lfc_sign_agreement": 0.8026006136614138,
       "lfc_spearman": 0.6097313838220156,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 249,
+      "n_ref_tested": 134873,
       "n_shared_tested": 134276,
-      "r_n_sig": 249,
-      "recall_aria_in_r": 0.12085769980506822,
-      "recall_r_in_aria": 0.9959839357429718,
+      "recall_aria_in_ref": 0.12085769980506822,
+      "recall_ref_in_aria": 0.9959839357429718,
       "sig_intersection": 248,
       "sig_jaccard": 0.12079883097905504
     }
   },
   "provenance": {
     "aria_version": "4.6.1",
-    "git_commit": "042226f98157af9c033e1cde58641d1a4366f43c",
-    "git_describe": "v4.6.1-69-g042226f",
-    "git_dirty": false,
-    "git_sha": "042226f98157af9c033e1cde58641d1a4366f43c",
-    "git_tree_sha": "aa82f3114a8cf757ec6474b058e871f7f02cb228",
+    "git_commit": "4b6d6d9964a876f0e70cbcfaecac6e513b207bc0",
+    "git_describe": "v4.6.1-72-g4b6d6d9-dirty",
+    "git_dirty": true,
+    "git_sha": "4b6d6d9964a876f0e70cbcfaecac6e513b207bc0",
+    "git_tree_sha": "fdd64b4420ab45fba0dfb77c3c4dd567fcdfda56",
     "image": {
       "containerized": false,
       "digest": null,
@@ -93,7 +98,7 @@
     },
     "version": "4.6.1",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "90dad1f535be853da4082c4e2d5eb35b3512942cfc0590a96392e92e6cb4f314",
+    "workflow_hash": "5ffaad599b66646d857f808170f61a419a737b5eb3c18ab6ae89aa6a31ea168a",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "external_DE_framework_concordance_on_multireplicate_pseudobulk"

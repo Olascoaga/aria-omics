@@ -256,6 +256,80 @@ def motif_concordance(
 
 
 # --------------------------------------------------------------------------- #
+# Differential-accessibility LFC concordance (continuous DE-vs-DE comparison)  #
+# --------------------------------------------------------------------------- #
+
+def _spearman(a: np.ndarray, b: np.ndarray) -> float:
+    """Spearman rank correlation (pure numpy; average ranks for ties)."""
+    def _rank(x: np.ndarray) -> np.ndarray:
+        order = np.argsort(x, kind="mergesort")
+        ranks = np.empty(len(x), dtype=np.float64)
+        ranks[order] = np.arange(len(x), dtype=np.float64)
+        # average ranks within tie groups
+        sx = x[order]
+        i = 0
+        while i < len(sx):
+            j = i
+            while j + 1 < len(sx) and sx[j + 1] == sx[i]:
+                j += 1
+            if j > i:
+                ranks[order[i:j + 1]] = (i + j) / 2.0
+            i = j + 1
+        return ranks
+    if len(a) < 2:
+        return 1.0
+    ra, rb = _rank(a), _rank(b)
+    if np.std(ra) == 0 or np.std(rb) == 0:
+        return 1.0
+    return float(np.corrcoef(ra, rb)[0, 1])
+
+
+def score_da_lfc_concordance(
+    aria_lfc: dict[str, float],
+    ref_lfc: dict[str, float],
+    *,
+    aria_sig: Sequence[Any] | None = None,
+    ref_sig: Sequence[Any] | None = None,
+) -> dict[str, Any]:
+    """Concordance of two differential-accessibility results over a SHARED feature
+    space (e.g. a consensus peak universe): ARIA's pseudobulk DA vs an external DE
+    framework (edgeR/limma/DESeq2).
+
+    The threshold-independent signals are the LFC Spearman rank correlation and the
+    sign-agreement on shared peaks; significant-set overlap (Jaccard + directional
+    recall) is reported when both significant sets are provided. Effect-size mapping
+    is by peak id, so the two results must share peak ids (a consensus universe).
+    """
+    shared = [g for g in aria_lfc if g in ref_lfc]
+    out: dict[str, Any] = {
+        "n_aria_tested": len(aria_lfc),
+        "n_ref_tested": len(ref_lfc),
+        "n_shared_tested": len(shared),
+    }
+    if shared:
+        a = np.array([aria_lfc[g] for g in shared], dtype=np.float64)
+        b = np.array([ref_lfc[g] for g in shared], dtype=np.float64)
+        out["lfc_spearman"] = _spearman(a, b)
+        out["lfc_pearson"] = float(np.corrcoef(a, b)[0, 1]) if np.std(a) and np.std(b) else 1.0
+        out["lfc_sign_agreement"] = float(np.mean(np.sign(a) == np.sign(b)))
+    else:
+        out["lfc_spearman"] = None
+        out["lfc_pearson"] = None
+        out["lfc_sign_agreement"] = None
+    if aria_sig is not None and ref_sig is not None:
+        sa, sb = set(map(str, aria_sig)), set(map(str, ref_sig))
+        inter = len(sa & sb)
+        union = len(sa | sb)
+        out["n_aria_sig"] = len(sa)
+        out["n_ref_sig"] = len(sb)
+        out["sig_jaccard"] = (inter / union) if union else 1.0
+        out["sig_intersection"] = inter
+        out["recall_aria_in_ref"] = (inter / len(sa)) if sa else 1.0
+        out["recall_ref_in_aria"] = (inter / len(sb)) if sb else 1.0
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Seed stability                                                              #
 # --------------------------------------------------------------------------- #
 
