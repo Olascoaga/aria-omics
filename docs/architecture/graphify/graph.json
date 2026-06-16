@@ -7747,7 +7747,7 @@
       "label": "TaskTier",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L59"
+      "source_location": "L64"
     },
     {
       "id": "enum",
@@ -7761,161 +7761,161 @@
       "label": "ModelConfig",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L73"
+      "source_location": "L78"
     },
     {
       "id": "llm_provider_diagnose_llm_failure",
       "label": "diagnose_llm_failure()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116"
+      "source_location": "L121"
     },
     {
       "id": "aria_llm_provider_py_exception",
       "label": "Exception",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116"
+      "source_location": "L121"
     },
     {
       "id": "aria_llm_provider_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116"
+      "source_location": "L121"
     },
     {
       "id": "llm_provider_llmprovider",
       "label": "LLMProvider",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L154"
+      "source_location": "L159"
     },
     {
       "id": "llm_provider_llmprovider_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175"
+      "source_location": "L180"
     },
     {
       "id": "llm_provider_llmprovider_complete",
       "label": ".complete()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230"
+      "source_location": "L235"
     },
     {
       "id": "aria_llm_provider_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230"
+      "source_location": "L235"
     },
     {
       "id": "llm_provider_llmprovider_complete_heavy",
       "label": ".complete_heavy()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292"
+      "source_location": "L297"
     },
     {
       "id": "llm_provider_llmprovider_complete_medium",
       "label": ".complete_medium()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297"
+      "source_location": "L302"
     },
     {
       "id": "llm_provider_llmprovider_complete_light",
       "label": ".complete_light()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302"
+      "source_location": "L307"
     },
     {
       "id": "llm_provider_llmprovider_get_active_model",
       "label": ".get_active_model()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L307"
+      "source_location": "L312"
     },
     {
       "id": "llm_provider_llmprovider_call",
       "label": "._call()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314"
+      "source_location": "L319"
     },
     {
       "id": "llm_provider_llmprovider_cache_key",
       "label": "._cache_key()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455"
+      "source_location": "L460"
     },
     {
       "id": "aria_llm_provider_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455"
+      "source_location": "L460"
     },
     {
       "id": "llm_provider_llmprovider_cache_path",
       "label": "._cache_path()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L478"
+      "source_location": "L483"
     },
     {
       "id": "aria_llm_provider_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L478"
+      "source_location": "L483"
     },
     {
       "id": "llm_provider_llmprovider_cache_get",
       "label": "._cache_get()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L482"
+      "source_location": "L487"
     },
     {
       "id": "llm_provider_llmprovider_cache_put",
       "label": "._cache_put()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L503"
+      "source_location": "L508"
     },
     {
       "id": "llm_provider_llmprovider_get_context_manager",
       "label": "._get_context_manager()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L518"
+      "source_location": "L523"
     },
     {
       "id": "llm_provider_llmprovider_inject_api_keys",
       "label": "._inject_api_keys()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L529"
+      "source_location": "L534"
     },
     {
       "id": "llm_provider_llmprovider_key_env",
       "label": "._key_env()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L543"
+      "source_location": "L548"
     },
     {
       "id": "llm_provider_llmprovider_from_config",
       "label": ".from_config()",
       "file_type": "code",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L553"
+      "source_location": "L558"
     },
     {
       "id": "runtime_init",
@@ -21040,7 +21040,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -21257,7 +21257,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7sarip_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -21279,7 +21279,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_7sarip_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -27693,32 +27693,39 @@
       "source_location": "L1"
     },
     {
+      "id": "tests_test_llm_provider_fallback_test_provider_import_forces_litellm_local_cost_map",
+      "label": "test_provider_import_forces_litellm_local_cost_map()",
+      "file_type": "code",
+      "source_file": "tests/test_llm_provider_fallback.py",
+      "source_location": "L21"
+    },
+    {
       "id": "tests_test_llm_provider_fallback_test_every_tier_default_has_gemini_before_local_ollama",
       "label": "test_every_tier_default_has_gemini_before_local_ollama()",
       "file_type": "code",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L17"
+      "source_location": "L50"
     },
     {
       "id": "tests_test_llm_provider_fallback_test_diagnose_points_to_the_api_key_the_user_actually_has",
       "label": "test_diagnose_points_to_the_api_key_the_user_actually_has()",
       "file_type": "code",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L27"
+      "source_location": "L60"
     },
     {
       "id": "tests_test_llm_provider_fallback_test_seed_is_not_sent_to_providers_that_reject_it",
       "label": "test_seed_is_not_sent_to_providers_that_reject_it()",
       "file_type": "code",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L40"
+      "source_location": "L73"
     },
     {
       "id": "tests_test_llm_provider_fallback_test_diagnose_when_no_key_is_present",
       "label": "test_diagnose_when_no_key_is_present()",
       "file_type": "code",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L79"
+      "source_location": "L112"
     },
     {
       "id": "tests_test_llm_reliability",
@@ -30988,10 +30995,162 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
+    },
+    {
+      "id": "orchestrator_agent",
+      "label": "OrchestratorAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "data_audit_agent",
+      "label": "DataAuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "design_agent",
+      "label": "DesignAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "narrative_agent",
+      "label": "NarrativeAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "biological_synthesis_agent",
+      "label": "BiologicalSynthesisAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -62790,7 +62949,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L34",
+      "source_location": "L39",
       "weight": 1.0
     },
     {
@@ -62799,7 +62958,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L59",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -62808,7 +62967,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L59",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -62817,7 +62976,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L73",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -62826,7 +62985,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -62836,7 +62995,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -62846,7 +63005,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -62856,7 +63015,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L116",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -62865,7 +63024,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L154",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -62874,7 +63033,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62884,7 +63043,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62894,7 +63053,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62904,7 +63063,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62914,7 +63073,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62924,7 +63083,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L175",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -62933,7 +63092,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62943,7 +63102,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62953,7 +63112,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62963,7 +63122,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62973,7 +63132,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62983,7 +63142,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L230",
+      "source_location": "L235",
       "weight": 1.0
     },
     {
@@ -62992,7 +63151,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -63002,7 +63161,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -63012,7 +63171,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -63022,7 +63181,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -63032,7 +63191,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L292",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -63041,7 +63200,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -63051,7 +63210,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -63061,7 +63220,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -63071,7 +63230,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -63081,7 +63240,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L297",
+      "source_location": "L302",
       "weight": 1.0
     },
     {
@@ -63090,7 +63249,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -63100,7 +63259,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -63110,7 +63269,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -63120,7 +63279,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -63130,7 +63289,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L302",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -63139,7 +63298,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L307",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -63149,7 +63308,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L307",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -63159,7 +63318,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L307",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -63168,7 +63327,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63178,7 +63337,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63188,7 +63347,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63198,7 +63357,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63208,7 +63367,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63218,7 +63377,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63228,7 +63387,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63238,7 +63397,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63248,7 +63407,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63258,7 +63417,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L314",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -63267,7 +63426,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63277,7 +63436,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63287,7 +63446,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63297,7 +63456,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63307,7 +63466,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63317,7 +63476,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63327,7 +63486,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63337,7 +63496,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63347,7 +63506,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L455",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -63356,7 +63515,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L478",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -63366,7 +63525,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L478",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -63376,7 +63535,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L478",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -63385,7 +63544,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L482",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -63395,7 +63554,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L482",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -63405,7 +63564,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L482",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -63414,7 +63573,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L503",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -63424,7 +63583,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L503",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -63434,7 +63593,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L503",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -63443,7 +63602,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L518",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -63453,7 +63612,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L518",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -63462,7 +63621,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L529",
+      "source_location": "L534",
       "weight": 1.0
     },
     {
@@ -63471,7 +63630,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L543",
+      "source_location": "L548",
       "weight": 1.0
     },
     {
@@ -63481,7 +63640,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L543",
+      "source_location": "L548",
       "weight": 1.0
     },
     {
@@ -63491,7 +63650,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L543",
+      "source_location": "L548",
       "weight": 1.0
     },
     {
@@ -63500,7 +63659,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L553",
+      "source_location": "L558",
       "weight": 1.0
     },
     {
@@ -63510,7 +63669,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L553",
+      "source_location": "L558",
       "weight": 1.0
     },
     {
@@ -63520,7 +63679,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L200",
+      "source_location": "L205",
       "weight": 1.0
     },
     {
@@ -63530,7 +63689,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L219",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -63540,7 +63699,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L271",
+      "source_location": "L276",
       "weight": 1.0
     },
     {
@@ -63550,7 +63709,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L294",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -63560,7 +63719,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L299",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -63570,7 +63729,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L304",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -63580,7 +63739,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L347",
+      "source_location": "L352",
       "weight": 1.0
     },
     {
@@ -63590,7 +63749,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L356",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -63600,7 +63759,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L377",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -63610,7 +63769,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L415",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -63620,7 +63779,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L449",
+      "source_location": "L454",
       "weight": 1.0
     },
     {
@@ -63630,7 +63789,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L484",
+      "source_location": "L489",
       "weight": 1.0
     },
     {
@@ -63640,7 +63799,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L505",
+      "source_location": "L510",
       "weight": 1.0
     },
     {
@@ -63650,7 +63809,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L576",
+      "source_location": "L581",
       "weight": 1.0
     },
     {
@@ -63660,7 +63819,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L602",
+      "source_location": "L607",
       "weight": 1.0
     },
     {
@@ -95081,7 +95240,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -95134,7 +95293,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95144,7 +95303,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95154,7 +95313,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95164,7 +95323,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95174,7 +95333,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95497,7 +95656,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_7sarip_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -95506,7 +95665,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_7sarip_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -95541,7 +95700,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -95551,7 +95710,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_7sarip_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ccexgk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106130,11 +106289,20 @@
     },
     {
       "source": "tests_test_llm_provider_fallback",
+      "target": "tests_test_llm_provider_fallback_test_provider_import_forces_litellm_local_cost_map",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_llm_provider_fallback.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_llm_provider_fallback",
       "target": "tests_test_llm_provider_fallback_test_every_tier_default_has_gemini_before_local_ollama",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L17",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -106143,7 +106311,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L27",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -106152,7 +106320,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L40",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -106161,7 +106329,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L79",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -115086,7 +115254,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L35",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -115096,7 +115264,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L35",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -115106,7 +115274,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L36",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -115116,7 +115284,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L37",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -115126,7 +115294,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/llm/provider.py",
-      "source_location": "L38",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -119956,7 +120124,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L14",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -119966,7 +120134,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L14",
+      "source_location": "L18",
       "weight": 1.0
     },
     {
@@ -128166,7 +128334,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L31",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -128176,7 +128344,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
-      "source_location": "L83",
+      "source_location": "L116",
       "weight": 1.0
     },
     {
@@ -131187,7 +131355,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/llm/provider.py",
-      "source_location": "L181",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -131198,7 +131366,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/llm/provider.py",
-      "source_location": "L182",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -131209,7 +131377,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/llm/provider.py",
-      "source_location": "L359",
+      "source_location": "L364",
       "weight": 1.0
     },
     {
@@ -131220,7 +131388,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/llm/provider.py",
-      "source_location": "L521",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -131231,7 +131399,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/llm/provider.py",
-      "source_location": "L526",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -131387,8 +131555,110 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3727",
       "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "design_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "structure_only": true
 }
