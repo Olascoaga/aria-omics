@@ -5895,6 +5895,69 @@
       "source_location": "L1"
     },
     {
+      "id": "benchmarks_b2_annotation",
+      "label": "b2_annotation.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_b2_annotation_export_labeling_sheet",
+      "label": "export_labeling_sheet()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "aria_benchmarks_b2_annotation_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "aria_benchmarks_b2_annotation_py_object",
+      "label": "object",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "benchmarks_b2_annotation_load_annotations",
+      "label": "load_annotations()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "benchmarks_b2_annotation_shared_ids",
+      "label": "_shared_ids()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "benchmarks_b2_annotation_cohen_kappa",
+      "label": "cohen_kappa()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "benchmarks_b2_annotation_krippendorff_alpha",
+      "label": "krippendorff_alpha()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101"
+    },
+    {
+      "id": "benchmarks_b2_annotation_adjudicate",
+      "label": "adjudicate()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141"
+    },
+    {
       "id": "benchmarks_concordance_atac",
       "label": "concordance_atac.py",
       "file_type": "code",
@@ -21782,7 +21845,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -22027,7 +22090,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -22049,7 +22112,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22952,6 +23015,55 @@
       "file_type": "code",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L47"
+    },
+    {
+      "id": "tests_test_b2_annotation",
+      "label": "test_b2_annotation.py",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_export_sheet_is_blind_and_round_trips",
+      "label": "test_export_sheet_is_blind_and_round_trips()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_load_annotations_skips_blank_and_validates",
+      "label": "test_load_annotations_skips_blank_and_validates()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_cohen_kappa_perfect_and_chance",
+      "label": "test_cohen_kappa_perfect_and_chance()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_krippendorff_alpha_perfect_agreement",
+      "label": "test_krippendorff_alpha_perfect_agreement()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_adjudicate_unanimous_majority_tie_and_override",
+      "label": "test_adjudicate_unanimous_majority_tie_and_override()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "tests_test_b2_annotation_test_taxonomy_is_the_single_source",
+      "label": "test_taxonomy_is_the_single_source()",
+      "file_type": "code",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L70"
     },
     {
       "id": "tests_test_benchmark_a1_external_comparators",
@@ -54855,6 +54967,350 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/setup_agent.py",
       "source_location": "L707",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_export_labeling_sheet",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_export_labeling_sheet",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_export_labeling_sheet",
+      "target": "aria_benchmarks_b2_annotation_py_object",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_export_labeling_sheet",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_load_annotations",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_load_annotations",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_load_annotations",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_load_annotations",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_shared_ids",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_shared_ids",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_shared_ids",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_shared_ids",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_shared_ids",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_shared_ids",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_cohen_kappa",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "aria_benchmarks_b2_annotation_py_object",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_krippendorff_alpha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_krippendorff_alpha",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_krippendorff_alpha",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_krippendorff_alpha",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_krippendorff_alpha",
+      "target": "aria_benchmarks_b2_annotation_py_object",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation",
+      "target": "benchmarks_b2_annotation_adjudicate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_adjudicate",
+      "target": "aria_benchmarks_b2_annotation_py_object",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_b2_annotation_cohen_kappa",
+      "target": "benchmarks_b2_annotation_shared_ids",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/b2_annotation.py",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -97294,7 +97750,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -97347,7 +97803,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97357,7 +97813,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97367,7 +97823,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97377,7 +97833,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97387,7 +97843,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97739,7 +98195,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -97748,7 +98204,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -97783,7 +98239,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -97793,7 +98249,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ibyobp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zlepxs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -99125,6 +99581,60 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_export_sheet_is_blind_and_round_trips",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_load_annotations_skips_blank_and_validates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_cohen_kappa_perfect_and_chance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_krippendorff_alpha_perfect_agreement",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_adjudicate_unanimous_majority_tie_and_override",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "tests_test_b2_annotation_test_taxonomy_is_the_single_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -119609,6 +120119,56 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_b2_annotation",
+      "target": "benchmarks_b2_annotation_export_labeling_sheet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "benchmarks_b2_annotation_load_annotations",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "benchmarks_b2_annotation_cohen_kappa",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "benchmarks_b2_annotation_krippendorff_alpha",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation",
+      "target": "benchmarks_b2_annotation_adjudicate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_benchmark_a1_external_comparators",
       "target": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
       "relation": "imports",
@@ -126186,6 +126746,56 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_assay_detector_fastq.py",
       "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation_test_export_sheet_is_blind_and_round_trips",
+      "target": "benchmarks_b2_annotation_export_labeling_sheet",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation_test_load_annotations_skips_blank_and_validates",
+      "target": "benchmarks_b2_annotation_load_annotations",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation_test_cohen_kappa_perfect_and_chance",
+      "target": "benchmarks_b2_annotation_cohen_kappa",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation_test_krippendorff_alpha_perfect_agreement",
+      "target": "benchmarks_b2_annotation_krippendorff_alpha",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_b2_annotation_test_adjudicate_unanimous_majority_tie_and_override",
+      "target": "benchmarks_b2_annotation_adjudicate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_b2_annotation.py",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
