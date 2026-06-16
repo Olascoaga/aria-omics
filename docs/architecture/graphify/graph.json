@@ -22062,7 +22062,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -22307,7 +22307,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -22329,7 +22329,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -22644,6 +22644,48 @@
       "file_type": "code",
       "source_file": "scripts/run_b1_design_governance.py",
       "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit",
+      "label": "run_b2_annotation_kit.py",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit_export",
+      "label": "_export()",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit_score",
+      "label": "_score()",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "scripts_run_b2_annotation_kit_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L78"
     },
     {
       "id": "scripts_run_b2_claim_narrative",
@@ -98378,7 +98420,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -98431,7 +98473,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98441,7 +98483,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98451,7 +98493,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98461,7 +98503,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98471,7 +98513,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98823,7 +98865,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -98832,7 +98874,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -98867,7 +98909,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -98877,7 +98919,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_qv03rw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kjxqsx_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -99233,6 +99275,73 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_b1_design_governance.py",
       "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "scripts_run_b2_annotation_kit_export",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_export",
+      "target": "scripts_run_b2_annotation_kit_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "scripts_run_b2_annotation_kit_score",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_score",
+      "target": "scripts_run_b2_annotation_kit_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "scripts_run_b2_annotation_kit_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_main",
+      "target": "scripts_run_b2_annotation_kit_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_main",
+      "target": "scripts_run_b2_annotation_kit_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -120614,6 +120723,66 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_governance_b2_corpus_rows_for_labeling",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_b2_annotation_export_labeling_sheet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_b2_annotation_load_annotations",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_b2_annotation_cohen_kappa",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_b2_annotation_krippendorff_alpha",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit",
+      "target": "benchmarks_b2_annotation_adjudicate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_b2_claim_narrative",
       "target": "benchmarks_governance_b2_run_b2_benchmark",
       "relation": "imports",
@@ -127231,6 +127400,66 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_b1_design_governance.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_export",
+      "target": "benchmarks_b2_annotation_export_labeling_sheet",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_export",
+      "target": "benchmarks_governance_b2_corpus_rows_for_labeling",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_score",
+      "target": "benchmarks_b2_annotation_load_annotations",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_score",
+      "target": "benchmarks_b2_annotation_cohen_kappa",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_score",
+      "target": "benchmarks_b2_annotation_krippendorff_alpha",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_b2_annotation_kit_score",
+      "target": "benchmarks_b2_annotation_adjudicate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_b2_annotation_kit.py",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
