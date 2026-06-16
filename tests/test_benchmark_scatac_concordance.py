@@ -111,6 +111,24 @@ def test_score_concordance_is_not_run_without_external_outputs():
     assert "cluster_concordance" not in res or res.get("cluster_concordance") is None
 
 
+def test_score_concordance_intrinsic_only_with_seeds_no_external():
+    from aria.benchmarks.concordance_atac import score_atac_concordance
+
+    aria = {
+        "clusters": [0, 0, 1, 1, 2, 2],
+        "cluster_seeds": [[0, 0, 1, 1, 2, 2], [0, 0, 1, 1, 2, 2], [2, 2, 0, 0, 1, 1]],
+        "da_peaks": ["chr1:1-2"],
+        "motifs": ["MOTIF_A"],
+    }
+    res = score_atac_concordance(aria, external=None, tool="SnapATAC2")
+    # ARIA-intrinsic seed stability does not need a comparator; cross-tool axes do.
+    assert res["status"] == "intrinsic_only"
+    assert res["seed_stability"]["mean_pairwise_ari"] == pytest.approx(1.0)
+    assert res.get("cluster_concordance") is None
+    assert res.get("da_peak_concordance") is None
+    assert "reason" in res
+
+
 def test_score_concordance_success_with_paired_outputs():
     from aria.benchmarks.concordance_atac import score_atac_concordance
 
@@ -160,6 +178,31 @@ def test_runner_honest_not_run_when_external_outputs_missing(tmp_path):
     })
     assert res["status"] == "not_run"
     assert res["error_type"] == "MissingDependency"
+
+
+def test_runner_intrinsic_only_when_seeds_present_but_no_external(tmp_path):
+    from aria.scripts.benchmark_scatac_concordance import benchmark_scatac_concordance
+
+    aria_json = tmp_path / "aria.json"
+    aria_json.write_text(json.dumps({
+        "clusters": [0, 0, 1, 1, 2, 2],
+        "cluster_seeds": [[0, 0, 1, 1, 2, 2], [2, 2, 0, 0, 1, 1]],
+        "da_peaks": ["chr1:1-2"],
+        "motifs": ["MOTIF_A"],
+    }), encoding="utf-8")
+
+    res = benchmark_scatac_concordance({
+        "aria_outputs_json": str(aria_json),
+        "external_outputs_json": str(tmp_path / "absent.json"),
+        "tool": "SnapATAC2",
+        "output_dir": str(tmp_path),
+    })
+    assert res["status"] == "intrinsic_only"
+    assert res["seed_stability"]["mean_pairwise_ari"] == pytest.approx(1.0)
+    assert res["cluster_concordance"] is None
+    assert res["inputs"]["external_tool_present"] is False
+    assert res["inputs"]["n_cluster_seeds"] == 2
+    assert Path(tmp_path / Path(res["artifacts"]["manifest_json"]).name).exists()
 
 
 def test_runner_scores_paired_outputs_and_writes_manifest(tmp_path):

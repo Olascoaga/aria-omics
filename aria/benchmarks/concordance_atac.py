@@ -317,6 +317,18 @@ def score_atac_concordance(
     missing comparator never reads as perfect agreement (ADR-002).
     """
     if not external:
+        # ARIA-intrinsic seed stability needs no comparator; cross-tool axes do.
+        aria_seeds = aria.get("cluster_seeds")
+        if aria_seeds:
+            res = ConcordanceResult(
+                status="intrinsic_only", tool=tool,
+                reason=(f"no {tool} outputs provided; only ARIA-intrinsic "
+                        "seed-stability scored. Cross-tool concordance "
+                        "(cluster/DA/motif) needs the external comparator in "
+                        "aria-bench-env (P3b)."),
+            )
+            res.seed_stability = seed_stability(aria_seeds)
+            return res.to_manifest()
         return ConcordanceResult(
             status="not_run", tool=tool,
             reason=(f"no {tool} outputs provided; the external comparator "

@@ -48,7 +48,10 @@ def benchmark_scatac_concordance(params: dict) -> dict:
             "reason": "ARIA scATAC outputs JSON missing or unreadable "
                       "(expected clusters/da_peaks/motifs).",
         }
-    if external is None:
+    # With no comparator, cross-tool concordance cannot run — but ARIA-intrinsic
+    # seed-stability still can if the ARIA outputs carry `cluster_seeds`. Only
+    # short-circuit to a hard MissingDependency when there is nothing to score.
+    if external is None and not aria.get("cluster_seeds"):
         return {
             "status": "not_run",
             "error_type": "MissingDependency",
@@ -67,6 +70,15 @@ def benchmark_scatac_concordance(params: dict) -> dict:
     manifest["benchmark"] = "P3a_scatac_external_concordance"
     manifest["benchmark_version"] = "v1"
     manifest["scope"] = "external_tool_concordance"
+    manifest["inputs"] = {
+        "dataset": aria.get("dataset"),
+        "modality": aria.get("modality"),
+        "n_cells": len(aria.get("clusters") or []),
+        "n_cluster_seeds": len(aria.get("cluster_seeds") or []),
+        "n_da_peaks": len(aria.get("da_peaks") or []),
+        "n_motifs": len(aria.get("motifs") or []),
+        "external_tool_present": external is not None,
+    }
     manifest.setdefault("messages", []).append(
         "P3a scores ARIA scATAC outputs against an external tool's outputs "
         "(cluster ARI/NMI, DA-peak genomic overlap, motif top-k/RBO). It is "

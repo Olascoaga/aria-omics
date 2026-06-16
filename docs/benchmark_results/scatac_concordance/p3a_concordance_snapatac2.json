@@ -1,0 +1,54 @@
+{
+  "aria_version": "4.6.1",
+  "artifacts": {
+    "manifest_json": "docs/benchmark_results/scatac_concordance/p3a_concordance_snapatac2.json"
+  },
+  "benchmark": "P3a_scatac_external_concordance",
+  "benchmark_version": "v1",
+  "cluster_concordance": null,
+  "da_peak_concordance": null,
+  "inputs": {
+    "dataset": "HC11_hippocampus_GRCh38",
+    "external_tool_present": false,
+    "modality": "scATAC",
+    "n_cells": 3143,
+    "n_cluster_seeds": 3,
+    "n_da_peaks": 13246,
+    "n_motifs": 50
+  },
+  "messages": [
+    "P3a scores ARIA scATAC outputs against an external tool's outputs (cluster ARI/NMI, DA-peak genomic overlap, motif top-k/RBO). It is execution/concordance evidence, NOT a de-alpha of the scATAC modality."
+  ],
+  "motif_concordance": null,
+  "provenance": {
+    "aria_version": "4.6.1",
+    "git_commit": "b7249aaf65375ba63e4233f5cc875d60880be1bd",
+    "git_describe": "v4.6.1-62-gb7249aa-dirty",
+    "git_dirty": true,
+    "git_sha": "b7249aaf65375ba63e4233f5cc875d60880be1bd",
+    "git_tree_sha": "1db28dd36e52a6803d0a0a7dd1e1b208249260e1",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.6.1",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "13717f860b48f5a5cb2228660d544eca0a7bea7734ba9e2ddcd3dfc53d42282e",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "reason": "no SnapATAC2 outputs provided; only ARIA-intrinsic seed-stability scored. Cross-tool concordance (cluster/DA/motif) needs the external comparator in aria-bench-env (P3b).",
+  "scope": "external_tool_concordance",
+  "seed_stability": {
+    "mean_pairwise_ari": 0.7136957515072394,
+    "min_pairwise_ari": 0.687786020924262,
+    "n_pairs": 3,
+    "n_seeds": 3
+  },
+  "status": "intrinsic_only",
+  "tool": "SnapATAC2"
+}
