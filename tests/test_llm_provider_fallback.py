@@ -5,13 +5,46 @@ Gemini (only HEAVY did), so a Gemini-only user fell through to the dead local
 Ollama; (2) the failure surfaced as a raw traceback instead of an actionable hint.
 """
 
-import importlib
+import os
+import subprocess
+import sys
+from pathlib import Path
 
 import pytest
 
+os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 pytest.importorskip("litellm")
 
 from aria.llm.provider import DEFAULT_MODELS, TaskTier, diagnose_llm_failure
+
+
+def test_provider_import_forces_litellm_local_cost_map():
+    repo_root = Path(__file__).resolve().parents[1]
+    env = os.environ.copy()
+    env.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
+    env["PYTHONPATH"] = str(repo_root)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import os; "
+                "os.environ.pop('LITELLM_LOCAL_MODEL_COST_MAP', None); "
+                "import aria.llm.provider; "
+                "print(os.environ.get('LITELLM_LOCAL_MODEL_COST_MAP'))"
+            ),
+        ],
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=20,
+        check=False,
+    )
+    combined = result.stdout + result.stderr
+    assert result.returncode == 0, combined
+    assert result.stdout.strip().splitlines()[-1] == "True"
+    assert "Failed to fetch remote model cost map" not in combined
 
 
 def test_every_tier_default_has_gemini_before_local_ollama():

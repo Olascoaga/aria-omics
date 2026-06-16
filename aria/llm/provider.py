@@ -28,6 +28,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+# LiteLLM otherwise tries to refresh its model cost map from GitHub at import
+# time. ARIA startup must not perform implicit egress; the bundled map is enough
+# for provenance/cost estimates, and real LLM calls remain governed separately.
+os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
+
 import litellm
 from litellm import completion
 
