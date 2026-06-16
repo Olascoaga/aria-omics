@@ -437,8 +437,16 @@ Use these tests as impact anchors when editing the graph's major nodes:
   `governance_b4.py` (B4 null narrative) + `governance_b2.py` (B2 claim, prelim)
   drive the REAL `verify_block_claim_support` + `classify_claim` + causal guard
   (`validators.validate_block`): B4 fabricated-narrative rate 0.0 on null
-  evidence; B2 false-narrative 0.4→0.1 and causal-overreach 1.0→0.0 vs an
-  ungoverned arm. These benchmarks call ARIA's governance as the system under
+  evidence; **B2 v2 (4-arm, multimodal):** 48 hand-labelled claims across bulk DE /
+  scRNA pseudobulk / pathway / scATAC DA / trajectory / cell-comm, scored over four
+  arms (naive-LLM / guards-off / governed / template-only) on THREE axes — false
+  narrative 0.375 (naive) → 0.125 (guards-off, structure blocks fabrication) → 0.104
+  (governed); causal overreach 1.0 → 1.0 → 0.0 (the GUARDS, not structure, kill
+  causal); informative coverage governed 0.833 vs template-only 0.667 (governance
+  preserves interpretation, not just censors). Governed is `guards_off AND` the real
+  guards, so it is provably a SUBSET of guards_off (full system never worse than its
+  ablation). The governed arm runs ARIA for real; the other three are DISCLOSED
+  deterministic policies (`B2_RUBRIC.md`). These benchmarks call ARIA's governance as the system under
   test against independent hand-labels; do not let the scorer become ARIA's own
   Claim Compiler judging itself. **B2 preprint scaffolding (2026-06-15):**
   `aria/benchmarks/b2_annotation.py` is the pure multi-annotator kit for the FULL
@@ -448,8 +456,10 @@ Use these tests as impact anchors when editing the graph's major nodes:
   agreement), `adjudicate` (unanimous/majority/needs_adjudication + adjudicator
   override). Single-source taxonomy `B2_LABELS` matches `governance_b2` +
   `docs/benchmark_results/b2_claim/B2_RUBRIC.md`. Guard `tests/test_b2_annotation.py`.
-  Still TODO for the preprint: expand the corpus to 50-100 claims across modalities
-  and finalize the 4-arm ablation (naive-LLM / guards-off / governed / template-only).
+  Corpus expansion (48 multimodal claims) + the 4-arm ablation are DONE (see the B2
+  v2 entry above); `corpus_rows_for_labeling` feeds `export_labeling_sheet`. Remaining
+  preprint work: ≥2 humans label the blind sheets, adjudicate, and the κ/α + final
+  gold replace the scaffold's inline labels.
   Runners `scripts/run_b{1,2,4}_*.py`; guards
   `tests/test_benchmark_b{1,2,4}_*.py` in the CI PR lane; artifacts
   `docs/benchmark_results/b{1,2,4}_*/`. ADR-040.
