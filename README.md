@@ -4,7 +4,7 @@
 
 > *You ask the biological question. ARIA does the rest.*
 
-![Version](https://img.shields.io/badge/version-4.6.1-blue)
+![Version](https://img.shields.io/badge/version-4.7.0-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -32,8 +32,11 @@ decisions, and writes a report grounded in real output files.
   summaries (PAGA plus DPT only when a defensible root is available), LIANA
   cell-cell communication, processed `.h5ad` recovery, and GEO/SRA connector
   paths.
-- **Alpha:** scATAC-seq matrix workflows, dispatch-gated behind explicit
-  acknowledgement.
+- **Beta (requires acknowledgement):** scATAC-seq matrix workflow — QC/clustering,
+  motif enrichment, and the replicate-gated pseudobulk condition-DA lane are
+  beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with SnapATAC2
+  and edgeR/limma/DESeq2); the per-cluster Wilcoxon marker path stays caveated as
+  single-sample-fragile. Dispatch-gated behind explicit acknowledgement.
 - **Scaffolded / roadmap:** bulk ATAC-seq, ChIP-seq, CUT&RUN / CUT&TAG, full
   Hi-C / Micro-C workflows, and multimodal WNN/MOFA+ integration.
 
@@ -122,11 +125,11 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_trajectory.py (PAGA + root-gated DPT)
                                       beta — validated on hippocampus subset
   rna_cellcomm.py (LIANA)          beta — validated on GSE278576
-ChromatinAgent                     alpha — scATAC dispatch requires explicit ack
+ChromatinAgent                     beta — scATAC dispatch requires explicit ack (ADR-048)
   chromatin_qc.py                  done — measured-only QC (no fabricated TSS/FRiP)
-  chromatin_lsi_clustering.py      alpha — TF-IDF/LSI clustering on peak matrices
-  chromatin_diffacc.py             alpha — per-cluster DA + gated pseudobulk DA
-  chromatin_motifs.py              alpha — local motif enrichment when resources exist
+  chromatin_lsi_clustering.py      beta — TF-IDF/LSI clustering (SnapATAC2-concordant)
+  chromatin_diffacc.py             beta — replicate-gated pseudobulk DA (edgeR/limma/DESeq2-concordant); per-cluster Wilcoxon markers caveated
+  chromatin_motifs.py              beta — local motif enrichment when resources exist
   chromatin_peaks.py (MACS3)       scaffolded
 GenomeArchAgent                    scaffolded — dispatch OFF by default
   hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
@@ -142,12 +145,13 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current release baseline is `v4.6`: bulk RNA + scRNA core paths are closed
+The current release baseline is `v4.7.0`: bulk RNA + scRNA core paths are closed
 for practical use, publication-readiness provenance is embedded in reports,
 raw-ingestion planning/conversion is available for supported 10X inputs,
-reports are composed from validated modality blocks for scRNA and bulk RNA, and
-the scATAC matrix workflow is available as an alpha path behind explicit
-acknowledgement.
+reports are composed from validated modality blocks for scRNA and bulk RNA, the
+interactive "ARIA Control Center" (Textual TUI) is opt-in over the canonical
+headless path, and the scATAC matrix workflow is a scoped **beta** path behind
+explicit acknowledgement (de-alpha in v4.7.0 / ADR-048).
 
 `v4.5.3` tagged the pre-ATAC integrity freeze: centralized version metadata,
 installer secret hygiene, registry-integrity checks, scaffold dispatch gating,

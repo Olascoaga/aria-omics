@@ -43,7 +43,7 @@ These changes explain why the `main` branch may be stricter than older reports:
 | scRNA W-CLAIM verification | Done | Diagnostic/error scRNA blocks, age-bin labels, thousands separators, LIANA tool names, and word-boundary analysis-family matching are handled without rejecting valid report text or accepting unsupported scientific claims |
 | Anti-hardcode cleanup | Done | Runtime ligand-receptor fallback biology, MOFA cell-cycle mock biology, peak-to-gene mechanism labels from correlation sign, dataset/gene examples in production docstrings, and prose-derived CellTypist tissue hints were removed or gated |
 | scRNA biological synthesis | Done | `BiologicalSynthesisAgent` now emits RNA-only scRNA integrated discussion blocks from measured pseudobulk, ORA, abundance, LIANA, trajectory, and reliability summaries; it remains data-only and makes no RNA+ATAC claims |
-| Chromatin scATAC alpha lane | Done for alpha | The scATAC matrix path is dispatchable behind explicit acknowledgement: measured QC, TF-IDF/LSI clustering, per-cluster DA, replicate-gated pseudobulk DA, local motif enrichment when resources exist, and chromatin narrative blocks. The modality remains alpha, not publication-grade autonomy |
+| Chromatin scATAC beta lane (ADR-048) | Done for beta | De-alpha'd in v4.7.0: scATAC QC/clustering, motif, and the replicate-gated pseudobulk condition-DA lane are beta-grade — externally concordant with SnapATAC2 (HC11 cluster ARI 0.532/NMI 0.669) and with edgeR-QLF/limma-voom/R-DESeq2 (5 young vs 5 old GSE278576 donors: ARIA ⊆ R-DESeq2 recall 1.000, LFC Spearman 0.61-0.76). Still dispatchable only behind explicit acknowledgement (`requires_ack`). The per-cluster Wilcoxon marker path stays caveated as single-sample-fragile; not publication-grade autonomy |
 | scRNA-lane production audit | Done | Closed B-PB1, B-DD1, B-QC1/B-QC2, A-MARK1, A-CMT1/A-CLUST1, and B-TRAJ1. Production pseudobulk uses raw QC counts, marker claims remain descriptive, QC is data-intrinsic, and DPT is skipped with `root_unresolved` when no defensible root exists |
 | scRNA annotation/integration audit | Done | Closed N-ANNO1/N-ANNO2/N-ANNO3, N-QC1, and N-INT1. CellTypist confidence is genuine, low-confidence cell-type labels cap pseudobulk block confidence, default immune model fallback is disclosed, count-MAD QC is log-space, and destructive integration overcorrection is blocking |
 | scRNA production E2E verification | Done | Real raw 10X pbmc3k runs verified the above report surfaces. Raw 10X MEX directories are collapsed to one sample, QC failures render as errors, and multi-donor pseudobulk verified `count_source=raw_counts` with the handoff |
@@ -80,16 +80,14 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | Trajectory: PAGA + root-gated DPT | Beta | PAGA validated on hippocampus subset; DPT requires precomputed `iroot`, an explicit matching root label, or a generic progenitor/stem/precursor label. If no root is available, pseudotime is skipped with `root_unresolved`; trajectory remains exploratory, not causal |
 | Cell-cell communication: LIANA | Beta | Validated on GSE278576 annotated h5ad; `n_perms=1000` default for stable ranks |
 | GEO/SRA connector | Beta | GSE183948 path validated; multi-organism (spike-in) organism inference added; public metadata remains heterogeneous |
+| scATAC-seq matrix workflow (de-alpha v4.7.0 / ADR-048) | Beta + requires acknowledgement | Scoped beta: QC/clustering, motif, and the replicate-gated pseudobulk condition-DA lane are externally concordant (SnapATAC2 on HC11; edgeR-QLF/limma-voom/R-DESeq2 on 5v5 GSE278576 donors — ARIA ⊆ R-DESeq2 recall 1.000, LFC Spearman 0.61-0.76). The per-cluster Wilcoxon marker path stays caveated as single-sample-fragile. P2 regulatory layers (motif activity, gene scores, peak-to-gene, label-transfer hypotheses) are input-gated; Tn5 footprinting refuses uncorrected output (honest not-run). Stable promotion still needs independent expert review of biological conclusions |
 
 ## Alpha
 
-Alpha modalities can dispatch only behind explicit acknowledgement and remain
-review-required. They must surface missing resources, low replication, and
-skipped lanes rather than fabricating output.
-
-| Area | Status | Required before stable |
-|---|---|---|
-| scATAC-seq matrix workflow | Alpha + requires acknowledgement | Expert review of biological conclusions; broader fixtures and datasets; P2 regulatory layers are now input-gated alpha outputs (motif activity, gene scores, peak-to-gene, label-transfer hypotheses; Tn5 footprinting refuses uncorrected output and remains an honest not-run until the corrected backend lands); stable promotion requires independent review beyond the current HC11/synthetic/multi-sample validation evidence |
+No modalities are currently at alpha: scATAC was promoted to scoped **beta** in
+v4.7.0 (ADR-048). Any future alpha modality dispatches only behind explicit
+acknowledgement, remains review-required, and must surface missing resources, low
+replication, and skipped lanes rather than fabricating output.
 
 ## Scaffolded / Roadmap
 
@@ -109,12 +107,17 @@ Chromatin QC (`chromatin_qc.py`) emits only measured metrics. TSS enrichment and
 FRiP are real when their inputs/resources exist and otherwise remain null with a
 concrete skip reason, never a fabricated placeholder.
 
-The v4.6 scATAC lane has been exercised on the local HC11 validation input
+The scATAC lane has been exercised on the local HC11 validation input
 (`hc11_paired.h5mu`): ARIA reads ATAC modality `atac`, reports real dimensions
 of 3,143 cells x 60,990 peaks, runs TF-IDF/LSI clustering, performs honest
 single-sample DA where possible, and returns pseudobulk DA as skipped when
-replicates/condition metadata are absent. Synthetic and real multi-sample
-validation cover the pseudobulk DA execution path, but scATAC remains alpha.
+replicates/condition metadata are absent. The de-alpha to beta (v4.7.0 / ADR-048)
+rests on external concordance: SnapATAC2 on HC11 (cluster ARI 0.532/NMI 0.669) and
+a multi-replicate pseudobulk DA validation against edgeR-QLF/limma-voom/R-DESeq2 (5
+young vs 5 old GSE278576 donors over a genomic-overlap consensus peak universe;
+ARIA's 2,052 DA peaks ⊆ R-DESeq2's 6,646, LFC Spearman 0.61-0.76). The per-cluster
+Wilcoxon marker path stays caveated as single-sample-fragile; scATAC is beta +
+`requires_ack`, not autonomous publication-grade.
 
 ## Report Release Gate
 
