@@ -1,0 +1,31 @@
+name: aria-tobias-env
+
+# External Tn5-bias-corrected footprinting environment for the scATAC P4.3 lane
+# (TOBIAS: ATACorrect -> ScoreBigwig -> BINDetect differential TF binding).
+# Kept in its own env (like aria-bench-atac-env for SnapATAC2 and
+# aria-bench-signac-env for Signac): TOBIAS pins its own numpy/pysam/pybigwig
+# stack and must not disturb any validated production or comparator lock.
+#
+# The footprinting backend (wired into chromatin_regulatory._footprinting) runs
+# TOBIAS over pseudobulk-per-cell-type BAMs built from the ATAC fragments
+# (aria/scripts/chromatin_footprint_tobias.py), corrects the Tn5 insertion bias
+# (ATACorrect), scores footprints (ScoreBigwig), and calls differential TF
+# binding between two cell-type groups (BINDetect). It is import-gated + honest
+# not_run when TOBIAS / the genome FASTA / the motif collection is absent
+# (ADR-002: no uncorrected footprints, no fabricated scores). Motifs reuse ARIA's
+# staged JASPAR2024 MEME collection; the genome FASTA resolves via ARIA_GENOME_FASTA.
+#
+# scATAC stays beta + requires_ack; this is the P4.3 differentiator scaffold.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.10
+  - tobias
+  - samtools
+  - pysam
+  - pybigwig
+  - numpy

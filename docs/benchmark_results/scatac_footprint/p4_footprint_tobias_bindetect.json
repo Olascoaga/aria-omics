@@ -1,0 +1,235 @@
+{
+  "aria_version": "4.7.0",
+  "benchmark": "P4.3_footprint_tobias_bindetect",
+  "caveats": [
+    "Differential TF binding is an associative footprint-signal difference between cell-type groups, not causal regulation.",
+    "Footprints are Tn5-bias-corrected (ATACorrect); single-cell footprinting is noisy so groups are pseudobulk.",
+    "Cell-type groups are marker-derived from the paired RNA (benchmark prep); the driver itself is dataset-agnostic (consumes any barcode->group TSV)."
+  ],
+  "dataset": "pbmc_multiome_10k",
+  "design": {
+    "contrast": "Monocyte_vs_T_cell",
+    "feature_space": "called peaks (ATACorrect restricted to peaks)",
+    "group_a": "Monocyte",
+    "group_b": "T_cell",
+    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (Tn5-bias-corrected footprinting, pseudobulk per cell type)",
+    "motifs": "JASPAR2024 CORE vertebrates (MEME)",
+    "n_fragments_per_group": {
+      "Monocyte": 84045345,
+      "T_cell": 64775737
+    }
+  },
+  "differential_summary": {
+    "n_motifs_tested": 879,
+    "n_significant": 873,
+    "parsed": true,
+    "top_toward_Monocyte": [
+      {
+        "change": 1.0218,
+        "n_sites": 9456,
+        "pvalue": 1.32562e-203,
+        "tf": "CEBPE"
+      },
+      {
+        "change": 1.0102,
+        "n_sites": 8987,
+        "pvalue": 6.1391e-195,
+        "tf": "CEBPB"
+      },
+      {
+        "change": 0.9667,
+        "n_sites": 13697,
+        "pvalue": 1.57668e-204,
+        "tf": "CEBPG"
+      },
+      {
+        "change": 0.6561,
+        "n_sites": 37461,
+        "pvalue": 1.77845e-212,
+        "tf": "CEBPA"
+      },
+      {
+        "change": 0.5985,
+        "n_sites": 36115,
+        "pvalue": 1.18537e-204,
+        "tf": "CEBPG"
+      },
+      {
+        "change": 0.5884,
+        "n_sites": 28852,
+        "pvalue": 8.2044e-200,
+        "tf": "CEBPD"
+      },
+      {
+        "change": 0.5395,
+        "n_sites": 70847,
+        "pvalue": 4.20665e-223,
+        "tf": "SPIC"
+      },
+      {
+        "change": 0.5374,
+        "n_sites": 11150,
+        "pvalue": 1.40202e-174,
+        "tf": "DBP"
+      },
+      {
+        "change": 0.5287,
+        "n_sites": 24242,
+        "pvalue": 1.88856e-195,
+        "tf": "HLF"
+      },
+      {
+        "change": 0.4971,
+        "n_sites": 30621,
+        "pvalue": 1.00943e-195,
+        "tf": "ATF4"
+      },
+      {
+        "change": 0.478,
+        "n_sites": 27612,
+        "pvalue": 4.46755e-186,
+        "tf": "NFIL3"
+      },
+      {
+        "change": 0.4779,
+        "n_sites": 25363,
+        "pvalue": 1.44393e-188,
+        "tf": "FOSL2::JUND"
+      },
+      {
+        "change": 0.4767,
+        "n_sites": 26584,
+        "pvalue": 1.84396e-190,
+        "tf": "FOSB::JUNB"
+      },
+      {
+        "change": 0.476,
+        "n_sites": 25539,
+        "pvalue": 2.76018e-193,
+        "tf": "FOSL2::JUN"
+      },
+      {
+        "change": 0.4759,
+        "n_sites": 25662,
+        "pvalue": 3.8248e-188,
+        "tf": "FOS::JUNB"
+      }
+    ],
+    "top_toward_T_cell": [
+      {
+        "change": -0.2902,
+        "n_sites": 79887,
+        "pvalue": 1.27312e-194,
+        "tf": "ZBED4"
+      },
+      {
+        "change": -0.2787,
+        "n_sites": 87386,
+        "pvalue": 4.29668e-190,
+        "tf": "KLF15"
+      },
+      {
+        "change": -0.2766,
+        "n_sites": 50170,
+        "pvalue": 2.59682e-181,
+        "tf": "EGR3"
+      },
+      {
+        "change": -0.2687,
+        "n_sites": 50056,
+        "pvalue": 5.88743e-179,
+        "tf": "ZNF610"
+      },
+      {
+        "change": -0.2665,
+        "n_sites": 56877,
+        "pvalue": 5.76087e-180,
+        "tf": "EGR1"
+      },
+      {
+        "change": -0.2584,
+        "n_sites": 13273,
+        "pvalue": 9.10597e-146,
+        "tf": "HINFP"
+      },
+      {
+        "change": -0.2432,
+        "n_sites": 35377,
+        "pvalue": 3.64744e-165,
+        "tf": "Zfp961"
+      },
+      {
+        "change": -0.2429,
+        "n_sites": 27348,
+        "pvalue": 1.57217e-156,
+        "tf": "EGR2"
+      },
+      {
+        "change": -0.239,
+        "n_sites": 33115,
+        "pvalue": 6.35572e-164,
+        "tf": "Nrf1"
+      },
+      {
+        "change": -0.238,
+        "n_sites": 49734,
+        "pvalue": 6.00277e-177,
+        "tf": "EGR4"
+      },
+      {
+        "change": -0.2378,
+        "n_sites": 28651,
+        "pvalue": 1.27579e-158,
+        "tf": "ZBTB14"
+      },
+      {
+        "change": -0.2272,
+        "n_sites": 12182,
+        "pvalue": 1.81143e-140,
+        "tf": "ZNF417"
+      },
+      {
+        "change": -0.2234,
+        "n_sites": 17078,
+        "pvalue": 1.22018e-149,
+        "tf": "TCFL5"
+      },
+      {
+        "change": -0.2222,
+        "n_sites": 8599,
+        "pvalue": 1.95251e-133,
+        "tf": "E2F2"
+      },
+      {
+        "change": -0.2221,
+        "n_sites": 74620,
+        "pvalue": 4.55697e-184,
+        "tf": "VEZF1"
+      }
+    ]
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "git_commit": "14d9f49b30d2d860124a1136633ab0f0733648b9",
+    "git_describe": "v4.7.0-14-g14d9f49-dirty",
+    "git_dirty": true,
+    "git_sha": "14d9f49b30d2d860124a1136633ab0f0733648b9",
+    "git_tree_sha": "1640e6850a6e9a2d9a807bfc4107bedfaffb3adf",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "36c35948fb84954bfd62893045abf2a972b5bf9537a5e3c44e4a3a14f3152d19",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "ran": true,
+  "reason": null,
+  "scope": "differential_tf_binding_between_cell_types_via_tobias"
+}

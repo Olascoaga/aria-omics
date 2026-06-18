@@ -440,7 +440,10 @@ def _footprinting(params: dict) -> dict[str, Any]:
             method="tn5_bias_corrected_footprint",
         )
     return _skip(
-        "Tn5-corrected footprint scoring backend is not implemented yet for this input bundle",
+        "Tn5-corrected footprinting runs via the dedicated TOBIAS backend "
+        "(aria/scripts/chromatin_footprint_tobias.py in aria-tobias-env: ATACorrect -> "
+        "ScoreBigwig -> BINDetect), dispatched separately like the SnapATAC2/Signac "
+        "drivers; it is not run inline from the chromatin stack",
         method="tn5_bias_corrected_footprint",
     )
 
