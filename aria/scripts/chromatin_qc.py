@@ -103,10 +103,9 @@ def chromatin_qc(params: dict) -> dict:
 def _scatac_qc(files: list, genome: str,
                organism: str, warnings: list,
                allow_mocks: bool = False, peaks_bed: str | None = None) -> dict:
-    """QC for single-cell ATAC-seq using episcanpy or muon."""
+    """QC for single-cell ATAC-seq from a fragments file (muon + snapatac2)."""
     try:
         import muon as mu
-        import episcanpy.api as epi
         import anndata as ad
         import numpy as np
         from pathlib import Path
@@ -247,7 +246,7 @@ def _scatac_qc(files: list, genome: str,
                 "status":     "error",
                 "error_type": "MissingDependency",
                 "details":    (
-                    f"scATAC QC requires muon and episcanpy "
+                    f"scATAC QC requires muon (and snapatac2 for TSS) "
                     f"(aria-chromatin-env). Install the chromatin stack or "
                     f"pass allow_mock=true. Underlying ImportError: {e}"
                 ),
@@ -502,7 +501,14 @@ def _tss_qc(frag_file: str, genome: str) -> dict:
         gobj = getattr(snap.genome, attr, None)
         if gobj is None:
             return {**none, "reason": f"snapatac2 has no genome annotation '{attr}'"}
-        adata = snap.pp.import_data(
+        # snapatac2 renamed pp.import_data -> pp.import_fragments in 2.x; prefer the
+        # current name and fall back to the legacy one so both API generations work.
+        import_fn = (getattr(snap.pp, "import_fragments", None)
+                     or getattr(snap.pp, "import_data", None))
+        if import_fn is None:
+            return {**none, "reason": (
+                "snapatac2 exposes neither pp.import_fragments nor pp.import_data")}
+        adata = import_fn(
             frag_file, chrom_sizes=gobj, sorted_by_barcode=False, file=None,
         )
         snap.metrics.tsse(adata, gobj)

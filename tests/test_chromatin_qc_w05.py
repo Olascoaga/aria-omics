@@ -158,6 +158,67 @@ def test_tss_qc_emits_per_cell_arrays_with_depth(monkeypatch):
     assert r["log10_depth"] == pytest.approx([3.0, 4.0, pytest.approx(3.69897, abs=1e-4)])
 
 
+def test_scatac_qc_fragments_path_runs_without_episcanpy(monkeypatch, tmp_path):
+    """P4.1 real-data fix: the scATAC fragments QC path must NOT require episcanpy
+    (a dead import gated the whole path before; TSS uses snapatac2, FRiP is pure
+    Python). With a fake muon present and an unknown genome (TSS honest-None, no
+    snapatac2 needed), the path still computes the per-barcode FRiP distribution
+    from real fragments instead of returning MissingDependency."""
+    import gzip
+
+    from aria.scripts.chromatin_qc import chromatin_qc
+
+    # Fake muon so `import muon` succeeds without the chromatin stack; its
+    # locate_fragments is best-effort (wrapped in try/except in the QC).
+    fake_mu = types.SimpleNamespace(
+        atac=types.SimpleNamespace(tl=types.SimpleNamespace(
+            locate_fragments=lambda *a, **k: (_ for _ in ()).throw(RuntimeError("no")))))
+    monkeypatch.setitem(sys.modules, "muon", fake_mu)
+    # Ensure episcanpy is treated as absent — the path must not need it.
+    monkeypatch.setitem(sys.modules, "episcanpy", None)
+
+    frags = tmp_path / "fragments.tsv.gz"
+    with gzip.open(frags, "wt") as f:
+        for bc in ("BC1", "BC2"):
+            # >= min_frags(20) per barcode so the distribution clears the gate;
+            # most fall inside the peak, a few outside (realistic FRiP < 1).
+            for j in range(25):
+                s = 150 + j if j < 22 else 5000 + j
+                f.write(f"chr1\t{s}\t{s + 40}\t{bc}\t1\n")
+    bed = tmp_path / "peaks.bed"
+    bed.write_text("chr1\t120\t400\n", encoding="utf-8")
+
+    qc = chromatin_qc({
+        "data_type": "scATAC", "files": [str(frags)],
+        "genome": "unknown_xyz", "peaks_bed": str(bed),
+    })
+    assert qc["status"] == "success"           # not MissingDependency(episcanpy)
+    assert qc.get("tss_enrichment") is None     # unknown genome -> honest None
+    assert isinstance(qc.get("frip_distribution"), list) and qc["frip_distribution"]
+
+
+def test_tss_qc_uses_snapatac2_2x_import_fragments_api(monkeypatch):
+    """P4.1 real-data fix: snapatac2 2.x renamed pp.import_data -> pp.import_fragments.
+    _tss_qc must use the current name (a fake exposing ONLY import_fragments computes);
+    before the fix this path raised AttributeError and TSS fell to honest None."""
+    from aria.scripts import chromatin_qc
+    from aria.utils import privacy
+
+    monkeypatch.setattr(privacy, "egress_allowed", lambda: True)
+    fake_adata = types.SimpleNamespace(
+        obs={"tsse": [4.0, 8.0], "n_fragment": [1000.0, 10000.0]})
+    fake_snap = types.SimpleNamespace(
+        genome=types.SimpleNamespace(hg38=object()),
+        pp=types.SimpleNamespace(import_fragments=lambda *a, **k: fake_adata),
+        metrics=types.SimpleNamespace(tsse=lambda adata, gobj: None),
+    )
+    monkeypatch.setitem(sys.modules, "snapatac2", fake_snap)
+    r = chromatin_qc._tss_qc("frags.tsv.gz", "hg38")
+    assert r["reason"] is None
+    assert r["median"] == pytest.approx(6.0)
+    assert r["tsse"] == [4.0, 8.0]
+
+
 def test_tss_qc_arrays_none_on_skip():
     """Unknown assembly -> honest None arrays + reason, never fabricated."""
     from aria.scripts.chromatin_qc import _tss_qc
