@@ -434,6 +434,15 @@ class ChromatinNarrator:
                 f"{sub.get('reason', 'prerequisites missing')}.",
                 severity="info"))
 
+        if (regulatory.get("peak_to_gene") or {}).get("validation_level") == "beta":
+            caveats.append(Caveat(
+                "Peak-to-gene link recovery is beta-grade: externally validated "
+                "for concordance against a canonical single-cell peak-gene linker "
+                "(see benchmark artifact). The other regulatory layers remain "
+                "scaffold/exploratory. Beta refers to link recovery, not causal "
+                "regulation — the links stay associative.",
+                severity="info"))
+
         claim = (
             f"scATAC regulatory-layer analysis ran {len(ran)} of "
             f"{len(layers)} optional layer(s); skipped layers are reported with "

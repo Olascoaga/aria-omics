@@ -18,6 +18,8 @@ ARIA_CONTEXT.md
 CLAUDE.md
 AGENTS.md
 memory/
+memory/datasets/scrna/
+memory/datasets/scatac/
 *.db
 data/
 aria-data/

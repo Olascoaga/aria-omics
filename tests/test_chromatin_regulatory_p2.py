@@ -31,6 +31,52 @@ def test_regulatory_helpers_parse_coordinates_and_gtf(tmp_path):
     assert mapping == {"GENE1": [0]}
 
 
+def test_vectorized_corr_matches_per_pair_corr():
+    """P4.2 refactor guard: ``_vectorized_corr`` must reproduce the per-pair
+    ``_corr`` it replaced in ``_peak_to_gene`` — same value (rounded to 6) on
+    defined columns, and the same undefined cases (zero variance / n < 3), where
+    NaN from the vectorized path corresponds to ``None`` from the scalar path."""
+    import math
+
+    import numpy as np
+
+    from aria.scripts.chromatin_regulatory import _corr, _vectorized_corr
+
+    x = np.array([0.0, 1.0, 2.0, 3.0, 4.0, 5.0])
+    cols = np.column_stack([
+        2.0 * x + 0.5,                       # perfect positive
+        -x + 7.0,                            # perfect negative
+        np.array([1.0, 0.0, 3.0, 1.0, 4.0, 2.0]),  # partial
+        np.array([2.0, 2.0, 2.0, 2.0, 2.0, 2.0]),  # zero variance -> undefined
+    ])
+
+    rvec = _vectorized_corr(x, cols)
+    assert rvec.shape == (cols.shape[1],)
+    for j in range(cols.shape[1]):
+        scalar = _corr(x, cols[:, j])
+        vec = rvec[j]
+        if scalar is None:
+            # undefined for the scalar path -> NaN in the vectorized path
+            assert math.isnan(float(vec))
+        else:
+            assert round(float(vec), 6) == pytest.approx(scalar)
+
+
+def test_vectorized_corr_undefined_when_too_few_cells():
+    import math
+
+    import numpy as np
+
+    from aria.scripts.chromatin_regulatory import _corr, _vectorized_corr
+
+    x = np.array([0.0, 1.0])
+    cols = np.array([[0.0], [1.0]])
+    assert _corr(x, cols[:, 0]) is None
+    rvec = _vectorized_corr(x, cols)
+    assert rvec.shape == (1,)
+    assert math.isnan(float(rvec[0]))
+
+
 def _write_atac(tmp_path):
     ad = pytest.importorskip("anndata")
     import numpy as np
@@ -131,3 +177,10 @@ def test_regulatory_script_runs_with_explicit_maps_gtf_and_paired_rna(tmp_path):
     assert res["label_transfer"]["ran"] is True
     assert res["label_transfer"]["trusted_for_inference"] is False
     assert res["footprinting"]["ran"] is False
+
+    # P4.2/ADR-050 scoped promotion: ONLY peak-to-gene is beta-grade; the script
+    # umbrella stays alpha and the other regulatory layers are NOT over-promoted.
+    assert res["peak_to_gene"]["validation_level"] == "beta"
+    assert res["validation_level"] == "alpha"
+    for other in ("motif_activity", "gene_scores", "footprinting", "label_transfer"):
+        assert res[other].get("validation_level") != "beta"

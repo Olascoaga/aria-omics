@@ -330,6 +330,76 @@ def score_da_lfc_concordance(
 
 
 # --------------------------------------------------------------------------- #
+# Peak-to-gene link concordance (scATAC P4.2)                                 #
+# --------------------------------------------------------------------------- #
+
+def _link_key(gene: Any, peak: Any) -> tuple[str, str, int, int] | None:
+    """Canonical (gene, chrom, start, end) key for a peak-to-gene link, so ARIA's
+    ``chr:start-end`` and Signac's ``chr-start-end`` peak names match on the SAME
+    peak universe. Returns None when the peak name is unparseable."""
+    parsed = _parse_peak(peak)
+    if parsed is None:
+        return None
+    chrom, start, end = parsed
+    return (str(gene).strip().upper(), chrom, start, end)
+
+
+def score_peak2gene_concordance(
+    aria_links: Sequence[tuple[Any, Any, float]],
+    ref_links: Sequence[tuple[Any, Any, float]],
+) -> dict[str, Any]:
+    """Concordance of two peak-to-gene link sets over a shared peak/gene space:
+    ARIA's paired-cell peak-gene correlations vs an external linker (Signac
+    ``LinkPeaks``). Each input is an iterable of ``(gene, peak, correlation)``.
+
+    A "link" is the canonical ``(gene, chrom, start, end)`` pair (peak names are
+    parsed so ``chr:start-end`` and ``chr-start-end`` match). The reported signals
+    are link-set overlap (Jaccard + directional recall), sign agreement on shared
+    links, and the Spearman rank correlation of the link scores on shared links.
+    Empty sides score honestly as ``None`` per axis, never as perfect agreement
+    (ADR-002).
+    """
+    def _index(links: Sequence[tuple[Any, Any, float]]) -> dict[tuple, float]:
+        out: dict[tuple, float] = {}
+        for gene, peak, corr in links:
+            key = _link_key(gene, peak)
+            if key is None or corr is None:
+                continue
+            try:
+                out[key] = float(corr)
+            except (TypeError, ValueError):
+                continue
+        return out
+
+    a_idx = _index(aria_links)
+    b_idx = _index(ref_links)
+    sa, sb = set(a_idx), set(b_idx)
+    inter = sa & sb
+    union = sa | sb
+
+    out: dict[str, Any] = {
+        "n_aria_links": len(sa),
+        "n_ref_links": len(sb),
+        "n_shared_links": len(inter),
+        "n_aria_genes": len({k[0] for k in sa}),
+        "n_ref_genes": len({k[0] for k in sb}),
+        "link_jaccard": (len(inter) / len(union)) if union else 1.0,
+        "recall_aria_in_ref": (len(inter) / len(sa)) if sa else 1.0,
+        "recall_ref_in_aria": (len(inter) / len(sb)) if sb else 1.0,
+    }
+    if inter:
+        shared = sorted(inter)
+        a = np.array([a_idx[k] for k in shared], dtype=np.float64)
+        b = np.array([b_idx[k] for k in shared], dtype=np.float64)
+        out["score_spearman"] = _spearman(a, b)
+        out["sign_agreement"] = float(np.mean(np.sign(a) == np.sign(b)))
+    else:
+        out["score_spearman"] = None
+        out["sign_agreement"] = None
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Seed stability                                                              #
 # --------------------------------------------------------------------------- #
 

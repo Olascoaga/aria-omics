@@ -1,0 +1,35 @@
+name: aria-bench-signac-env
+
+# External scATAC peak-to-gene reference comparator for the scATAC P4.2 lane.
+# Signac LinkPeaks is the canonical single-cell peak-to-gene linker; it operates
+# on the peak-count assay + the paired RNA assay (NO fragments required), so it is
+# validatable on the fragment-less GSE278576 paired matrix (the same blocker that
+# defers ArchR/Signac GeneActivity to the P4.3/fragment track).
+#
+# Kept in its own env (like aria-bench-atac-env for SnapATAC2): the R/Bioconductor
+# stack is heavy and must not disturb the validated aria-bench-env (RNA comparators,
+# numpy<2) or any production stack. The R driver
+# (aria/scripts/benchmark_scatac_peak2gene_signac.R) PRODUCES the reference
+# peak-to-gene links that the pure-numpy P4.2 scorer
+# (aria/benchmarks/concordance_atac.score_peak2gene_concordance) CONSUMES; cells
+# are aligned to ARIA's shared-barcode order by construction.
+#
+# scATAC peak-to-gene is promoted to beta ONLY with this concordance evidence;
+# everything else stays as-is.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - r-base=4.3
+  - r-signac
+  - r-seurat
+  - r-matrix
+  - r-optparse
+  - bioconductor-rtracklayer
+  - bioconductor-genomicranges
+  - bioconductor-genomeinfodb
+  - bioconductor-biostrings
+  - bioconductor-bsgenome.hsapiens.ucsc.hg38

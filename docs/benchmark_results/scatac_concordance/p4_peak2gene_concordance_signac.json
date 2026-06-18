@@ -1,0 +1,59 @@
+{
+  "aria_n_links": 39233,
+  "aria_version": "4.7.0",
+  "benchmark": "P4.2_peak_to_gene_concordance",
+  "caveats": [
+    "Peak-to-gene links are associative correlations, not regulatory proof.",
+    "ArchR/Signac GeneActivity (gene scores) needs fragments and is deferred to the fragment track; only peak-to-gene is validated here."
+  ],
+  "concordance": {
+    "link_jaccard": 0.19847392963119967,
+    "n_aria_genes": 10800,
+    "n_aria_links": 39233,
+    "n_ref_genes": 13173,
+    "n_ref_links": 45583,
+    "n_shared_links": 14046,
+    "recall_aria_in_ref": 0.3580149364055769,
+    "recall_ref_in_aria": 0.3081411929886142,
+    "score_spearman": 0.6196807545909597,
+    "sign_agreement": 0.9997864160615122,
+    "status": "success"
+  },
+  "dataset": "hc11_GSE278576",
+  "design": {
+    "aria_method": "chromatin_regulatory._peak_to_gene (paired-cell peak-gene Pearson within distance, min_corr)",
+    "distance_bp": 500000,
+    "feature_space": "identical paired peak + RNA matrices (shared barcodes)",
+    "min_corr": 0.05,
+    "reference": "Signac::LinkPeaks (single-cell peak-gene linker; no fragments)"
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "git_commit": "7156a7d1f61ca4d22e58b74a997ab50213b1e58c",
+    "git_describe": "v4.7.0-10-g7156a7d-dirty",
+    "git_dirty": true,
+    "git_sha": "7156a7d1f61ca4d22e58b74a997ab50213b1e58c",
+    "git_tree_sha": "0a03d09e1f6fac2cc8b760dc517a01e2aa0feac1",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "a880954e2ca228fb24fe7cc3fe58976c1ae6872b9cd8c6436c82935277536bd3",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "peak_to_gene_link_concordance_vs_signac_linkpeaks",
+  "signac_status": {
+    "n_cells": 3143,
+    "n_genes": 13173,
+    "n_links": 45583,
+    "n_peaks": 60924,
+    "status": "success"
+  }
+}

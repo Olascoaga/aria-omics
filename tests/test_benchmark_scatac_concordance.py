@@ -87,6 +87,38 @@ def test_motif_concordance_top_k_overlap_and_rank():
     assert 0.0 <= res["rank_biased_overlap"] <= 1.0
 
 
+# --- peak-to-gene link concordance (P4.2) -----------------------------------
+
+def test_peak2gene_concordance_matches_links_across_name_styles():
+    from aria.benchmarks.concordance_atac import score_peak2gene_concordance
+
+    # ARIA uses chr:start-end, Signac uses chr-start-end — same universe must match.
+    aria = [("GENEA", "chr1:100-200", 0.6), ("GENEB", "chr2:50-90", -0.4),
+            ("GENEC", "chr3:10-20", 0.5)]
+    ref = [("genea", "chr1-100-200", 0.7), ("GENEB", "chr2-50-90", -0.55),
+           ("GENED", "chr4-1-2", 0.9)]
+    res = score_peak2gene_concordance(aria, ref)
+    assert res["n_aria_links"] == 3 and res["n_ref_links"] == 3
+    # shared = GENEA/chr1:100-200 and GENEB/chr2:50-90 -> 2; union 4
+    assert res["n_shared_links"] == 2
+    assert res["link_jaccard"] == pytest.approx(2 / 4)
+    assert res["recall_aria_in_ref"] == pytest.approx(2 / 3)
+    # both shared links agree in sign (+/+, -/-)
+    assert res["sign_agreement"] == pytest.approx(1.0)
+    assert res["score_spearman"] is not None
+
+
+def test_peak2gene_concordance_honest_null_without_overlap():
+    from aria.benchmarks.concordance_atac import score_peak2gene_concordance
+
+    res = score_peak2gene_concordance(
+        [("G1", "chr1:1-2", 0.5)], [("G2", "chr9:1-2", 0.5)])
+    assert res["n_shared_links"] == 0
+    assert res["link_jaccard"] == pytest.approx(0.0)
+    # no shared links -> per-axis None, never fabricated agreement
+    assert res["score_spearman"] is None and res["sign_agreement"] is None
+
+
 # --- seed stability ---------------------------------------------------------
 
 def test_seed_stability_is_one_for_identical_label_sets():

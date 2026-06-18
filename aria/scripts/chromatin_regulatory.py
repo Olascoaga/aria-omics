@@ -161,6 +161,33 @@ def _corr(x, y) -> float | None:
     return round(r, 6) if math.isfinite(r) else None
 
 
+def _vectorized_corr(x, cols):
+    """Pearson correlation of vector ``x`` (n,) against each column of ``cols``
+    (n, k), in one pass. Returns a length-k array, NaN where a column has zero
+    variance or n < 3 — the same undefined cases :func:`_corr` returns None for.
+    Used to vectorize the peak-to-gene inner loop (P4.2: O(genes*peaks) sparse
+    per-pair getcol -> one masked matmul per gene)."""
+    import numpy as np
+
+    x = np.asarray(x, dtype=float).ravel()
+    n = x.shape[0]
+    k = cols.shape[1] if getattr(cols, "ndim", 1) == 2 else 1
+    if n < 3:
+        return np.full(k, np.nan)
+    xc = x - x.mean()
+    xs = float(np.sqrt((xc * xc).sum()))
+    C = np.asarray(cols, dtype=float)
+    if C.ndim == 1:
+        C = C.reshape(-1, 1)
+    Cc = C - C.mean(axis=0, keepdims=True)
+    cs = np.sqrt((Cc * Cc).sum(axis=0))
+    denom = xs * cs
+    num = xc @ Cc
+    with np.errstate(invalid="ignore", divide="ignore"):
+        r = np.where(denom > 0, num / denom, np.nan)
+    return r
+
+
 def _param_int(params: dict, key: str, default: int) -> int:
     value = params.get(key)
     if value is None or value == "":
@@ -322,8 +349,18 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     peak_names = [str(p) for p in atac_aligned.var_names]
     peak_coords = [_peak_coord(p) for p in peak_names]
     gene_index = {str(g): i for i, g in enumerate(rna_aligned.var_names)}
+
+    # Spatial index: candidate peaks per chromosome (skip unparseable coords), so a
+    # gene only ever scans its own chromosome instead of the whole peak universe.
+    peaks_by_chrom: dict[str, list[tuple[int, int, int]]] = {}
+    for pi, coord in enumerate(peak_coords):
+        if coord is None:
+            continue
+        peaks_by_chrom.setdefault(coord[0], []).append((coord[1], coord[2], pi))
+
     rows = []
     tested = 0
+    atac_X = atac_aligned.X
     for gene, (chrom, tss) in gene_tss.items():
         gi = gene_index.get(gene)
         if gi is None:
@@ -331,28 +368,48 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
         expr = _col(rna_aligned.X, gi)
         if float(np.mean(expr)) <= 0.0:
             continue
-        for pi, coord in enumerate(peak_coords):
-            if coord is None or coord[0] != chrom:
-                continue
-            _, start, end = coord
+        local = peaks_by_chrom.get(chrom)
+        if not local:
+            continue
+        # In-window peaks: nearest-endpoint distance to the TSS <= distance_bp
+        # (identical predicate to the per-pair version it replaces).
+        cand_idx: list[int] = []
+        cand_dist: list[int] = []
+        for start, end, pi in local:
             dist = min(abs(start - tss), abs(end - tss))
-            if dist > distance_bp:
+            if dist <= distance_bp:
+                cand_idx.append(pi)
+                cand_dist.append(int(dist))
+        if not cand_idx:
+            continue
+        tested += len(cand_idx)
+        sub = atac_X[:, cand_idx]
+        sub = np.asarray(sub.todense()) if hasattr(sub, "todense") else np.asarray(sub)
+        rvals = _vectorized_corr(expr, sub)
+        for j, pi in enumerate(cand_idx):
+            rv = rvals[j]
+            if not math.isfinite(float(rv)):  # NaN = undefined (zero variance / n<3)
                 continue
-            tested += 1
-            acc = _col(atac_aligned.X, pi)
-            r = _corr(expr, acc)
-            if r is not None and abs(r) >= min_corr:
+            r = round(float(rv), 6)
+            if abs(r) >= min_corr:
                 rows.append({
                     "gene": gene,
                     "peak": peak_names[pi],
                     "correlation": r,
-                    "distance_bp": int(dist),
+                    "distance_bp": cand_dist[j],
                     "direction": "positive" if r > 0 else "negative",
                 })
     rows.sort(key=lambda r: (-abs(float(r["correlation"])), r["gene"], r["peak"]))
     csv_path = _write_rows(out_dir / "chromatin_peak_to_gene.csv", rows)
     return {
         "ran": True,
+        # Peak-to-gene link recovery is the one regulatory layer promoted out of
+        # scaffold: it is externally concordance-validated against a canonical
+        # single-cell peak-gene linker (evidence lives in docs/ADR/benchmark
+        # artifact, never hardcoded here per ADR-011). The other regulatory layers
+        # (motif activity, gene scores, footprinting, label transfer) stay
+        # scaffold/exploratory, so the script-level umbrella level is unchanged.
+        "validation_level": "beta",
         "method": "paired_cell_peak_gene_correlation",
         "n_tested": tested,
         "n_links": len(rows),
