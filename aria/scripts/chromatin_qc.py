@@ -138,7 +138,10 @@ def _scatac_qc(files: list, genome: str,
         # fabricated (ADR-002).
         # W0.5: real TSS enrichment (snapatac2 + governed annotation); returns
         # (value, reason). reason carries the concrete not-computed cause.
-        tss_enrichment, tss_reason = _compute_tss_enrichment(frag_file, genome)
+        # Single snapatac2 pass yields the W0.5 median AND the P4.1 [A] per-cell
+        # (TSSe, log10 depth) scatter arrays — no double import_data.
+        _tss = _tss_qc(frag_file, genome)
+        tss_enrichment, tss_reason = _tss["median"], _tss["reason"]
         frag_sizes = _compute_fragment_sizes(frag_file)
 
         mito_chr   = "chrM" if "sapiens" in organism.lower() else "chrMT"
@@ -148,6 +151,9 @@ def _scatac_qc(files: list, genome: str,
         n_fragments = frag_sizes.get("n_fragments", 0)
         # FRiP is real when a called-peak BED is supplied (W0.5 wire); else None.
         frip = _estimate_frip(frag_file, peaks_bed=peaks_bed)
+        # Per-barcode FRiP distribution for the QC histogram (P4.1 [B]); same
+        # peaks gate as the scalar — None without peaks.
+        frip_distribution = _estimate_frip_distribution(frag_file, peaks_bed=peaks_bed)
 
         # ── QC thresholds (standard ENCODE ATAC-seq) ──────────────────────
         MIN_TSS     = 4.0     # below this = failed library prep
@@ -220,6 +226,15 @@ def _scatac_qc(files: list, genome: str,
                                 if tss_enrichment is not None else None),
             "mito_fraction":   round(float(mito_frac), 4),
             "fragment_sizes":  frag_sizes,
+            # P4.1 [B]: per-barcode FRiP distribution (list) or None (no peaks).
+            "frip_distribution": frip_distribution,
+            # P4.1 [A]: per-cell TSSe×log10-depth scatter arrays + ENCODE gates, or
+            # {"tsse": None, "reason": ...} when not computed (honest absence).
+            "tss_depth_scatter": (
+                {"tsse": _tss["tsse"], "log10_depth": _tss["log10_depth"],
+                 "min_tss": MIN_TSS, "warn_tss": WARN_TSS}
+                if _tss["tsse"] is not None
+                else {"tsse": None, "reason": tss_reason}),
             "qc_complete":     qc_complete,
             "metrics_not_computed": not_computed,
             "pass_qc":         pass_qc,
@@ -444,56 +459,84 @@ _FRAG_SCAN_LIMIT = 2_000_000   # cap a streaming pass; flag if reached
 _SIZE_SAMPLE_LIMIT = 100_000   # fragments kept for the size distribution
 
 
-def _compute_tss_enrichment(frag_file: str, genome: str):
-    """REAL TSS enrichment (scATAC P0 W0.5): per-cell TSSe via snapatac2 + the
-    assembly's gene annotation, reported as the sample-level MEDIAN. Never
-    fabricated, never silent egress.
+def _tss_qc(frag_file: str, genome: str) -> dict:
+    """Shared snapatac2 build (scATAC P0 W0.5 + P4.1 (2)[A]): per-cell TSSe — and,
+    additively, the per-cell (TSSe, log10 depth) arrays for the QC gating scatter —
+    from a SINGLE ``import_data`` pass. Never fabricated, never silent egress.
 
-    Returns ``(value|None, reason|None)``:
-      - value = median per-cell TSSe when snapatac2 + a resolvable annotation are
-        available;
-      - None + a concrete reason when the assembly is unknown, snapatac2 is
-        missing, egress is disabled (air-gapped) and the annotation would need a
-        download, or the computation fails.
+    Returns a dict ``{"median", "reason", "tsse", "log10_depth"}``:
+      - ``median`` = sample-level median per-cell TSSe (the W0.5 scalar), or None;
+      - ``reason`` = concrete not-computed cause when the assembly is unknown,
+        snapatac2 is missing, egress is disabled (air-gapped), or the compute fails;
+      - ``tsse`` / ``log10_depth`` = per-cell arrays for the scatter (None when not
+        computed; ``log10_depth`` stays None when the importer recorded no per-cell
+        fragment count).
 
     The annotation comes from ``snap.genome.<attr>`` (governed auto-fetch, cached);
     under ``ARIA_AIR_GAPPED`` ARIA does not fetch it (W-PRIV) and skips honestly.
     """
+    none = {"median": None, "reason": None, "tsse": None, "log10_depth": None}
+
     from aria.utils import genomes
     attr = genomes.snapatac2_attr(genome)
     if not attr:
-        return None, (f"no snapatac2 gene annotation for assembly "
-                      f"'{genome or 'unknown'}' (TSS enrichment needs a known "
-                      f"assembly)")
+        return {**none, "reason": (
+            f"no snapatac2 gene annotation for assembly '{genome or 'unknown'}' "
+            f"(TSS enrichment needs a known assembly)")}
 
     from aria.utils import privacy
     if not privacy.egress_allowed():
-        return None, (f"air-gapped: the TSS annotation for '{genome}' is a "
-                      f"governed snapatac2 auto-fetch and was not downloaded "
-                      f"(set ARIA_AIR_GAPPED=0 or stage it to compute TSS "
-                      f"enrichment)")
+        return {**none, "reason": (
+            f"air-gapped: the TSS annotation for '{genome}' is a governed "
+            f"snapatac2 auto-fetch and was not downloaded (set ARIA_AIR_GAPPED=0 "
+            f"or stage it to compute TSS enrichment)")}
 
     try:
         import snapatac2 as snap
     except ImportError as e:
-        return None, (f"snapatac2 unavailable ({e}); TSS enrichment not computed")
+        return {**none, "reason": (
+            f"snapatac2 unavailable ({e}); TSS enrichment not computed")}
 
     try:
         import numpy as np
         gobj = getattr(snap.genome, attr, None)
         if gobj is None:
-            return None, f"snapatac2 has no genome annotation '{attr}'"
+            return {**none, "reason": f"snapatac2 has no genome annotation '{attr}'"}
         adata = snap.pp.import_data(
             frag_file, chrom_sizes=gobj, sorted_by_barcode=False, file=None,
         )
         snap.metrics.tsse(adata, gobj)
         tsse = np.asarray(adata.obs["tsse"], dtype=float)
-        tsse = tsse[np.isfinite(tsse)]
-        if tsse.size == 0:
-            return None, "TSS enrichment produced no finite per-cell values"
-        return float(np.median(tsse)), None
+        finite = np.isfinite(tsse)
+        if not finite.any():
+            return {**none, "reason": "TSS enrichment produced no finite per-cell values"}
+        # Sample-level scalar = median over the TSSe-finite cells (W0.5 semantics,
+        # independent of depth availability).
+        median = float(np.median(tsse[finite]))
+        # Per-cell scatter arrays (P4.1 [A]): pair TSSe with log10 depth when the
+        # importer recorded a per-cell fragment count.
+        depth = None
+        for key in ("n_fragment", "n_fragments", "frag_count"):
+            if key in adata.obs:
+                depth = np.asarray(adata.obs[key], dtype=float)
+                break
+        mask = finite
+        log10_depth = None
+        if depth is not None:
+            mask = finite & np.isfinite(depth) & (depth > 0)
+            log10_depth = np.log10(depth[mask]).tolist()
+        return {"median": median, "reason": None,
+                "tsse": tsse[mask].tolist(), "log10_depth": log10_depth}
     except Exception as e:
-        return None, f"TSS enrichment computation failed: {e!s:.160}"
+        return {**none, "reason": f"TSS enrichment computation failed: {e!s:.160}"}
+
+
+def _compute_tss_enrichment(frag_file: str, genome: str):
+    """REAL TSS enrichment (scATAC P0 W0.5): the sample-level MEDIAN per-cell TSSe.
+    Thin wrapper over :func:`_tss_qc` that preserves the fixed ``(value, reason)``
+    contract; the per-cell arrays live alongside it in the QC dict (P4.1 [A])."""
+    r = _tss_qc(frag_file, genome)
+    return r["median"], r["reason"]
 
 
 def _compute_fragment_sizes(frag_file: str) -> dict:
@@ -605,49 +648,74 @@ def _peaks_by_chrom_from_bed(peaks_bed: str) -> dict:
     return out
 
 
+def _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom) -> bool:
+    """True iff fragment ``(chrom, start, end)`` overlaps any peak (``start <
+    peak_end`` and ``end > peak_start``). Shared by the sample-level and the
+    per-barcode FRiP so both encode exactly one overlap rule."""
+    import bisect
+
+    ivs = peaks_by_chrom.get(chrom)
+    if not ivs:
+        return False
+    starts = starts_by_chrom[chrom]
+    # Peaks with peak_start < frag_end are candidates; scan left from there
+    # while peak_end > frag_start (intervals are short, overlap span small).
+    k = bisect.bisect_left(starts, end) - 1
+    while k >= 0:
+        ps, pe = ivs[k]
+        if pe <= start:
+            # Could still be an earlier long peak, but peaks are short and sorted
+            # by start; once peak_start is far left of frag_start, stop.
+            if ps < start - 1_000_000:
+                break
+            k -= 1
+            continue
+        if ps < end and pe > start:
+            return True
+        k -= 1
+    return False
+
+
 def _frip_from_intervals(fragments, peaks_by_chrom) -> tuple:
     """REAL FRiP (scATAC P0 W0.5): fraction of fragments overlapping any peak.
 
     Pure / dependency-light so it is unit-testable without a fragments file or
     snapatac2. ``fragments`` is an iterable of ``(chrom, start, end)``;
-    ``peaks_by_chrom`` is ``{chrom: sorted [(start, end), ...]}``. A fragment
-    overlaps a peak when ``start < peak_end`` and ``end > peak_start``. Returns
+    ``peaks_by_chrom`` is ``{chrom: sorted [(start, end), ...]}``. Returns
     ``(frip|None, n_fragments)``; None when there are no fragments.
     """
-    import bisect
-
     starts_by_chrom = {c: [p[0] for p in iv] for c, iv in peaks_by_chrom.items()}
     n_total = 0
     n_in = 0
     for chrom, start, end in fragments:
         n_total += 1
-        ivs = peaks_by_chrom.get(chrom)
-        if not ivs:
-            continue
-        starts = starts_by_chrom[chrom]
-        # Peaks with peak_start < frag_end are candidates; scan left from there
-        # while peak_end > frag_start (intervals are short, overlap span small).
-        j = bisect.bisect_left(starts, end)
-        hit = False
-        k = j - 1
-        while k >= 0:
-            ps, pe = ivs[k]
-            if pe <= start:
-                # Could still be an earlier long peak, but peaks are short and
-                # sorted by start; once peak_start is far left of frag_start, stop.
-                if ps < start - 1_000_000:
-                    break
-                k -= 1
-                continue
-            if ps < end and pe > start:
-                hit = True
-                break
-            k -= 1
-        if hit:
+        if _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom):
             n_in += 1
     if n_total == 0:
         return None, 0
     return n_in / n_total, n_total
+
+
+def _frip_per_barcode_from_intervals(fragments_bc, peaks_by_chrom,
+                                     min_frags: int = 20) -> list:
+    """Per-barcode FRiP distribution (scATAC P4.1 (2)[B]): the same overlap rule
+    as :func:`_frip_from_intervals`, accumulated per cell barcode.
+
+    Pure / dependency-light. ``fragments_bc`` is an iterable of
+    ``(chrom, start, end, barcode)``. Returns a list of per-barcode FRiP floats
+    for barcodes with at least ``min_frags`` fragments (low-count barcodes give
+    noisy ratios). Empty list when nothing qualifies — never fabricated.
+    """
+    starts_by_chrom = {c: [p[0] for p in iv] for c, iv in peaks_by_chrom.items()}
+    totals: dict = {}
+    ins: dict = {}
+    for chrom, start, end, bc in fragments_bc:
+        if not bc:
+            continue
+        totals[bc] = totals.get(bc, 0) + 1
+        if _fragment_overlaps_peak(chrom, start, end, peaks_by_chrom, starts_by_chrom):
+            ins[bc] = ins.get(bc, 0) + 1
+    return [ins.get(bc, 0) / n for bc, n in totals.items() if n >= min_frags]
 
 
 def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
@@ -682,6 +750,42 @@ def _estimate_frip(frag_file: str, peaks_bed: str | None = None,
 
         frip, _ = _frip_from_intervals(_frag_iter(), peaks_by_chrom)
         return frip
+    except Exception:
+        return None
+
+
+def _estimate_frip_distribution(frag_file: str, peaks_bed: str | None = None,
+                                scan_limit: int = 2_000_000,
+                                min_frags: int = 20):
+    """Per-barcode FRiP distribution for the QC histogram (scATAC P4.1 (2)[B]).
+    REAL when a called-peak BED is supplied (same gate as :func:`_estimate_frip`);
+    honest None without peaks or when no barcode clears ``min_frags``."""
+    if not peaks_bed:
+        return None
+    try:
+        import gzip
+        peaks_by_chrom = _peaks_by_chrom_from_bed(peaks_bed)
+        if not peaks_by_chrom:
+            return None
+
+        def _frag_iter():
+            opener = gzip.open if str(frag_file).endswith(".gz") else open
+            with opener(frag_file, "rt") as f:
+                for i, line in enumerate(f):
+                    if i >= scan_limit:
+                        break
+                    if not line or line[0] == "#":
+                        continue
+                    parts = line.rstrip("\n").split("\t")
+                    if len(parts) >= 4:
+                        try:
+                            yield parts[0], int(parts[1]), int(parts[2]), parts[3]
+                        except ValueError:
+                            continue
+
+        dist = _frip_per_barcode_from_intervals(
+            _frag_iter(), peaks_by_chrom, min_frags=min_frags)
+        return dist or None
     except Exception:
         return None
 

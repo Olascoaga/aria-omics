@@ -256,6 +256,96 @@ def render_fragment_size_figure(qc: dict, out_path: Path) -> Optional[str]:
         return None
 
 
+def render_tss_depth_scatter(qc: dict, out_path: Path) -> Optional[str]:
+    """P4.1 (2)[A]: the canonical ATAC QC gating panel — per-cell TSS enrichment
+    vs log10 fragment depth, with the ENCODE TSSe gate lines. Reads the additive
+    ``qc["tss_depth_scatter"]`` arrays (only present on a real fragments run, W0.5
+    path). Returns None when TSSe arrays were not computed — honest absence, never
+    a fabricated cloud. When the importer recorded no per-cell depth, falls back to
+    a 1-D TSSe strip so the gate is still visible."""
+    sc = (qc or {}).get("tss_depth_scatter") or {}
+    tsse = sc.get("tsse")
+    if not tsse:
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    tsse = np.asarray(tsse, dtype=float)
+    depth = sc.get("log10_depth")
+    min_tss = sc.get("min_tss")
+    warn_tss = sc.get("warn_tss")
+    try:
+        fig, ax = plt.subplots(figsize=(6.0, 4.5), dpi=160)
+        if depth and len(depth) == len(tsse):
+            x = np.asarray(depth, dtype=float)
+            xlabel = "log10 fragment depth"
+        else:
+            # No per-cell depth — jitter on x so points are separable.
+            rng = np.random.default_rng(0)
+            x = rng.normal(0.0, 0.04, size=tsse.shape[0])
+            xlabel = "(no per-cell depth recorded)"
+        ax.scatter(x, tsse, s=4, alpha=0.35, color="#34699a", linewidths=0)
+        for gate, c, lab in ((min_tss, "#c0392b", "ENCODE min"),
+                             (warn_tss, "#e08e0b", "marginal")):
+            if gate is not None:
+                ax.axhline(float(gate), color=c, lw=0.8, ls="--",
+                           label=f"{lab} ({float(gate):.0f})")
+        ax.set_xlabel(xlabel, fontsize=9)
+        ax.set_ylabel("TSS enrichment (per cell)", fontsize=9)
+        ax.set_title("Per-cell QC: TSS enrichment vs depth",
+                     fontsize=10, fontweight="bold")
+        ax.tick_params(labelsize=7)
+        if min_tss is not None or warn_tss is not None:
+            ax.legend(fontsize=7, frameon=False)
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path = _save_dual(fig, out_path)
+        plt.close(fig)
+        return out_path
+    except Exception as e:
+        log.warning("TSS×depth scatter figure failed: %s", e)
+        return None
+
+
+def render_frip_distribution(qc: dict, out_path: Path) -> Optional[str]:
+    """P4.1 (2)[B]: per-barcode FRiP distribution histogram with the FRiP quality
+    gate. Reads the additive ``qc["frip_distribution"]`` list (only present when a
+    called-peak BED was supplied, W0.5 path). Returns None when no distribution was
+    computed — honest absence, never a fabricated histogram."""
+    dist = (qc or {}).get("frip_distribution")
+    if not dist:
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    vals = np.asarray(dist, dtype=float)
+    vals = vals[np.isfinite(vals)]
+    if vals.size == 0:
+        return None
+    try:
+        fig, ax = plt.subplots(figsize=(6.0, 4.0), dpi=160)
+        ax.hist(vals, bins=40, range=(0, 1), color="#34699a", alpha=0.75)
+        ax.axvline(0.2, color="#c0392b", lw=0.8, ls="--", label="FRiP gate (0.20)")
+        ax.set_xlabel("FRiP (fraction of reads in peaks)", fontsize=9)
+        ax.set_ylabel("barcodes", fontsize=9)
+        ax.set_title(f"Per-barcode FRiP distribution (n={vals.size})",
+                     fontsize=10, fontweight="bold")
+        ax.tick_params(labelsize=7)
+        ax.legend(fontsize=7, frameon=False)
+        out_path = Path(out_path)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path = _save_dual(fig, out_path)
+        plt.close(fig)
+        return out_path
+    except Exception as e:
+        log.warning("FRiP distribution figure failed: %s", e)
+        return None
+
+
 def _marker_peaks_by_cluster(findings: dict) -> dict:
     """Extract {cluster_id: [peak, ...]} from the per-cluster DA findings."""
     da = findings.get("differential_accessibility") or {}
@@ -327,10 +417,20 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
             figs["motif_dotplot"] = path
 
     # 4. Fragment-size / nucleosome banding (inline) from the QC size histogram.
-    path = render_fragment_size_figure(
-        findings.get("qc") or {}, output_dir / "fragment_size.png")
+    qc = findings.get("qc") or {}
+    path = render_fragment_size_figure(qc, output_dir / "fragment_size.png")
     if path:
         figs["fragment_size"] = path
+
+    # 4b. Per-cell QC gating scatter (TSSe × depth) + per-barcode FRiP distribution
+    # (P4.1 (2)). Both honest-skip unless a real fragments/peaks run populated the
+    # additive QC arrays.
+    path = render_tss_depth_scatter(qc, output_dir / "qc_tss_depth.png")
+    if path:
+        figs["qc_tss_depth"] = path
+    path = render_frip_distribution(qc, output_dir / "qc_frip_distribution.png")
+    if path:
+        figs["qc_frip_distribution"] = path
 
     # 5. Marker-peak heatmap + per-cluster QC depth violin (W0.2). These need the
     # AnnData matrix, so they render in the chromatin stack like the UMAP.

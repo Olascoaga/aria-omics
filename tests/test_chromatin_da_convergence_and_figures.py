@@ -138,6 +138,45 @@ def test_render_fragment_size_is_dual_png_and_svg(tmp_path):
     assert render_fragment_size_figure({}, tmp_path / "none.png") is None
 
 
+def test_render_tss_depth_scatter_dual_and_honest(tmp_path):
+    """P4.1 (2)[A]: per-cell TSSe×depth gating scatter is dual PNG+SVG when the
+    additive QC arrays exist, and honest None when they were not computed."""
+    from aria.agents._narrative_chromatin import render_tss_depth_scatter
+
+    qc = {"tss_depth_scatter": {
+        "tsse": [3.0, 9.0, 6.0, 12.0],
+        "log10_depth": [3.1, 3.8, 3.5, 4.0],
+        "min_tss": 4.0, "warn_tss": 8.0,
+    }}
+    path = render_tss_depth_scatter(qc, tmp_path / "qc_tss_depth.png")
+    assert path and Path(path).exists()
+    assert Path(path).with_suffix(".svg").exists()
+    # Still renders without per-cell depth (1-D strip fallback).
+    qc_nodepth = {"tss_depth_scatter": {"tsse": [3.0, 9.0], "log10_depth": None,
+                                        "min_tss": 4.0, "warn_tss": 8.0}}
+    assert render_tss_depth_scatter(qc_nodepth, tmp_path / "nd.png")
+    # No arrays (fragment-less run) -> honest None.
+    assert render_tss_depth_scatter(
+        {"tss_depth_scatter": {"tsse": None, "reason": "no fragments"}},
+        tmp_path / "none.png") is None
+    assert render_tss_depth_scatter({}, tmp_path / "none2.png") is None
+
+
+def test_render_frip_distribution_dual_and_honest(tmp_path):
+    """P4.1 (2)[B]: per-barcode FRiP histogram is dual PNG+SVG when a distribution
+    exists, and honest None without one (no peaks supplied)."""
+    from aria.agents._narrative_chromatin import render_frip_distribution
+
+    qc = {"frip_distribution": [0.1, 0.25, 0.3, 0.42, 0.18, 0.5]}
+    path = render_frip_distribution(qc, tmp_path / "qc_frip.png")
+    assert path and Path(path).exists()
+    assert Path(path).with_suffix(".svg").exists()
+    # No distribution (no called peaks) -> honest None.
+    assert render_frip_distribution({"frip_distribution": None},
+                                    tmp_path / "none.png") is None
+    assert render_frip_distribution({}, tmp_path / "none2.png") is None
+
+
 def test_generate_figures_attaches_da_and_motif_inline(tmp_path):
     from aria.agents import _narrative_chromatin
 
