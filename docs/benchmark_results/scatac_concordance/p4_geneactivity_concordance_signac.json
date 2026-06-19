@@ -1,0 +1,53 @@
+{
+  "aria_n_genes": 64856,
+  "aria_version": "4.7.0",
+  "benchmark": "P4.3_gene_activity_concordance",
+  "caveats": [
+    "Gene activity (both methods) summarizes accessibility near a gene; it is not RNA expression. ARIA sums peak accessibility in a window, Signac counts fragments in the gene body + promoter \u2014 concordance is rank agreement, not identity.",
+    "ARIA's window-sum assigns the SAME score to genes sharing a peak window, so the top-k overlap understates agreement; the genome-wide Spearman over all shared genes is the honest concordance signal (moderate here)."
+  ],
+  "concordance": {
+    "n_aria_genes": 64856,
+    "n_ref_genes": 75554,
+    "n_shared_genes": 64355,
+    "score_spearman": 0.5080567960125533,
+    "status": "success",
+    "top_k": 200,
+    "top_k_jaccard": 0.007556675062972292,
+    "top_k_recall_aria_in_ref": 0.015
+  },
+  "dataset": "pbmc_multiome_10k",
+  "design": {
+    "aria_method": "chromatin_regulatory._gene_scores (peak accessibility summed in a TSS window)",
+    "feature_space": "per-gene mean activity over shared cells",
+    "reference": "Signac::GeneActivity (fragment counts over gene body + promoter)",
+    "window_bp": 100000
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "git_commit": "81faf27232269bf71935bfca2250caabbda3d3d8",
+    "git_describe": "v4.7.0-20-g81faf27-dirty",
+    "git_dirty": true,
+    "git_sha": "81faf27232269bf71935bfca2250caabbda3d3d8",
+    "git_tree_sha": "5796b339be92e2be977397e9139f9a1026223bd7",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "20bbea9da620905a8b52bed4d70d17044ae3acf30216a69c2012243ecc472502",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "gene_activity_concordance_vs_signac_geneactivity",
+  "signac_status": {
+    "n_cells": 11909,
+    "n_genes": 75557,
+    "status": "success"
+  }
+}

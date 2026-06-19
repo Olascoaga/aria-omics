@@ -119,6 +119,29 @@ def test_peak2gene_concordance_honest_null_without_overlap():
     assert res["score_spearman"] is None and res["sign_agreement"] is None
 
 
+# --- gene-activity concordance (P4.3) ---------------------------------------
+
+def test_gene_activity_concordance_spearman_and_topk():
+    from aria.benchmarks.concordance_atac import score_gene_activity_concordance
+
+    aria = [("GENEA", 9.0), ("geneb", 5.0), ("GENEC", 1.0), ("GENED", 0.2)]
+    ref = [("GENEA", 8.0), ("GENEB", 4.0), ("GENEC", 2.0), ("GENEE", 9.0)]
+    res = score_gene_activity_concordance(aria, ref, top_k=2)
+    assert res["n_shared_genes"] == 3                 # A, B, C (case-insensitive)
+    assert res["score_spearman"] > 0.9                # monotonic on shared
+    # top-2 ARIA = {A,B}; top-2 ref = {E,A} -> overlap {A}
+    assert res["top_k_jaccard"] == pytest.approx(1 / 3)
+    assert res["top_k_recall_aria_in_ref"] == pytest.approx(1 / 2)
+
+
+def test_gene_activity_concordance_honest_null_without_overlap():
+    from aria.benchmarks.concordance_atac import score_gene_activity_concordance
+
+    res = score_gene_activity_concordance([("G1", 1.0)], [("G2", 1.0)])
+    assert res["n_shared_genes"] == 0
+    assert res["score_spearman"] is None
+
+
 # --- seed stability ---------------------------------------------------------
 
 def test_seed_stability_is_one_for_identical_label_sets():

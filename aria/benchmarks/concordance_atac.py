@@ -400,6 +400,62 @@ def score_peak2gene_concordance(
 
 
 # --------------------------------------------------------------------------- #
+# Gene-activity concordance (scATAC P4.3 gene-scores)                          #
+# --------------------------------------------------------------------------- #
+
+def score_gene_activity_concordance(
+    aria_scores: Sequence[tuple[Any, float]],
+    ref_scores: Sequence[tuple[Any, float]],
+    top_k: int = 200,
+) -> dict[str, Any]:
+    """Concordance of two per-gene activity vectors over a shared gene set: ARIA's
+    peak-window gene activity vs an external gene-activity estimator (Signac
+    ``GeneActivity``). Each input is ``(gene, score)`` pairs.
+
+    Reports the Spearman rank correlation of the scores on shared genes (do both
+    methods rank genes by accessibility-derived activity the same way?) and the
+    overlap of the top-``k`` most-active genes (Jaccard + directional recall). Empty
+    overlap scores honestly as ``None`` per axis, never as perfect agreement (ADR-002).
+    Gene symbols are matched case-insensitively.
+    """
+    def _index(scores: Sequence[tuple[Any, float]]) -> dict[str, float]:
+        out: dict[str, float] = {}
+        for gene, score in scores:
+            g = str(gene).strip().upper()
+            if not g or score is None:
+                continue
+            try:
+                out[g] = float(score)
+            except (TypeError, ValueError):
+                continue
+        return out
+
+    a_idx, b_idx = _index(aria_scores), _index(ref_scores)
+    shared = sorted(set(a_idx) & set(b_idx))
+    out: dict[str, Any] = {
+        "n_aria_genes": len(a_idx),
+        "n_ref_genes": len(b_idx),
+        "n_shared_genes": len(shared),
+    }
+    if shared:
+        a = np.array([a_idx[g] for g in shared], dtype=np.float64)
+        b = np.array([b_idx[g] for g in shared], dtype=np.float64)
+        out["score_spearman"] = _spearman(a, b)
+    else:
+        out["score_spearman"] = None
+
+    def _topk(idx: dict[str, float]) -> set:
+        return {g for g, _ in sorted(idx.items(), key=lambda kv: -kv[1])[:top_k]}
+
+    ta, tb = _topk(a_idx), _topk(b_idx)
+    inter, union = ta & tb, ta | tb
+    out["top_k"] = top_k
+    out["top_k_jaccard"] = (len(inter) / len(union)) if union else None
+    out["top_k_recall_aria_in_ref"] = (len(inter) / len(ta)) if ta else None
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Seed stability                                                              #
 # --------------------------------------------------------------------------- #
 
