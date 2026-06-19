@@ -38,6 +38,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--manifest-name", default="p4_footprint_tobias_bindetect.json")
     p.add_argument("--tobias-env", default="aria-tobias-env")
     p.add_argument("--dataset", default=None)
+    p.add_argument("--rna-group-means", default=None,
+                   help="optional JSON {gene: {group_a: mean, group_b: mean}} from the "
+                        "paired RNA -> footprint<->RNA cross-evidence in the manifest")
     p.add_argument("--skip-run", action="store_true",
                    help="reuse an existing driver result.json in --work-dir")
     args = p.parse_args(argv)
@@ -64,6 +67,15 @@ def main(argv: list[str] | None = None) -> int:
     group_bams = driver.get("group_bams") or {}
     n_frag = {g: (group_bams.get(g) or {}).get("n_fragments") for g in group_bams}
 
+    # Optional cross-modal footprint<->RNA concordance (the governance differentiator).
+    cross_evidence = None
+    summary = driver.get("differential_summary") or {}
+    if args.rna_group_means and summary.get("parsed"):
+        from aria.agents.narrative.synthesis.footprint_rna import footprint_rna_concordance
+        rna_means = json.loads(Path(args.rna_group_means).read_text())
+        cross_evidence = footprint_rna_concordance(
+            summary, rna_means, args.group_a, args.group_b)
+
     from aria.version import __version__, collect_version_metadata
     manifest = {
         "benchmark": "P4.3_footprint_tobias_bindetect",
@@ -83,6 +95,7 @@ def main(argv: list[str] | None = None) -> int:
         "ran": driver.get("ran", False),
         "reason": driver.get("reason"),
         "differential_summary": driver.get("differential_summary"),
+        "rna_cross_evidence": cross_evidence,
         "caveats": [
             "Differential TF binding is an associative footprint-signal difference "
             "between cell-type groups, not causal regulation.",

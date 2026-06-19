@@ -210,11 +210,11 @@
   },
   "provenance": {
     "aria_version": "4.7.0",
-    "git_commit": "14d9f49b30d2d860124a1136633ab0f0733648b9",
-    "git_describe": "v4.7.0-14-g14d9f49-dirty",
+    "git_commit": "d0695ca2db124ec6a7f403d2a5ffb93aeba2b6e0",
+    "git_describe": "v4.7.0-16-gd0695ca-dirty",
     "git_dirty": true,
-    "git_sha": "14d9f49b30d2d860124a1136633ab0f0733648b9",
-    "git_tree_sha": "1640e6850a6e9a2d9a807bfc4107bedfaffb3adf",
+    "git_sha": "d0695ca2db124ec6a7f403d2a5ffb93aeba2b6e0",
+    "git_tree_sha": "173616ae8eb6d6fa3f1f92887349e61c5008ceb8",
     "image": {
       "containerized": false,
       "digest": null,
@@ -226,10 +226,297 @@
     },
     "version": "4.7.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "36c35948fb84954bfd62893045abf2a972b5bf9537a5e3c44e4a3a14f3152d19",
+    "workflow_hash": "7eff07e336c694e5948ec280884d9c9888169112b60a501dfd9db5d2ec94e4e2",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "ran": true,
   "reason": null,
+  "rna_cross_evidence": {
+    "concordance_rate": 0.4211,
+    "group_a": "Monocyte",
+    "group_b": "T_cell",
+    "n_checked": 19,
+    "n_concordant": 8,
+    "toward_Monocyte": [
+      {
+        "change": 1.0218,
+        "n_sites": 9456,
+        "pvalue": 1.32562e-203,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.0033,
+          "T_cell": 0.0056,
+          "gene": "CEBPE"
+        },
+        "tf": "CEBPE"
+      },
+      {
+        "change": 1.0102,
+        "n_sites": 8987,
+        "pvalue": 6.1391e-195,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.6429,
+          "T_cell": 0.1803,
+          "gene": "CEBPB"
+        },
+        "tf": "CEBPB"
+      },
+      {
+        "change": 0.9667,
+        "n_sites": 13697,
+        "pvalue": 1.57668e-204,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0845,
+          "T_cell": 0.0545,
+          "gene": "CEBPG"
+        },
+        "tf": "CEBPG"
+      },
+      {
+        "change": 0.6561,
+        "n_sites": 37461,
+        "pvalue": 1.77845e-212,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.1898,
+          "T_cell": 0.014,
+          "gene": "CEBPA"
+        },
+        "tf": "CEBPA"
+      },
+      {
+        "change": 0.5985,
+        "n_sites": 36115,
+        "pvalue": 1.18537e-204,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0845,
+          "T_cell": 0.0545,
+          "gene": "CEBPG"
+        },
+        "tf": "CEBPG"
+      },
+      {
+        "change": 0.5884,
+        "n_sites": 28852,
+        "pvalue": 8.2044e-200,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.7615,
+          "T_cell": 0.0815,
+          "gene": "CEBPD"
+        },
+        "tf": "CEBPD"
+      },
+      {
+        "change": 0.5395,
+        "n_sites": 70847,
+        "pvalue": 4.20665e-223,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.0003,
+          "T_cell": 0.0006,
+          "gene": "SPIC"
+        },
+        "tf": "SPIC"
+      },
+      {
+        "change": 0.5374,
+        "n_sites": 11150,
+        "pvalue": 1.40202e-174,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.0666,
+          "T_cell": 0.1679,
+          "gene": "DBP"
+        },
+        "tf": "DBP"
+      },
+      {
+        "change": 0.5287,
+        "n_sites": 24242,
+        "pvalue": 1.88856e-195,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.0004,
+          "T_cell": 0.0132,
+          "gene": "HLF"
+        },
+        "tf": "HLF"
+      },
+      {
+        "change": 0.4971,
+        "n_sites": 30621,
+        "pvalue": 1.00943e-195,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.3214,
+          "T_cell": 0.3063,
+          "gene": "ATF4"
+        },
+        "tf": "ATF4"
+      }
+    ],
+    "toward_T_cell": [
+      {
+        "change": -0.2902,
+        "n_sites": 79887,
+        "pvalue": 1.27312e-194,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.1496,
+          "T_cell": 0.1334,
+          "gene": "ZBED4"
+        },
+        "tf": "ZBED4"
+      },
+      {
+        "change": -0.2787,
+        "n_sites": 87386,
+        "pvalue": 4.29668e-190,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0011,
+          "T_cell": 0.0009,
+          "gene": "KLF15"
+        },
+        "tf": "KLF15"
+      },
+      {
+        "change": -0.2766,
+        "n_sites": 50170,
+        "pvalue": 2.59682e-181,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0208,
+          "T_cell": 0.0077,
+          "gene": "EGR3"
+        },
+        "tf": "EGR3"
+      },
+      {
+        "change": -0.2687,
+        "n_sites": 50056,
+        "pvalue": 5.88743e-179,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.005,
+          "T_cell": 0.009,
+          "gene": "ZNF610"
+        },
+        "tf": "ZNF610"
+      },
+      {
+        "change": -0.2665,
+        "n_sites": 56877,
+        "pvalue": 5.76087e-180,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0981,
+          "T_cell": 0.0282,
+          "gene": "EGR1"
+        },
+        "tf": "EGR1"
+      },
+      {
+        "change": -0.2584,
+        "n_sites": 13273,
+        "pvalue": 9.10597e-146,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0588,
+          "T_cell": 0.0551,
+          "gene": "HINFP"
+        },
+        "tf": "HINFP"
+      },
+      {
+        "change": -0.2432,
+        "n_sites": 35377,
+        "pvalue": 3.64744e-165,
+        "rna_checked": false,
+        "rna_concordant": null,
+        "rna_favored_group": null,
+        "rna_means": null,
+        "tf": "Zfp961"
+      },
+      {
+        "change": -0.2429,
+        "n_sites": 27348,
+        "pvalue": 1.57217e-156,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0204,
+          "T_cell": 0.0033,
+          "gene": "EGR2"
+        },
+        "tf": "EGR2"
+      },
+      {
+        "change": -0.239,
+        "n_sites": 33115,
+        "pvalue": 6.35572e-164,
+        "rna_checked": true,
+        "rna_concordant": true,
+        "rna_favored_group": "T_cell",
+        "rna_means": {
+          "Monocyte": 0.418,
+          "T_cell": 0.4586,
+          "gene": "NRF1"
+        },
+        "tf": "Nrf1"
+      },
+      {
+        "change": -0.238,
+        "n_sites": 49734,
+        "pvalue": 6.00277e-177,
+        "rna_checked": true,
+        "rna_concordant": false,
+        "rna_favored_group": "Monocyte",
+        "rna_means": {
+          "Monocyte": 0.0,
+          "T_cell": 0.0,
+          "gene": "EGR4"
+        },
+        "tf": "EGR4"
+      }
+    ]
+  },
   "scope": "differential_tf_binding_between_cell_types_via_tobias"
 }

@@ -111,6 +111,12 @@ class ChromatinNarrator:
         if isinstance(regulatory, dict) and _ok(regulatory):
             blocks.append(self._regulatory_block(regulatory))
 
+        footprinting = findings.get("footprinting")
+        if (isinstance(footprinting, dict) and footprinting.get("ran")
+                and isinstance(footprinting.get("differential_summary"), dict)
+                and footprinting["differential_summary"].get("parsed")):
+            blocks.append(self._footprint_block(footprinting))
+
         return blocks
 
     # ── QC ────────────────────────────────────────────────────────────────
@@ -456,6 +462,61 @@ class ChromatinNarrator:
             confidence="low" if ran else "insufficient",
             claim=claim if ran else "", evidence=evidence, caveats=caveats,
             metrics={key: regulatory.get(key) for key in layers},
+        )
+
+    # ── P4.3 differential TF footprinting (governed, cross-modal) ────────────
+    def _footprint_block(self, footprinting: dict) -> NarrativeBlock:
+        """Governed associative block for TOBIAS differential TF binding, with optional
+        footprint<->RNA cross-evidence. Claim carries COUNTS only (no TF names, so the
+        W-CLAIM named-entity guard is satisfied); specific TFs live in evidence/metrics.
+        Capped associative: a differential footprint is an occupancy difference, not
+        regulation."""
+        summary = footprinting.get("differential_summary") or {}
+        cross = footprinting.get("rna_cross_evidence") or {}
+        ga = footprinting.get("group_a", "group A")
+        gb = footprinting.get("group_b", "group B")
+        n_sig = summary.get("n_significant")
+        n_tested = summary.get("n_motifs_tested")
+
+        evidence = [
+            _ev("Analysis", "differential TF footprinting", "chromatin_footprint_tobias"),
+            _ev("Method", "TOBIAS ATACorrect/ScoreBigwig/BINDetect (Tn5-corrected)",
+                "chromatin_footprint_tobias"),
+            _ev("Cell-type groups", f"{ga} vs {gb}", "chromatin_footprint_tobias"),
+            _ev("Motifs tested", n_tested, "chromatin_footprint_tobias"),
+            _ev("Significant differential motifs", n_sig, "chromatin_footprint_tobias"),
+        ]
+        n_checked = cross.get("n_checked")
+        n_conc = cross.get("n_concordant")
+        if n_checked:
+            evidence.append(_ev("Top TFs cross-checked vs RNA", n_checked,
+                                "footprint_rna"))
+            evidence.append(_ev("RNA-concordant (TF gene up in same group)", n_conc,
+                                "footprint_rna"))
+        evidence = [e for e in evidence if e.value is not None]
+
+        cross_txt = ""
+        if n_checked:
+            cross_txt = (f" Of {n_checked} top differential factors cross-checked, "
+                         f"{n_conc} have the TF gene's RNA concordantly higher in the "
+                         f"same group (associative cross-modal support).")
+        claim = (
+            f"Tn5-bias-corrected footprinting found {n_sig} of {n_tested} TF motifs "
+            f"with differential binding occupancy between {ga} and {gb}.{cross_txt}")
+
+        return NarrativeBlock(
+            id="chromatin.differential_tf_footprinting", modality="chromatin",
+            analysis="differential_tf_footprinting", block_type="result",
+            title="Differential TF footprinting", status="success",
+            confidence="medium", claim=claim, evidence=evidence,
+            caveats=[Caveat(
+                "Differential TF footprinting is associative: a footprint-occupancy "
+                "difference between cell-type groups is not evidence that the factor "
+                "regulates a gene or drives the cell state. Footprints are pseudobulk "
+                "and Tn5-bias-corrected; concordant RNA is supporting association, not "
+                "causation.", severity="info")],
+            metrics={"differential_summary": summary,
+                     "rna_cross_evidence": cross or None},
         )
 
     # ── Methods + tables ────────────────────────────────────────────────────
