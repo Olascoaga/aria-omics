@@ -320,28 +320,27 @@ class ChromatinAuditAgent:
                 validation_level="beta",
                 status="yellow",
                 reason=(
-                    "Bulk ATAC beta dispatch is limited to measured QC and "
-                    "MACS3 peak calling, and requires explicit acknowledgement."
+                    "Bulk ATAC beta dispatch supports measured QC, MACS3 peak "
+                    "calling, and replicate-gated DESeq2 DA with explicit "
+                    "metadata; it requires explicit acknowledgement."
                 ),
             )
             card["checks"]["validation"] = {
                 "validated": True,
-                "stage": "beta_qc_peak_calling",
-                "differential_accessibility": "scaffold",
+                "stage": "beta_qc_peak_calling_peak_counts_da",
+                "differential_accessibility": "beta_replicate_gated",
             }
             card["findings"].append(_finding(
                 "warning",
                 "bulk_atac_beta_ack_required",
                 (
-                    "Bulk ATAC is open as a beta lane for QC and peak calling. "
-                    "Replicate-aware differential accessibility over a peak-count "
-                    "matrix is not validated yet."
+                    "Bulk ATAC is open as a beta lane for QC, peak calling, "
+                    "peak-count matrices, and replicate-aware DA."
                 ),
                 (
-                    "Proceed only after explicit CP3.5 acknowledgement. Treat "
-                    "called peaks and QC metrics as the validated output of this "
-                    "slice; do not interpret bulk ATAC DA until the V47 DA lane "
-                    "closes."
+                    "Proceed only after explicit CP3.5 acknowledgement. DA runs "
+                    "only with explicit condition, biological replicate, and "
+                    "comparison metadata; under-specified designs skip honestly."
                 ),
                 modality=modality,
             ))

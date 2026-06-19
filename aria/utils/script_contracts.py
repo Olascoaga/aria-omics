@@ -417,6 +417,27 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_samples", "int"),
         ),
     ),
+    "aria/scripts/chromatin_bulk_diffacc.py": ScriptContract(
+        script_path="aria/scripts/chromatin_bulk_diffacc.py",
+        validation_level="beta",
+        inputs=(
+            _f("data_type", "str", allow_empty=False),
+            _f("counts_matrix_path", "path", allow_empty=False,
+               path_must_exist=True),
+            _f("sample_metadata_path", "path", allow_empty=False,
+               path_must_exist=True),
+            _f("condition_col", "str", required=False, allow_empty=False),
+            _f("replicate_col", "str", required=False, allow_empty=False),
+            _f("comparisons", "any", required=False),
+            _f("comparison", "any", required=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("ran", "bool"),
+            _f("data_type", "str"),
+            _f("analysis", "str"),
+        ),
+    ),
     "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(
         script_path="aria/scripts/chromatin_lsi_clustering.py",
         validation_level="scaffold",

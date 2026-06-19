@@ -57,6 +57,29 @@ class _FakeBulkAtacEnv:
                 "sample_ids": ["sample"],
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_bulk_diffacc.py"):
+            return {
+                "status": "success",
+                "ran": True,
+                "data_type": "bulk_ATAC",
+                "validation_level": "beta",
+                "analysis": "differential_accessibility",
+                "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+                "n_comparisons_success": 1,
+                "n_replicate_samples": 6,
+                "n_peaks_tested": 12345,
+                "n_sig_total": 42,
+                "padj_max": 0.05,
+                "lfc_min": 0.5,
+                "output_csv": "/tmp/bulk_atac_da_summary.csv",
+                "replicate_counts_path": "/tmp/bulk_atac_replicate_counts.tsv",
+                "comparisons": [{
+                    "test": "treated", "reference": "control",
+                    "status": "success", "n_sig": 42,
+                    "n_up": 20, "n_down": 22,
+                }],
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -70,7 +93,7 @@ def _agent(env):
     return agent
 
 
-def test_bulk_atac_agent_runs_qc_and_peak_calling_but_skips_da(tmp_path):
+def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
     bam = tmp_path / "sample.bam"
     bam.write_bytes(b"")
     env = _FakeBulkAtacEnv()
@@ -78,7 +101,13 @@ def test_bulk_atac_agent_runs_qc_and_peak_calling_but_skips_da(tmp_path):
 
     result = agent._run_bulk_atac(
         "exp",
-        {"genome": "hg38"},
+        {
+            "genome": "hg38",
+            "sample_metadata": {
+                "sample": {"condition": "treated", "replicate": "r1"},
+            },
+            "comparisons": [["treated", "control"]],
+        },
         {"comparison": "treated_vs_control"},
         [str(bam)],
     )
@@ -92,20 +121,25 @@ def test_bulk_atac_agent_runs_qc_and_peak_calling_but_skips_da(tmp_path):
     assert findings["peak_counts"]["status"] == "success"
     assert findings["peak_counts"]["validation_level"] == "scaffold"
     assert findings["peak_counts"]["analysis"] == "peak_count_matrix"
-    assert findings["differential_accessibility"]["status"] == "skipped"
-    assert findings["differential_accessibility"]["reason"] == "bulk_atac_da_not_validated"
-    assert findings["differential_accessibility"]["validation_level"] == "scaffold"
+    assert findings["differential_accessibility"]["status"] == "success"
+    assert findings["differential_accessibility"]["ran"] is True
+    assert findings["differential_accessibility"]["validation_level"] == "beta"
+    assert findings["differential_accessibility"]["n_sig_total"] == 42
 
     assert [(stack, script) for stack, script, _ in env.calls] == [
         ("chromatin", "chromatin_qc.py"),
         ("chromatin", "chromatin_peaks.py"),
         ("chromatin", "chromatin_peak_counts.py"),
+        ("chromatin", "chromatin_bulk_diffacc.py"),
     ]
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
     assert peaks_params["macs3_params"]["format"] == "BAMPE"
     count_params = env.calls[2][2]
     assert count_params["peaks_path"] == "/tmp/bulk_atac_peaks.narrowPeak"
+    da_params = env.calls[3][2]
+    assert da_params["counts_matrix_path"] == "/tmp/bulk_atac_peak_counts.tsv"
+    assert da_params["comparisons"] == [["treated", "control"]]
 
 
 def test_chromatin_peaks_does_not_fabricate_frip(monkeypatch):
@@ -156,6 +190,25 @@ def test_bulk_atac_narrator_surfaces_qc_and_peak_calling_under_strict_gate():
                     "n_samples": 2,
                     "warnings": [],
                 },
+                "differential_accessibility": {
+                    "status": "success",
+                    "ran": True,
+                    "data_type": "bulk_ATAC",
+                    "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+                    "n_comparisons_success": 1,
+                    "n_replicate_samples": 6,
+                    "n_peaks_tested": 23456,
+                    "n_sig_total": 42,
+                    "padj_max": 0.05,
+                    "lfc_min": 0.5,
+                    "output_csv": "/tmp/bulk_atac_da_summary.csv",
+                    "replicate_counts_path": "/tmp/bulk_atac_replicate_counts.tsv",
+                    "comparisons": [{
+                        "test": "treated", "reference": "control",
+                        "status": "success", "n_sig": 42,
+                    }],
+                    "warnings": [],
+                },
             },
         }
     }
@@ -166,7 +219,9 @@ def test_bulk_atac_narrator_surfaces_qc_and_peak_calling_under_strict_gate():
     assert "chromatin.qc.bulk_ATAC" in ids
     assert "chromatin.peak_calling.bulk_ATAC" in ids
     assert "chromatin.peak_count_matrix.bulk_ATAC" in ids
+    assert "chromatin.differential_accessibility.bulk_atac" in ids
     html = render_blocks(blocks, strict=True)
     assert "Bulk ATAC QC measured 2 sample" in html
     assert "MACS3 peak calling for bulk ATAC identified 23456 peaks" in html
     assert "Bulk ATAC peak counting produced a matrix with 23456 peaks across 2 samples" in html
+    assert "Bulk ATAC DESeq2 differential accessibility ran 1 comparison" in html

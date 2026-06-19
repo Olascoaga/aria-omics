@@ -148,9 +148,10 @@ MODALITY_VALIDATION = {
         "dispatch_enabled": True,
         "reason": (
             "Bulk ATAC V47 is open as a beta, acknowledgement-gated lane for "
-            "measured QC and MACS3 peak calling only. Differential accessibility "
-            "over bulk ATAC peak counts remains scaffolded until the replicate-aware "
-            "count-matrix workflow is validated."
+            "measured QC, MACS3 peak calling, and replicate-aware DESeq2 "
+            "differential accessibility over explicit peak-count matrices. "
+            "DA requires explicit condition, replicate, and comparison metadata; "
+            "under-specified designs skip honestly."
         ),
     },
     "ChIP": {

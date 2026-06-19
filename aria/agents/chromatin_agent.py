@@ -83,6 +83,7 @@ class ChromatinAgent(BaseAgent):
         "aria/scripts/chromatin_qc.py",
         "aria/scripts/chromatin_peaks.py",
         "aria/scripts/chromatin_peak_counts.py",
+        "aria/scripts/chromatin_bulk_diffacc.py",
         "aria/scripts/chromatin_lsi_clustering.py",
         "aria/scripts/chromatin_diffacc.py",
         "aria/scripts/chromatin_motifs.py",
@@ -473,10 +474,9 @@ class ChromatinAgent(BaseAgent):
                        intent: dict, files: list) -> dict:
         """Bulk ATAC-seq V47 slice: QC + MACS3 peak calling.
 
-        Differential accessibility over a replicate-aware peak-count matrix is
-        deliberately not validated yet; comparison requests build the technical
-        peak-count matrix, then return a structured scaffold blocker instead of
-        running unvalidated science.
+        Comparison requests build the technical peak-count matrix and then run
+        replicate-gated DESeq2 DA only when explicit condition/replicate/
+        comparison metadata are present; under-specified designs skip honestly.
         """
         findings = {}
 
@@ -516,13 +516,13 @@ class ChromatinAgent(BaseAgent):
         if peaks_result.get("status") == "success":
             self._publish_peaks_finding(experiment_id, peaks_result, "bulk_ATAC")
 
-        # Peak-count matrix if comparison defined. This is an auditable
-        # prerequisite for DA, not the DA result itself.
+        # Peak-count matrix + replicate-gated DA if comparison defined.
         if intent.get("comparison"):
             peak_universe = (
                 peaks_result.get("consensus_peaks_path")
                 or peaks_result.get("peaks_path")
             ) if isinstance(peaks_result, dict) else None
+            count_result = None
             if peak_universe:
                 self.publish_status(
                     experiment_id, "bulk ATAC peak-count matrix...", 0.70)
@@ -547,17 +547,58 @@ class ChromatinAgent(BaseAgent):
                     "analysis": "peak_count_matrix",
                     "validation_level": "scaffold",
                 }
-            findings["differential_accessibility"] = {
-                "status": "skipped",
-                "reason": "bulk_atac_da_not_validated",
-                "analysis": "differential_accessibility",
-                "validation_level": "scaffold",
-                "details": (
-                    "Bulk ATAC V47 currently validates measured QC and MACS3 "
-                    "peak calling only. Replicate-aware differential "
-                    "accessibility over a peak-count matrix remains scaffolded."
-                ),
-            }
+            if isinstance(count_result, dict) and count_result.get("status") == "success":
+                self.publish_status(
+                    experiment_id, "bulk ATAC differential accessibility...",
+                    0.82)
+                da_result = self.env.run_in_stack(
+                    stack="chromatin",
+                    script_path="aria/scripts/chromatin_bulk_diffacc.py",
+                    params={
+                        "data_type": "bulk_ATAC",
+                        "counts_matrix_path": count_result.get("counts_matrix_path"),
+                        "sample_metadata_path": count_result.get(
+                            "sample_metadata_path"),
+                        "condition_col": exp_ctx.get("condition_col", "condition"),
+                        "replicate_col": exp_ctx.get(
+                            "replicate_col",
+                            exp_ctx.get("replicate_column", "replicate"),
+                        ),
+                        "comparisons": (
+                            exp_ctx.get("comparisons")
+                            or intent.get("comparisons")
+                            or intent.get("comparison")
+                        ),
+                        "covariates": exp_ctx.get("covariates", []),
+                        "exp_context": exp_ctx,
+                        "output_dir": str(Path(files[0]).parent /
+                                          "bulk_atac_da"),
+                    },
+                )
+                if (isinstance(da_result, dict)
+                        and da_result.get("status") == "success"
+                        and da_result.get("ran")):
+                    findings["differential_accessibility"] = da_result
+                else:
+                    findings["differential_accessibility"] = {
+                        "status": "skipped",
+                        "reason": (
+                            da_result.get("reason")
+                            if isinstance(da_result, dict)
+                            else "bulk_atac_da_not_run"
+                        ),
+                        "analysis": "differential_accessibility",
+                        "validation_level": "beta",
+                        "details": da_result,
+                    }
+            else:
+                findings["differential_accessibility"] = {
+                    "status": "skipped",
+                    "reason": "bulk_atac_peak_count_matrix_not_available",
+                    "analysis": "differential_accessibility",
+                    "validation_level": "beta",
+                    "details": findings.get("peak_counts"),
+                }
 
         return {"status": "done", "findings": findings}
 

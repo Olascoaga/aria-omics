@@ -63,7 +63,7 @@ specification and leaves full benchmark execution as the RNA preprint lane.
 | SetupAgent | Checks computational environment before modality agents run |
 | BulkRNAAgent | Orchestrates bulk RNA count/FASTQ workflows |
 | scRNAAgent | Orchestrates QC, integration, clustering, annotation, DE, pseudobulk, beta trajectory and LIANA |
-| ChromatinAgent | Orchestrates beta scATAC behind acknowledgement and the V47 bulk ATAC beta QC/peak-calling slice plus scaffolded peak-count matrices; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
+| ChromatinAgent | Orchestrates beta scATAC behind acknowledgement and the V47 bulk ATAC beta QC/peak-calling/count-matrix/replicate-gated-DA slice; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
 | IntegrationAgent | Runs only for multimodal analyses or when explicitly requested; still scaffolded |
 | NarrativeAgent | Writes reports from structured outputs and warnings |
 | EnvironmentManager | Runs modality scripts in isolated Conda stacks using JSON IPC |

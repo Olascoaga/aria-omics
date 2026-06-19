@@ -2,8 +2,8 @@
 
 Validation level: scATAC matrix workflow is beta + requires explicit
 acknowledgement. Bulk ATAC is open as a V47 beta slice for measured QC + MACS3
-peak calling, also behind acknowledgement; comparison requests can build a
-scaffolded peak-by-sample count matrix, but bulk ATAC DA remains scaffolded.
+peak calling, peak-by-sample count matrices, and replicate-gated DESeq2 DA when
+explicit condition/replicate/comparison metadata exist, also behind acknowledgement.
 ChIP-seq, CUT&RUN, and CUT&TAG remain scaffolded.
 
 This module should not yet be described as production-ready.
@@ -25,6 +25,7 @@ This module should not yet be described as production-ready.
 - `chromatin_motifs.py`;
 - `chromatin_peaks.py`;
 - `chromatin_peak_counts.py`;
+- `chromatin_bulk_diffacc.py`;
 - MACS3 parameter profiles for assay types;
 - chromatin narrative blocks.
 
@@ -46,10 +47,12 @@ activity remains out of scope.
 Bulk ATAC dispatch is open behind CP3.5 acknowledgement for measured QC and MACS3
 peak calling. The agent reports QC and called peaks as beta evidence. When a
 comparison is requested, ARIA also builds a scaffolded peak-by-sample count
-matrix from the called peak universe using `bedtools coverage -counts`, then
-reports bulk ATAC differential accessibility as a scaffold skip. FRiP is computed
-only when the real post-peak-counting tools succeed; ARIA does not substitute a
-default FRiP.
+matrix from the called peak universe using `bedtools coverage -counts`, then runs
+replicate-gated DESeq2 differential accessibility via `chromatin_bulk_diffacc.py`
+when explicit condition, biological replicate, and comparison metadata are
+present. Under-specified designs return structured skips. FRiP is computed only
+when the real post-peak-counting tools succeed; ARIA does not substitute a default
+FRiP.
 
 ## Required Before Stable
 
@@ -65,8 +68,7 @@ For scATAC:
 For bulk ATAC:
 
 - robust BAM/fragment validation;
-- peak-count matrix real-data validation across BAM/fragment inputs;
-- replicate-aware differential accessibility;
+- broader real-data validation across BAM/fragment inputs;
 - motif/pathway summary;
 - report methods.
 

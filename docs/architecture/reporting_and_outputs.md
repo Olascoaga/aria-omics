@@ -29,10 +29,10 @@ small kernel under `aria.agents.narrative`.
 - `NarrativeBlock` is the unit of report evidence. A successful block must
   have a claim and at least one evidence item.
 - `ModalityNarrator` plugins convert agent outputs into blocks. scRNA and bulk
-  RNA have first-class narrators; chromatin has governed scATAC blocks, the
-  V47 bulk ATAC beta QC/peak-calling slice, and scaffolded peak-count matrix
-  blocks; unsupported modalities fall back to the legacy renderer until their
-  narrators exist.
+  RNA have first-class narrators; chromatin has governed scATAC blocks and the
+  V47 bulk ATAC beta QC/peak-calling/count-matrix/replicate-gated-DA blocks;
+  unsupported modalities fall back to the legacy renderer until their narrators
+  exist.
 - Validators enforce report integrity before rendering: missing successful
   evidence fails, failed analyses must explain the failure, low-confidence
   findings stay visible, causal language is downgraded unless causal evidence

@@ -15,7 +15,9 @@ It narrates the v4.6 scATAC peak-matrix pipeline:
 It also narrates the V47 bulk ATAC beta slice:
   - measured bulk chromatin QC;
   - MACS3 peak calling.
-  - scaffolded peak-count matrix output when a comparison is requested.
+  - scaffolded peak-count matrix output when a comparison is requested;
+  - replicate-gated DESeq2 DA when explicit condition/replicate/comparison
+    metadata are present.
 
 Honesty contract (ADR-002 / ADR-011): only measured quantities become evidence;
 not-run / skipped lanes become honest limitation blocks with the concrete
@@ -381,6 +383,9 @@ class ChromatinNarrator:
 
     # ── Differential accessibility ──────────────────────────────────────────
     def _diffacc_blocks(self, da: dict) -> list[NarrativeBlock]:
+        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+            return [self._bulk_atac_diffacc_block(da)]
+
         blocks: list[NarrativeBlock] = []
         padj_max = da.get("padj_max")
         lfc_min = da.get("lfc_min")
@@ -463,6 +468,66 @@ class ChromatinNarrator:
             ))
 
         return blocks
+
+    def _bulk_atac_diffacc_block(self, da: dict) -> NarrativeBlock:
+        n_comps = da.get("n_comparisons_success")
+        n_sig = da.get("n_sig_total")
+        n_reps = da.get("n_replicate_samples")
+        n_peaks = da.get("n_peaks_tested")
+        evidence = [
+            _ev("Analysis", "Bulk ATAC differential accessibility",
+                "chromatin_bulk_diffacc"),
+            _ev("Method", da.get("method"), "chromatin_bulk_diffacc"),
+            _ev("Modality", da.get("data_type"), "chromatin_bulk_diffacc"),
+            _ev("Comparisons run", n_comps, "chromatin_bulk_diffacc"),
+            _ev("Replicate samples", n_reps, "chromatin_bulk_diffacc"),
+            _ev("Peaks tested", n_peaks, "chromatin_bulk_diffacc"),
+            _ev("Differentially accessible peaks", n_sig,
+                "chromatin_bulk_diffacc"),
+            _ev("padj threshold", da.get("padj_max"),
+                "chromatin_bulk_diffacc"),
+            _ev("|log2FC| threshold", da.get("lfc_min"),
+                "chromatin_bulk_diffacc"),
+        ]
+        if da.get("output_csv"):
+            evidence.append(EvidenceItem(
+                label="Bulk ATAC DA summary", value="csv",
+                source="chromatin_bulk_diffacc", path=da["output_csv"]))
+        if da.get("replicate_counts_path"):
+            evidence.append(EvidenceItem(
+                label="Replicate peak counts", value="peak x replicate TSV",
+                source="chromatin_bulk_diffacc",
+                path=da["replicate_counts_path"]))
+        evidence = [e for e in evidence if e.value is not None]
+
+        caveats = [Caveat(
+            "Bulk ATAC DA uses biological replicate-level peak counts and the "
+            "shared DESeq2 core. It requires explicit condition, replicate, and "
+            "comparison metadata; ARIA does not infer contrasts from filenames.",
+            severity="info",
+        )]
+        for warning in da.get("warnings") or []:
+            caveats.append(Caveat(str(warning), severity="warning"))
+
+        claim = (
+            f"Bulk ATAC DESeq2 differential accessibility ran {n_comps} "
+            f"comparison(s) over {n_reps} replicate samples and found {n_sig} "
+            f"differentially accessible peaks.")
+        return NarrativeBlock(
+            id="chromatin.differential_accessibility.bulk_atac",
+            modality="chromatin", analysis="differential_accessibility",
+            block_type="result",
+            title="Bulk ATAC differential accessibility",
+            status="success", confidence="medium",
+            claim=claim, evidence=evidence, caveats=caveats,
+            metrics={
+                "comparisons": da.get("comparisons"),
+                "n_peaks_tested": n_peaks,
+                "n_replicate_samples": n_reps,
+                "n_sig_total": n_sig,
+            },
+            metadata={"validation_level": da.get("validation_level", "beta")},
+        )
 
     # ── Motif enrichment ────────────────────────────────────────────────────
     def _motif_block(self, motifs: dict) -> NarrativeBlock:
