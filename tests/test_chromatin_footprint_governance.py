@@ -77,6 +77,22 @@ def test_footprint_block_is_governed_associative():
     assert "CEBPB" not in block.claim and "EGR1" not in block.claim
 
 
+def test_footprint_block_surfaces_aggregate_figures():
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+
+    footprinting = {"ran": True, "group_a": "Monocyte", "group_b": "T_cell",
+                    "differential_summary": _summary(),
+                    "aggregate_plots": {
+                        "CEBPB": {"png": "/tmp/x/CEBPB_aggregate.png",
+                                  "svg": "/tmp/x/CEBPB_aggregate.svg"},
+                        "EGR1": {"png": "/tmp/x/EGR1_aggregate.png"}}}
+    block = ChromatinNarrator()._footprint_block(footprinting)
+    paths = {f["path"] for f in block.figures}
+    assert "/tmp/x/CEBPB_aggregate.png" in paths
+    assert len(block.figures) == 2
+    assert all("footprint" in f["caption"].lower() for f in block.figures)
+
+
 def test_collect_emits_footprint_block_when_present():
     from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
 

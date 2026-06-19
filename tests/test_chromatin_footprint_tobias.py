@@ -80,6 +80,29 @@ def test_summarize_bindetect_honest_when_columns_absent(tmp_path):
     assert s["parsed"] is False and "missing column" in s["reason"]
 
 
+def test_top_tfs_both_directions_deduped():
+    from aria.scripts.chromatin_footprint_tobias import _top_tfs
+
+    summary = {
+        "top_toward_Monocyte": [{"tf": "CEBPB"}, {"tf": "CEBPA"}, {"tf": "SPIC"}],
+        "top_toward_T_cell": [{"tf": "EGR1"}, {"tf": "CEBPB"}],  # CEBPB dup
+    }
+    tfs = _top_tfs(summary, "Monocyte", "T_cell", n=2)
+    # top-2 each direction, deduped, order preserved (no biology dropped one-sided)
+    assert tfs == ["CEBPB", "CEBPA", "EGR1"]
+
+
+def test_aggregate_plots_skips_tfs_without_beds(tmp_path):
+    from aria.scripts.chromatin_footprint_tobias import _aggregate_plots
+
+    # No BINDetect bed dirs present -> honest empty result, no TOBIAS call needed.
+    bindetect = tmp_path / "bindetect"
+    bindetect.mkdir()
+    out = _aggregate_plots(bindetect, {"A": "a.bw", "B": "b.bw"},
+                           ["CEBPB", "EGR1"], tmp_path)
+    assert out == {}
+
+
 def test_driver_honest_not_run_without_tobias(tmp_path, monkeypatch):
     from aria.scripts import chromatin_footprint_tobias as mod
 

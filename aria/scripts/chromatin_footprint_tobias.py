@@ -223,6 +223,52 @@ def summarize_bindetect(results_txt: str, group_a: str, group_b: str,
     }
 
 
+def _top_tfs(summary: dict, group_a: str, group_b: str, n: int = 5) -> list[str]:
+    """The TFs to draw aggregate footprints for: the top differential toward EACH group
+    (both directions, so no biology is dropped). Deduplicated, order preserved."""
+    tfs: list[str] = []
+    for grp in (group_a, group_b):
+        for x in (summary.get(f"top_toward_{grp}") or [])[:n]:
+            name = str(x.get("tf", "")).strip()
+            if name and name not in tfs:
+                tfs.append(name)
+    return tfs
+
+
+def _aggregate_plots(bindetect_dir: Path, signals: dict[str, str], tfs: list[str],
+                     out_dir: Path, cores: int = 8) -> dict[str, dict[str, str]]:
+    """Per-TF aggregate footprint plots via TOBIAS PlotAggregate (the canonical tool —
+    ARIA orchestrates it, does not re-implement footprint aggregation). For each TF the
+    corrected signal of BOTH groups is averaged around the motif's TFBS; dual PNG+SVG
+    (publication, P4.1 discipline). A TF whose TFBS bed is absent is skipped honestly."""
+    agg_dir = out_dir / "aggregate"
+    agg_dir.mkdir(parents=True, exist_ok=True)
+    log = out_dir / "tobias.log"
+    sig_args: list[str] = []
+    for g in signals:
+        sig_args += [str(signals[g])]
+    out: dict[str, dict[str, str]] = {}
+    for tf in tfs:
+        sanitized = tf.replace("::", "")
+        beds = sorted(bindetect_dir.glob(f"{sanitized}_*/beds/*_all.bed"))
+        if not beds:
+            continue
+        made: dict[str, str] = {}
+        for ext in ("png", "svg"):
+            dest = agg_dir / f"{sanitized}_aggregate.{ext}"
+            try:
+                _run(["TOBIAS", "PlotAggregate", "--TFBS", str(beds[0]),
+                      "--signals", *sig_args, "--output", str(dest),
+                      "--title", f"{tf} footprint ({' vs '.join(signals)})",
+                      "--share-y", "both", "--plot-boundaries"], log)
+                made[ext] = str(dest)
+            except Exception:
+                continue
+        if made.get("png"):
+            out[tf] = made
+    return out
+
+
 def _run(cmd: list[str], log: Path) -> None:
     with open(log, "a") as fh:
         fh.write("\n$ " + " ".join(cmd) + "\n")
@@ -317,12 +363,21 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
     summary = (summarize_bindetect(tobias["bindetect_results"], group_a, group_b)
                if tobias.get("bindetect_results") else {"parsed": False,
                "reason": "BINDetect produced no results table"})
+    aggregate = {}
+    if summary.get("parsed") and tobias.get("bindetect_outdir"):
+        aggregate = _aggregate_plots(
+            Path(tobias["bindetect_outdir"]),
+            {group_a: str(out_dir / f"{group_a}_corrected.bw"),
+             group_b: str(out_dir / f"{group_b}_corrected.bw")},
+            _top_tfs(summary, group_a, group_b), out_dir,
+            cores=int(params.get("cores", 8)))
     return {
         "ran": True,
         "method": "tobias_atacorrect_scorebigwig_bindetect",
         "group_a": group_a, "group_b": group_b,
         "group_bams": group_bams,
         "differential_summary": summary,
+        "aggregate_plots": aggregate,
         **tobias,
         "caveat": (
             "Differential TF binding (BINDetect) is an associative footprint-signal "

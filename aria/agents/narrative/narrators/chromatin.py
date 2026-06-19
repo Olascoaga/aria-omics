@@ -504,11 +504,18 @@ class ChromatinNarrator:
             f"Tn5-bias-corrected footprinting found {n_sig} of {n_tested} TF motifs "
             f"with differential binding occupancy between {ga} and {gb}.{cross_txt}")
 
+        figures = []
+        for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
+            png = (paths or {}).get("png")
+            if png:
+                figures.append({"id": f"footprint_{tf}", "path": png,
+                                "caption": f"{tf} aggregate footprint ({ga} vs {gb}); "
+                                           "central dip = protected TF binding site."})
         return NarrativeBlock(
             id="chromatin.differential_tf_footprinting", modality="chromatin",
             analysis="differential_tf_footprinting", block_type="result",
             title="Differential TF footprinting", status="success",
-            confidence="medium", claim=claim, evidence=evidence,
+            confidence="medium", claim=claim, evidence=evidence, figures=figures,
             caveats=[Caveat(
                 "Differential TF footprinting is associative: a footprint-occupancy "
                 "difference between cell-type groups is not evidence that the factor "
