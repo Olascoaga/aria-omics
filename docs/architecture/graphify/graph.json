@@ -3330,63 +3330,70 @@
       "label": "._qc_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L117"
+      "source_location": "L123"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_clustering_block",
       "label": "._clustering_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L158"
+      "source_location": "L164"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_diffacc_blocks",
       "label": "._diffacc_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L235"
+      "source_location": "L241"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_motif_block",
       "label": "._motif_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L320"
+      "source_location": "L326"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_regulatory_block",
       "label": "._regulatory_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L380"
+      "source_location": "L386"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "label": "._footprint_block()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L468"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_methods",
       "label": ".methods()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L462"
+      "source_location": "L523"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_figures",
       "label": ".figures()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L505"
+      "source_location": "L566"
     },
     {
       "id": "aria_agents_narrative_narrators_chromatin_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L505"
+      "source_location": "L566"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_tables",
       "label": ".tables()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L522"
+      "source_location": "L583"
     },
     {
       "id": "narrators_scrna",
@@ -4416,6 +4423,62 @@
       "file_type": "code",
       "source_file": "aria/agents/narrative/synthesis/discussion_composer.py",
       "source_location": "L460"
+    },
+    {
+      "id": "synthesis_footprint_rna",
+      "label": "footprint_rna.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "synthesis_footprint_rna_tf_genes",
+      "label": "_tf_genes()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "synthesis_footprint_rna_rna_favored_group",
+      "label": "_rna_favored_group()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "aria_agents_narrative_synthesis_footprint_rna_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "synthesis_footprint_rna_footprint_rna_concordance",
+      "label": "footprint_rna_concordance()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "aria_agents_narrative_synthesis_footprint_rna_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "aria_agents_narrative_synthesis_footprint_rna_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43"
     },
     {
       "id": "synthesis_pattern_detector",
@@ -22940,11 +23003,67 @@
       "source_location": "L233"
     },
     {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "label": "rna_cross_evidence",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L234"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_concordance_rate",
+      "label": "concordance_rate",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L235"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_group_a",
+      "label": "group_a",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L236"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_group_b",
+      "label": "group_b",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L237"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_n_checked",
+      "label": "n_checked",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L238"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_n_concordant",
+      "label": "n_concordant",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L239"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_toward_monocyte",
+      "label": "toward_Monocyte",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L240"
+    },
+    {
+      "id": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_toward_t_cell",
+      "label": "toward_T_cell",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L382"
+    },
+    {
       "id": "scatac_footprint_p4_footprint_tobias_bindetect_scope",
       "label": "scope",
       "file_type": "code",
       "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
-      "source_location": "L234"
+      "source_location": "L521"
     },
     {
       "id": "install",
@@ -22958,7 +23077,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -23203,7 +23322,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -23225,7 +23344,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -26158,6 +26277,48 @@
       "file_type": "code",
       "source_file": "tests/test_chromatin_figures_w02.py",
       "source_location": "L103"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance",
+      "label": "test_chromatin_footprint_governance.py",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance_summary",
+      "label": "_summary()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L12"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_scores_cross_modal",
+      "label": "test_footprint_rna_concordance_scores_cross_modal()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_marks_discordant",
+      "label": "test_footprint_rna_concordance_marks_discordant()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L43"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "label": "test_footprint_block_is_governed_associative()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "tests_test_chromatin_footprint_governance_test_collect_emits_footprint_block_when_present",
+      "label": "test_collect_emits_footprint_block_when_present()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L80"
     },
     {
       "id": "tests_test_chromatin_footprint_tobias",
@@ -46621,7 +46782,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L117",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -46631,7 +46792,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L117",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -46640,7 +46801,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L158",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -46650,7 +46811,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L158",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -46659,7 +46820,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L235",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -46669,7 +46830,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L235",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -46678,7 +46839,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L320",
+      "source_location": "L326",
       "weight": 1.0
     },
     {
@@ -46688,7 +46849,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L320",
+      "source_location": "L326",
       "weight": 1.0
     },
     {
@@ -46697,7 +46858,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L380",
+      "source_location": "L386",
       "weight": 1.0
     },
     {
@@ -46707,7 +46868,26 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L380",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L468",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -46716,7 +46896,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L462",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -46726,7 +46906,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L462",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -46736,7 +46916,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L462",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -46745,7 +46925,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L505",
+      "source_location": "L566",
       "weight": 1.0
     },
     {
@@ -46755,7 +46935,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L505",
+      "source_location": "L566",
       "weight": 1.0
     },
     {
@@ -46765,7 +46945,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L505",
+      "source_location": "L566",
       "weight": 1.0
     },
     {
@@ -46774,7 +46954,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L522",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -46784,7 +46964,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L522",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -46794,7 +46974,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L522",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -46878,13 +47058,23 @@
       "weight": 1.0
     },
     {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
       "source": "narrators_chromatin_chromatinnarrator_qc_block",
       "target": "narrators_chromatin_ev",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L127",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -46894,7 +47084,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L146",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -46904,7 +47094,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L147",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -46914,7 +47104,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L169",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -46924,7 +47114,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L220",
+      "source_location": "L226",
       "weight": 1.0
     },
     {
@@ -46934,7 +47124,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L246",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -46944,7 +47134,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L261",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -46954,7 +47144,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L322",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -46964,7 +47154,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L345",
+      "source_location": "L351",
       "weight": 1.0
     },
     {
@@ -46974,7 +47164,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L392",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -46984,7 +47174,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L452",
+      "source_location": "L458",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "target": "narrators_chromatin_ev",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L482",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L507",
       "weight": 1.0
     },
     {
@@ -46994,7 +47204,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L466",
+      "source_location": "L527",
       "weight": 1.0
     },
     {
@@ -47004,7 +47214,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L510",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -50700,6 +50910,223 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/synthesis/discussion_composer.py",
       "source_location": "L351",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna",
+      "target": "synthesis_footprint_rna_tf_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_tf_genes",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_tf_genes",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna",
+      "target": "synthesis_footprint_rna_rna_favored_group",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_rna_favored_group",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "aria_agents_narrative_synthesis_footprint_rna_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "synthesis_footprint_rna_tf_genes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "synthesis_footprint_rna_footprint_rna_concordance",
+      "target": "synthesis_footprint_rna_rna_favored_group",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/synthesis/footprint_rna.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -101844,7 +102271,7 @@
     },
     {
       "source": "scatac_footprint_p4_footprint_tobias_bindetect",
-      "target": "scatac_footprint_p4_footprint_tobias_bindetect_scope",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
@@ -101852,8 +102279,80 @@
       "weight": 1.0
     },
     {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_concordance_rate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L235",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_group_a",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L236",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_group_b",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L237",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_n_checked",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L238",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_n_concordant",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L239",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_toward_monocyte",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L240",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_rna_cross_evidence_toward_t_cell",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L382",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_footprint_p4_footprint_tobias_bindetect",
+      "target": "scatac_footprint_p4_footprint_tobias_bindetect_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_footprint/p4_footprint_tobias_bindetect.json",
+      "source_location": "L521",
+      "weight": 1.0
+    },
+    {
       "source": "install",
-      "target": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -101906,7 +102405,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -101916,7 +102415,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -101926,7 +102425,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -101936,7 +102435,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -101946,7 +102445,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102298,7 +102797,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -102307,7 +102806,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -102342,7 +102841,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102352,7 +102851,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rfyz2k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_nnqnnd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106877,6 +107376,81 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w02.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "tests_test_chromatin_footprint_governance_summary",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_scores_cross_modal",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_marks_discordant",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "tests_test_chromatin_footprint_governance_test_collect_emits_footprint_block_when_present",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_scores_cross_modal",
+      "target": "tests_test_chromatin_footprint_governance_summary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "target": "tests_test_chromatin_footprint_governance_summary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_collect_emits_footprint_block_when_present",
+      "target": "tests_test_chromatin_footprint_governance_summary",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
       "source_location": "L84",
       "weight": 1.0
     },
@@ -124639,12 +125213,22 @@
     },
     {
       "source": "scripts_run_scatac_footprint_tobias",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_footprint_tobias.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_footprint_tobias",
       "target": "aria_version_collect_version_metadata",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_footprint_tobias.py",
-      "source_location": "L67",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -125945,6 +126529,36 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w02.py",
       "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance",
+      "target": "narrative_validators_find_causal_language",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -131499,12 +132113,22 @@
     },
     {
       "source": "scripts_run_scatac_footprint_tobias_main",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_footprint_tobias.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_footprint_tobias_main",
       "target": "aria_version_collect_version_metadata",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_footprint_tobias.py",
-      "source_location": "L72",
+      "source_location": "L84",
       "weight": 1.0
     },
     {
@@ -133545,6 +134169,66 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_figures_w02.py",
       "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_scores_cross_modal",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_rna_concordance_marks_discordant",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "target": "synthesis_footprint_rna_footprint_rna_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_footprint_block_is_governed_associative",
+      "target": "narrative_validators_find_causal_language",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_footprint_governance_test_collect_emits_footprint_block_when_present",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_footprint_governance.py",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -138981,7 +139665,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L129",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -138992,7 +139676,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L190",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -139003,7 +139687,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L267",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -139014,7 +139698,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L328",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -139025,7 +139709,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L418",
+      "source_location": "L424",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_footprint_block",
+      "target": "narrative_types_caveat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L512",
       "weight": 1.0
     },
     {
