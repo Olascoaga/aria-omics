@@ -1,7 +1,9 @@
 # Chromatin Workflows
 
-Validation level: scATAC matrix workflow is alpha + requires explicit
-acknowledgement. Bulk ATAC, ChIP-seq, CUT&RUN, and CUT&TAG remain scaffolded.
+Validation level: scATAC matrix workflow is beta + requires explicit
+acknowledgement. Bulk ATAC is open as a V47 beta slice for measured QC + MACS3
+peak calling, also behind acknowledgement; bulk ATAC DA remains scaffolded.
+ChIP-seq, CUT&RUN, and CUT&TAG remain scaffolded.
 
 This module should not yet be described as production-ready.
 
@@ -24,18 +26,26 @@ This module should not yet be described as production-ready.
 - MACS3 parameter profiles for assay types;
 - chromatin narrative blocks.
 
-## Current v4.6 scATAC Alpha Path
+## Current scATAC Beta Path
 
 The same-cell RNA+ATAC `.h5mu` entry path is implemented for scATAC matrix
 analysis behind CP3.5 acknowledgement. On the local HC11 validation file, ARIA
 reads ATAC modality `atac` and reports real dimensions of 3,143 cells x 60,990
-peaks. The alpha lane supports measured QC, TF-IDF/LSI clustering, per-cluster
+peaks. The beta lane supports measured QC, TF-IDF/LSI clustering, per-cluster
 accessibility markers, replicate-gated pseudobulk DA, local motif enrichment
 when motif/genome resources exist, and chromatin report blocks.
 
-The lane remains alpha. Missing resources or underpowered designs are reported
+Missing resources or underpowered designs are reported
 as skipped/limited analyses, not inferred around. chromVAR-style per-cell motif
 activity remains out of scope.
+
+## Current Bulk ATAC Beta Slice
+
+Bulk ATAC dispatch is open behind CP3.5 acknowledgement for measured QC and MACS3
+peak calling. The agent reports QC and called peaks as beta evidence, and reports
+bulk ATAC differential accessibility as a scaffold skip when requested. FRiP is
+computed only when the real post-peak-counting tools succeed; ARIA does not
+substitute a default FRiP.
 
 ## Required Before Stable
 
@@ -48,13 +58,20 @@ For scATAC:
 - peak-to-gene handoff contract;
 - stable promotion criteria and release review.
 
-For bulk ATAC / ChIP / CUT&RUN / CUT&TAG:
+For bulk ATAC:
+
+- robust BAM/fragment validation;
+- count matrix generation;
+- replicate-aware differential accessibility;
+- motif/pathway summary;
+- report methods.
+
+For ChIP / CUT&RUN / CUT&TAG:
 
 - robust BAM/fragment validation;
 - assay-specific QC;
 - peak calling and consensus peak strategy;
-- count matrix generation;
-- differential accessibility or binding;
+- differential binding;
 - motif/pathway summary;
 - report methods.
 

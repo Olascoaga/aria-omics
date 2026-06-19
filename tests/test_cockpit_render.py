@@ -196,15 +196,15 @@ def test_readiness_cards_render():
                          status="yellow", dispatch_policy="requires_ack",
                          reason="alpha lane",
                          findings=["scATAC requires explicit acknowledgement."]),
-        ModalityCardView(modality="bulk_ATAC", validation_level="scaffold",
-                         status="red", dispatch_policy="blocked",
-                         reason="not validated for dispatch"),
+        ModalityCardView(modality="bulk_ATAC", validation_level="beta",
+                         status="yellow", dispatch_policy="requires_ack",
+                         reason="QC and peak calling beta"),
     ]
     out = _capture(render.render_readiness(_snap(readiness=cards)))
     assert "scRNA" in out and "allowed" in out
     assert "scATAC" in out and "requires_ack" in out
     assert "alpha" in out
-    assert "bulk_ATAC" in out and "blocked" in out
+    assert "bulk_ATAC" in out and "requires_ack" in out
     assert "requires explicit acknowledgement" in out
 
 

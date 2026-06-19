@@ -98,7 +98,7 @@ explicit `NotImplemented` rather than any fabricated result.
 
 | Area | Status | Required before stable |
 |---|---|---|
-| Bulk ATAC-seq | Scaffolded | Peak count matrix, DA, QC summaries, report section |
+| Bulk ATAC-seq | Beta slice | Measured QC + MACS3 peak calling are acknowledgement-gated beta; peak count matrix + DA remain scaffolded |
 | ChIP-seq / CUT&RUN / CUT&TAG | Scaffolded | Clear assay-specific QC and peak interpretation |
 | Hi-C / Micro-C | Scaffolded — dispatch OFF | Runs only under `ARIA_ALLOW_EXPERIMENTAL_HIC=1` and are stamped not-publication-grade; needs E2E validation + memory-safe fixtures |
 | WNN / MOFA+ / peak-to-gene | Scaffolded | Stable standalone RNA + ATAC paths first; currently an explicit NotImplemented blocker, no fabricated weights or clusters |

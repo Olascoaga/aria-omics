@@ -1,4 +1,4 @@
-"""Chromatin (scATAC) narrative plugin (v4.6 steps 5-6).
+"""Chromatin narrative plugin (scATAC + beta bulk ATAC slices).
 
 Composes the chromatin report section from validated ``NarrativeBlock`` objects
 in this package — exactly like the scRNA / bulk RNA narrators — instead of
@@ -11,6 +11,10 @@ It narrates the v4.6 scATAC peak-matrix pipeline:
   - differential accessibility — per-cluster marker peaks + replicate-gated
     pseudobulk DA (``chromatin_diffacc``);
   - TF motif enrichment in DA peak sets (``chromatin_motifs``).
+
+It also narrates the V47 bulk ATAC beta slice:
+  - measured bulk chromatin QC;
+  - MACS3 peak calling.
 
 Honesty contract (ADR-002 / ADR-011): only measured quantities become evidence;
 not-run / skipped lanes become honest limitation blocks with the concrete
@@ -40,6 +44,17 @@ def _ev(label, value, source="chromatin"):
 def _ok(result) -> bool:
     return isinstance(result, dict) and str(result.get("status")) in (
         "success", "done")
+
+
+def _modality_label(data_type: str | None) -> str:
+    labels = {
+        "scATAC": "scATAC",
+        "bulk_ATAC": "bulk ATAC",
+        "ChIP": "ChIP-seq",
+        "CUT_AND_RUN": "CUT&RUN",
+        "CUT_AND_TAG": "CUT&TAG",
+    }
+    return labels.get(str(data_type or ""), "chromatin")
 
 
 # ChromatinAgent.run() returns findings keyed by modality, with the analysis
@@ -95,6 +110,10 @@ class ChromatinNarrator:
         if isinstance(qc, dict) and _ok(qc):
             blocks.append(self._qc_block(qc))
 
+        peaks = findings.get("peaks")
+        if isinstance(peaks, dict) and _ok(peaks):
+            blocks.append(self._peaks_block(peaks))
+
         lsi = findings.get("lsi") or findings.get("lsi_clustering")
         if isinstance(lsi, dict) and _ok(lsi):
             blocks.append(self._clustering_block(lsi))
@@ -121,21 +140,27 @@ class ChromatinNarrator:
 
     # ── QC ────────────────────────────────────────────────────────────────
     def _qc_block(self, qc: dict) -> NarrativeBlock:
+        data_type = qc.get("data_type")
+        modality_label = _modality_label(data_type)
         evidence: list[EvidenceItem] = []
-        for label, key in (
+        for ev_label, key in (
+            ("Modality", "data_type"),
             ("Cells (barcodes)", "n_cells"),
+            ("Samples", "n_samples"),
             ("Peaks", "n_peaks"),
             ("Fragments scanned", "n_fragments"),
             ("Mitochondrial fraction", "mito_fraction"),
+            ("Duplicate rate", "dup_rate"),
         ):
             val = qc.get(key)
             if val is not None:
-                evidence.append(_ev(label, val, "chromatin_qc"))
+                evidence.append(_ev(ev_label, val, "chromatin_qc"))
 
         caveats = [Caveat(
-            "scATAC QC is a v4.6 scaffold: it reports only the metrics actually "
-            "measured from the input; FRiP and TSS enrichment stay not-computed "
-            "until called peaks and a reference TSS annotation are available.",
+            "Chromatin QC reports only the metrics actually measured from the "
+            "input; metrics that require additional assets or post-peak-calling "
+            "steps stay not-computed, and scaffolded layers remain explicitly "
+            "caveated.",
             severity="info",
         )]
         not_computed = qc.get("metrics_not_computed") or []
@@ -145,10 +170,16 @@ class ChromatinNarrator:
                 severity="info"))
 
         status = "success" if evidence else "limitation"
-        claim = (
-            f"scATAC QC measured {qc.get('n_cells', '?')} cells and "
-            f"{qc.get('n_peaks', '?')} peaks."
-            if evidence else "")
+        if data_type == "bulk_ATAC" and evidence:
+            claim = (
+                f"Bulk ATAC QC measured {qc.get('n_samples', '?')} sample(s) "
+                f"with mean mitochondrial fraction {qc.get('mito_fraction', '?')}.")
+        elif evidence:
+            claim = (
+                f"{modality_label} QC measured {qc.get('n_cells', '?')} cells and "
+                f"{qc.get('n_peaks', '?')} peaks.")
+        else:
+            claim = ""
         return NarrativeBlock(
             id=f"chromatin.qc.{_safe_id(qc.get('data_type'))}",
             modality="chromatin", analysis="qc", block_type="qc",
@@ -157,7 +188,62 @@ class ChromatinNarrator:
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"qc_complete": qc.get("qc_complete"),
                      "pass_qc": qc.get("pass_qc")},
-            metadata={"validation_level": "scaffold"},
+            metadata={"validation_level": "beta"
+                      if data_type == "bulk_ATAC" else "scaffold"},
+        )
+
+    # ── Peak calling ──────────────────────────────────────────────────────
+    def _peaks_block(self, peaks: dict) -> NarrativeBlock:
+        data_type = peaks.get("data_type")
+        label = _modality_label(data_type)
+        n_peaks = peaks.get("n_peaks")
+        frip = peaks.get("frip")
+        evidence = [
+            _ev("Analysis", "MACS3 peak calling", "chromatin_peaks"),
+            _ev("Modality", data_type, "chromatin_peaks"),
+            _ev("Peaks called", n_peaks, "chromatin_peaks"),
+            _ev("Genome", peaks.get("genome"), "chromatin_peaks"),
+        ]
+        if frip is not None:
+            evidence.append(_ev("FRiP", frip, "chromatin_peaks"))
+        if peaks.get("peaks_path"):
+            evidence.append(EvidenceItem(
+                label="Peak table", value="peak file",
+                source="chromatin_peaks", path=peaks["peaks_path"]))
+        if peaks.get("consensus_peaks_path"):
+            evidence.append(EvidenceItem(
+                label="Consensus peaks", value="peak file",
+                source="chromatin_peaks", path=peaks["consensus_peaks_path"]))
+        evidence = [e for e in evidence if e.value is not None]
+
+        caveats = [Caveat(
+            "Peak calling identifies accessible genomic intervals. These peaks "
+            "are not differential accessibility results and do not establish "
+            "regulatory mechanism on their own.",
+            severity="info",
+        )]
+        if frip is None:
+            caveats.append(Caveat(
+                "FRiP was not computed after peak calling; no default FRiP value "
+                "was substituted.",
+                severity="info"))
+        for warning in peaks.get("warnings") or []:
+            caveats.append(Caveat(str(warning), severity="warning"))
+
+        claim = f"MACS3 peak calling for {label} identified {n_peaks} peaks."
+        return NarrativeBlock(
+            id=f"chromatin.peak_calling.{_safe_id(data_type)}",
+            modality="chromatin", analysis="peak_calling",
+            block_type="result", title="Chromatin peak calling",
+            status="success", confidence="medium",
+            claim=claim, evidence=evidence, caveats=caveats,
+            metrics={
+                "n_peaks": n_peaks,
+                "frip": frip,
+                "consensus_peaks_path": peaks.get("consensus_peaks_path"),
+            },
+            metadata={"validation_level": "beta"
+                      if data_type == "bulk_ATAC" else "scaffold"},
         )
 
     # ── LSI + clustering ────────────────────────────────────────────────────
@@ -529,7 +615,7 @@ class ChromatinNarrator:
     # ── Methods + tables ────────────────────────────────────────────────────
     def methods(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[str]:
-        findings = agent_result.get("findings", {}) or {}
+        findings = unwrap_chromatin_findings(agent_result)
         out: list[str] = []
         if _ok(findings.get("qc")):
             out.append(
@@ -589,8 +675,17 @@ class ChromatinNarrator:
 
     def tables(self, agent_name: str, agent_result: dict,
                report_dir: Path | None = None) -> list[dict]:
-        findings = agent_result.get("findings", {}) or {}
+        findings = unwrap_chromatin_findings(agent_result)
         tables = []
+        peaks = findings.get("peaks") or {}
+        if peaks.get("peaks_path"):
+            tables.append({"id": "chromatin.peaks",
+                           "path": peaks["peaks_path"],
+                           "label": "Called peaks"})
+        if peaks.get("consensus_peaks_path"):
+            tables.append({"id": "chromatin.consensus_peaks",
+                           "path": peaks["consensus_peaks_path"],
+                           "label": "Consensus peaks"})
         da = findings.get("differential_accessibility") or {}
         pc = (da.get("per_cluster") or {})
         if pc.get("output_csv"):

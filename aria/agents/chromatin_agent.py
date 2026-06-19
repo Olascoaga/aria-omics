@@ -470,10 +470,16 @@ class ChromatinAgent(BaseAgent):
 
     def _run_bulk_atac(self, experiment_id: str, exp_ctx: dict,
                        intent: dict, files: list) -> dict:
-        """Bulk ATAC-seq: QC, peak calling, differential accessibility."""
+        """Bulk ATAC-seq V47 slice: QC + MACS3 peak calling.
+
+        Differential accessibility over a replicate-aware peak-count matrix is
+        deliberately not part of this first beta slice; requests for it return a
+        structured scaffold blocker instead of running unvalidated science.
+        """
         findings = {}
 
         # QC
+        self.publish_status(experiment_id, "bulk ATAC QC...", 0.35)
         qc_result = self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_qc.py",
@@ -483,11 +489,14 @@ class ChromatinAgent(BaseAgent):
                 "genome":    exp_ctx.get("genome", "hg38"),
             },
         )
+        if isinstance(qc_result, dict) and qc_result.get("status") == "success":
+            qc_result.setdefault("validation_level", "beta")
         findings["qc"] = qc_result
         if qc_result.get("status") == "success":
             self._publish_qc_finding(experiment_id, qc_result, "bulk_ATAC")
 
         # Peak calling
+        self.publish_status(experiment_id, "bulk ATAC peak calling...", 0.55)
         peaks_result = self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_peaks.py",
@@ -499,14 +508,25 @@ class ChromatinAgent(BaseAgent):
                 "output_dir":   str(Path(files[0]).parent / "peaks"),
             },
         )
+        if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
+            peaks_result.setdefault("validation_level", "beta")
         findings["peaks"] = peaks_result
+        if peaks_result.get("status") == "success":
+            self._publish_peaks_finding(experiment_id, peaks_result, "bulk_ATAC")
 
         # Differential accessibility if comparison defined
-        if intent.get("comparison") and qc_result.get("status") == "success":
-            diff_result = self._run_differential_accessibility(
-                experiment_id, exp_ctx, intent, peaks_result
-            )
-            findings["differential_accessibility"] = diff_result
+        if intent.get("comparison"):
+            findings["differential_accessibility"] = {
+                "status": "skipped",
+                "reason": "bulk_atac_da_not_validated",
+                "analysis": "differential_accessibility",
+                "validation_level": "scaffold",
+                "details": (
+                    "Bulk ATAC V47 currently validates measured QC and MACS3 "
+                    "peak calling only. Replicate-aware differential "
+                    "accessibility over a peak-count matrix remains scaffolded."
+                ),
+            }
 
         return {"status": "done", "findings": findings}
 

@@ -29,7 +29,7 @@ flowchart TD
     SETUP --> DISPATCH[Modality dispatch]
     DISPATCH --> B[BulkRNAAgent]
     DISPATCH --> S[scRNAAgent]
-    DISPATCH --> C[ChromatinAgent alpha]
+    DISPATCH --> C[ChromatinAgent beta]
     DISPATCH --> H[GenomeArchAgent scaffolded]
     B --> MAYBEINT{2+ modalities or integration requested?}
     S --> MAYBEINT
@@ -63,7 +63,7 @@ specification and leaves full benchmark execution as the RNA preprint lane.
 | SetupAgent | Checks computational environment before modality agents run |
 | BulkRNAAgent | Orchestrates bulk RNA count/FASTQ workflows |
 | scRNAAgent | Orchestrates QC, integration, clustering, annotation, DE, pseudobulk, beta trajectory and LIANA |
-| ChromatinAgent | Orchestrates the alpha scATAC matrix workflow behind acknowledgement; other chromatin assays remain scaffolded |
+| ChromatinAgent | Orchestrates beta scATAC behind acknowledgement and the V47 bulk ATAC beta QC/peak-calling slice; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
 | IntegrationAgent | Runs only for multimodal analyses or when explicitly requested; still scaffolded |
 | NarrativeAgent | Writes reports from structured outputs and warnings |
 | EnvironmentManager | Runs modality scripts in isolated Conda stacks using JSON IPC |

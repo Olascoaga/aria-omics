@@ -12,15 +12,16 @@ def test_orchestrator_allows_beta_scatac_after_readiness_ack_gate():
     assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
 
 
-def test_orchestrator_still_blocks_scaffold_bulk_atac_dispatch():
-    from aria.agents.orchestrator_agent import OrchestratorAgent
+def test_orchestrator_allows_beta_bulk_atac_after_readiness_ack_gate():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION, OrchestratorAgent
 
     blocked = OrchestratorAgent._blocked_modalities({
         "bulk_ATAC": ["/tmp/fragments.tsv.gz"],
     })
 
-    assert set(blocked) == {"bulk_ATAC"}
-    assert blocked["bulk_ATAC"]["level"] == "scaffold"
+    assert blocked == {}
+    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "beta"
+    assert MODALITY_VALIDATION["bulk_ATAC"]["dispatch_enabled"] is True
 
 
 def test_chromatin_missing_planned_scripts_return_structured_blocker():

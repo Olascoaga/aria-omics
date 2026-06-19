@@ -30,10 +30,17 @@ def test_scatac_beta_is_dispatchable_with_readiness_ack():
     assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
 
 
+def test_bulk_atac_beta_is_dispatchable_with_readiness_ack():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION
+
+    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "beta"
+    assert MODALITY_VALIDATION["bulk_ATAC"]["dispatch_enabled"] is True
+
+
 def test_remaining_scaffold_chromatin_modalities_are_not_dispatched():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
-    for modality in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
+    for modality in ("ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         assert MODALITY_VALIDATION[modality]["level"] == "scaffold"
         assert MODALITY_VALIDATION[modality]["dispatch_enabled"] is False
 

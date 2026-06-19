@@ -36,9 +36,11 @@ decisions, and writes a report grounded in real output files.
   motif enrichment, and the replicate-gated pseudobulk condition-DA lane are
   beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with SnapATAC2
   and edgeR/limma/DESeq2); the per-cluster Wilcoxon marker path stays caveated as
-  single-sample-fragile. Dispatch-gated behind explicit acknowledgement.
-- **Scaffolded / roadmap:** bulk ATAC-seq, ChIP-seq, CUT&RUN / CUT&TAG, full
-  Hi-C / Micro-C workflows, and multimodal WNN/MOFA+ integration.
+  single-sample-fragile. Bulk ATAC-seq is open as a V47 beta slice for measured
+  QC + MACS3 peak calling only; bulk ATAC differential accessibility remains
+  scaffolded. Both lanes are dispatch-gated behind explicit acknowledgement.
+- **Scaffolded / roadmap:** ChIP-seq, CUT&RUN / CUT&TAG, full Hi-C / Micro-C
+  workflows, and multimodal WNN/MOFA+ integration.
 
 **ARIA produces:**
 
@@ -125,12 +127,12 @@ scRNAAgent                         done  ✓ PBMC 3k + GSE278576 multi-donor
   rna_trajectory.py (PAGA + root-gated DPT)
                                       beta — validated on hippocampus subset
   rna_cellcomm.py (LIANA)          beta — validated on GSE278576
-ChromatinAgent                     beta — scATAC dispatch requires explicit ack (ADR-048)
+ChromatinAgent                     beta — scATAC and bulk ATAC dispatch require explicit ack
   chromatin_qc.py                  done — measured-only QC (no fabricated TSS/FRiP)
   chromatin_lsi_clustering.py      beta — TF-IDF/LSI clustering (SnapATAC2-concordant)
   chromatin_diffacc.py             beta — replicate-gated pseudobulk DA (edgeR/limma/DESeq2-concordant); per-cluster Wilcoxon markers caveated
   chromatin_motifs.py              beta — local motif enrichment when resources exist
-  chromatin_peaks.py (MACS3)       scaffolded
+  chromatin_peaks.py (MACS3)       beta for bulk ATAC peak calling; other assay use remains scaffolded
 GenomeArchAgent                    scaffolded — dispatch OFF by default
   hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
   hic_qc_and_balance.py            done — runs are stamped not-publication-grade
@@ -359,8 +361,9 @@ ARIA
   SetupAgent              Environment/genome readiness check before dispatch
   BulkRNAAgent            DESeq2, all pairwise contrasts, ORA, GSEA
   scRNAAgent              QC, clustering, annotation, DE
-  ChromatinAgent          scATAC matrix workflow [alpha, requires ack]
-                          bulk ATAC + ChIP + CUT&RUN + CUT&TAG [scaffolded]
+  ChromatinAgent          scATAC matrix workflow [beta, requires ack]
+                          bulk ATAC QC + MACS3 peaks [beta, requires ack]
+                          ChIP + CUT&RUN + CUT&TAG [scaffolded]
   GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
   IntegrationAgent        Conditional multimodal synthesis  [scaffolded]
   NarrativeAgent          HTML report + methods section
@@ -557,18 +560,19 @@ v4.5.x   done     Reliability, governance & reproducibility hardening before
                   filename fallback / propagated thresholds), anti-fabrication
                   guard, complete IPC contracts, blocking 3-tier CI,
                   air-gapped mode
-v4.6     current  scATAC release line out of pre-release. scATAC matrix
-                  workflow is alpha + requires explicit acknowledgement:
+v4.6     done     scATAC release line out of pre-release. scATAC matrix
+                  workflow is beta + requires explicit acknowledgement:
                   measured QC, TF-IDF/LSI clustering, per-cluster DA,
                   replicate-gated pseudobulk DA, local motif enrichment, and
-                  chromatin narrative blocks. Bulk ATAC/ChIP/CUT&RUN/CUT&TAG
-                  remain scaffolded.
+                  chromatin narrative blocks. ChIP/CUT&RUN/CUT&TAG remain
+                  scaffolded.
 post-v4.6 done    scRNA production hardening: raw-count pseudobulk handoff,
                   descriptive marker claims, data-intrinsic QC, root-gated
                   DPT, CellTypist confidence/fallback disclosure, integration
                   overcorrection escalation, 10X MEX directory grouping, and
                   honest QC-failure report blocks.
-v4.7              Bulk ATAC end-to-end — DA via DESeq2 on peak counts
+v4.7     current  Bulk ATAC: QC + MACS3 peak-calling beta slice is open;
+                  remaining work is DA via DESeq2 on peak counts
 v4.8              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
                   until both modalities work standalone
 v4.9              Interactive HTML report (sortable tables, plotly figures)

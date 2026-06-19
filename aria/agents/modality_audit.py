@@ -313,6 +313,40 @@ class ChromatinAuditAgent:
             ))
             return card
 
+        if modality == "bulk_ATAC":
+            card = _base_card(
+                modality,
+                agent="chromatin_agent",
+                validation_level="beta",
+                status="yellow",
+                reason=(
+                    "Bulk ATAC beta dispatch is limited to measured QC and "
+                    "MACS3 peak calling, and requires explicit acknowledgement."
+                ),
+            )
+            card["checks"]["validation"] = {
+                "validated": True,
+                "stage": "beta_qc_peak_calling",
+                "differential_accessibility": "scaffold",
+            }
+            card["findings"].append(_finding(
+                "warning",
+                "bulk_atac_beta_ack_required",
+                (
+                    "Bulk ATAC is open as a beta lane for QC and peak calling. "
+                    "Replicate-aware differential accessibility over a peak-count "
+                    "matrix is not validated yet."
+                ),
+                (
+                    "Proceed only after explicit CP3.5 acknowledgement. Treat "
+                    "called peaks and QC metrics as the validated output of this "
+                    "slice; do not interpret bulk ATAC DA until the V47 DA lane "
+                    "closes."
+                ),
+                modality=modality,
+            ))
+            return card
+
         card = _base_card(
             modality,
             agent="chromatin_agent",

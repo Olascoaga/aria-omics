@@ -144,9 +144,14 @@ MODALITY_VALIDATION = {
         ),
     },
     "bulk_ATAC": {
-        "level": "scaffold",
-        "dispatch_enabled": False,
-        "reason": "bulk ATAC validation is scheduled after scATAC.",
+        "level": "beta",
+        "dispatch_enabled": True,
+        "reason": (
+            "Bulk ATAC V47 is open as a beta, acknowledgement-gated lane for "
+            "measured QC and MACS3 peak calling only. Differential accessibility "
+            "over bulk ATAC peak counts remains scaffolded until the replicate-aware "
+            "count-matrix workflow is validated."
+        ),
     },
     "ChIP": {
         "level": "scaffold",

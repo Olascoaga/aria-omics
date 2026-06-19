@@ -24,7 +24,7 @@ Output:
       "n_peaks":              int,
       "peaks_path":           str,   — path to .narrowPeak or .broadPeak
       "consensus_peaks_path": str,   — merged peaks across replicates
-      "frip":                 float, — actual FRiP after peak calling
+      "frip":                 float|None, — actual FRiP after peak calling
       "warnings":             [str]
     }
 """
@@ -182,6 +182,11 @@ def chromatin_peaks(params: dict) -> dict:
 
     # ── Compute actual FRiP ───────────────────────────────────────────────
     frip = _compute_frip(valid_files[0], str(peaks_file))
+    if frip is None:
+        warnings.append(
+            "FRiP was not computed because samtools/bedtools counting failed "
+            "or was unavailable."
+        )
 
     return {
         "status":               "success",
@@ -189,7 +194,8 @@ def chromatin_peaks(params: dict) -> dict:
         "n_peaks":              int(n_peaks),
         "peaks_path":           str(peaks_file),
         "consensus_peaks_path": consensus_path,
-        "frip":                 round(float(frip), 4),
+        "frip":                 (round(float(frip), 4)
+                                  if frip is not None else None),
         "genome":               genome,
         "macs3_cmd":            " ".join(cmd),  # for reproducibility
         "warnings":             warnings,
@@ -256,7 +262,7 @@ def _create_consensus_peaks(output_dir: str,
         return None
 
 
-def _compute_frip(bam_file: str, peaks_file: str) -> float:
+def _compute_frip(bam_file: str, peaks_file: str) -> float | None:
     """
     Compute FRiP (Fraction of Reads in Peaks).
     Requires samtools and bedtools in PATH.
@@ -288,7 +294,7 @@ def _compute_frip(bam_file: str, peaks_file: str) -> float:
         return in_peaks / max(total, 1)
 
     except Exception:
-        return 0.30   # typical ATAC default
+        return None
 
 
 if __name__ == "__main__":

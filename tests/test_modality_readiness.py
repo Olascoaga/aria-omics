@@ -101,21 +101,26 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     assert "chromatin_readiness_alpha_ack_required" not in codes
 
 
-def test_capability_matrix_keeps_non_scatac_chromatin_scaffold_red():
+def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     matrix = build_capability_matrix(
         {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
         modality_validation={
             "bulk_ATAC": {
-                "level": "scaffold",
-                "dispatch_enabled": False,
-                "reason": "bulk ATAC validation is not closed.",
+                "level": "beta",
+                "dispatch_enabled": True,
+                "reason": "bulk ATAC QC/peak calling beta.",
             },
         },
     )
 
-    assert matrix["cards"]["bulk_ATAC"]["status"] == "red"
-    assert matrix["cards"]["bulk_ATAC"]["dispatch_policy"] == "blocked"
-    assert matrix["dispatch"]["blocked"] == ["bulk_ATAC"]
+    card = matrix["cards"]["bulk_ATAC"]
+    assert card["validation_level"] == "beta"
+    assert card["status"] == "yellow"
+    assert card["dispatch_policy"] == "requires_ack"
+    assert matrix["dispatch"]["requires_ack"] == ["bulk_ATAC"]
+    assert matrix["dispatch"]["blocked"] == []
+    codes = {f["check"] for f in card["findings"]}
+    assert "bulk_atac_beta_ack_required" in codes
 
 
 def test_audit_agent_surfaces_capability_matrix_without_heavy_checks(monkeypatch):
