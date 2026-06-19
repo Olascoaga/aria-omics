@@ -396,6 +396,27 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_peaks", "int", required=False),
         ),
     ),
+    "aria/scripts/chromatin_peak_counts.py": ScriptContract(
+        script_path="aria/scripts/chromatin_peak_counts.py",
+        validation_level="scaffold",
+        inputs=(
+            _f("data_type", "str", allow_empty=False),
+            _f("files", "list[path]", allow_empty=False, path_must_exist=True),
+            _f("peaks_path", "path", allow_empty=False, path_must_exist=True,
+               aliases=("consensus_peaks_path", "peak_universe_path")),
+            _f("sample_ids", "list", required=False, allow_empty=False),
+            _f("sample_metadata", "any", required=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("counts_matrix_path", "path", allow_empty=False,
+               path_must_exist=True),
+            _f("sample_metadata_path", "path", allow_empty=False,
+               path_must_exist=True),
+            _f("n_peaks", "int"),
+            _f("n_samples", "int"),
+        ),
+    ),
     "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(
         script_path="aria/scripts/chromatin_lsi_clustering.py",
         validation_level="scaffold",

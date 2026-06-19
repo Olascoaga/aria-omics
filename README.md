@@ -37,7 +37,8 @@ decisions, and writes a report grounded in real output files.
   beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with SnapATAC2
   and edgeR/limma/DESeq2); the per-cluster Wilcoxon marker path stays caveated as
   single-sample-fragile. Bulk ATAC-seq is open as a V47 beta slice for measured
-  QC + MACS3 peak calling only; bulk ATAC differential accessibility remains
+  QC + MACS3 peak calling, and comparison requests can now build a scaffolded
+  peak-by-sample count matrix; bulk ATAC differential accessibility remains
   scaffolded. Both lanes are dispatch-gated behind explicit acknowledgement.
 - **Scaffolded / roadmap:** ChIP-seq, CUT&RUN / CUT&TAG, full Hi-C / Micro-C
   workflows, and multimodal WNN/MOFA+ integration.
@@ -133,6 +134,7 @@ ChromatinAgent                     beta — scATAC and bulk ATAC dispatch requir
   chromatin_diffacc.py             beta — replicate-gated pseudobulk DA (edgeR/limma/DESeq2-concordant); per-cluster Wilcoxon markers caveated
   chromatin_motifs.py              beta — local motif enrichment when resources exist
   chromatin_peaks.py (MACS3)       beta for bulk ATAC peak calling; other assay use remains scaffolded
+  chromatin_peak_counts.py         scaffold — bulk ATAC peak x sample matrix; DA still gated
 GenomeArchAgent                    scaffolded — dispatch OFF by default
   hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
   hic_qc_and_balance.py            done — runs are stamped not-publication-grade
@@ -363,6 +365,7 @@ ARIA
   scRNAAgent              QC, clustering, annotation, DE
   ChromatinAgent          scATAC matrix workflow [beta, requires ack]
                           bulk ATAC QC + MACS3 peaks [beta, requires ack]
+                          bulk ATAC peak-count matrix [scaffold, DA gated]
                           ChIP + CUT&RUN + CUT&TAG [scaffolded]
   GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
   IntegrationAgent        Conditional multimodal synthesis  [scaffolded]

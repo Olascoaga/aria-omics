@@ -15,6 +15,7 @@ It narrates the v4.6 scATAC peak-matrix pipeline:
 It also narrates the V47 bulk ATAC beta slice:
   - measured bulk chromatin QC;
   - MACS3 peak calling.
+  - scaffolded peak-count matrix output when a comparison is requested.
 
 Honesty contract (ADR-002 / ADR-011): only measured quantities become evidence;
 not-run / skipped lanes become honest limitation blocks with the concrete
@@ -113,6 +114,10 @@ class ChromatinNarrator:
         peaks = findings.get("peaks")
         if isinstance(peaks, dict) and _ok(peaks):
             blocks.append(self._peaks_block(peaks))
+
+        peak_counts = findings.get("peak_counts")
+        if isinstance(peak_counts, dict) and _ok(peak_counts):
+            blocks.append(self._peak_counts_block(peak_counts))
 
         lsi = findings.get("lsi") or findings.get("lsi_clustering")
         if isinstance(lsi, dict) and _ok(lsi):
@@ -244,6 +249,57 @@ class ChromatinNarrator:
             },
             metadata={"validation_level": "beta"
                       if data_type == "bulk_ATAC" else "scaffold"},
+        )
+
+    def _peak_counts_block(self, counts: dict) -> NarrativeBlock:
+        data_type = counts.get("data_type")
+        n_peaks = counts.get("n_peaks")
+        n_samples = counts.get("n_samples")
+        evidence = [
+            _ev("Analysis", "Peak-count matrix", "chromatin_peak_counts"),
+            _ev("Method", counts.get("counting_method"),
+                "chromatin_peak_counts"),
+            _ev("Modality", data_type, "chromatin_peak_counts"),
+            _ev("Peaks counted", n_peaks, "chromatin_peak_counts"),
+            _ev("Samples", n_samples, "chromatin_peak_counts"),
+        ]
+        if counts.get("counts_matrix_path"):
+            evidence.append(EvidenceItem(
+                label="Count matrix", value="peak x sample TSV",
+                source="chromatin_peak_counts",
+                path=counts["counts_matrix_path"]))
+        if counts.get("sample_metadata_path"):
+            evidence.append(EvidenceItem(
+                label="Sample metadata", value="sample TSV",
+                source="chromatin_peak_counts",
+                path=counts["sample_metadata_path"]))
+        evidence = [e for e in evidence if e.value is not None]
+
+        caveats = [Caveat(
+            "The peak-count matrix is a technical artifact for bulk ATAC. It is "
+            "not a differential accessibility result; replicate-aware DA "
+            "remains scaffolded until separately validated.",
+            severity="warning",
+        )]
+        for warning in counts.get("warnings") or []:
+            caveats.append(Caveat(str(warning), severity="warning"))
+
+        claim = (
+            f"Bulk ATAC peak counting produced a matrix with {n_peaks} peaks "
+            f"across {n_samples} samples."
+        )
+        return NarrativeBlock(
+            id=f"chromatin.peak_count_matrix.{_safe_id(data_type)}",
+            modality="chromatin", analysis="peak_count_matrix",
+            block_type="result", title="Bulk ATAC peak-count matrix",
+            status="success", confidence="low",
+            claim=claim, evidence=evidence, caveats=caveats,
+            metrics={
+                "n_peaks": n_peaks,
+                "n_samples": n_samples,
+                "counts_matrix_path": counts.get("counts_matrix_path"),
+            },
+            metadata={"validation_level": "scaffold"},
         )
 
     # ── LSI + clustering ────────────────────────────────────────────────────

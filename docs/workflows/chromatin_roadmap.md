@@ -2,7 +2,8 @@
 
 Validation level: scATAC matrix workflow is beta + requires explicit
 acknowledgement. Bulk ATAC is open as a V47 beta slice for measured QC + MACS3
-peak calling, also behind acknowledgement; bulk ATAC DA remains scaffolded.
+peak calling, also behind acknowledgement; comparison requests can build a
+scaffolded peak-by-sample count matrix, but bulk ATAC DA remains scaffolded.
 ChIP-seq, CUT&RUN, and CUT&TAG remain scaffolded.
 
 This module should not yet be described as production-ready.
@@ -23,6 +24,7 @@ This module should not yet be described as production-ready.
 - `chromatin_diffacc.py`;
 - `chromatin_motifs.py`;
 - `chromatin_peaks.py`;
+- `chromatin_peak_counts.py`;
 - MACS3 parameter profiles for assay types;
 - chromatin narrative blocks.
 
@@ -42,10 +44,12 @@ activity remains out of scope.
 ## Current Bulk ATAC Beta Slice
 
 Bulk ATAC dispatch is open behind CP3.5 acknowledgement for measured QC and MACS3
-peak calling. The agent reports QC and called peaks as beta evidence, and reports
-bulk ATAC differential accessibility as a scaffold skip when requested. FRiP is
-computed only when the real post-peak-counting tools succeed; ARIA does not
-substitute a default FRiP.
+peak calling. The agent reports QC and called peaks as beta evidence. When a
+comparison is requested, ARIA also builds a scaffolded peak-by-sample count
+matrix from the called peak universe using `bedtools coverage -counts`, then
+reports bulk ATAC differential accessibility as a scaffold skip. FRiP is computed
+only when the real post-peak-counting tools succeed; ARIA does not substitute a
+default FRiP.
 
 ## Required Before Stable
 
@@ -61,7 +65,7 @@ For scATAC:
 For bulk ATAC:
 
 - robust BAM/fragment validation;
-- count matrix generation;
+- peak-count matrix real-data validation across BAM/fragment inputs;
 - replicate-aware differential accessibility;
 - motif/pathway summary;
 - report methods.

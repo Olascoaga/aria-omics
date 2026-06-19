@@ -43,6 +43,20 @@ class _FakeBulkAtacEnv:
                 "macs3_cmd": "macs3 callpeak ...",
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_peak_counts.py"):
+            return {
+                "status": "success",
+                "data_type": "bulk_ATAC",
+                "validation_level": "scaffold",
+                "analysis": "peak_count_matrix",
+                "counting_method": "bedtools coverage -counts",
+                "counts_matrix_path": "/tmp/bulk_atac_peak_counts.tsv",
+                "sample_metadata_path": "/tmp/bulk_atac_samples.tsv",
+                "n_peaks": 12345,
+                "n_samples": len(params.get("files") or []),
+                "sample_ids": ["sample"],
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -75,6 +89,9 @@ def test_bulk_atac_agent_runs_qc_and_peak_calling_but_skips_da(tmp_path):
     assert findings["qc"]["validation_level"] == "beta"
     assert findings["peaks"]["n_peaks"] == 12345
     assert findings["peaks"]["validation_level"] == "beta"
+    assert findings["peak_counts"]["status"] == "success"
+    assert findings["peak_counts"]["validation_level"] == "scaffold"
+    assert findings["peak_counts"]["analysis"] == "peak_count_matrix"
     assert findings["differential_accessibility"]["status"] == "skipped"
     assert findings["differential_accessibility"]["reason"] == "bulk_atac_da_not_validated"
     assert findings["differential_accessibility"]["validation_level"] == "scaffold"
@@ -82,10 +99,13 @@ def test_bulk_atac_agent_runs_qc_and_peak_calling_but_skips_da(tmp_path):
     assert [(stack, script) for stack, script, _ in env.calls] == [
         ("chromatin", "chromatin_qc.py"),
         ("chromatin", "chromatin_peaks.py"),
+        ("chromatin", "chromatin_peak_counts.py"),
     ]
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
     assert peaks_params["macs3_params"]["format"] == "BAMPE"
+    count_params = env.calls[2][2]
+    assert count_params["peaks_path"] == "/tmp/bulk_atac_peaks.narrowPeak"
 
 
 def test_chromatin_peaks_does_not_fabricate_frip(monkeypatch):
@@ -126,6 +146,16 @@ def test_bulk_atac_narrator_surfaces_qc_and_peak_calling_under_strict_gate():
                     "frip": None,
                     "warnings": [],
                 },
+                "peak_counts": {
+                    "status": "success",
+                    "data_type": "bulk_ATAC",
+                    "counting_method": "bedtools coverage -counts",
+                    "counts_matrix_path": "/tmp/bulk_atac_peak_counts.tsv",
+                    "sample_metadata_path": "/tmp/bulk_atac_samples.tsv",
+                    "n_peaks": 23456,
+                    "n_samples": 2,
+                    "warnings": [],
+                },
             },
         }
     }
@@ -135,6 +165,8 @@ def test_bulk_atac_narrator_surfaces_qc_and_peak_calling_under_strict_gate():
     ids = {block.id for block in blocks}
     assert "chromatin.qc.bulk_ATAC" in ids
     assert "chromatin.peak_calling.bulk_ATAC" in ids
+    assert "chromatin.peak_count_matrix.bulk_ATAC" in ids
     html = render_blocks(blocks, strict=True)
     assert "Bulk ATAC QC measured 2 sample" in html
     assert "MACS3 peak calling for bulk ATAC identified 23456 peaks" in html
+    assert "Bulk ATAC peak counting produced a matrix with 23456 peaks across 2 samples" in html

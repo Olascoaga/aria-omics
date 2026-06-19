@@ -82,6 +82,7 @@ class ChromatinAgent(BaseAgent):
     REQUIRED_SCRIPTS = (
         "aria/scripts/chromatin_qc.py",
         "aria/scripts/chromatin_peaks.py",
+        "aria/scripts/chromatin_peak_counts.py",
         "aria/scripts/chromatin_lsi_clustering.py",
         "aria/scripts/chromatin_diffacc.py",
         "aria/scripts/chromatin_motifs.py",
@@ -473,8 +474,9 @@ class ChromatinAgent(BaseAgent):
         """Bulk ATAC-seq V47 slice: QC + MACS3 peak calling.
 
         Differential accessibility over a replicate-aware peak-count matrix is
-        deliberately not part of this first beta slice; requests for it return a
-        structured scaffold blocker instead of running unvalidated science.
+        deliberately not validated yet; comparison requests build the technical
+        peak-count matrix, then return a structured scaffold blocker instead of
+        running unvalidated science.
         """
         findings = {}
 
@@ -514,8 +516,37 @@ class ChromatinAgent(BaseAgent):
         if peaks_result.get("status") == "success":
             self._publish_peaks_finding(experiment_id, peaks_result, "bulk_ATAC")
 
-        # Differential accessibility if comparison defined
+        # Peak-count matrix if comparison defined. This is an auditable
+        # prerequisite for DA, not the DA result itself.
         if intent.get("comparison"):
+            peak_universe = (
+                peaks_result.get("consensus_peaks_path")
+                or peaks_result.get("peaks_path")
+            ) if isinstance(peaks_result, dict) else None
+            if peak_universe:
+                self.publish_status(
+                    experiment_id, "bulk ATAC peak-count matrix...", 0.70)
+                count_result = self.env.run_in_stack(
+                    stack="chromatin",
+                    script_path="aria/scripts/chromatin_peak_counts.py",
+                    params={
+                        "data_type": "bulk_ATAC",
+                        "files": files,
+                        "peaks_path": peak_universe,
+                        "sample_ids": exp_ctx.get("sample_ids"),
+                        "sample_metadata": exp_ctx.get("sample_metadata"),
+                        "output_dir": str(Path(files[0]).parent /
+                                          "bulk_atac_counts"),
+                    },
+                )
+                findings["peak_counts"] = count_result
+            else:
+                findings["peak_counts"] = {
+                    "status": "skipped",
+                    "reason": "no_peak_universe_for_bulk_atac_counts",
+                    "analysis": "peak_count_matrix",
+                    "validation_level": "scaffold",
+                }
             findings["differential_accessibility"] = {
                 "status": "skipped",
                 "reason": "bulk_atac_da_not_validated",
