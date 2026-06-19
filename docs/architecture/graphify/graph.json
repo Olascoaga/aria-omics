@@ -6161,32 +6161,39 @@
       "source_location": "L347"
     },
     {
+      "id": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "label": "score_gene_activity_concordance()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L406"
+    },
+    {
       "id": "benchmarks_concordance_atac_seed_stability",
       "label": "seed_stability()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L406"
+      "source_location": "L462"
     },
     {
       "id": "benchmarks_concordance_atac_concordanceresult",
       "label": "ConcordanceResult",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L429"
+      "source_location": "L485"
     },
     {
       "id": "benchmarks_concordance_atac_concordanceresult_to_manifest",
       "label": ".to_manifest()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L439"
+      "source_location": "L495"
     },
     {
       "id": "benchmarks_concordance_atac_score_atac_concordance",
       "label": "score_atac_concordance()",
       "file_type": "code",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445"
+      "source_location": "L501"
     },
     {
       "id": "benchmarks_consensus_pseudobulk",
@@ -8763,6 +8770,34 @@
       "file_type": "code",
       "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
       "source_location": "L235"
+    },
+    {
+      "id": "scripts_benchmark_geneactivity_export",
+      "label": "benchmark_geneactivity_export.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_benchmark_geneactivity_export_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "aria_scripts_benchmark_geneactivity_export_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "aria_scripts_benchmark_geneactivity_export_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22"
     },
     {
       "id": "scripts_benchmark_peak2gene_export",
@@ -22037,6 +22072,314 @@
       "source_location": "L74"
     },
     {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "label": "p4_geneactivity_concordance_signac.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_aria_n_genes",
+      "label": "aria_n_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_benchmark",
+      "label": "benchmark",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_caveats",
+      "label": "caveats",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "label": "concordance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_aria_genes",
+      "label": "n_aria_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_ref_genes",
+      "label": "n_ref_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_shared_genes",
+      "label": "n_shared_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_score_spearman",
+      "label": "score_spearman",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k",
+      "label": "top_k",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k_jaccard",
+      "label": "top_k_jaccard",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k_recall_aria_in_ref",
+      "label": "top_k_recall_aria_in_ref",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_dataset",
+      "label": "dataset",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "label": "design",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_design_aria_method",
+      "label": "aria_method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_design_feature_space",
+      "label": "feature_space",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_design_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_design_window_bp",
+      "label": "window_bp",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L24"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L27"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L28"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L29"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L31"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L32"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L34"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L35"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L36"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L37"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L38"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L39"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L40"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L42"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L43"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L44"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L47"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status",
+      "label": "signac_status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L48"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_n_cells",
+      "label": "n_cells",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L49"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_n_genes",
+      "label": "n_genes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L50"
+    },
+    {
+      "id": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L51"
+    },
+    {
       "id": "scatac_concordance_p4_peak2gene_concordance_signac",
       "label": "p4_peak2gene_concordance_signac.json",
       "file_type": "code",
@@ -23091,7 +23434,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -23336,7 +23679,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_tyndie_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -23358,7 +23701,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_tyndie_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -23855,6 +24198,55 @@
       "file_type": "code",
       "source_file": "scripts/run_scatac_footprint_tobias.py",
       "source_location": "L27"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance",
+      "label": "run_scatac_geneactivity_concordance.py",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_conda_run",
+      "label": "_conda_run()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "label": "_read_scores()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "scripts_run_scatac_geneactivity_concordance_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L53"
     },
     {
       "id": "scripts_run_scatac_multisample_da_concordance",
@@ -24809,88 +25201,102 @@
       "source_location": "L111"
     },
     {
+      "id": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_spearman_and_topk",
+      "label": "test_gene_activity_concordance_spearman_and_topk()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L124"
+    },
+    {
+      "id": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_honest_null_without_overlap",
+      "label": "test_gene_activity_concordance_honest_null_without_overlap()",
+      "file_type": "code",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L137"
+    },
+    {
       "id": "tests_test_benchmark_scatac_concordance_test_seed_stability_is_one_for_identical_label_sets",
       "label": "test_seed_stability_is_one_for_identical_label_sets()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L124"
+      "source_location": "L147"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_score_concordance_is_not_run_without_external_outputs",
       "label": "test_score_concordance_is_not_run_without_external_outputs()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L135"
+      "source_location": "L158"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_score_concordance_intrinsic_only_with_seeds_no_external",
       "label": "test_score_concordance_intrinsic_only_with_seeds_no_external()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L146"
+      "source_location": "L169"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_score_concordance_success_with_paired_outputs",
       "label": "test_score_concordance_success_with_paired_outputs()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L164"
+      "source_location": "L187"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_concordance_contract_registered_as_beta",
       "label": "test_concordance_contract_registered_as_beta()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L187"
+      "source_location": "L210"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_runner_honest_not_run_when_external_outputs_missing",
       "label": "test_runner_honest_not_run_when_external_outputs_missing()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L195"
+      "source_location": "L218"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_runner_intrinsic_only_when_seeds_present_but_no_external",
       "label": "test_runner_intrinsic_only_when_seeds_present_but_no_external()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L215"
+      "source_location": "L238"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_runner_scores_paired_outputs_and_writes_manifest",
       "label": "test_runner_scores_paired_outputs_and_writes_manifest()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L240"
+      "source_location": "L263"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_reference_driver_contract_registered_as_scaffold",
       "label": "test_reference_driver_contract_registered_as_scaffold()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L272"
+      "source_location": "L295"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_reference_driver_honest_not_run_without_input",
       "label": "test_reference_driver_honest_not_run_without_input()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L280"
+      "source_location": "L303"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_reference_driver_honest_not_run_when_snapatac2_absent",
       "label": "test_reference_driver_honest_not_run_when_snapatac2_absent()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L290"
+      "source_location": "L313"
     },
     {
       "id": "tests_test_benchmark_scatac_concordance_test_ranked_motifs_from_enrichment_orders_and_dedups",
       "label": "test_ranked_motifs_from_enrichment_orders_and_dedups()",
       "file_type": "code",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L311"
+      "source_location": "L334"
     },
     {
       "id": "tests_test_benchmark_scatac_da",
@@ -33798,17 +34204,6 @@
       "label": "aria-rna-env",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_chromatin_env",
-      "label": "aria-chromatin-env",
-      "file_type": "code",
-      "source_file": "envs/aria-chromatin-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -58216,7 +58611,7 @@
     },
     {
       "source": "benchmarks_concordance_atac",
-      "target": "benchmarks_concordance_atac_seed_stability",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
@@ -58224,7 +58619,7 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_concordance_atac_seed_stability",
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
       "target": "aria_benchmarks_concordance_atac_py_any",
       "relation": "references",
       "context": "generic_arg",
@@ -58234,7 +58629,47 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_concordance_atac_seed_stability",
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "target": "aria_benchmarks_concordance_atac_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
       "target": "aria_benchmarks_concordance_atac_py_str",
       "relation": "references",
       "context": "generic_arg",
@@ -58244,13 +58679,52 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_concordance_atac_seed_stability",
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
       "target": "aria_benchmarks_concordance_atac_py_any",
       "relation": "references",
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
       "source_location": "L406",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac",
+      "target": "benchmarks_concordance_atac_seed_stability",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L462",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_seed_stability",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L462",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_seed_stability",
+      "target": "aria_benchmarks_concordance_atac_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L462",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_concordance_atac_seed_stability",
+      "target": "aria_benchmarks_concordance_atac_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -58259,7 +58733,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L429",
+      "source_location": "L485",
       "weight": 1.0
     },
     {
@@ -58268,7 +58742,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L439",
+      "source_location": "L495",
       "weight": 1.0
     },
     {
@@ -58278,7 +58752,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L439",
+      "source_location": "L495",
       "weight": 1.0
     },
     {
@@ -58288,7 +58762,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L439",
+      "source_location": "L495",
       "weight": 1.0
     },
     {
@@ -58297,7 +58771,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58307,7 +58781,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58317,7 +58791,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58327,7 +58801,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58337,7 +58811,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58347,7 +58821,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58357,7 +58831,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58367,7 +58841,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58377,7 +58851,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58387,7 +58861,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L445",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -58461,13 +58935,23 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "target": "benchmarks_concordance_atac_spearman",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/concordance_atac.py",
+      "source_location": "L443",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_concordance_atac_seed_stability",
       "target": "benchmarks_concordance_atac_adjusted_rand_index",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L415",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -58477,7 +58961,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L467",
+      "source_location": "L523",
       "weight": 1.0
     },
     {
@@ -58487,7 +58971,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L474",
+      "source_location": "L530",
       "weight": 1.0
     },
     {
@@ -58497,7 +58981,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L475",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -58507,7 +58991,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L495",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -58517,7 +59001,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L496",
+      "source_location": "L552",
       "weight": 1.0
     },
     {
@@ -58527,7 +59011,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L503",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -58537,7 +59021,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/concordance_atac.py",
-      "source_location": "L509",
+      "source_location": "L565",
       "weight": 1.0
     },
     {
@@ -70194,6 +70678,35 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/benchmark_a1_external_comparators.py",
       "source_location": "L313",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_geneactivity_export",
+      "target": "scripts_benchmark_geneactivity_export_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_geneactivity_export_main",
+      "target": "aria_scripts_benchmark_geneactivity_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_benchmark_geneactivity_export_main",
+      "target": "aria_scripts_benchmark_geneactivity_export_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -101435,6 +101948,393 @@
       "weight": 1.0
     },
     {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_aria_n_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_benchmark",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_caveats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_aria_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_ref_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_n_shared_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_score_spearman",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_concordance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_concordance_top_k_recall_aria_in_ref",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_dataset",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_design_aria_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_design_feature_space",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_design_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_design",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_design_window_bp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_image",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_provenance",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_n_cells",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_n_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status",
+      "target": "scatac_concordance_p4_geneactivity_concordance_signac_signac_status_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_concordance/p4_geneactivity_concordance_signac.json",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
       "source": "scatac_concordance_p4_peak2gene_concordance_signac",
       "target": "scatac_concordance_p4_peak2gene_concordance_signac_aria_n_links",
       "relation": "contains",
@@ -102750,7 +103650,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -102803,7 +103703,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102813,7 +103713,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102823,7 +103723,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102833,7 +103733,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -102843,7 +103743,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -103195,7 +104095,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_tyndie_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -103204,7 +104104,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_tyndie_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -103239,7 +104139,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -103249,7 +104149,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hyjqt9_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_tyndie_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -103817,6 +104717,143 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_scatac_footprint_tobias.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance",
+      "target": "scripts_run_scatac_geneactivity_concordance_conda_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_conda_run",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_conda_run",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance",
+      "target": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance",
+      "target": "scripts_run_scatac_geneactivity_concordance_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "scripts_run_scatac_geneactivity_concordance_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "scripts_run_scatac_geneactivity_concordance_conda_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "scripts_run_scatac_geneactivity_concordance_read_scores",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -105311,7 +106348,7 @@
     },
     {
       "source": "tests_test_benchmark_scatac_concordance",
-      "target": "tests_test_benchmark_scatac_concordance_test_seed_stability_is_one_for_identical_label_sets",
+      "target": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_spearman_and_topk",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
@@ -105320,11 +106357,29 @@
     },
     {
       "source": "tests_test_benchmark_scatac_concordance",
+      "target": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_honest_null_without_overlap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance",
+      "target": "tests_test_benchmark_scatac_concordance_test_seed_stability_is_one_for_identical_label_sets",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance",
       "target": "tests_test_benchmark_scatac_concordance_test_score_concordance_is_not_run_without_external_outputs",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L135",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -105333,7 +106388,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L146",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -105342,7 +106397,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L164",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -105351,7 +106406,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L187",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -105360,7 +106415,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L195",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -105369,7 +106424,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L215",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -105378,7 +106433,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L240",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -105387,7 +106442,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L272",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -105396,7 +106451,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L280",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -105405,7 +106460,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L290",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -105414,7 +106469,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L311",
+      "source_location": "L334",
       "weight": 1.0
     },
     {
@@ -123817,6 +124872,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_benchmark_geneactivity_export",
+      "target": "scripts_chromatin_regulatory_gene_scores",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_benchmark_peak2gene_export",
       "target": "scripts_chromatin_regulatory_peak_to_gene",
       "relation": "imports",
@@ -125667,6 +126732,26 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_scatac_geneactivity_concordance",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_scatac_multisample_da_concordance",
       "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
       "relation": "imports",
@@ -126118,7 +127203,7 @@
     },
     {
       "source": "tests_test_benchmark_scatac_concordance",
-      "target": "benchmarks_concordance_atac_seed_stability",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -126128,12 +127213,22 @@
     },
     {
       "source": "tests_test_benchmark_scatac_concordance",
+      "target": "benchmarks_concordance_atac_seed_stability",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance",
       "target": "benchmarks_concordance_atac_score_atac_concordance",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L136",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -126143,7 +127238,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L196",
+      "source_location": "L219",
       "weight": 1.0
     },
     {
@@ -126153,7 +127248,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L281",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -126163,7 +127258,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L314",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -131287,6 +132382,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_benchmark_geneactivity_export_main",
+      "target": "scripts_chromatin_regulatory_gene_scores",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/benchmark_geneactivity_export.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_benchmark_peak2gene_export_main",
       "target": "scripts_chromatin_regulatory_peak_to_gene",
       "relation": "calls",
@@ -132587,6 +133692,26 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_scatac_geneactivity_concordance_main",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_scatac_geneactivity_concordance.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_scatac_multisample_da_concordance_main",
       "target": "benchmarks_consensus_pseudobulk_build_consensus_pseudobulk",
       "relation": "calls",
@@ -133147,13 +134272,33 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_spearman_and_topk",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L129",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_benchmark_scatac_concordance_test_gene_activity_concordance_honest_null_without_overlap",
+      "target": "benchmarks_concordance_atac_score_gene_activity_concordance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_benchmark_scatac_concordance.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_benchmark_scatac_concordance_test_seed_stability_is_one_for_identical_label_sets",
       "target": "benchmarks_concordance_atac_seed_stability",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L128",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -133163,7 +134308,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L139",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -133173,7 +134318,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L155",
+      "source_location": "L178",
       "weight": 1.0
     },
     {
@@ -133183,7 +134328,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L177",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -133193,7 +134338,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L205",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -133203,7 +134348,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L226",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -133213,7 +134358,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L256",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -133223,7 +134368,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L285",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -133233,7 +134378,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L305",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -133243,7 +134388,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_benchmark_scatac_concordance.py",
-      "source_location": "L337",
+      "source_location": "L360",
       "weight": 1.0
     },
     {
@@ -141072,7 +142217,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141082,27 +142227,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141112,7 +142237,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141122,27 +142247,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "chromatin_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141152,37 +142257,27 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/bulk_rna_agent.py",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/scrna_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141192,7 +142287,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_file": "aria/agents/narrative_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141202,7 +142297,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
@@ -141212,14 +142307,14 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "aria/agents/orchestrator_agent.py",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "chromatin_agent",
       "target": "rna_bulk_de",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
