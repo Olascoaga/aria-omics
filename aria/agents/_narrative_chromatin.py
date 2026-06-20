@@ -92,6 +92,12 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
     import pandas as pd
 
     df = pd.read_csv(da_full_csv)
+    # Accept both column conventions: the scATAC pseudobulk CSV
+    # (`chromatin_diffacc`) writes `log2fc`/`base_mean`, while the bulk ATAC CSV
+    # (`chromatin_bulk_diffacc`) writes the native DESeq2 `log2FoldChange`/`baseMean`.
+    # Renaming is a no-op when a convention's columns are absent, so neither lane
+    # is disturbed.
+    df = df.rename(columns={"log2FoldChange": "log2fc", "baseMean": "base_mean"})
     if df.empty or "comparison" not in df.columns:
         return out
     output_dir = Path(output_dir)
@@ -153,6 +159,53 @@ def render_da_figures(da_full_csv: str, output_dir: Path,
                 out[f"da_ma_{comp_s}"] = str(path)
             except Exception as e:
                 log.warning("DA MA failed for %s: %s", comp, e)
+    return out
+
+
+def render_sample_correlation(counts_tsv, png_path) -> Optional[str]:
+    """Bulk ATAC sample-QC: Pearson correlation heatmap across replicate samples,
+    computed on log1p peak counts (the standard ATAC sample-similarity diagnostic).
+    Reads the replicate peak-count TSV (`peak_id` + one column per replicate sample)
+    emitted by `chromatin_bulk_diffacc`. Honest-skip (returns None) when the matrix
+    is missing or has fewer than two samples. Writes dual PNG+SVG."""
+    if not counts_tsv or not Path(counts_tsv).exists():
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+
+    df = pd.read_csv(counts_tsv, sep="\t")
+    peak_col = df.columns[0]
+    samples = [c for c in df.columns if c != peak_col]
+    if len(samples) < 2:
+        return None
+    mat = np.log1p(df[samples].to_numpy(dtype=float))
+    corr = np.corrcoef(mat, rowvar=False)
+    if not np.all(np.isfinite(corr)):
+        return None
+
+    n = len(samples)
+    fig, ax = plt.subplots(figsize=(max(4.5, 0.6 * n + 2.5),
+                                    max(4.0, 0.6 * n + 2.0)), dpi=160)
+    im = ax.imshow(corr, cmap="viridis", vmin=min(0.0, float(corr.min())),
+                   vmax=1.0)
+    ax.set_xticks(range(n))
+    ax.set_yticks(range(n))
+    ax.set_xticklabels(samples, rotation=45, ha="right", fontsize=7)
+    ax.set_yticklabels(samples, fontsize=7)
+    thresh = (corr.max() + corr.min()) / 2.0
+    for i in range(n):
+        for j in range(n):
+            ax.text(j, i, f"{corr[i, j]:.2f}", ha="center", va="center",
+                    fontsize=6,
+                    color="white" if corr[i, j] < thresh else "black")
+    ax.set_title("Replicate sample correlation (log1p peak counts)",
+                 fontsize=10, fontweight="bold")
+    fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    out = _save_dual(fig, Path(png_path))
+    plt.close(fig)
     return out
 
 
@@ -400,14 +453,36 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
 
     # 2. DA volcano + MA (inline) from the convergence-gated full DA table.
     da = findings.get("differential_accessibility") or {}
+    padj_max = float(da.get("padj_max", 0.05))
+    # scATAC shape: a single pseudobulk table.
     pb = da.get("pseudobulk") or {}
     da_full_csv = pb.get("full_results_csv")
     if da_full_csv:
         try:
-            figs.update(render_da_figures(
-                da_full_csv, output_dir, float(da.get("padj_max", 0.05))))
+            figs.update(render_da_figures(da_full_csv, output_dir, padj_max))
         except Exception as e:
             log.warning("chromatin DA figures failed: %s", e)
+    # Bulk ATAC shape: one convergence-gated full CSV per condition comparison.
+    if da.get("data_type") == "bulk_ATAC":
+        for comp in (da.get("comparisons") or []):
+            comp_csv = (comp or {}).get("full_results_csv")
+            if not comp_csv:
+                continue
+            try:
+                figs.update(render_da_figures(comp_csv, output_dir, padj_max))
+            except Exception as e:
+                log.warning("bulk ATAC DA figures failed for %s: %s",
+                            (comp or {}).get("test"), e)
+        # Sample-level QC: replicate-correlation heatmap from the peak-count matrix
+        # used for DA (honest-skip when the matrix is missing/degenerate).
+        try:
+            path = render_sample_correlation(
+                da.get("replicate_counts_path"),
+                output_dir / "bulk_atac_sample_correlation.png")
+            if path:
+                figs["bulk_atac_sample_correlation"] = path
+        except Exception as e:
+            log.warning("bulk ATAC sample-correlation figure failed: %s", e)
 
     # 3. Motif enrichment dotplot (inline) from structured motif findings.
     motifs = findings.get("motifs") or {}

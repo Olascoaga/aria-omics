@@ -206,3 +206,97 @@ def test_generate_figures_attaches_da_and_motif_inline(tmp_path):
     assert "da_volcano_treat_vs_ctrl" in figs
     assert "motif_dotplot" in figs
     assert not any(k.startswith("umap_") for k in figs)
+
+
+# ── B1 (bulk ATAC pre-print figures) ─────────────────────────────────────────
+
+def test_render_da_figures_accepts_deseq2_native_columns(tmp_path):
+    """B1: the bulk ATAC DA CSV (`chromatin_bulk_diffacc`) carries the native DESeq2
+    `log2FoldChange`/`baseMean` columns, not the scATAC `log2fc`/`base_mean`. The
+    shared renderer must normalize both so bulk volcano + MA render."""
+    from aria.agents._narrative_chromatin import render_da_figures
+
+    csv = tmp_path / "bulk_da_full.csv"
+    pd.DataFrame({
+        "peak": ["p1", "p2", "p3", "p4"],
+        "log2FoldChange": [2.0, -1.8, 0.02, 0.5],
+        "padj": [0.001, 0.002, 0.001, 0.4],
+        "baseMean": [100.0, 80.0, 50.0, 120.0],
+        "comparison": ["K562_vs_GM12878"] * 4,
+        "significant": [True, True, False, False],
+    }).to_csv(csv, index=False)
+
+    figs = render_da_figures(str(csv), tmp_path / "figures", padj_max=0.05)
+    assert "da_volcano_K562_vs_GM12878" in figs
+    assert "da_ma_K562_vs_GM12878" in figs, "MA must render from baseMean"
+    for key in ("da_volcano_K562_vs_GM12878", "da_ma_K562_vs_GM12878"):
+        assert Path(figs[key]).with_suffix(".svg").exists()
+
+
+def test_render_sample_correlation_dual_and_honest(tmp_path):
+    """B1: replicate-sample correlation heatmap from the bulk ATAC peak-count matrix
+    is dual PNG+SVG, and honest None when the matrix is missing or has <2 samples."""
+    from aria.agents._narrative_chromatin import render_sample_correlation
+
+    tsv = tmp_path / "rep_counts.tsv"
+    pd.DataFrame({
+        "peak_id": ["p1", "p2", "p3", "p4"],
+        "K562_r1": [100, 5, 80, 2],
+        "K562_r2": [98, 6, 76, 3],
+        "GM_r1": [3, 90, 4, 70],
+        "GM_r2": [4, 88, 5, 72],
+    }).to_csv(tsv, sep="\t", index=False)
+
+    path = render_sample_correlation(tsv, tmp_path / "corr.png")
+    assert path and Path(path).exists()
+    assert Path(path).with_suffix(".svg").exists()
+    # Missing / single-sample / absent matrix -> honest None.
+    assert render_sample_correlation(None, tmp_path / "none.png") is None
+    assert render_sample_correlation(tmp_path / "nope.tsv",
+                                     tmp_path / "none2.png") is None
+    one = tmp_path / "one.tsv"
+    pd.DataFrame({"peak_id": ["p1"], "only": [5]}).to_csv(
+        one, sep="\t", index=False)
+    assert render_sample_correlation(one, tmp_path / "none3.png") is None
+
+
+def test_generate_figures_attaches_bulk_atac_da_and_correlation(tmp_path):
+    """B1: bulk ATAC findings (`data_type=="bulk_ATAC"` + per-comparison full CSVs +
+    replicate_counts_path) yield per-comparison volcano/MA + the sample-correlation
+    figure, without needing the scATAC `pseudobulk` shape."""
+    from aria.agents import _narrative_chromatin
+
+    comp_csv = tmp_path / "bulk_da_K562_vs_GM12878_full.csv"
+    pd.DataFrame({
+        "peak": ["p1", "p2", "p3", "p4"],
+        "log2FoldChange": [2.0, -1.8, 0.02, 0.5],
+        "padj": [0.001, 0.002, 0.001, 0.4],
+        "baseMean": [100.0, 80.0, 50.0, 120.0],
+        "comparison": ["K562_vs_GM12878"] * 4,
+        "significant": [True, True, False, False],
+    }).to_csv(comp_csv, index=False)
+
+    rep_tsv = tmp_path / "rep_counts.tsv"
+    pd.DataFrame({
+        "peak_id": ["p1", "p2", "p3", "p4"],
+        "K562_r1": [100, 5, 80, 2], "K562_r2": [98, 6, 76, 3],
+        "GM_r1": [3, 90, 4, 70], "GM_r2": [4, 88, 5, 72],
+    }).to_csv(rep_tsv, sep="\t", index=False)
+
+    findings = {
+        "differential_accessibility": {
+            "data_type": "bulk_ATAC",
+            "padj_max": 0.05,
+            "replicate_counts_path": str(rep_tsv),
+            "comparisons": [
+                {"test": "K562", "reference": "GM12878",
+                 "full_results_csv": str(comp_csv)},
+            ],
+        },
+    }
+    out = _narrative_chromatin.generate_figures(
+        findings, None, tmp_path / "figures", env_manager=None)
+    figs = out["figures"]
+    assert "da_volcano_K562_vs_GM12878" in figs
+    assert "da_ma_K562_vs_GM12878" in figs
+    assert "bulk_atac_sample_correlation" in figs
