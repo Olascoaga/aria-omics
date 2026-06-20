@@ -1,0 +1,278 @@
+{
+  "aria_version": "4.7.0",
+  "benchmark": "B4_bulk_footprint_tobias_bindetect",
+  "biological_sanity": {
+    "GM12878_B_lymphoblastoid": {
+      "expected": "IRF/STAT interferon + SPI1/POU2F2 B-lymphoid program",
+      "note": "IRF4/IRF8 (B/immune master TFs), PU.1 and OCT2 correctly toward GM12878; textbook B-lymphoblastoid signature.",
+      "observed_top": [
+        "IRF4",
+        "IRF8",
+        "IRF9",
+        "IRF7",
+        "IRF1",
+        "IRF5",
+        "IRF2",
+        "STAT1::STAT2",
+        "SPI1(PU.1)",
+        "SPIB",
+        "POU2F2(OCT2)",
+        "NFKB1"
+      ]
+    },
+    "K562_erythroid": {
+      "expected": "KLF/SP zinc-finger + GATA erythroid program",
+      "note": "KLF1/EKLF (erythroid master regulator) and GATA2 correctly toward K562; matches the V47 motif enrichment (K562 KLF/SP).",
+      "observed_top": [
+        "KLF15",
+        "KLF7",
+        "KLF12",
+        "KLF2",
+        "KLF3",
+        "KLF1(EKLF)",
+        "SP9",
+        "SP3",
+        "SP2",
+        "SP1",
+        "GATA2"
+      ]
+    },
+    "honest_nuances": [
+      "GATA1 footprint change is near-zero (-0.027); the GATA axis is captured by GATA2 (strongly K562). GATA1's motif is family-shared/degenerate.",
+      "PAX5/EBF1 footprint occupancy is mildly toward K562 here, whereas V47 peak-level DA placed them in GM12878. Footprint occupancy != peak accessibility; these AT-rich motifs are footprint-noisy. Reported honestly, not corrected.",
+      "p-values are extreme (1e-150..1e-227) because n_sites is very large (tens of thousands of motif sites); effect size (change) is the meaningful ranking, not p alone."
+    ],
+    "interpretation_caveat": "Differential TF footprinting is associative (an occupancy difference between conditions), not evidence of causal regulation.",
+    "verdict": "PASS \u2014 dominant differential footprints recover textbook lineage TF programs in both directions"
+  },
+  "caveats": [
+    "Differential TF binding is an associative footprint-signal difference between conditions, not causal regulation.",
+    "Footprints are Tn5-bias-corrected (ATACorrect) over per-condition merged replicate BAMs."
+  ],
+  "dataset": "ENCODE_K562_vs_GM12878",
+  "design": {
+    "contrast": "K562_vs_GM12878",
+    "feature_space": "called peaks (ATACorrect restricted to peaks)",
+    "group_a": "K562",
+    "group_b": "GM12878",
+    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (Tn5-bias-corrected footprinting, per-condition merged replicate BAMs)",
+    "motifs": "JASPAR2024 CORE vertebrates (MEME)",
+    "n_reads_per_condition": {
+      "GM12878": 363497238,
+      "K562": 99385698
+    }
+  },
+  "differential_summary": {
+    "n_motifs_tested": 879,
+    "n_significant": 877,
+    "parsed": true,
+    "top_toward_GM12878": [
+      {
+        "change": -0.5707,
+        "n_sites": 32957,
+        "pvalue": 1.82946e-199,
+        "tf": "IRF4"
+      },
+      {
+        "change": -0.557,
+        "n_sites": 37592,
+        "pvalue": 8.07099e-203,
+        "tf": "IRF8"
+      },
+      {
+        "change": -0.5249,
+        "n_sites": 47179,
+        "pvalue": 1.55967e-207,
+        "tf": "IRF9"
+      },
+      {
+        "change": -0.4111,
+        "n_sites": 63712,
+        "pvalue": 6.0699e-202,
+        "tf": "IRF7"
+      },
+      {
+        "change": -0.3906,
+        "n_sites": 115558,
+        "pvalue": 3.65015e-214,
+        "tf": "Irf1"
+      },
+      {
+        "change": -0.3881,
+        "n_sites": 25609,
+        "pvalue": 1.04816e-179,
+        "tf": "IRF5"
+      },
+      {
+        "change": -0.3791,
+        "n_sites": 51528,
+        "pvalue": 7.2682e-198,
+        "tf": "IRF2"
+      },
+      {
+        "change": -0.3626,
+        "n_sites": 114399,
+        "pvalue": 6.45162e-209,
+        "tf": "STAT1::STAT2"
+      },
+      {
+        "change": -0.3418,
+        "n_sites": 25758,
+        "pvalue": 6.81193e-176,
+        "tf": "HNF1B"
+      },
+      {
+        "change": -0.3301,
+        "n_sites": 72234,
+        "pvalue": 4.08978e-189,
+        "tf": "IRF3"
+      },
+      {
+        "change": -0.3255,
+        "n_sites": 55719,
+        "pvalue": 1.12522e-185,
+        "tf": "Bcl11B"
+      },
+      {
+        "change": -0.301,
+        "n_sites": 26305,
+        "pvalue": 1.22372e-168,
+        "tf": "RUNX2"
+      },
+      {
+        "change": -0.2953,
+        "n_sites": 47210,
+        "pvalue": 2.50213e-181,
+        "tf": "POU2F3"
+      },
+      {
+        "change": -0.2936,
+        "n_sites": 141664,
+        "pvalue": 1.79603e-207,
+        "tf": "Stat2"
+      },
+      {
+        "change": -0.2918,
+        "n_sites": 32734,
+        "pvalue": 3.21406e-174,
+        "tf": "HNF1A"
+      }
+    ],
+    "top_toward_K562": [
+      {
+        "change": 0.5193,
+        "n_sites": 90868,
+        "pvalue": 5.76243e-217,
+        "tf": "KLF15"
+      },
+      {
+        "change": 0.5122,
+        "n_sites": 92935,
+        "pvalue": 2.08331e-220,
+        "tf": "ZBED4"
+      },
+      {
+        "change": 0.4673,
+        "n_sites": 60700,
+        "pvalue": 1.44343e-208,
+        "tf": "ZNF610"
+      },
+      {
+        "change": 0.4472,
+        "n_sites": 33794,
+        "pvalue": 8.06633e-187,
+        "tf": "TFDP1"
+      },
+      {
+        "change": 0.4459,
+        "n_sites": 99255,
+        "pvalue": 1.05662e-218,
+        "tf": "KLF7"
+      },
+      {
+        "change": 0.4302,
+        "n_sites": 144325,
+        "pvalue": 1.98243e-221,
+        "tf": "KLF12"
+      },
+      {
+        "change": 0.4249,
+        "n_sites": 100380,
+        "pvalue": 2.59137e-225,
+        "tf": "SP9"
+      },
+      {
+        "change": 0.4243,
+        "n_sites": 196313,
+        "pvalue": 7.39491e-227,
+        "tf": "PATZ1"
+      },
+      {
+        "change": 0.4161,
+        "n_sites": 105986,
+        "pvalue": 2.65212e-214,
+        "tf": "SP3"
+      },
+      {
+        "change": 0.4104,
+        "n_sites": 139368,
+        "pvalue": 4.4316e-223,
+        "tf": "SP2"
+      },
+      {
+        "change": 0.409,
+        "n_sites": 56288,
+        "pvalue": 1.58465e-197,
+        "tf": "EGR3"
+      },
+      {
+        "change": 0.4083,
+        "n_sites": 109299,
+        "pvalue": 2.50584e-211,
+        "tf": "KLF2"
+      },
+      {
+        "change": 0.4052,
+        "n_sites": 68356,
+        "pvalue": 5.41091e-200,
+        "tf": "KLF3"
+      },
+      {
+        "change": 0.403,
+        "n_sites": 122143,
+        "pvalue": 1.02302e-217,
+        "tf": "MAZ"
+      },
+      {
+        "change": 0.4009,
+        "n_sites": 143062,
+        "pvalue": 6.95316e-221,
+        "tf": "SP1"
+      }
+    ]
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "git_commit": "c08591445c03ee5293b6245c22069db2a9b2f177",
+    "git_describe": "v4.7.0-69-gc085914",
+    "git_dirty": false,
+    "git_sha": "c08591445c03ee5293b6245c22069db2a9b2f177",
+    "git_tree_sha": "8388285398f5e2fdd7bfab16749b82d91590bb86",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "549a458d926612850cc0f9b40844bf3a11cf932b03c38897d572ea9ea421177f",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "ran": true,
+  "reason": null,
+  "scope": "differential_tf_binding_between_conditions_via_tobias"
+}
