@@ -27,6 +27,10 @@ class _FakeScatacEnv:
                     "per_cluster": {"output_csv": "/tmp/da.csv"}}
         if name in ("chromatin_motifs.py", "chromatin_regulatory.py"):
             return {"status": "success"}
+        if name == "chromatin_footprint_tobias.py":
+            # Inline scATAC TOBIAS dispatch (C2/C3): the backend honest-skips
+            # without TOBIAS/assets; the agent only forwards it.
+            return {"status": "success", "ran": False, "reason": "no_tobias"}
         raise AssertionError(script_path)
 
 
@@ -70,6 +74,8 @@ def test_scatac_da_dispatches_to_rna_stack(tmp_path):
     assert by_script["chromatin_lsi_clustering.py"] == "chromatin"
     assert by_script["chromatin_motifs.py"] == "chromatin"
     assert by_script["chromatin_regulatory.py"] == "chromatin"
+    # inline TOBIAS footprinting (C2/C3) dispatches to its own tobias stack
+    assert by_script["chromatin_footprint_tobias.py"] == "tobias"
     # confirmed cross-condition design is forwarded to the DA script
     da_params = next(p for s, n, p in env.calls if n == "chromatin_diffacc.py")
     assert da_params["comparisons"] == [["old", "young"]]
