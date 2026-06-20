@@ -9511,7 +9511,7 @@
       "label": "_as_float()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_motifs.py",
-      "source_location": "L479"
+      "source_location": "L483"
     },
     {
       "id": "scripts_chromatin_peak_counts",
@@ -13726,6 +13726,34 @@
       "file_type": "code",
       "source_file": "aria/utils/count_classifier.py",
       "source_location": "L165"
+    },
+    {
+      "id": "utils_csv_artifacts",
+      "label": "csv_artifacts.py",
+      "file_type": "code",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_csv_artifacts_persist_csv",
+      "label": "persist_csv()",
+      "file_type": "code",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "aria_utils_csv_artifacts_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "aria_utils_csv_artifacts_py_object",
+      "label": "object",
+      "file_type": "code",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16"
     },
     {
       "id": "utils_design_matrix",
@@ -24862,7 +24890,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -25107,7 +25135,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -25129,7 +25157,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -30162,6 +30190,34 @@
       "file_type": "code",
       "source_file": "tests/test_count_classifier.py",
       "source_location": "L112"
+    },
+    {
+      "id": "tests_test_csv_artifacts",
+      "label": "test_csv_artifacts.py",
+      "file_type": "code",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_csv_artifacts_test_persist_csv_success_returns_path_without_warning",
+      "label": "test_persist_csv_success_returns_path_without_warning()",
+      "file_type": "code",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_csv_artifacts_test_persist_csv_failure_records_warning_and_returns_none",
+      "label": "test_persist_csv_failure_records_warning_and_returns_none()",
+      "file_type": "code",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "tests_test_csv_artifacts_test_persist_csv_surfaces_writer_exception_type_and_message",
+      "label": "test_persist_csv_surfaces_writer_exception_type_and_message()",
+      "file_type": "code",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L41"
     },
     {
       "id": "tests_test_data_audit_mex_grouping",
@@ -75068,7 +75124,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_motifs.py",
-      "source_location": "L479",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -90024,6 +90080,55 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/count_classifier.py",
       "source_location": "L256",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_csv_artifacts",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_csv_artifacts_persist_csv",
+      "target": "aria_utils_csv_artifacts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_csv_artifacts_persist_csv",
+      "target": "aria_utils_csv_artifacts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_csv_artifacts_persist_csv",
+      "target": "aria_utils_csv_artifacts_py_object",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_csv_artifacts_persist_csv",
+      "target": "aria_utils_csv_artifacts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/csv_artifacts.py",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -108453,7 +108558,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -108506,7 +108611,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108516,7 +108621,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108526,7 +108631,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108536,7 +108641,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108546,7 +108651,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108868,7 +108973,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -108877,7 +108982,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -108912,7 +109017,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108922,7 +109027,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_nzpdjs_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117137,6 +117242,33 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_count_classifier.py",
       "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts",
+      "target": "tests_test_csv_artifacts_test_persist_csv_success_returns_path_without_warning",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts",
+      "target": "tests_test_csv_artifacts_test_persist_csv_failure_records_warning_and_returns_none",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts",
+      "target": "tests_test_csv_artifacts_test_persist_csv_surfaces_writer_exception_type_and_message",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -130425,6 +130557,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_diffacc",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L495",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_figure_clusters",
       "target": "scripts_base_run_script",
       "relation": "imports",
@@ -130582,6 +130724,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_motifs.py",
       "source_location": "L286",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_motifs",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_motifs.py",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -134625,6 +134777,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_csv_artifacts",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_data_audit_mex_grouping",
       "target": "agents_data_audit_agent_collapse_mex_directories",
       "relation": "imports",
@@ -138175,6 +138337,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_chromatin_diffacc_chromatin_diffacc",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L500",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_chromatin_figure_clusters_make_cluster_figures",
       "target": "utils_safe_h5ad_read_h5ad",
       "relation": "calls",
@@ -138302,6 +138474,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_motifs.py",
       "source_location": "L325",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_motifs_chromatin_motifs",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_motifs.py",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -143322,6 +143504,36 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_count_classifier.py",
       "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts_test_persist_csv_success_returns_path_without_warning",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts_test_persist_csv_failure_records_warning_and_returns_none",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_csv_artifacts_test_persist_csv_surfaces_writer_exception_type_and_message",
+      "target": "utils_csv_artifacts_persist_csv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_csv_artifacts.py",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
