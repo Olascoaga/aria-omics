@@ -62,8 +62,20 @@
     "low_power_warning": true,
     "low_power_reason": "n=2 vs n=2: DESeq2 dispersion estimation is unreliable with fewer than three replicates per group; effect sizes and FDR are noisy. ENCODE has no >=3-replicate K562 ATAC experiment."
   },
+  "validation_scope": {
+    "scope": "plumbing_and_direction",
+    "validates": "Correct end-to-end execution of the bulk ATAC lane (QC -> MACS3 -> count matrix -> replicate-gated DESeq2 DA) and the biological DIRECTION of accessibility changes on a strong-signal isogenic contrast.",
+    "does_not_validate": "FDR calibration or sensitivity. The 55.2% fraction_significant is NOT a calibration result: it reflects a deep cell-type contrast at n=2 (low power, noisy FDR), so it must not be read as a false-discovery or detection-rate estimate.",
+    "calibration_validated_elsewhere": "FDR control and recall on known truth are validated by the synthetic recovery gate (aria/benchmarks/synthetic_atac_da.py; tests/test_benchmark_scatac_da.py), which exercises the same shared rna_bulk_de._run_deseq2 core."
+  },
   "biological_sanity": {
     "convention": "positive log2FC = more accessible in GM12878 (B); negative = K562 (erythroid)",
+    "marker_peak_to_gene_mapping": {
+      "interpretation": "ILLUSTRATIVE directional sanity check only \u2014 NOT a calibration/sensitivity claim. The per-marker mean_log2fc values below were hand-curated for this development artifact (e.g. CD19's narrow 2-peak window) and predate the scripted mapping; they are kept as the measured record but are not auto-regenerated here.",
+      "reproducible_method": "aria/benchmarks/bulk_atac_marker_mapping.map_peaks_to_gene_markers (CLI: scripts/run_bulk_atac_marker_mapping.py)",
+      "declared_parameters": "DA rows (peak chrom:start-end + log2FoldChange) + marker-gene TSS coordinates + an explicit TSS window_bp; a peak matches a gene when same-chromosome and its midpoint is within window_bp of the TSS; mean_log2fc is the mean over matched peaks (None when none match, never imputed).",
+      "note": "Re-run the method on the (scratch) full DA table with a declared window_bp + gene TSS source to regenerate these numbers reproducibly."
+    },
     "n_markers_correct": 6,
     "n_markers_total": 7,
     "markers": [
@@ -127,7 +139,8 @@
   "caveats": [
     "n=2 per condition -> low statistical power (honest low_power_warning); not a 3-replicate production design.",
     "FRiP not computed (samtools absent from aria-chromatin-env) -> reported as None, never fabricated.",
-    "Single dataset, strong-signal cell-type contrast: validates correctness/direction, not sensitivity on subtle condition contrasts.",
+    "Single dataset, strong-signal cell-type contrast: validates correctness/direction (see validation_scope), not sensitivity on subtle condition contrasts; fraction_significant is not an FDR/calibration estimate. FDR/recall calibration is validated by the synthetic recovery gate.",
+    "Marker mean_log2fc values are an illustrative, hand-curated directional check (see biological_sanity.marker_peak_to_gene_mapping); the reproducible method is aria/benchmarks/bulk_atac_marker_mapping.py.",
     "Generated during development; regenerate from a clean checkout at preprint freeze."
   ],
   "validation_level": "beta_replicate_gated",
@@ -137,12 +150,12 @@
     "aria_version": "4.7.0",
     "version": "4.7.0",
     "version_source": "aria.version.__version__",
-    "git_sha": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
-    "git_commit": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_sha": "e74c50467531ae917b1408d68d2cd66af6594bfa",
+    "git_commit": "e74c50467531ae917b1408d68d2cd66af6594bfa",
     "git_dirty": true,
-    "git_tree_sha": "2a96176372d97ab185252bc79f0ee98646f88870",
-    "git_describe": "v4.7.0-46-g7f6acd5",
-    "workflow_hash": "8f027088a177ed0ac711944fb0f8685f176bb6c04c74e92c08c6c54bf0764d88",
+    "git_tree_sha": "2f2a0951708dd9313094ff76333198c41c5a8b9e",
+    "git_describe": "v4.7.0-54-ge74c504-dirty",
+    "workflow_hash": "281d60f5f278516da3c2949323b258f37465e60dec5ed0a1a140eb239945e060",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
     "image": {
       "containerized": false,
@@ -162,7 +175,7 @@
     },
     "seed": null,
     "determinism": "Replicate-gated DESeq2 DA and hypergeometric motif enrichment are deterministic; no RNG seed is used.",
-    "generated_utc": "2026-06-20T05:20:14Z",
+    "generated_utc": "2026-06-20T05:56:57Z",
     "note": "Scientific values are the measured record from `source_commit`; this provenance block was re-stamped (not recomputed) at `git_commit`. Full re-computation from the real ENCODE BAMs is separate preprint-freeze work."
   }
 }
