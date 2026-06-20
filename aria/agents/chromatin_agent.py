@@ -370,8 +370,14 @@ class ChromatinAgent(BaseAgent):
             for k in ("condition_col", "replicate_col", "comparisons"):
                 if exp_ctx.get(k) is not None:
                     da_params[k] = exp_ctx[k]
+            # DA runs in the rna stack: pydeseq2 0.5.4 requires numpy>=2 and the
+            # chromatin env is pinned numpy<2 (snapatac2/episcanpy/muon). aria-rna-env
+            # already ships scanpy + anndata + pydeseq2 on numpy 2, so chromatin_diffacc
+            # (per-cluster wilcoxon + pseudobulk DESeq2) runs there with the same
+            # pydeseq2 the rest of ARIA's DE/DA core uses. The downstream motif step
+            # reads the DA output CSV by path, so it is unaffected by the stack.
             da_result = self.env.run_in_stack(
-                stack="chromatin",
+                stack="rna",
                 script_path="aria/scripts/chromatin_diffacc.py",
                 params=da_params,
             )
