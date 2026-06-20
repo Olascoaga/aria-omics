@@ -803,6 +803,9 @@ class ChromatinNarrator:
         cross = footprinting.get("rna_cross_evidence") or {}
         ga = footprinting.get("group_a", "group A")
         gb = footprinting.get("group_b", "group B")
+        # scATAC contrasts cell-type groups; bulk ATAC contrasts conditions.
+        group_label = footprinting.get("group_label", "Cell-type groups")
+        group_kind = footprinting.get("group_kind", "cell-type groups")
         n_sig = summary.get("n_significant")
         n_tested = summary.get("n_motifs_tested")
 
@@ -810,7 +813,7 @@ class ChromatinNarrator:
             _ev("Analysis", "differential TF footprinting", "chromatin_footprint_tobias"),
             _ev("Method", "TOBIAS ATACorrect/ScoreBigwig/BINDetect (Tn5-corrected)",
                 "chromatin_footprint_tobias"),
-            _ev("Cell-type groups", f"{ga} vs {gb}", "chromatin_footprint_tobias"),
+            _ev(group_label, f"{ga} vs {gb}", "chromatin_footprint_tobias"),
             _ev("Motifs tested", n_tested, "chromatin_footprint_tobias"),
             _ev("Significant differential motifs", n_sig, "chromatin_footprint_tobias"),
         ]
@@ -846,8 +849,8 @@ class ChromatinNarrator:
             confidence="medium", claim=claim, evidence=evidence, figures=figures,
             caveats=[Caveat(
                 "Differential TF footprinting is associative: a footprint-occupancy "
-                "difference between cell-type groups is not evidence that the factor "
-                "regulates a gene or drives the cell state. Footprints are pseudobulk "
+                f"difference between {group_kind} is not evidence that the factor "
+                "regulates a gene or drives the state. Footprints are pseudobulk "
                 "and Tn5-bias-corrected; concordant RNA is supporting association, not "
                 "causation.", severity="info")],
             metrics={"differential_summary": summary,

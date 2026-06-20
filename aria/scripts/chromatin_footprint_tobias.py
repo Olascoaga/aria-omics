@@ -388,13 +388,137 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
     }
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# B4: bulk ATAC condition-level footprinting (per-sample BAMs merged per condition)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _merge_condition_bams(condition_bams: dict[str, list],
+                          out_dir: Path, reuse: bool = True
+                          ) -> dict[str, dict[str, Any]]:
+    """Merge the per-sample BAMs of each condition into one sorted+indexed
+    condition BAM (the bulk analogue of the scATAC per-group pseudobulk BAM).
+    Returns ``{condition: {"bam": path|None, "n_fragments": int, "n_bams": int}}``.
+    Requires pysam; honest (``bam=None``/``0``) when a condition has no readable BAM.
+    Coordinate-sorted inputs are assumed (post-alignment); ``pysam.merge`` keeps the
+    output sorted. ``reuse`` recovers an existing merged+indexed BAM without rewriting."""
+    import pysam
+
+    out: dict[str, dict[str, Any]] = {}
+    for cond, bams in condition_bams.items():
+        merged = out_dir / f"{cond}.bam"
+        index = out_dir / f"{cond}.bam.bai"
+        valid = [str(b) for b in (bams or []) if b and Path(str(b)).is_file()]
+        if reuse and merged.is_file() and index.is_file():
+            out[cond] = {"bam": str(merged),
+                         "n_fragments": int(pysam.AlignmentFile(str(merged)).mapped),
+                         "n_bams": len(valid)}
+            continue
+        if not valid:
+            out[cond] = {"bam": None, "n_fragments": 0, "n_bams": 0}
+            continue
+        pysam.merge("-f", str(merged), *valid)
+        pysam.index(str(merged))
+        out[cond] = {"bam": str(merged),
+                     "n_fragments": int(pysam.AlignmentFile(str(merged)).mapped),
+                     "n_bams": len(valid)}
+    return out
+
+
+def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
+    """Condition-level differential TF footprinting for bulk ATAC.
+
+    Mirrors the scATAC entry but builds the two pseudobulk BAMs by MERGING each
+    condition's per-sample BAMs (not by splitting fragments on a barcode label), then
+    reuses the SAME TOBIAS core (``_tobias_pipeline`` → ATACorrect/ScoreBigwig/
+    BINDetect) + ``summarize_bindetect`` + ``_aggregate_plots``.
+
+    Required params: ``condition_bams`` (``{condition: [bam, ...]}``), ``genome_fasta``,
+    ``peaks_bed``, ``motif_meme``, ``group_a``, ``group_b`` (the two conditions),
+    ``genome_fai`` (or sibling ``.fai``), ``output_dir``. Any missing one is an honest
+    ``ran: false`` with a concrete reason — footprinting never reports uncorrected
+    output, and a missing condition BAM is never fabricated."""
+    condition_bams = params.get("condition_bams") or {}
+    genome = params.get("genome_fasta")
+    peaks = params.get("peaks_bed")
+    motifs = params.get("motif_meme")
+    group_a = params.get("group_a")
+    group_b = params.get("group_b")
+    out_dir = Path(params.get("output_dir", "."))
+
+    if shutil.which("TOBIAS") is None:
+        return _skip("TOBIAS not installed (needs aria-tobias-env); footprinting "
+                     "refuses uncorrected output", method="tobias")
+    for label, val in (("genome_fasta", genome), ("peaks_bed", peaks),
+                       ("motif_meme", motifs)):
+        if not val or not Path(str(val)).is_file():
+            return _skip(f"{label} missing or not a file: {val}", method="tobias")
+    if not group_a or not group_b:
+        return _skip("group_a and group_b (the two conditions to contrast) are "
+                     "required", method="tobias")
+    if group_a not in condition_bams or group_b not in condition_bams:
+        return _skip("condition_bams must contain BAM lists for both group_a and "
+                     "group_b", method="tobias")
+    fai = params.get("genome_fai") or f"{genome}.fai"
+    if not Path(str(fai)).is_file():
+        return _skip(f"genome .fai index not found: {fai} (samtools faidx)",
+                     method="tobias")
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    group_bams = _merge_condition_bams(
+        {group_a: condition_bams[group_a], group_b: condition_bams[group_b]},
+        out_dir)
+    for g in (group_a, group_b):
+        if not group_bams[g]["bam"] or group_bams[g]["n_fragments"] == 0:
+            return _skip(f"condition '{g}' has no readable BAM reads after merge",
+                         method="tobias", group_bams=group_bams)
+
+    tobias = _tobias_pipeline(group_bams, str(genome), str(peaks), str(motifs),
+                              group_a, group_b, out_dir,
+                              cores=int(params.get("cores", 8)))
+    summary = (summarize_bindetect(tobias["bindetect_results"], group_a, group_b)
+               if tobias.get("bindetect_results") else {"parsed": False,
+               "reason": "BINDetect produced no results table"})
+    aggregate = {}
+    if summary.get("parsed") and tobias.get("bindetect_outdir"):
+        aggregate = _aggregate_plots(
+            Path(tobias["bindetect_outdir"]),
+            {group_a: str(out_dir / f"{group_a}_corrected.bw"),
+             group_b: str(out_dir / f"{group_b}_corrected.bw")},
+            _top_tfs(summary, group_a, group_b), out_dir,
+            cores=int(params.get("cores", 8)))
+    return {
+        "ran": True,
+        "method": "tobias_atacorrect_scorebigwig_bindetect",
+        "data_type": "bulk_ATAC",
+        "group_a": group_a, "group_b": group_b,
+        "group_label": "Conditions", "group_kind": "conditions",
+        "group_bams": group_bams,
+        "differential_summary": summary,
+        "aggregate_plots": aggregate,
+        **tobias,
+        "caveat": (
+            "Differential TF binding (BINDetect) is an associative footprint-signal "
+            "difference between conditions, not causal regulation. Footprints are "
+            "Tn5-bias-corrected (ATACorrect) over per-condition merged replicate BAMs."
+        ),
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--fragments-file", required=True)
+    p.add_argument("--mode", choices=("scatac", "bulk"), default="scatac",
+                   help="scatac: split fragments by barcode group; "
+                        "bulk: merge per-sample BAMs per condition")
+    # scATAC inputs (fragments + barcode->group).
+    p.add_argument("--fragments-file")
+    p.add_argument("--barcode-groups", help="barcode<TAB>group TSV (scatac mode)")
+    # bulk inputs (per-condition BAM lists).
+    p.add_argument("--condition-bams",
+                   help="JSON {condition: [bam, ...]} (bulk mode)")
+    # shared.
     p.add_argument("--genome-fasta", required=True)
     p.add_argument("--peaks-bed", required=True)
     p.add_argument("--motif-meme", required=True)
-    p.add_argument("--barcode-groups", required=True, help="barcode<TAB>group TSV")
     p.add_argument("--group-a", required=True)
     p.add_argument("--group-b", required=True)
     p.add_argument("--output-dir", required=True)
@@ -402,12 +526,25 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--cores", type=int, default=8)
     args = p.parse_args(argv)
 
-    res = chromatin_footprint_tobias({
-        "fragments_file": args.fragments_file, "genome_fasta": args.genome_fasta,
-        "peaks_bed": args.peaks_bed, "motif_meme": args.motif_meme,
-        "barcode_groups": args.barcode_groups, "group_a": args.group_a,
-        "group_b": args.group_b, "output_dir": args.output_dir, "cores": args.cores,
-    })
+    shared = {
+        "genome_fasta": args.genome_fasta, "peaks_bed": args.peaks_bed,
+        "motif_meme": args.motif_meme, "group_a": args.group_a,
+        "group_b": args.group_b, "output_dir": args.output_dir,
+        "cores": args.cores,
+    }
+    if args.mode == "bulk":
+        if not args.condition_bams:
+            p.error("--condition-bams is required in bulk mode")
+        condition_bams = json.loads(Path(args.condition_bams).read_text())
+        res = chromatin_footprint_tobias_bulk(
+            {**shared, "condition_bams": condition_bams})
+    else:
+        if not args.fragments_file or not args.barcode_groups:
+            p.error("--fragments-file and --barcode-groups are required in scatac mode")
+        res = chromatin_footprint_tobias({
+            **shared, "fragments_file": args.fragments_file,
+            "barcode_groups": args.barcode_groups,
+        })
     if args.output_json:
         Path(args.output_json).write_text(json.dumps(res, indent=2, sort_keys=True))
     print(json.dumps({k: v for k, v in res.items() if k != "group_bams"}, indent=2))
