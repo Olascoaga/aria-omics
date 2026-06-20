@@ -64,6 +64,7 @@ def _normalise_comparisons(raw) -> list[dict[str, str]]:
 
 
 def _load_counts_matrix(path: str | Path):
+    import numpy as np
     import pandas as pd
 
     df = pd.read_csv(path, sep="\t")
@@ -77,8 +78,28 @@ def _load_counts_matrix(path: str | Path):
     counts = df.set_index(peak_col)
     for col in counts.columns:
         counts[col] = pd.to_numeric(counts[col], errors="raise")
+    if counts.isna().any().any():
+        raise ValueError("counts matrix contains missing count values.")
+    if not np.isfinite(counts.to_numpy(dtype=float)).all():
+        raise ValueError("counts matrix contains non-finite count values.")
     if (counts < 0).any().any():
         raise ValueError("counts matrix contains negative values.")
+    non_integer = counts.ne(counts.round())
+    if non_integer.any().any():
+        examples = []
+        for peak, row in non_integer.iterrows():
+            bad_cols = [col for col, is_bad in row.items() if bool(is_bad)]
+            for col in bad_cols:
+                examples.append(f"{peak}/{col}={counts.loc[peak, col]}")
+                if len(examples) >= 3:
+                    break
+            if len(examples) >= 3:
+                break
+        detail = "; examples: " + ", ".join(examples) if examples else ""
+        raise ValueError(
+            "counts matrix contains non-integer count values; bulk ATAC DA "
+            f"requires raw integer counts{detail}."
+        )
     return counts.astype(int)
 
 

@@ -36,6 +36,67 @@ def test_bulk_atac_diffacc_requires_explicit_comparison(tmp_path):
     assert "no explicit comparison" in res["reason"]
 
 
+def test_load_counts_matrix_rejects_fractional_counts_before_cast(tmp_path):
+    from aria.scripts.chromatin_bulk_diffacc import _load_counts_matrix
+
+    counts = tmp_path / "counts.tsv"
+    counts.write_text(
+        "peak_id\tA\tB\n"
+        "chr1:1-10\t1.9\t2\n"
+        "chr1:20-30\t3\t4\n"
+    )
+
+    try:
+        _load_counts_matrix(counts)
+    except ValueError as exc:
+        msg = str(exc)
+    else:
+        raise AssertionError("fractional counts were silently accepted")
+
+    assert "non-integer count values" in msg
+    assert "chr1:1-10/A=1.9" in msg
+
+
+def test_load_counts_matrix_accepts_integer_like_decimal_counts(tmp_path):
+    from aria.scripts.chromatin_bulk_diffacc import _load_counts_matrix
+
+    counts = tmp_path / "counts.tsv"
+    counts.write_text(
+        "peak_id\tA\tB\n"
+        "chr1:1-10\t1.0\t2\n"
+        "chr1:20-30\t3\t4.0\n"
+    )
+
+    loaded = _load_counts_matrix(counts)
+
+    assert loaded.loc["chr1:1-10", "A"] == 1
+    assert loaded.loc["chr1:20-30", "B"] == 4
+    assert all(str(dtype).startswith("int") for dtype in loaded.dtypes)
+
+
+def test_bulk_atac_diffacc_skips_fractional_counts_with_clear_reason(tmp_path):
+    from aria.scripts.chromatin_bulk_diffacc import chromatin_bulk_diffacc
+
+    counts = tmp_path / "counts.tsv"
+    counts.write_text("peak_id\tA\tB\nchr1:1-10\t1.2\t2\n")
+    meta = tmp_path / "samples.tsv"
+    meta.write_text(
+        "sample_id\tcondition\treplicate\n"
+        "A\tctrl\tr1\nB\ttreated\tr2\n"
+    )
+
+    res = chromatin_bulk_diffacc({
+        "data_type": "bulk_ATAC",
+        "counts_matrix_path": str(counts),
+        "sample_metadata_path": str(meta),
+        "comparisons": [["treated", "ctrl"]],
+    })
+
+    assert res["status"] == "success"
+    assert res["ran"] is False
+    assert "non-integer count values" in res["reason"]
+
+
 def test_prepare_replicate_matrix_discloses_unusable_covariates():
     import pandas as pd
     from aria.scripts.chromatin_bulk_diffacc import _prepare_replicate_matrix
