@@ -26,6 +26,21 @@ _CHROMATIN_MODALITIES = {
     "CUT_AND_TAG",
 }
 
+_ATAC_PRODUCTION_BLOCKERS = {
+    "scATAC": (
+        "C3: TOBIAS footprinting is still executed through the dedicated driver, "
+        "not inline in the live chromatin agent flow.",
+        "C4: raw scATAC fragments/BAM input does not run the complete LSI/DA/"
+        "regulatory pipeline.",
+        "C5: peak calling lacks per-replicate reproducibility/IDR policy.",
+    ),
+    "bulk_ATAC": (
+        "C2: condition-level TOBIAS footprinting is still executed through the "
+        "dedicated driver, not inline in the live chromatin agent flow.",
+        "C5: peak calling lacks per-replicate reproducibility/IDR policy.",
+    ),
+}
+
 _DOUBLET_HINTS = ("doublet", "scrublet", "demuxlet")
 _MITO_HINTS = ("pct_counts_mt", "pct_mito", "percent_mito", "mito_frac")
 
@@ -78,6 +93,10 @@ def _merge_cards(base: dict[str, Any], update: dict[str, Any]) -> dict[str, Any]
     _set_status(card, update.get("status", "green"))
     card["checks"].update(update.get("checks", {}))
     card["findings"].extend(update.get("findings", []))
+    if update.get("agent"):
+        card["agent"] = update["agent"]
+    if update.get("validation_level"):
+        card["validation_level"] = update["validation_level"]
     if update.get("reason"):
         card["reason"] = update["reason"]
     return card
@@ -110,6 +129,14 @@ def _obs_column_names(design: dict[str, Any]) -> list[str]:
 def _has_column_hint(columns: list[str], hints: tuple[str, ...]) -> bool:
     lowered = [c.lower() for c in columns]
     return any(any(hint in col for hint in hints) for col in lowered)
+
+
+def _atac_production_readiness(modality: str) -> dict[str, Any]:
+    blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
+    return {
+        "production_ready": not blockers,
+        "open_blockers": blockers,
+    }
 
 
 def _replicate_counts(groups: dict[str, Any]) -> dict[str, int]:
@@ -294,6 +321,9 @@ class ChromatinAuditAgent:
                 # beta + requires_ack.
                 "external_concordance": "done",
             }
+            card["checks"]["production_readiness"] = _atac_production_readiness(
+                modality
+            )
             card["findings"].append(_finding(
                 "warning",
                 "chromatin_readiness_beta_ack_required",
@@ -330,6 +360,9 @@ class ChromatinAuditAgent:
                 "stage": "beta_qc_peak_calling_peak_counts_da",
                 "differential_accessibility": "beta_replicate_gated",
             }
+            card["checks"]["production_readiness"] = _atac_production_readiness(
+                modality
+            )
             card["findings"].append(_finding(
                 "warning",
                 "bulk_atac_beta_ack_required",
