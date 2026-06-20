@@ -949,6 +949,24 @@ class ChromatinNarrator:
         model parameters), sourced ONLY from measured findings so the section
         never fabricates a parameter that was not actually used."""
         out: list[str] = []
+        pre = findings.get("preprocessing") or {}
+        aligned_here = (pre.get("analysis") == "bulk_atac_alignment"
+                        and pre.get("ran"))
+        if aligned_here:
+            filt = pre.get("filter") or {}
+            out.append(
+                f"Bulk ATAC read alignment: raw FASTQ reads were adapter/quality "
+                f"trimmed (fastp) and aligned with "
+                f"{pre.get('aligner', 'bwa-mem2')} to "
+                f"{pre.get('assembly', '?')} "
+                f"({pre.get('n_samples_aligned', '?')} samples). Alignments were "
+                f"duplicate-marked and removed (samtools markdup -r) and filtered "
+                f"to properly paired primary reads (MAPQ >= "
+                f"{filt.get('mapq', '?')}, samtools -f "
+                f"{filt.get('samtools_f', 2)} -F {filt.get('samtools_F', 1804)})"
+                + (", excluding mitochondrial reads"
+                   if filt.get("remove_mito") else "")
+                + ".")
         if _ok(findings.get("qc")):
             out.append(
                 "Bulk ATAC QC reports only measured library metrics "
@@ -957,11 +975,16 @@ class ChromatinNarrator:
                 "read counting succeeds and is never default-filled.")
         peaks = findings.get("peaks") or {}
         if _ok(peaks):
+            realign_note = (
+                "ARIA aligned the raw FASTQ reads in this lane (see above)"
+                if aligned_here else
+                "ARIA consumes existing alignments and does not realign in "
+                "this lane")
             line = (
-                f"Bulk ATAC peak calling: MACS3 on the provided aligned "
-                f"BAM/CRAM input(s) (genome {peaks.get('genome', '?')}); ARIA "
-                f"consumes existing alignments and does not realign in this "
-                f"lane. {peaks.get('n_peaks', '?')} peaks were called")
+                f"Bulk ATAC peak calling: MACS3 on the "
+                f"{'' if aligned_here else 'provided '}aligned "
+                f"BAM/CRAM input(s) (genome {peaks.get('genome', '?')}); "
+                f"{realign_note}. {peaks.get('n_peaks', '?')} peaks were called")
             if peaks.get("consensus_peaks_path"):
                 line += (", and per-replicate peaks were merged into a "
                          "consensus peak universe")

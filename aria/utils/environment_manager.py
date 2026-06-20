@@ -97,6 +97,7 @@ class EnvironmentManager:
         "rna":         "aria-rna-env",
         "ingestion":   "aria-ingestion-env",  # scRNA FASTQ -> matrix/.h5ad
         "rnaseq":      "aria-rnaseq-env",   # bulk FASTQ: fastp/STAR/featureCounts
+        "atacseq":     "aria-atacseq-env",  # bulk ATAC FASTQ: bwa-mem2/samtools
         "chromatin":   "aria-chromatin-env",
         "tobias":      "aria-tobias-env",
         "hic":         "aria-hic-env",
@@ -114,6 +115,7 @@ class EnvironmentManager:
         "tobias":      14400,   # 4h — TOBIAS ATACorrect/ScoreBigwig/BINDetect
         "hic":         14400,
         "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
+        "atacseq":     14400,   # 4h — bwa-mem2 align + index build + markdup
         "integration": 7200,    # 2 hours
         "benchmark":   14400,   # 4h — R/Bioconductor reference comparators
         "spatial":     3600,    # 1 hour

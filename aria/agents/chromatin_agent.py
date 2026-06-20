@@ -144,6 +144,16 @@ def _positive_int(value, default: int) -> int:
     return parsed if parsed > 0 else default
 
 
+_FASTQ_SUFFIXES = (".fastq.gz", ".fq.gz", ".fastq", ".fq")
+
+
+def _is_fastq(files: list) -> bool:
+    """True when the input list is raw FASTQ (needs alignment before peaks)."""
+    if not files:
+        return False
+    return str(files[0]).lower().endswith(_FASTQ_SUFFIXES)
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -602,6 +612,94 @@ class ChromatinAgent(BaseAgent):
 
     # ── Bulk ATAC-seq pipeline ────────────────────────────────────────────
 
+    def _run_bulk_atac_preprocessing(self, experiment_id: str,
+                                     fastq_files: list,
+                                     exp_ctx: dict) -> tuple:
+        """Align raw bulk ATAC FASTQs to filtered BAMs (bwa-mem2).
+
+        Two stages, mirroring the bulk RNA prepend: fastp trimming reuses the
+        validated ``rna_fastq_qc`` (assay-agnostic) in the rnaseq stack, then
+        ``atac_align`` (bwa-mem2 + ATAC filtering) in the atacseq stack. Returns
+        ``(bam_paths | None, preprocessing_findings)``; None signals an honest
+        failure the caller surfaces as a skip.
+        """
+        fastq_dir = str(Path(fastq_files[0]).parent)
+        out_dir = Path(fastq_files[0]).parent.parent / "aria_atac_processing"
+
+        # Resolve the reference FASTA (explicit > auto-resolved local).
+        from aria.utils import genomes
+        assembly = exp_ctx.get("genome", "hg38")
+        genome_fasta = exp_ctx.get("genome_fasta")
+        if not genome_fasta:
+            local, _src = genomes.resolve_local_genome_fasta(assembly)
+            genome_fasta = local
+        if not genome_fasta:
+            return None, {
+                "status": "skipped", "ran": False,
+                "analysis": "bulk_atac_alignment", "validation_level": "beta",
+                "reason": "no_reference_genome_fasta",
+                "message": (
+                    f"Bulk ATAC FASTQ alignment needs a reference genome FASTA "
+                    f"for assembly '{assembly}', which is not staged locally. "
+                    f"Provide exp_context['genome_fasta'] or stage "
+                    f"~/.aria/genomes/{assembly}/genome.fa."),
+            }
+
+        # 1. fastp trim/QC (reuse the validated bulk RNA trimmer).
+        self.publish_status(experiment_id, "bulk ATAC FASTQ QC (fastp)...", 0.10)
+        qc = self.env.run_in_stack(
+            stack="rnaseq",
+            script_path="aria/scripts/rna_fastq_qc.py",
+            params={"fastq_dir": fastq_dir,
+                    "output_dir": str(out_dir / "qc"), "threads": 8},
+        )
+        if qc.get("status") != "success" or not qc.get("samples"):
+            return None, {"status": "failed", "ran": False,
+                          "analysis": "bulk_atac_alignment",
+                          "stage": "fastq_qc", "details": qc}
+
+        # 2. bwa-mem2 alignment + ATAC filtering.
+        self.publish_status(experiment_id, "bulk ATAC alignment (bwa-mem2)...",
+                            0.20)
+        align = self.env.run_in_stack(
+            stack="atacseq",
+            script_path="aria/scripts/atac_align.py",
+            params={
+                "samples": qc.get("samples", []),
+                "genome_fasta": genome_fasta,
+                "bwa_index": exp_ctx.get("bwa_index"),
+                "output_dir": str(out_dir / "aligned"),
+                "threads": int(exp_ctx.get("threads", 8)),
+                "mapq": int(exp_ctx.get("atac_mapq", 30)),
+                "remove_mito": bool(exp_ctx.get("atac_remove_mito", True)),
+            },
+        )
+        if align.get("status") != "success":
+            return None, {"status": "failed", "ran": False,
+                          "analysis": "bulk_atac_alignment", "stage": "align",
+                          "details": align}
+
+        bams = [b.get("bam") for b in align.get("bam_files", [])
+                if b.get("status") == "success" and b.get("bam")]
+        if not bams:
+            return None, {"status": "failed", "ran": False,
+                          "analysis": "bulk_atac_alignment", "stage": "align",
+                          "reason": "no_bam_produced", "details": align}
+
+        preprocessing = {
+            "status": "success", "ran": True,
+            "analysis": "bulk_atac_alignment", "validation_level": "beta",
+            "data_type": "bulk_ATAC",
+            "aligner": align.get("aligner", "bwa-mem2"),
+            "genome_fasta": genome_fasta, "assembly": assembly,
+            "filter": align.get("filter"),
+            "n_samples_aligned": len(bams),
+            "fastq_qc": {"n_samples": qc.get("n_samples"),
+                         "multiqc_report": qc.get("multiqc_report")},
+            "bam_files": align.get("bam_files"),
+        }
+        return bams, preprocessing
+
     def _run_bulk_atac(self, experiment_id: str, exp_ctx: dict,
                        intent: dict, files: list) -> dict:
         """Bulk ATAC-seq V47 slice: QC + MACS3 peak calling.
@@ -609,8 +707,22 @@ class ChromatinAgent(BaseAgent):
         Comparison requests build the technical peak-count matrix and then run
         replicate-gated DESeq2 DA only when explicit condition/replicate/
         comparison metadata are present; under-specified designs skip honestly.
+
+        Raw FASTQ inputs are aligned to BAM first (bwa-mem2, ATAC filtering),
+        mirroring the bulk RNA FASTQ->counts prepend; the rest of the lane is
+        unchanged. scATAC FASTQ is intentionally NOT handled here.
         """
         findings = {}
+
+        # FASTQ -> BAM: raw bulk ATAC reads must be aligned before QC/peaks.
+        if _is_fastq(files):
+            bam_files, preprocessing = self._run_bulk_atac_preprocessing(
+                experiment_id, files, exp_ctx)
+            findings["preprocessing"] = preprocessing
+            if not bam_files:
+                return {"status": "failed", "findings": findings,
+                        "reason": "bulk_atac_preprocessing_failed"}
+            files = bam_files
 
         # QC
         self.publish_status(experiment_id, "bulk ATAC QC...", 0.35)

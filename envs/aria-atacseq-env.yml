@@ -1,0 +1,28 @@
+name: aria-atacseq-env
+
+# Bulk ATAC-seq raw-read alignment environment (FASTQ -> filtered BAM), the ATAC
+# analogue of the bulk RNA aligner env. Kept in its own env so the aligner stack
+# (bwa-mem2 / samtools) does not disturb any validated analysis or comparator
+# lock.
+#
+# Backend: aria/scripts/atac_align.py (dispatched on the "atacseq" stack from
+# ChromatinAgent._run_bulk_atac when raw FASTQ inputs are detected). fastp
+# trimming reuses the validated assay-agnostic aria/scripts/rna_fastq_qc.py in
+# the rnaseq stack; this env only provides the aligner + BAM tooling:
+#   bwa-mem2 mem -> name-sort -> fixmate -m -> coord-sort -> markdup -r
+#   -> ATAC filter (MAPQ>=30, -f 2 -F 1804, drop chrM/MT) -> index.
+#
+# The script is import/binary-gated: it returns a structured MissingDependency
+# (honest skip, no mock) when bwa-mem2/samtools are absent (ADR-002). Bulk ATAC
+# stays beta + requires_ack; this only adds the raw-FASTQ entry point to the
+# already-validated QC -> MACS3 -> DA -> ... lane.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.10
+  - bwa-mem2
+  - samtools

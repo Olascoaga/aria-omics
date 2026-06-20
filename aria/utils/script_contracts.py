@@ -673,6 +673,17 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("counts_matrix", "any", required=False),
         ),
     ),
+    "aria/scripts/atac_align.py": ScriptContract(
+        script_path="aria/scripts/atac_align.py",
+        validation_level="beta",
+        inputs=(
+            _f("samples", "list", allow_empty=False),
+            _f("genome_fasta", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("bam_files", "list", required=False),
+        ),
+    ),
     # Scaffold modalities (dispatch-gated; contract present for completeness).
     "aria/scripts/integration_wnn.py": ScriptContract(
         script_path="aria/scripts/integration_wnn.py",
