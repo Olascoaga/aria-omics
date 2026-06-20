@@ -32,17 +32,21 @@ decisions, and writes a report grounded in real output files.
   summaries (PAGA plus DPT only when a defensible root is available), LIANA
   cell-cell communication, processed `.h5ad` recovery, and GEO/SRA connector
   paths.
-- **Beta (requires acknowledgement):** scATAC-seq matrix workflow — QC/clustering,
-  motif enrichment, and the replicate-gated pseudobulk condition-DA lane are
-  beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with SnapATAC2
-  and edgeR/limma/DESeq2); the per-cluster Wilcoxon marker path stays caveated as
-  single-sample-fragile. Bulk ATAC-seq is open as a V47 beta slice for measured
-  QC + MACS3 peak calling, peak-by-sample count matrices, and replicate-gated
-  DESeq2 differential accessibility when explicit condition/replicate/comparison
-  metadata are supplied. Both lanes are dispatch-gated behind explicit
+- **Beta (requires acknowledgement):** scATAC-seq is now a complete beta workflow.
+  QC/clustering, motif enrichment, and the replicate-gated pseudobulk condition-DA
+  lane are beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with
+  SnapATAC2 and edgeR/limma/DESeq2); peak-to-gene link recovery is beta (ADR-050,
+  concordant with Signac LinkPeaks); TOBIAS Tn5-bias-corrected TF footprinting +
+  RNA cross-evidence, publication figures, and gene-activity scoring landed against
+  a real 10x PBMC Multiome. The per-cluster Wilcoxon marker path and gene-activity
+  stay caveated. Bulk ATAC-seq is a complete V47 beta lane: measured QC + MACS3 peak
+  calling, peak-by-sample count matrices, replicate-gated DESeq2 differential
+  accessibility, and TF-motif interpretation — validated end-to-end on real ENCODE
+  replicates (K562 vs GM12878). Both modalities are dispatch-gated behind explicit
   acknowledgement.
 - **Scaffolded / roadmap:** ChIP-seq, CUT&RUN / CUT&TAG, full Hi-C / Micro-C
-  workflows, and multimodal WNN/MOFA+ integration.
+  workflows, scATAC gene-activity / motif-activity, and multimodal WNN/MOFA+
+  single-cell integration (V48).
 
 **ARIA produces:**
 
@@ -134,9 +138,12 @@ ChromatinAgent                     beta — scATAC and bulk ATAC dispatch requir
   chromatin_lsi_clustering.py      beta — TF-IDF/LSI clustering (SnapATAC2-concordant)
   chromatin_diffacc.py             beta — replicate-gated pseudobulk DA (edgeR/limma/DESeq2-concordant); per-cluster Wilcoxon markers caveated
   chromatin_motifs.py              beta — local motif enrichment when resources exist
+  chromatin_regulatory.py          beta peak-to-gene (ADR-050, Signac-concordant); gene-activity + motif-activity scaffold
+  chromatin_footprint_tobias.py    beta — TOBIAS Tn5-bias footprinting + RNA cross-evidence  ✓ PBMC Multiome
+  chromatin_figure_clusters.py     done — publication scATAC figures (dual PNG+SVG)
   chromatin_peaks.py (MACS3)       beta for bulk ATAC peak calling; other assay use remains scaffolded
   chromatin_peak_counts.py         scaffold — bulk ATAC peak x sample technical matrix
-  chromatin_bulk_diffacc.py        beta — replicate-gated bulk ATAC DA over peak counts
+  chromatin_bulk_diffacc.py        beta — replicate-gated bulk ATAC DA  ✓ ENCODE K562/GM12878
 GenomeArchAgent                    scaffolded — dispatch OFF by default
   hic_inspect.py                   done — needs ARIA_ALLOW_EXPERIMENTAL_HIC=1
   hic_qc_and_balance.py            done — runs are stamped not-publication-grade
@@ -151,36 +158,32 @@ IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
 GEO/SRA connectors                 done   ✓ GSE183948 validated
 ```
 
-The current release baseline is `v4.7.0`: bulk RNA + scRNA core paths are closed
-for practical use, publication-readiness provenance is embedded in reports,
-raw-ingestion planning/conversion is available for supported 10X inputs,
-reports are composed from validated modality blocks for scRNA and bulk RNA, the
-interactive "ARIA Control Center" (Textual TUI) is opt-in over the canonical
-headless path, and the scATAC matrix workflow is a scoped **beta** path behind
-explicit acknowledgement (de-alpha in v4.7.0 / ADR-048).
+The current release baseline is `v4.7.0` (post-`v4.7.0` development on `main`).
+Where ARIA stands now:
 
-`v4.5.3` tagged the pre-ATAC integrity freeze: centralized version metadata,
-installer secret hygiene, registry-integrity checks, scaffold dispatch gating,
-typed script IPC contracts, design-matrix validation before DESeq2, synthetic
-ground-truth DE benchmarking, scientific QC red flags, and the **Claim
-Compiler**. `v4.5.4` adds scientific-honesty hardening: pseudobulk scRNA now
-defaults to per-cluster FDR for the primary significance call while still
-reporting global FDR as a secondary audit diagnostic. Power is reported against
-the decision rule actually in force — under the per-cluster default, against
-each block's effective per-cluster-family alpha (the whole-experiment global-BH
-alpha is kept only as a secondary diagnostic) — and log-normalized count
-recovery is visibly low-confidence. Pseudobulk significant-gene counts can
-differ from pre-`v4.5.4` reports by design.
+- **Bulk RNA + scRNA core** — closed for practical use, with publication-readiness
+  provenance embedded in every report and raw-ingestion planning/conversion for
+  supported 10X inputs.
+- **scATAC-seq — complete beta.** QC/clustering, motif enrichment, replicate-gated
+  pseudobulk DA, peak-to-gene links (ADR-050), TOBIAS footprinting + RNA
+  cross-evidence, publication figures, and gene-activity scoring — exercised on a
+  real 10x PBMC Multiome. Behind explicit acknowledgement.
+- **Bulk ATAC-seq — complete V47 beta lane.** QC → MACS3 peaks → peak×sample counts
+  → replicate-gated DESeq2 DA → TF-motif interpretation, validated end-to-end on
+  real ENCODE replicates (K562 vs GM12878).
+- **ARIA Control Center** — opt-in Textual TUI over the canonical headless path
+  (ADR-047).
+- **Preprint-audit hardening (F1–F12, 2026-06).** A 12-finding adversarial audit
+  (cross-verified at file:line) was fully remediated without touching the DE/DA
+  numerical core: the bulk-RNA `|log2FC|` cutoff is prompt-independent (ADR-055);
+  free-text LLM interpretation no longer enters Results; bulk-RNA DE requires an
+  explicit metadata + contrast contract; benchmark artifacts carry full provenance;
+  pydeseq2 fit warnings reach the audit trail; public CSV write failures are
+  disclosed; the bulk ATAC aggregation lane has a live synthetic recall/FDR gate;
+  and committed graph artifacts are scrubbed of machine-absolute paths.
 
-`v4.5.5` adds the first executable artifact from the frozen v4.5 benchmarking
-plan: preliminary Benchmark A1 bulk-DE validation against synthetic truth, with
-FDR calibration, LFC concordance, ranking concordance, and significant-call
-concordance reported in a versioned manifest and simple Fig. 1 SVG. External R
-comparators remain in the separate `aria-bench-env` lane.
-
-Since `v4.5.4`, ARIA has gone through a focused reliability, governance, and
-reproducibility hardening pass on the validated RNA baseline, followed by the
-`v4.6` scATAC alpha line and post-`v4.6` scRNA production fixes. Shipped so far:
+The full version-by-version history lives in the [Roadmap](#roadmap) below. Shipped
+capabilities on the validated baseline:
 
 - **Deterministic, auditable narrative** — every LLM call runs at
   `temperature=0` with a fixed seed, and each report records which model/tier
@@ -365,10 +368,11 @@ ARIA
   SetupAgent              Environment/genome readiness check before dispatch
   BulkRNAAgent            DESeq2, all pairwise contrasts, ORA, GSEA
   scRNAAgent              QC, clustering, annotation, DE
-  ChromatinAgent          scATAC matrix workflow [beta, requires ack]
-                          bulk ATAC QC + MACS3 peaks [beta, requires ack]
-                          bulk ATAC peak counts + DESeq2 DA [beta-gated]
-                          ChIP + CUT&RUN + CUT&TAG [scaffolded]
+  ChromatinAgent          scATAC: QC, LSI, DA, motifs, peak2gene,    [beta, requires ack]
+                          TOBIAS footprinting, figures, gene-activity
+                          bulk ATAC: QC + MACS3 + counts + DESeq2 DA  [beta, requires ack]
+                          + TF-motif interpretation
+                          ChIP + CUT&RUN + CUT&TAG                    [scaffolded]
   GenomeArchAgent         HiC, TADs, loops, compartments   [scaffolded]
   IntegrationAgent        Conditional multimodal synthesis  [scaffolded]
   NarrativeAgent          HTML report + methods section
@@ -382,7 +386,7 @@ ARIA
   DebateCouncil     Internal LLM peer review: Proposer vs Critic (2–3 rounds)
   ARIAMemory        Hierarchical SQLite: Wings / Halls / Rooms / Findings
   MessageBus        Durable per-run pub/sub with compact internal messages
-  TUI               Terminal interface (Rich)
+  ARIA Control Center  Opt-in Textual TUI (ADR-047) over the canonical headless path
 ```
 
 ---
@@ -447,7 +451,8 @@ aria
 
   CHECKPOINT 2 — Analysis Plan
     Step 1: [bulk_rna_agent] DESeq2 differential expression
-    DE thresholds: padj < 0.05, |log2FC| > 0.58
+    DE thresholds: padj < 0.05, |log2FC| > 1.0  (prompt-independent default;
+                   change only via an explicit CP3 profile, ADR-055)
     Contrasts: BMAL1 vs WT, REV_ERBa vs WT, BMAL1 vs REV_ERBa
   Proceed?
 
@@ -503,10 +508,13 @@ ARIA_DEV_PROVIDER=gemini   # free tier — or "ollama" for local GPU
 
 | Environment | Key tools |
 |-------------|-----------|
-| `aria-rna-env` | scanpy, pydeseq2, gseapy, blitzgsea, scrublet |
-| `aria-chromatin-env` | pysam, pybedtools, MACS3, episcanpy, muon |
+| `aria-rna-env` | scanpy, pydeseq2, gseapy, blitzgsea, scrublet (also runs chromatin DESeq2 DA) |
+| `aria-ingestion-env` | kb-python / kallisto / bustools (scRNA FASTQ → h5ad) |
+| `aria-chromatin-env` | pysam, pybedtools, MACS3, snapatac2, episcanpy, muon |
+| `aria-tobias-env` | TOBIAS (Tn5-bias-corrected scATAC footprinting) |
 | `aria-hic-env` | cooler, cooltools, hic-straw, pairtools, chromosight |
 | `aria-integration-env` | MOFA+, scGLUE, SCENIC+, decoupler, muon |
+| `aria-bench-env` / `aria-bench-atac-env` / `aria-bench-signac-env` | external R/Bioconductor + SnapATAC2/Signac comparators (benchmark lanes only) |
 
 For publication or archival runs, generate explicit Linux lockfiles before
 tagging or sharing a report:
@@ -576,12 +584,26 @@ post-v4.6 done    scRNA production hardening: raw-count pseudobulk handoff,
                   DPT, CellTypist confidence/fallback disclosure, integration
                   overcorrection escalation, 10X MEX directory grouping, and
                   honest QC-failure report blocks.
-v4.7     current  Bulk ATAC: QC + MACS3 peak-calling beta slice is open;
-                  remaining work is DA via DESeq2 on peak counts
-v4.8              IntegrationAgent (WNN + MOFA+ + peak2gene) — deferred
-                  until both modalities work standalone
+v4.7     done     scATAC de-alpha → beta (ADR-048) + ARIA Control Center
+                  (Textual TUI, ADR-047). scATAC completed to 100%:
+                  peak-to-gene (ADR-050), TOBIAS footprinting + RNA
+                  cross-evidence, publication figures, gene-activity — all
+                  on a real 10x PBMC Multiome. Bulk ATAC V47 lane complete:
+                  QC + MACS3 + peak counts + replicate-gated DESeq2 DA +
+                  TF-motif interpretation, validated on ENCODE K562/GM12878.
+post-v4.7 done    Preprint-audit remediation (F1–F12): prompt-independent
+                  DE threshold, no free-text LLM interpretation in Results,
+                  explicit metadata/contrast contract, benchmark-artifact
+                  provenance, fit-warning audit trail, disclosed CSV-write
+                  failures, modality-correct thresholds, live bulk ATAC DA
+                  recall/FDR gate, and machine-path scrub of graph artifacts.
+                  DE/DA numerical core untouched throughout.
+v4.8     next     IntegrationAgent (WNN + MOFA+ + peak2gene) — unblocked now
+                  that both single-cell modalities work standalone (ADR-049
+                  gate lifted). Sequenced against preprint-freeze prep.
 v4.9              Interactive HTML report (sortable tables, plotly figures)
-v5.0              Docker image, HPC support, bioRxiv preprint
+v5.0              Docker image, HPC support, bioRxiv preprint (frozen
+                  benchmark-artifact tag is the LAST step)
 ```
 
 ---
