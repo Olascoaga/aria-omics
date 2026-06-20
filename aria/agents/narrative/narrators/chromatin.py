@@ -134,6 +134,10 @@ class ChromatinNarrator:
         if isinstance(peak_counts, dict) and _ok(peak_counts):
             blocks.append(self._peak_counts_block(peak_counts))
 
+        matrix_pipeline = findings.get("matrix_pipeline")
+        if isinstance(matrix_pipeline, dict) and not matrix_pipeline.get("ran"):
+            blocks.append(self._matrix_pipeline_block(matrix_pipeline))
+
         lsi = findings.get("lsi") or findings.get("lsi_clustering")
         if isinstance(lsi, dict) and _ok(lsi):
             blocks.append(self._clustering_block(lsi))
@@ -323,6 +327,45 @@ class ChromatinNarrator:
                 "counts_matrix_path": counts.get("counts_matrix_path"),
             },
             metadata={"validation_level": "scaffold"},
+        )
+
+    def _matrix_pipeline_block(self, matrix_pipeline: dict) -> NarrativeBlock:
+        skipped = [str(s) for s in (matrix_pipeline.get("skipped_steps") or [])]
+        completed = [
+            str(s) for s in (matrix_pipeline.get("completed_steps") or [])
+        ]
+        evidence = [
+            _ev("Modality", matrix_pipeline.get("data_type"), "chromatin_agent"),
+            _ev("Required input", matrix_pipeline.get("required_input"),
+                "chromatin_agent"),
+            _ev("Completed raw steps", ", ".join(completed),
+                "chromatin_agent"),
+            _ev("Skipped matrix steps", ", ".join(skipped),
+                "chromatin_agent"),
+        ]
+        evidence = [e for e in evidence if e.value]
+
+        message = matrix_pipeline.get("message") or (
+            "The complete scATAC matrix pipeline was not run for this input."
+        )
+        return NarrativeBlock(
+            id="chromatin.scatac_matrix_pipeline.skipped",
+            modality="chromatin", analysis="matrix_pipeline",
+            block_type="limitation",
+            title="scATAC matrix pipeline not run",
+            status="limitation", confidence="insufficient",
+            claim="", evidence=evidence,
+            caveats=[Caveat(str(message), severity="warning")],
+            metrics={
+                "reason": matrix_pipeline.get("reason"),
+                "skipped_steps": skipped,
+                "completed_steps": completed,
+            },
+            metadata={
+                "validation_level": matrix_pipeline.get(
+                    "validation_level", "beta"
+                )
+            },
         )
 
     # ── LSI + clustering ────────────────────────────────────────────────────

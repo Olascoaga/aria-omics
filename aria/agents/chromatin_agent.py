@@ -335,16 +335,8 @@ class ChromatinAgent(BaseAgent):
                     context={"qc": qc_result, "modality": "scATAC"},
                 )
 
-        # 2. LSI dimensionality reduction
-        # ParameterAdvisor decides how many SVD components to use
-        # and explicitly recommends discarding component 1
-        self.publish_status(experiment_id, "scATAC LSI reduction...", 0.3)
-        lsi_params = self._advise_lsi_params(
-            experiment_id, intent, qc_result
-        )
-        findings["lsi_params"] = lsi_params
-
-        # 3. Peak calling
+        # 2. Peak calling. Raw fragments/BAM inputs do not yet produce the
+        # validated cell x peak matrix that the LSI/DA/regulatory pipeline needs.
         self.publish_status(experiment_id, "Calling peaks (MACS3)...", 0.5)
         peaks_result = self.env.run_in_stack(
             stack="chromatin",
@@ -364,7 +356,33 @@ class ChromatinAgent(BaseAgent):
                 experiment_id, peaks_result, "scATAC"
             )
 
-        # 4. TF motif enrichment (if requested)
+        findings["matrix_pipeline"] = {
+            "status": "skipped",
+            "ran": False,
+            "data_type": "scATAC",
+            "analysis": "matrix_pipeline",
+            "validation_level": "beta",
+            "reason": "raw_scatac_requires_peak_matrix_h5mu",
+            "message": (
+                "Raw scATAC fragments/BAM currently support measured QC, "
+                "MACS3 peak calling, and optional motif enrichment only. "
+                "LSI clustering, differential accessibility, and regulatory "
+                "layers require a processed .h5mu peak matrix."
+            ),
+            "required_input": ".h5mu peak matrix",
+            "completed_steps": [
+                "qc",
+                "peak_calling",
+                "motif_enrichment_if_requested",
+            ],
+            "skipped_steps": [
+                "lsi_clustering",
+                "differential_accessibility",
+                "regulatory_layers",
+            ],
+        }
+
+        # 3. TF motif enrichment (if requested)
         if self._needs_tf_analysis(intent):
             self.publish_status(experiment_id,
                                 "TF motif enrichment...", 0.7)
