@@ -259,6 +259,23 @@ def default_genome_for_organism(organism: str | None) -> str | None:
     return _DEFAULT_GENOME.get(str(organism or "").strip())
 
 
+def _geo_bucket_map(geo_data_type: str) -> dict[str, str]:
+    """Map GEOConnector file buckets -> ARIA modality for a given data_type.
+
+    ATAC studies must reach the ChromatinAgent (scATAC/bulk_ATAC) rather than
+    being collapsed into the RNA lane. Only buckets a lane can actually consume
+    are mapped: ATAC count tables are not ingested directly (peaks/counts are
+    recalled internally from BAM/fragments), so they are intentionally omitted.
+    """
+    if geo_data_type == "scATAC":
+        return {"fragments": "scATAC", "peaks": "scATAC", "bam": "scATAC",
+                "h5": "scATAC", "h5ad": "scATAC", "mtx": "scATAC"}
+    if geo_data_type == "bulk_ATAC":
+        return {"bam": "bulk_ATAC", "peaks": "bulk_ATAC"}
+    rna_mod = "scRNA" if geo_data_type == "scRNA" else "bulk_RNA"
+    return {"counts": rna_mod, "h5ad": "scRNA", "h5": "scRNA", "mtx": "scRNA"}
+
+
 def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> dict:
     """Apply a user's CHECKPOINT-1 metadata corrections in place.
 
@@ -427,10 +444,13 @@ class DataAuditAgent(BaseAgent):
         if geo_metadata:
             geo_files     = geo_metadata.get("files", {})
             geo_data_type = geo_metadata.get("data_type", "bulk_RNA")
-            modality      = "scRNA" if geo_data_type == "scRNA" else "bulk_RNA"
 
-            for ftype, bucket in (("counts", modality), ("h5ad", "scRNA"),
-                                  ("h5", "scRNA"), ("mtx", "scRNA")):
+            # Map each GEO file bucket to an ARIA modality, keyed by the
+            # connector's inferred data_type, so ATAC studies reach the
+            # ChromatinAgent instead of being collapsed into the RNA lane.
+            bucket_map = _geo_bucket_map(geo_data_type)
+
+            for ftype, bucket in bucket_map.items():
                 for fpath in geo_files.get(ftype, []):
                     if Path(fpath).exists():
                         classified.setdefault(bucket, []).append(fpath)

@@ -85,10 +85,12 @@ class GEOConnector:
               "title":           str,
               "organism":        str,
               "genome":          str,
-              "data_type":       "bulk_RNA" | "scRNA" | "unknown",
+              "data_type":       "bulk_RNA" | "scRNA" | "bulk_ATAC"
+                                 | "scATAC" | "unknown",
               "n_samples":       int,
               "local_dir":       Path,
-              "files":           {"counts": [], "h5ad": [], "h5": [], "mtx": []},
+              "files":           {"counts": [], "h5ad": [], "h5": [], "mtx": [],
+                                  "fragments": [], "peaks": [], "bam": []},
               "inferred_design": {
                   "groups":  {group: [sample_names]},
                   "factor":  str,
@@ -214,9 +216,11 @@ class GEOConnector:
                                   status_cb: Optional[Callable]) -> dict:
         """
         List and download supplementary files from GEO FTP.
-        Classifies files into counts, h5ad, h5, mtx buckets.
+        Classifies files into counts, h5ad, h5, mtx (RNA) and fragments, peaks,
+        bam (ATAC) buckets.
         """
-        files: dict = {"counts": [], "h5ad": [], "h5": [], "mtx": []}
+        files: dict = {"counts": [], "h5ad": [], "h5": [], "mtx": [],
+                       "fragments": [], "peaks": [], "bam": []}
         prefix  = _gse_prefix(gse_id)
         ftp_url = f"{_GEO_FTP}/{prefix}/{gse_id}/suppl/"
 
@@ -253,15 +257,9 @@ class GEOConnector:
                     log.warning(f"Download failed for {fname}: {e}")
                     continue
 
-            fl = fname.lower()
-            if fl.endswith(".h5ad"):
-                files["h5ad"].append(str(fpath))
-            elif fl.endswith(".h5"):
-                files["h5"].append(str(fpath))
-            elif "matrix.mtx" in fl or fl.endswith(".mtx.gz"):
-                files["mtx"].append(str(fpath))
-            elif re.search(r"\.(txt|tsv|csv)(\.gz)?$", fl):
-                files["counts"].append(str(fpath))
+            bucket = _classify_suppl_file(fname)
+            if bucket is not None:
+                files[bucket].append(str(fpath))
 
         if not any(files.values()):
             log.warning(f"No processable supplementary files found for {gse_id}.")
@@ -625,22 +623,69 @@ def _organism_from_gene_symbols(count_path: str) -> str:
     return ""
 
 
+def _classify_suppl_file(fname: str) -> str | None:
+    """Map a supplementary filename to a file bucket, or None if not processable.
+
+    ATAC artifacts are matched BEFORE the generic mtx/tsv buckets because a
+    scATAC fragments file is `*fragments.tsv.gz` and a peak file `*.bed.gz`
+    would otherwise be mis-bucketed as a count table.
+    """
+    fl = fname.lower()
+    if fl.endswith(".h5ad"):
+        return "h5ad"
+    if fl.endswith(".h5"):
+        return "h5"
+    if "fragments" in fl and re.search(r"\.(tsv|bed)(\.gz)?$", fl):
+        return "fragments"
+    if (re.search(r"\.(narrowpeak|broadpeak|gappedpeak)(\.gz)?$", fl)
+            or ("peak" in fl and re.search(r"\.bed(\.gz)?$", fl))):
+        return "peaks"
+    if fl.endswith((".bam", ".cram")):
+        return "bam"
+    if "matrix.mtx" in fl or fl.endswith(".mtx.gz"):
+        return "mtx"
+    if re.search(r"\.(txt|tsv|csv)(\.gz)?$", fl):
+        return "counts"
+    return None
+
+
 def _infer_data_type(metadata: dict, files: dict) -> str:
-    """Infer bulk_RNA, scRNA, or unknown from metadata and file names."""
+    """Infer bulk_RNA, scRNA, bulk_ATAC, scATAC, or unknown from metadata and
+    file names. ATAC is resolved BEFORE RNA because single-cell ATAC studies
+    also carry the 10x/single-cell keywords that the RNA branch keys on."""
     lib = metadata.get("library_strategy", "").lower()
     title_desc = (metadata.get("title", "") + " " +
                   " ".join(s.get("title", "") for s in metadata.get("samples", []))
                   ).lower()
 
-    # scRNA indicators
-    if any(kw in title_desc or kw in lib
-           for kw in ("scrna", "single cell", "single-cell", "10x", "droplet",
-                      "smart-seq", "smartseq", "drop-seq")):
+    single_cell = any(
+        kw in title_desc or kw in lib
+        for kw in ("scrna", "scatac", "snatac", "single cell", "single-cell",
+                   "single nucleus", "single-nucleus", "single-nuclei",
+                   "10x", "droplet", "smart-seq", "smartseq", "drop-seq")
+    )
+
+    # ── ATAC indicators (checked first) ───────────────────────────────────
+    atac = (
+        "atac" in lib
+        or any(kw in title_desc
+               for kw in ("atac-seq", "atac seq", "scatac", "snatac",
+                          "chromatin accessibility", "transposase-accessible"))
+        or bool(files.get("fragments"))
+    )
+    if atac:
+        # A fragments file is the canonical single-cell ATAC artifact.
+        if files.get("fragments") or single_cell:
+            return "scATAC"
+        return "bulk_ATAC"
+
+    # ── scRNA indicators ──────────────────────────────────────────────────
+    if single_cell:
         return "scRNA"
     if files.get("h5ad") or files.get("h5") or files.get("mtx"):
         return "scRNA"
 
-    # Bulk RNA indicators
+    # ── Bulk RNA indicators ───────────────────────────────────────────────
     if "rna-seq" in lib or "rna seq" in title_desc:
         return "bulk_RNA"
     if files.get("counts"):
