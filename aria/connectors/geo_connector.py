@@ -669,8 +669,10 @@ def _infer_data_type(metadata: dict, files: dict) -> str:
     atac = (
         "atac" in lib
         or any(kw in title_desc
-               for kw in ("atac-seq", "atac seq", "scatac", "snatac",
-                          "chromatin accessibility", "transposase-accessible"))
+               for kw in ("atac-seq", "atac seq", "atacseq", "scatac", "snatac",
+                          "chromatin accessibility", "transposase-accessible",
+                          "transposase accessible", "transposase",
+                          "transposition of native chromatin"))
         or bool(files.get("fragments"))
     )
     if atac:

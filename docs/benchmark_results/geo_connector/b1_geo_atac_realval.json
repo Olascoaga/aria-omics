@@ -1,0 +1,68 @@
+{
+  "artifact": "B1 GEO connector ATAC recognition real-data validation",
+  "aria_version": "4.7.0",
+  "summary": "Validation of the GEO connector's ATAC support (B1) against real NCBI GEO accessions. Confirms _infer_data_type types real ATAC studies as scATAC/bulk_ATAC (not collapsed to RNA), _download_supplementary/_classify_suppl_file buckets real ATAC artifacts (fragments/peaks), and _geo_bucket_map routes them to the ChromatinAgent. One full end-to-end fetch() downloaded real bytes; the rest validate typing+bucketing against real supplementary listings (no multi-GB downloads).",
+  "validation_scope": {
+    "validates": [
+      "real SOFT metadata -> _infer_data_type yields scATAC/bulk_ATAC for real ATAC studies",
+      "real supplementary listings -> _classify_suppl_file buckets fragments/peaks/mtx",
+      "_geo_bucket_map routes ATAC buckets to the ChromatinAgent (not the RNA lane)",
+      "a full GEOConnector.fetch() downloads + buckets real bytes end-to-end"
+    ],
+    "does_not_validate": [
+      "downstream ChromatinAgent processing of the downloaded files (separate lanes)",
+      "fragments/BAM downloads were not pulled for the GB-scale accessions (listing-only)"
+    ]
+  },
+  "results": {
+    "full_fetch_end_to_end": {
+      "accession": "GSE96769",
+      "description": "Corces 2016 single-cell epigenomics, human hematopoiesis",
+      "bytes_downloaded": "SOFT + PeakFile.bed.gz (8.4 MB) + scATACseq_counts.txt.gz (56.7 MB)",
+      "data_type": "scATAC",
+      "n_samples": 2784,
+      "file_buckets": {
+        "peaks": ["GSE96769_PeakFile_20160207.bed.gz"],
+        "counts": ["GSE96769_scATACseq_counts.txt.gz"]
+      },
+      "routing": "scATAC -> ChromatinAgent"
+    },
+    "listing_classification": [
+      {
+        "accession": "GSE162690",
+        "description": "ArchR paper, single-cell ATAC",
+        "library_strategy": "ATAC-seq",
+        "data_type": "scATAC",
+        "fragments_bucketed": ["GSE162690_CellLine_HighLoading.fragments.tsv.gz", "GSE162690_CellLine_LowLoading.fragments.tsv.gz"],
+        "note": "fragments file (1.5 GB) NOT downloaded; classification is from the real listing"
+      },
+      {
+        "accession": "GSE129785",
+        "description": "Satpathy massively-parallel scATAC, immune development",
+        "library_strategy": "ATAC-seq",
+        "data_type": "scATAC",
+        "mtx_bucketed": "7 *.mtx.gz routed to scATAC"
+      },
+      {
+        "accession": "GSE47753",
+        "description": "Buenrostro 2013, the original ATAC-seq paper (bulk)",
+        "library_strategy": "OTHER",
+        "data_type_before_fix": "unknown",
+        "data_type_after_fix": "bulk_ATAC",
+        "finding": "Pre-dates the GEO 'ATAC-seq' library_strategy term and uses a descriptive title ('Transposition of native chromatin ... open chromatin') with no literal 'atac'. Validation surfaced this gap; _infer_data_type ATAC keywords were broadened with ATAC-specific terms (transposase, 'transposition of native chromatin', bare 'atacseq'). 'open chromatin' deliberately NOT added (DNase-seq also uses it)."
+      }
+    ]
+  },
+  "known_limitations": {
+    "generic_bed_not_bucketed": "Peak files named as generic *.bed/*.bed.gz without 'peak'/narrowPeak/broadPeak in the name (e.g. GSE47753's ZINBA *_pp08.bed.gz) are left UNCLASSIFIED to avoid mis-bucketing non-peak BED (annotations, blacklists, enhancers). Modern ATAC peaks (narrowPeak/broadPeak or *peak*.bed) are bucketed.",
+    "negative_control": "DNase-seq 'open chromatin' studies correctly remain 'unknown' (not mis-typed as ATAC)."
+  },
+  "provenance": {
+    "git_commit": "c6a8e7f",
+    "source_commit": "84d4f41",
+    "aria_version": "4.7.0",
+    "generated_utc": "2026-06-20T23:40:00Z",
+    "tool_versions": {"connector": "aria.connectors.geo_connector", "network": "NCBI GEO FTP over HTTPS"},
+    "note": "Live network validation against NCBI GEO. Accession contents may change upstream; data_type/bucket logic is pinned by tests/test_geo_atac_inference.py."
+  }
+}

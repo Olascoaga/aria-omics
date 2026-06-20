@@ -62,6 +62,28 @@ def test_unknown_when_no_signal():
                              "library_strategy": ""}, {}) == "unknown"
 
 
+def test_original_atac_paper_descriptive_title():
+    # Real GSE47753 (Buenrostro 2013): library_strategy="OTHER" (pre-dates the
+    # GEO ATAC-seq term) and a descriptive title without the literal "atac".
+    md = {"title": ("Transposition of native chromatin for fast and sensitive "
+                    "epigenomic profiling of open chromatin"),
+          "samples": [], "library_strategy": "OTHER"}
+    assert _infer_data_type(md, {}) == "bulk_ATAC"
+
+
+def test_atacseq_no_separator():
+    assert _infer_data_type({"title": "ATACseq of K562", "samples": [],
+                             "library_strategy": ""}, {}) == "bulk_ATAC"
+
+
+def test_dnase_open_chromatin_not_atac():
+    # Negative control: DNase-seq also profiles "open chromatin" but must NOT be
+    # mis-typed as ATAC (we deliberately do not key on "open chromatin").
+    md = {"title": "DNase-seq open chromatin of GM12878", "samples": [],
+          "library_strategy": "DNase-Hypersensitivity"}
+    assert _infer_data_type(md, {}) == "unknown"
+
+
 # ── supplementary-file bucketing ──────────────────────────────────────────
 
 def test_fragments_bucketed_not_counts():
