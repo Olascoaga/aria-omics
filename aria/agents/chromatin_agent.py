@@ -41,6 +41,81 @@ from aria.memory.memory import ARIAMemory
 log = logging.getLogger("aria.chromatin")
 
 
+def _bulk_da_motif_regions(comparisons, *, max_per_group: int = 5000):
+    """Split each bulk ATAC DA comparison's significant peaks into BOTH
+    accessibility directions and collect the full tested-peak universe as the
+    motif-enrichment background.
+
+    Reusing the scATAC ``chromatin_motifs`` engine for bulk ATAC needs only an
+    explicit ``regions`` dict + ``background`` list (no clustered ``.h5ad``).
+    For every successful comparison this reads ``full_results_csv`` (columns
+    ``peak``/``log2FoldChange``/``significant``) and emits two region groups —
+    ``<test>_vs_<reference>::up_in_<test>`` and ``...::up_in_<reference>`` — so
+    enrichment is reported toward BOTH conditions (no one-sided pruning, per the
+    no-degrade principle). The background is the union of all tested peaks.
+
+    Returns ``(regions, background, warnings)``. Empty ``regions`` (honest) when
+    no readable significant peaks exist; the caller then skips the motif step.
+    """
+    import csv as _csv
+
+    regions: dict[str, list[str]] = {}
+    background: list[str] = []
+    seen_bg: set[str] = set()
+    warnings: list[str] = []
+
+    for comp in comparisons or []:
+        if not isinstance(comp, dict) or comp.get("status") != "success":
+            continue
+        csv_path = comp.get("full_results_csv")
+        if not csv_path or not Path(str(csv_path)).is_file():
+            warnings.append(
+                f"comparison '{comp.get('test')}_vs_{comp.get('reference')}': "
+                f"DA results CSV not found for motif enrichment.")
+            continue
+        test = str(comp.get("test", "test"))
+        ref = str(comp.get("reference", "reference"))
+        comp_key = f"{test}_vs_{ref}"
+        up_test: list[str] = []
+        up_ref: list[str] = []
+        try:
+            with open(str(csv_path), newline="", encoding="utf-8") as fh:
+                reader = _csv.DictReader(fh)
+                cols = reader.fieldnames or []
+                if "peak" not in cols or "log2FoldChange" not in cols:
+                    warnings.append(
+                        f"comparison '{comp_key}': DA CSV missing peak/"
+                        f"log2FoldChange columns; skipped for motifs.")
+                    continue
+                for row in reader:
+                    peak = str(row.get("peak", "")).strip()
+                    if not peak:
+                        continue
+                    if peak not in seen_bg:
+                        seen_bg.add(peak)
+                        background.append(peak)
+                    if str(row.get("significant", "")).strip().lower() != "true":
+                        continue
+                    try:
+                        lfc = float(row.get("log2FoldChange"))
+                    except (TypeError, ValueError):
+                        continue
+                    if lfc > 0:
+                        up_test.append(peak)
+                    elif lfc < 0:
+                        up_ref.append(peak)
+        except OSError as e:
+            warnings.append(
+                f"comparison '{comp_key}': could not read DA CSV ({e}).")
+            continue
+        if up_test:
+            regions[f"{comp_key}::up_in_{test}"] = up_test[:max_per_group]
+        if up_ref:
+            regions[f"{comp_key}::up_in_{ref}"] = up_ref[:max_per_group]
+
+    return regions, background, warnings
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -594,6 +669,14 @@ class ChromatinAgent(BaseAgent):
                         and da_result.get("status") == "success"
                         and da_result.get("ran")):
                     findings["differential_accessibility"] = da_result
+                    # TF motif enrichment over the bulk ATAC DA peak sets
+                    # (offline, self-gating on genome FASTA + motif collection).
+                    # Reuses the scATAC chromatin_motifs engine with explicit
+                    # direction-split region groups; both directions reported.
+                    motif_result = self._run_bulk_atac_motifs(
+                        experiment_id, exp_ctx, da_result, files)
+                    if motif_result is not None:
+                        findings["motifs"] = motif_result
                 else:
                     findings["differential_accessibility"] = {
                         "status": "skipped",
@@ -616,6 +699,51 @@ class ChromatinAgent(BaseAgent):
                 }
 
         return {"status": "done", "findings": findings}
+
+    def _run_bulk_atac_motifs(self, experiment_id: str, exp_ctx: dict,
+                              da_result: dict, files: list) -> Optional[dict]:
+        """TF motif enrichment over bulk ATAC DA peak sets.
+
+        Builds direction-split DA region groups + the tested-peak background
+        from the DESeq2 comparisons and reuses ``chromatin_motifs.py`` (snapatac2,
+        chromatin stack) for the actual enrichment. The script self-gates on a
+        local genome FASTA + a versioned motif collection (honest skip, never a
+        fabricated enrichment). Returns ``None`` only when there are no DA peaks
+        to interpret, so the caller leaves ``findings["motifs"]`` unset.
+        """
+        regions, background, warnings = _bulk_da_motif_regions(
+            da_result.get("comparisons"))
+        if not regions:
+            return None
+
+        assembly = exp_ctx.get("genome")
+        genome_fasta = exp_ctx.get("genome_fasta")
+        out_dir = str(Path(files[0]).parent / "bulk_atac_motifs")
+        self.publish_status(
+            experiment_id, "bulk ATAC TF motif enrichment...", 0.9)
+        motif_result = self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/chromatin_motifs.py",
+            params={
+                "regions": regions,
+                "background": background,
+                "genome_fasta": genome_fasta,
+                "assembly": assembly,
+                "allow_genome_fetch": bool(
+                    exp_ctx.get("allow_genome_fetch", False)),
+                "motif_collection": exp_ctx.get("motif_collection"),
+                "method": "hypergeometric",
+                "output_dir": out_dir,
+                "exp_context": exp_ctx,
+            },
+        )
+        if isinstance(motif_result, dict):
+            if warnings:
+                motif_result.setdefault("warnings", []).extend(warnings)
+            motif_result.setdefault("data_type", "bulk_ATAC")
+            if motif_result.get("ran"):
+                motif_result.setdefault("validation_level", "beta")
+        return motif_result
 
     # ── ChIP-seq pipeline ─────────────────────────────────────────────────
 

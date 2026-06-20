@@ -1,0 +1,252 @@
+{
+  "analysis": "bulk_ATAC_motif_enrichment",
+  "validation_level": "beta",
+  "dataset": "ENCODE K562 (ENCSR483RKN) vs GM12878 (ENCSR637XSC), 2v2 bulk ATAC",
+  "source_da": "v47_k562_gm12878_da_validation (68,722/124,544 DA peaks)",
+  "engine": "snapatac2.tl.motif_enrichment (shared scATAC chromatin_motifs lane)",
+  "method": "hypergeometric",
+  "genome_assembly": "hg38",
+  "motif_collection": {
+    "collection": "JASPAR2024_CORE_vertebrates",
+    "release": "2024",
+    "n_motifs": 879
+  },
+  "contig_filter": "peaks on contigs absent from the reference FASTA dropped before enrichment (scaffold/alt); disclosed",
+  "max_regions_per_group": 5000,
+  "groups": {
+    "up_in_GM12878": {
+      "n_regions_scanned": 5000,
+      "n_regions_dropped_offcontig_or_cap": 37,
+      "n_enriched": 705,
+      "top_motifs": [
+        {
+          "motif_id": "MA0151.1",
+          "name": "Arid3a",
+          "family": "None",
+          "log2_enrichment": 0.4445664979889758,
+          "padj": 6.277661683059545e-158
+        },
+        {
+          "motif_id": "MA1499.2",
+          "name": "HOXB4",
+          "family": "None",
+          "log2_enrichment": 0.5403578698956187,
+          "padj": 1.9610875962862712e-153
+        },
+        {
+          "motif_id": "MA1504.2",
+          "name": "HOXC4",
+          "family": "None",
+          "log2_enrichment": 0.5403578698956187,
+          "padj": 1.9610875962862712e-153
+        },
+        {
+          "motif_id": "MA1507.2",
+          "name": "HOXD4",
+          "family": "None",
+          "log2_enrichment": 0.5403578698956187,
+          "padj": 1.9610875962862712e-153
+        },
+        {
+          "motif_id": "MA0050.4",
+          "name": "Irf1",
+          "family": "None",
+          "log2_enrichment": 0.8325793684949294,
+          "padj": 1.2505545227253484e-110
+        },
+        {
+          "motif_id": "MA0875.2",
+          "name": "BARX1",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0876.2",
+          "name": "BSX",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0879.3",
+          "name": "DLX1",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0882.2",
+          "name": "DLX6",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0890.2",
+          "name": "GBX2",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0894.2",
+          "name": "HESX1",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA1498.3",
+          "name": "HOXA7",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0699.2",
+          "name": "LBX2",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0700.3",
+          "name": "LHX2",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        },
+        {
+          "motif_id": "MA0666.3",
+          "name": "MSX1",
+          "family": "None",
+          "log2_enrichment": 0.5398303967086371,
+          "padj": 1.560857084020747e-110
+        }
+      ]
+    },
+    "up_in_K562": {
+      "n_regions_scanned": 5000,
+      "n_regions_dropped_offcontig_or_cap": 108,
+      "n_enriched": 661,
+      "top_motifs": [
+        {
+          "motif_id": "MA0151.1",
+          "name": "Arid3a",
+          "family": "None",
+          "log2_enrichment": -0.5177673604011495,
+          "padj": 3.8725768913645585e-108
+        },
+        {
+          "motif_id": "MA0493.3",
+          "name": "KLF1",
+          "family": "None",
+          "log2_enrichment": 0.8647900378554921,
+          "padj": 2.5154453935995664e-91
+        },
+        {
+          "motif_id": "MA1513.2",
+          "name": "KLF15",
+          "family": "None",
+          "log2_enrichment": 0.8647900378554921,
+          "padj": 2.5154453935995664e-91
+        },
+        {
+          "motif_id": "MA1959.2",
+          "name": "KLF7",
+          "family": "None",
+          "log2_enrichment": 0.8647900378554921,
+          "padj": 2.5154453935995664e-91
+        },
+        {
+          "motif_id": "MA0516.3",
+          "name": "SP2",
+          "family": "None",
+          "log2_enrichment": 0.8975535990006123,
+          "padj": 3.31954612252689e-89
+        },
+        {
+          "motif_id": "MA0079.5",
+          "name": "SP1",
+          "family": "None",
+          "log2_enrichment": 0.7524719094726704,
+          "padj": 3.0901931723257764e-87
+        },
+        {
+          "motif_id": "MA0685.2",
+          "name": "SP4",
+          "family": "None",
+          "log2_enrichment": 0.7524719094726704,
+          "padj": 3.0901931723257764e-87
+        },
+        {
+          "motif_id": "MA0599.1",
+          "name": "KLF5",
+          "family": "None",
+          "log2_enrichment": 0.7801578890058098,
+          "padj": 3.096214732712929e-83
+        },
+        {
+          "motif_id": "MA0875.2",
+          "name": "BARX1",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA0876.2",
+          "name": "BSX",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA0879.3",
+          "name": "DLX1",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA0882.2",
+          "name": "DLX6",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA0890.2",
+          "name": "GBX2",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA0894.2",
+          "name": "HESX1",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        },
+        {
+          "motif_id": "MA1498.3",
+          "name": "HOXA7",
+          "family": "None",
+          "log2_enrichment": -0.658460574754082,
+          "padj": 3.189755164287718e-82
+        }
+      ]
+    }
+  },
+  "biological_validation": {
+    "up_in_K562": "Erythroid KLF/SP signature recovered (KLF1/EKLF master erythroid TF, KLF5/7/15, SP1/2/4) - textbook K562 erythroleukemia identity.",
+    "up_in_GM12878": "Immune/B-lymphoblastoid signal led by IRF1 and Arid3a (B-cell); homeobox motifs weaker/generic.",
+    "interpretation_caveat": "Motif over-representation is associative (a JASPAR database match in the DA peak set), not evidence of TF activity, binding, or gene regulation. Per-cell motif activity (chromVAR) is out of scope."
+  },
+  "honesty_notes": [
+    "Both accessibility directions reported (no one-sided pruning).",
+    "Offline: versioned local JASPAR2024 collection; no network egress.",
+    "5000-peak/group cap applied (top peaks); signal is robust to the cap."
+  ]
+}

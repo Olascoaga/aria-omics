@@ -80,6 +80,21 @@ class _FakeBulkAtacEnv:
                 }],
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_motifs.py"):
+            return {
+                "status": "success",
+                "ran": True,
+                "reason": None,
+                "method": params.get("method", "hypergeometric"),
+                "genome_fasta": "/tmp/hg38.fa",
+                "motif_source": {"collection": "JASPAR2024_CORE_vertebrates",
+                                 "release": "2024", "n_motifs": 100},
+                "n_groups": len(params.get("regions") or {}),
+                "per_group": {g: {"n_regions": len(v), "n_enriched": 3}
+                              for g, v in (params.get("regions") or {}).items()},
+                "output_csv": "/tmp/bulk_atac_motifs/motif_enrichment.csv",
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -297,6 +312,13 @@ def test_bulk_atac_methods_report_caller_counting_and_model_params():
                         "low_power_warning": True,
                     }],
                 },
+                "motifs": {
+                    "status": "success", "ran": True, "data_type": "bulk_ATAC",
+                    "method": "hypergeometric",
+                    "motif_source": {
+                        "collection": "JASPAR2024_CORE_vertebrates",
+                        "release": "2024"},
+                },
             },
         }
     }
@@ -317,7 +339,138 @@ def test_bulk_atac_methods_report_caller_counting_and_model_params():
     assert "|log2FC| >= 0.5" in blob and "adjusted p <= 0.05" in blob
     assert "At least 2 replicates per condition" in blob
     assert "low-power warning" in blob
+    # motif interpretation params (associative, both directions, offline)
+    assert "TF motif enrichment" in blob
+    assert "both conditions, no one-sided pruning" in blob
+    assert "JASPAR2024_CORE_vertebrates" in blob
+    assert "associative database match" in blob
     # honesty: ARIA does not realign, and no scATAC marker language leaks
     assert "does not realign" in blob
     assert "Wilcoxon" not in blob
     assert "per-cluster" not in blob
+
+
+def _write_da_full_csv(path, rows):
+    """rows: list of (peak, log2fc, significant_bool)."""
+    import csv
+    with open(path, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["peak", "baseMean", "log2FoldChange", "pvalue",
+                         "padj", "significant"])
+        for peak, lfc, sig in rows:
+            writer.writerow([peak, 100.0, lfc, 0.001, 0.01, str(bool(sig))])
+
+
+def test_bulk_da_motif_regions_splits_both_directions(tmp_path):
+    from aria.agents.chromatin_agent import _bulk_da_motif_regions
+
+    csv_path = tmp_path / "bulk_atac_da_K562_vs_GM12878_full.csv"
+    _write_da_full_csv(csv_path, [
+        ("chr1:100-200", 2.0, True),     # up in K562 (test)
+        ("chr1:300-400", -1.5, True),    # up in GM12878 (reference)
+        ("chr2:500-600", 0.1, False),    # not significant -> background only
+        ("chr2:700-800", -3.0, True),    # up in GM12878
+    ])
+    comparisons = [{
+        "test": "K562", "reference": "GM12878", "status": "success",
+        "full_results_csv": str(csv_path),
+    }]
+
+    regions, background, warnings = _bulk_da_motif_regions(comparisons)
+
+    assert set(regions) == {"K562_vs_GM12878::up_in_K562",
+                            "K562_vs_GM12878::up_in_GM12878"}
+    assert regions["K562_vs_GM12878::up_in_K562"] == ["chr1:100-200"]
+    assert regions["K562_vs_GM12878::up_in_GM12878"] == [
+        "chr1:300-400", "chr2:700-800"]
+    # background is the FULL tested-peak universe incl. the non-significant peak
+    assert set(background) == {"chr1:100-200", "chr1:300-400",
+                               "chr2:500-600", "chr2:700-800"}
+    assert warnings == []
+
+
+def test_bulk_da_motif_regions_honest_when_no_csv():
+    from aria.agents.chromatin_agent import _bulk_da_motif_regions
+
+    regions, background, warnings = _bulk_da_motif_regions([
+        {"test": "a", "reference": "b", "status": "success",
+         "full_results_csv": "/nonexistent/path.csv"},
+        {"test": "c", "reference": "d", "status": "failed"},
+    ])
+    assert regions == {}
+    assert background == []
+    assert any("not found" in w for w in warnings)
+
+
+def test_bulk_atac_motif_enrichment_dispatched_after_da(tmp_path):
+    bam = tmp_path / "sample.bam"
+    bam.write_bytes(b"")
+    csv_path = tmp_path / "da_full.csv"
+    _write_da_full_csv(csv_path, [
+        ("chr1:100-200", 2.0, True),
+        ("chr1:300-400", -2.0, True),
+    ])
+
+    class _Env(_FakeBulkAtacEnv):
+        def run_in_stack(self, *, stack, script_path, params):
+            if script_path.endswith("chromatin_bulk_diffacc.py"):
+                self.calls.append((stack, Path(script_path).name, params))
+                return {
+                    "status": "success", "ran": True, "data_type": "bulk_ATAC",
+                    "validation_level": "beta",
+                    "analysis": "differential_accessibility",
+                    "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+                    "n_comparisons_success": 1, "n_replicate_samples": 4,
+                    "n_peaks_tested": 2, "n_sig_total": 2,
+                    "padj_max": 0.05, "lfc_min": 0.5,
+                    "comparisons": [{
+                        "test": "K562", "reference": "GM12878",
+                        "status": "success", "full_results_csv": str(csv_path),
+                    }],
+                    "warnings": [],
+                }
+            return super().run_in_stack(
+                stack=stack, script_path=script_path, params=params)
+
+    env = _Env()
+    agent = _agent(env)
+    result = agent._run_bulk_atac(
+        "exp",
+        {"genome": "hg38", "comparisons": [["K562", "GM12878"]],
+         "min_replicates_per_condition": 2},
+        {"comparison": "K562_vs_GM12878"},
+        [str(bam)],
+    )
+
+    motifs = result["findings"].get("motifs")
+    assert motifs is not None and motifs["ran"] is True
+    assert motifs["data_type"] == "bulk_ATAC"
+    assert motifs["validation_level"] == "beta"
+
+    motif_call = [c for c in env.calls if c[1] == "chromatin_motifs.py"][0]
+    # motif enrichment runs on the chromatin stack (snapatac2 + genome FASTA)
+    assert motif_call[0] == "chromatin"
+    mp = motif_call[2]
+    assert mp["assembly"] == "hg38"
+    assert set(mp["regions"]) == {"K562_vs_GM12878::up_in_K562",
+                                  "K562_vs_GM12878::up_in_GM12878"}
+    assert "chr1:100-200" in mp["background"]
+    # no data_path/da_csv: bulk ATAC feeds explicit regions + background
+    assert "data_path" not in mp and "da_csv" not in mp
+
+
+def test_bulk_atac_motif_skipped_when_no_da_peaks(tmp_path):
+    bam = tmp_path / "sample.bam"
+    bam.write_bytes(b"")
+    # Shared fake DA result carries comparisons WITHOUT full_results_csv ->
+    # no DA peaks to interpret -> motif step is honestly skipped (no dispatch).
+    env = _FakeBulkAtacEnv()
+    agent = _agent(env)
+    result = agent._run_bulk_atac(
+        "exp",
+        {"genome": "hg38", "comparisons": [["treated", "control"]]},
+        {"comparison": "treated_vs_control"},
+        [str(bam)],
+    )
+    assert "motifs" not in result["findings"]
+    assert not any(c[1] == "chromatin_motifs.py" for c in env.calls)

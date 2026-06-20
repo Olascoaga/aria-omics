@@ -813,6 +813,19 @@ class ChromatinNarrator:
                          "floor")
             line += "."
             out.append(line)
+        motifs = findings.get("motifs") or {}
+        if _ok(motifs) and motifs.get("ran"):
+            src = motifs.get("motif_source") or {}
+            out.append(
+                f"TF motif enrichment: DA peaks were split by accessibility "
+                f"direction (both conditions, no one-sided pruning) and tested "
+                f"for {motifs.get('method', 'hypergeometric')} motif "
+                f"over-representation against the tested-peak background using "
+                f"the versioned local {src.get('collection', 'motif')} "
+                f"collection (release {src.get('release', '?')}); offline, no "
+                f"network egress. An enriched motif is an associative database "
+                f"match in the peak set, not evidence of TF activity or "
+                f"regulation.")
         return out
 
     def methods(self, agent_name: str, agent_result: dict,

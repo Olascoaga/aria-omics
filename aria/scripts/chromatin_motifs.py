@@ -110,6 +110,39 @@ def _detect_col(cols, *needles):
     return None
 
 
+def _genome_chroms(genome_fasta):
+    """Set of contig names in the reference FASTA, or None if undiscoverable.
+
+    Bulk ATAC peak universes (MACS3 on the raw BAM) can include scaffold/alt
+    contigs absent from a primary-assembly FASTA; snapatac2 sequence fetching
+    raises a KeyError on those. Returning the valid contig set lets the caller
+    drop such peaks (disclosed) instead of crashing. A snapatac2 Genome object
+    (auto-fetch path) or any non-path input yields None (no filtering). Prefers
+    the cheap `.fai` index; falls back to pysam, which builds it.
+    """
+    from pathlib import Path
+    if not isinstance(genome_fasta, str):
+        return None
+    fai = Path(genome_fasta + ".fai")
+    if fai.is_file():
+        chroms = set()
+        try:
+            with open(fai, encoding="utf-8") as fh:
+                for line in fh:
+                    name = line.split("\t", 1)[0].strip()
+                    if name:
+                        chroms.add(name)
+        except OSError:
+            return None
+        return chroms or None
+    try:
+        import pysam
+        with pysam.FastaFile(genome_fasta) as fa:
+            return set(fa.references) or None
+    except Exception:
+        return None
+
+
 def chromatin_motifs(params: dict) -> dict:
     import json
     from pathlib import Path
@@ -245,6 +278,26 @@ def chromatin_motifs(params: dict) -> dict:
         adata = read_h5ad(str(data_path))
         background = [str(p) for p in adata.var_names]
     background = [str(p) for p in background]
+
+    # Bulk ATAC peaks (MACS3 on the raw BAM) may sit on scaffold/alt contigs
+    # absent from the reference FASTA; snapatac2 sequence fetching would crash
+    # on them. Drop out-of-reference peaks up front and disclose the count.
+    # Regions are intersected with this background below, so off-contig DA
+    # peaks are removed (and disclosed) transitively.
+    valid_chroms = _genome_chroms(genome_fasta)
+    if valid_chroms is not None:
+        before_bg = len(background)
+        background = [p for p in background
+                      if p.split(":", 1)[0] in valid_chroms]
+        dropped_bg = before_bg - len(background)
+        if dropped_bg:
+            warnings.append(
+                f"dropped {dropped_bg} background peak(s) on contigs absent "
+                f"from the reference genome before motif enrichment.")
+        if not background:
+            return _skip("no background peaks remain after restricting to "
+                         "reference-genome contigs.",
+                         motif_source=motif_version)
     bg_set = set(background)
 
     # For hypergeometric, regions MUST be a subset of background; intersect and
