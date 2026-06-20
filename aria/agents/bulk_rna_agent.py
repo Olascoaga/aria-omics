@@ -19,29 +19,11 @@ from pathlib import Path
 
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence
-from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
 
 log = logging.getLogger("aria.bulk_rna")
 
-
-BULK_RNA_SYSTEM = """
-You are ARIA's BulkRNAAgent — a specialist in bulk RNA-seq analysis.
-
-Your expertise:
-- Experimental design: balanced replicates, confounders, batch effects
-- Differential expression: DESeq2 (primary), edgeR, limma-voom
-- Pathway enrichment: GO BP, KEGG, Reactome, GSEA
-- Quality control: library size normalization, PCA outlier detection
-- Interpretation: biological context over statistical significance
-
-Critical knowledge:
-- DESeq2 requires integer counts — round if needed
-- Design factor must match the biological comparison, not "sample"
-- TF knockouts produce modest direct effects (log2FC 0.5-1); use lower
-  LFC thresholds for direct target discovery
-- Multiple testing correction: always use adjusted p-values
-""".strip()
 
 KNOWN_TFS = {
     "bmal1", "arntl", "clock", "per1", "per2", "per3", "cry1", "cry2", "nr1d1", "reverba", "nr1d2",
@@ -253,7 +235,15 @@ class BulkRNAAgent(BaseAgent):
         result["lfc_threshold_provenance"] = lfc_provenance
 
         self._publish_findings(experiment_id, result)
-        result["interpretation"] = self._interpret(result, intent, exp_ctx)
+        result["interpretation_status"] = {
+            "ran": False,
+            "reason": (
+                "free_text_llm_interpretation_disabled_by_F3_governance; "
+                "bulk RNA Results are generated from structured DE/pathway "
+                "outputs and NarrativeBlock evidence cards"
+            ),
+            "governance": "F3_preprint_audit",
+        }
         self._record_methodology_decisions(experiment_id, result)
 
         self.publish_status(experiment_id, "BulkRNAAgent complete.", 1.0)
@@ -756,18 +746,16 @@ class BulkRNAAgent(BaseAgent):
             self.publish_finding(experiment_id, {"summary": f"STAR alignment: {len(ok_bams)}/{len(bams)} samples mapped. Avg unique mapping: {avg_map:.1f}%." + (f" Low mapping: {low_map}" if low_map else "")}, Confidence.MEDIUM if avg_map <= 75 or low_map else Confidence.HIGH)
 
     def _interpret(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        if not (contrasts := result.get("contrasts", [])): return self._interpret_single(result, intent, exp_ctx)
-        summaries = [f"  {c.get('name','?')}: {c.get('n_significant', 0)} DE genes ({c.get('n_upregulated', 0)} up, {c.get('n_downregulated', 0)} down). Top: {[g.get('symbol') or g.get('gene', g) for g in c.get('top_genes', [])[:5]]}. Pathways: {[t['term'] for db, terms in c.get('pathways', {}).items() if isinstance(terms, list) for t in terms[:2]][:3]}" for c in contrasts]
-        pathway_warnings = [w for w in result.get("warnings", []) or [] if any(k in w.lower() for k in ("pathway", "enrichment", "enrichr", "gseapy", "go_bp", "kegg", "reactome", "symbol", "gtf"))]
-        pathway_status_block = f"\nPATHWAY ENRICHMENT STATUS: NO RESULTS RETURNED.\nVerbatim warnings from the pipeline:\n{chr(10).join(f'  - {w}' for w in pathway_warnings) if pathway_warnings else '  - (no pathway-related warnings recorded)'}\nState the empty-result fact directly and quote ONE verbatim warning." if not any(c.get("pathways") for c in contrasts if c.get("status") == "success") else ""
-        prompt = f"Bulk RNA-seq, multiple contrasts:\nOrganism: {exp_ctx.get('organism', '')}\nQuestion: {intent.get('summary', '')}\nThresholds: padj<{result.get('padj_threshold', 0.05)}, |log2FC|>{result.get('lfc_threshold', 1.0)}\n\nResults:\n{chr(10).join(summaries)}\n{pathway_status_block}\nWrite a 4-6 sentence biological synthesis comparing gene overlap and pathways."
-        try: return self.llm.complete(prompt=prompt, system=BULK_RNA_SYSTEM, tier=TaskTier.HEAVY, max_tokens=500)
-        except Exception: return f"{len(contrasts)} contrasts analyzed, {sum(c.get('n_significant', 0) for c in contrasts)} total DE genes."
+        return (
+            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
+            "use structured NarrativeBlock results and evidence cards."
+        )
 
     def _interpret_single(self, result: dict, intent: dict, exp_ctx: dict) -> str:
-        prompt = f"Bulk RNA-seq DE: {result.get('comparison_used', {})}\nOrganism: {exp_ctx.get('organism', '')}\nQuestion: {intent.get('summary', '')}\n\nResults:\n  {result.get('n_significant', 0)} significant genes\n  Top genes: {[g.get('symbol') or g.get('gene', g) for g in result.get('top_genes', [])[:8]]}\nWrite a 3-4 sentence biological interpretation."
-        try: return self.llm.complete(prompt=prompt, system=BULK_RNA_SYSTEM, tier=TaskTier.HEAVY, max_tokens=350)
-        except Exception: return f"{result.get('n_significant', 0)} DE genes identified."
+        return (
+            "Free-text LLM bulk RNA interpretation is disabled by F3 governance; "
+            "use structured NarrativeBlock results and evidence cards."
+        )
 
     def _output_dir(self, files: list) -> str: return str(Path(files[0]).parent / "aria_bulk_de") if files else "/tmp/aria_bulk_de"
 

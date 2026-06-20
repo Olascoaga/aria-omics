@@ -129,6 +129,23 @@ def test_bulk_methods_describe_local_ora_not_enrichr_endpoint():
     assert "instead of Enrichr's default universe" not in methods
 
 
+def test_legacy_bulk_summary_omits_free_text_interpretation():
+    agent_results = _bulk_agent_results()
+    agent_results["bulk_rna_agent"]["findings"]["interpretation"] = (
+        "GeneX drives disease and GeneY enforces cell fate."
+    )
+
+    summary = _agent()._summarize_bulk_rna(
+        agent_results["bulk_rna_agent"],
+        {"high": [], "medium": [], "low": [], "insufficient": []},
+    )
+
+    assert "481 DE genes" in summary
+    assert "GeneX" not in summary
+    assert "drives disease" not in summary
+    assert "enforces cell fate" not in summary
+
+
 def test_bulk_report_layout_and_single_modality_wording(tmp_path):
     agent = _agent()
     agent.reports_dir = tmp_path

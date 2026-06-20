@@ -146,6 +146,100 @@ def test_entity_to_label_mapping():
     assert mapping.get("REF_entity") == "REF"
 
 
+@needs_agent
+def test_bulk_rna_agent_does_not_generate_free_text_interpretation(tmp_path):
+    counts_path = tmp_path / "counts.tsv"
+    counts_path.write_text(
+        "gene\tctrl1\tctrl2\ttreat1\ttreat2\n"
+        "GENE1\t10\t11\t40\t42\n",
+        encoding="utf-8",
+    )
+
+    class FakeLLM:
+        calls = 0
+
+        def complete(self, *args, **kwargs):
+            self.calls += 1
+            raise AssertionError("bulk RNA free-text interpretation must not call LLM")
+
+    class FakeMemory:
+        def store_decision(self, *args, **kwargs):
+            return None
+
+    class FakeEnv:
+        params = None
+
+        def run_in_stack(self, stack, script_path, params):
+            self.params = params
+            return {
+                "status": "success",
+                "sample_qc": {"n_samples": 4, "outliers": []},
+                "contrasts": [{
+                    "name": "treated vs control",
+                    "status": "success",
+                    "n_significant": 1,
+                    "n_upregulated": 1,
+                    "n_downregulated": 0,
+                    "top_genes": [{"gene": "GENE1", "log2fc": 2.0}],
+                    "pathways": {},
+                }],
+                "methodology": {"decisions": []},
+                "design_used": "~ condition",
+            }
+
+    agent = BulkRNAAgent.__new__(BulkRNAAgent)
+    agent.memory = FakeMemory()
+    agent.llm = FakeLLM()
+    agent.env = FakeEnv()
+    agent.publish_status = lambda *args, **kwargs: None
+    agent.publish_finding = lambda *args, **kwargs: None
+
+    result = agent.run(
+        "f3_bulk_test",
+        {
+            "exp_context": {
+                "organism": "Homo sapiens",
+                "genome": "hg38",
+                "modalities": {"bulk_RNA": [str(counts_path)]},
+                "design": {
+                    "groups": {
+                        "control": ["ctrl1", "ctrl2"],
+                        "treated": ["treat1", "treat2"],
+                    },
+                    "main_factor": "condition",
+                    "contrasts": [{
+                        "numerator": "treated",
+                        "denominator": "control",
+                        "name": "treated vs control",
+                    }],
+                },
+            },
+            "biological_intent": {
+                "summary": "treated vs control bulk RNA-seq",
+            },
+        },
+    )
+
+    assert result["status"] == "done"
+    findings = result["findings"]
+    assert "interpretation" not in findings
+    assert findings["interpretation_status"] == {
+        "ran": False,
+        "reason": (
+            "free_text_llm_interpretation_disabled_by_F3_governance; "
+            "bulk RNA Results are generated from structured DE/pathway "
+            "outputs and NarrativeBlock evidence cards"
+        ),
+        "governance": "F3_preprint_audit",
+    }
+    assert agent.llm.calls == 0
+    assert agent.env.params["contrasts"] == [{
+        "numerator": "treated",
+        "denominator": "control",
+        "name": "treated vs control",
+    }]
+
+
 # ── Fix 3: sample QC / outlier detection ─────────────────────────────────────
 
 def test_sample_qc_reports_expected_keys():
