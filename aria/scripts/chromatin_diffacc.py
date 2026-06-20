@@ -491,15 +491,15 @@ def chromatin_diffacc(params: dict) -> dict:
         n_clusters = per_cluster.pop("n_clusters", None) or int(
             adata.obs[groupby].astype(str).nunique())
 
-    # Persist per-cluster table.
+    # Persist per-cluster table. F9: a failed write is disclosed, not swallowed.
+    from aria.utils.csv_artifacts import persist_csv
     pc_rows = per_cluster.pop("_rows", [])
     pc_csv = None
     if pc_rows:
-        pc_csv = str(out_dir / "chromatin_da_per_cluster.csv")
-        try:
-            pd.DataFrame(pc_rows).to_csv(pc_csv, index=False)
-        except Exception:
-            pc_csv = None
+        pc_path = str(out_dir / "chromatin_da_per_cluster.csv")
+        pc_csv = persist_csv(
+            pc_path, "chromatin_da_per_cluster.csv",
+            lambda: pd.DataFrame(pc_rows).to_csv(pc_path, index=False), warnings)
     per_cluster["output_csv"] = pc_csv
 
     pseudobulk = _pseudobulk_da(
@@ -509,11 +509,10 @@ def chromatin_diffacc(params: dict) -> dict:
     pb_rows = pseudobulk.pop("_rows", [])
     pb_csv = None
     if pb_rows:
-        pb_csv = str(out_dir / "chromatin_da_pseudobulk.csv")
-        try:
-            pd.DataFrame(pb_rows).to_csv(pb_csv, index=False)
-        except Exception:
-            pb_csv = None
+        pb_path = str(out_dir / "chromatin_da_pseudobulk.csv")
+        pb_csv = persist_csv(
+            pb_path, "chromatin_da_pseudobulk.csv",
+            lambda: pd.DataFrame(pb_rows).to_csv(pb_path, index=False), warnings)
     pseudobulk["output_csv"] = pb_csv
 
     # W0.3: persist the FULL per-peak pseudobulk table (all tested peaks, with the
@@ -522,11 +521,11 @@ def chromatin_diffacc(params: dict) -> dict:
     pb_full_rows = pseudobulk.pop("_full_rows", [])
     pb_full_csv = None
     if pb_full_rows:
-        pb_full_csv = str(out_dir / "chromatin_da_pseudobulk_full.csv")
-        try:
-            pd.DataFrame(pb_full_rows).to_csv(pb_full_csv, index=False)
-        except Exception:
-            pb_full_csv = None
+        pb_full_path = str(out_dir / "chromatin_da_pseudobulk_full.csv")
+        pb_full_csv = persist_csv(
+            pb_full_path, "chromatin_da_pseudobulk_full.csv",
+            lambda: pd.DataFrame(pb_full_rows).to_csv(pb_full_path, index=False),
+            warnings)
     pseudobulk["full_results_csv"] = pb_full_csv
 
     return {

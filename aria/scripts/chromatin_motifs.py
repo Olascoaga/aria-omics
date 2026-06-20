@@ -448,14 +448,18 @@ def chromatin_motifs(params: dict) -> dict:
     csv_path = None
     if rows_csv:
         import csv as _csv
-        csv_path = str(out_dir / "chromatin_motif_enrichment.csv")
-        try:
-            with open(csv_path, "w", newline="", encoding="utf-8") as fh:
-                w = _csv.DictWriter(fh, fieldnames=list(rows_csv[0].keys()))
-                w.writeheader()
-                w.writerows(rows_csv)
-        except Exception:
-            csv_path = None
+        from aria.utils.csv_artifacts import persist_csv
+        motif_path = str(out_dir / "chromatin_motif_enrichment.csv")
+
+        def _write_motif_csv():
+            with open(motif_path, "w", newline="", encoding="utf-8") as fh:
+                wtr = _csv.DictWriter(fh, fieldnames=list(rows_csv[0].keys()))
+                wtr.writeheader()
+                wtr.writerows(rows_csv)
+
+        # F9: disclose a failed write instead of swallowing it into path=None.
+        csv_path = persist_csv(
+            motif_path, "chromatin_motif_enrichment.csv", _write_motif_csv, warnings)
 
     return {
         "status": "success",
