@@ -103,7 +103,85 @@ def test_peak_counts_writes_matrix_and_metadata(tmp_path, monkeypatch):
     metadata = Path(res["sample_metadata_path"]).read_text()
     assert "condition" in metadata
     assert "replicate" in metadata
-    assert res["warnings"] == []
+    # Empty stub BAMs have no readable header -> honest fallback warning.
+    assert any("genome" in w for w in res["warnings"])
+
+
+def test_peak_counts_uses_sorted_low_memory_coverage(tmp_path, monkeypatch):
+    """Large bulk ATAC BAMs OOM `bedtools coverage` unless the low-memory
+    sweeping algorithm (`-sorted -g`) is used. When a genome can be read from
+    the alignment header, counting must engage `-sorted` and emit peaks in
+    genome order. Counts are identical to the non-sorted call."""
+    import subprocess
+
+    from aria.scripts import chromatin_peak_counts as mod
+
+    peaks = tmp_path / "peaks.bed"
+    # Deliberately NOT in genome order, to prove we sort before -sorted counting.
+    peaks.write_text("chr1\t20\t30\nchr1\t10\t20\n")
+    bam = tmp_path / "A.bam"
+    bam.write_bytes(b"")
+
+    monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/bedtools")
+    monkeypatch.setattr(mod, "_genome_sizes_from_bam", lambda f: [("chr1", 1000)])
+
+    seen = {}
+
+    def fake_run(cmd, capture_output, text, check):
+        seen["cmd"] = cmd
+        # bedtools emits one row per -a feature, in the (sorted) -a order.
+        return subprocess.CompletedProcess(
+            cmd, 0, stdout="chr1\t10\t20\t3\nchr1\t20\t30\t8\n", stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    res = mod.chromatin_peak_counts({
+        "data_type": "bulk_ATAC",
+        "files": [str(bam)],
+        "sample_ids": ["s1"],
+        "peaks_path": str(peaks),
+        "output_dir": str(tmp_path / "out"),
+    })
+
+    assert res["status"] == "success"
+    assert "-sorted" in seen["cmd"] and "-g" in seen["cmd"]
+    assert "sorted" in res["counting_method"]
+    matrix = Path(res["counts_matrix_path"]).read_text().splitlines()
+    assert matrix == ["peak_id\ts1", "chr1:10-20\t3", "chr1:20-30\t8"]
+
+
+def test_peak_counts_falls_back_to_unsorted_without_genome(tmp_path, monkeypatch):
+    """When no genome can be read from the header, counting falls back to the
+    plain (non-sorted) call rather than failing."""
+    import subprocess
+
+    from aria.scripts import chromatin_peak_counts as mod
+
+    peaks = tmp_path / "peaks.bed"
+    peaks.write_text("chr1\t10\t20\n")
+    bam = tmp_path / "A.bam"
+    bam.write_bytes(b"")
+
+    monkeypatch.setattr("shutil.which", lambda name: "/usr/bin/bedtools")
+    monkeypatch.setattr(mod, "_genome_sizes_from_bam", lambda f: None)
+
+    def fake_run(cmd, capture_output, text, check):
+        assert cmd[:4] == ["/usr/bin/bedtools", "coverage", "-counts", "-a"]
+        return subprocess.CompletedProcess(cmd, 0, stdout="chr1\t10\t20\t4\n",
+                                           stderr="")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    res = mod.chromatin_peak_counts({
+        "data_type": "bulk_ATAC",
+        "files": [str(bam)],
+        "sample_ids": ["s1"],
+        "peaks_path": str(peaks),
+        "output_dir": str(tmp_path / "out"),
+    })
+
+    assert res["status"] == "success"
+    assert res["counting_method"] == "bedtools coverage -counts"
 
 
 def test_run_ledger_has_peak_count_matrix_node():

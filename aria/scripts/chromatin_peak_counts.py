@@ -152,11 +152,71 @@ def _write_metadata(path: Path, rows: list[dict[str, Any]]) -> None:
             writer.writerow(row)
 
 
+def _genome_sizes_from_bam(file_path: str | Path) -> list[tuple[str, int]] | None:
+    """Read (chrom, length) in header order from a BAM/CRAM via pysam.
+
+    Used to drive `bedtools coverage -sorted` (low-memory sweeping algorithm).
+    Returns None when the header cannot be read (e.g. pysam unavailable, fragment
+    TSV input, or an unreadable file) so the caller falls back to the plain call.
+    """
+    try:
+        import pysam
+
+        with pysam.AlignmentFile(str(file_path), "rb") as bam:
+            refs = list(bam.references or [])
+            lens = list(bam.lengths or [])
+    except Exception:
+        return None
+    if refs and lens and len(refs) == len(lens):
+        return [(str(c), int(l)) for c, l in zip(refs, lens)]
+    return None
+
+
+def _write_genome_file(path: Path, genome_sizes: list[tuple[str, int]]) -> None:
+    with open(path, "w", newline="") as handle:
+        for chrom, length in genome_sizes:
+            handle.write(f"{chrom}\t{int(length)}\n")
+
+
+def _sort_peaks_by_genome(peaks_path: str | Path, genome_order: list[str],
+                          out_path: Path) -> None:
+    """Sort a peak file by the alignment's chromosome order, then start/end.
+
+    `bedtools coverage -sorted` requires `-a` to share the chromosome ordering of
+    `-g`. Malformed lines are preserved (not dropped) so `_read_peak_ids` still
+    raises on them honestly rather than silently shrinking the peak universe.
+    """
+    order = {chrom: idx for idx, chrom in enumerate(genome_order)}
+    rows = []
+    with open(peaks_path, "r", newline="") as handle:
+        for line in handle:
+            if not line.strip() or line.startswith(("#", "track", "browser")):
+                continue
+            cols = line.rstrip("\n").split("\t")
+            chrom = cols[0] if cols else ""
+            try:
+                start, end = int(cols[1]), int(cols[2])
+            except (IndexError, ValueError):
+                start, end = 0, 0
+            rows.append((order.get(chrom, len(order)), start, end,
+                         line.rstrip("\n")))
+    rows.sort(key=lambda r: (r[0], r[1], r[2]))
+    with open(out_path, "w", newline="") as handle:
+        for row in rows:
+            handle.write(row[3] + "\n")
+
+
 def _count_one_sample(bedtools: str, peaks_path: Path, file_path: Path,
-                      peak_ids: list[str]) -> list[int]:
+                      peak_ids: list[str],
+                      genome_file: Path | None = None) -> list[int]:
+    cmd = [bedtools, "coverage"]
+    if genome_file is not None:
+        # Sweeping algorithm: streams one chromosome at a time instead of loading
+        # the whole BAM into memory (which OOMs on large bulk ATAC libraries).
+        cmd += ["-sorted", "-g", str(genome_file)]
+    cmd += ["-counts", "-a", str(peaks_path), "-b", str(file_path)]
     proc = subprocess.run(
-        [bedtools, "coverage", "-counts", "-a", str(peaks_path),
-         "-b", str(file_path)],
+        cmd,
         capture_output=True,
         text=True,
         check=False,
@@ -203,27 +263,45 @@ def chromatin_peak_counts(params: dict) -> dict:
             "bedtools is required for bulk ATAC peak counting.",
         )
 
+    output_dir = Path(str(params.get("output_dir") or
+                          peaks_path.parent / "bulk_atac_counts"))
+    output_dir.mkdir(parents=True, exist_ok=True)
+    warnings = []
+
     try:
         sample_ids = _resolve_sample_ids(files, params.get("sample_ids"))
-        peak_ids = _read_peak_ids(peaks_path)
+        # Prefer the low-memory sweeping algorithm. Without `-sorted`, bedtools
+        # loads the whole BAM into memory and OOMs on large bulk ATAC libraries.
+        genome_sizes = _genome_sizes_from_bam(Path(files[0]).expanduser())
+        genome_file = None
+        count_peaks_path = peaks_path
+        if genome_sizes:
+            genome_file = output_dir / "genome.txt"
+            _write_genome_file(genome_file, genome_sizes)
+            count_peaks_path = output_dir / "peaks.genome_sorted.bed"
+            _sort_peaks_by_genome(peaks_path, [c for c, _ in genome_sizes],
+                                  count_peaks_path)
+        else:
+            warnings.append(
+                "Could not read a genome from the alignment header; counting "
+                "with the in-memory bedtools algorithm (higher memory use)."
+            )
+        peak_ids = _read_peak_ids(count_peaks_path)
         sample_counts = {}
         for sample_id, file_path in zip(sample_ids, files):
             sample_counts[sample_id] = _count_one_sample(
-                bedtools, peaks_path, Path(file_path).expanduser(), peak_ids)
+                bedtools, count_peaks_path, Path(file_path).expanduser(),
+                peak_ids, genome_file=genome_file)
         metadata = _metadata_rows(files, sample_ids,
                                   params.get("sample_metadata"))
     except Exception as exc:
         return _error(type(exc).__name__, str(exc))
 
-    output_dir = Path(str(params.get("output_dir") or
-                          peaks_path.parent / "bulk_atac_counts"))
-    output_dir.mkdir(parents=True, exist_ok=True)
     matrix_path = output_dir / "bulk_atac_peak_counts.tsv"
     metadata_path = output_dir / "bulk_atac_samples.tsv"
     _write_counts_matrix(matrix_path, peak_ids, sample_counts)
     _write_metadata(metadata_path, metadata)
 
-    warnings = []
     has_condition = any("condition" in row for row in metadata)
     has_replicate = any("replicate" in row or "replicate_id" in row
                         for row in metadata)
@@ -238,7 +316,9 @@ def chromatin_peak_counts(params: dict) -> dict:
         "data_type": "bulk_ATAC",
         "validation_level": "scaffold",
         "analysis": "peak_count_matrix",
-        "counting_method": "bedtools coverage -counts",
+        "counting_method": ("bedtools coverage -sorted -counts"
+                            if genome_file is not None
+                            else "bedtools coverage -counts"),
         "counts_matrix_path": str(matrix_path),
         "sample_metadata_path": str(metadata_path),
         "peaks_path": str(peaks_path),

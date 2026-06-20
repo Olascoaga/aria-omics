@@ -126,11 +126,13 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
     assert findings["differential_accessibility"]["validation_level"] == "beta"
     assert findings["differential_accessibility"]["n_sig_total"] == 42
 
+    # DA dispatches to the rna stack: pydeseq2 lives in aria-rna-env, not the
+    # chromatin env. The QC/peaks/counts steps stay in the chromatin stack.
     assert [(stack, script) for stack, script, _ in env.calls] == [
         ("chromatin", "chromatin_qc.py"),
         ("chromatin", "chromatin_peaks.py"),
         ("chromatin", "chromatin_peak_counts.py"),
-        ("chromatin", "chromatin_bulk_diffacc.py"),
+        ("rna", "chromatin_bulk_diffacc.py"),
     ]
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
@@ -140,6 +142,33 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
     da_params = env.calls[3][2]
     assert da_params["counts_matrix_path"] == "/tmp/bulk_atac_peak_counts.tsv"
     assert da_params["comparisons"] == [["treated", "control"]]
+    # No replicate override supplied -> the script's production floor applies.
+    assert "min_replicates_per_condition" not in da_params
+
+
+def test_bulk_atac_da_runs_in_rna_stack_with_replicate_override(tmp_path):
+    bam = tmp_path / "sample.bam"
+    bam.write_bytes(b"")
+    env = _FakeBulkAtacEnv()
+    agent = _agent(env)
+
+    agent._run_bulk_atac(
+        "exp",
+        {
+            "genome": "hg38",
+            "sample_metadata": {
+                "sample": {"condition": "treated", "replicate": "r1"},
+            },
+            "comparisons": [["treated", "control"]],
+            "min_replicates_per_condition": 2,
+        },
+        {"comparison": "treated_vs_control"},
+        [str(bam)],
+    )
+
+    da_call = [c for c in env.calls if c[1] == "chromatin_bulk_diffacc.py"][0]
+    assert da_call[0] == "rna"
+    assert da_call[2]["min_replicates_per_condition"] == 2
 
 
 def test_chromatin_peaks_does_not_fabricate_frip(monkeypatch):

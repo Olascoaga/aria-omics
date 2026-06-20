@@ -551,29 +551,38 @@ class ChromatinAgent(BaseAgent):
                 self.publish_status(
                     experiment_id, "bulk ATAC differential accessibility...",
                     0.82)
+                da_params = {
+                    "data_type": "bulk_ATAC",
+                    "counts_matrix_path": count_result.get("counts_matrix_path"),
+                    "sample_metadata_path": count_result.get(
+                        "sample_metadata_path"),
+                    "condition_col": exp_ctx.get("condition_col", "condition"),
+                    "replicate_col": exp_ctx.get(
+                        "replicate_col",
+                        exp_ctx.get("replicate_column", "replicate"),
+                    ),
+                    "comparisons": (
+                        exp_ctx.get("comparisons")
+                        or intent.get("comparisons")
+                        or intent.get("comparison")
+                    ),
+                    "covariates": exp_ctx.get("covariates", []),
+                    "exp_context": exp_ctx,
+                    "output_dir": str(Path(files[0]).parent / "bulk_atac_da"),
+                }
+                # Honor an explicit replicate-floor override (e.g. n=2 ENCODE
+                # isogenic-replicate designs run with a low_power_warning). Absent
+                # an override, the script keeps its production floor.
+                min_reps = (exp_ctx.get("min_replicates_per_condition")
+                            or intent.get("min_replicates_per_condition"))
+                if min_reps is not None:
+                    da_params["min_replicates_per_condition"] = int(min_reps)
+                # DA runs in the rna stack: pydeseq2 lives in aria-rna-env, not the
+                # chromatin env. The DA script operates on TSVs (no chromatin deps).
                 da_result = self.env.run_in_stack(
-                    stack="chromatin",
+                    stack="rna",
                     script_path="aria/scripts/chromatin_bulk_diffacc.py",
-                    params={
-                        "data_type": "bulk_ATAC",
-                        "counts_matrix_path": count_result.get("counts_matrix_path"),
-                        "sample_metadata_path": count_result.get(
-                            "sample_metadata_path"),
-                        "condition_col": exp_ctx.get("condition_col", "condition"),
-                        "replicate_col": exp_ctx.get(
-                            "replicate_col",
-                            exp_ctx.get("replicate_column", "replicate"),
-                        ),
-                        "comparisons": (
-                            exp_ctx.get("comparisons")
-                            or intent.get("comparisons")
-                            or intent.get("comparison")
-                        ),
-                        "covariates": exp_ctx.get("covariates", []),
-                        "exp_context": exp_ctx,
-                        "output_dir": str(Path(files[0]).parent /
-                                          "bulk_atac_da"),
-                    },
+                    params=da_params,
                 )
                 if (isinstance(da_result, dict)
                         and da_result.get("status") == "success"
