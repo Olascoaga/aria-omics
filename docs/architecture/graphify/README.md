@@ -20,15 +20,15 @@ The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `075399e3` (regenerate to refresh)
+- Commit: `a84830b3` (regenerate to refresh)
 - Generated: 2026-06-20
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Structure-only graph: **5023 code nodes / 10430 EXTRACTED structural edges** in
+- Structure-only graph: **5027 code nodes / 10441 EXTRACTED structural edges** in
   `graph.json` (the structure-only filter drops non-code nodes and the
   inferred/rationale layers, then keeps only structural edges)
-- Clustered report: 5023 nodes / 10430 edges / 309 communities in
-  `GRAPH_REPORT.md` (299 shown, 10 thin omitted; community detection ignores a
+- Clustered report: 5027 nodes / 10441 edges / 303 communities in
+  `GRAPH_REPORT.md` (289 shown, 14 thin omitted; community detection ignores a
   few isolated nodes — normal)
 - No LLM layer in the final graph: 0 input/output token counters; community naming
   is skipped (`--no-label` → "Community N" placeholders). The upstream extractor
