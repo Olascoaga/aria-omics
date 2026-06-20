@@ -164,6 +164,35 @@ def test_motifs_skip_with_missing_genome_file(tmp_path, monkeypatch):
     assert res["ran"] is False and "not found" in res["reason"]
 
 
+def test_regions_from_csv_caps_by_significance_not_csv_order(tmp_path):
+    from aria.scripts.chromatin_motifs import _regions_from_csv
+    import csv
+
+    da_csv = tmp_path / "da.csv"
+    with open(da_csv, "w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh)
+        writer.writerow(["cluster", "peak", "log2fc", "padj", "significant"])
+        writer.writerow(["0", "chr1:1-2", 9.0, 0.049, "True"])
+        writer.writerow(["0", "chr1:3-4", 8.0, 0.048, "True"])
+        for i in range(5000):
+            writer.writerow([
+                "0", f"chr2:{100 + i * 10}-{105 + i * 10}",
+                1.0, 1e-8 + i * 1e-10, "True",
+            ])
+        writer.writerow(["0", "chr3:1-2", 99.0, 0.001, "False"])
+
+    warnings = []
+    groups = _regions_from_csv(str(da_csv), 5000, warnings)
+
+    picked = groups["0"]
+    assert len(picked) == 5000
+    assert "chr1:1-2" not in picked
+    assert "chr1:3-4" not in picked
+    assert "chr3:1-2" not in picked
+    assert picked[0] == "chr2:100-105"
+    assert any("ranking by padj" in w for w in warnings)
+
+
 # ── fetch_motifs governance (W-PRIV) ──────────────────────────────────────────
 
 def _load_fetch_motifs():

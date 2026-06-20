@@ -49,10 +49,13 @@ def _bulk_da_motif_regions(comparisons, *, max_per_group: int = 5000):
     Reusing the scATAC ``chromatin_motifs`` engine for bulk ATAC needs only an
     explicit ``regions`` dict + ``background`` list (no clustered ``.h5ad``).
     For every successful comparison this reads ``full_results_csv`` (columns
-    ``peak``/``log2FoldChange``/``significant``) and emits two region groups —
-    ``<test>_vs_<reference>::up_in_<test>`` and ``...::up_in_<reference>`` — so
-    enrichment is reported toward BOTH conditions (no one-sided pruning, per the
-    no-degrade principle). The background is the union of all tested peaks.
+    ``peak``/``log2FoldChange``/``padj``/``significant``) and emits two region
+    groups — ``<test>_vs_<reference>::up_in_<test>`` and
+    ``...::up_in_<reference>`` — so enrichment is reported toward BOTH
+    conditions (no one-sided pruning, per the no-degrade principle). When a
+    group exceeds the motif-scan cap, peaks are ranked by ``padj`` ascending and
+    then ``|log2FoldChange|`` descending before truncation. The background is the
+    union of all tested peaks.
 
     Returns ``(regions, background, warnings)``. Empty ``regions`` (honest) when
     no readable significant peaks exist; the caller then skips the motif step.
@@ -76,8 +79,8 @@ def _bulk_da_motif_regions(comparisons, *, max_per_group: int = 5000):
         test = str(comp.get("test", "test"))
         ref = str(comp.get("reference", "reference"))
         comp_key = f"{test}_vs_{ref}"
-        up_test: list[str] = []
-        up_ref: list[str] = []
+        up_test: list[tuple[str, float, float]] = []
+        up_ref: list[tuple[str, float, float]] = []
         try:
             with open(str(csv_path), newline="", encoding="utf-8") as fh:
                 reader = _csv.DictReader(fh)
@@ -100,20 +103,37 @@ def _bulk_da_motif_regions(comparisons, *, max_per_group: int = 5000):
                         lfc = float(row.get("log2FoldChange"))
                     except (TypeError, ValueError):
                         continue
+                    try:
+                        padj = float(row.get("padj"))
+                    except (TypeError, ValueError):
+                        padj = float("inf")
+                    ranked = (peak, padj, abs(lfc))
                     if lfc > 0:
-                        up_test.append(peak)
+                        up_test.append(ranked)
                     elif lfc < 0:
-                        up_ref.append(peak)
+                        up_ref.append(ranked)
         except OSError as e:
             warnings.append(
                 f"comparison '{comp_key}': could not read DA CSV ({e}).")
             continue
         if up_test:
-            regions[f"{comp_key}::up_in_{test}"] = up_test[:max_per_group]
+            regions[f"{comp_key}::up_in_{test}"] = _rank_bulk_da_motif_peaks(
+                up_test, max_per_group, f"{comp_key}::up_in_{test}", warnings)
         if up_ref:
-            regions[f"{comp_key}::up_in_{ref}"] = up_ref[:max_per_group]
+            regions[f"{comp_key}::up_in_{ref}"] = _rank_bulk_da_motif_peaks(
+                up_ref, max_per_group, f"{comp_key}::up_in_{ref}", warnings)
 
     return regions, background, warnings
+
+
+def _rank_bulk_da_motif_peaks(rows, max_per_group: int, group: str,
+                              warnings: list[str]) -> list[str]:
+    ranked = sorted(rows, key=lambda x: (x[1], -x[2], x[0]))
+    if len(ranked) > max_per_group:
+        warnings.append(
+            f"group '{group}': capped {len(ranked)} -> {max_per_group} peaks "
+            "for motif scanning after ranking by padj then |log2FoldChange|.")
+    return [peak for peak, _padj, _abs_lfc in ranked[:max_per_group]]
 
 
 CHROMATIN_SYSTEM = """
@@ -735,6 +755,8 @@ class ChromatinAgent(BaseAgent):
                 "method": "hypergeometric",
                 "output_dir": out_dir,
                 "exp_context": exp_ctx,
+                "foreground_truncation_strategy": (
+                    "rank_by_padj_then_abs_log2fc_before_cap"),
             },
         )
         if isinstance(motif_result, dict):

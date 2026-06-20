@@ -351,14 +351,16 @@ def test_bulk_atac_methods_report_caller_counting_and_model_params():
 
 
 def _write_da_full_csv(path, rows):
-    """rows: list of (peak, log2fc, significant_bool)."""
+    """rows: list of (peak, log2fc, significant_bool[, padj])."""
     import csv
     with open(path, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
         writer.writerow(["peak", "baseMean", "log2FoldChange", "pvalue",
                          "padj", "significant"])
-        for peak, lfc, sig in rows:
-            writer.writerow([peak, 100.0, lfc, 0.001, 0.01, str(bool(sig))])
+        for row in rows:
+            peak, lfc, sig = row[:3]
+            padj = row[3] if len(row) > 3 else 0.01
+            writer.writerow([peak, 100.0, lfc, 0.001, padj, str(bool(sig))])
 
 
 def test_bulk_da_motif_regions_splits_both_directions(tmp_path):
@@ -382,7 +384,7 @@ def test_bulk_da_motif_regions_splits_both_directions(tmp_path):
                             "K562_vs_GM12878::up_in_GM12878"}
     assert regions["K562_vs_GM12878::up_in_K562"] == ["chr1:100-200"]
     assert regions["K562_vs_GM12878::up_in_GM12878"] == [
-        "chr1:300-400", "chr2:700-800"]
+        "chr2:700-800", "chr1:300-400"]
     # background is the FULL tested-peak universe incl. the non-significant peak
     assert set(background) == {"chr1:100-200", "chr1:300-400",
                                "chr2:500-600", "chr2:700-800"}
@@ -400,6 +402,34 @@ def test_bulk_da_motif_regions_honest_when_no_csv():
     assert regions == {}
     assert background == []
     assert any("not found" in w for w in warnings)
+
+
+def test_bulk_da_motif_regions_caps_by_significance_not_csv_order(tmp_path):
+    from aria.agents.chromatin_agent import _bulk_da_motif_regions
+
+    csv_path = tmp_path / "bulk_atac_da_full.csv"
+    rows = [
+        ("chr1:1-2", 8.0, True, 0.049),
+        ("chr1:3-4", 9.0, True, 0.048),
+    ]
+    rows.extend(
+        (f"chr2:{100 + i * 10}-{105 + i * 10}", 1.1, True, 1e-8 + i * 1e-10)
+        for i in range(5000)
+    )
+    _write_da_full_csv(csv_path, rows)
+
+    regions, background, warnings = _bulk_da_motif_regions([{
+        "test": "GroupA", "reference": "GroupB", "status": "success",
+        "full_results_csv": str(csv_path),
+    }])
+
+    picked = regions["GroupA_vs_GroupB::up_in_GroupA"]
+    assert len(picked) == 5000
+    assert "chr1:1-2" not in picked
+    assert "chr1:3-4" not in picked
+    assert picked[0] == "chr2:100-105"
+    assert len(background) == 5002
+    assert any("ranking by padj" in w for w in warnings)
 
 
 def test_bulk_atac_motif_enrichment_dispatched_after_da(tmp_path):
@@ -455,6 +485,8 @@ def test_bulk_atac_motif_enrichment_dispatched_after_da(tmp_path):
     assert set(mp["regions"]) == {"K562_vs_GM12878::up_in_K562",
                                   "K562_vs_GM12878::up_in_GM12878"}
     assert "chr1:100-200" in mp["background"]
+    assert (mp["foreground_truncation_strategy"]
+            == "rank_by_padj_then_abs_log2fc_before_cap")
     # no data_path/da_csv: bulk ATAC feeds explicit regions + background
     assert "data_path" not in mp and "da_csv" not in mp
 

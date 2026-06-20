@@ -85,20 +85,48 @@ def _skip(reason, **extra):
 
 
 def _regions_from_csv(da_csv, max_per_group, warnings):
-    """Build {cluster: [peak, ...]} from the step-3 per-cluster DA CSV."""
+    """Build ranked {cluster: [peak, ...]} from a DA CSV.
+
+    When adjusted p-values/effect sizes are available, oversized groups are
+    capped after ranking by padj ascending and then absolute LFC descending.
+    """
     import csv
     groups: dict = {}
     with open(da_csv, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         if not reader.fieldnames or "peak" not in reader.fieldnames:
             return {}
-        gcol = "cluster" if "cluster" in reader.fieldnames else None
+        cols = reader.fieldnames
+        gcol = "cluster" if "cluster" in cols else None
+        lfc_col = _detect_col(cols, "log2fold", "log2fc", "logfold")
+        padj_col = _detect_col(cols, "padj", "pvals_adj", "adjusted", "fdr",
+                               "q-value", "qval")
+        sig_col = "significant" if "significant" in cols else None
         for row in reader:
             g = str(row.get(gcol, "all")) if gcol else "all"
             peak = str(row.get("peak", "")).strip()
-            if peak:
-                groups.setdefault(g, []).append(peak)
-    return groups
+            if not peak:
+                continue
+            if sig_col and str(row.get(sig_col, "")).strip().lower() != "true":
+                continue
+            padj = _as_float(row.get(padj_col)) if padj_col else None
+            lfc = _as_float(row.get(lfc_col)) if lfc_col else None
+            groups.setdefault(g, []).append(
+                (peak, padj if padj is not None else float("inf"),
+                 abs(lfc) if lfc is not None else 0.0))
+    return {
+        g: _rank_da_region_group(rows, max_per_group, g, warnings)
+        for g, rows in groups.items()
+    }
+
+
+def _rank_da_region_group(rows, max_per_group, group, warnings):
+    ranked = sorted(rows, key=lambda x: (x[1], -x[2], x[0]))
+    if len(ranked) > max_per_group:
+        warnings.append(
+            f"group '{group}': capped {len(ranked)} -> {max_per_group} peaks "
+            "for motif scanning after ranking by padj then |log2FC|.")
+    return [peak for peak, _padj, _abs_lfc in ranked[:max_per_group]]
 
 
 def _detect_col(cols, *needles):
@@ -160,6 +188,10 @@ def chromatin_motifs(params: dict) -> dict:
     max_per_group = int(params.get("max_regions_per_group", 5000))
     output_dir = params.get("output_dir")
     allow_mock = mocks_allowed(params)
+    truncation_strategy = str(
+        params.get("foreground_truncation_strategy")
+        or "rank_by_padj_then_abs_log2fc_before_cap_when_scores_available"
+    )
 
     from aria.utils.thresholds import AnalysisThresholds
     thr = AnalysisThresholds.from_exp_context(
@@ -310,7 +342,7 @@ def chromatin_motifs(params: dict) -> dict:
         if len(in_bg) > max_per_group:
             warnings.append(
                 f"group '{g}': capped {len(in_bg)} -> {max_per_group} peaks "
-                f"for motif scanning.")
+                f"for motif scanning using {truncation_strategy}.")
             in_bg = in_bg[:max_per_group]
         if dropped:
             warnings.append(
@@ -422,6 +454,7 @@ def chromatin_motifs(params: dict) -> dict:
         "n_groups": len(per_group),
         "per_group": per_group,
         "output_csv": csv_path,
+        "truncation_strategy": truncation_strategy,
         "warnings": warnings,
     }
 
