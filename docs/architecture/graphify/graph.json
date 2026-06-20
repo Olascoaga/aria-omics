@@ -9210,49 +9210,49 @@
       "label": "_load_sample_metadata()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L85"
+      "source_location": "L106"
     },
     {
       "id": "scripts_chromatin_bulk_diffacc_prepare_replicate_matrix",
       "label": "_prepare_replicate_matrix()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L99"
+      "source_location": "L120"
     },
     {
       "id": "scripts_chromatin_bulk_diffacc_write_replicate_counts",
       "label": "_write_replicate_counts()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L197"
+      "source_location": "L218"
     },
     {
       "id": "scripts_chromatin_bulk_diffacc_write_comparison_table",
       "label": "_write_comparison_table()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L203"
+      "source_location": "L224"
     },
     {
       "id": "scripts_chromatin_bulk_diffacc_write_summary",
       "label": "_write_summary()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211"
+      "source_location": "L232"
     },
     {
       "id": "aria_scripts_chromatin_bulk_diffacc_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211"
+      "source_location": "L232"
     },
     {
       "id": "scripts_chromatin_bulk_diffacc_chromatin_bulk_diffacc",
       "label": "chromatin_bulk_diffacc()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L223"
+      "source_location": "L244"
     },
     {
       "id": "scripts_chromatin_diffacc",
@@ -25597,7 +25597,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -25842,7 +25842,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_kbihip_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -25864,7 +25864,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_kbihip_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -27868,39 +27868,60 @@
       "source_location": "L17"
     },
     {
+      "id": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_rejects_fractional_counts_before_cast",
+      "label": "test_load_counts_matrix_rejects_fractional_counts_before_cast()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_accepts_integer_like_decimal_counts",
+      "label": "test_load_counts_matrix_accepts_integer_like_decimal_counts()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L60"
+    },
+    {
+      "id": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_skips_fractional_counts_with_clear_reason",
+      "label": "test_bulk_atac_diffacc_skips_fractional_counts_with_clear_reason()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L77"
+    },
+    {
       "id": "tests_test_bulk_atac_diffacc_test_prepare_replicate_matrix_discloses_unusable_covariates",
       "label": "test_prepare_replicate_matrix_discloses_unusable_covariates()",
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L39"
+      "source_location": "L100"
     },
     {
       "id": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_runs_shared_deseq2_and_gates_convergence",
       "label": "test_bulk_atac_diffacc_runs_shared_deseq2_and_gates_convergence()",
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L70"
+      "source_location": "L131"
     },
     {
       "id": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_reports_dropped_covariates",
       "label": "test_bulk_atac_diffacc_reports_dropped_covariates()",
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L146"
+      "source_location": "L207"
     },
     {
       "id": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_blocks_dropped_required_covariate",
       "label": "test_bulk_atac_diffacc_blocks_dropped_required_covariate()",
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L211"
+      "source_location": "L272"
     },
     {
       "id": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_skips_when_metadata_lacks_replicates",
       "label": "test_bulk_atac_diffacc_skips_when_metadata_lacks_replicates()",
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L243"
+      "source_location": "L304"
     },
     {
       "id": "tests_test_bulk_atac_footprint",
@@ -37082,17 +37103,6 @@
       "contributor": null
     },
     {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -37159,28 +37169,6 @@
       "contributor": null
     },
     {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -37203,10 +37191,32 @@
       "contributor": null
     },
     {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
+      "id": "aria_memory",
+      "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "parameter_advisor",
+      "label": "ParameterAdvisor",
+      "file_type": "code",
+      "source_file": "aria/agents/parameter_advisor.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -75382,7 +75392,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L85",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -75392,7 +75402,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L85",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -75402,7 +75412,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L85",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -75411,7 +75421,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L99",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -75421,7 +75431,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L99",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -75431,7 +75441,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L99",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -75441,7 +75451,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L99",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -75450,7 +75460,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L197",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -75460,7 +75470,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L197",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -75469,7 +75479,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L203",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -75479,7 +75489,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L203",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -75489,7 +75499,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L203",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -75498,7 +75508,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -75508,7 +75518,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -75518,7 +75528,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -75528,7 +75538,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L211",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -75537,7 +75547,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L223",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -75547,7 +75557,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L225",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -75557,7 +75567,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L233",
+      "source_location": "L254",
       "weight": 1.0
     },
     {
@@ -75567,7 +75577,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L240",
+      "source_location": "L261",
       "weight": 1.0
     },
     {
@@ -75577,7 +75587,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L243",
+      "source_location": "L264",
       "weight": 1.0
     },
     {
@@ -75587,7 +75597,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L274",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -75597,7 +75607,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L275",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -75607,7 +75617,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L280",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -75617,7 +75627,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L318",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -75627,7 +75637,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L386",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -75637,7 +75647,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L429",
+      "source_location": "L450",
       "weight": 1.0
     },
     {
@@ -111655,7 +111665,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -111708,7 +111718,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -111718,7 +111728,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -111728,7 +111738,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -111738,7 +111748,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -111748,7 +111758,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -112070,7 +112080,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_kbihip_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -112079,7 +112089,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_kbihip_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -112114,7 +112124,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -112124,7 +112134,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_6g0zu7_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kbihip_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -115075,7 +115085,7 @@
     },
     {
       "source": "tests_test_bulk_atac_diffacc",
-      "target": "tests_test_bulk_atac_diffacc_test_prepare_replicate_matrix_discloses_unusable_covariates",
+      "target": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_rejects_fractional_counts_before_cast",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
@@ -115084,11 +115094,38 @@
     },
     {
       "source": "tests_test_bulk_atac_diffacc",
+      "target": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_accepts_integer_like_decimal_counts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc",
+      "target": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_skips_fractional_counts_with_clear_reason",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc",
+      "target": "tests_test_bulk_atac_diffacc_test_prepare_replicate_matrix_discloses_unusable_covariates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc",
       "target": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_runs_shared_deseq2_and_gates_convergence",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L70",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -115097,7 +115134,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L146",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -115106,7 +115143,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L211",
+      "source_location": "L272",
       "weight": 1.0
     },
     {
@@ -115115,7 +115152,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L243",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -134136,7 +134173,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L248",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -134146,7 +134183,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L320",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -134156,7 +134193,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L321",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -136931,12 +136968,22 @@
     },
     {
       "source": "tests_test_bulk_atac_diffacc",
+      "target": "scripts_chromatin_bulk_diffacc_load_counts_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc",
       "target": "scripts_chromatin_bulk_diffacc_prepare_replicate_matrix",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L41",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -142256,7 +142303,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L270",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -142266,7 +142313,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L344",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -142276,7 +142323,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L372",
+      "source_location": "L393",
       "weight": 1.0
     },
     {
@@ -145010,13 +145057,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_rejects_fractional_counts_before_cast",
+      "target": "scripts_chromatin_bulk_diffacc_load_counts_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc_test_load_counts_matrix_accepts_integer_like_decimal_counts",
+      "target": "scripts_chromatin_bulk_diffacc_load_counts_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_diffacc_test_bulk_atac_diffacc_skips_fractional_counts_with_clear_reason",
+      "target": "scripts_chromatin_bulk_diffacc_chromatin_bulk_diffacc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_diffacc.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_bulk_atac_diffacc_test_prepare_replicate_matrix_discloses_unusable_covariates",
       "target": "scripts_chromatin_bulk_diffacc_prepare_replicate_matrix",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L54",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -145026,7 +145103,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L118",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -145036,7 +145113,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L191",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -145046,7 +145123,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L228",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -145056,7 +145133,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
-      "source_location": "L251",
+      "source_location": "L312",
       "weight": 1.0
     },
     {
@@ -152929,16 +153006,6 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -152979,6 +153046,36 @@
     },
     {
       "source": "bulk_rna_agent",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -152998,59 +153095,9 @@
       "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "chromatin_bulk_diffacc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
@@ -153060,7 +153107,7 @@
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
