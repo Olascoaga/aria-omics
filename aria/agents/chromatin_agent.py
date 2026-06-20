@@ -755,6 +755,9 @@ class ChromatinAgent(BaseAgent):
                 "method": "hypergeometric",
                 "output_dir": out_dir,
                 "exp_context": exp_ctx,
+                # F7: resolve the threshold policy by the REAL modality, not the
+                # hardcoded scATAC default the engine assumes.
+                "modality": "bulk_ATAC",
                 "foreground_truncation_strategy": (
                     "rank_by_padj_then_abs_log2fc_before_cap"),
             },

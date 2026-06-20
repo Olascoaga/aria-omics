@@ -494,6 +494,9 @@ def test_bulk_atac_motif_enrichment_dispatched_after_da(tmp_path):
     assert "chr1:100-200" in mp["background"]
     assert (mp["foreground_truncation_strategy"]
             == "rank_by_padj_then_abs_log2fc_before_cap")
+    # F7: the caller declares the REAL modality so the motif engine does not
+    # resolve thresholds under the hardcoded scATAC policy.
+    assert mp["modality"] == "bulk_ATAC"
     # no data_path/da_csv: bulk ATAC feeds explicit regions + background
     assert "data_path" not in mp and "da_csv" not in mp
 

@@ -171,6 +171,24 @@ def _genome_chroms(genome_fasta):
         return None
 
 
+def _resolve_modality_thresholds(params: dict):
+    """Resolve the analysis modality + padj cutoff for motif enrichment.
+
+    The modality is taken from the caller (``modality`` or ``data_type``), NOT
+    hardcoded: bulk ATAC reuses this engine via ``_run_bulk_atac_motifs`` and must
+    not inherit the scATAC threshold-policy label. scATAC stays the default for the
+    scATAC lane (which does not pass an explicit modality), so existing behaviour is
+    unchanged. An explicit ``padj_max`` always wins over the resolved CP3/default
+    cutoff. Returns ``(modality, padj_max)``.
+    """
+    from aria.utils.thresholds import AnalysisThresholds
+    modality = str(params.get("modality") or params.get("data_type") or "scATAC")
+    thr = AnalysisThresholds.from_exp_context(
+        params.get("exp_context"), modality=modality)
+    padj_max = float(params.get("padj_max", thr.padj))
+    return modality, padj_max
+
+
 def chromatin_motifs(params: dict) -> dict:
     import json
     from pathlib import Path
@@ -193,10 +211,7 @@ def chromatin_motifs(params: dict) -> dict:
         or "rank_by_padj_then_abs_log2fc_before_cap_when_scores_available"
     )
 
-    from aria.utils.thresholds import AnalysisThresholds
-    thr = AnalysisThresholds.from_exp_context(
-        params.get("exp_context"), modality="scATAC")
-    padj_max = float(params.get("padj_max", thr.padj))
+    modality, padj_max = _resolve_modality_thresholds(params)
 
     warnings: list = []
 
@@ -446,6 +461,8 @@ def chromatin_motifs(params: dict) -> dict:
         "status": "success",
         "ran": True,
         "reason": None,
+        "modality": modality,
+        "padj_max": padj_max,
         "method": method,
         "genome_fasta": str(genome_fasta),
         "genome_source": genome_source,

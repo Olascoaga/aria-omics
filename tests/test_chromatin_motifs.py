@@ -91,6 +91,26 @@ def test_load_local_collection_reads_meme_and_manifest(tmp_path, monkeypatch):
     assert version["source"] == "test"
 
 
+# ── F7: motif threshold policy resolves by the REAL modality, not hardcoded ──
+
+def test_motif_modality_thresholds_resolve_by_caller_not_hardcoded_scatac():
+    from aria.scripts.chromatin_motifs import _resolve_modality_thresholds
+    # scATAC default preserved when no modality is passed (existing behaviour)
+    assert _resolve_modality_thresholds({}) == ("scATAC", 0.05)
+    # bulk ATAC reuses the engine -> its own modality label, never scATAC
+    modality, padj = _resolve_modality_thresholds({"modality": "bulk_ATAC"})
+    assert modality == "bulk_ATAC"
+    # data_type is accepted as the modality source too
+    assert _resolve_modality_thresholds({"data_type": "bulk_ATAC"})[0] == "bulk_ATAC"
+    # CP3-confirmed global_padj is honoured for the resolved modality
+    modality, padj = _resolve_modality_thresholds(
+        {"modality": "bulk_ATAC", "exp_context": {"global_padj": 0.1}})
+    assert modality == "bulk_ATAC" and padj == 0.1
+    # an explicit padj_max always wins over the resolved/default cutoff
+    assert _resolve_modality_thresholds(
+        {"modality": "bulk_ATAC", "padj_max": 0.2})[1] == 0.2
+
+
 # ── chromatin_motifs honest skips (no snapatac2 needed) ───────────────────────
 
 def test_motifs_skip_without_collection(tmp_path, monkeypatch):
