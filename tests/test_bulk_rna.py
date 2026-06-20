@@ -548,3 +548,73 @@ def test_golden_bulk_de_recovers_planted_genes():
         f"{false_among_null} null genes wrongly called significant"
     # Ground truth is all-up; a flood of down calls means a direction/ref bug.
     assert c0["n_downregulated"] <= expected["max_false_up_among_null"]
+
+
+# ── F8 (preprint audit): pydeseq2 fit warnings reach the audit trail ──────────
+
+def test_serialize_fit_warnings_keeps_numeric_drops_benign():
+    """The classifier surfaces numeric/convergence warnings, drops benign churn."""
+    import warnings as _w
+    from aria.scripts.rna_bulk_de import _serialize_fit_warnings
+    with _w.catch_warnings(record=True) as caught:
+        _w.simplefilter("always")
+        _w.warn("singular matrix in dispersion fit", RuntimeWarning)
+        _w.warn("did not converge", UserWarning)
+        _w.warn("deprecated api", DeprecationWarning)
+        _w.warn("pandas future change", FutureWarning)
+    out = _serialize_fit_warnings(caught)
+    assert any("singular matrix" in m for m in out)
+    assert any("did not converge" in m and "UserWarning" in m for m in out)
+    # benign third-party churn is not promoted to the audit trail
+    assert not any("deprecated api" in m for m in out)
+    assert not any("future change" in m for m in out)
+
+
+def test_fit_warnings_surface_in_result(monkeypatch):
+    """A warning emitted during the pydeseq2 fit is surfaced in _run_deseq2's
+    returned warnings (no longer swallowed by a global filterwarnings)."""
+    import sys
+    import types
+    import warnings as _w
+
+    idx = [f"g{i}" for i in range(5)]
+    cols = [f"s{i}" for i in range(6)]
+    counts = pd.DataFrame(
+        np.arange(30).reshape(5, 6) + 1, index=idx, columns=cols)
+    metadata = pd.DataFrame(
+        {"condition": ["A", "A", "A", "B", "B", "B"]}, index=cols)
+
+    class _FakeDDS:
+        def __init__(self, **kw):
+            self.var = pd.DataFrame(index=idx)
+
+        def deseq2(self):
+            _w.warn("dispersion trend fit did not converge", RuntimeWarning)
+            _w.warn("benign pandas future change", FutureWarning)
+
+    class _FakeStats:
+        def __init__(self, dds, **kw):
+            self.results_df = pd.DataFrame(
+                {"log2FoldChange": [1.0] * 5, "padj": [0.01] * 5}, index=idx)
+
+        def summary(self):
+            pass
+
+    dds_mod = types.ModuleType("pydeseq2.dds")
+    dds_mod.DeseqDataSet = _FakeDDS
+    ds_mod = types.ModuleType("pydeseq2.ds")
+    ds_mod.DeseqStats = _FakeStats
+    monkeypatch.setitem(sys.modules, "pydeseq2", types.ModuleType("pydeseq2"))
+    monkeypatch.setitem(sys.modules, "pydeseq2.dds", dds_mod)
+    monkeypatch.setitem(sys.modules, "pydeseq2.ds", ds_mod)
+
+    result, warns = rbd._run_deseq2(
+        counts, metadata, "condition", "B", "A",
+        padj_thr=0.05, lfc_thr=1.0, lfc_shrink=False,
+        min_replicates_per_condition=3)
+
+    assert result["status"] == "success", result.get("details", "")
+    joined = " ".join(warns)
+    assert "did not converge" in joined          # numeric warning surfaced
+    assert "RuntimeWarning" in joined
+    assert "benign pandas future change" not in joined   # benign dropped

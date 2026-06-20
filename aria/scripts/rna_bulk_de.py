@@ -81,7 +81,12 @@ def bulk_rna_de(params: dict) -> dict:
     from pathlib import Path
     import numpy as np
     import warnings as warn_mod
-    warn_mod.filterwarnings("ignore")
+    # F8 (preprint audit): do NOT globally silence warnings — that hid pydeseq2
+    # convergence/numeric warnings outside the audit trail. Suppress only benign
+    # third-party API-churn categories; numeric/convergence warnings during the fit
+    # are captured and surfaced by _run_deseq2 (see _serialize_fit_warnings).
+    for _benign in _BENIGN_WARNING_CATEGORIES:
+        warn_mod.filterwarnings("ignore", category=_benign)
 
     files          = params.get("files", [])
     metadata_file  = params.get("metadata_file", "")
@@ -1756,6 +1761,30 @@ def _shrink_coeff(dds, condition_col: str, test_lvl: str):
     return None
 
 
+# F8 (preprint audit 2026-06-19): warning categories that are benign third-party
+# API churn (NOT numerical/convergence signal). Everything else emitted during the
+# pydeseq2 fit is surfaced into the result's audit trail instead of being silenced.
+_BENIGN_WARNING_CATEGORIES = (
+    DeprecationWarning, PendingDeprecationWarning, FutureWarning,
+    ImportWarning, ResourceWarning,
+)
+
+
+def _serialize_fit_warnings(caught) -> list:
+    """Turn captured fit warnings into audit-trail strings, dropping benign ones.
+
+    Non-benign warnings (RuntimeWarning/UserWarning and any pydeseq2/numpy
+    convergence or numerical warning) are kept verbatim so a reviewer sees them in
+    `result["warnings"]`; benign API-churn categories are dropped to avoid noise.
+    """
+    out = []
+    for wm in caught or []:
+        if issubclass(wm.category, _BENIGN_WARNING_CATEGORIES):
+            continue
+        out.append(f"pydeseq2 fit warning [{wm.category.__name__}]: {str(wm.message)[:300]}")
+    return out
+
+
 def _run_deseq2(counts, metadata, design_factor: str,
                 numerator: str, denominator: str,
                 padj_thr: float, lfc_thr: float,
@@ -1836,7 +1865,6 @@ def _run_deseq2(counts, metadata, design_factor: str,
         from pydeseq2.ds import DeseqStats
         from aria.utils.power_estimation import bulk_power_estimate
         import warnings as w
-        w.filterwarnings("ignore")
 
         means = counts_sub.mean(axis=1).astype(float)
         variances = counts_sub.var(axis=1, ddof=1).astype(float)
@@ -1894,11 +1922,10 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 **ref_kwargs,
                 **par_kwargs,
             )
-        dds.deseq2()
-
-        # P1-1b: put the biological effect-size threshold inside the Wald test
-        # instead of filtering |log2FC| after BH. This makes pvalue/padj answer
-        # the null |LFC| <= lfc_thr directly, matching DESeq2's lfcThreshold.
+        # F8: capture pydeseq2 convergence/numeric warnings during the fit into the
+        # audit trail instead of silencing them globally. simplefilter("always")
+        # records every warning emitted in this scope; non-benign ones are surfaced
+        # in `warnings` below. This changes NO estimation — only warning handling.
         wald_kwargs = {
             "contrast": [design_factor, numerator, denominator],
             "alpha": padj_thr,
@@ -1921,8 +1948,14 @@ def _run_deseq2(counts, metadata, design_factor: str,
                 "alt_hypothesis": "greaterAbs",
                 "lfc_null": float(lfc_thr),
             })
-        stat_res = DeseqStats(dds, **wald_kwargs)
-        stat_res.summary()
+        with w.catch_warnings(record=True) as _fit_warns:
+            w.simplefilter("always")
+            # P1-1b: put the biological effect-size threshold inside the Wald test
+            # instead of filtering |log2FC| after BH, matching DESeq2's lfcThreshold.
+            dds.deseq2()
+            stat_res = DeseqStats(dds, **wald_kwargs)
+            stat_res.summary()
+        warnings.extend(_serialize_fit_warnings(_fit_warns))
 
         # P1-1/ADR-023: apeGLM LFC shrinkage. Keep the raw MLE LFC, shrink in
         # place, and fall back to raw if the coefficient is unavailable or
