@@ -13,8 +13,9 @@ per sample. It does NOT call peaks or quantify; downstream chromatin scripts do.
 
 ATAC-specific post-alignment filtering (ENCODE-style):
   - mark + remove PCR/optical duplicates (samtools fixmate -m + markdup)
-  - keep properly paired primary alignments (-f 2), drop unmapped/secondary/
-    supplementary/duplicate/QC-fail reads (-F 1804)
+  - keep properly paired alignments (-f 2), drop unmapped/mate-unmapped/
+    secondary/duplicate/QC-fail reads (-F 1804, the canonical ENCODE value;
+    note it does NOT exclude supplementary 0x800)
   - MAPQ threshold (default 30)
   - drop mitochondrial reads (chrM / MT)
 
@@ -52,8 +53,11 @@ from pathlib import Path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
 
-# ENCODE-style ATAC read filter: drop unmapped (0x4), mate-unmapped (0x8),
-# secondary (0x100), QC-fail (0x200), duplicate (0x400), supplementary (0x800).
+# Canonical ENCODE ATAC read filter: drop unmapped (0x4), mate-unmapped (0x8),
+# secondary (0x100), QC-fail (0x200), duplicate (0x400). NOTE: 1804 does NOT
+# include supplementary (0x800) — this matches the ENCODE ATAC-seq spec, which
+# retains supplementary alignments at this step (they are a tiny fraction and
+# are gated by the -f 2 proper-pair requirement).
 SAMTOOLS_EXCLUDE_FLAGS = 1804
 SAMTOOLS_REQUIRE_FLAGS = 2  # properly paired
 DEFAULT_MAPQ = 30

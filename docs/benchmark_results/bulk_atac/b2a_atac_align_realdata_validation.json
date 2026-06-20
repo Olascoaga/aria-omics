@@ -1,0 +1,64 @@
+{
+  "artifact": "B2a bulk ATAC FASTQ->BAM real-data validation",
+  "aria_version": "4.7.0",
+  "summary": "End-to-end validation of the new raw-FASTQ entry point for bulk ATAC (aria/scripts/atac_align.py) on real ENCODE ATAC reads. atac_align ran the full bwa-mem2 -> fixmate -m -> samtools markdup -r -> ENCODE ATAC filter -> index pipeline on real paired reads, produced a valid filtered BAM with sensible alignment metrics, and the resulting BAM was consumed downstream by MACS3 peak calling. Confirms the plumbing and the aligner/filter parameters end-to-end.",
+  "validation_scope": {
+    "validates": [
+      "atac_align.py runs the real bwa-mem2 + samtools pipeline end-to-end (index build, alignment, fixmate, markdup, ATAC filter, index)",
+      "produces a samtools-quickcheck-valid coordinate-sorted filtered BAM",
+      "alignment QC metrics (pct_mapped, pct_dup, pct_mito, n_final) are computed from real flagstat/idxstats",
+      "the filtered BAM is consumed downstream (MACS3 BAMPE peak calling)",
+      "the documented aria-atacseq-env (bwa-mem2 + samtools) installs and runs"
+    ],
+    "does_not_validate": [
+      "this is NOT a sensitivity/recall benchmark of peak calling or DA (those are covered by the synthetic DA recovery gate and V47)",
+      "pct_dup and pct_mito are ~0 here because the input reads were re-derived from an already-processed ENCODE BAM (deduplicated) and restricted to chr20 (no chrM); a raw library would show real duplicate/mito fractions",
+      "alignment was to chr20 only (a tractable real-genome subset), not the whole genome"
+    ]
+  },
+  "input": {
+    "reads_origin": "Real ENCODE K562 bulk ATAC reads (ENCFF512VEZ, rep1), extracted for chr20 via `samtools view chr20 | samtools collate | samtools fastq` into paired FASTQ. Real sequences/qualities from a real ATAC experiment; library was already ENCODE-processed.",
+    "read_pairs": 584291,
+    "reference": "GRCh38.primary_assembly chr20 (UCSC chr-prefixed, matches the ENCODE BAM contigs)",
+    "params": {"mapq": 30, "remove_mito": true, "samtools_f": 2, "samtools_F": 1804, "aligner": "bwa-mem2", "threads": 8}
+  },
+  "results": {
+    "atac_align": {
+      "status": "success",
+      "n_reads": 1168819,
+      "pct_mapped": 99.97,
+      "pct_dup": 0.0,
+      "pct_mito": 0.0,
+      "n_final_after_filter": 1163757,
+      "filtered_bam_quickcheck": "valid",
+      "index_built": true,
+      "runtime_seconds": 27
+    },
+    "downstream_macs3": {
+      "status": "success",
+      "caller": "macs3 callpeak -f BAMPE -g 5.7e7 --nomodel --extsize 200 -q 0.05",
+      "n_peaks_chr20": 1679,
+      "top_peak_score": 2315,
+      "runtime_seconds": 4
+    }
+  },
+  "findings": {
+    "doc_accuracy_fix": "Real validation surfaced that the -F 1804 filter (canonical ENCODE value) does NOT exclude supplementary alignments (0x800); 99/1,163,757 supplementary reads remained. The atac_align docstring/comment overstated this ('drop ... supplementary'); corrected to match ENCODE behavior. No behavior change (1804 is the ENCODE standard).",
+    "biological_sanity": "Peaks fall in expected accessible chr20 loci; this is a plumbing+aligner check, not a TF/biology claim."
+  },
+  "provenance": {
+    "git_commit": "115526c",
+    "source_commit": "5b03813",
+    "aria_version": "4.7.0",
+    "generated_utc": "2026-06-20T23:08:16Z",
+    "seed": null,
+    "determinism_note": "bwa-mem2 alignment is deterministic for fixed threads/input; multi-thread record ordering can vary but the filtered read set and metrics are stable.",
+    "tool_versions": {
+      "bwa-mem2": "2.2.1",
+      "samtools": "1.23.1",
+      "macs3": "3.0.2",
+      "env": "aria-atacseq-env (bwa-mem2 + samtools), installed from envs/aria-atacseq-env.yml"
+    },
+    "compute": {"ram_gb": 108, "note": "bwa-mem2 chr20 index build is light; whole-genome index needs ~tens of GB RAM"}
+  }
+}
