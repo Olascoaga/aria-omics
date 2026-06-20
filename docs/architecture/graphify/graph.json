@@ -3298,130 +3298,144 @@
       "source_location": "L52"
     },
     {
+      "id": "narrators_chromatin_is_bulk_atac",
+      "label": "_is_bulk_atac()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L63"
+    },
+    {
       "id": "narrators_chromatin_unwrap_chromatin_findings",
       "label": "unwrap_chromatin_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L76"
+      "source_location": "L89"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator",
       "label": "ChromatinNarrator",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L97"
+      "source_location": "L110"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_accepts",
       "label": ".accepts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L100"
+      "source_location": "L113"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_collect",
       "label": ".collect()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L107"
+      "source_location": "L120"
     },
     {
       "id": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L107"
+      "source_location": "L120"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_qc_block",
       "label": "._qc_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L149"
+      "source_location": "L162"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_peaks_block",
       "label": "._peaks_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L203"
+      "source_location": "L216"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_peak_counts_block",
       "label": "._peak_counts_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L256"
+      "source_location": "L269"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_clustering_block",
       "label": "._clustering_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L308"
+      "source_location": "L321"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_diffacc_blocks",
       "label": "._diffacc_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L385"
+      "source_location": "L398"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_bulk_atac_diffacc_block",
       "label": "._bulk_atac_diffacc_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L472"
+      "source_location": "L485"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_motif_block",
       "label": "._motif_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L533"
+      "source_location": "L546"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_regulatory_block",
       "label": "._regulatory_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L593"
+      "source_location": "L606"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_footprint_block",
       "label": "._footprint_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L675"
+      "source_location": "L688"
+    },
+    {
+      "id": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
+      "label": "._bulk_atac_methods()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L750"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_methods",
       "label": ".methods()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L737"
+      "source_location": "L818"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_figures",
       "label": ".figures()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L780"
+      "source_location": "L863"
     },
     {
       "id": "aria_agents_narrative_narrators_chromatin_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L780"
+      "source_location": "L863"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_tables",
       "label": ".tables()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L797"
+      "source_location": "L880"
     },
     {
       "id": "narrators_scrna",
@@ -24092,7 +24106,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -24337,7 +24351,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -24359,7 +24373,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -26382,6 +26396,13 @@
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L185"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_test_bulk_atac_methods_report_caller_counting_and_model_params",
+      "label": "test_bulk_atac_methods_report_caller_counting_and_model_params()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47.py",
+      "source_location": "L259"
     },
     {
       "id": "tests_test_bulk_covariates",
@@ -48229,11 +48250,30 @@
     },
     {
       "source": "narrators_chromatin",
+      "target": "narrators_chromatin_is_bulk_atac",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_is_bulk_atac",
+      "target": "aria_agents_narrative_narrators_chromatin_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin",
       "target": "narrators_chromatin_unwrap_chromatin_findings",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L76",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -48242,7 +48282,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L97",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -48251,7 +48291,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L100",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -48261,7 +48301,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L100",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -48271,7 +48311,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L100",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -48280,7 +48320,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L107",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -48290,7 +48330,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L107",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -48300,7 +48340,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L107",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -48309,7 +48349,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L149",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -48319,7 +48359,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L149",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -48328,7 +48368,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L203",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -48338,7 +48378,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L203",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -48347,7 +48387,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L256",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -48357,7 +48397,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L256",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -48366,7 +48406,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L308",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -48376,7 +48416,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L308",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -48385,7 +48425,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L385",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -48395,7 +48435,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L385",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -48404,7 +48444,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L472",
+      "source_location": "L485",
       "weight": 1.0
     },
     {
@@ -48414,7 +48454,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L472",
+      "source_location": "L485",
       "weight": 1.0
     },
     {
@@ -48423,7 +48463,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L533",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -48433,7 +48473,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L533",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -48442,7 +48482,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L593",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -48452,7 +48492,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L593",
+      "source_location": "L606",
       "weight": 1.0
     },
     {
@@ -48461,7 +48501,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L675",
+      "source_location": "L688",
       "weight": 1.0
     },
     {
@@ -48471,7 +48511,26 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L675",
+      "source_location": "L688",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator",
+      "target": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L750",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
+      "target": "aria_agents_narrative_narrators_chromatin_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L750",
       "weight": 1.0
     },
     {
@@ -48480,7 +48539,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L737",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -48490,7 +48549,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L737",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -48500,7 +48559,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L737",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -48509,7 +48568,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L780",
+      "source_location": "L863",
       "weight": 1.0
     },
     {
@@ -48519,7 +48578,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L780",
+      "source_location": "L863",
       "weight": 1.0
     },
     {
@@ -48529,7 +48588,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L780",
+      "source_location": "L863",
       "weight": 1.0
     },
     {
@@ -48538,7 +48597,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L797",
+      "source_location": "L880",
       "weight": 1.0
     },
     {
@@ -48548,7 +48607,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L797",
+      "source_location": "L880",
       "weight": 1.0
     },
     {
@@ -48558,7 +48617,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L797",
+      "source_location": "L880",
       "weight": 1.0
     },
     {
@@ -48568,52 +48627,12 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L104",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
       "source": "narrators_chromatin_chromatinnarrator_collect",
       "target": "narrators_chromatin_unwrap_chromatin_findings",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L109",
-      "weight": 1.0
-    },
-    {
-      "source": "narrators_chromatin_chromatinnarrator_collect",
-      "target": "narrators_chromatin_ok",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L113",
-      "weight": 1.0
-    },
-    {
-      "source": "narrators_chromatin_chromatinnarrator_collect",
-      "target": "narrators_chromatin_chromatinnarrator_qc_block",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L114",
-      "weight": 1.0
-    },
-    {
-      "source": "narrators_chromatin_chromatinnarrator_collect",
-      "target": "narrators_chromatin_chromatinnarrator_peaks_block",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L118",
-      "weight": 1.0
-    },
-    {
-      "source": "narrators_chromatin_chromatinnarrator_collect",
-      "target": "narrators_chromatin_chromatinnarrator_peak_counts_block",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -48623,7 +48642,7 @@
     },
     {
       "source": "narrators_chromatin_chromatinnarrator_collect",
-      "target": "narrators_chromatin_chromatinnarrator_clustering_block",
+      "target": "narrators_chromatin_ok",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -48633,12 +48652,52 @@
     },
     {
       "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_qc_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_peaks_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_peak_counts_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
+      "target": "narrators_chromatin_chromatinnarrator_clustering_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_collect",
       "target": "narrators_chromatin_chromatinnarrator_diffacc_blocks",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L130",
+      "source_location": "L143",
       "weight": 1.0
     },
     {
@@ -48648,7 +48707,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L134",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -48658,7 +48717,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L138",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -48668,22 +48727,12 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L144",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
       "source": "narrators_chromatin_chromatinnarrator_qc_block",
       "target": "narrators_chromatin_modality_label",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L151",
-      "weight": 1.0
-    },
-    {
-      "source": "narrators_chromatin_chromatinnarrator_qc_block",
-      "target": "narrators_chromatin_ev",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -48693,12 +48742,22 @@
     },
     {
       "source": "narrators_chromatin_chromatinnarrator_qc_block",
+      "target": "narrators_chromatin_ev",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_qc_block",
       "target": "aria_agents_narrative_narrators_chromatin_py_narrativeblock",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L190",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -48708,7 +48767,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L191",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -48718,7 +48777,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L205",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -48728,7 +48787,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L209",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -48738,7 +48797,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L241",
+      "source_location": "L254",
       "weight": 1.0
     },
     {
@@ -48748,7 +48807,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L242",
+      "source_location": "L255",
       "weight": 1.0
     },
     {
@@ -48758,7 +48817,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L261",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -48768,7 +48827,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L293",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -48778,7 +48837,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L294",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -48788,7 +48847,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L319",
+      "source_location": "L332",
       "weight": 1.0
     },
     {
@@ -48798,7 +48857,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L370",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -48808,7 +48867,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L387",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -48818,7 +48877,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L399",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -48828,7 +48887,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L414",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -48838,7 +48897,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L478",
+      "source_location": "L491",
       "weight": 1.0
     },
     {
@@ -48848,7 +48907,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L516",
+      "source_location": "L529",
       "weight": 1.0
     },
     {
@@ -48858,7 +48917,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L535",
+      "source_location": "L548",
       "weight": 1.0
     },
     {
@@ -48868,7 +48927,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L558",
+      "source_location": "L571",
       "weight": 1.0
     },
     {
@@ -48878,7 +48937,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L605",
+      "source_location": "L618",
       "weight": 1.0
     },
     {
@@ -48888,7 +48947,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L665",
+      "source_location": "L678",
       "weight": 1.0
     },
     {
@@ -48898,7 +48957,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L689",
+      "source_location": "L702",
       "weight": 1.0
     },
     {
@@ -48908,7 +48967,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L721",
+      "source_location": "L734",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
+      "target": "narrators_chromatin_ok",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L755",
       "weight": 1.0
     },
     {
@@ -48918,7 +48987,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L739",
+      "source_location": "L820",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_methods",
+      "target": "narrators_chromatin_is_bulk_atac",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L821",
+      "weight": 1.0
+    },
+    {
+      "source": "narrators_chromatin_chromatinnarrator_methods",
+      "target": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/narrators/chromatin.py",
+      "source_location": "L822",
       "weight": 1.0
     },
     {
@@ -48928,7 +49017,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L741",
+      "source_location": "L824",
       "weight": 1.0
     },
     {
@@ -48938,7 +49027,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L785",
+      "source_location": "L868",
       "weight": 1.0
     },
     {
@@ -48948,7 +49037,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L799",
+      "source_location": "L882",
       "weight": 1.0
     },
     {
@@ -106339,7 +106428,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -106392,7 +106481,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106402,7 +106491,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106412,7 +106501,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106422,7 +106511,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106432,7 +106521,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106784,7 +106873,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -106793,7 +106882,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -106828,7 +106917,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -106838,7 +106927,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_4qxbsa_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_3ytpcp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -109804,6 +109893,15 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47",
+      "target": "tests_test_bulk_atac_v47_test_bulk_atac_methods_report_caller_counting_and_model_params",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47.py",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -138296,6 +138394,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_bulk_atac_v47_test_bulk_atac_methods_report_caller_counting_and_model_params",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47.py",
+      "source_location": "L304",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_bulk_covariates_test_build_design_formula_places_factor_of_interest_last",
       "target": "scripts_rna_bulk_de_build_design_formula",
       "relation": "calls",
@@ -144629,7 +144737,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L166",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -144640,7 +144748,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L226",
+      "source_location": "L239",
       "weight": 1.0
     },
     {
@@ -144651,7 +144759,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L280",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -144662,7 +144770,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L340",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -144673,7 +144781,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L420",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -144684,7 +144792,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L503",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -144695,7 +144803,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L541",
+      "source_location": "L554",
       "weight": 1.0
     },
     {
@@ -144706,7 +144814,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L631",
+      "source_location": "L644",
       "weight": 1.0
     },
     {
@@ -144717,7 +144825,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L726",
+      "source_location": "L739",
       "weight": 1.0
     },
     {

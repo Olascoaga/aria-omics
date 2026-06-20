@@ -160,7 +160,7 @@ flowchart TD
     NARR --> REGISTRY[aria/agents/narrative/registry.py]
     REGISTRY --> BULK_NARR[aria/agents/narrative/narrators/bulk_rna.py]
     REGISTRY --> SCRNA_NARR[aria/agents/narrative/narrators/scrna.py]
-    REGISTRY --> CHROM_NARR[aria/agents/narrative/narrators/chromatin.py ChromatinNarrator: QC/LSI/DA/motifs v4.6]
+    REGISTRY --> CHROM_NARR[aria/agents/narrative/narrators/chromatin.py ChromatinNarrator: QC/LSI/DA/motifs v4.6 + bulk ATAC methods _bulk_atac_methods/_is_bulk_atac caller/counting/model params]
     SCRNA_NARR --> SCRNA_HELPERS[aria/agents/_narrative_scrna.py]
     BULK_NARR --> BLOCKS[NarrativeBlock list]
     SCRNA_NARR --> BLOCKS
