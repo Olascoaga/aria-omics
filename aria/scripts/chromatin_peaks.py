@@ -36,10 +36,7 @@ from aria.scripts._base import run_script
 
 
 def chromatin_peaks(params: dict) -> dict:
-    import subprocess
-    import tempfile
     from pathlib import Path
-    import numpy as np
 
     data_type     = params["data_type"]
     files         = params.get("files", [])
@@ -47,6 +44,11 @@ def chromatin_peaks(params: dict) -> dict:
     macs3_params  = params.get("macs3_params", {})
     output_dir    = params.get("output_dir", "/tmp/aria_peaks")
     control_files = params.get("control_files", [])
+    run_replicate_peak_calling = params.get(
+        "run_replicate_peak_calling",
+        data_type in {"bulk_ATAC", "scATAC"},
+    )
+    min_replicate_support = int(params.get("min_replicate_peak_support", 2))
 
     warnings = []
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -64,76 +66,31 @@ def chromatin_peaks(params: dict) -> dict:
     genome_size = _get_genome_size(genome)
     sample_name = Path(valid_files[0]).stem.replace(".bam", "")
 
-    cmd = ["macs3", "callpeak"]
-
-    # Input files
-    cmd += ["-t"] + valid_files
-
-    # Control/input files (ChIP)
+    valid_ctrl = []
     if control_files:
         valid_ctrl = [f for f in control_files if Path(f).exists()]
-        if valid_ctrl:
-            cmd += ["-c"] + valid_ctrl
-        else:
+        if not valid_ctrl:
             warnings.append(
                 "Control files specified but not found. "
                 "Running without input control."
             )
 
-    # Format
-    fmt = macs3_params.get("format", "BAMPE")
-    cmd += ["-f", fmt]
-
-    # Genome size
-    cmd += ["-g", genome_size]
-
-    # Output
-    cmd += ["-n", sample_name, "--outdir", output_dir]
-
-    # Assay-specific flags
-    if macs3_params.get("nomodel", False):
-        cmd.append("--nomodel")
-        extsize = macs3_params.get("extsize", 200)
-        cmd += ["--extsize", str(extsize)]
-
-    if macs3_params.get("nolambda", False):
-        cmd.append("--nolambda")
-
-    if macs3_params.get("broad", False):
-        cmd.append("--broad")
-
-    keep_dup = macs3_params.get("keep_dup", "1")
-    cmd += ["--keep-dup", str(keep_dup)]
-
-    # Always store bdg for downstream analysis
-    cmd.append("-B")
-    cmd.append("--SPMR")  # signal per million reads (for comparison)
+    cmd = _build_macs3_cmd(
+        valid_files, valid_ctrl, genome_size, sample_name, output_dir,
+        macs3_params,
+    )
 
     # ── Run MACS3 ────────────────────────────────────────────────────────
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True, text=True, timeout=7200,  # 2 hours
-        )
+    peak_run = _run_macs3(cmd, timeout=7200)
+    if peak_run["status"] == "error":
+        if peak_run.get("error_type") == "MACS3NonZero":
+            warnings.append(f"MACS3 non-zero exit: {peak_run.get('details', '')[-200:]}")
+        else:
+            return peak_run
+    elif peak_run.get("warning"):
+        warnings.append(str(peak_run["warning"]))
 
-        if result.returncode != 0:
-            # MACS3 often prints useful info to stderr even on success
-            if "Traceback" in result.stderr or "Error" in result.stderr:
-                return {
-                    "status":     "error",
-                    "error_type": "MACS3Failed",
-                    "details":    result.stderr[-1000:],
-                }
-            else:
-                warnings.append(f"MACS3 non-zero exit: {result.stderr[-200:]}")
-
-    except subprocess.TimeoutExpired:
-        return {
-            "status":     "error",
-            "error_type": "Timeout",
-            "details":    "MACS3 exceeded 2-hour time limit.",
-        }
-    except FileNotFoundError:
+    if peak_run.get("error_type") == "MACS3NotFound":
         return {
             "status":     "error",
             "error_type": "MACS3NotFound",
@@ -173,12 +130,19 @@ def chromatin_peaks(params: dict) -> dict:
             f"Consider increasing q-value threshold."
         )
 
-    # ── Create consensus peaks across replicates (if multiple files) ──────
-    consensus_path = None
-    if len(valid_files) > 1:
-        consensus_path = _create_consensus_peaks(
-            output_dir, peaks_ext, sample_name
-        )
+    # ── Replicate reproducibility policy (C5) ────────────────────────────
+    peak_repro = _replicate_reproducibility(
+        valid_files=valid_files,
+        genome_size=genome_size,
+        macs3_params=macs3_params,
+        output_dir=output_dir,
+        peaks_ext=peaks_ext,
+        pooled_peaks_path=str(peaks_file),
+        min_support=min_replicate_support,
+        run_replicate_peak_calling=bool(run_replicate_peak_calling),
+    )
+    warnings.extend(peak_repro.get("warnings") or [])
+    consensus_path = peak_repro.get("consensus_peaks_path")
 
     # ── Compute actual FRiP ───────────────────────────────────────────────
     frip = _compute_frip(valid_files[0], str(peaks_file))
@@ -198,6 +162,8 @@ def chromatin_peaks(params: dict) -> dict:
                                   if frip is not None else None),
         "genome":               genome,
         "macs3_cmd":            " ".join(cmd),  # for reproducibility
+        "peak_calling_strategy": peak_repro.get("strategy"),
+        "peak_reproducibility":  peak_repro,
         "warnings":             warnings,
     }
 
@@ -217,6 +183,281 @@ def _get_genome_size(genome: str) -> str:
     return SIZE_MAP.get(genome, "hs")
 
 
+def _build_macs3_cmd(input_files: list[str],
+                     control_files: list[str],
+                     genome_size: str,
+                     sample_name: str,
+                     output_dir: str,
+                     macs3_params: dict) -> list[str]:
+    """Build the exact MACS3 command used for a pooled or per-replicate call."""
+    cmd = ["macs3", "callpeak", "-t"] + list(input_files)
+    if control_files:
+        cmd += ["-c"] + list(control_files)
+    cmd += ["-f", macs3_params.get("format", "BAMPE")]
+    cmd += ["-g", genome_size]
+    cmd += ["-n", sample_name, "--outdir", output_dir]
+    if macs3_params.get("nomodel", False):
+        cmd.append("--nomodel")
+        cmd += ["--extsize", str(macs3_params.get("extsize", 200))]
+    if macs3_params.get("nolambda", False):
+        cmd.append("--nolambda")
+    if macs3_params.get("broad", False):
+        cmd.append("--broad")
+    cmd += ["--keep-dup", str(macs3_params.get("keep_dup", "1"))]
+    cmd += ["-B", "--SPMR"]
+    return cmd
+
+
+def _run_macs3(cmd: list[str], timeout: int) -> dict:
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return {
+            "status":     "error",
+            "error_type": "Timeout",
+            "details":    "MACS3 exceeded time limit.",
+        }
+    except FileNotFoundError:
+        return {
+            "status":     "error",
+            "error_type": "MACS3NotFound",
+            "details":    "MACS3 not installed.",
+        }
+
+    if result.returncode != 0:
+        stderr = result.stderr or ""
+        if "Traceback" in stderr or "Error" in stderr:
+            return {
+                "status":     "error",
+                "error_type": "MACS3Failed",
+                "details":    stderr[-1000:],
+            }
+        return {
+            "status": "error",
+            "error_type": "MACS3NonZero",
+            "details": stderr[-1000:],
+        }
+    return {"status": "success"}
+
+
+def _sample_label(path: str, index: int | None = None) -> str:
+    from pathlib import Path
+    import re
+
+    name = Path(path).name
+    for suffix in (".bam", ".cram", ".sam", ".fragments.tsv.gz",
+                   ".tsv.gz", ".bed.gz", ".gz"):
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+            break
+    label = re.sub(r"[^A-Za-z0-9_.-]+", "_", name).strip("._-") or "sample"
+    return f"rep{index + 1}_{label}" if index is not None else label
+
+
+def _find_peak_file(output_dir: str, sample_name: str, peaks_ext: str,
+                    allow_fallback: bool = True) -> str | None:
+    from pathlib import Path
+
+    out_dir = Path(output_dir)
+    expected = out_dir / f"{sample_name}_peaks{peaks_ext}"
+    if expected.exists():
+        return str(expected)
+    if not allow_fallback:
+        return None
+    candidates = sorted(out_dir.glob(f"*{peaks_ext}"))
+    return str(candidates[0]) if candidates else None
+
+
+def _replicate_reproducibility(valid_files: list[str],
+                               genome_size: str,
+                               macs3_params: dict,
+                               output_dir: str,
+                               peaks_ext: str,
+                               pooled_peaks_path: str,
+                               min_support: int,
+                               run_replicate_peak_calling: bool) -> dict:
+    from pathlib import Path
+
+    strategy = "pooled_macs3"
+    if len(valid_files) < 2:
+        return {
+            "status": "not_applicable",
+            "strategy": strategy,
+            "reason": "single_input_file",
+            "pooled_peak_calling": True,
+            "pooled_peaks_path": pooled_peaks_path,
+            "replicate_peak_calling": {"ran": False, "reason": "single_input_file"},
+            "overlap": {"ran": False, "reason": "single_input_file"},
+            "idr": {"ran": False, "reason": "requires_replicate_peak_sets"},
+            "warnings": [],
+        }
+
+    repro = {
+        "status": "unverified",
+        "strategy": "pooled_macs3_with_replicate_overlap_qc",
+        "pooled_peak_calling": True,
+        "pooled_peaks_path": pooled_peaks_path,
+        "replicate_peak_calling": {
+            "ran": False,
+            "n_inputs": len(valid_files),
+            "peak_files": [],
+            "failed": [],
+        },
+        "overlap": {"ran": False, "reason": "replicate_peak_sets_missing"},
+        "idr": {
+            "ran": False,
+            "reason": "idr_not_run_overlap_reproducibility_policy",
+        },
+        "warnings": [],
+    }
+    if not run_replicate_peak_calling:
+        repro["reason"] = "replicate_peak_calling_disabled"
+        repro["warnings"].append(
+            "Peak calling used a pooled MACS3 call across multiple inputs; "
+            "per-replicate overlap/IDR reproducibility was not run."
+        )
+        return repro
+
+    rep_dir = Path(output_dir) / "replicate_peaks"
+    rep_dir.mkdir(parents=True, exist_ok=True)
+    peak_files: list[str] = []
+    failed: list[dict] = []
+    for i, input_file in enumerate(valid_files):
+        label = _sample_label(input_file, i)
+        cmd = _build_macs3_cmd(
+            [input_file], [], genome_size, label, str(rep_dir), macs3_params,
+        )
+        run = _run_macs3(cmd, timeout=7200)
+        if run.get("status") != "success":
+            failed.append({
+                "input_file": input_file,
+                "error_type": run.get("error_type", "MACS3Failed"),
+                "details": run.get("details"),
+            })
+            continue
+        peak_file = _find_peak_file(
+            str(rep_dir), label, peaks_ext, allow_fallback=False)
+        if peak_file:
+            peak_files.append(peak_file)
+        else:
+            failed.append({
+                "input_file": input_file,
+                "error_type": "NoReplicatePeaksFile",
+                "details": f"Expected {label}_peaks{peaks_ext}",
+            })
+
+    repro["replicate_peak_calling"] = {
+        "ran": bool(peak_files),
+        "n_inputs": len(valid_files),
+        "n_peak_files": len(peak_files),
+        "peak_files": peak_files,
+        "failed": failed,
+    }
+    if failed:
+        repro["warnings"].append(
+            "Some per-replicate MACS3 peak calls failed; reproducibility "
+            "metrics are partial."
+        )
+    if len(peak_files) < 2:
+        repro["reason"] = "fewer_than_two_replicate_peak_sets"
+        repro["warnings"].append(
+            "Per-replicate peak reproducibility could not be assessed because "
+            "fewer than two replicate peak files were available."
+        )
+        return repro
+
+    consensus = str(Path(output_dir) / f"reproducible_consensus{peaks_ext}")
+    overlap = _write_overlap_consensus(
+        peak_files, consensus, min_support=max(2, min_support),
+    )
+    repro["overlap"] = overlap
+    repro["consensus_peaks_path"] = consensus if overlap.get("ran") else None
+    if overlap.get("ran") and overlap.get("n_reproducible_regions", 0) > 0:
+        repro["status"] = "verified" if not failed else "partial"
+    else:
+        repro["status"] = "unverified"
+        repro["reason"] = "no_reproducible_overlap_regions"
+    repro["warnings"].append(
+        "IDR was not run; ARIA used an overlap-support reproducible peak "
+        "policy across per-replicate MACS3 calls."
+    )
+    return repro
+
+
+def _read_peak_intervals(peaks_file: str) -> list[tuple[str, int, int]]:
+    intervals: list[tuple[str, int, int]] = []
+    try:
+        with open(peaks_file, encoding="utf-8") as handle:
+            for line in handle:
+                if not line.strip() or line.startswith("#"):
+                    continue
+                parts = line.rstrip("\n").split("\t")
+                if len(parts) < 3:
+                    continue
+                try:
+                    start = int(float(parts[1]))
+                    end = int(float(parts[2]))
+                except ValueError:
+                    continue
+                if end > start:
+                    intervals.append((parts[0], start, end))
+    except OSError:
+        return []
+    return intervals
+
+
+def _merge_intervals_with_support(
+    peak_files: list[str],
+) -> list[tuple[str, int, int, set[int]]]:
+    tagged: list[tuple[str, int, int, int]] = []
+    for idx, path in enumerate(peak_files):
+        tagged.extend((chrom, start, end, idx)
+                      for chrom, start, end in _read_peak_intervals(path))
+    tagged.sort(key=lambda item: (item[0], item[1], item[2], item[3]))
+    merged: list[tuple[str, int, int, set[int]]] = []
+    for chrom, start, end, idx in tagged:
+        if not merged or merged[-1][0] != chrom or start > merged[-1][2]:
+            merged.append((chrom, start, end, {idx}))
+            continue
+        prev_chrom, prev_start, prev_end, support = merged[-1]
+        support.add(idx)
+        merged[-1] = (prev_chrom, prev_start, max(prev_end, end), support)
+    return merged
+
+
+def _write_overlap_consensus(peak_files: list[str],
+                             output_path: str,
+                             min_support: int = 2) -> dict:
+    from pathlib import Path
+
+    merged = _merge_intervals_with_support(peak_files)
+    kept = [m for m in merged if len(m[3]) >= min_support]
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as out:
+        for chrom, start, end, support in kept:
+            out.write(
+                f"{chrom}\t{start}\t{end}\t"
+                f"support_{len(support)}\t{len(support)}\n"
+            )
+    n_candidates = len(merged)
+    return {
+        "ran": True,
+        "method": "overlap_support_consensus",
+        "support_threshold": int(min_support),
+        "n_replicate_peak_files": len(peak_files),
+        "n_candidate_regions": n_candidates,
+        "n_reproducible_regions": len(kept),
+        "fraction_reproducible": (
+            round(len(kept) / n_candidates, 4) if n_candidates else None
+        ),
+        "output_path": output_path,
+    }
+
+
 def _count_peaks(peaks_file: str) -> int:
     """Count number of peaks in a narrowPeak/broadPeak file."""
     try:
@@ -225,41 +466,6 @@ def _count_peaks(peaks_file: str) -> int:
                        if line.strip() and not line.startswith("#"))
     except Exception:
         return 0
-
-
-def _create_consensus_peaks(output_dir: str,
-                              peaks_ext: str,
-                              sample_name: str) -> str | None:
-    """
-    Merge peaks across replicates using bedtools merge.
-    Returns path to consensus peaks file.
-    """
-    try:
-        import subprocess
-        from pathlib import Path
-
-        out_dir   = Path(output_dir)
-        all_peaks = list(out_dir.glob(f"*{peaks_ext}"))
-        if len(all_peaks) < 2:
-            return None
-
-        consensus = str(out_dir / f"{sample_name}_consensus{peaks_ext}")
-
-        # Sort and merge
-        cat_cmd   = ["cat"] + [str(p) for p in all_peaks]
-        sort_cmd  = ["sort", "-k1,1", "-k2,2n"]
-        merge_cmd = ["bedtools", "merge", "-i", "stdin"]
-
-        cat_proc  = subprocess.Popen(cat_cmd,  stdout=subprocess.PIPE)
-        sort_proc = subprocess.Popen(sort_cmd, stdin=cat_proc.stdout,
-                                     stdout=subprocess.PIPE)
-        with open(consensus, "w") as out:
-            subprocess.run(merge_cmd, stdin=sort_proc.stdout,
-                           stdout=out, timeout=300)
-
-        return consensus
-    except Exception:
-        return None
 
 
 def _compute_frip(bam_file: str, peaks_file: str) -> float | None:

@@ -30,14 +30,10 @@ _ATAC_PRODUCTION_BLOCKERS = {
     "scATAC": (
         "C3: TOBIAS footprinting is still executed through the dedicated driver, "
         "not inline in the live chromatin agent flow.",
-        "C4: raw scATAC fragments/BAM input does not run the complete LSI/DA/"
-        "regulatory pipeline.",
-        "C5: peak calling lacks per-replicate reproducibility/IDR policy.",
     ),
     "bulk_ATAC": (
         "C2: condition-level TOBIAS footprinting is still executed through the "
         "dedicated driver, not inline in the live chromatin agent flow.",
-        "C5: peak calling lacks per-replicate reproducibility/IDR policy.",
     ),
 }
 

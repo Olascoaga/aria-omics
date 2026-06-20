@@ -236,6 +236,37 @@ class ChromatinNarrator:
             _ev("Peaks called", n_peaks, "chromatin_peaks"),
             _ev("Genome", peaks.get("genome"), "chromatin_peaks"),
         ]
+        repro = peaks.get("peak_reproducibility") or {}
+        overlap = repro.get("overlap") or {}
+        idr = repro.get("idr") or {}
+        if repro:
+            evidence.append(_ev(
+                "Peak reproducibility policy",
+                repro.get("strategy") or repro.get("status"),
+                "chromatin_peaks",
+            ))
+            evidence.append(_ev(
+                "Peak reproducibility status",
+                repro.get("status"),
+                "chromatin_peaks",
+            ))
+        if overlap.get("ran"):
+            evidence.append(_ev(
+                "Overlap reproducible peaks",
+                overlap.get("n_reproducible_regions"),
+                "chromatin_peaks",
+            ))
+            evidence.append(_ev(
+                "Overlap support threshold",
+                overlap.get("support_threshold"),
+                "chromatin_peaks",
+            ))
+        if idr:
+            evidence.append(_ev(
+                "IDR",
+                "not run" if not idr.get("ran") else "run",
+                "chromatin_peaks",
+            ))
         if frip is not None:
             evidence.append(_ev("FRiP", frip, "chromatin_peaks"))
         if peaks.get("peaks_path"):
@@ -259,6 +290,17 @@ class ChromatinNarrator:
                 "FRiP was not computed after peak calling; no default FRiP value "
                 "was substituted.",
                 severity="info"))
+        if repro and not idr.get("ran"):
+            caveats.append(Caveat(
+                "IDR was not run for peak reproducibility; ARIA reports the "
+                "overlap-support policy and marks the peak universe accordingly.",
+                severity="warning"))
+        if repro and repro.get("status") in {"unverified", "partial"}:
+            caveats.append(Caveat(
+                "Peak reproducibility evidence is incomplete; interpret the "
+                "called peak universe as a pooled/discovery set unless the "
+                "overlap metrics show adequate replicate support.",
+                severity="warning"))
         for warning in peaks.get("warnings") or []:
             caveats.append(Caveat(str(warning), severity="warning"))
 
@@ -273,6 +315,7 @@ class ChromatinNarrator:
                 "n_peaks": n_peaks,
                 "frip": frip,
                 "consensus_peaks_path": peaks.get("consensus_peaks_path"),
+                "peak_reproducibility": repro or None,
             },
             metadata={"validation_level": "beta"
                       if data_type == "bulk_ATAC" else "scaffold"},
@@ -922,6 +965,28 @@ class ChromatinNarrator:
             if peaks.get("consensus_peaks_path"):
                 line += (", and per-replicate peaks were merged into a "
                          "consensus peak universe")
+            repro = peaks.get("peak_reproducibility") or {}
+            overlap = repro.get("overlap") or {}
+            idr = repro.get("idr") or {}
+            if overlap.get("ran"):
+                line += (
+                    f". Peak reproducibility used "
+                    f"{overlap.get('method', 'overlap support')} with support "
+                    f">= {overlap.get('support_threshold')} replicate peak "
+                    f"sets, retaining "
+                    f"{overlap.get('n_reproducible_regions')} reproducible "
+                    f"regions from {overlap.get('n_candidate_regions')} "
+                    f"candidate regions")
+                if idr and not idr.get("ran"):
+                    line += "; IDR was not run"
+            elif repro:
+                reason = repro.get("reason") or (overlap.get("reason")
+                                                 if isinstance(overlap, dict)
+                                                 else None)
+                line += (
+                    ". Per-replicate peak reproducibility was not verified"
+                    + (f" ({reason})" if reason else "")
+                )
             cmd = peaks.get("macs3_cmd")
             line += f". Exact MACS3 command: {cmd}." if cmd else "."
             out.append(line)

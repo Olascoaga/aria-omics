@@ -102,8 +102,10 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     readiness = card["checks"]["production_readiness"]
     assert readiness["production_ready"] is False
     assert any(blocker.startswith("C3:") for blocker in readiness["open_blockers"])
-    assert any(blocker.startswith("C4:") for blocker in readiness["open_blockers"])
-    assert any(blocker.startswith("C5:") for blocker in readiness["open_blockers"])
+    assert not any(blocker.startswith("C4:")
+                   for blocker in readiness["open_blockers"])
+    assert not any(blocker.startswith("C5:")
+                   for blocker in readiness["open_blockers"])
 
 
 def test_scatac_production_registry_label_does_not_bypass_open_blockers():
@@ -143,7 +145,8 @@ def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     readiness = card["checks"]["production_readiness"]
     assert readiness["production_ready"] is False
     assert any(blocker.startswith("C2:") for blocker in readiness["open_blockers"])
-    assert any(blocker.startswith("C5:") for blocker in readiness["open_blockers"])
+    assert not any(blocker.startswith("C5:")
+                   for blocker in readiness["open_blockers"])
 
 
 def test_bulk_atac_production_registry_label_does_not_bypass_open_blockers():
