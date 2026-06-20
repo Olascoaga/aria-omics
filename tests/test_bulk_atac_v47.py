@@ -95,6 +95,24 @@ class _FakeBulkAtacEnv:
                 "output_csv": "/tmp/bulk_atac_motifs/motif_enrichment.csv",
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_peak_annotation.py"):
+            return {
+                "status": "success",
+                "ran": True,
+                "data_type": "bulk_ATAC",
+                "validation_level": "beta",
+                "analysis": "peak_annotation",
+                "method": "nearest-TSS genomic annotation",
+                "gtf": "annotation.gtf",
+                "promoter_upstream": 2000,
+                "promoter_downstream": 2000,
+                "feature_distribution_overall": {
+                    "Promoter": 12, "Intronic": 20, "Distal Intergenic": 10},
+                "comparisons": [{"test": "treated", "reference": "control",
+                                 "n_annotated": 42,
+                                 "annotation_csv": "/tmp/ann.csv"}],
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -148,7 +166,12 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
         ("chromatin", "chromatin_peaks.py"),
         ("chromatin", "chromatin_peak_counts.py"),
         ("rna", "chromatin_bulk_diffacc.py"),
+        # B2: genomic peak annotation runs in the rna stack after DA. (Motif
+        # enrichment self-skips here: the mock DA comparisons carry no per-peak
+        # data, so _bulk_da_motif_regions yields no regions to dispatch.)
+        ("rna", "chromatin_peak_annotation.py"),
     ]
+    assert findings["peak_annotation"]["analysis"] == "peak_annotation"
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
     assert peaks_params["macs3_params"]["format"] == "BAMPE"

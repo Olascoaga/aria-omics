@@ -697,6 +697,14 @@ class ChromatinAgent(BaseAgent):
                         experiment_id, exp_ctx, da_result, files)
                     if motif_result is not None:
                         findings["motifs"] = motif_result
+                    # Genomic annotation of the DA peaks (B2): nearest gene +
+                    # distance-to-TSS + feature class over an auto-resolved GTF.
+                    # Pure-python (pandas only) → runs in the rna stack alongside
+                    # the DA CSVs. Honest-skip without a GTF.
+                    ann_result = self._run_bulk_atac_annotation(
+                        experiment_id, exp_ctx, da_result, files)
+                    if ann_result is not None:
+                        findings["peak_annotation"] = ann_result
                 else:
                     findings["differential_accessibility"] = {
                         "status": "skipped",
@@ -769,6 +777,40 @@ class ChromatinAgent(BaseAgent):
             if motif_result.get("ran"):
                 motif_result.setdefault("validation_level", "beta")
         return motif_result
+
+    def _run_bulk_atac_annotation(self, experiment_id: str, exp_ctx: dict,
+                                  da_result: dict,
+                                  files: list) -> Optional[dict]:
+        """Genomic annotation of bulk ATAC DA peaks (B2).
+
+        Annotates each comparison's significant peaks with the nearest gene,
+        signed distance-to-TSS, and a feature class (Promoter/Exonic/Intronic/
+        Distal Intergenic) over an auto-resolved GTF (``~/.aria/genomes/*``,
+        ``exp_ctx['gtf']`` hint, or ``ARIA_GTF``). Runs in the ``rna`` stack
+        (pure pandas, no chromatin deps, same place the DA CSVs were produced).
+        Honest-skip when there are no DA comparisons; the script self-skips when
+        no GTF is locatable. Returns ``None`` only when nothing was tested."""
+        comparisons = da_result.get("comparisons") or []
+        if not comparisons:
+            return None
+        self.publish_status(
+            experiment_id, "bulk ATAC peak annotation...", 0.95)
+        ann_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_peak_annotation.py",
+            params={
+                "data_type": "bulk_ATAC",
+                "comparisons": comparisons,
+                "genome": exp_ctx.get("genome"),
+                "gtf": exp_ctx.get("gtf") or exp_ctx.get("gtf_path"),
+                "promoter_upstream": exp_ctx.get("promoter_upstream"),
+                "promoter_downstream": exp_ctx.get("promoter_downstream"),
+                "output_dir": str(Path(files[0]).parent / "bulk_atac_annotation"),
+            },
+        )
+        if isinstance(ann_result, dict):
+            ann_result.setdefault("data_type", "bulk_ATAC")
+        return ann_result
 
     # ── ChIP-seq pipeline ─────────────────────────────────────────────────
 

@@ -146,6 +146,10 @@ class ChromatinNarrator:
         if isinstance(motifs, dict) and _ok(motifs):
             blocks.append(self._motif_block(motifs))
 
+        peak_annotation = findings.get("peak_annotation")
+        if isinstance(peak_annotation, dict) and peak_annotation.get("ran"):
+            blocks.append(self._peak_annotation_block(peak_annotation))
+
         regulatory = findings.get("regulatory")
         if isinstance(regulatory, dict) and _ok(regulatory):
             blocks.append(self._regulatory_block(regulatory))
@@ -600,6 +604,56 @@ class ChromatinNarrator:
                 severity="info")],
             metrics={"genome_fasta": motifs.get("genome_fasta"),
                      "motif_source": src},
+        )
+
+    # ── Genomic peak annotation (B2) ─────────────────────────────────────────
+    def _peak_annotation_block(self, ann: dict) -> NarrativeBlock:
+        dist = ann.get("feature_distribution_overall") or {}
+        total = sum(int(v) for v in dist.values()) or 0
+        n_promoter = int(dist.get("Promoter", 0))
+        promoter_pct = (100 * n_promoter / total) if total else 0.0
+
+        evidence = [
+            _ev("Analysis", "Genomic peak annotation",
+                "chromatin_peak_annotation"),
+            _ev("Method", ann.get("method"), "chromatin_peak_annotation"),
+            _ev("Gene annotation (GTF)", ann.get("gtf"),
+                "chromatin_peak_annotation"),
+            _ev("Promoter window (bp upstream/downstream)",
+                f"{ann.get('promoter_upstream')}/{ann.get('promoter_downstream')}",
+                "chromatin_peak_annotation"),
+            _ev("Peaks annotated", total, "chromatin_peak_annotation"),
+        ]
+        for feat in ("Promoter", "Exonic", "Intronic", "Distal Intergenic"):
+            if feat in dist:
+                evidence.append(_ev(f"{feat} peaks", int(dist[feat]),
+                                    "chromatin_peak_annotation"))
+        for comp in ann.get("comparisons") or []:
+            if comp.get("annotation_csv"):
+                evidence.append(EvidenceItem(
+                    label=(f"Annotation table "
+                           f"{comp.get('test')}_vs_{comp.get('reference')}"),
+                    value="csv", source="chromatin_peak_annotation",
+                    path=comp["annotation_csv"]))
+        evidence = [e for e in evidence if e.value is not None]
+
+        claim = (
+            f"Genomic annotation classified {total} differentially accessible "
+            f"peak(s) by feature; {n_promoter} ({promoter_pct:.0f}%) fall in "
+            f"promoter regions.")
+        return NarrativeBlock(
+            id="chromatin.peak_annotation", modality="chromatin",
+            analysis="peak_annotation", block_type="result",
+            title="Genomic peak annotation", status="success",
+            confidence="medium", claim=claim, evidence=evidence,
+            caveats=[Caveat(
+                "Peak annotation is positional: each peak is assigned to its "
+                "nearest-TSS gene and a genomic feature class. Proximity to a "
+                "gene is association only, not evidence that the peak regulates "
+                "that gene.", severity="info")],
+            metrics={"feature_distribution_overall": dist,
+                     "comparisons": ann.get("comparisons")},
+            metadata={"validation_level": ann.get("validation_level", "beta")},
         )
 
     # ── P2 regulatory layers ────────────────────────────────────────────────

@@ -209,6 +209,46 @@ def render_sample_correlation(counts_tsv, png_path) -> Optional[str]:
     return out
 
 
+def render_peak_annotation(annotation: dict, png_path) -> Optional[str]:
+    """Bulk ATAC genomic-context figure: horizontal bar chart of the DA-peak feature
+    distribution (Promoter/Exonic/Intronic/Distal Intergenic) from
+    `chromatin_peak_annotation`. Dual PNG+SVG. Honest-None when no annotation ran or
+    the distribution is empty."""
+    dist = (annotation or {}).get("feature_distribution_overall") or {}
+    dist = {k: int(v) for k, v in dist.items() if v}
+    if not dist:
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    # Canonical ChIPseeker-style order (most proximal first).
+    order = ["Promoter", "Exonic", "Intronic", "Distal Intergenic"]
+    feats = [f for f in order if f in dist] + [f for f in dist if f not in order]
+    counts = [dist[f] for f in feats]
+    total = sum(counts) or 1
+    colors = {"Promoter": "#c0392b", "Exonic": "#e67e22",
+              "Intronic": "#2c7fb8", "Distal Intergenic": "#7f8c8d"}
+
+    fig, ax = plt.subplots(figsize=(7, max(2.4, 0.6 * len(feats) + 1.4)), dpi=160)
+    ypos = range(len(feats))
+    ax.barh(list(ypos), counts,
+            color=[colors.get(f, "#95a5a6") for f in feats])
+    for y, c in zip(ypos, counts):
+        ax.text(c, y, f" {c:,} ({100 * c / total:.0f}%)", va="center",
+                fontsize=8)
+    ax.set_yticks(list(ypos))
+    ax.set_yticklabels(feats, fontsize=8)
+    ax.invert_yaxis()
+    ax.set_xlabel("DA peaks", fontsize=9)
+    ax.set_title("Genomic distribution of differential-accessibility peaks",
+                 fontsize=10, fontweight="bold")
+    ax.margins(x=0.18)
+    out = _save_dual(fig, Path(png_path))
+    plt.close(fig)
+    return out
+
+
 def render_motif_dotplot(motifs: dict, out_path: Path, top_n: int = 8) -> Optional[str]:
     """W0.3: motif-enrichment dotplot (group × motif; size = -log10 padj, color =
     log2 enrichment), rendered INLINE from the structured `motifs["per_group"]`
@@ -483,6 +523,15 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                 figs["bulk_atac_sample_correlation"] = path
         except Exception as e:
             log.warning("bulk ATAC sample-correlation figure failed: %s", e)
+        # Genomic peak-annotation distribution (B2): feature class bar chart.
+        try:
+            path = render_peak_annotation(
+                findings.get("peak_annotation"),
+                output_dir / "bulk_atac_peak_annotation.png")
+            if path:
+                figs["bulk_atac_peak_annotation"] = path
+        except Exception as e:
+            log.warning("bulk ATAC peak-annotation figure failed: %s", e)
 
     # 3. Motif enrichment dotplot (inline) from structured motif findings.
     motifs = findings.get("motifs") or {}
