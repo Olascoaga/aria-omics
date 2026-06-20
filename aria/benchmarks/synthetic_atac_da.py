@@ -285,3 +285,183 @@ def run_atac_pseudobulk_da_benchmark(
         manifest_path.write_text(
             json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
     return manifest
+
+
+# ── F12: BULK ATAC arm — gate the chromatin_bulk_diffacc wrapper (technical-sample
+# aggregation + replicate-gated DESeq2 + convergence gate), not just the DE core ──
+
+def _emit_bulk_atac_tsvs(
+    dataset: SyntheticATACDADataset,
+    out_dir,
+    *,
+    n_technical_per_replicate: int = 2,
+    condition_col: str = "condition",
+    replicate_col: str = "replicate",
+):
+    """Write the bulk ATAC wrapper's TSV contract from a simulated dataset.
+
+    Pseudobulks the simulated cells x peaks matrix into a peak x TECHNICAL-sample
+    count matrix — each biological replicate (donor) is split into
+    ``n_technical_per_replicate`` technical samples — plus a sample-metadata TSV
+    (``sample_id``, ``condition``, ``replicate``). This exercises
+    ``chromatin_bulk_diffacc``'s real technical-sample -> biological-replicate
+    aggregation, not only the shared DE core. Returns
+    ``(counts_matrix_path, sample_metadata_path)``. Deterministic.
+    """
+    import numpy as np
+    import pandas as pd
+    from pathlib import Path
+
+    adata = dataset.adata
+    X = np.asarray(adata.X)
+    obs = adata.obs
+    peaks = list(adata.var_names)
+
+    cols: dict[str, Any] = {}
+    meta_rows: list[dict[str, str]] = []
+    groups = obs.groupby([condition_col, replicate_col], sort=True).groups
+    for key in sorted(groups, key=lambda k: (str(k[0]), str(k[1]))):
+        cond, rep = key
+        positions = sorted(int(obs.index.get_loc(i)) for i in groups[key])
+        chunks = [c for c in np.array_split(
+            np.asarray(positions, dtype=int),
+            max(1, n_technical_per_replicate)) if len(c)]
+        for j, chunk in enumerate(chunks):
+            sid = f"{rep}_t{j}"
+            cols[sid] = X[chunk].sum(axis=0).astype(np.int64)
+            meta_rows.append({
+                "sample_id": sid,
+                condition_col: str(cond),
+                replicate_col: str(rep),
+            })
+
+    counts_df = pd.DataFrame(cols, index=peaks)
+    counts_df.index.name = "peak_id"
+    samples_df = pd.DataFrame(meta_rows)
+
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    counts_path = out / "bulk_atac_peak_counts.tsv"
+    samples_path = out / "bulk_atac_samples.tsv"
+    counts_df.to_csv(counts_path, sep="\t")
+    samples_df.to_csv(samples_path, sep="\t", index=False)
+    return str(counts_path), str(samples_path)
+
+
+def aria_bulk_atac_da_caller(
+    dataset: SyntheticATACDADataset,
+    *,
+    work_dir,
+    padj_max: float = 0.05,
+    lfc_min: float = 0.0,
+    min_reps: int = 2,
+    n_technical_per_replicate: int = 2,
+) -> set[str]:
+    """The F12 contract: run ARIA's REAL bulk ATAC DA wrapper
+    (``chromatin_bulk_diffacc`` — technical->replicate aggregation + replicate-gated
+    DESeq2 + convergence gate) on the simulated matrix and return the peaks it calls
+    significant in COND_B vs COND_A. ``lfc_min=0`` measures engine recovery against
+    the planted truth; ``top_n`` is set to all peaks so every significant peak is
+    returned (not just a head slice). Raises if no comparison ran."""
+    from pathlib import Path
+    from aria.scripts.chromatin_bulk_diffacc import chromatin_bulk_diffacc
+
+    counts_path, samples_path = _emit_bulk_atac_tsvs(
+        dataset, work_dir, n_technical_per_replicate=n_technical_per_replicate)
+    result = chromatin_bulk_diffacc({
+        "counts_matrix_path": counts_path,
+        "sample_metadata_path": samples_path,
+        "condition_col": "condition",
+        "replicate_col": "replicate",
+        "comparison": {"test": "COND_B", "reference": "COND_A"},
+        "padj_max": padj_max,
+        "lfc_min": lfc_min,
+        "min_replicates_per_condition": min_reps,
+        "top_n": len(dataset.adata.var_names),     # return ALL significant peaks
+        "output_dir": str(Path(work_dir) / "bulk_atac_da"),
+    })
+    comparisons = result.get("comparisons") or []
+    successful = [c for c in comparisons if c.get("status") == "success"]
+    if not result.get("ran") or not successful:
+        raise RuntimeError(
+            "bulk ATAC DA did not run a successful comparison: "
+            f"{result.get('reason') or comparisons}")
+    called: set[str] = set()
+    for comp in successful:
+        called.update(str(p["peak"]) for p in comp.get("top_peaks", []))
+    return called
+
+
+def run_bulk_atac_da_benchmark(
+    *,
+    min_recall: float = 0.5,
+    max_empirical_fdr: float = 0.2,
+    work_dir: str | None = None,
+    output_dir: str | None = None,
+    manifest_name: str = "f12_bulk_atac_da.json",
+    n_technical_per_replicate: int = 2,
+    **sim_kwargs,
+) -> dict[str, Any]:
+    """Execute the BULK ATAC DA calibration with ARIA's real bulk wrapper wired in
+    (F12): simulate technical samples -> biological replicates with known true-DA
+    peaks, run them THROUGH ``chromatin_bulk_diffacc`` (aggregation + replicate-gated
+    DESeq2 + convergence gate), and score recall on true-DA peaks + empirical FDR on
+    null peaks. Writes a provenance-stamped manifest when ``output_dir`` is given."""
+    import json
+    import tempfile
+    from pathlib import Path
+
+    # Adequate donor replication (the regime where replicate-gated DA is defensible).
+    sim_kwargs.setdefault("n_replicates_per_condition", 4)
+    sim_kwargs.setdefault("n_cells_per_condition", 600)
+    dataset = simulate_atac_da_dataset(**sim_kwargs)
+    min_reps = min(3, int(sim_kwargs["n_replicates_per_condition"]))
+
+    cleanup = None
+    if work_dir is None:
+        cleanup = tempfile.TemporaryDirectory(prefix="aria_f12_bulk_atac_")
+        work_dir = cleanup.name
+    try:
+        res = run_atac_da_benchmark(
+            dataset,
+            da_fn=lambda ds: aria_bulk_atac_da_caller(
+                ds, work_dir=work_dir, min_reps=min_reps,
+                n_technical_per_replicate=n_technical_per_replicate),
+            min_recall=min_recall, max_empirical_fdr=max_empirical_fdr,
+        )
+        manifest = {
+            "status": res.status,
+            "benchmark": "F12_bulk_atac_da",
+            "benchmark_version": "v1",
+            "scope": "synthetic_truth_bulk_atac_da",
+            "method_under_test": (
+                "ARIA bulk ATAC DA (chromatin_bulk_diffacc -> technical-sample "
+                "aggregation + replicate-gated _run_deseq2 + convergence gate)"),
+            "dataset": dict(dataset.params,
+                            n_technical_per_replicate=n_technical_per_replicate),
+            "recall": round(res.recall, 4),
+            "empirical_fdr": round(res.empirical_fdr, 4),
+            "n_true_da": res.n_true_de,
+            "n_called": res.n_called,
+            "n_true_positive": res.n_true_positive,
+            "n_false_positive": res.n_false_positive,
+            "tolerances": res.tolerances,
+            "messages": res.messages + [
+                "Validates the bulk ATAC wrapper's technical-sample -> biological-"
+                "replicate aggregation + convergence gate, not just the DE core."
+            ],
+        }
+        if output_dir:
+            from aria.version import __version__, collect_version_metadata
+            outdir = Path(output_dir)
+            outdir.mkdir(parents=True, exist_ok=True)
+            manifest["aria_version"] = __version__
+            manifest["provenance"] = collect_version_metadata()
+            manifest_path = outdir / manifest_name
+            manifest["artifacts"] = {"manifest_json": str(manifest_path)}
+            manifest_path.write_text(
+                json.dumps(manifest, indent=2, sort_keys=True), encoding="utf-8")
+        return manifest
+    finally:
+        if cleanup is not None:
+            cleanup.cleanup()
