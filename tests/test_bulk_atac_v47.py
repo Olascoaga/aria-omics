@@ -113,6 +113,23 @@ class _FakeBulkAtacEnv:
                                  "annotation_csv": "/tmp/ann.csv"}],
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_peak_ora.py"):
+            return {
+                "status": "success",
+                "ran": True,
+                "data_type": "bulk_ATAC",
+                "validation_level": "beta",
+                "analysis": "peak_ora",
+                "method": "functional ORA (local hypergeometric)",
+                "organism": "Homo sapiens",
+                "gtf": "annotation.gtf",
+                "comparisons": [{"test": "treated", "reference": "control",
+                                 "ora_method": "local_hypergeometric",
+                                 "pathways_summary": {"GO_BP": 5},
+                                 "figures": {}}],
+                "figures": {},
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -166,12 +183,14 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
         ("chromatin", "chromatin_peaks.py"),
         ("chromatin", "chromatin_peak_counts.py"),
         ("rna", "chromatin_bulk_diffacc.py"),
-        # B2: genomic peak annotation runs in the rna stack after DA. (Motif
-        # enrichment self-skips here: the mock DA comparisons carry no per-peak
-        # data, so _bulk_da_motif_regions yields no regions to dispatch.)
+        # B2/B3: genomic peak annotation + functional ORA run in the rna stack
+        # after DA. (Motif enrichment self-skips here: the mock DA comparisons
+        # carry no per-peak data, so _bulk_da_motif_regions yields no regions.)
         ("rna", "chromatin_peak_annotation.py"),
+        ("rna", "chromatin_peak_ora.py"),
     ]
     assert findings["peak_annotation"]["analysis"] == "peak_annotation"
+    assert findings["peak_ora"]["analysis"] == "peak_ora"
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
     assert peaks_params["macs3_params"]["format"] == "BAMPE"

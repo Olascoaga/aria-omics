@@ -705,6 +705,13 @@ class ChromatinAgent(BaseAgent):
                         experiment_id, exp_ctx, da_result, files)
                     if ann_result is not None:
                         findings["peak_annotation"] = ann_result
+                    # Functional ORA of genes near the DA peaks (B3): reuses the
+                    # bulk RNA ORA engine over the B2 peak->gene assignment. Honest-
+                    # skip without a GTF or a provisioned GMT.
+                    ora_result = self._run_bulk_atac_ora(
+                        experiment_id, exp_ctx, da_result, files)
+                    if ora_result is not None:
+                        findings["peak_ora"] = ora_result
                 else:
                     findings["differential_accessibility"] = {
                         "status": "skipped",
@@ -811,6 +818,36 @@ class ChromatinAgent(BaseAgent):
         if isinstance(ann_result, dict):
             ann_result.setdefault("data_type", "bulk_ATAC")
         return ann_result
+
+    def _run_bulk_atac_ora(self, experiment_id: str, exp_ctx: dict,
+                           da_result: dict, files: list) -> Optional[dict]:
+        """Functional ORA of genes near bulk ATAC DA peaks (B3).
+
+        Reuses the B2 peak→gene assignment + the bulk RNA ORA engine (local
+        hypergeometric over versioned GMTs). Runs in the ``rna`` stack (where the
+        ORA engine + its GMTs + seaborn live). Honest-skip when there are no DA
+        comparisons; the script self-skips without a GTF or a provisioned GMT.
+        Returns ``None`` only when nothing was tested."""
+        comparisons = da_result.get("comparisons") or []
+        if not comparisons:
+            return None
+        self.publish_status(
+            experiment_id, "bulk ATAC pathway ORA...", 0.97)
+        ora_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_peak_ora.py",
+            params={
+                "data_type": "bulk_ATAC",
+                "comparisons": comparisons,
+                "genome": exp_ctx.get("genome"),
+                "organism": exp_ctx.get("organism"),
+                "gtf": exp_ctx.get("gtf") or exp_ctx.get("gtf_path"),
+                "output_dir": str(Path(files[0]).parent / "bulk_atac_ora"),
+            },
+        )
+        if isinstance(ora_result, dict):
+            ora_result.setdefault("data_type", "bulk_ATAC")
+        return ora_result
 
     # ── ChIP-seq pipeline ─────────────────────────────────────────────────
 

@@ -489,6 +489,22 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("feature_distribution_overall", "dict", required=False),
         ),
     ),
+    "aria/scripts/chromatin_peak_ora.py": ScriptContract(
+        script_path="aria/scripts/chromatin_peak_ora.py",
+        validation_level="beta",
+        inputs=(
+            _f("comparisons", "any", required=False),
+            _f("genome", "str", required=False, allow_empty=False),
+            _f("organism", "str", required=False, allow_empty=False),
+            _f("gtf", "str", required=False, allow_empty=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("ran", "bool"),
+            _f("analysis", "str"),
+            _f("comparisons", "any", required=False),
+        ),
+    ),
     "aria/scripts/chromatin_regulatory.py": ScriptContract(
         script_path="aria/scripts/chromatin_regulatory.py",
         validation_level="scaffold",

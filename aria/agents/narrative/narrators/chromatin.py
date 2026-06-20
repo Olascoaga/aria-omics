@@ -150,6 +150,10 @@ class ChromatinNarrator:
         if isinstance(peak_annotation, dict) and peak_annotation.get("ran"):
             blocks.append(self._peak_annotation_block(peak_annotation))
 
+        peak_ora = findings.get("peak_ora")
+        if isinstance(peak_ora, dict) and peak_ora.get("ran"):
+            blocks.append(self._peak_ora_block(peak_ora))
+
         regulatory = findings.get("regulatory")
         if isinstance(regulatory, dict) and _ok(regulatory):
             blocks.append(self._regulatory_block(regulatory))
@@ -654,6 +658,56 @@ class ChromatinNarrator:
             metrics={"feature_distribution_overall": dist,
                      "comparisons": ann.get("comparisons")},
             metadata={"validation_level": ann.get("validation_level", "beta")},
+        )
+
+    # ── Functional ORA of genes near DA peaks (B3) ───────────────────────────
+    def _peak_ora_block(self, ora: dict) -> NarrativeBlock:
+        comps = ora.get("comparisons") or []
+        # Aggregate enriched-term counts per database across comparisons.
+        per_db: dict = {}
+        for comp in comps:
+            for db, n in (comp.get("pathways_summary") or {}).items():
+                per_db[db] = per_db.get(db, 0) + int(n)
+        n_terms = sum(per_db.values())
+        method = (comps[0].get("ora_method") if comps else None) or "ORA"
+
+        evidence = [
+            _ev("Analysis", "Functional ORA of genes near DA peaks",
+                "chromatin_peak_ora"),
+            _ev("Method", ora.get("method"), "chromatin_peak_ora"),
+            _ev("Organism", ora.get("organism"), "chromatin_peak_ora"),
+            _ev("Gene annotation (GTF)", ora.get("gtf"), "chromatin_peak_ora"),
+            _ev("ORA engine", method, "chromatin_peak_ora"),
+            _ev("Enriched terms (total)", n_terms, "chromatin_peak_ora"),
+        ]
+        for db, n in per_db.items():
+            evidence.append(_ev(f"{db} enriched terms", n, "chromatin_peak_ora"))
+        evidence = [e for e in evidence if e.value is not None]
+
+        caveats = [Caveat(
+            "Pathway ORA tests genes assigned to DA peaks by nearest-TSS proximity "
+            "against a peak-proximal background. An over-represented term is an "
+            "association hypothesis about the genes near differential peaks, not "
+            "evidence that the peaks regulate those genes or pathways.",
+            severity="info")]
+        for comp in comps:
+            for skipped in (comp.get("databases_skipped") or []):
+                caveats.append(Caveat(
+                    f"{skipped}: no versioned GMT provisioned — skipped (no "
+                    "fabrication).", severity="info"))
+
+        claim = (
+            f"Functional ORA ({method}) of genes near differentially accessible "
+            f"peaks found {n_terms} enriched term(s) across "
+            f"{len(per_db)} database(s).")
+        return NarrativeBlock(
+            id="chromatin.peak_ora", modality="chromatin",
+            analysis="peak_ora", block_type="result",
+            title="Functional enrichment of DA-peak genes",
+            status="success", confidence="medium",
+            claim=claim, evidence=evidence, caveats=caveats,
+            metrics={"comparisons": comps},
+            metadata={"validation_level": ora.get("validation_level", "beta")},
         )
 
     # ── P2 regulatory layers ────────────────────────────────────────────────

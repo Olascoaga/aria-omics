@@ -532,6 +532,12 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                 figs["bulk_atac_peak_annotation"] = path
         except Exception as e:
             log.warning("bulk ATAC peak-annotation figure failed: %s", e)
+        # Functional ORA dotplots (B3): rendered in the rna stack by the ORA script
+        # (seaborn lives there); surface the returned paths.
+        ora = findings.get("peak_ora") or {}
+        for key, path in (ora.get("figures") or {}).items():
+            if isinstance(path, str):
+                figs[key] = path
 
     # 3. Motif enrichment dotplot (inline) from structured motif findings.
     motifs = findings.get("motifs") or {}
