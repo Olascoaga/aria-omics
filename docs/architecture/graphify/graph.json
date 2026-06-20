@@ -6119,6 +6119,41 @@
       "source_location": "L141"
     },
     {
+      "id": "benchmarks_bulk_atac_marker_mapping",
+      "label": "bulk_atac_marker_mapping.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "label": "parse_peak_interval()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_marker_mapping_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_marker_mapping_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "label": "map_peaks_to_gene_markers()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L39"
+    },
+    {
       "id": "benchmarks_bulk_atac_v47_provenance",
       "label": "bulk_atac_v47_provenance.py",
       "file_type": "code",
@@ -21855,277 +21890,347 @@
       "source_location": "L63"
     },
     {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
+      "label": "validation_scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L65"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L66"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_validates",
+      "label": "validates",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L67"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_does_not_validate",
+      "label": "does_not_validate",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L68"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_calibration_validated_elsewhere",
+      "label": "calibration_validated_elsewhere",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L69"
+    },
+    {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
       "label": "biological_sanity",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L65"
+      "source_location": "L71"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_convention",
       "label": "convention",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L66"
+      "source_location": "L72"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "label": "marker_peak_to_gene_mapping",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L73"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_interpretation",
+      "label": "interpretation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L74"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_reproducible_method",
+      "label": "reproducible_method",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L75"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_declared_parameters",
+      "label": "declared_parameters",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L76"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_note",
+      "label": "note",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L77"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_correct",
       "label": "n_markers_correct",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L67"
+      "source_location": "L79"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_total",
       "label": "n_markers_total",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L68"
+      "source_location": "L80"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_markers",
       "label": "markers",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L69"
+      "source_location": "L81"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_lane_fixes_landed",
       "label": "lane_fixes_landed",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L122"
+      "source_location": "L134"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_caveats",
       "label": "caveats",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L127"
+      "source_location": "L139"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_level",
       "label": "validation_level",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L133"
+      "source_location": "L146"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_de_da_core",
       "label": "de_da_core",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L134"
+      "source_location": "L147"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_aria_version",
       "label": "aria_version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L135"
+      "source_location": "L148"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
       "label": "provenance",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L136"
+      "source_location": "L149"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_aria_version",
       "label": "aria_version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L137"
+      "source_location": "L150"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version",
       "label": "version",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L138"
+      "source_location": "L151"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version_source",
       "label": "version_source",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L139"
+      "source_location": "L152"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_sha",
       "label": "git_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L140"
+      "source_location": "L153"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_commit",
       "label": "git_commit",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L141"
+      "source_location": "L154"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_dirty",
       "label": "git_dirty",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L142"
+      "source_location": "L155"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_tree_sha",
       "label": "git_tree_sha",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L143"
+      "source_location": "L156"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_describe",
       "label": "git_describe",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L144"
+      "source_location": "L157"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash",
       "label": "workflow_hash",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L145"
+      "source_location": "L158"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash_algorithm",
       "label": "workflow_hash_algorithm",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L146"
+      "source_location": "L159"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
       "label": "image",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L147"
+      "source_location": "L160"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_containerized",
       "label": "containerized",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L148"
+      "source_location": "L161"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_kind",
       "label": "kind",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L149"
+      "source_location": "L162"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_digest",
       "label": "digest",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L150"
+      "source_location": "L163"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_reference",
       "label": "reference",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L151"
+      "source_location": "L164"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_revision",
       "label": "revision",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L152"
+      "source_location": "L165"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_env_lock_sha256",
       "label": "env_lock_sha256",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L153"
+      "source_location": "L166"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_image_validation",
       "label": "validation",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L154"
+      "source_location": "L167"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_stamped_by",
       "label": "stamped_by",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L156"
+      "source_location": "L169"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_source_commit",
       "label": "source_commit",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L157"
+      "source_location": "L170"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
       "label": "tool_versions",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L158"
+      "source_location": "L171"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_macs3",
       "label": "macs3",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L159"
+      "source_location": "L172"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_bedtools",
       "label": "bedtools",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L160"
+      "source_location": "L173"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_pydeseq2",
       "label": "pydeseq2",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L161"
+      "source_location": "L174"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_seed",
       "label": "seed",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L163"
+      "source_location": "L176"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_determinism",
       "label": "determinism",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L164"
+      "source_location": "L177"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_generated_utc",
       "label": "generated_utc",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L165"
+      "source_location": "L178"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_note",
       "label": "note",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L166"
+      "source_location": "L179"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_motif_enrichment",
@@ -24890,7 +24995,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -25135,7 +25240,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -25157,7 +25262,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -25570,6 +25675,41 @@
       "file_type": "code",
       "source_file": "scripts/run_b4_null_narrative.py",
       "source_location": "L21"
+    },
+    {
+      "id": "scripts_run_bulk_atac_marker_mapping",
+      "label": "run_bulk_atac_marker_mapping.py",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_bulk_atac_marker_mapping_read_rows",
+      "label": "_read_rows()",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "scripts_run_bulk_atac_marker_mapping_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "scripts_run_bulk_atac_marker_mapping_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "scripts_run_bulk_atac_marker_mapping_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L31"
     },
     {
       "id": "scripts_run_bulk_atac_v47_provenance",
@@ -27110,6 +27250,48 @@
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_diffacc.py",
       "source_location": "L243"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping",
+      "label": "test_bulk_atac_marker_mapping.py",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping_test_parse_peak_interval",
+      "label": "test_parse_peak_interval()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping_da_rows",
+      "label": "_da_rows()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L29"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping_test_mapping_is_deterministic_and_window_scoped",
+      "label": "test_mapping_is_deterministic_and_window_scoped()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping_test_mapping_no_peaks_returns_none_never_imputed",
+      "label": "test_mapping_no_peaks_returns_none_never_imputed()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "tests_test_bulk_atac_marker_mapping_test_v47_artifact_scopes_claim_and_marks_markers_illustrative",
+      "label": "test_v47_artifact_scopes_claim_and_marks_markers_illustrative()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L63"
     },
     {
       "id": "tests_test_bulk_atac_peak_counts",
@@ -35923,10 +36105,151 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
+    },
+    {
+      "id": "orchestrator_agent",
+      "label": "OrchestratorAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "data_audit_agent",
+      "label": "DataAuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "design_agent",
+      "label": "DesignAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "narrative_agent",
+      "label": "NarrativeAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "biological_synthesis_agent",
+      "label": "BiologicalSynthesisAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -60074,6 +60397,104 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/b2_annotation.py",
       "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping",
+      "target": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_int",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "target": "aria_benchmarks_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "target": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_marker_mapping.py",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -104733,7 +105154,7 @@
     },
     {
       "source": "bulk_atac_v47_k562_gm12878_da_validation",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104741,8 +105162,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_convention",
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_scope",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104750,8 +105171,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_correct",
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_validates",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104759,8 +105180,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_total",
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_does_not_validate",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104768,8 +105189,8 @@
       "weight": 1.0
     },
     {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_markers",
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_scope_calibration_validated_elsewhere",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104778,34 +105199,97 @@
     },
     {
       "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_convention",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_interpretation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_reproducible_method",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_declared_parameters",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_marker_peak_to_gene_mapping",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_marker_peak_to_gene_mapping_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_correct",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_total",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_markers",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
       "target": "bulk_atac_v47_k562_gm12878_da_validation_lane_fixes_landed",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L122",
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_caveats",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L127",
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_level",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L133",
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_atac_v47_k562_gm12878_da_validation",
-      "target": "bulk_atac_v47_k562_gm12878_da_validation_de_da_core",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
@@ -104814,11 +105298,38 @@
     },
     {
       "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_caveats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_validation_level",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_de_da_core",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
       "target": "bulk_atac_v47_k562_gm12878_da_validation_aria_version",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L135",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -104827,7 +105338,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L136",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -104836,7 +105347,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L137",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -104845,7 +105356,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L138",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -104854,7 +105365,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L139",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -104863,7 +105374,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L140",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -104872,7 +105383,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L141",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -104881,7 +105392,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L142",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -104890,7 +105401,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L143",
+      "source_location": "L156",
       "weight": 1.0
     },
     {
@@ -104899,7 +105410,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L144",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -104908,7 +105419,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L145",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -104917,7 +105428,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L146",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -104926,7 +105437,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L147",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -104935,7 +105446,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L148",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -104944,7 +105455,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L149",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -104953,7 +105464,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L150",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
@@ -104962,7 +105473,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L151",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -104971,7 +105482,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L152",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -104980,7 +105491,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L153",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -104989,7 +105500,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L154",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -104998,7 +105509,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L156",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -105007,7 +105518,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L157",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -105016,7 +105527,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L158",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -105025,7 +105536,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L159",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -105034,7 +105545,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L160",
+      "source_location": "L173",
       "weight": 1.0
     },
     {
@@ -105043,7 +105554,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L161",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -105052,7 +105563,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L163",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -105061,7 +105572,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L164",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -105070,7 +105581,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L165",
+      "source_location": "L178",
       "weight": 1.0
     },
     {
@@ -105079,7 +105590,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L166",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -108558,7 +109069,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -108611,7 +109122,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108621,7 +109132,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108631,7 +109142,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108641,7 +109152,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108651,7 +109162,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108973,7 +109484,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -108982,7 +109493,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -109017,7 +109528,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -109027,7 +109538,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_j2duaf_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_t4pp9v_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -109508,6 +110019,64 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_b4_null_narrative.py",
       "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping",
+      "target": "scripts_run_bulk_atac_marker_mapping_read_rows",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping_read_rows",
+      "target": "scripts_run_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping",
+      "target": "scripts_run_bulk_atac_marker_mapping_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping_main",
+      "target": "scripts_run_bulk_atac_marker_mapping_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping_main",
+      "target": "scripts_run_bulk_atac_marker_mapping_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_marker_mapping_main",
+      "target": "scripts_run_bulk_atac_marker_mapping_read_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -111914,6 +112483,71 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
       "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "tests_test_bulk_atac_marker_mapping_test_parse_peak_interval",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "tests_test_bulk_atac_marker_mapping_da_rows",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "tests_test_bulk_atac_marker_mapping_test_mapping_is_deterministic_and_window_scoped",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "tests_test_bulk_atac_marker_mapping_test_mapping_no_peaks_returns_none_never_imputed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "tests_test_bulk_atac_marker_mapping_test_v47_artifact_scopes_claim_and_marks_markers_illustrative",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping_test_mapping_is_deterministic_and_window_scoped",
+      "target": "tests_test_bulk_atac_marker_mapping_da_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping_test_mapping_no_peaks_returns_none_never_imputed",
+      "target": "tests_test_bulk_atac_marker_mapping_da_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -132277,6 +132911,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_bulk_atac_marker_mapping",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_bulk_atac_v47_provenance",
       "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
       "relation": "imports",
@@ -133124,6 +133768,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
       "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping",
+      "target": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -139537,6 +140201,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_bulk_atac_marker_mapping_main",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_marker_mapping.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_bulk_atac_v47_provenance_main",
       "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
       "relation": "calls",
@@ -140924,6 +141598,36 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_diffacc.py",
       "source_location": "L251",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping_test_parse_peak_interval",
+      "target": "benchmarks_bulk_atac_marker_mapping_parse_peak_interval",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping_test_mapping_is_deterministic_and_window_scoped",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_marker_mapping_test_mapping_no_peaks_returns_none_never_imputed",
+      "target": "benchmarks_bulk_atac_marker_mapping_map_peaks_to_gene_markers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_marker_mapping.py",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -148501,8 +149205,90 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3727",
       "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "design_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "structure_only": true
 }
