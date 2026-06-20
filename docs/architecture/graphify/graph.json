@@ -6119,6 +6119,62 @@
       "source_location": "L141"
     },
     {
+      "id": "benchmarks_bulk_atac_v47_provenance",
+      "label": "bulk_atac_v47_provenance.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "label": "_strip_provenance()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "label": "stamp_body()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_v47_provenance_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "aria_benchmarks_bulk_atac_v47_provenance_py_datetime",
+      "label": "datetime",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "label": "stamp_artifacts()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109"
+    },
+    {
       "id": "benchmarks_concordance_atac",
       "label": "concordance_atac.py",
       "file_type": "code",
@@ -8436,7 +8492,7 @@
       "source_location": "L199"
     },
     {
-      "id": "datetime",
+      "id": "aria_runtime_experiment_view_py_datetime",
       "label": "datetime",
       "file_type": "code",
       "source_file": "aria/runtime/experiment_view.py",
@@ -21530,294 +21586,504 @@
       "label": "GM12878",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L18"
+      "source_location": "L21"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_gm12878_experiment",
       "label": "experiment",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L19"
+      "source_location": "L22"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_gm12878_lab",
       "label": "lab",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L20"
+      "source_location": "L23"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_gm12878_lineage",
       "label": "lineage",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L21"
+      "source_location": "L24"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_gm12878_filtered_alignments",
       "label": "filtered_alignments",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L22"
+      "source_location": "L25"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_dataset_note",
       "label": "note",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L25"
+      "source_location": "L31"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_pipeline",
       "label": "pipeline",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L27"
+      "source_location": "L33"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_pipeline_peak_calling",
       "label": "peak_calling",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L28"
+      "source_location": "L34"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_peak_calling_tool",
       "label": "tool",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L29"
+      "source_location": "L35"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_peak_calling_mode",
       "label": "mode",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L30"
+      "source_location": "L36"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_peak_calling_params",
       "label": "params",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L31"
+      "source_location": "L37"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_peak_calling_n_peaks",
       "label": "n_peaks",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L32"
+      "source_location": "L38"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_pipeline_counting",
       "label": "counting",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L34"
+      "source_location": "L40"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_counting_tool",
       "label": "tool",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L35"
+      "source_location": "L41"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_counting_method",
       "label": "method",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L36"
+      "source_location": "L42"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_counting_note",
       "label": "note",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L37"
+      "source_location": "L43"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_pipeline_differential_accessibility",
       "label": "differential_accessibility",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L39"
+      "source_location": "L45"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_tool",
       "label": "tool",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L40"
+      "source_location": "L46"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_model",
       "label": "model",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L41"
+      "source_location": "L47"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_padj_max",
       "label": "padj_max",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L42"
+      "source_location": "L48"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_lfc_min",
       "label": "lfc_min",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L43"
+      "source_location": "L49"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_min_replicates_per_condition",
       "label": "min_replicates_per_condition",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L44"
+      "source_location": "L50"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_differential_accessibility_convergence_gate",
       "label": "convergence_gate",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L45"
+      "source_location": "L51"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result",
       "label": "result",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L48"
+      "source_location": "L54"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_comparison",
       "label": "comparison",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L49"
+      "source_location": "L55"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_n_peaks_tested",
       "label": "n_peaks_tested",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L50"
+      "source_location": "L56"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_n_replicate_samples",
       "label": "n_replicate_samples",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L51"
+      "source_location": "L57"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_n_significant",
       "label": "n_significant",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L52"
+      "source_location": "L58"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_fraction_significant",
       "label": "fraction_significant",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L53"
+      "source_location": "L59"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_n_up_gm12878",
       "label": "n_up_GM12878",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L54"
+      "source_location": "L60"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_n_up_k562",
       "label": "n_up_K562",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L55"
+      "source_location": "L61"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_low_power_warning",
       "label": "low_power_warning",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L56"
+      "source_location": "L62"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_result_low_power_reason",
       "label": "low_power_reason",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L57"
+      "source_location": "L63"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity",
       "label": "biological_sanity",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L59"
+      "source_location": "L65"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_convention",
       "label": "convention",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L60"
+      "source_location": "L66"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_correct",
       "label": "n_markers_correct",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L61"
+      "source_location": "L67"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_n_markers_total",
       "label": "n_markers_total",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L62"
+      "source_location": "L68"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_biological_sanity_markers",
       "label": "markers",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L63"
+      "source_location": "L69"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_lane_fixes_landed",
       "label": "lane_fixes_landed",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L73"
+      "source_location": "L122"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_caveats",
       "label": "caveats",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L78"
+      "source_location": "L127"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_validation_level",
       "label": "validation_level",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L84"
+      "source_location": "L133"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_da_validation_de_da_core",
       "label": "de_da_core",
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L85"
+      "source_location": "L134"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L135"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L136"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L137"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L138"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L139"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L140"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L141"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L142"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L143"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L144"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L145"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L146"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L147"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L148"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L149"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L150"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L151"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L152"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L153"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L154"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_stamped_by",
+      "label": "stamped_by",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L156"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_source_commit",
+      "label": "source_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L157"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
+      "label": "tool_versions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L158"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_macs3",
+      "label": "macs3",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L159"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_bedtools",
+      "label": "bedtools",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L160"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_pydeseq2",
+      "label": "pydeseq2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L161"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_seed",
+      "label": "seed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L163"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_determinism",
+      "label": "determinism",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L164"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_generated_utc",
+      "label": "generated_utc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L165"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_da_validation_provenance_note",
+      "label": "note",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L166"
     },
     {
       "id": "bulk_atac_v47_k562_gm12878_motif_enrichment",
@@ -22028,6 +22294,216 @@
       "file_type": "code",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
       "source_location": "L247"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L252"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L253"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L254"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L255"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L256"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L257"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L258"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L259"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L260"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L261"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L262"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L263"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L264"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L265"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L266"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L267"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L268"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L269"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L270"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L271"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_stamped_by",
+      "label": "stamped_by",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L273"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_source_commit",
+      "label": "source_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L274"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_tool_versions",
+      "label": "tool_versions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L275"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_engine",
+      "label": "engine",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L276"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_snapatac2",
+      "label": "snapatac2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L277"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_motif_collection",
+      "label": "motif_collection",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L278"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_seed",
+      "label": "seed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L280"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_determinism",
+      "label": "determinism",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L281"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_generated_utc",
+      "label": "generated_utc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L282"
+    },
+    {
+      "id": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_note",
+      "label": "note",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L283"
     },
     {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance",
@@ -24372,7 +24848,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -24617,7 +25093,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -24639,7 +25115,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -25052,6 +25528,34 @@
       "file_type": "code",
       "source_file": "scripts/run_b4_null_narrative.py",
       "source_location": "L21"
+    },
+    {
+      "id": "scripts_run_bulk_atac_v47_provenance",
+      "label": "run_bulk_atac_v47_provenance.py",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_bulk_atac_v47_provenance_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_bulk_atac_v47_provenance_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_bulk_atac_v47_provenance_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22"
     },
     {
       "id": "scripts_run_scatac_concordance_benchmark",
@@ -26732,6 +27236,41 @@
       "file_type": "code",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L501"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_provenance",
+      "label": "test_bulk_atac_v47_provenance.py",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_provenance_test_every_bulk_atac_json_has_provenance",
+      "label": "test_every_bulk_atac_json_has_provenance()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_provenance_test_stamping_preserves_scientific_body",
+      "label": "test_stamping_preserves_scientific_body()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_provenance_test_stamping_is_idempotent",
+      "label": "test_stamping_is_idempotent()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "tests_test_bulk_atac_v47_provenance_test_stamp_artifacts_round_trips_real_files",
+      "label": "test_stamp_artifacts_round_trips_real_files()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L65"
     },
     {
       "id": "tests_test_bulk_covariates",
@@ -35293,10 +35832,162 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
+    },
+    {
+      "id": "orchestrator_agent",
+      "label": "OrchestratorAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "data_audit_agent",
+      "label": "DataAuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "design_agent",
+      "label": "DesignAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "narrative_agent",
+      "label": "NarrativeAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "biological_synthesis_agent",
+      "label": "BiologicalSynthesisAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -51004,16 +51695,6 @@
     },
     {
       "source": "narrative_report_builder",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L15",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder",
       "target": "narrative_report_builder_normalize_exec_summary_number",
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -54446,16 +55127,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/validators.py",
       "source_location": "L246",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_agent",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -59464,6 +60135,273 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/b2_annotation.py",
       "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_datetime",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "aria_version",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_datetime",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_datetime",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "benchmarks_bulk_atac_v47_provenance_strip_provenance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "aria_benchmarks_bulk_atac_v47_provenance_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -65892,16 +66830,6 @@
     },
     {
       "source": "bus_message_bus",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": "L15",
-      "weight": 1.0
-    },
-    {
-      "source": "bus_message_bus",
       "target": "enum",
       "relation": "imports_from",
       "context": "import",
@@ -69123,16 +70051,6 @@
     },
     {
       "source": "llm_provider",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/llm/provider.py",
-      "source_location": "L25",
-      "weight": 1.0
-    },
-    {
-      "source": "llm_provider",
       "target": "enum",
       "relation": "imports_from",
       "context": "import",
@@ -70061,7 +70979,7 @@
     },
     {
       "source": "runtime_experiment_view",
-      "target": "datetime",
+      "target": "aria_runtime_experiment_view_py_datetime",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -70219,7 +71137,7 @@
     },
     {
       "source": "runtime_experiment_view_heartbeat_event",
-      "target": "datetime",
+      "target": "aria_runtime_experiment_view_py_datetime",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
@@ -71070,7 +71988,7 @@
     },
     {
       "source": "runtime_experiment_view_build_snapshot",
-      "target": "datetime",
+      "target": "aria_runtime_experiment_view_py_datetime",
       "relation": "references",
       "context": "generic_arg",
       "confidence": "EXTRACTED",
@@ -71080,7 +71998,7 @@
     },
     {
       "source": "runtime_experiment_view_build_snapshot",
-      "target": "datetime",
+      "target": "aria_runtime_experiment_view_py_datetime",
       "relation": "references",
       "context": "generic_arg",
       "confidence": "EXTRACTED",
@@ -91822,16 +92740,6 @@
     },
     {
       "source": "utils_provenance",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/utils/provenance.py",
-      "source_location": "L10",
-      "weight": 1.0
-    },
-    {
-      "source": "utils_provenance",
       "target": "utils_provenance_collect_provenance",
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -103506,7 +104414,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L18",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -103515,7 +104423,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L19",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -103524,7 +104432,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L20",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -103533,7 +104441,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L21",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -103542,7 +104450,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L22",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -103551,7 +104459,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L25",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -103560,7 +104468,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L27",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -103569,7 +104477,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L28",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
@@ -103578,7 +104486,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L29",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -103587,7 +104495,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L30",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -103596,7 +104504,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L31",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -103605,7 +104513,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L32",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -103614,7 +104522,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L34",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -103623,7 +104531,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L35",
+      "source_location": "L41",
       "weight": 1.0
     },
     {
@@ -103632,7 +104540,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L36",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -103641,7 +104549,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L37",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -103650,7 +104558,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L39",
+      "source_location": "L45",
       "weight": 1.0
     },
     {
@@ -103659,7 +104567,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L40",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -103668,7 +104576,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L41",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -103677,7 +104585,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L42",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -103686,7 +104594,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L43",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -103695,7 +104603,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L44",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -103704,7 +104612,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L45",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -103713,7 +104621,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L48",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -103722,7 +104630,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L49",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -103731,7 +104639,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L50",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -103740,7 +104648,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L51",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -103749,7 +104657,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L52",
+      "source_location": "L58",
       "weight": 1.0
     },
     {
@@ -103758,7 +104666,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L53",
+      "source_location": "L59",
       "weight": 1.0
     },
     {
@@ -103767,7 +104675,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L54",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -103776,7 +104684,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L55",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -103785,7 +104693,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L56",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -103794,7 +104702,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L57",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -103803,7 +104711,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L59",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -103812,7 +104720,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L60",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -103821,7 +104729,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L61",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -103830,7 +104738,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L62",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -103839,7 +104747,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L63",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -103848,7 +104756,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L73",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -103857,7 +104765,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L78",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -103866,7 +104774,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L84",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -103875,7 +104783,277 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
-      "source_location": "L85",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_stamped_by",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_source_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_macs3",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L159",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_bedtools",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_tool_versions_pydeseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_determinism",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L164",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_generated_utc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_da_validation_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_da_validation_provenance_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_da_validation.json",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -104137,6 +105315,276 @@
       "confidence": "EXTRACTED",
       "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
       "source_location": "L247",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L252",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L253",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L254",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L255",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L256",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L257",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L258",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L259",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L260",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L261",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L262",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L264",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L266",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L267",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_image",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L271",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_stamped_by",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_source_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L274",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_tool_versions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L275",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_engine",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_snapatac2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L277",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_tool_versions",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_tool_versions_motif_collection",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L278",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L280",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_determinism",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L281",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_generated_utc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L282",
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance",
+      "target": "bulk_atac_v47_k562_gm12878_motif_enrichment_provenance_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/bulk_atac/v47_k562_gm12878_motif_enrichment.json",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -107084,7 +108532,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -107137,7 +108585,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107147,7 +108595,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107157,7 +108605,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107167,7 +108615,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107177,7 +108625,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107213,16 +108661,6 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
       "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_fetch_genesets",
-      "target": "datetime",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/fetch_genesets.py",
-      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -107334,16 +108772,6 @@
     },
     {
       "source": "scripts_fetch_motifs",
-      "target": "datetime",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/fetch_motifs.py",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_fetch_motifs",
       "target": "scripts_fetch_motifs_collection_name",
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -107398,16 +108826,6 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/fetch_motifs.py",
       "source_location": "L75",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_fetch_seqc_maqc_reference",
-      "target": "datetime",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/fetch_seqc_maqc_reference.py",
-      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -107529,7 +108947,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -107538,7 +108956,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -107573,7 +108991,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107583,7 +109001,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ciu0fm_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zfhsco_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -108064,6 +109482,35 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_b4_null_narrative.py",
       "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_v47_provenance",
+      "target": "scripts_run_bulk_atac_v47_provenance_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_v47_provenance_main",
+      "target": "scripts_run_bulk_atac_v47_provenance_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_bulk_atac_v47_provenance_main",
+      "target": "scripts_run_bulk_atac_v47_provenance_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -110739,6 +112186,42 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L507",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "tests_test_bulk_atac_v47_provenance_test_every_bulk_atac_json_has_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "tests_test_bulk_atac_v47_provenance_test_stamping_preserves_scientific_body",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "tests_test_bulk_atac_v47_provenance_test_stamping_is_idempotent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "tests_test_bulk_atac_v47_provenance_test_stamp_artifacts_round_trips_real_files",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -117321,16 +118804,6 @@
     },
     {
       "source": "tests_test_experiment_view",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_experiment_view.py",
-      "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_experiment_view",
       "target": "tests_test_experiment_view_eid",
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -119654,16 +121127,6 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_llm_provider_fallback.py",
       "source_location": "L112",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_llm_reliability",
-      "target": "datetime",
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_llm_reliability.py",
-      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -128234,6 +129697,16 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_bulk_atac_v47_provenance",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_concordance_atac",
       "target": "benchmarks_synthetic_de_rank_biased_overlap",
       "relation": "imports",
@@ -130704,6 +132177,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_scatac_concordance_benchmark",
       "target": "scripts_benchmark_scatac_concordance_benchmark_scatac_concordance",
       "relation": "imports",
@@ -131651,6 +133134,26 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L374",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -136024,6 +137527,16 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_concordance_atac_motif_concordance",
       "target": "benchmarks_synthetic_de_rank_biased_overlap",
       "relation": "calls",
@@ -137874,6 +139387,16 @@
       "weight": 1.0
     },
     {
+      "source": "scripts_run_bulk_atac_v47_provenance_main",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_bulk_atac_v47_provenance.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_run_scatac_concordance_benchmark_main",
       "target": "scripts_benchmark_scatac_concordance_benchmark_scatac_concordance",
       "relation": "calls",
@@ -139391,6 +140914,36 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_atac_v47.py",
       "source_location": "L428",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance_test_stamping_preserves_scientific_body",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance_test_stamping_is_idempotent",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_body",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_atac_v47_provenance_test_stamp_artifacts_round_trips_real_files",
+      "target": "benchmarks_bulk_atac_v47_provenance_stamp_artifacts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_atac_v47_provenance.py",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -146748,8 +148301,150 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3727",
       "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "design_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "chromatin_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "narrative_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_diffacc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "structure_only": true
 }
