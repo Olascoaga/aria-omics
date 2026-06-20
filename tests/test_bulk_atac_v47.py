@@ -254,3 +254,70 @@ def test_bulk_atac_narrator_surfaces_qc_and_peak_calling_under_strict_gate():
     assert "MACS3 peak calling for bulk ATAC identified 23456 peaks" in html
     assert "Bulk ATAC peak counting produced a matrix with 23456 peaks across 2 samples" in html
     assert "Bulk ATAC DESeq2 differential accessibility ran 1 comparison" in html
+
+
+def test_bulk_atac_methods_report_caller_counting_and_model_params():
+    """The methods section reports real aligner-input/caller/counting/model
+    parameters for bulk ATAC and never falls back to the scATAC Wilcoxon
+    marker language."""
+    from aria.agents.narrative.narrators.chromatin import ChromatinNarrator
+
+    findings = {
+        "bulk_ATAC": {
+            "status": "done",
+            "findings": {
+                "qc": {
+                    "status": "success", "data_type": "bulk_ATAC",
+                    "n_samples": 4, "mito_fraction": 0.03,
+                },
+                "peaks": {
+                    "status": "success", "data_type": "bulk_ATAC",
+                    "n_peaks": 124544, "genome": "hg38",
+                    "consensus_peaks_path": "/tmp/consensus.narrowPeak",
+                    "macs3_cmd": ("macs3 callpeak -t a.bam b.bam -f BAMPE "
+                                  "-g hs --nomodel --keep-dup all -q 0.05"),
+                },
+                "peak_counts": {
+                    "status": "success", "data_type": "bulk_ATAC",
+                    "counting_method": "bedtools coverage -sorted -counts",
+                    "n_peaks": 124544, "n_samples": 4,
+                },
+                "differential_accessibility": {
+                    "status": "success", "ran": True, "data_type": "bulk_ATAC",
+                    "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+                    "n_replicate_samples": 4,
+                    "condition_col": "cell_line", "replicate_col": "replicate",
+                    "covariates_adjusted": [],
+                    "padj_max": 0.05, "lfc_min": 0.5,
+                    "min_replicates_per_condition": 2,
+                    "comparisons": [{
+                        "test": "K562", "reference": "GM12878",
+                        "status": "success",
+                        "fitted_design_formula": "~ cell_line",
+                        "low_power_warning": True,
+                    }],
+                },
+            },
+        }
+    }
+    agent_result = {"status": "done", "findings": findings}
+    methods = ChromatinNarrator().methods("chromatin_agent", agent_result, {})
+    blob = " ".join(methods)
+
+    # caller params (incl. the exact reproducible MACS3 command)
+    assert "MACS3" in blob and "macs3 callpeak" in blob and "hg38" in blob
+    assert "consensus peak universe" in blob
+    # counting params
+    assert "bedtools coverage -sorted -counts" in blob
+    assert "peak-by-sample count matrix" in blob
+    # model params
+    assert "replicate-level DESeq2" in blob
+    assert "cell_line" in blob and "replicate" in blob
+    assert "~ cell_line" in blob
+    assert "|log2FC| >= 0.5" in blob and "adjusted p <= 0.05" in blob
+    assert "At least 2 replicates per condition" in blob
+    assert "low-power warning" in blob
+    # honesty: ARIA does not realign, and no scATAC marker language leaks
+    assert "does not realign" in blob
+    assert "Wilcoxon" not in blob
+    assert "per-cluster" not in blob

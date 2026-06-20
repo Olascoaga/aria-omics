@@ -60,6 +60,19 @@ def _modality_label(data_type: str | None) -> str:
     return labels.get(str(data_type or ""), "chromatin")
 
 
+def _is_bulk_atac(findings: dict) -> bool:
+    """True when the (unwrapped) findings come from the bulk ATAC lane.
+
+    Bulk ATAC and scATAC are separate dispatch lanes, so any one
+    ``data_type == "bulk_ATAC"`` stamp on QC/peaks/counts/DA is decisive.
+    """
+    for key in ("qc", "peaks", "peak_counts", "differential_accessibility"):
+        sub = findings.get(key)
+        if isinstance(sub, dict) and sub.get("data_type") == "bulk_ATAC":
+            return True
+    return False
+
+
 # ChromatinAgent.run() returns findings keyed by modality, with the analysis
 # results nested one level deeper, e.g.
 #   {"findings": {"scATAC": {"status": "done",
@@ -734,9 +747,79 @@ class ChromatinNarrator:
         )
 
     # ── Methods + tables ────────────────────────────────────────────────────
+    def _bulk_atac_methods(self, findings: dict) -> list[str]:
+        """Copy-pasteable bulk ATAC methods (aligner-input/caller/counting/
+        model parameters), sourced ONLY from measured findings so the section
+        never fabricates a parameter that was not actually used."""
+        out: list[str] = []
+        if _ok(findings.get("qc")):
+            out.append(
+                "Bulk ATAC QC reports only measured library metrics "
+                "(per-sample fragment/read counts, mitochondrial fraction, "
+                "duplicate rate); FRiP is reported only when post-peak-calling "
+                "read counting succeeds and is never default-filled.")
+        peaks = findings.get("peaks") or {}
+        if _ok(peaks):
+            line = (
+                f"Bulk ATAC peak calling: MACS3 on the provided aligned "
+                f"BAM/CRAM input(s) (genome {peaks.get('genome', '?')}); ARIA "
+                f"consumes existing alignments and does not realign in this "
+                f"lane. {peaks.get('n_peaks', '?')} peaks were called")
+            if peaks.get("consensus_peaks_path"):
+                line += (", and per-replicate peaks were merged into a "
+                         "consensus peak universe")
+            cmd = peaks.get("macs3_cmd")
+            line += f". Exact MACS3 command: {cmd}." if cmd else "."
+            out.append(line)
+        counts = findings.get("peak_counts") or {}
+        if _ok(counts):
+            out.append(
+                f"Peak quantification: per-peak counts for each sample using "
+                f"{counts.get('counting_method', 'bedtools coverage')} over "
+                f"the called peak universe ({counts.get('n_peaks', '?')} peaks "
+                f"x {counts.get('n_samples', '?')} samples), producing a "
+                f"peak-by-sample count matrix.")
+        da = findings.get("differential_accessibility") or {}
+        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+            covariates = da.get("covariates_adjusted") or []
+            cov_txt = (f", adjusting for {', '.join(map(str, covariates))}"
+                       if covariates else "")
+            comparisons = da.get("comparisons") or []
+            design = next((c.get("fitted_design_formula") for c in comparisons
+                           if isinstance(c, dict)
+                           and c.get("fitted_design_formula")), None)
+            line = (
+                f"Bulk ATAC differential accessibility: technical samples were "
+                f"aggregated to biological replicate-level counts "
+                f"(condition::replicate), all-zero peaks dropped, then tested "
+                f"with {da.get('method', 'replicate-level DESeq2')} on "
+                f"{da.get('n_replicate_samples', '?')} replicate samples "
+                f"comparing {da.get('condition_col', 'condition')} levels "
+                f"(replicate factor {da.get('replicate_col', 'replicate')}"
+                f"{cov_txt})")
+            if design:
+                line += f" with design {design}"
+            line += (
+                f". Peaks with |log2FC| >= {da.get('lfc_min', '?')} and "
+                f"adjusted p <= {da.get('padj_max', '?')} were called "
+                f"differentially accessible, and non-converged log2 "
+                f"fold-changes were gated out. At least "
+                f"{da.get('min_replicates_per_condition', '?')} replicates per "
+                f"condition are required")
+            if any(isinstance(c, dict) and c.get("low_power_warning")
+                   for c in comparisons):
+                line += ("; this run carried a low-power warning because a "
+                         "condition had fewer replicates than the default "
+                         "floor")
+            line += "."
+            out.append(line)
+        return out
+
     def methods(self, agent_name: str, agent_result: dict,
                 context: dict | None = None) -> list[str]:
         findings = unwrap_chromatin_findings(agent_result)
+        if _is_bulk_atac(findings):
+            return self._bulk_atac_methods(findings)
         out: list[str] = []
         if _ok(findings.get("qc")):
             out.append(
