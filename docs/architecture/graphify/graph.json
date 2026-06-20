@@ -733,280 +733,280 @@
       "label": "_is_fastq()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L54"
+      "source_location": "L36"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L54"
+      "source_location": "L36"
     },
     {
       "id": "agents_bulk_rna_agent_default_lfc_threshold",
       "label": "_default_lfc_threshold()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L68"
+      "source_location": "L50"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L68"
+      "source_location": "L50"
     },
     {
       "id": "agents_bulk_rna_agent_suggest_lfc_profile",
       "label": "suggest_lfc_profile()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L73"
+      "source_location": "L55"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L73"
+      "source_location": "L55"
     },
     {
       "id": "agents_bulk_rna_agent_normalise_sample_token",
       "label": "_normalise_sample_token()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L94"
+      "source_location": "L76"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent",
       "label": "BulkRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L98"
+      "source_location": "L80"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103"
+      "source_location": "L85"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103"
+      "source_location": "L85"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_llmprovider",
       "label": "LLMProvider",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103"
+      "source_location": "L85"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L109"
+      "source_location": "L91"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_apply_design",
       "label": "._apply_design()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L263"
+      "source_location": "L253"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_discover_groups",
       "label": "._discover_groups()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L381"
+      "source_location": "L371"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_filename_fallback_allowed",
       "label": "._filename_fallback_allowed()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L392"
+      "source_location": "L382"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_design_covariates",
       "label": "._design_covariates()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L401"
+      "source_location": "L391"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_normalise_explicit_contrasts",
       "label": "._normalise_explicit_contrasts()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L415"
+      "source_location": "L405"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_write_design_metadata",
       "label": "._write_design_metadata()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461"
+      "source_location": "L451"
     },
     {
       "id": "aria_agents_bulk_rna_agent_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461"
+      "source_location": "L451"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_suggest_contrasts_from_groups",
       "label": "._suggest_contrasts_from_groups()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L476"
+      "source_location": "L466"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_block_for_explicit_contrast",
       "label": "._block_for_explicit_contrast()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L507"
+      "source_location": "L497"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_read_sample_names",
       "label": "._read_sample_names()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L561"
+      "source_location": "L551"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_infer_groups_local",
       "label": "._infer_groups_local()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L570"
+      "source_location": "L560"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_infer_col_groups",
       "label": "._infer_col_groups()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L580"
+      "source_location": "L570"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_build_contrasts",
       "label": "._build_contrasts()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L596"
+      "source_location": "L586"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_infer_design_factor",
       "label": "._infer_design_factor()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L604"
+      "source_location": "L594"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_map_entities_to_labels",
       "label": "._map_entities_to_labels()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L611"
+      "source_location": "L601"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_llm_match_labels",
       "label": "._llm_match_labels()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L631"
+      "source_location": "L621"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_identify_control",
       "label": "._identify_control()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L643"
+      "source_location": "L633"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_humanize_contrast",
       "label": "._humanize_contrast()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L653"
+      "source_location": "L643"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_record_methodology_decisions",
       "label": "._record_methodology_decisions()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L657"
+      "source_location": "L647"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_run_preprocessing",
       "label": "._run_preprocessing()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L700"
+      "source_location": "L690"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_publish_findings",
       "label": "._publish_findings()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L724"
+      "source_location": "L714"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_publish_single_contrast_findings",
       "label": "._publish_single_contrast_findings()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L741"
+      "source_location": "L731"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_publish_fastq_qc_findings",
       "label": "._publish_fastq_qc_findings()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L746"
+      "source_location": "L736"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_publish_alignment_findings",
       "label": "._publish_alignment_findings()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L751"
+      "source_location": "L741"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_interpret",
       "label": "._interpret()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L758"
+      "source_location": "L748"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_interpret_single",
       "label": "._interpret_single()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L767"
+      "source_location": "L754"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_output_dir",
       "label": "._output_dir()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L772"
+      "source_location": "L760"
     },
     {
       "id": "agents_bulk_rna_agent_bulkrnaagent_receive",
       "label": ".receive()",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L774"
+      "source_location": "L762"
     },
     {
       "id": "agents_chromatin_agent",
@@ -5066,63 +5066,63 @@
       "label": "._summarize_rna()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1394"
+      "source_location": "L1392"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_chromatin",
       "label": "._summarize_chromatin()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1403"
+      "source_location": "L1401"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_hic",
       "label": "._summarize_hic()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1428"
+      "source_location": "L1426"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_integration",
       "label": "._summarize_integration()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1461"
+      "source_location": "L1459"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_summarize_conflicts",
       "label": "._summarize_conflicts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1506"
+      "source_location": "L1504"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_group_findings",
       "label": "._group_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1564"
+      "source_location": "L1562"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_get_decisions_log",
       "label": "._get_decisions_log()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1584"
+      "source_location": "L1582"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_fallback_executive_summary",
       "label": "._fallback_executive_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1591"
+      "source_location": "L1589"
     },
     {
       "id": "agents_narrative_agent_narrativeagent_receive",
       "label": ".receive()",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1604"
+      "source_location": "L1602"
     },
     {
       "id": "agents_orchestrator_agent",
@@ -24365,7 +24365,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -24610,7 +24610,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -24632,7 +24632,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -26895,11 +26895,18 @@
       "source_location": "L118"
     },
     {
+      "id": "tests_test_bulk_report_text_test_legacy_bulk_summary_omits_free_text_interpretation",
+      "label": "test_legacy_bulk_summary_omits_free_text_interpretation()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_report_text.py",
+      "source_location": "L132"
+    },
+    {
       "id": "tests_test_bulk_report_text_test_bulk_report_layout_and_single_modality_wording",
       "label": "test_bulk_report_layout_and_single_modality_wording()",
       "file_type": "code",
       "source_file": "tests/test_bulk_report_text.py",
-      "source_location": "L132"
+      "source_location": "L149"
     },
     {
       "id": "tests_test_bulk_rna",
@@ -26958,109 +26965,116 @@
       "source_location": "L139"
     },
     {
+      "id": "tests_test_bulk_rna_test_bulk_rna_agent_does_not_generate_free_text_interpretation",
+      "label": "test_bulk_rna_agent_does_not_generate_free_text_interpretation()",
+      "file_type": "code",
+      "source_file": "tests/test_bulk_rna.py",
+      "source_location": "L150"
+    },
+    {
       "id": "tests_test_bulk_rna_test_sample_qc_reports_expected_keys",
       "label": "test_sample_qc_reports_expected_keys()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L151"
+      "source_location": "L245"
     },
     {
       "id": "tests_test_bulk_rna_test_sample_qc_runs_with_injected_outlier",
       "label": "test_sample_qc_runs_with_injected_outlier()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L162"
+      "source_location": "L256"
     },
     {
       "id": "tests_test_bulk_rna_test_mock_pathways_structure",
       "label": "test_mock_pathways_structure()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L174"
+      "source_location": "L268"
     },
     {
       "id": "tests_test_bulk_rna_test_gene_sets_by_organism",
       "label": "test_gene_sets_by_organism()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L180"
+      "source_location": "L274"
     },
     {
       "id": "tests_test_bulk_rna_test_run_pathway_enrichment_returns_triple",
       "label": "test_run_pathway_enrichment_returns_triple()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L187"
+      "source_location": "L281"
     },
     {
       "id": "tests_test_bulk_rna_patch_light_bulk_de",
       "label": "_patch_light_bulk_de()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L200"
+      "source_location": "L294"
     },
     {
       "id": "tests_test_bulk_rna_test_outlier_sensitivity_keeps_primary_unpruned",
       "label": "test_outlier_sensitivity_keeps_primary_unpruned()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L252"
+      "source_location": "L346"
     },
     {
       "id": "tests_test_bulk_rna_test_outlier_sensitivity_does_not_replace_primary",
       "label": "test_outlier_sensitivity_does_not_replace_primary()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L279"
+      "source_location": "L373"
     },
     {
       "id": "tests_test_bulk_rna_run_bulk",
       "label": "_run_bulk()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L304"
+      "source_location": "L398"
     },
     {
       "id": "tests_test_bulk_rna_test_bulk_de_e2e_pipeline",
       "label": "test_bulk_de_e2e_pipeline()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L321"
+      "source_location": "L415"
     },
     {
       "id": "tests_test_bulk_rna_test_bulk_de_multicontrast",
       "label": "test_bulk_de_multicontrast()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L336"
+      "source_location": "L430"
     },
     {
       "id": "tests_test_bulk_rna_test_replicate_concordance_detects_corruption",
       "label": "test_replicate_concordance_detects_corruption()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L353"
+      "source_location": "L447"
     },
     {
       "id": "tests_test_bulk_rna_test_deseq2_uses_design_factor",
       "label": "test_deseq2_uses_design_factor()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L375"
+      "source_location": "L469"
     },
     {
       "id": "tests_test_bulk_rna_test_insufficient_replicates_is_graceful",
       "label": "test_insufficient_replicates_is_graceful()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L386"
+      "source_location": "L480"
     },
     {
       "id": "tests_test_bulk_rna_test_golden_bulk_de_recovers_planted_genes",
       "label": "test_golden_bulk_de_recovers_planted_genes()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L399"
+      "source_location": "L493"
     },
     {
       "id": "tests_test_bus_durability",
@@ -38145,7 +38159,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L54",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -38155,7 +38169,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L54",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -38164,7 +38178,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L68",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -38174,7 +38188,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L68",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -38183,7 +38197,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L73",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -38193,7 +38207,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L73",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -38202,7 +38216,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L94",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -38212,7 +38226,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L94",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -38222,7 +38236,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L94",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -38231,7 +38245,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L98",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -38240,7 +38254,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L98",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -38249,7 +38263,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -38259,7 +38273,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -38269,7 +38283,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -38279,7 +38293,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L103",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
@@ -38288,7 +38302,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L109",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -38298,7 +38312,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L109",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -38307,7 +38321,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L263",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -38317,7 +38331,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L263",
+      "source_location": "L253",
       "weight": 1.0
     },
     {
@@ -38326,7 +38340,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L381",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -38335,7 +38349,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L392",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -38345,7 +38359,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L392",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -38354,7 +38368,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L401",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -38364,7 +38378,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L401",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -38373,7 +38387,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L415",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -38382,7 +38396,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38392,7 +38406,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38402,7 +38416,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38412,7 +38426,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38422,7 +38436,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38432,7 +38446,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38442,7 +38456,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L461",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -38451,7 +38465,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L476",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -38460,7 +38474,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L507",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -38470,7 +38484,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L507",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -38480,7 +38494,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L507",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -38489,7 +38503,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L561",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -38499,7 +38513,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L561",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -38509,7 +38523,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L561",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -38518,7 +38532,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L570",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -38528,7 +38542,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L570",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -38537,7 +38551,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L580",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -38547,7 +38561,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L580",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -38556,7 +38570,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L596",
+      "source_location": "L586",
       "weight": 1.0
     },
     {
@@ -38566,7 +38580,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L596",
+      "source_location": "L586",
       "weight": 1.0
     },
     {
@@ -38576,7 +38590,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L596",
+      "source_location": "L586",
       "weight": 1.0
     },
     {
@@ -38585,7 +38599,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L604",
+      "source_location": "L594",
       "weight": 1.0
     },
     {
@@ -38595,7 +38609,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L604",
+      "source_location": "L594",
       "weight": 1.0
     },
     {
@@ -38604,7 +38618,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L611",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -38613,7 +38627,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L631",
+      "source_location": "L621",
       "weight": 1.0
     },
     {
@@ -38622,7 +38636,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L643",
+      "source_location": "L633",
       "weight": 1.0
     },
     {
@@ -38632,7 +38646,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L643",
+      "source_location": "L633",
       "weight": 1.0
     },
     {
@@ -38641,7 +38655,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L653",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -38651,7 +38665,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L653",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -38661,7 +38675,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L653",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -38671,7 +38685,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L653",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -38680,7 +38694,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L657",
+      "source_location": "L647",
       "weight": 1.0
     },
     {
@@ -38690,7 +38704,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L657",
+      "source_location": "L647",
       "weight": 1.0
     },
     {
@@ -38699,7 +38713,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L700",
+      "source_location": "L690",
       "weight": 1.0
     },
     {
@@ -38709,7 +38723,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L700",
+      "source_location": "L690",
       "weight": 1.0
     },
     {
@@ -38718,7 +38732,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L724",
+      "source_location": "L714",
       "weight": 1.0
     },
     {
@@ -38728,7 +38742,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L724",
+      "source_location": "L714",
       "weight": 1.0
     },
     {
@@ -38737,7 +38751,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L741",
+      "source_location": "L731",
       "weight": 1.0
     },
     {
@@ -38747,7 +38761,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L741",
+      "source_location": "L731",
       "weight": 1.0
     },
     {
@@ -38756,7 +38770,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L746",
+      "source_location": "L736",
       "weight": 1.0
     },
     {
@@ -38766,7 +38780,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L746",
+      "source_location": "L736",
       "weight": 1.0
     },
     {
@@ -38775,7 +38789,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L751",
+      "source_location": "L741",
       "weight": 1.0
     },
     {
@@ -38785,7 +38799,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L751",
+      "source_location": "L741",
       "weight": 1.0
     },
     {
@@ -38794,7 +38808,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L758",
+      "source_location": "L748",
       "weight": 1.0
     },
     {
@@ -38804,7 +38818,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L758",
+      "source_location": "L748",
       "weight": 1.0
     },
     {
@@ -38813,7 +38827,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L767",
+      "source_location": "L754",
       "weight": 1.0
     },
     {
@@ -38823,7 +38837,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L767",
+      "source_location": "L754",
       "weight": 1.0
     },
     {
@@ -38832,7 +38846,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L772",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -38842,7 +38856,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L772",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -38851,7 +38865,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L774",
+      "source_location": "L762",
       "weight": 1.0
     },
     {
@@ -38861,7 +38875,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L120",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -38871,7 +38885,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L121",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -38881,7 +38895,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L135",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -38891,7 +38905,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L156",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -38901,7 +38915,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L182",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -38911,7 +38925,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L188",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -38921,7 +38935,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L198",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -38931,7 +38945,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L203",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -38941,7 +38955,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L210",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -38951,7 +38965,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L212",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -38961,7 +38975,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L232",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -38971,17 +38985,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L255",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_bulk_rna_agent_bulkrnaagent_run",
-      "target": "agents_bulk_rna_agent_bulkrnaagent_interpret",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L256",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -38991,7 +38995,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L257",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -39001,7 +39005,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L282",
+      "source_location": "L272",
       "weight": 1.0
     },
     {
@@ -39011,7 +39015,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L300",
+      "source_location": "L290",
       "weight": 1.0
     },
     {
@@ -39021,7 +39025,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L354",
+      "source_location": "L344",
       "weight": 1.0
     },
     {
@@ -39031,7 +39035,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L372",
+      "source_location": "L362",
       "weight": 1.0
     },
     {
@@ -39041,7 +39045,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L383",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -39051,7 +39055,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L385",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -39061,7 +39065,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L422",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -39071,7 +39075,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L465",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -39081,7 +39085,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L487",
+      "source_location": "L477",
       "weight": 1.0
     },
     {
@@ -39091,7 +39095,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L510",
+      "source_location": "L500",
       "weight": 1.0
     },
     {
@@ -39101,7 +39105,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L563",
+      "source_location": "L553",
       "weight": 1.0
     },
     {
@@ -39111,7 +39115,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L597",
+      "source_location": "L587",
       "weight": 1.0
     },
     {
@@ -39121,7 +39125,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L628",
+      "source_location": "L618",
       "weight": 1.0
     },
     {
@@ -39131,7 +39135,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L701",
+      "source_location": "L691",
       "weight": 1.0
     },
     {
@@ -39141,7 +39145,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L707",
+      "source_location": "L697",
       "weight": 1.0
     },
     {
@@ -39151,7 +39155,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L714",
+      "source_location": "L704",
       "weight": 1.0
     },
     {
@@ -39161,17 +39165,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L726",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_bulk_rna_agent_bulkrnaagent_interpret",
-      "target": "agents_bulk_rna_agent_bulkrnaagent_interpret_single",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L759",
+      "source_location": "L716",
       "weight": 1.0
     },
     {
@@ -39181,7 +39175,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L772",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -54715,7 +54709,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1394",
+      "source_location": "L1392",
       "weight": 1.0
     },
     {
@@ -54725,7 +54719,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1394",
+      "source_location": "L1392",
       "weight": 1.0
     },
     {
@@ -54734,7 +54728,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1403",
+      "source_location": "L1401",
       "weight": 1.0
     },
     {
@@ -54744,7 +54738,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1403",
+      "source_location": "L1401",
       "weight": 1.0
     },
     {
@@ -54753,7 +54747,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1428",
+      "source_location": "L1426",
       "weight": 1.0
     },
     {
@@ -54763,7 +54757,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1428",
+      "source_location": "L1426",
       "weight": 1.0
     },
     {
@@ -54772,7 +54766,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1461",
+      "source_location": "L1459",
       "weight": 1.0
     },
     {
@@ -54782,7 +54776,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1461",
+      "source_location": "L1459",
       "weight": 1.0
     },
     {
@@ -54791,7 +54785,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1506",
+      "source_location": "L1504",
       "weight": 1.0
     },
     {
@@ -54801,7 +54795,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1506",
+      "source_location": "L1504",
       "weight": 1.0
     },
     {
@@ -54810,7 +54804,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1564",
+      "source_location": "L1562",
       "weight": 1.0
     },
     {
@@ -54819,7 +54813,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1584",
+      "source_location": "L1582",
       "weight": 1.0
     },
     {
@@ -54829,7 +54823,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1584",
+      "source_location": "L1582",
       "weight": 1.0
     },
     {
@@ -54838,7 +54832,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1591",
+      "source_location": "L1589",
       "weight": 1.0
     },
     {
@@ -54848,7 +54842,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1591",
+      "source_location": "L1589",
       "weight": 1.0
     },
     {
@@ -54857,7 +54851,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative_agent.py",
-      "source_location": "L1604",
+      "source_location": "L1602",
       "weight": 1.0
     },
     {
@@ -107023,7 +107017,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -107076,7 +107070,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107086,7 +107080,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107096,7 +107090,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107106,7 +107100,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107116,7 +107110,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107468,7 +107462,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -107477,7 +107471,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -107512,7 +107506,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -107522,7 +107516,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_vqgnub_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_l2cqeg_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -110922,11 +110916,20 @@
     },
     {
       "source": "tests_test_bulk_report_text",
-      "target": "tests_test_bulk_report_text_test_bulk_report_layout_and_single_modality_wording",
+      "target": "tests_test_bulk_report_text_test_legacy_bulk_summary_omits_free_text_interpretation",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_report_text.py",
       "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_report_text",
+      "target": "tests_test_bulk_report_text_test_bulk_report_layout_and_single_modality_wording",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_report_text.py",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -110990,13 +110993,33 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_bulk_report_text_test_legacy_bulk_summary_omits_free_text_interpretation",
+      "target": "tests_test_bulk_report_text_bulk_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_report_text.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_report_text_test_legacy_bulk_summary_omits_free_text_interpretation",
+      "target": "tests_test_bulk_report_text_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_report_text.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_bulk_report_text_test_bulk_report_layout_and_single_modality_wording",
       "target": "tests_test_bulk_report_text_agent",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_report_text.py",
-      "source_location": "L133",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -111006,7 +111029,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_report_text.py",
-      "source_location": "L136",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -111016,7 +111039,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_report_text.py",
-      "source_location": "L137",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -111084,11 +111107,20 @@
     },
     {
       "source": "tests_test_bulk_rna",
+      "target": "tests_test_bulk_rna_test_bulk_rna_agent_does_not_generate_free_text_interpretation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_bulk_rna.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_bulk_rna",
       "target": "tests_test_bulk_rna_test_sample_qc_reports_expected_keys",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L151",
+      "source_location": "L245",
       "weight": 1.0
     },
     {
@@ -111097,7 +111129,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L162",
+      "source_location": "L256",
       "weight": 1.0
     },
     {
@@ -111106,7 +111138,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L174",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -111115,7 +111147,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L180",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -111124,7 +111156,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L187",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -111133,7 +111165,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L200",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -111142,7 +111174,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L252",
+      "source_location": "L346",
       "weight": 1.0
     },
     {
@@ -111151,7 +111183,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L279",
+      "source_location": "L373",
       "weight": 1.0
     },
     {
@@ -111160,7 +111192,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L304",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -111169,7 +111201,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L321",
+      "source_location": "L415",
       "weight": 1.0
     },
     {
@@ -111178,7 +111210,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L336",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -111187,7 +111219,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L353",
+      "source_location": "L447",
       "weight": 1.0
     },
     {
@@ -111196,7 +111228,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L375",
+      "source_location": "L469",
       "weight": 1.0
     },
     {
@@ -111205,7 +111237,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L386",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -111214,7 +111246,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L399",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -111224,7 +111256,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L152",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -111234,7 +111266,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L163",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -111244,7 +111276,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L253",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -111254,7 +111286,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L259",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -111264,7 +111296,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L260",
+      "source_location": "L354",
       "weight": 1.0
     },
     {
@@ -111274,7 +111306,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L280",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -111284,7 +111316,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L286",
+      "source_location": "L380",
       "weight": 1.0
     },
     {
@@ -111294,7 +111326,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L287",
+      "source_location": "L381",
       "weight": 1.0
     },
     {
@@ -111304,7 +111336,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L323",
+      "source_location": "L417",
       "weight": 1.0
     },
     {
@@ -111314,7 +111346,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L324",
+      "source_location": "L418",
       "weight": 1.0
     },
     {
@@ -111324,7 +111356,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L339",
+      "source_location": "L433",
       "weight": 1.0
     },
     {
@@ -111334,7 +111366,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L340",
+      "source_location": "L434",
       "weight": 1.0
     },
     {
@@ -111344,7 +111376,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L364",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -111354,7 +111386,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L377",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -111364,7 +111396,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L378",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -111374,7 +111406,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L388",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -111384,7 +111416,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L389",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -126248,16 +126280,6 @@
       "weight": 1.0
     },
     {
-      "source": "agents_bulk_rna_agent",
-      "target": "llm_provider_tasktier",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": "L22",
-      "weight": 1.0
-    },
-    {
       "source": "agents_chromatin_agent",
       "target": "agents_base_agent_baseagent",
       "relation": "imports",
@@ -139404,7 +139426,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L156",
+      "source_location": "L250",
       "weight": 1.0
     },
     {
@@ -139414,7 +139436,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L168",
+      "source_location": "L262",
       "weight": 1.0
     },
     {
@@ -139424,7 +139446,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L317",
+      "source_location": "L411",
       "weight": 1.0
     },
     {
@@ -146535,7 +146557,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L410",
+      "source_location": "L504",
       "weight": 1.0
     },
     {
