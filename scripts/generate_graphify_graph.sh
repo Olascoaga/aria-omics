@@ -6,10 +6,10 @@ OUT_DIR="${OUT_DIR:-$ROOT/docs/architecture/graphify}"
 GRAPHIFY_BIN="${GRAPHIFY_BIN:-graphify}"
 
 if ! command -v "$GRAPHIFY_BIN" >/dev/null 2>&1; then
-  if [[ -x /home/medusa/anaconda3/bin/graphify ]]; then
-    GRAPHIFY_BIN=/home/medusa/anaconda3/bin/graphify
+  if [[ -x "$HOME/anaconda3/bin/graphify" ]]; then
+    GRAPHIFY_BIN="$HOME/anaconda3/bin/graphify"
   else
-    echo "graphify not found. Install graphifyy or set GRAPHIFY_BIN=/path/to/graphify." >&2
+    echo "graphify not found. Install graphify or set GRAPHIFY_BIN=/path/to/graphify." >&2
     exit 1
   fi
 fi
@@ -86,10 +86,16 @@ fi
 # is expected here and harmless — the filter intentionally shrank the graph).
 "$GRAPHIFY_BIN" cluster-only "$RUN_OUT" --no-label
 
-cp "$RUN_OUT/graphify-out/graph.json" "$OUT_DIR/graph.json"
-cp "$RUN_OUT/graphify-out/graph.html" "$OUT_DIR/graph.html"
-cp "$RUN_OUT/graphify-out/GRAPH_REPORT.md" "$OUT_DIR/GRAPH_REPORT.md"
-cp "$RUN_OUT/graphify-out/manifest.json" "$OUT_DIR/manifest.json"
+# Copy each artifact only if it was produced. `cluster-only` skips graph.html when the
+# graph exceeds the viz node limit; under `set -e` a hard `cp graph.html` would abort
+# the script BEFORE the path-scrub + README stamp below (this is why the absolute-path
+# leak survived earlier regens). A skipped graph.html keeps its previous committed copy,
+# which the scrub step still cleans.
+for _f in graph.json graph.html GRAPH_REPORT.md manifest.json; do
+  if [[ -f "$RUN_OUT/graphify-out/$_f" ]]; then
+    cp "$RUN_OUT/graphify-out/$_f" "$OUT_DIR/$_f"
+  fi
+done
 
 "$GRAPHIFY_BIN" tree \
   --graph "$OUT_DIR/graph.json" \
@@ -106,11 +112,40 @@ corpus = sys.argv[2]
 run_out = sys.argv[3]
 root = sys.argv[4]
 
+# F11: committed Graphify artifacts must be relocatable and must NEVER embed a
+# machine-absolute path. The temp corpus/run_out roots (and the absolute repo root)
+# previously leaked into manifest/report/html as `/home/<user>/...` on every regen.
+# Map them to a repo-relative form: "<root>/aria/x.py" -> "aria/x.py"; a bare
+# "<root>" (e.g. the report title) -> the stable repo label "ARIA".
+abs_roots = [r.rstrip("/") for r in (corpus, run_out, root)]
 for path in out_dir.iterdir():
     if path.is_file() and path.suffix in {".json", ".md", ".html"}:
         text = path.read_text(encoding="utf-8")
-        text = text.replace(corpus, root).replace(run_out, root)
+        for ar in abs_roots:
+            text = text.replace(ar + "/", "")
+        for ar in abs_roots:
+            text = text.replace(ar, "ARIA")
         path.write_text(text, encoding="utf-8")
 PY
+
+# F11: keep the README snapshot pointer fresh (it had drifted to a stale commit).
+# Stamp the HEAD the graph was built from + the date so it never goes stale on regen.
+HEAD_SHORT="$(git -C "$ROOT" rev-parse --short HEAD)"
+TODAY="$(date +%Y-%m-%d)"
+README="$OUT_DIR/README.md"
+if [[ -f "$README" ]]; then
+  python - "$README" "$HEAD_SHORT" "$TODAY" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+readme, head, today = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+text = readme.read_text(encoding="utf-8")
+text = re.sub(r"(?m)^- Commit: `[0-9a-f]+`.*$",
+              f"- Commit: `{head}` (HEAD the graph was built from)", text)
+text = re.sub(r"(?m)^- Generated: .*$", f"- Generated: {today}", text)
+readme.write_text(text, encoding="utf-8")
+PY
+fi
 
 echo "Graphify graph written to $OUT_DIR"

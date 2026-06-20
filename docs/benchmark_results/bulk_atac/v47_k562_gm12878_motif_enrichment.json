@@ -254,12 +254,12 @@
     "aria_version": "4.7.0",
     "version": "4.7.0",
     "version_source": "aria.version.__version__",
-    "git_sha": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
-    "git_commit": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_sha": "e74c50467531ae917b1408d68d2cd66af6594bfa",
+    "git_commit": "e74c50467531ae917b1408d68d2cd66af6594bfa",
     "git_dirty": true,
-    "git_tree_sha": "2a96176372d97ab185252bc79f0ee98646f88870",
-    "git_describe": "v4.7.0-46-g7f6acd5-dirty",
-    "workflow_hash": "a3d1cefade46083a7a48222527a92be331a92293f97307e4f632e492f6866e9c",
+    "git_tree_sha": "2f2a0951708dd9313094ff76333198c41c5a8b9e",
+    "git_describe": "v4.7.0-54-ge74c504-dirty",
+    "workflow_hash": "ac9fd7a0a6314f81140daee2ff344362d045e885a4dbd42cdaaf2c8d90528c73",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
     "image": {
       "containerized": false,
@@ -279,7 +279,7 @@
     },
     "seed": null,
     "determinism": "Replicate-gated DESeq2 DA and hypergeometric motif enrichment are deterministic; no RNG seed is used.",
-    "generated_utc": "2026-06-20T05:20:14Z",
+    "generated_utc": "2026-06-20T05:56:57Z",
     "note": "Scientific values are the measured record from `source_commit`; this provenance block was re-stamped (not recomputed) at `git_commit`. Full re-computation from the real ENCODE BAMs is separate preprint-freeze work."
   }
 }

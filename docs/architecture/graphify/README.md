@@ -20,7 +20,7 @@ The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `a84830b3` (regenerate to refresh)
+- Commit: `e410bc0` (HEAD the graph was built from)
 - Generated: 2026-06-20
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
@@ -51,13 +51,13 @@ impact map in `../code_graph.md`: Graphify helps discover broad relationships;
 the curated map remains the release-risk checklist.
 
 ```bash
-/home/medusa/anaconda3/bin/graphify explain "BulkRNAAgent" \
+graphify explain "BulkRNAAgent" \
   --graph docs/architecture/graphify/graph.json
 
-/home/medusa/anaconda3/bin/graphify query "What touches pseudobulk DE?" \
+graphify query "What touches pseudobulk DE?" \
   --graph docs/architecture/graphify/graph.json --budget 2000
 
-/home/medusa/anaconda3/bin/graphify path "scRNAAgent" "rna_pseudobulk_de.py" \
+graphify path "scRNAAgent" "rna_pseudobulk_de.py" \
   --graph docs/architecture/graphify/graph.json
 ```
 
