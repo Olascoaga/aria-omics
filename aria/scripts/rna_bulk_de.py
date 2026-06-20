@@ -15,7 +15,7 @@ Fixes vs old inline implementation:
 Input params:
     files:           list  — count matrix files (.tsv, .csv, .txt)
                             OR list of per-sample count files
-    metadata_file:   str   (optional) — explicit metadata TSV with
+    metadata_file:   str   — explicit metadata TSV with
                             sample, condition, batch columns
     design_factor:   str   — column in metadata to test (e.g. "condition")
     comparison:      dict  — {"numerator": "treated", "denominator": "control"}
@@ -93,6 +93,8 @@ def bulk_rna_de(params: dict) -> dict:
     # P1-1c: pre-register the contrast-FDR family before any p-values are seen.
     fdr_family     = preregister_contrast_family(params.get("fdr_family", "per_contrast"))
 
+    metadata_inference_allowed = _metadata_inference_allowed(params)
+
     # v3: accept list of contrasts OR single comparison (backward compat)
     contrasts_in   = params.get("contrasts", [])
     if not contrasts_in:
@@ -115,6 +117,26 @@ def bulk_rna_de(params: dict) -> dict:
     warnings       = []
 
     Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    if not metadata_file and not metadata_inference_allowed:
+        return {
+            "status":     "error",
+            "error_type": "MetadataRequired",
+            "details": (
+                "Production bulk RNA DE requires an explicit metadata_file "
+                "aligned to the count matrix. Column-name metadata inference is "
+                "available only with an explicit legacy/dev opt-in."
+            ),
+        }
+    if metadata_file and not Path(metadata_file).exists() and not metadata_inference_allowed:
+        return {
+            "status":     "error",
+            "error_type": "MetadataRequired",
+            "details": (
+                f"metadata_file does not exist: {metadata_file}. Production "
+                "bulk RNA DE will not fall back to column-name inference."
+            ),
+        }
 
     # ── 1. Load counts matrix ─────────────────────────────────────────────
     allow_nonraw = bool(params.get("allow_nonraw_counts", False))
@@ -139,7 +161,8 @@ def bulk_rna_de(params: dict) -> dict:
 
     # ── 2. Load or infer metadata ─────────────────────────────────────────
     metadata, meta_warn = _load_or_infer_metadata(
-        counts, metadata_file, design_factor
+        counts, metadata_file, design_factor,
+        allow_inference=metadata_inference_allowed,
     )
     warnings.extend(meta_warn)
     if metadata is None:
@@ -149,7 +172,8 @@ def bulk_rna_de(params: dict) -> dict:
             "details": (
                 "Could not construct sample metadata. "
                 "Provide a metadata TSV with 'sample' and condition columns, "
-                "or name samples as: condition_replicate (e.g. ctrl_1, treat_1)."
+                "aligned to the count matrix. Column-name inference is a "
+                "legacy/dev opt-in, not production behavior."
             ),
         }
     if design_factor not in metadata.columns:
@@ -894,8 +918,23 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
     }
 
 
+def _metadata_inference_allowed(params: dict) -> bool:
+    """Explicit legacy/dev escape hatch for column-name metadata inference."""
+    opt_in = (
+        params.get("allow_inferred_metadata")
+        or params.get("allow_metadata_inference")
+        or params.get("legacy_metadata_inference")
+    )
+    if opt_in:
+        return True
+    return os.environ.get(
+        "ARIA_ALLOW_BULK_METADATA_INFERENCE", ""
+    ).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _load_or_infer_metadata(counts, metadata_file: str,
-                              design_factor: str) -> tuple:
+                              design_factor: str,
+                              allow_inference: bool = False) -> tuple:
     """
     Load explicit metadata or infer groups from column names.
 
@@ -915,15 +954,35 @@ def _load_or_infer_metadata(counts, metadata_file: str,
             # Align to count matrix samples
             common = [s for s in counts.columns if s in meta.index]
             if len(common) < 2:
+                fallback = (
+                    "Falling back to automatic detection."
+                    if allow_inference
+                    else "Automatic detection is disabled in production."
+                )
                 warnings.append(
                     f"Metadata file has {len(common)} matching samples. "
-                    f"Falling back to automatic detection."
+                    f"{fallback}"
                 )
             else:
                 return meta.loc[common], warnings
         except Exception as e:
-            warnings.append(f"Metadata file load failed: {e}. "
-                            f"Attempting automatic detection.")
+            fallback = (
+                "Attempting automatic detection."
+                if allow_inference
+                else "Automatic detection is disabled in production."
+            )
+            warnings.append(
+                f"Metadata file load failed: {e}. "
+                f"{fallback}"
+            )
+    elif metadata_file:
+        warnings.append(f"Metadata file not found: {metadata_file}.")
+
+    if not allow_inference:
+        return None, warnings + [
+            "Production bulk RNA DE requires a valid metadata TSV aligned to "
+            "the count matrix; column-name metadata inference is disabled."
+        ]
 
     # Automatic group detection from column names
     samples = list(counts.columns)

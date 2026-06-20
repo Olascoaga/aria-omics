@@ -398,8 +398,18 @@ def test_outlier_sensitivity_does_not_replace_primary(monkeypatch):
 def _run_bulk(counts_df, contrasts, tmp, **overrides):
     counts_path = Path(tmp) / "counts.tsv"
     counts_df.to_csv(str(counts_path), sep="\t")
+    samples = list(counts_df.columns)
+    conditions = [
+        str(s).rsplit("_", 1)[0] if "_" in str(s) else str(s).rstrip("0123456789")
+        for s in samples
+    ]
+    metadata_path = Path(tmp) / "metadata.tsv"
+    pd.DataFrame({"condition": conditions}, index=samples).to_csv(
+        metadata_path, sep="\t"
+    )
     params = {
         "files": [str(counts_path)],
+        "metadata_file": str(metadata_path),
         "design_factor": "condition",
         "contrasts": contrasts,
         "organism": "Homo sapiens",
@@ -501,8 +511,19 @@ def test_golden_bulk_de_recovers_planted_genes():
         # the committed fixture directory.
         counts_path = Path(tmp) / "counts.tsv"
         counts_path.write_text((GOLDEN / "counts.tsv").read_text())
+        counts_df = pd.read_csv(counts_path, sep="\t", index_col=0)
+        samples = list(counts_df.columns)
+        conditions = [
+            str(s).rsplit("_", 1)[0] if "_" in str(s) else str(s).rstrip("0123456789")
+            for s in samples
+        ]
+        metadata_path = Path(tmp) / "metadata.tsv"
+        pd.DataFrame({"condition": conditions}, index=samples).to_csv(
+            metadata_path, sep="\t"
+        )
         result = bulk_rna_de({
             "files": [str(counts_path)],
+            "metadata_file": str(metadata_path),
             "design_factor": expected["design_factor"],
             "contrasts": [expected["contrast"]],
             "organism": "Homo sapiens",

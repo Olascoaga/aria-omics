@@ -252,7 +252,9 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         validation_level="production",
         inputs=(
             _f("files", "list[path]", allow_empty=False, path_must_exist=True),
+            _f("metadata_file", "path", allow_empty=False, path_must_exist=True),
             _f("design_factor", "str", allow_empty=False),
+            _f("contrasts", "list", allow_empty=False),
         ),
         success_outputs=(
             _f("n_contrasts", "int"),

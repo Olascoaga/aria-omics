@@ -57,6 +57,43 @@ def test_script_contract_rejects_version_mismatch(tmp_path):
     assert "expected 1.0" in result["details"]
 
 
+def test_bulk_rna_production_contract_requires_metadata_and_contrasts(tmp_path):
+    from aria.utils.script_contracts import contract_for_script
+
+    counts_path = tmp_path / "counts.tsv"
+    counts_path.write_text("gene\tA_1\tB_1\nG1\t10\t20\n", encoding="utf-8")
+    metadata_path = tmp_path / "metadata.tsv"
+    metadata_path.write_text(
+        "sample\tcondition\nA_1\tA\nB_1\tB\n",
+        encoding="utf-8",
+    )
+
+    contract = contract_for_script("aria/scripts/rna_bulk_de.py")
+    assert contract is not None
+
+    issues = contract.validate_params({
+        "files": [str(counts_path)],
+        "design_factor": "condition",
+    })
+    assert {issue.field for issue in issues} == {"metadata_file", "contrasts"}
+
+    issues = contract.validate_params({
+        "files": [str(counts_path)],
+        "metadata_file": str(metadata_path),
+        "design_factor": "condition",
+        "contrasts": [],
+    })
+    assert any(issue.field == "contrasts" for issue in issues)
+
+    issues = contract.validate_params({
+        "files": [str(counts_path)],
+        "metadata_file": str(metadata_path),
+        "design_factor": "condition",
+        "contrasts": [{"numerator": "B", "denominator": "A"}],
+    })
+    assert issues == []
+
+
 # T10 (tri-audit 2026-06-14): the script subprocess is launched with
 # subprocess.Popen + start_new_session (ADR-020/R5 process-group reaping), not
 # subprocess.run. These tests mocked `subprocess.run`, so the mock no longer

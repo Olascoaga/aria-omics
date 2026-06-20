@@ -22,9 +22,15 @@ def test_bulk_script_requires_explicit_contrasts(tmp_path):
     )
     counts_path = tmp_path / "counts.tsv"
     counts.to_csv(counts_path, sep="\t")
+    metadata_path = tmp_path / "metadata.tsv"
+    pd.DataFrame(
+        {"condition": ["A", "A", "A", "B", "B", "B"]},
+        index=list(counts.columns),
+    ).to_csv(metadata_path, sep="\t")
 
     result = bulk_rna_de({
         "files": [str(counts_path)],
+        "metadata_file": str(metadata_path),
         "design_factor": "condition",
         "run_pathways": False,
         "output_dir": str(tmp_path / "out"),
@@ -38,6 +44,60 @@ def test_bulk_script_requires_explicit_contrasts(tmp_path):
         "denominator": "A",
         "name": "B vs A",
     }]
+
+
+def test_bulk_script_requires_explicit_metadata_file(tmp_path):
+    import numpy as np
+    import pandas as pd
+    from aria.scripts.rna_bulk_de import bulk_rna_de
+
+    rng = np.random.default_rng(6)
+    counts = pd.DataFrame(
+        rng.poisson(80, size=(80, 6)),
+        index=[f"GENE_{i:03d}" for i in range(80)],
+        columns=["A_1", "A_2", "A_3", "B_1", "B_2", "B_3"],
+    )
+    counts_path = tmp_path / "counts.tsv"
+    counts.to_csv(counts_path, sep="\t")
+
+    result = bulk_rna_de({
+        "files": [str(counts_path)],
+        "design_factor": "condition",
+        "contrasts": [{"numerator": "B", "denominator": "A"}],
+        "run_pathways": False,
+        "output_dir": str(tmp_path / "out"),
+    })
+
+    assert result["status"] == "error"
+    assert result["error_type"] == "MetadataRequired"
+    assert "metadata_file" in result["details"]
+
+
+def test_bulk_script_metadata_inference_requires_legacy_opt_in(tmp_path):
+    import numpy as np
+    import pandas as pd
+    from aria.scripts.rna_bulk_de import bulk_rna_de
+
+    rng = np.random.default_rng(7)
+    counts = pd.DataFrame(
+        rng.poisson(80, size=(80, 6)),
+        index=[f"GENE_{i:03d}" for i in range(80)],
+        columns=["A_1", "A_2", "A_3", "B_1", "B_2", "B_3"],
+    )
+    counts_path = tmp_path / "counts.tsv"
+    counts.to_csv(counts_path, sep="\t")
+
+    result = bulk_rna_de({
+        "files": [str(counts_path)],
+        "design_factor": "condition",
+        "allow_inferred_metadata": True,
+        "run_pathways": False,
+        "output_dir": str(tmp_path / "out"),
+    })
+
+    assert result["status"] == "error"
+    assert result["error_type"] == "ExplicitContrastRequired"
+    assert result["available_groups"] == ["A", "B"]
 
 
 def test_bulk_agent_uses_only_confirmed_plan_contrasts(tmp_path):
