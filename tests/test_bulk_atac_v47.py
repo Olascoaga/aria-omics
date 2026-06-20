@@ -130,6 +130,14 @@ class _FakeBulkAtacEnv:
                 "figures": {},
                 "warnings": [],
             }
+        if script_path.endswith("chromatin_footprint_tobias.py"):
+            return {
+                "status": "success",
+                "ran": False,
+                "reason": "TOBIAS not installed",
+                "method": "tobias",
+                "warnings": [],
+            }
         raise AssertionError(script_path)
 
 
@@ -188,9 +196,12 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
         # carry no per-peak data, so _bulk_da_motif_regions yields no regions.)
         ("rna", "chromatin_peak_annotation.py"),
         ("rna", "chromatin_peak_ora.py"),
+        ("tobias", "chromatin_footprint_tobias.py"),
     ]
     assert findings["peak_annotation"]["analysis"] == "peak_annotation"
     assert findings["peak_ora"]["analysis"] == "peak_ora"
+    assert findings["footprinting"]["analysis"] == "differential_tf_footprinting"
+    assert findings["footprinting"]["ran"] is False
     peaks_params = env.calls[1][2]
     assert peaks_params["data_type"] == "bulk_ATAC"
     assert peaks_params["macs3_params"]["format"] == "BAMPE"
@@ -199,6 +210,12 @@ def test_bulk_atac_agent_runs_qc_peaks_counts_and_da(tmp_path):
     da_params = env.calls[3][2]
     assert da_params["counts_matrix_path"] == "/tmp/bulk_atac_peak_counts.tsv"
     assert da_params["comparisons"] == [["treated", "control"]]
+    footprint_params = env.calls[-1][2]
+    assert footprint_params["mode"] == "bulk"
+    assert footprint_params["group_a"] == "treated"
+    assert footprint_params["group_b"] == "control"
+    assert footprint_params["condition_bams"] == {"treated": [str(bam)]}
+    assert footprint_params["peaks_bed"] == "/tmp/bulk_atac_peaks.narrowPeak"
     # No replicate override supplied -> the script's production floor applies.
     assert "min_replicates_per_condition" not in da_params
 

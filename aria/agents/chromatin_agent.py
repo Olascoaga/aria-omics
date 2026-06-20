@@ -136,6 +136,14 @@ def _rank_bulk_da_motif_peaks(rows, max_per_group: int, group: str,
     return [peak for peak, _padj, _abs_lfc in ranked[:max_per_group]]
 
 
+def _positive_int(value, default: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return parsed if parsed > 0 else default
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -585,6 +593,11 @@ class ChromatinAgent(BaseAgent):
             )
             findings["regulatory"] = regulatory_result
 
+            footprint_result = self._run_scatac_footprinting(
+                experiment_id, exp_ctx, clustered, out_dir)
+            if footprint_result is not None:
+                findings["footprinting"] = footprint_result
+
         return {"status": "done", "findings": findings}
 
     # ── Bulk ATAC-seq pipeline ────────────────────────────────────────────
@@ -730,6 +743,14 @@ class ChromatinAgent(BaseAgent):
                         experiment_id, exp_ctx, da_result, files)
                     if ora_result is not None:
                         findings["peak_ora"] = ora_result
+                    # C2: condition-level TOBIAS footprinting is part of the
+                    # live bulk ATAC flow now. The TOBIAS script self-gates on
+                    # assets/env and returns ran:false instead of fabricating
+                    # uncorrected footprints.
+                    footprint_result = self._run_bulk_atac_footprinting(
+                        experiment_id, exp_ctx, da_result, peaks_result, files)
+                    if footprint_result is not None:
+                        findings["footprinting"] = footprint_result
                 else:
                     findings["differential_accessibility"] = {
                         "status": "skipped",
@@ -752,6 +773,147 @@ class ChromatinAgent(BaseAgent):
                 }
 
         return {"status": "done", "findings": findings}
+
+    def _footprint_common_params(self, exp_ctx: dict, output_dir: str) -> dict:
+        return {
+            "genome_fasta": exp_ctx.get("genome_fasta"),
+            "genome_fai": exp_ctx.get("genome_fai"),
+            "peaks_bed": (
+                exp_ctx.get("peaks_bed")
+                or exp_ctx.get("peaks_path")
+                or exp_ctx.get("peak_universe_bed")
+            ),
+            "motif_meme": (
+                exp_ctx.get("motif_meme")
+                or exp_ctx.get("motif_meme_path")
+                or exp_ctx.get("motif_collection_meme")
+            ),
+            "group_a": (
+                exp_ctx.get("footprint_group_a")
+                or exp_ctx.get("tobias_group_a")
+                or exp_ctx.get("group_a")
+            ),
+            "group_b": (
+                exp_ctx.get("footprint_group_b")
+                or exp_ctx.get("tobias_group_b")
+                or exp_ctx.get("group_b")
+            ),
+            "output_dir": output_dir,
+            "cores": _positive_int(
+                exp_ctx.get("tobias_cores")
+                or exp_ctx.get("footprint_cores")
+                or 8,
+                8,
+            ),
+        }
+
+    def _run_scatac_footprinting(self, experiment_id: str, exp_ctx: dict,
+                                 clustered: str, out_dir: str) -> Optional[dict]:
+        """Inline scATAC TOBIAS dispatch (C3).
+
+        The backend refuses uncorrected footprints and returns ran:false for
+        missing TOBIAS/assets/groups, so the live flow can attempt footprinting
+        without fabricating a result.
+        """
+        fragments_file = (
+            exp_ctx.get("fragments_file")
+            or exp_ctx.get("fragments_path")
+            or exp_ctx.get("fragment_file")
+        )
+        barcode_groups = (
+            exp_ctx.get("barcode_groups")
+            or exp_ctx.get("barcode_groups_tsv")
+            or exp_ctx.get("barcode_group_tsv")
+        )
+        params = {
+            **self._footprint_common_params(
+                exp_ctx, str(Path(out_dir) / "footprinting")),
+            "mode": "scatac",
+            "data_type": "scATAC",
+            "data_path": clustered,
+            "fragments_file": fragments_file,
+            "barcode_groups": barcode_groups,
+        }
+        self.publish_status(
+            experiment_id, "scATAC TOBIAS footprinting...", 0.95)
+        result = self.env.run_in_stack(
+            stack="tobias",
+            script_path="aria/scripts/chromatin_footprint_tobias.py",
+            params=params,
+        )
+        if isinstance(result, dict):
+            result.setdefault("data_type", "scATAC")
+            result.setdefault("analysis", "differential_tf_footprinting")
+            result.setdefault("validation_level", "beta")
+        return result
+
+    def _bulk_condition_bams(self, exp_ctx: dict, files: list,
+                             condition_col: str = "condition") -> dict:
+        provided = exp_ctx.get("condition_bams")
+        if isinstance(provided, dict):
+            return provided
+        sample_metadata = exp_ctx.get("sample_metadata") or {}
+        if not isinstance(sample_metadata, dict):
+            return {}
+        sample_ids = exp_ctx.get("sample_ids")
+        if not sample_ids or len(sample_ids) != len(files):
+            sample_ids = [Path(f).stem.replace(".bam", "") for f in files]
+        out: dict[str, list[str]] = {}
+        for sample_id, bam in zip(sample_ids, files):
+            meta = sample_metadata.get(sample_id) or {}
+            if not isinstance(meta, dict):
+                continue
+            condition = meta.get(condition_col) or meta.get("condition")
+            if condition:
+                out.setdefault(str(condition), []).append(str(bam))
+        return out
+
+    def _run_bulk_atac_footprinting(self, experiment_id: str, exp_ctx: dict,
+                                    da_result: dict, peaks_result: dict,
+                                    files: list) -> Optional[dict]:
+        """Inline bulk ATAC condition-level TOBIAS dispatch (C2)."""
+        comparisons = [
+            c for c in (da_result.get("comparisons") or [])
+            if isinstance(c, dict) and c.get("status") == "success"
+        ]
+        comp = comparisons[0] if comparisons else {}
+        condition_col = exp_ctx.get("condition_col", "condition")
+        params = {
+            **self._footprint_common_params(
+                exp_ctx, str(Path(files[0]).parent / "bulk_atac_footprinting")),
+            "mode": "bulk",
+            "data_type": "bulk_ATAC",
+            "condition_bams": self._bulk_condition_bams(
+                exp_ctx, files, condition_col=condition_col),
+            "group_a": (
+                exp_ctx.get("footprint_group_a")
+                or exp_ctx.get("tobias_group_a")
+                or comp.get("test")
+            ),
+            "group_b": (
+                exp_ctx.get("footprint_group_b")
+                or exp_ctx.get("tobias_group_b")
+                or comp.get("reference")
+            ),
+            "peaks_bed": (
+                exp_ctx.get("peaks_bed")
+                or exp_ctx.get("peaks_path")
+                or peaks_result.get("consensus_peaks_path")
+                or peaks_result.get("peaks_path")
+            ),
+        }
+        self.publish_status(
+            experiment_id, "bulk ATAC TOBIAS footprinting...", 0.99)
+        result = self.env.run_in_stack(
+            stack="tobias",
+            script_path="aria/scripts/chromatin_footprint_tobias.py",
+            params=params,
+        )
+        if isinstance(result, dict):
+            result.setdefault("data_type", "bulk_ATAC")
+            result.setdefault("analysis", "differential_tf_footprinting")
+            result.setdefault("validation_level", "beta")
+        return result
 
     def _run_bulk_atac_motifs(self, experiment_id: str, exp_ctx: dict,
                               da_result: dict, files: list) -> Optional[dict]:

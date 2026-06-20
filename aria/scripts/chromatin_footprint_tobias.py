@@ -26,8 +26,11 @@ import argparse
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any, Iterable, Iterator
+
+from aria.scripts._base import run_script
 
 # Tn5 insertion offsets (the canonical +4 / -5 shift); applied by TOBIAS via
 # --read_shift, kept here as the documented constant for the cut-site reads.
@@ -504,6 +507,19 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
     }
 
 
+def chromatin_footprint_tobias_dispatch(params: dict) -> dict[str, Any]:
+    """EnvironmentManager IPC entrypoint.
+
+    The CLI remains available for benchmark/repro runs; live agent dispatch uses
+    this JSON-IPC wrapper so all inputs and honest skips are captured in the
+    normal ARIA subprocess contract.
+    """
+    mode = params.get("mode", "scatac")
+    if mode == "bulk":
+        return chromatin_footprint_tobias_bulk(params)
+    return chromatin_footprint_tobias(params)
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--mode", choices=("scatac", "bulk"), default="scatac",
@@ -552,4 +568,7 @@ def main(argv: list[str] | None = None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    if len(sys.argv) == 3:
+        run_script(chromatin_footprint_tobias_dispatch)
+    else:
+        raise SystemExit(main())

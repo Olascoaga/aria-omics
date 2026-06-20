@@ -220,7 +220,7 @@ class _FakeEnv:
         self.calls = []
 
     def run_in_stack(self, stack, script_path, params):
-        self.calls.append((script_path, params))
+        self.calls.append((stack, script_path, params))
         f = _findings()
         if script_path.endswith("chromatin_qc.py"):
             return f["qc"]
@@ -232,6 +232,13 @@ class _FakeEnv:
             return f["motifs"]
         if script_path.endswith("chromatin_regulatory.py"):
             return f["regulatory"]
+        if script_path.endswith("chromatin_footprint_tobias.py"):
+            return {
+                "status": "success",
+                "ran": False,
+                "reason": "TOBIAS not installed",
+                "method": "tobias",
+            }
         return {"status": "error", "error_type": "Unexpected"}
 
 
@@ -265,24 +272,34 @@ def test_agent_h5mu_flow_dispatches_and_stores_findings():
     assert set(findings) >= {
         "qc", "lsi", "differential_accessibility", "motifs", "regulatory"}
 
-    # dispatched scripts in order, on the chromatin stack
-    scripts = [Path_basename(c[0]) for c in env.calls]
+    scripts = [Path_basename(c[1]) for c in env.calls]
     assert scripts == ["chromatin_qc.py", "chromatin_lsi_clustering.py",
                        "chromatin_diffacc.py", "chromatin_motifs.py",
-                       "chromatin_regulatory.py"]
+                       "chromatin_regulatory.py",
+                       "chromatin_footprint_tobias.py"]
+    assert env.calls[-1][0] == "tobias"
     # genome + motif collection forwarded to the motif script
-    motif_params = next(p for s, p in env.calls if s.endswith("chromatin_motifs.py"))
+    motif_params = next(p for _, s, p in env.calls
+                        if s.endswith("chromatin_motifs.py"))
     assert motif_params["genome_fasta"] == "/g/GRCh38.fa"
     assert motif_params["motif_collection"] == "JASPAR2024_CORE_vertebrates"
-    lsi_params = next(p for s, p in env.calls if s.endswith("chromatin_lsi_clustering.py"))
+    lsi_params = next(p for _, s, p in env.calls
+                      if s.endswith("chromatin_lsi_clustering.py"))
     assert lsi_params["condition_col"] == "condition"
     assert lsi_params["replicate_col"] == "donor"
     assert lsi_params["batch_col"] == "sequencing_lane"
     assert lsi_params["peak_provenance"]["method"] == "overlap_unified"
     regulatory_params = next(
-        p for s, p in env.calls if s.endswith("chromatin_regulatory.py"))
+        p for _, s, p in env.calls if s.endswith("chromatin_regulatory.py"))
     assert regulatory_params["data_path"] == "/tmp/x/lsi_clustered.h5ad"
     assert regulatory_params["rna_data_path"] is None
+    footprint_params = next(
+        p for _, s, p in env.calls
+        if s.endswith("chromatin_footprint_tobias.py"))
+    assert footprint_params["mode"] == "scatac"
+    assert footprint_params["data_path"] == "/tmp/x/lsi_clustered.h5ad"
+    assert footprint_params["genome_fasta"] == "/g/GRCh38.fa"
+    assert findings["footprinting"]["ran"] is False
 
     # and the narrator turns those findings into the chromatin blocks
     blocks = ChromatinNarrator().collect("chromatin_agent", res, {})

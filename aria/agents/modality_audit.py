@@ -27,14 +27,8 @@ _CHROMATIN_MODALITIES = {
 }
 
 _ATAC_PRODUCTION_BLOCKERS = {
-    "scATAC": (
-        "C3: TOBIAS footprinting is still executed through the dedicated driver, "
-        "not inline in the live chromatin agent flow.",
-    ),
-    "bulk_ATAC": (
-        "C2: condition-level TOBIAS footprinting is still executed through the "
-        "dedicated driver, not inline in the live chromatin agent flow.",
-    ),
+    "scATAC": (),
+    "bulk_ATAC": (),
 }
 
 _DOUBLET_HINTS = ("doublet", "scrublet", "demuxlet")

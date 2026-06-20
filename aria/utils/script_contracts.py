@@ -519,6 +519,29 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("label_transfer", "dict", required=False),
         ),
     ),
+    "aria/scripts/chromatin_footprint_tobias.py": ScriptContract(
+        script_path="aria/scripts/chromatin_footprint_tobias.py",
+        validation_level="beta",
+        inputs=(
+            _f("mode", "str", required=False, allow_empty=False),
+            _f("fragments_file", "path", required=False, allow_empty=False),
+            _f("barcode_groups", "path", required=False, allow_empty=False),
+            _f("condition_bams", "dict", required=False),
+            _f("genome_fasta", "path", required=False, allow_empty=False),
+            _f("genome_fai", "path", required=False, allow_empty=False),
+            _f("peaks_bed", "path", required=False, allow_empty=False),
+            _f("motif_meme", "path", required=False, allow_empty=False),
+            _f("group_a", "str", required=False, allow_empty=False),
+            _f("group_b", "str", required=False, allow_empty=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+            _f("cores", "int", required=False),
+        ),
+        success_outputs=(
+            _f("ran", "bool"),
+            _f("method", "str", required=False),
+            _f("differential_summary", "dict", required=False),
+        ),
+    ),
 
     # ── P1-12: contracts for the remaining dispatchable scripts ──────────────
     # scRNA helper scripts (validated path).

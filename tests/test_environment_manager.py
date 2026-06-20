@@ -48,7 +48,8 @@ def test_check_environments_shape():
     from aria.utils.environment_manager import env_manager
     envs = env_manager.check_environments()
     assert isinstance(envs, dict)
-    assert {"rna", "ingestion", "chromatin", "hic", "integration"} <= set(envs)
+    assert {"rna", "ingestion", "chromatin", "tobias",
+            "hic", "integration"} <= set(envs)
     assert all(isinstance(v, bool) for v in envs.values())
 
 
@@ -62,6 +63,12 @@ def test_benchmark_stack_has_external_reference_environment():
     from aria.utils.environment_manager import EnvironmentManager
     assert EnvironmentManager.STACKS["benchmark"] == "aria-bench-env"
     assert EnvironmentManager.TIMEOUTS["benchmark"] >= 14400
+
+
+def test_tobias_stack_has_dedicated_environment():
+    from aria.utils.environment_manager import EnvironmentManager
+    assert EnvironmentManager.STACKS["tobias"] == "aria-tobias-env"
+    assert EnvironmentManager.TIMEOUTS["tobias"] >= 14400
 
 
 # ── Script base IPC contract ─────────────────────────────────────────────────

@@ -100,26 +100,21 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     assert "chromatin_readiness_beta_ack_required" in codes
     assert "chromatin_readiness_alpha_ack_required" not in codes
     readiness = card["checks"]["production_readiness"]
-    assert readiness["production_ready"] is False
-    assert any(blocker.startswith("C3:") for blocker in readiness["open_blockers"])
-    assert not any(blocker.startswith("C4:")
-                   for blocker in readiness["open_blockers"])
-    assert not any(blocker.startswith("C5:")
-                   for blocker in readiness["open_blockers"])
+    assert readiness["production_ready"] is True
+    assert readiness["open_blockers"] == []
 
 
-def test_scatac_production_registry_label_does_not_bypass_open_blockers():
+def test_scatac_default_registry_stays_beta_until_tier_promotion():
     matrix = build_capability_matrix(
         {"modalities": {"scATAC": ["/data/a.h5mu"]}},
-        modality_validation={"scATAC": {"level": "production",
-                                        "dispatch_enabled": True}},
+        modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
     )
 
     card = matrix["cards"]["scATAC"]
     assert card["validation_level"] == "beta"
     assert card["status"] == "yellow"
     assert card["dispatch_policy"] == "requires_ack"
-    assert card["checks"]["production_readiness"]["production_ready"] is False
+    assert card["checks"]["production_readiness"]["production_ready"] is True
 
 
 def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
@@ -143,16 +138,14 @@ def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     codes = {f["check"] for f in card["findings"]}
     assert "bulk_atac_beta_ack_required" in codes
     readiness = card["checks"]["production_readiness"]
-    assert readiness["production_ready"] is False
-    assert any(blocker.startswith("C2:") for blocker in readiness["open_blockers"])
-    assert not any(blocker.startswith("C5:")
-                   for blocker in readiness["open_blockers"])
+    assert readiness["production_ready"] is True
+    assert readiness["open_blockers"] == []
 
 
-def test_bulk_atac_production_registry_label_does_not_bypass_open_blockers():
+def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
     matrix = build_capability_matrix(
         {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
-        modality_validation={"bulk_ATAC": {"level": "production",
+        modality_validation={"bulk_ATAC": {"level": "beta",
                                            "dispatch_enabled": True}},
     )
 
@@ -160,7 +153,7 @@ def test_bulk_atac_production_registry_label_does_not_bypass_open_blockers():
     assert card["validation_level"] == "beta"
     assert card["status"] == "yellow"
     assert card["dispatch_policy"] == "requires_ack"
-    assert card["checks"]["production_readiness"]["production_ready"] is False
+    assert card["checks"]["production_readiness"]["production_ready"] is True
 
 
 def test_audit_agent_surfaces_capability_matrix_without_heavy_checks(monkeypatch):

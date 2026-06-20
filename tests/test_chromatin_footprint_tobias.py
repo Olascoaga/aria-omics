@@ -137,3 +137,31 @@ def test_driver_honest_not_run_missing_asset(tmp_path, monkeypatch):
     })
     assert res["ran"] is False
     assert "fragments_file missing" in res["reason"]
+
+
+def test_dispatch_entrypoint_supports_bulk_mode_skip(tmp_path, monkeypatch):
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    monkeypatch.setattr(mod.shutil, "which", lambda name: None)
+    res = mod.chromatin_footprint_tobias_dispatch({
+        "mode": "bulk",
+        "condition_bams": {"A": [str(tmp_path / "a.bam")],
+                           "B": [str(tmp_path / "b.bam")]},
+        "genome_fasta": str(tmp_path / "g.fa"),
+        "peaks_bed": str(tmp_path / "p.bed"),
+        "motif_meme": str(tmp_path / "m.meme"),
+        "group_a": "A",
+        "group_b": "B",
+        "output_dir": str(tmp_path / "out"),
+    })
+    assert res["ran"] is False
+    assert res["method"] == "tobias"
+    assert "TOBIAS not installed" in res["reason"]
+
+
+def test_footprint_tobias_contract_registered():
+    from aria.utils.script_contracts import SCRIPT_CONTRACTS
+
+    key = "aria/scripts/chromatin_footprint_tobias.py"
+    assert key in SCRIPT_CONTRACTS
+    assert SCRIPT_CONTRACTS[key].validation_level == "beta"
