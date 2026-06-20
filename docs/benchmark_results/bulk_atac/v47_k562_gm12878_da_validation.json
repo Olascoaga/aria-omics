@@ -1,6 +1,6 @@
 {
   "benchmark": "v47_bulk_atac_da_validation",
-  "title": "Bulk ATAC differential accessibility — ARIA V47 lane on real ENCODE replicates",
+  "title": "Bulk ATAC differential accessibility \u2014 ARIA V47 lane on real ENCODE replicates",
   "purpose": "Validate the V47 bulk ATAC lane (QC -> MACS3 peak calling -> peak-by-sample count matrix -> replicate-gated DESeq2 DA) end-to-end on a real, replicated bulk ATAC dataset with a known strong-signal contrast.",
   "dataset": {
     "source": "ENCODE Project (https://www.encodeproject.org)",
@@ -13,13 +13,19 @@
         "experiment": "ENCSR483RKN",
         "lab": "Michael Snyder, Stanford",
         "lineage": "chronic myeloid / erythroleukemia",
-        "filtered_alignments": ["ENCFF512VEZ", "ENCFF987XOV"]
+        "filtered_alignments": [
+          "ENCFF512VEZ",
+          "ENCFF987XOV"
+        ]
       },
       "GM12878": {
         "experiment": "ENCSR637XSC",
         "lab": "Michael Snyder, Stanford",
         "lineage": "B-lymphoblastoid",
-        "filtered_alignments": ["ENCFF981FXV", "ENCFF962FMH"]
+        "filtered_alignments": [
+          "ENCFF981FXV",
+          "ENCFF962FMH"
+        ]
       }
     },
     "note": "Both experiments from the same lab/pipeline -> minimal batch confound. md5-verified, coordinate-sorted."
@@ -61,13 +67,56 @@
     "n_markers_correct": 6,
     "n_markers_total": 7,
     "markers": [
-      {"gene": "GATA1", "lineage": "erythroid/K562", "expected": "negative", "mean_log2fc": -4.89, "correct": true},
-      {"gene": "HBB", "lineage": "erythroid/K562", "expected": "negative", "mean_log2fc": -4.50, "correct": true},
-      {"gene": "TAL1", "lineage": "erythroid/K562", "expected": "negative", "mean_log2fc": -4.97, "correct": true},
-      {"gene": "MS4A1", "lineage": "B/GM12878", "expected": "positive", "mean_log2fc": 4.30, "correct": true},
-      {"gene": "PAX5", "lineage": "B/GM12878", "expected": "positive", "mean_log2fc": 1.44, "correct": true},
-      {"gene": "EBF1", "lineage": "B/GM12878", "expected": "positive", "mean_log2fc": 1.05, "correct": true},
-      {"gene": "CD19", "lineage": "B/GM12878", "expected": "positive", "mean_log2fc": -0.13, "correct": false, "note": "narrow 2-peak window; negligible vs overall concordance"}
+      {
+        "gene": "GATA1",
+        "lineage": "erythroid/K562",
+        "expected": "negative",
+        "mean_log2fc": -4.89,
+        "correct": true
+      },
+      {
+        "gene": "HBB",
+        "lineage": "erythroid/K562",
+        "expected": "negative",
+        "mean_log2fc": -4.5,
+        "correct": true
+      },
+      {
+        "gene": "TAL1",
+        "lineage": "erythroid/K562",
+        "expected": "negative",
+        "mean_log2fc": -4.97,
+        "correct": true
+      },
+      {
+        "gene": "MS4A1",
+        "lineage": "B/GM12878",
+        "expected": "positive",
+        "mean_log2fc": 4.3,
+        "correct": true
+      },
+      {
+        "gene": "PAX5",
+        "lineage": "B/GM12878",
+        "expected": "positive",
+        "mean_log2fc": 1.44,
+        "correct": true
+      },
+      {
+        "gene": "EBF1",
+        "lineage": "B/GM12878",
+        "expected": "positive",
+        "mean_log2fc": 1.05,
+        "correct": true
+      },
+      {
+        "gene": "CD19",
+        "lineage": "B/GM12878",
+        "expected": "positive",
+        "mean_log2fc": -0.13,
+        "correct": false,
+        "note": "narrow 2-peak window; negligible vs overall concordance"
+      }
     ]
   },
   "lane_fixes_landed": [
@@ -82,5 +131,38 @@
     "Generated during development; regenerate from a clean checkout at preprint freeze."
   ],
   "validation_level": "beta_replicate_gated",
-  "de_da_core": "untouched (shared rna_bulk_de._run_deseq2)"
+  "de_da_core": "untouched (shared rna_bulk_de._run_deseq2)",
+  "aria_version": "4.7.0",
+  "provenance": {
+    "aria_version": "4.7.0",
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "git_sha": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_commit": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_dirty": true,
+    "git_tree_sha": "2a96176372d97ab185252bc79f0ee98646f88870",
+    "git_describe": "v4.7.0-46-g7f6acd5",
+    "workflow_hash": "8f027088a177ed0ac711944fb0f8685f176bb6c04c74e92c08c6c54bf0764d88",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
+    "image": {
+      "containerized": false,
+      "kind": null,
+      "digest": null,
+      "reference": null,
+      "revision": null,
+      "env_lock_sha256": null,
+      "validation": null
+    },
+    "stamped_by": "aria/benchmarks/bulk_atac_v47_provenance.py",
+    "source_commit": "5c11fc0",
+    "tool_versions": {
+      "macs3": "3.0.4",
+      "bedtools": "2.31.1",
+      "pydeseq2": "0.5.4"
+    },
+    "seed": null,
+    "determinism": "Replicate-gated DESeq2 DA and hypergeometric motif enrichment are deterministic; no RNG seed is used.",
+    "generated_utc": "2026-06-20T05:20:14Z",
+    "note": "Scientific values are the measured record from `source_commit`; this provenance block was re-stamped (not recomputed) at `git_commit`. Full re-computation from the real ENCODE BAMs is separate preprint-freeze work."
+  }
 }

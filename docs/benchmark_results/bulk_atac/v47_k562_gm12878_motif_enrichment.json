@@ -248,5 +248,38 @@
     "Both accessibility directions reported (no one-sided pruning).",
     "Offline: versioned local JASPAR2024 collection; no network egress.",
     "5000-peak/group cap applied (top peaks); signal is robust to the cap."
-  ]
+  ],
+  "aria_version": "4.7.0",
+  "provenance": {
+    "aria_version": "4.7.0",
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "git_sha": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_commit": "7f6acd5cba55f9045ec1e3981a16ad2806ab56c7",
+    "git_dirty": true,
+    "git_tree_sha": "2a96176372d97ab185252bc79f0ee98646f88870",
+    "git_describe": "v4.7.0-46-g7f6acd5-dirty",
+    "workflow_hash": "a3d1cefade46083a7a48222527a92be331a92293f97307e4f632e492f6866e9c",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
+    "image": {
+      "containerized": false,
+      "kind": null,
+      "digest": null,
+      "reference": null,
+      "revision": null,
+      "env_lock_sha256": null,
+      "validation": null
+    },
+    "stamped_by": "aria/benchmarks/bulk_atac_v47_provenance.py",
+    "source_commit": "5a407be",
+    "tool_versions": {
+      "engine": "snapatac2.tl.motif_enrichment (shared scATAC chromatin_motifs lane)",
+      "snapatac2": "unrecorded_in_source_run",
+      "motif_collection": "JASPAR2024_CORE_vertebrates (release 2024, 879 motifs)"
+    },
+    "seed": null,
+    "determinism": "Replicate-gated DESeq2 DA and hypergeometric motif enrichment are deterministic; no RNG seed is used.",
+    "generated_utc": "2026-06-20T05:20:14Z",
+    "note": "Scientific values are the measured record from `source_commit`; this provenance block was re-stamped (not recomputed) at `git_commit`. Full re-computation from the real ENCODE BAMs is separate preprint-freeze work."
+  }
 }
