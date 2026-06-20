@@ -55,12 +55,40 @@ def _is_fastq(files: list) -> bool:
     if not files: return False
     return any(str(files[0]).lower().endswith(s) for s in [".fastq.gz", ".fq.gz", ".fastq", ".fq"])
 
-def _infer_lfc_threshold(intent: dict) -> float:
+# F1 (preprint audit 2026-06-19 / ADR-055): the |log2FC| DE-significance threshold
+# is DATA- AND PROMPT-INDEPENDENT by default. It must never be derived from the
+# question text or a hardcoded gene list — otherwise the inferential cutoff (and
+# thus which genes are called DE) depends on how the question is worded, which is
+# not reproducible and violates "LLM proposes / code guarantees". The cutoff
+# deviates from the default ONLY via an explicit, user-confirmed CP3 threshold
+# profile or a versioned `global_lfc` override.
+DEFAULT_LFC_THRESHOLD = 1.0
+
+
+def _default_lfc_threshold() -> float:
+    """The fixed, reproducible default |log2FC| significance threshold."""
+    return DEFAULT_LFC_THRESHOLD
+
+
+def suggest_lfc_profile(intent: dict) -> str | None:
+    """ADVISORY ONLY — never applied to the threshold.
+
+    Returns a non-binding hint (``"exploratory_tf"`` or ``None``) that a TF /
+    knockout / overexpression study often warrants the user-selectable
+    Exploratory/TF CP3 profile (LFC 0.58), so the checkpoint can surface it. ARIA
+    guides from the biological question, but the actual cutoff is only ever
+    changed by an explicit user choice — code does NOT silently move the
+    statistical threshold based on prompt text.
+    """
     entities = [str(e).lower() for e in intent.get("biological_entities", [])]
-    text = re.sub(r'[\-\s]', '', " ".join([str(intent.get("summary", "")), str(intent.get("comparison", "")), *entities]).lower())
-    if any(tf in text for tf in KNOWN_TFS) or re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text) or "transcriptionfactor" in text:
-        return 0.58
-    return 1.0
+    text = re.sub(r'[\-\s]', '', " ".join([
+        str(intent.get("summary", "")), str(intent.get("comparison", "")),
+        *entities]).lower())
+    if (any(tf in text for tf in KNOWN_TFS)
+            or re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text)
+            or "transcriptionfactor" in text):
+        return "exploratory_tf"
+    return None
 
 
 def _normalise_sample_token(value: str) -> str:
@@ -172,7 +200,13 @@ class BulkRNAAgent(BaseAgent):
             )
 
         padj_thr = exp_ctx.get("global_padj", 0.05)
-        lfc_thr  = exp_ctx.get("global_lfc", _infer_lfc_threshold(intent))
+        lfc_thr  = exp_ctx.get("global_lfc", _default_lfc_threshold())
+        # F1: record how the cutoff was chosen so the report can state it. An
+        # explicit CP3 profile stamps its own provenance; a bare global_lfc
+        # override is "explicit_global_lfc"; otherwise it is the fixed default.
+        lfc_provenance = (
+            exp_ctx.get("lfc_threshold_provenance")
+            or ("explicit_global_lfc" if "global_lfc" in exp_ctx else "default"))
         output_dir = self._output_dir(files)
         metadata_file = (
             str(self._write_design_metadata(group_labels, design_factor, output_dir))
@@ -216,6 +250,7 @@ class BulkRNAAgent(BaseAgent):
 
         result["padj_threshold"] = padj_thr
         result["lfc_threshold"]  = lfc_thr
+        result["lfc_threshold_provenance"] = lfc_provenance
 
         self._publish_findings(experiment_id, result)
         result["interpretation"] = self._interpret(result, intent, exp_ctx)
@@ -640,7 +675,13 @@ class BulkRNAAgent(BaseAgent):
                     decision_id=f"{experiment_id[:8]}-auto-00-thr", wing_id=experiment_id, checkpoint=0,
                     question="Statistical thresholds for DE significance",
                     decision=f"padj < {result.get('padj_threshold')}, |log2FC| > {result.get('lfc_threshold')}",
-                    rationale="Thresholds enforced via User Checkpoint 3 profile selection or inferred by Agent based on TF/KO targets.",
+                    rationale=(
+                        f"|log2FC| threshold provenance: "
+                        f"{result.get('lfc_threshold_provenance', 'default')}. "
+                        f"The default ({DEFAULT_LFC_THRESHOLD}) is fixed and "
+                        f"prompt-independent; it changes only via an explicit User "
+                        f"Checkpoint 3 profile or a versioned global_lfc override "
+                        f"(never inferred from the question text)."),
                     made_by="User / bulk_rna_agent"
                 )
             except Exception as e: log.debug(f"Failed to store threshold decision: {e}")

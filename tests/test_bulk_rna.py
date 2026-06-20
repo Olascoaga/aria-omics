@@ -33,7 +33,9 @@ from aria.scripts.rna_bulk_de import (
 # (aria-rna-env) and the light pip lane do not install. Guard it so those lanes
 # skip the agent-only checks instead of failing collection.
 try:
-    from aria.agents.bulk_rna_agent import BulkRNAAgent, _infer_lfc_threshold
+    from aria.agents.bulk_rna_agent import (
+        BulkRNAAgent, _default_lfc_threshold, suggest_lfc_profile,
+        DEFAULT_LFC_THRESHOLD)
     _HAS_AGENT = True
 except Exception:
     _HAS_AGENT = False
@@ -102,12 +104,35 @@ def test_infer_design_factor(intent, expected_factor):
 
 
 @needs_agent
-def test_lfc_threshold_tf_vs_nontf():
-    tf = {"comparison": "entity_A KO vs neutral_ref", "summary": "transcription factor knockout",
-          "biological_entities": ["entity_A", "neutral_ref"]}
-    assert _infer_lfc_threshold(tf) == 0.58
-    non_tf = {"comparison": "condition_X vs neutral_ref", "biological_entities": ["condition_X"]}
-    assert _infer_lfc_threshold(non_tf) == 1.0
+def test_lfc_threshold_is_prompt_independent():
+    """F1 (ADR-055): the |log2FC| cutoff must NOT depend on the question text.
+
+    A TF/knockout study and a neutral study resolve to the SAME fixed default;
+    the only deviation is an explicit user-confirmed CP3 profile / global_lfc.
+    """
+    tf = {"comparison": "SOX2 KO vs neutral_ref",
+          "summary": "transcription factor knockout",
+          "biological_entities": ["SOX2", "neutral_ref"]}
+    non_tf = {"comparison": "condition_X vs neutral_ref",
+              "biological_entities": ["condition_X"]}
+    # The default is fixed and identical regardless of TF/KO wording.
+    assert _default_lfc_threshold() == DEFAULT_LFC_THRESHOLD == 1.0
+    # The TF/KO heuristic survives ONLY as a non-binding advisory suggestion.
+    assert suggest_lfc_profile(tf) == "exploratory_tf"
+    assert suggest_lfc_profile(non_tf) is None
+
+
+@needs_agent
+def test_lfc_suggestion_does_not_change_resolved_threshold():
+    """The advisory suggestion never moves the cutoff: a TF-flagged intent with
+    no explicit override still resolves to the fixed default."""
+    import aria.agents.bulk_rna_agent as bra
+    tf = {"summary": "BMAL1 knockout", "comparison": "KO vs WT",
+          "biological_entities": ["BMAL1"]}
+    # suggestion fires, but the resolved cutoff (no global_lfc) is the default.
+    assert suggest_lfc_profile(tf) == "exploratory_tf"
+    resolved = {}.get("global_lfc", bra._default_lfc_threshold())
+    assert resolved == 1.0
 
 
 @needs_agent

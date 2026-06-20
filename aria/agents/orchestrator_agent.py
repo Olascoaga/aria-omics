@@ -313,8 +313,15 @@ class OrchestratorAgent(BaseAgent):
         plan["design_intelligence"] = design_intelligence
         # Annotate plan with resolved thresholds — single source of truth
         # so the preview and the actual run always agree.
-        from aria.agents.bulk_rna_agent import _infer_lfc_threshold
-        plan["lfc_threshold"]  = _infer_lfc_threshold(session.intent)
+        # F1 (ADR-055): the plan's |log2FC| cutoff is the fixed default, NOT
+        # inferred from the question text. A TF/KO/OE study can opt into the
+        # Exploratory/TF profile at CP3; the suggestion is surfaced but never
+        # auto-applied.
+        from aria.agents.bulk_rna_agent import (
+            _default_lfc_threshold, suggest_lfc_profile)
+        plan["lfc_threshold"]  = _default_lfc_threshold()
+        plan["lfc_threshold_provenance"] = "default"
+        plan["lfc_threshold_suggestion"] = suggest_lfc_profile(session.intent)
         plan["padj_threshold"] = 0.05
         session.plan = plan
         self._sync_plan_record(session)
@@ -576,6 +583,8 @@ class OrchestratorAgent(BaseAgent):
         # uses the same values shown in the plan preview.
         exp_context.setdefault("global_padj", plan.get("padj_threshold", 0.05))
         exp_context.setdefault("global_lfc",  plan.get("lfc_threshold",  1.0))
+        exp_context.setdefault("lfc_threshold_provenance",
+                               plan.get("lfc_threshold_provenance", "default"))
 
         # v4.0: inject plan contrasts into design for BulkRNAAgent
         plan_contrasts = plan.get("contrasts")
@@ -594,21 +603,28 @@ class OrchestratorAgent(BaseAgent):
         
         rationale = "User maintained default/agent-inferred analytical thresholds."
         
+        # F1 (ADR-055): a CP3 profile is the EXPLICIT, user-confirmed override
+        # path. Each branch stamps its own threshold provenance so the report
+        # records that the cutoff was a user choice, not a prompt-inferred value.
         if "strict" in decision.lower():
             exp_context["global_padj"] = 0.01
             exp_context["global_lfc"] = 1.5
+            exp_context["lfc_threshold_provenance"] = "cp3_profile:strict"
             rationale = "User enforced Strict analytical thresholds (padj < 0.01, LFC > 1.5) to isolate high-confidence targets."
         elif "standard" in decision.lower():
             exp_context["global_padj"] = 0.05
             exp_context["global_lfc"] = 1.0
+            exp_context["lfc_threshold_provenance"] = "cp3_profile:standard"
             rationale = "User enforced Standard analytical thresholds (padj < 0.05, LFC > 1.0) for conventional DE."
         elif "exploratory" in decision.lower() or "tf" in decision.lower():
             exp_context["global_padj"] = 0.05
             exp_context["global_lfc"] = 0.58
+            exp_context["lfc_threshold_provenance"] = "cp3_profile:exploratory_tf"
             rationale = "User enforced Exploratory/TF analytical thresholds (padj < 0.05, LFC > 0.58) to capture subtle regulatory signals."
         elif "sensitivity" in decision.lower():
             exp_context["global_padj"] = 0.10
             exp_context["global_lfc"] = 0.58
+            exp_context["lfc_threshold_provenance"] = "cp3_profile:sensitivity"
             rationale = "User enforced High Sensitivity analytical thresholds (padj < 0.10, LFC > 0.58) to maximize target discovery."
 
         self.memory.store_decision(
