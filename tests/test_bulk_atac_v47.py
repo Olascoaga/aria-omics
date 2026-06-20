@@ -303,6 +303,12 @@ def test_bulk_atac_methods_report_caller_counting_and_model_params():
                     "n_replicate_samples": 4,
                     "condition_col": "cell_line", "replicate_col": "replicate",
                     "covariates_adjusted": [],
+                    "covariates_dropped": [{
+                        "covariate": "batch",
+                        "reason": (
+                            "not constant within biological replicate after "
+                            "technical-sample aggregation"),
+                    }],
                     "padj_max": 0.05, "lfc_min": 0.5,
                     "min_replicates_per_condition": 2,
                     "comparisons": [{
@@ -336,6 +342,7 @@ def test_bulk_atac_methods_report_caller_counting_and_model_params():
     assert "replicate-level DESeq2" in blob
     assert "cell_line" in blob and "replicate" in blob
     assert "~ cell_line" in blob
+    assert "not adjusted for after replicate aggregation: batch" in blob
     assert "|log2FC| >= 0.5" in blob and "adjusted p <= 0.05" in blob
     assert "At least 2 replicates per condition" in blob
     assert "low-power warning" in blob

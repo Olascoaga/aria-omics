@@ -115,13 +115,25 @@ def _prepare_replicate_matrix(counts, metadata, condition_col: str,
             raise ValueError(f"metadata column {col} contains empty values.")
         meta[col] = meta[col].astype(str)
 
-    covariates = [c for c in covariates if c in meta.columns]
+    requested_covariates = list(dict.fromkeys(c for c in covariates if c))
+    covariates_dropped: list[dict[str, Any]] = []
+    for cov in requested_covariates:
+        if cov not in meta.columns:
+            covariates_dropped.append({
+                "covariate": cov,
+                "reason": "not present in the sample metadata",
+            })
+    present_covariates = [c for c in requested_covariates if c in meta.columns]
     meta["_replicate_sample"] = (
         meta[condition_col].astype(str) + "::" + meta[replicate_col].astype(str)
     )
 
     agg_counts = []
     agg_meta_rows = []
+    bad_covariate_reps: dict[str, dict[str, list[str]]] = {
+        cov: {"missing": [], "non_constant": []}
+        for cov in present_covariates
+    }
     for rep_sample, rows in meta.groupby("_replicate_sample", sort=False):
         sample_ids = list(rows.index)
         agg_counts.append(counts[sample_ids].sum(axis=1).rename(rep_sample))
@@ -131,19 +143,55 @@ def _prepare_replicate_matrix(counts, metadata, condition_col: str,
             replicate_col: str(rows[replicate_col].iloc[0]),
             "n_technical_samples": int(len(sample_ids)),
         }
-        for cov in covariates:
-            vals = rows[cov].dropna().astype(str).unique()
+        for cov in present_covariates:
+            vals = [
+                str(v).strip()
+                for v in rows[cov].dropna().astype(str).unique()
+                if str(v).strip()
+            ]
             if len(vals) == 1:
                 row[cov] = vals[0]
+            elif len(vals) == 0:
+                bad_covariate_reps[cov]["missing"].append(str(rep_sample))
+            else:
+                bad_covariate_reps[cov]["non_constant"].append(str(rep_sample))
         agg_meta_rows.append(row)
 
     agg_counts_df = pd.concat(agg_counts, axis=1)
     agg_meta = pd.DataFrame(agg_meta_rows).set_index("_sample")
+
+    dropped_covs = {d["covariate"] for d in covariates_dropped}
+    for cov, problems in bad_covariate_reps.items():
+        if problems["non_constant"]:
+            covariates_dropped.append({
+                "covariate": cov,
+                "reason": (
+                    "not constant within biological replicate after "
+                    "technical-sample aggregation"
+                ),
+                "affected_replicates": problems["non_constant"],
+                "n_affected_replicates": len(problems["non_constant"]),
+            })
+            dropped_covs.add(cov)
+        elif problems["missing"]:
+            covariates_dropped.append({
+                "covariate": cov,
+                "reason": (
+                    "missing within biological replicate after "
+                    "technical-sample aggregation"
+                ),
+                "affected_replicates": problems["missing"],
+                "n_affected_replicates": len(problems["missing"]),
+            })
+            dropped_covs.add(cov)
+
     usable_covariates = [
-        c for c in covariates
-        if c in agg_meta.columns and not agg_meta[c].isna().any()
+        c for c in present_covariates
+        if c not in dropped_covs
+        and c in agg_meta.columns
+        and not agg_meta[c].isna().any()
     ]
-    return agg_counts_df, agg_meta, usable_covariates
+    return agg_counts_df, agg_meta, usable_covariates, covariates_dropped
 
 
 def _write_replicate_counts(path: Path, counts) -> None:
@@ -210,6 +258,14 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
                               thr.min_replicates))
     top_n = int(params.get("top_n", 20))
     covariates = [str(c) for c in (params.get("covariates") or []) if str(c)]
+    required_covariates = {
+        str(c) for c in (
+            params.get("required_covariates")
+            or params.get("essential_covariates")
+            or []
+        )
+        if str(c)
+    }
     n_cpus = params.get("n_cpus")
     allow_mock = mocks_allowed(params)
     warnings: list[str] = []
@@ -220,10 +276,32 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         if replicate_col not in metadata.columns and replicate_col == "replicate":
             if "replicate_id" in metadata.columns:
                 replicate_col = "replicate_id"
-        rep_counts, rep_meta, usable_covariates = _prepare_replicate_matrix(
-            counts, metadata, condition_col, replicate_col, covariates)
+        rep_counts, rep_meta, usable_covariates, covariates_dropped = (
+            _prepare_replicate_matrix(
+                counts, metadata, condition_col, replicate_col, covariates)
+        )
     except Exception as exc:
         return _skipped(str(exc))
+
+    for dropped in covariates_dropped:
+        warnings.append(
+            f"Covariate '{dropped.get('covariate')}' was not adjusted for in "
+            f"bulk ATAC DA: {dropped.get('reason')}."
+        )
+
+    dropped_required = [
+        d for d in covariates_dropped
+        if d.get("covariate") in required_covariates
+    ]
+    if dropped_required:
+        return _skipped(
+            "required covariate(s) cannot be represented after "
+            "technical-sample aggregation",
+            covariates_requested=covariates,
+            covariates_adjusted=usable_covariates,
+            covariates_dropped=covariates_dropped,
+            warnings=warnings,
+        )
 
     nonzero = rep_counts.sum(axis=1) > 0
     n_dropped_zero = int((~nonzero).sum())
@@ -330,6 +408,10 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             "lfc_shrinkage": de.get("lfc_shrinkage"),
             "lfc_threshold_test": de.get("lfc_threshold_test"),
             "fitted_design_formula": de.get("fitted_design_formula"),
+            "covariates_adjusted": de.get(
+                "covariates_adjusted", usable_covariates),
+            "covariates_dropped": covariates_dropped + (
+                de.get("covariates_dropped") or []),
             "power_estimate_at_lfc_min": de.get("power_estimate_at_lfc_min"),
         }
         comparison_results.append(result_row)
@@ -355,6 +437,9 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             replicate_counts_path=str(replicate_counts_path),
             padj_max=padj_max,
             lfc_min=lfc_min,
+            covariates_requested=covariates,
+            covariates_adjusted=usable_covariates,
+            covariates_dropped=covariates_dropped,
         )
 
     return {
@@ -371,7 +456,9 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         "output_csv": str(summary_csv),
         "condition_col": condition_col,
         "replicate_col": replicate_col,
+        "covariates_requested": covariates,
         "covariates_adjusted": usable_covariates,
+        "covariates_dropped": covariates_dropped,
         "padj_max": padj_max,
         "lfc_min": lfc_min,
         "min_replicates_per_condition": min_reps,

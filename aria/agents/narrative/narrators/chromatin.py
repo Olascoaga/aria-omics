@@ -784,6 +784,11 @@ class ChromatinNarrator:
             covariates = da.get("covariates_adjusted") or []
             cov_txt = (f", adjusting for {', '.join(map(str, covariates))}"
                        if covariates else "")
+            dropped_covariates = [
+                d.get("covariate")
+                for d in (da.get("covariates_dropped") or [])
+                if isinstance(d, dict) and d.get("covariate")
+            ]
             comparisons = da.get("comparisons") or []
             design = next((c.get("fitted_design_formula") for c in comparisons
                            if isinstance(c, dict)
@@ -799,6 +804,12 @@ class ChromatinNarrator:
                 f"{cov_txt})")
             if design:
                 line += f" with design {design}"
+            if dropped_covariates:
+                line += (
+                    "; requested covariate(s) not adjusted for after "
+                    "replicate aggregation: "
+                    f"{', '.join(sorted(set(map(str, dropped_covariates))))}"
+                )
             line += (
                 f". Peaks with |log2FC| >= {da.get('lfc_min', '?')} and "
                 f"adjusted p <= {da.get('padj_max', '?')} were called "
