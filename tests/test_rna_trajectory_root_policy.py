@@ -110,3 +110,116 @@ def test_trajectory_skips_dpt_without_biological_root(tmp_path, monkeypatch):
         "root_used": None,
         "root_selection_policy": "explicit_or_progenitor_label_required",
     }
+
+
+# ── S4 (pre-integration audit): the stochastic steps must be seeded so pseudotime
+# + embedding are reproducible, matching the clustering/LSI lanes. ───────────────
+
+def test_trajectory_seeds_neighbors_umap_diffmap(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    import numpy as np
+    import pandas as pd
+
+    import aria.utils.safe_h5ad as safe_h5ad
+    from aria.scripts import rna_trajectory as mod
+
+    captured: dict = {}
+
+    class _Adata:
+        def __init__(self):
+            self.obs = pd.DataFrame({"leiden": pd.Categorical(["0", "0", "1", "1"])})
+            # Precomputed iroot forces the DPT branch -> exercises diffmap+dpt.
+            self.uns = {"iroot": 0}
+            self.obsm = {"X_pca": np.ones((4, 2), dtype=float)}
+            self.layers = {}
+
+        def write_h5ad(self, path):
+            self.output_path = path
+
+    def _neighbors(adata, **kw):
+        captured["neighbors"] = kw.get("random_state")
+
+    def _paga(adata, groups):
+        adata.uns["paga"] = {
+            "connectivities": np.array([[0.0, 0.2], [0.2, 0.0]], dtype=float)
+        }
+
+    def _umap(adata, **kw):
+        captured["umap"] = kw.get("random_state")
+        adata.obsm["X_umap"] = np.zeros((4, 2), dtype=float)
+
+    def _diffmap(adata, **kw):
+        captured["diffmap"] = kw.get("random_state")
+
+    def _dpt(adata, **kw):
+        adata.obs["dpt_pseudotime"] = np.linspace(0.0, 1.0, adata.obs.shape[0])
+
+    fake_scanpy = types.SimpleNamespace(
+        pp=types.SimpleNamespace(neighbors=_neighbors),
+        tl=types.SimpleNamespace(paga=_paga, umap=_umap, diffmap=_diffmap, dpt=_dpt),
+    )
+    monkeypatch.setitem(sys.modules, "scanpy", fake_scanpy)
+    monkeypatch.setattr(safe_h5ad, "read_h5ad", lambda _path: _Adata())
+
+    input_path = tmp_path / "clustered.h5ad"
+    input_path.write_text("placeholder", encoding="utf-8")
+
+    result = mod.rna_trajectory(
+        {"data_path": str(input_path), "output_dir": str(tmp_path), "seed": 123}
+    )
+
+    assert result["status"] == "success"
+    # The DPT branch ran (precomputed iroot) so diffmap was exercised.
+    assert result["pseudotime"]["computed"] is True
+    # All three stochastic steps received the explicit seed.
+    assert captured["neighbors"] == 123
+    assert captured["umap"] == 123
+    assert captured["diffmap"] == 123
+
+
+def test_trajectory_seed_defaults_to_zero(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    import numpy as np
+    import pandas as pd
+
+    import aria.utils.safe_h5ad as safe_h5ad
+    from aria.scripts import rna_trajectory as mod
+
+    captured: dict = {}
+
+    class _Adata:
+        def __init__(self):
+            self.obs = pd.DataFrame({"leiden": pd.Categorical(["0", "1"])})
+            self.uns = {}
+            self.obsm = {"X_pca": np.ones((2, 2), dtype=float)}
+            self.layers = {}
+
+        def write_h5ad(self, path):
+            self.output_path = path
+
+    fake_scanpy = types.SimpleNamespace(
+        pp=types.SimpleNamespace(
+            neighbors=lambda a, **kw: captured.__setitem__("neighbors", kw.get("random_state"))),
+        tl=types.SimpleNamespace(
+            paga=lambda a, groups: a.uns.__setitem__(
+                "paga", {"connectivities": np.array([[0.0, 0.1], [0.1, 0.0]])}),
+            umap=lambda a, **kw: (captured.__setitem__("umap", kw.get("random_state")),
+                                  a.obsm.__setitem__("X_umap", np.zeros((2, 2))))[0],
+            diffmap=lambda a, **kw: None,
+            dpt=lambda a, **kw: None,
+        ),
+    )
+    monkeypatch.setitem(sys.modules, "scanpy", fake_scanpy)
+    monkeypatch.setattr(safe_h5ad, "read_h5ad", lambda _path: _Adata())
+
+    input_path = tmp_path / "clustered.h5ad"
+    input_path.write_text("x", encoding="utf-8")
+
+    # No seed param -> default 0 (matches rna_clustering).
+    mod.rna_trajectory({"data_path": str(input_path), "output_dir": str(tmp_path)})
+    assert captured["neighbors"] == 0
+    assert captured["umap"] == 0

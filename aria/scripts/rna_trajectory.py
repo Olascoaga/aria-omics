@@ -14,6 +14,10 @@ Input params:
     root_cell_type:  str  (optional) — cell type to use as trajectory root
     cell_type_col:   str  (optional) — obs column with cell type labels (default: "cell_type")
     output_dir:      str  (optional)
+    seed:            int  (optional) — random_state for the stochastic steps
+                          (neighbors / UMAP / diffmap), default 0. Pinned so
+                          pseudotime + embedding are reproducible, matching the
+                          clustering/LSI lanes.
 
 Output:
     {
@@ -71,6 +75,9 @@ def rna_trajectory(params: dict) -> dict:
     root_cell_type = params.get("root_cell_type")
     cell_type_col  = params.get("cell_type_col", "cell_type")
     output_dir     = params.get("output_dir", str(Path(data_path).parent))
+    # Pinned RNG for the stochastic steps (neighbors / UMAP / diffmap) so
+    # pseudotime + embedding are reproducible, matching rna_clustering's `seed`.
+    seed           = int(params.get("seed", 0))
 
     adata = read_h5ad(data_path)
 
@@ -86,7 +93,7 @@ def rna_trajectory(params: dict) -> dict:
     # Ensure neighbor graph
     if "neighbors" not in adata.uns:
         rep = "X_pca_harmony" if "X_pca_harmony" in adata.obsm else "X_pca"
-        sc.pp.neighbors(adata, use_rep=rep, n_pcs=30)
+        sc.pp.neighbors(adata, use_rep=rep, n_pcs=30, random_state=seed)
 
     # ── 1. PAGA ──────────────────────────────────────────────────────────
     sc.tl.paga(adata, groups=groupby)
@@ -95,7 +102,7 @@ def rna_trajectory(params: dict) -> dict:
     # the AnnData already carries a precomputed UMAP we should respect.
     if "X_umap" not in adata.obsm:
         try:
-            sc.tl.umap(adata, init_pos="paga")
+            sc.tl.umap(adata, init_pos="paga", random_state=seed)
         except Exception as e:
             log_msg = f"sc.tl.umap(init_pos=paga) skipped: {e}"
             adata.uns.setdefault("paga_log", []).append(log_msg)
@@ -183,7 +190,7 @@ def rna_trajectory(params: dict) -> dict:
                 "root_selection_policy": root_policy,
             }
         else:
-            sc.tl.diffmap(adata)
+            sc.tl.diffmap(adata, random_state=seed)
 
             sc.tl.dpt(adata)
 
