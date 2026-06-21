@@ -12,6 +12,12 @@ from __future__ import annotations
 
 from .bulk_atac import bulk_atac_evidence
 from .bulk_rna import bulk_rna_evidence
+from .scatac import scatac_evidence
 from .scrna import scrna_evidence
 
-__all__ = ["bulk_rna_evidence", "scrna_evidence", "bulk_atac_evidence"]
+__all__ = [
+    "bulk_rna_evidence",
+    "scrna_evidence",
+    "bulk_atac_evidence",
+    "scatac_evidence",
+]
