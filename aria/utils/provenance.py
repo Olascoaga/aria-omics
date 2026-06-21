@@ -40,6 +40,13 @@ def collect_provenance() -> dict[str, Any]:
                 "env_lock_sha256": None,
                 "validation": None,
             },
+            "environment": {
+                "conda_prefix": None,
+                "env_name": None,
+                "env_lock_file": None,
+                "env_lock_sha256": None,
+                "source": "no_conda_env",
+            },
         }
     return {
         **version_metadata,

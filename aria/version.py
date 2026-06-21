@@ -144,6 +144,51 @@ def collect_image_metadata() -> dict[str, Any]:
     }
 
 
+def _sha256_file(path: Path, chunk_size: int = 1024 * 1024) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(chunk_size), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def collect_environment_metadata(repo_root: str | Path | None = None) -> dict[str, Any]:
+    """Lockfile identity of the ACTIVE conda env (P-S3, pre-integration audit).
+
+    `image.env_lock_sha256` only fills inside a pinned Docker image
+    (`ARIA_IMAGE_ENV_SHA`). When ARIA runs in a local conda env (the normal case,
+    and how every benchmark artifact in `docs/benchmark_results/` was produced),
+    this captures the sha256 of the committed lockfile of the active env so an
+    artifact records the EXACT tool stack that produced it.
+
+    Resolves `CONDA_PREFIX` -> env name -> `envs/<name>.linux-64.lock` (preferred,
+    fully pinned) or `envs/<name>.pip.lock`. Returns honest nulls when no lockfile
+    is committed for the active env — it never fabricates a hash (ADR-002).
+    """
+    root = _repo_root(repo_root)
+    conda_prefix = os.environ.get("CONDA_PREFIX", "").strip()
+    env_name = Path(conda_prefix).name if conda_prefix else None
+    result: dict[str, Any] = {
+        "conda_prefix": conda_prefix or None,
+        "env_name": env_name,
+        "env_lock_file": None,
+        "env_lock_sha256": None,
+        "source": "no_lock",
+    }
+    if not env_name:
+        result["source"] = "no_conda_env"
+        return result
+    for fname, source in ((f"{env_name}.linux-64.lock", "conda_lock"),
+                          (f"{env_name}.pip.lock", "pip_lock")):
+        lock_path = root / "envs" / fname
+        if lock_path.is_file():
+            result["env_lock_file"] = lock_path.relative_to(root).as_posix()
+            result["env_lock_sha256"] = _sha256_file(lock_path)
+            result["source"] = source
+            break
+    return result
+
+
 def collect_version_metadata(repo_root: str | Path | None = None) -> dict[str, Any]:
     """Collect version and source-control metadata for reports and releases."""
     root = _repo_root(repo_root)
@@ -163,4 +208,5 @@ def collect_version_metadata(repo_root: str | Path | None = None) -> dict[str, A
             "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
         ),
         "image": collect_image_metadata(),
+        "environment": collect_environment_metadata(root),
     }
