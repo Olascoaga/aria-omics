@@ -3221,6 +3221,76 @@
       "source_location": "L1"
     },
     {
+      "id": "adapters_chromatin_common",
+      "label": "_chromatin_common.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "adapters_chromatin_common_node_ran",
+      "label": "node_ran()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17"
+    },
+    {
+      "id": "adapters_chromatin_common_num",
+      "label": "num()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "adapters_chromatin_common_motif_signals",
+      "label": "motif_signals()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31"
+    },
+    {
       "id": "adapters_bulk_atac",
       "label": "bulk_atac.py",
       "file_type": "code",
@@ -3228,67 +3298,32 @@
       "source_location": "L1"
     },
     {
-      "id": "adapters_bulk_atac_node_ran",
-      "label": "_node_ran()",
+      "id": "adapters_bulk_atac_low_power",
+      "label": "_low_power()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41"
-    },
-    {
-      "id": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_str",
-      "label": "str",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41"
+      "source_location": "L40"
     },
     {
       "id": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41"
-    },
-    {
-      "id": "adapters_bulk_atac_num",
-      "label": "_num()",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48"
-    },
-    {
-      "id": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_any",
-      "label": "Any",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48"
-    },
-    {
-      "id": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_float",
-      "label": "float",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48"
-    },
-    {
-      "id": "adapters_bulk_atac_low_power",
-      "label": "_low_power()",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L55"
+      "source_location": "L40"
     },
     {
       "id": "adapters_bulk_atac_bulk_atac_evidence",
       "label": "bulk_atac_evidence()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L63"
+      "source_location": "L48"
     },
     {
       "id": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_evidencesignal",
       "label": "EvidenceSignal",
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L63"
+      "source_location": "L48"
     },
     {
       "id": "adapters_bulk_rna",
@@ -3380,6 +3415,41 @@
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L87"
+    },
+    {
+      "id": "adapters_scatac",
+      "label": "scatac.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "adapters_scatac_corr_direction",
+      "label": "_corr_direction()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scatac_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "adapters_scatac_scatac_evidence",
+      "label": "scatac_evidence()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L54"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scatac_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L54"
     },
     {
       "id": "adapters_scrna",
@@ -28726,7 +28796,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -28971,7 +29041,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_cmankb_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -28993,7 +29063,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_cmankb_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -37183,6 +37253,69 @@
       "file_type": "code",
       "source_file": "tests/test_hypothesis_adapter_bulk_rna.py",
       "source_location": "L99"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac",
+      "label": "test_hypothesis_adapter_scatac.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "label": "_agent_results()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_ledger",
+      "label": "_ledger()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_adapter_empty_without_findings",
+      "label": "test_adapter_empty_without_findings()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_per_cluster_tf_motifs",
+      "label": "test_per_cluster_tf_motifs()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_gene_activity_signals_with_moderate_caveat",
+      "label": "test_gene_activity_signals_with_moderate_caveat()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_peak2gene_signals_with_direction_and_caveat",
+      "label": "test_peak2gene_signals_with_direction_and_caveat()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L87"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_regulatory_skipped_when_node_not_run",
+      "label": "test_regulatory_skipped_when_node_not_run()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scatac_test_motifs_skipped_when_node_not_run",
+      "label": "test_motifs_skipped_when_node_not_run()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L105"
     },
     {
       "id": "tests_test_hypothesis_adapter_scrna",
@@ -54917,7 +55050,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -54927,7 +55060,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -54937,7 +55070,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -54947,7 +55080,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L28",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -54957,7 +55090,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -54967,7 +55100,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L41",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -54992,12 +55125,179 @@
     },
     {
       "source": "adapters_init",
-      "target": "adapters_scrna",
+      "target": "adapters_scatac",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_init",
+      "target": "adapters_scrna",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "adapters_chromatin_common_node_ran",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_node_ran",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_node_ran",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "adapters_chromatin_common_num",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_num",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_num",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "adapters_chromatin_common_motif_signals",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "adapters_chromatin_common_num",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "aria_agents_narrative_hypothesis_adapters_chromatin_common_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -55007,65 +55307,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L26",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
       "source": "adapters_bulk_atac",
-      "target": "adapters_bulk_atac_node_ran",
-      "relation": "contains",
+      "target": "adapters_chromatin_common",
+      "relation": "imports_from",
+      "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_node_ran",
-      "target": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_node_ran",
-      "target": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_bool",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L41",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac",
-      "target": "adapters_bulk_atac_num",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_num",
-      "target": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_any",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_num",
-      "target": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_float",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L48",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -55074,7 +55326,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L55",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -55084,7 +55336,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L55",
+      "source_location": "L40",
       "weight": 1.0
     },
     {
@@ -55093,7 +55345,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L63",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -55103,17 +55355,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L63",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_bulk_atac_evidence",
-      "target": "adapters_bulk_atac_node_ran",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L74",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -55123,27 +55365,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L78",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_bulk_atac_evidence",
-      "target": "adapters_bulk_atac_num",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L81",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac_bulk_atac_evidence",
-      "target": "aria_agents_narrative_hypothesis_adapters_bulk_atac_py_evidencesignal",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L101",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -55387,6 +55609,74 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_chromatin_common",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_scatac_corr_direction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_corr_direction",
+      "target": "aria_agents_narrative_hypothesis_adapters_scatac_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "aria_agents_narrative_hypothesis_adapters_scatac_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "adapters_scatac_corr_direction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -125999,7 +126289,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -126052,7 +126342,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126062,7 +126352,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126072,7 +126362,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126082,7 +126372,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126092,7 +126382,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126414,7 +126704,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_cmankb_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -126423,7 +126713,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_cmankb_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -126458,7 +126748,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126468,7 +126758,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_hqj3db_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_cmankb_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -139756,6 +140046,178 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_adapter_empty_without_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_per_cluster_tf_motifs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_gene_activity_signals_with_moderate_caveat",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_peak2gene_signals_with_direction_and_caveat",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_regulatory_skipped_when_node_not_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "tests_test_hypothesis_adapter_scatac_test_motifs_skipped_when_node_not_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_per_cluster_tf_motifs",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_per_cluster_tf_motifs",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_gene_activity_signals_with_moderate_caveat",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_gene_activity_signals_with_moderate_caveat",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_peak2gene_signals_with_direction_and_caveat",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_peak2gene_signals_with_direction_and_caveat",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_regulatory_skipped_when_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_regulatory_skipped_when_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_motifs_skipped_when_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scatac_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_motifs_skipped_when_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scatac_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_adapter_scrna",
       "target": "tests_test_hypothesis_adapter_scrna_agent_results",
       "relation": "contains",
@@ -149619,7 +150081,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -149629,7 +150091,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -149639,7 +150101,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -149649,7 +150111,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L28",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -149659,7 +150121,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -149669,7 +150131,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L41",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -149694,12 +150156,22 @@
     },
     {
       "source": "adapters_init",
-      "target": "adapters_scrna",
+      "target": "adapters_scatac",
       "relation": "re_exports",
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_init",
+      "target": "adapters_scrna",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L16",
       "weight": 1.0
     },
     {
@@ -150684,6 +151156,16 @@
     },
     {
       "source": "hypothesis_init",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
       "target": "adapters_scrna_scrna_evidence",
       "relation": "imports",
       "context": "import",
@@ -150699,7 +151181,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -150709,7 +151191,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -150719,7 +151201,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -150729,7 +151211,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -150739,7 +151221,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -150749,7 +151231,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -150759,7 +151241,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -150769,7 +151251,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -150779,7 +151261,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L32",
       "weight": 1.0
     },
     {
@@ -150789,7 +151271,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L28",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -150799,7 +151281,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L28",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -150809,7 +151291,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L28",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -150819,7 +151301,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -150829,7 +151311,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -150839,7 +151321,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -150849,7 +151331,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -150859,7 +151341,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0
     },
     {
@@ -150869,7 +151351,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L41",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -150879,7 +151361,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L41",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -150889,7 +151371,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L41",
+      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -150914,12 +151396,42 @@
     },
     {
       "source": "adapters_init",
-      "target": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scatac_scatac_evidence",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_init",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "narrative_run_ledger_node_index",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -150929,17 +151441,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L24",
-      "weight": 1.0
-    },
-    {
-      "source": "adapters_bulk_atac",
-      "target": "narrative_run_ledger_node_index",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L24",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -150949,7 +151451,27 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L26",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_bulk_atac",
+      "target": "adapters_chromatin_common_motif_signals",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_bulk_atac",
+      "target": "adapters_chromatin_common_node_ran",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -150970,6 +151492,56 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "narrative_run_ledger_chromatin_findings",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_chromatin_common_motif_signals",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_chromatin_common_node_ran",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac",
+      "target": "adapters_chromatin_common_num",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -159023,6 +159595,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scatac",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_adapter_scrna",
       "target": "adapters_scrna_scrna_evidence",
       "relation": "imports",
@@ -161493,13 +162075,23 @@
       "weight": 1.0
     },
     {
-      "source": "adapters_bulk_atac_node_ran",
+      "source": "adapters_chromatin_common_node_ran",
       "target": "narrative_run_ledger_node_index",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L44",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_chromatin_common_motif_signals",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/_chromatin_common.py",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -161509,17 +162101,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L69",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
       "source": "adapters_bulk_atac_bulk_atac_evidence",
-      "target": "hypothesis_types_evidencesignal",
+      "target": "adapters_chromatin_common_node_ran",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
-      "source_location": "L101",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_bulk_atac_bulk_atac_evidence",
+      "target": "adapters_chromatin_common_motif_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_atac.py",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -161540,6 +162142,56 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "narrative_run_ledger_chromatin_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "adapters_chromatin_common_node_ran",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "adapters_chromatin_common_motif_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scatac_scatac_evidence",
+      "target": "adapters_chromatin_common_num",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scatac.py",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -170073,6 +170725,66 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scatac_test_adapter_empty_without_findings",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_per_cluster_tf_motifs",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_gene_activity_signals_with_moderate_caveat",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_peak2gene_signals_with_direction_and_caveat",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_regulatory_skipped_when_node_not_run",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scatac_test_motifs_skipped_when_node_not_run",
+      "target": "adapters_scatac_scatac_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scatac.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_adapter_scrna_test_adapter_empty_without_scrna_findings",
       "target": "adapters_scrna_scrna_evidence",
       "relation": "calls",
@@ -175164,7 +175876,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175174,7 +175886,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175184,7 +175896,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175194,7 +175906,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175204,7 +175916,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175214,7 +175926,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175224,7 +175936,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175234,7 +175946,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175244,7 +175956,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175254,7 +175966,17 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175264,17 +175986,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_bulk_diffacc",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175284,7 +175996,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
+      "source_file": "docs/architecture/biological_synthesis.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175294,7 +176006,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -175304,7 +176016,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     }
