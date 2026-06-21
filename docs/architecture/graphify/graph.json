@@ -6343,6 +6343,209 @@
       "source_location": "L109"
     },
     {
+      "id": "benchmarks_calibration",
+      "label": "calibration.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_calibration_load_baseline",
+      "label": "load_baseline()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "aria_benchmarks_calibration_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "aria_benchmarks_calibration_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bounds",
+      "label": "baseline_bounds()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "aria_benchmarks_calibration_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "benchmarks_calibration_check_calibration",
+      "label": "check_calibration()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "benchmarks_calibration_baseline",
+      "label": "calibration_baseline.json",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_about",
+      "label": "_about",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_baseline_version",
+      "label": "baseline_version",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_benchmarks",
+      "label": "benchmarks",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "label": "synthetic_de_pseudobulk",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_run",
+      "label": "run",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_min_recall",
+      "label": "min_recall",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_max_empirical_fdr",
+      "label": "max_empirical_fdr",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_max_false_positive_fraction",
+      "label": "max_false_positive_fraction",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L9"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "label": "scatac_pseudobulk_da",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_scatac_pseudobulk_da_run",
+      "label": "run",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_scatac_pseudobulk_da_min_recall",
+      "label": "min_recall",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L14"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_scatac_pseudobulk_da_max_empirical_fdr",
+      "label": "max_empirical_fdr",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_scatac_pseudobulk_da_max_false_positive_fraction",
+      "label": "max_false_positive_fraction",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_scatac_pseudobulk_da_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L17"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "label": "bulk_atac_da",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bulk_atac_da_run",
+      "label": "run",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bulk_atac_da_min_recall",
+      "label": "min_recall",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bulk_atac_da_max_empirical_fdr",
+      "label": "max_empirical_fdr",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bulk_atac_da_max_false_positive_fraction",
+      "label": "max_false_positive_fraction",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "benchmarks_calibration_baseline_bulk_atac_da_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L24"
+    },
+    {
       "id": "benchmarks_concordance_atac",
       "label": "concordance_atac.py",
       "file_type": "code",
@@ -27172,7 +27375,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27417,7 +27620,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27439,7 +27642,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -30449,6 +30652,62 @@
       "file_type": "code",
       "source_file": "tests/test_calibration_badge.py",
       "source_location": "L60"
+    },
+    {
+      "id": "tests_test_calibration_gate",
+      "label": "test_calibration_gate.py",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_baseline_covers_required_benchmarks",
+      "label": "test_baseline_covers_required_benchmarks()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_gate_passes_at_or_above_baseline",
+      "label": "test_gate_passes_at_or_above_baseline()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_gate_fails_on_recall_regression",
+      "label": "test_gate_fails_on_recall_regression()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L52"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_gate_fails_on_fdr_inflation",
+      "label": "test_gate_fails_on_fdr_inflation()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L61"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_gate_fails_on_missing_metric",
+      "label": "test_gate_fails_on_missing_metric()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_unknown_benchmark_raises",
+      "label": "test_unknown_benchmark_raises()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L75"
+    },
+    {
+      "id": "tests_test_calibration_gate_test_bulk_atac_da_meets_calibration_baseline",
+      "label": "test_bulk_atac_da_meets_calibration_baseline()",
+      "file_type": "code",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L82"
     },
     {
       "id": "tests_test_calibration_spike_in",
@@ -39409,17 +39668,6 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
@@ -39475,39 +39723,6 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -39534,6 +39749,17 @@
       "label": "chromatin_diffacc.py",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "env_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -64794,6 +65020,342 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/bulk_atac_v47_provenance.py",
       "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration",
+      "target": "benchmarks_calibration_load_baseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_load_baseline",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_load_baseline",
+      "target": "aria_benchmarks_calibration_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration",
+      "target": "benchmarks_calibration_baseline_bounds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_bounds",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_bounds",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_bounds",
+      "target": "aria_benchmarks_calibration_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "aria_benchmarks_calibration_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "aria_benchmarks_calibration_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "aria_benchmarks_calibration_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_bounds",
+      "target": "benchmarks_calibration_load_baseline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_check_calibration",
+      "target": "benchmarks_calibration_baseline_bounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline",
+      "target": "benchmarks_calibration_baseline_about",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline",
+      "target": "benchmarks_calibration_baseline_baseline_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline",
+      "target": "benchmarks_calibration_baseline_benchmarks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks",
+      "target": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "target": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "target": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_min_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "target": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_max_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "target": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_max_false_positive_fraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_synthetic_de_pseudobulk",
+      "target": "benchmarks_calibration_baseline_synthetic_de_pseudobulk_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks",
+      "target": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "target": "benchmarks_calibration_baseline_scatac_pseudobulk_da_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "target": "benchmarks_calibration_baseline_scatac_pseudobulk_da_min_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "target": "benchmarks_calibration_baseline_scatac_pseudobulk_da_max_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "target": "benchmarks_calibration_baseline_scatac_pseudobulk_da_max_false_positive_fraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_scatac_pseudobulk_da",
+      "target": "benchmarks_calibration_baseline_scatac_pseudobulk_da_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks",
+      "target": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "target": "benchmarks_calibration_baseline_bulk_atac_da_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "target": "benchmarks_calibration_baseline_bulk_atac_da_min_recall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "target": "benchmarks_calibration_baseline_bulk_atac_da_max_empirical_fdr",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "target": "benchmarks_calibration_baseline_bulk_atac_da_max_false_positive_fraction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_calibration_baseline_benchmarks_bulk_atac_da",
+      "target": "benchmarks_calibration_baseline_bulk_atac_da_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/calibration_baseline.json",
+      "source_location": "L24",
       "weight": 1.0
     },
     {
@@ -117395,7 +117957,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -117448,7 +118010,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117458,7 +118020,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117468,7 +118030,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117478,7 +118040,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117488,7 +118050,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117810,7 +118372,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -117819,7 +118381,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -117854,7 +118416,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117864,7 +118426,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_6kgmzm_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -122581,6 +123143,69 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_calibration_badge.py",
       "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_baseline_covers_required_benchmarks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_gate_passes_at_or_above_baseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_gate_fails_on_recall_regression",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_gate_fails_on_fdr_inflation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_gate_fails_on_missing_metric",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_unknown_benchmark_raises",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "tests_test_calibration_gate_test_bulk_atac_da_meets_calibration_baseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -144275,6 +144900,46 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_calibration_gate",
+      "target": "benchmarks_calibration_baseline_bounds",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "benchmarks_calibration_load_baseline",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate",
+      "target": "benchmarks_synthetic_atac_da_run_bulk_atac_da_benchmark",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_calibration_spike_in",
       "target": "benchmarks_synthetic_de_simulate_spike_in_bulk_dataset",
       "relation": "imports",
@@ -152805,6 +153470,96 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_calibration_gate_test_baseline_covers_required_benchmarks",
+      "target": "benchmarks_calibration_load_baseline",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_gate_passes_at_or_above_baseline",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_gate_fails_on_recall_regression",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_gate_fails_on_fdr_inflation",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_gate_fails_on_missing_metric",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_unknown_benchmark_raises",
+      "target": "benchmarks_calibration_baseline_bounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_bulk_atac_da_meets_calibration_baseline",
+      "target": "benchmarks_calibration_baseline_bounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_bulk_atac_da_meets_calibration_baseline",
+      "target": "benchmarks_synthetic_atac_da_run_bulk_atac_da_benchmark",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_calibration_gate_test_bulk_atac_da_meets_calibration_baseline",
+      "target": "benchmarks_calibration_check_calibration",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_calibration_gate.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_calibration_spike_in_test_spike_in_dataset_is_deterministic_and_well_formed",
       "target": "benchmarks_synthetic_de_simulate_spike_in_bulk_dataset",
       "relation": "calls",
@@ -160444,19 +161199,9 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
+      "source": "data_audit_agent",
       "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
@@ -160494,47 +161239,7 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -160544,8 +161249,18 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -160556,7 +161271,7 @@
     {
       "source": "chromatin_diffacc",
       "target": "rna_bulk_de",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -160574,22 +161289,22 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
+      "source": "bulk_rna_agent",
+      "target": "env_manager",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
+      "source": "scrna_agent",
+      "target": "env_manager",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     }
