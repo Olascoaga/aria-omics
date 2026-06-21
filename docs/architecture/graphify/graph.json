@@ -26552,6 +26552,300 @@
       "source_location": "L521"
     },
     {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "label": "b2b_chromap_fastq_realval.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_artifact",
+      "label": "artifact",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_summary",
+      "label": "summary",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding",
+      "label": "sra_barcode_finding",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_observation",
+      "label": "observation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_accessions_checked",
+      "label": "accessions_checked",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_implication",
+      "label": "implication",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L8"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L10"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_real_inputs_from_geo",
+      "label": "real_inputs_from_geo",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L11"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_real_inputs_from_geo_genomic_reads",
+      "label": "genomic_reads",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L12"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_real_inputs_from_geo_barcode_whitelist",
+      "label": "barcode_whitelist",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L13"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_assigned_not_real",
+      "label": "assigned_not_real",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L15"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_scope",
+      "label": "scope",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L16"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results",
+      "label": "results",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L18"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "label": "chromatin_scatac_align",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L19"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L20"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_aligner",
+      "label": "aligner",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L21"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L22"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_n_fragments",
+      "label": "n_fragments",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L23"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_barcodes",
+      "label": "barcodes",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L24"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_compressed",
+      "label": "compressed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L25"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_tabix_indexed",
+      "label": "tabix_indexed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L26"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_runtime_seconds",
+      "label": "runtime_seconds",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L27"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "label": "downstream_bridge",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L29"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_status",
+      "label": "status",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L30"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_n_cells",
+      "label": "n_cells",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L31"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_n_peaks",
+      "label": "n_peaks",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L32"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_note",
+      "label": "note",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L33"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chain",
+      "label": "chain",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L35"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L37"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L38"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_source_commit",
+      "label": "source_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L39"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L40"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_generated_utc",
+      "label": "generated_utc",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L41"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_seed",
+      "label": "seed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L42"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "label": "tool_versions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L43"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_chromap",
+      "label": "chromap",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L44"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_snapatac2",
+      "label": "snapatac2",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L45"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_sra_tools",
+      "label": "sra-tools",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L46"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_env",
+      "label": "env",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L47"
+    },
+    {
+      "id": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_note",
+      "label": "note",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L49"
+    },
+    {
       "id": "scatac_fragments_bridge_b2b_fragments_to_matrix_realval",
       "label": "b2b_fragments_to_matrix_realval.json",
       "file_type": "code",
@@ -26850,7 +27144,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27095,7 +27389,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27117,7 +27411,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -33402,42 +33696,63 @@
       "label": "_conda_numpy()",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32"
+      "source_location": "L49"
     },
     {
       "id": "tests_test_env_lock_numpy_consistency_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32"
+      "source_location": "L49"
     },
     {
       "id": "tests_test_env_lock_numpy_consistency_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32"
+      "source_location": "L49"
     },
     {
       "id": "tests_test_env_lock_numpy_consistency_pip_numpy",
       "label": "_pip_numpy()",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40"
+      "source_location": "L57"
     },
     {
       "id": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
       "label": "test_env_pins_numpy_exactly_once_and_consistently()",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L49"
+      "source_location": "L66"
     },
     {
       "id": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
       "label": "test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1()",
       "file_type": "code",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L68"
+      "source_location": "L85"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "label": "_yaml_numpy_spec()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "specifierset",
+      "label": "SpecifierSet",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "tests_test_env_lock_numpy_consistency_test_yaml_numpy_constraint_admits_locked_major",
+      "label": "test_yaml_numpy_constraint_admits_locked_major()",
+      "file_type": "code",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L109"
     },
     {
       "id": "tests_test_env_manager_cache",
@@ -38812,188 +39127,103 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/data_audit_agent.py"
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/design_agent.py"
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/audit_agent.py"
     },
     {
       "id": "setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/setup_agent.py"
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/bulk_rna_agent.py"
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/scrna_agent.py"
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/chromatin_agent.py"
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative_agent.py"
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/utils/environment_manager.py"
     },
     {
       "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/bus/message_bus.py"
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/memory/memory.py"
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
       "id": "chromatin_bulk_diffacc",
       "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py"
     },
     {
       "id": "chromatin_footprint_tobias",
       "label": "chromatin_footprint_tobias.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
     }
   ],
   "edges": [
@@ -115953,6 +116183,375 @@
       "weight": 1.0
     },
     {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_artifact",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_summary",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_observation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_accessions_checked",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_sra_barcode_finding_implication",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_real_inputs_from_geo",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_real_inputs_from_geo",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_real_inputs_from_geo_genomic_reads",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_real_inputs_from_geo",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_real_inputs_from_geo_barcode_whitelist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_assigned_not_real",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_validation_scope",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_aligner",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_n_fragments",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_barcodes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_compressed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_tabix_indexed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chromatin_scatac_align",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_chromatin_scatac_align_runtime_seconds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_status",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_n_cells",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_n_peaks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_downstream_bridge",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_downstream_bridge_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_results_chain",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_source_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_generated_utc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_chromap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_snapatac2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_sra_tools",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_tool_versions",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_tool_versions_env",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance",
+      "target": "scatac_fragments_bridge_b2b_chromap_fastq_realval_provenance_note",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/scatac_fragments_bridge/b2b_chromap_fastq_realval.json",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
       "source": "scatac_fragments_bridge_b2b_fragments_to_matrix_realval",
       "target": "scatac_fragments_bridge_b2b_fragments_to_matrix_realval_artifact",
       "relation": "contains",
@@ -116314,7 +116913,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -116367,7 +116966,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116377,7 +116976,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116387,7 +116986,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116397,7 +116996,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116407,7 +117006,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116729,7 +117328,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -116738,7 +117337,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -116773,7 +117372,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116783,7 +117382,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtfwi4_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -126731,7 +127330,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -126741,7 +127340,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -126751,7 +127350,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -126761,7 +127360,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -126771,7 +127370,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L32",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -126780,7 +127379,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -126790,7 +127389,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -126800,7 +127399,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -126810,7 +127409,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -126820,7 +127419,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L40",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -126829,7 +127428,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L49",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -126838,37 +127437,75 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "target": "tests_test_env_lock_numpy_consistency_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "target": "specifierset",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency",
+      "target": "tests_test_env_lock_numpy_consistency_test_yaml_numpy_constraint_admits_locked_major",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
+      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
       "source_location": "L68",
       "weight": 1.0
     },
     {
-      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
-      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L50",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_env_lock_numpy_consistency_test_env_pins_numpy_exactly_once_and_consistently",
-      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L51",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_env_lock_numpy_consistency_test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1",
       "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L70",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -126878,7 +127515,47 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_env_lock_numpy_consistency.py",
-      "source_location": "L70",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "target": "specifierset",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_yaml_numpy_constraint_admits_locked_major",
+      "target": "tests_test_env_lock_numpy_consistency_conda_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_yaml_numpy_constraint_admits_locked_major",
+      "target": "tests_test_env_lock_numpy_consistency_pip_numpy",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_env_lock_numpy_consistency_test_yaml_numpy_constraint_admits_locked_major",
+      "target": "tests_test_env_lock_numpy_consistency_yaml_numpy_spec",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_env_lock_numpy_consistency.py",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -158795,9 +159472,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158805,9 +159480,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158815,9 +159488,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158825,9 +159496,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158835,9 +159504,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158845,9 +159512,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158855,9 +159520,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158865,9 +159528,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "bulk_rna_agent",
@@ -158875,49 +159536,55 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "bulk_rna_agent",
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "chromatin_agent",
+      "source": "environment_manager",
       "target": "chromatin_bulk_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "chromatin_agent",
+      "source": "environment_manager",
       "target": "chromatin_footprint_tobias",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "narrative_agent",
@@ -158925,9 +159592,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158935,9 +159600,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -158945,9 +159608,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     }
   ],
   "hyperedges": [],
