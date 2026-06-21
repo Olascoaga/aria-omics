@@ -2448,133 +2448,133 @@
       "label": "_finding()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54"
+      "source_location": "L55"
     },
     {
       "id": "aria_agents_modality_audit_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54"
+      "source_location": "L55"
     },
     {
       "id": "aria_agents_modality_audit_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54"
+      "source_location": "L55"
     },
     {
       "id": "agents_modality_audit_base_card",
       "label": "_base_card()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71"
+      "source_location": "L72"
     },
     {
       "id": "agents_modality_audit_set_status",
       "label": "_set_status()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L91"
+      "source_location": "L92"
     },
     {
       "id": "agents_modality_audit_merge_cards",
       "label": "_merge_cards()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97"
+      "source_location": "L98"
     },
     {
       "id": "agents_modality_audit_combined_design",
       "label": "_combined_design()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111"
+      "source_location": "L112"
     },
     {
       "id": "agents_modality_audit_obs_column_names",
       "label": "_obs_column_names()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L126"
+      "source_location": "L127"
     },
     {
       "id": "agents_modality_audit_has_column_hint",
       "label": "_has_column_hint()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135"
+      "source_location": "L136"
     },
     {
       "id": "aria_agents_modality_audit_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135"
+      "source_location": "L136"
     },
     {
       "id": "agents_modality_audit_atac_production_readiness",
       "label": "_atac_production_readiness()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L140"
+      "source_location": "L141"
     },
     {
       "id": "agents_modality_audit_replicate_counts",
       "label": "_replicate_counts()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164"
+      "source_location": "L165"
     },
     {
       "id": "aria_agents_modality_audit_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164"
+      "source_location": "L165"
     },
     {
       "id": "agents_modality_audit_batch_condition_confounded",
       "label": "_batch_condition_confounded()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L176"
+      "source_location": "L177"
     },
     {
       "id": "agents_modality_audit_scrnaauditagent",
       "label": "ScRNAAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L203"
+      "source_location": "L204"
     },
     {
       "id": "agents_modality_audit_scrnaauditagent_audit",
       "label": ".audit()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208"
+      "source_location": "L209"
     },
     {
       "id": "agents_modality_audit_chromatinauditagent",
       "label": "ChromatinAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L317"
+      "source_location": "L318"
     },
     {
       "id": "agents_modality_audit_chromatinauditagent_audit",
       "label": ".audit()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320"
+      "source_location": "L321"
     },
     {
       "id": "agents_modality_audit_build_capability_matrix",
       "label": "build_capability_matrix()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422"
+      "source_location": "L423"
     },
     {
       "id": "narrative_init",
@@ -14790,6 +14790,153 @@
       "file_type": "code",
       "source_file": "aria/utils/design_matrix.py",
       "source_location": "L247"
+    },
+    {
+      "id": "utils_design_power",
+      "label": "design_power.py",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_design_power_assess_design_power",
+      "label": "assess_design_power()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "aria_utils_design_power_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "aria_utils_design_power_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "utils_design_power_combined_design",
+      "label": "_combined_design()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89"
+    },
+    {
+      "id": "utils_design_power_normalize_groups",
+      "label": "_normalize_groups()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104"
+    },
+    {
+      "id": "utils_design_power_normalize_comparisons",
+      "label": "_normalize_comparisons()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118"
+    },
+    {
+      "id": "utils_design_power_default_comparisons",
+      "label": "_default_comparisons()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148"
+    },
+    {
+      "id": "utils_design_power_assess_contrast",
+      "label": "_assess_contrast()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162"
+    },
+    {
+      "id": "aria_utils_design_power_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162"
+    },
+    {
+      "id": "utils_design_power_standard_error",
+      "label": "_standard_error()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194"
+    },
+    {
+      "id": "aria_utils_design_power_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194"
+    },
+    {
+      "id": "utils_design_power_contrast_assessment",
+      "label": "_contrast_assessment()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200"
+    },
+    {
+      "id": "utils_design_power_findings",
+      "label": "_findings()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218"
+    },
+    {
+      "id": "utils_design_power_batch_confounding",
+      "label": "_batch_confounding()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302"
+    },
+    {
+      "id": "utils_design_power_balance_ratio",
+      "label": "_balance_ratio()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L341"
+    },
+    {
+      "id": "utils_design_power_pair_balance_ratio",
+      "label": "_pair_balance_ratio()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L348"
+    },
+    {
+      "id": "utils_design_power_normal_cdf",
+      "label": "_normal_cdf()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L354"
+    },
+    {
+      "id": "utils_design_power_z_for_alpha",
+      "label": "_z_for_alpha()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L358"
+    },
+    {
+      "id": "utils_design_power_finding",
+      "label": "_finding()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371"
+    },
+    {
+      "id": "utils_design_power_empty",
+      "label": "_empty()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386"
     },
     {
       "id": "utils_env_loader",
@@ -27578,7 +27725,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27823,7 +27970,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27845,7 +27992,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -34084,6 +34231,62 @@
       "source_location": "L57"
     },
     {
+      "id": "tests_test_design_power_advisor",
+      "label": "test_design_power_advisor.py",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_design_power_advisor_ctx",
+      "label": "_ctx()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L7"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_design_power_advisor_marks_well_replicated_design_green",
+      "label": "test_design_power_advisor_marks_well_replicated_design_green()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_n2_low_power",
+      "label": "test_design_power_advisor_warns_for_n2_low_power()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_design_power_advisor_blocks_n1_inferential_contrast",
+      "label": "test_design_power_advisor_blocks_n1_inferential_contrast()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_design_power_advisor_blocks_batch_condition_confounding",
+      "label": "test_design_power_advisor_blocks_batch_condition_confounding()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L75"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_imbalanced_contrast",
+      "label": "test_design_power_advisor_warns_for_imbalanced_contrast()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L101"
+    },
+    {
+      "id": "tests_test_design_power_advisor_test_capability_matrix_surfaces_design_power_preflight",
+      "label": "test_capability_matrix_surfaces_design_power_preflight()",
+      "file_type": "code",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L117"
+    },
+    {
       "id": "tests_test_diff_abundance_no_mixed_fdr",
       "label": "test_diff_abundance_no_mixed_fdr.py",
       "file_type": "code",
@@ -39946,97 +40149,166 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py"
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "chromatin_diffacc",
-      "label": "chromatin_diffacc.py",
+      "id": "chromatin_bulk_diffacc",
+      "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_diffacc.py"
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
@@ -49542,7 +49814,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49552,7 +49824,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49562,7 +49834,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49572,7 +49844,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49582,7 +49854,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49592,7 +49864,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49602,7 +49874,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49612,7 +49884,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L54",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -49621,7 +49893,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49631,7 +49903,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49641,7 +49913,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49651,7 +49923,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49661,7 +49933,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49671,7 +49943,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49681,7 +49953,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49691,7 +49963,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L71",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -49700,7 +49972,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -49710,7 +49982,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -49720,7 +49992,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -49730,7 +50002,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
@@ -49739,7 +50011,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49749,7 +50021,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49759,7 +50031,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49769,7 +50041,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49779,7 +50051,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49789,7 +50061,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49799,7 +50071,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L97",
+      "source_location": "L98",
       "weight": 1.0
     },
     {
@@ -49808,7 +50080,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -49818,7 +50090,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -49828,7 +50100,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -49838,7 +50110,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -49848,7 +50120,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -49857,7 +50129,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -49867,7 +50139,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -49877,7 +50149,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -49887,7 +50159,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L126",
+      "source_location": "L127",
       "weight": 1.0
     },
     {
@@ -49896,7 +50168,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -49906,7 +50178,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -49916,7 +50188,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -49926,7 +50198,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L135",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -49935,7 +50207,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L140",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -49945,7 +50217,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L140",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -49955,7 +50227,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L140",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -49965,7 +50237,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L140",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -49974,7 +50246,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -49984,7 +50256,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -49994,7 +50266,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -50004,7 +50276,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -50014,7 +50286,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -50023,7 +50295,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -50033,7 +50305,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -50043,7 +50315,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -50053,7 +50325,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -50062,7 +50334,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L203",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -50071,7 +50343,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50081,7 +50353,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50091,7 +50363,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50101,7 +50373,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50111,7 +50383,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50120,7 +50392,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L317",
+      "source_location": "L318",
       "weight": 1.0
     },
     {
@@ -50129,7 +50401,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50139,7 +50411,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50149,7 +50421,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50159,7 +50431,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50169,7 +50441,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50179,7 +50451,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -50188,7 +50460,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50198,7 +50470,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50208,7 +50480,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50218,7 +50490,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50228,7 +50500,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50238,7 +50510,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50248,7 +50520,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50258,7 +50530,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L422",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -50268,7 +50540,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L99",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -50278,7 +50550,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L209",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -50288,7 +50560,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L214",
+      "source_location": "L215",
       "weight": 1.0
     },
     {
@@ -50298,7 +50570,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L221",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -50308,7 +50580,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L247",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -50318,7 +50590,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L248",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -50328,7 +50600,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L295",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -50338,7 +50610,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L308",
+      "source_location": "L309",
       "weight": 1.0
     },
     {
@@ -50348,7 +50620,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -50358,7 +50630,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L322",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -50368,7 +50640,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L346",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -50378,7 +50650,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L349",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -50388,7 +50660,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L441",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -50398,7 +50670,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L448",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -50408,7 +50680,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L471",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -50418,7 +50690,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L473",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -50428,7 +50700,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L473",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -50438,7 +50710,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L476",
+      "source_location": "L477",
       "weight": 1.0
     },
     {
@@ -98753,6 +99025,1000 @@
       "weight": 1.0
     },
     {
+      "source": "utils_design_power",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_combined_design",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_combined_design",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_combined_design",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_combined_design",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_combined_design",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_normalize_groups",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_groups",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_groups",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_groups",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_groups",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_normalize_comparisons",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_comparisons",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normalize_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_default_comparisons",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_default_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_default_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_default_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_default_comparisons",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_assess_contrast",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_standard_error",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_standard_error",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_standard_error",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_standard_error",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_standard_error",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_contrast_assessment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_contrast_assessment",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_contrast_assessment",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_contrast_assessment",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_contrast_assessment",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_contrast_assessment",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L200",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_batch_confounding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_batch_confounding",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_balance_ratio",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L341",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_balance_ratio",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L341",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_balance_ratio",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L341",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_balance_ratio",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L341",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_pair_balance_ratio",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_pair_balance_ratio",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_pair_balance_ratio",
+      "target": "aria_utils_design_power_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_pair_balance_ratio",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_normal_cdf",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L354",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normal_cdf",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L354",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_normal_cdf",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L354",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_z_for_alpha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L358",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_z_for_alpha",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L358",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_z_for_alpha",
+      "target": "aria_utils_design_power_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L358",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_finding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_finding",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L371",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power",
+      "target": "utils_design_power_empty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_empty",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_empty",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_empty",
+      "target": "aria_utils_design_power_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_empty",
+      "target": "aria_utils_design_power_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L386",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_combined_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_normalize_groups",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_normalize_comparisons",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_empty",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_default_comparisons",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_balance_ratio",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_batch_confounding",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_assess_contrast",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_design_power",
+      "target": "utils_design_power_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "utils_design_power_standard_error",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "utils_design_power_z_for_alpha",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "utils_design_power_normal_cdf",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "utils_design_power_pair_balance_ratio",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_assess_contrast",
+      "target": "utils_design_power_contrast_assessment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L190",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_power_findings",
+      "target": "utils_design_power_finding",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_power.py",
+      "source_location": "L225",
+      "weight": 1.0
+    },
+    {
       "source": "utils_env_loader",
       "target": "utils_env_loader_load_aria_env",
       "relation": "contains",
@@ -119577,7 +120843,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -119630,7 +120896,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119640,7 +120906,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119650,7 +120916,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119660,7 +120926,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119670,7 +120936,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119992,7 +121258,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -120001,7 +121267,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -120036,7 +121302,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -120046,7 +121312,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_f94uxp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129908,6 +131174,129 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_design_model.py",
       "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_design_power_advisor_marks_well_replicated_design_green",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_n2_low_power",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_design_power_advisor_blocks_n1_inferential_contrast",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_design_power_advisor_blocks_batch_condition_confounding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_imbalanced_contrast",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "tests_test_design_power_advisor_test_capability_matrix_surfaces_design_power_preflight",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_marks_well_replicated_design_green",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_n2_low_power",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_blocks_n1_inferential_contrast",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_blocks_batch_condition_confounding",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_imbalanced_contrast",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_capability_matrix_surfaces_design_power_preflight",
+      "target": "tests_test_design_power_advisor_ctx",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L119",
       "weight": 1.0
     },
     {
@@ -141188,12 +142577,22 @@
     },
     {
       "source": "agents_modality_audit",
-      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_design_power_assess_design_power",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
       "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_modality_audit",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/modality_audit.py",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -148377,6 +149776,26 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_design_power_advisor",
+      "target": "agents_modality_audit_build_capability_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_diff_abundance_no_mixed_fdr",
       "target": "scripts_rna_diff_abundance_rna_diff_abundance",
       "relation": "imports",
@@ -151033,7 +152452,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L487",
+      "source_location": "L488",
       "weight": 1.0
     },
     {
@@ -151043,7 +152462,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L491",
+      "source_location": "L492",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_modality_audit_build_capability_matrix",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/modality_audit.py",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -158067,6 +159496,66 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_marks_well_replicated_design_green",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_n2_low_power",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_blocks_n1_inferential_contrast",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_blocks_batch_condition_confounding",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_design_power_advisor_warns_for_imbalanced_contrast",
+      "target": "utils_design_power_assess_design_power",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_design_power_advisor_test_capability_matrix_surfaces_design_power_preflight",
+      "target": "agents_modality_audit_build_capability_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_design_power_advisor.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_diff_abundance_no_mixed_fdr_test_fisher_fallback_is_excluded_from_donor_level_bh",
       "target": "scripts_rna_diff_abundance_rna_diff_abundance",
       "relation": "calls",
@@ -163202,39 +164691,99 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "data_audit_agent",
+      "source": "orchestrator_agent",
       "target": "design_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "design_agent",
-      "target": "audit_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "audit_agent",
-      "target": "setup_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "chromatin_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_bulk_diffacc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_bulk_diffacc",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "scrna_agent",
@@ -163242,55 +164791,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
+      "source": "bulk_rna_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "environment_manager",
-      "target": "chromatin_diffacc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_diffacc",
-      "target": "rna_bulk_de",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "biological_synthesis_agent",
-      "target": "narrative_agent",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -163298,7 +164811,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -163306,7 +164821,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
