@@ -1314,329 +1314,329 @@
       "label": "_mex_dir_components()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L164"
+      "source_location": "L165"
     },
     {
       "id": "agents_data_audit_agent_collapse_mex_directories",
       "label": "_collapse_mex_directories()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L192"
+      "source_location": "L193"
     },
     {
       "id": "agents_data_audit_agent_incomplete_mex_warnings",
       "label": "_incomplete_mex_warnings()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L233"
+      "source_location": "L234"
     },
     {
       "id": "agents_data_audit_agent_default_genome_for_organism",
       "label": "default_genome_for_organism()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L257"
+      "source_location": "L258"
     },
     {
       "id": "aria_agents_data_audit_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L257"
+      "source_location": "L258"
     },
     {
       "id": "agents_data_audit_agent_geo_bucket_map",
       "label": "_geo_bucket_map()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L262"
+      "source_location": "L263"
     },
     {
       "id": "agents_data_audit_agent_apply_metadata_corrections",
       "label": "apply_metadata_corrections()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L279"
+      "source_location": "L280"
     },
     {
       "id": "agents_data_audit_agent_dataauditscanlimits",
       "label": "DataAuditScanLimits",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L305"
+      "source_location": "L306"
     },
     {
       "id": "agents_data_audit_agent_dataauditscanlimits_from_config",
       "label": ".from_config()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L320"
+      "source_location": "L321"
     },
     {
       "id": "agents_data_audit_agent_dataauditscanlimits_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L349"
+      "source_location": "L350"
     },
     {
       "id": "agents_data_audit_agent_env_int",
       "label": "_env_int()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360"
+      "source_location": "L361"
     },
     {
       "id": "aria_agents_data_audit_agent_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360"
+      "source_location": "L361"
     },
     {
       "id": "agents_data_audit_agent_env_optional_int",
       "label": "_env_optional_int()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L370"
+      "source_location": "L371"
     },
     {
       "id": "agents_data_audit_agent_env_float",
       "label": "_env_float()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381"
+      "source_location": "L382"
     },
     {
       "id": "aria_agents_data_audit_agent_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381"
+      "source_location": "L382"
     },
     {
       "id": "agents_data_audit_agent_env_bool",
       "label": "_env_bool()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391"
+      "source_location": "L392"
     },
     {
       "id": "aria_agents_data_audit_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391"
+      "source_location": "L392"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent",
       "label": "DataAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L398"
+      "source_location": "L399"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L406"
+      "source_location": "L407"
     },
     {
       "id": "aria_agents_data_audit_agent_py_ariamemory",
       "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L406"
+      "source_location": "L407"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L411"
+      "source_location": "L412"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_collect_sensitivity_fields",
       "label": "._collect_sensitivity_fields()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L587"
+      "source_location": "L588"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_supported_input_file",
       "label": "._supported_input_file()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L607"
+      "source_location": "L608"
     },
     {
       "id": "aria_agents_data_audit_agent_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L607"
+      "source_location": "L608"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_scan_directory",
       "label": "._scan_directory()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L622"
+      "source_location": "L623"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_scan_report_warnings",
       "label": "._scan_report_warnings()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L729"
+      "source_location": "L730"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_classify_files",
       "label": "._classify_files()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L768"
+      "source_location": "L769"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_demote_non_tenx_mtx_sidecars",
       "label": "._demote_non_tenx_mtx_sidecars()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813"
+      "source_location": "L814"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_record_assay_detection",
       "label": "._record_assay_detection()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L842"
+      "source_location": "L843"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_assay_detection_warnings",
       "label": "._assay_detection_warnings()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L857"
+      "source_location": "L858"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_is_aria_generated_output",
       "label": "._is_aria_generated_output()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L877"
+      "source_location": "L878"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_is_aria_intermediate_h5ad",
       "label": "._is_aria_intermediate_h5ad()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L910"
+      "source_location": "L911"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_filter_aria_intermediate_outputs",
       "label": "._filter_aria_intermediate_outputs()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913"
+      "source_location": "L914"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_genome_organism",
       "label": "._infer_genome_organism()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936"
+      "source_location": "L937"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_h5ad_genome_organism",
       "label": "._infer_h5ad_genome_organism()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L974"
+      "source_location": "L975"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_validate_design",
       "label": "._validate_design()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1019"
+      "source_location": "L1020"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_h5ad_design",
       "label": "._infer_h5ad_design()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1045"
+      "source_location": "L1046"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_condition_col",
       "label": "._pick_h5ad_condition_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1175"
+      "source_location": "L1176"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_replicate_col",
       "label": "._pick_h5ad_replicate_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1224"
+      "source_location": "L1225"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_groupby_col",
       "label": "._pick_h5ad_groupby_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1250"
+      "source_location": "L1251"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_covariates",
       "label": "._pick_h5ad_covariates()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1264"
+      "source_location": "L1265"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_default_comparisons_from_groups",
       "label": "._default_comparisons_from_groups()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1274"
+      "source_location": "L1275"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_build_context",
       "label": "._build_context()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283"
+      "source_location": "L1284"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_build_checkpoint_summary",
       "label": "._build_checkpoint_summary()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1325"
+      "source_location": "L1328"
     },
     {
       "id": "agents_data_audit_agent_usable_design_col",
       "label": "_usable_design_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1383"
+      "source_location": "L1386"
     },
     {
       "id": "agents_data_audit_agent_usable_replicate_col",
       "label": "_usable_replicate_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1394"
+      "source_location": "L1397"
     },
     {
       "id": "agents_data_audit_agent_usable_groupby_col",
       "label": "_usable_groupby_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1408"
+      "source_location": "L1411"
     },
     {
       "id": "agents_debate_council",
@@ -2448,133 +2448,133 @@
       "label": "_finding()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53"
+      "source_location": "L54"
     },
     {
       "id": "aria_agents_modality_audit_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53"
+      "source_location": "L54"
     },
     {
       "id": "aria_agents_modality_audit_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53"
+      "source_location": "L54"
     },
     {
       "id": "agents_modality_audit_base_card",
       "label": "_base_card()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70"
+      "source_location": "L71"
     },
     {
       "id": "agents_modality_audit_set_status",
       "label": "_set_status()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L90"
+      "source_location": "L91"
     },
     {
       "id": "agents_modality_audit_merge_cards",
       "label": "_merge_cards()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96"
+      "source_location": "L97"
     },
     {
       "id": "agents_modality_audit_combined_design",
       "label": "_combined_design()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110"
+      "source_location": "L111"
     },
     {
       "id": "agents_modality_audit_obs_column_names",
       "label": "_obs_column_names()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L125"
+      "source_location": "L126"
     },
     {
       "id": "agents_modality_audit_has_column_hint",
       "label": "_has_column_hint()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134"
+      "source_location": "L135"
     },
     {
       "id": "aria_agents_modality_audit_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134"
+      "source_location": "L135"
     },
     {
       "id": "agents_modality_audit_atac_production_readiness",
       "label": "_atac_production_readiness()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L139"
+      "source_location": "L140"
     },
     {
       "id": "agents_modality_audit_replicate_counts",
       "label": "_replicate_counts()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163"
+      "source_location": "L164"
     },
     {
       "id": "aria_agents_modality_audit_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163"
+      "source_location": "L164"
     },
     {
       "id": "agents_modality_audit_batch_condition_confounded",
       "label": "_batch_condition_confounded()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L175"
+      "source_location": "L176"
     },
     {
       "id": "agents_modality_audit_scrnaauditagent",
       "label": "ScRNAAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L202"
+      "source_location": "L203"
     },
     {
       "id": "agents_modality_audit_scrnaauditagent_audit",
       "label": ".audit()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207"
+      "source_location": "L208"
     },
     {
       "id": "agents_modality_audit_chromatinauditagent",
       "label": "ChromatinAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L316"
+      "source_location": "L317"
     },
     {
       "id": "agents_modality_audit_chromatinauditagent_audit",
       "label": ".audit()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319"
+      "source_location": "L320"
     },
     {
       "id": "agents_modality_audit_build_capability_matrix",
       "label": "build_capability_matrix()",
       "file_type": "code",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421"
+      "source_location": "L422"
     },
     {
       "id": "narrative_init",
@@ -15282,6 +15282,97 @@
       "source_location": "L120"
     },
     {
+      "id": "utils_multiome_contracts",
+      "label": "multiome_contracts.py",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "utils_multiome_contracts_infer_multiome_contract",
+      "label": "infer_multiome_contract()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "aria_utils_multiome_contracts_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "aria_utils_multiome_contracts_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "utils_multiome_contracts_validate_multiome_contract",
+      "label": "validate_multiome_contract()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "utils_multiome_contracts_paired_h5mu_records",
+      "label": "_paired_h5mu_records()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199"
+    },
+    {
+      "id": "utils_multiome_contracts_modality_presence",
+      "label": "_modality_presence()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "utils_multiome_contracts_cell_namespace_check",
+      "label": "_cell_namespace_check()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234"
+    },
+    {
+      "id": "utils_multiome_contracts_sample_alignment_check",
+      "label": "_sample_alignment_check()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268"
+    },
+    {
+      "id": "utils_multiome_contracts_genome_feature_space_check",
+      "label": "_genome_feature_space_check()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302"
+    },
+    {
+      "id": "utils_multiome_contracts_ids",
+      "label": "_ids()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336"
+    },
+    {
+      "id": "utils_multiome_contracts_finding",
+      "label": "_finding()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345"
+    },
+    {
+      "id": "utils_multiome_contracts_multiome_evidence_paths",
+      "label": "multiome_evidence_paths()",
+      "file_type": "code",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L360"
+    },
+    {
       "id": "utils_ora",
       "label": "ora.py",
       "file_type": "code",
@@ -27487,7 +27578,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27732,7 +27823,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27754,7 +27845,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36702,6 +36793,55 @@
       "source_location": "L242"
     },
     {
+      "id": "tests_test_multiome_contracts",
+      "label": "test_multiome_contracts.py",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_paired_h5mu_detection_infers_ready_multiome_contract",
+      "label": "test_paired_h5mu_detection_infers_ready_multiome_contract()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L10"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_split_scrna_scatac_without_pairing_degrades_not_blocks_modalities",
+      "label": "test_split_scrna_scatac_without_pairing_degrades_not_blocks_modalities()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_explicit_same_cell_contract_requires_barcode_namespace",
+      "label": "test_explicit_same_cell_contract_requires_barcode_namespace()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_explicit_same_cell_contract_accepts_shared_namespace_and_samples",
+      "label": "test_explicit_same_cell_contract_accepts_shared_namespace_and_samples()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L108"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_explicit_same_cell_contract_blocks_mismatched_samples",
+      "label": "test_explicit_same_cell_contract_blocks_mismatched_samples()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L133"
+    },
+    {
+      "id": "tests_test_multiome_contracts_test_data_audit_context_includes_inferred_multiome_contract",
+      "label": "test_data_audit_context_includes_inferred_multiome_contract()",
+      "file_type": "code",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L161"
+    },
+    {
       "id": "tests_test_narrative_agent",
       "label": "test_narrative_agent.py",
       "file_type": "code",
@@ -39806,177 +39946,97 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/data_audit_agent.py"
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/design_agent.py"
     },
     {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
+      "id": "audit_agent",
+      "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/audit_agent.py"
+    },
+    {
+      "id": "setup_agent",
+      "label": "SetupAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/setup_agent.py"
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/bulk_rna_agent.py"
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py"
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/chromatin_agent.py"
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative_agent.py"
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/utils/environment_manager.py"
     },
     {
       "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/bus/message_bus.py"
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py"
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
       "id": "chromatin_diffacc",
       "label": "chromatin_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "env_rna",
-      "label": "aria-rna-env",
-      "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "env_chromatin",
-      "label": "aria-chromatin-env",
-      "file_type": "code",
-      "source_file": "envs/aria-chromatin-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/chromatin_diffacc.py"
     }
   ],
   "edges": [
@@ -45157,7 +45217,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0
     },
     {
@@ -45166,7 +45226,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L192",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -45175,7 +45235,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L233",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -45184,7 +45244,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L257",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -45194,7 +45254,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L257",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -45204,7 +45264,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L257",
+      "source_location": "L258",
       "weight": 1.0
     },
     {
@@ -45213,7 +45273,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -45223,7 +45283,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -45233,7 +45293,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -45243,7 +45303,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L262",
+      "source_location": "L263",
       "weight": 1.0
     },
     {
@@ -45252,7 +45312,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L279",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -45261,7 +45321,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L305",
+      "source_location": "L306",
       "weight": 1.0
     },
     {
@@ -45270,7 +45330,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L320",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -45279,7 +45339,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L349",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -45288,7 +45348,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -45298,7 +45358,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -45308,7 +45368,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -45318,7 +45378,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L360",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -45327,7 +45387,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L370",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -45337,7 +45397,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L370",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -45347,7 +45407,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L370",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -45357,7 +45417,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L370",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -45366,7 +45426,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -45376,7 +45436,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -45386,7 +45446,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -45396,7 +45456,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L381",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -45405,7 +45465,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391",
+      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -45415,7 +45475,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391",
+      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -45425,7 +45485,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391",
+      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -45435,7 +45495,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L391",
+      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -45444,7 +45504,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L398",
+      "source_location": "L399",
       "weight": 1.0
     },
     {
@@ -45453,7 +45513,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L398",
+      "source_location": "L399",
       "weight": 1.0
     },
     {
@@ -45462,7 +45522,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L406",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -45472,7 +45532,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L406",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -45482,7 +45542,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L406",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -45491,7 +45551,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L411",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -45501,7 +45561,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L411",
+      "source_location": "L412",
       "weight": 1.0
     },
     {
@@ -45510,7 +45570,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L587",
+      "source_location": "L588",
       "weight": 1.0
     },
     {
@@ -45520,7 +45580,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L587",
+      "source_location": "L588",
       "weight": 1.0
     },
     {
@@ -45529,7 +45589,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L607",
+      "source_location": "L608",
       "weight": 1.0
     },
     {
@@ -45539,7 +45599,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L607",
+      "source_location": "L608",
       "weight": 1.0
     },
     {
@@ -45549,7 +45609,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L607",
+      "source_location": "L608",
       "weight": 1.0
     },
     {
@@ -45558,7 +45618,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L622",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -45568,7 +45628,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L622",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -45578,7 +45638,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L622",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -45588,7 +45648,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L622",
+      "source_location": "L623",
       "weight": 1.0
     },
     {
@@ -45597,7 +45657,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L729",
+      "source_location": "L730",
       "weight": 1.0
     },
     {
@@ -45607,7 +45667,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L729",
+      "source_location": "L730",
       "weight": 1.0
     },
     {
@@ -45616,7 +45676,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L768",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -45626,7 +45686,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L768",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -45636,7 +45696,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L768",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -45646,7 +45706,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L768",
+      "source_location": "L769",
       "weight": 1.0
     },
     {
@@ -45655,7 +45715,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -45665,7 +45725,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -45675,7 +45735,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -45685,7 +45745,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -45695,7 +45755,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -45704,7 +45764,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L842",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -45714,7 +45774,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L842",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -45723,7 +45783,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L857",
+      "source_location": "L858",
       "weight": 1.0
     },
     {
@@ -45733,7 +45793,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L857",
+      "source_location": "L858",
       "weight": 1.0
     },
     {
@@ -45742,7 +45802,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L877",
+      "source_location": "L878",
       "weight": 1.0
     },
     {
@@ -45752,7 +45812,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L877",
+      "source_location": "L878",
       "weight": 1.0
     },
     {
@@ -45762,7 +45822,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L877",
+      "source_location": "L878",
       "weight": 1.0
     },
     {
@@ -45771,7 +45831,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L910",
+      "source_location": "L911",
       "weight": 1.0
     },
     {
@@ -45781,7 +45841,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L910",
+      "source_location": "L911",
       "weight": 1.0
     },
     {
@@ -45791,7 +45851,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L910",
+      "source_location": "L911",
       "weight": 1.0
     },
     {
@@ -45800,7 +45860,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45810,7 +45870,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45820,7 +45880,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45830,7 +45890,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45840,7 +45900,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45850,7 +45910,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L913",
+      "source_location": "L914",
       "weight": 1.0
     },
     {
@@ -45859,7 +45919,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45869,7 +45929,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45879,7 +45939,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45889,7 +45949,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45899,7 +45959,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45909,7 +45969,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L936",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -45918,7 +45978,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L974",
+      "source_location": "L975",
       "weight": 1.0
     },
     {
@@ -45928,7 +45988,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L974",
+      "source_location": "L975",
       "weight": 1.0
     },
     {
@@ -45938,7 +45998,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L974",
+      "source_location": "L975",
       "weight": 1.0
     },
     {
@@ -45948,7 +46008,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L974",
+      "source_location": "L975",
       "weight": 1.0
     },
     {
@@ -45957,7 +46017,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1019",
+      "source_location": "L1020",
       "weight": 1.0
     },
     {
@@ -45967,7 +46027,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1019",
+      "source_location": "L1020",
       "weight": 1.0
     },
     {
@@ -45977,7 +46037,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1019",
+      "source_location": "L1020",
       "weight": 1.0
     },
     {
@@ -45986,7 +46046,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1045",
+      "source_location": "L1046",
       "weight": 1.0
     },
     {
@@ -45996,7 +46056,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1045",
+      "source_location": "L1046",
       "weight": 1.0
     },
     {
@@ -46006,7 +46066,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1045",
+      "source_location": "L1046",
       "weight": 1.0
     },
     {
@@ -46015,7 +46075,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1175",
+      "source_location": "L1176",
       "weight": 1.0
     },
     {
@@ -46025,7 +46085,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1175",
+      "source_location": "L1176",
       "weight": 1.0
     },
     {
@@ -46035,7 +46095,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1175",
+      "source_location": "L1176",
       "weight": 1.0
     },
     {
@@ -46044,7 +46104,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1224",
+      "source_location": "L1225",
       "weight": 1.0
     },
     {
@@ -46054,7 +46114,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1224",
+      "source_location": "L1225",
       "weight": 1.0
     },
     {
@@ -46064,7 +46124,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1224",
+      "source_location": "L1225",
       "weight": 1.0
     },
     {
@@ -46073,7 +46133,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1250",
+      "source_location": "L1251",
       "weight": 1.0
     },
     {
@@ -46083,7 +46143,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1250",
+      "source_location": "L1251",
       "weight": 1.0
     },
     {
@@ -46092,7 +46152,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1264",
+      "source_location": "L1265",
       "weight": 1.0
     },
     {
@@ -46102,7 +46162,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1264",
+      "source_location": "L1265",
       "weight": 1.0
     },
     {
@@ -46112,7 +46172,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1264",
+      "source_location": "L1265",
       "weight": 1.0
     },
     {
@@ -46122,7 +46182,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1264",
+      "source_location": "L1265",
       "weight": 1.0
     },
     {
@@ -46131,7 +46191,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1274",
+      "source_location": "L1275",
       "weight": 1.0
     },
     {
@@ -46141,7 +46201,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1274",
+      "source_location": "L1275",
       "weight": 1.0
     },
     {
@@ -46150,7 +46210,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46160,7 +46220,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46170,7 +46230,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46180,7 +46240,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46190,7 +46250,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46200,7 +46260,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1283",
+      "source_location": "L1284",
       "weight": 1.0
     },
     {
@@ -46209,7 +46269,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1325",
+      "source_location": "L1328",
       "weight": 1.0
     },
     {
@@ -46219,7 +46279,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1325",
+      "source_location": "L1328",
       "weight": 1.0
     },
     {
@@ -46229,7 +46289,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1325",
+      "source_location": "L1328",
       "weight": 1.0
     },
     {
@@ -46239,7 +46299,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1325",
+      "source_location": "L1328",
       "weight": 1.0
     },
     {
@@ -46248,7 +46308,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1383",
+      "source_location": "L1386",
       "weight": 1.0
     },
     {
@@ -46258,7 +46318,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1383",
+      "source_location": "L1386",
       "weight": 1.0
     },
     {
@@ -46268,7 +46328,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1383",
+      "source_location": "L1386",
       "weight": 1.0
     },
     {
@@ -46278,7 +46338,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1383",
+      "source_location": "L1386",
       "weight": 1.0
     },
     {
@@ -46287,7 +46347,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1394",
+      "source_location": "L1397",
       "weight": 1.0
     },
     {
@@ -46297,7 +46357,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1394",
+      "source_location": "L1397",
       "weight": 1.0
     },
     {
@@ -46306,7 +46366,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1408",
+      "source_location": "L1411",
       "weight": 1.0
     },
     {
@@ -46316,7 +46376,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1408",
+      "source_location": "L1411",
       "weight": 1.0
     },
     {
@@ -46326,7 +46386,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -46336,7 +46396,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L213",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -46346,7 +46406,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L223",
+      "source_location": "L224",
       "weight": 1.0
     },
     {
@@ -46356,7 +46416,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L240",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -46366,7 +46426,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L322",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -46376,7 +46436,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L325",
+      "source_location": "L326",
       "weight": 1.0
     },
     {
@@ -46386,7 +46446,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L326",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -46396,7 +46456,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L330",
+      "source_location": "L331",
       "weight": 1.0
     },
     {
@@ -46406,7 +46466,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L420",
+      "source_location": "L421",
       "weight": 1.0
     },
     {
@@ -46416,7 +46476,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L429",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -46426,7 +46486,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L440",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -46436,7 +46496,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L451",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -46446,7 +46506,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L461",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -46456,7 +46516,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L468",
+      "source_location": "L469",
       "weight": 1.0
     },
     {
@@ -46466,7 +46526,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L478",
+      "source_location": "L479",
       "weight": 1.0
     },
     {
@@ -46476,7 +46536,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L482",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -46486,7 +46546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L491",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -46496,7 +46556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L492",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -46506,7 +46566,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L493",
+      "source_location": "L494",
       "weight": 1.0
     },
     {
@@ -46516,7 +46576,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L504",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -46526,7 +46586,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L535",
+      "source_location": "L536",
       "weight": 1.0
     },
     {
@@ -46536,7 +46596,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L550",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -46546,7 +46606,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L630",
+      "source_location": "L631",
       "weight": 1.0
     },
     {
@@ -46556,7 +46616,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L634",
+      "source_location": "L635",
       "weight": 1.0
     },
     {
@@ -46566,7 +46626,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L683",
+      "source_location": "L684",
       "weight": 1.0
     },
     {
@@ -46576,7 +46636,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L714",
+      "source_location": "L715",
       "weight": 1.0
     },
     {
@@ -46586,7 +46646,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L781",
+      "source_location": "L782",
       "weight": 1.0
     },
     {
@@ -46596,7 +46656,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L802",
+      "source_location": "L803",
       "weight": 1.0
     },
     {
@@ -46606,7 +46666,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L804",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -46616,7 +46676,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L805",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -46626,7 +46686,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L818",
+      "source_location": "L819",
       "weight": 1.0
     },
     {
@@ -46636,7 +46696,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L866",
+      "source_location": "L867",
       "weight": 1.0
     },
     {
@@ -46646,7 +46706,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L878",
+      "source_location": "L879",
       "weight": 1.0
     },
     {
@@ -46656,7 +46716,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L911",
+      "source_location": "L912",
       "weight": 1.0
     },
     {
@@ -46666,7 +46726,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L927",
+      "source_location": "L928",
       "weight": 1.0
     },
     {
@@ -46676,7 +46736,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1081",
+      "source_location": "L1082",
       "weight": 1.0
     },
     {
@@ -46686,7 +46746,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1094",
+      "source_location": "L1095",
       "weight": 1.0
     },
     {
@@ -46696,7 +46756,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1101",
+      "source_location": "L1102",
       "weight": 1.0
     },
     {
@@ -46706,7 +46766,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1104",
+      "source_location": "L1105",
       "weight": 1.0
     },
     {
@@ -46716,7 +46776,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1105",
+      "source_location": "L1106",
       "weight": 1.0
     },
     {
@@ -46726,7 +46786,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1146",
+      "source_location": "L1147",
       "weight": 1.0
     },
     {
@@ -46736,7 +46796,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1212",
+      "source_location": "L1213",
       "weight": 1.0
     },
     {
@@ -46746,7 +46806,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1237",
+      "source_location": "L1238",
       "weight": 1.0
     },
     {
@@ -46756,7 +46816,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1259",
+      "source_location": "L1260",
       "weight": 1.0
     },
     {
@@ -46766,7 +46826,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1269",
+      "source_location": "L1270",
       "weight": 1.0
     },
     {
@@ -46776,7 +46836,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1296",
+      "source_location": "L1297",
       "weight": 1.0
     },
     {
@@ -49482,7 +49542,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49492,7 +49552,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49502,7 +49562,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49512,7 +49572,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49522,7 +49582,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49532,7 +49592,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49542,7 +49602,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49552,7 +49612,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -49561,7 +49621,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49571,7 +49631,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49581,7 +49641,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49591,7 +49651,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49601,7 +49661,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49611,7 +49671,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49621,7 +49681,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49631,7 +49691,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -49640,7 +49700,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -49650,7 +49710,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -49660,7 +49720,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -49670,7 +49730,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -49679,7 +49739,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49689,7 +49749,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49699,7 +49759,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49709,7 +49769,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49719,7 +49779,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49729,7 +49789,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49739,7 +49799,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -49748,7 +49808,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -49758,7 +49818,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -49768,7 +49828,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -49778,7 +49838,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -49788,7 +49848,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L110",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -49797,7 +49857,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -49807,7 +49867,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -49817,7 +49877,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -49827,7 +49887,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -49836,7 +49896,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -49846,7 +49906,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -49856,7 +49916,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -49866,7 +49926,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L134",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -49875,7 +49935,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -49885,7 +49945,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -49895,7 +49955,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -49905,7 +49965,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L139",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -49914,7 +49974,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -49924,7 +49984,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -49934,7 +49994,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -49944,7 +50004,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -49954,7 +50014,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L163",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -49963,7 +50023,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -49973,7 +50033,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -49983,7 +50043,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -49993,7 +50053,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -50002,7 +50062,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L202",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -50011,7 +50071,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -50021,7 +50081,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -50031,7 +50091,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -50041,7 +50101,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -50051,7 +50111,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L207",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -50060,7 +50120,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L316",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -50069,7 +50129,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50079,7 +50139,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50089,7 +50149,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50099,7 +50159,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50109,7 +50169,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50119,7 +50179,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -50128,7 +50188,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50138,7 +50198,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50148,7 +50208,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50158,7 +50218,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50168,7 +50228,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50178,7 +50238,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50188,7 +50248,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50198,7 +50258,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L421",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -50208,7 +50268,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -50218,7 +50278,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L208",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -50228,7 +50288,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L213",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -50238,7 +50298,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L220",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -50248,7 +50308,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L246",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -50258,7 +50318,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L247",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -50268,7 +50328,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L294",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -50278,7 +50338,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L307",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -50288,7 +50348,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L309",
+      "source_location": "L310",
       "weight": 1.0
     },
     {
@@ -50298,7 +50358,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L321",
+      "source_location": "L322",
       "weight": 1.0
     },
     {
@@ -50308,7 +50368,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L345",
+      "source_location": "L346",
       "weight": 1.0
     },
     {
@@ -50318,7 +50378,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L348",
+      "source_location": "L349",
       "weight": 1.0
     },
     {
@@ -50328,7 +50388,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L440",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -50338,7 +50398,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L447",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -50348,7 +50408,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L470",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -50358,7 +50418,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L472",
+      "source_location": "L473",
       "weight": 1.0
     },
     {
@@ -50368,7 +50428,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L472",
+      "source_location": "L473",
       "weight": 1.0
     },
     {
@@ -50378,7 +50438,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L475",
+      "source_location": "L476",
       "weight": 1.0
     },
     {
@@ -100184,6 +100244,606 @@
       "weight": 1.0
     },
     {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_infer_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_infer_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_infer_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_infer_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_paired_h5mu_records",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_paired_h5mu_records",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_paired_h5mu_records",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_paired_h5mu_records",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_paired_h5mu_records",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_modality_presence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_modality_presence",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_modality_presence",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_modality_presence",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_modality_presence",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_cell_namespace_check",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_cell_namespace_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_cell_namespace_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_cell_namespace_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_cell_namespace_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_sample_alignment_check",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_sample_alignment_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_sample_alignment_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_sample_alignment_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_sample_alignment_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L268",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_genome_feature_space_check",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_genome_feature_space_check",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L302",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_ids",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_ids",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_ids",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_ids",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_ids",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L336",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_finding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_finding",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts",
+      "target": "utils_multiome_contracts_multiome_evidence_paths",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_multiome_evidence_paths",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_multiome_evidence_paths",
+      "target": "aria_utils_multiome_contracts_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_multiome_evidence_paths",
+      "target": "aria_utils_multiome_contracts_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_infer_multiome_contract",
+      "target": "utils_multiome_contracts_paired_h5mu_records",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_modality_presence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_cell_namespace_check",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_sample_alignment_check",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_genome_feature_space_check",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_validate_multiome_contract",
+      "target": "utils_multiome_contracts_finding",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_multiome_contracts_sample_alignment_check",
+      "target": "utils_multiome_contracts_ids",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/multiome_contracts.py",
+      "source_location": "L269",
+      "weight": 1.0
+    },
+    {
       "source": "utils_ora",
       "target": "utils_ora_enrichr_opt_in",
       "relation": "contains",
@@ -118917,7 +119577,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -118970,7 +119630,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -118980,7 +119640,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -118990,7 +119650,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119000,7 +119660,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119010,7 +119670,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119332,7 +119992,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -119341,7 +120001,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -119376,7 +120036,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119386,7 +120046,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_be7dvo_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ovcbma_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -133758,6 +134418,60 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_paired_h5mu_detection_infers_ready_multiome_contract",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_split_scrna_scatac_without_pairing_degrades_not_blocks_modalities",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_explicit_same_cell_contract_requires_barcode_namespace",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_explicit_same_cell_contract_accepts_shared_namespace_and_samples",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_explicit_same_cell_contract_blocks_mismatched_samples",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "tests_test_multiome_contracts_test_data_audit_context_includes_inferred_multiome_contract",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_narrative_agent",
       "target": "tests_test_narrative_agent_ok",
       "relation": "contains",
@@ -140194,7 +140908,7 @@
     },
     {
       "source": "agents_data_audit_agent",
-      "target": "utils_provenance_hash_file",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -140204,12 +140918,22 @@
     },
     {
       "source": "agents_data_audit_agent",
+      "target": "utils_provenance_hash_file",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent",
       "target": "utils_sensitivity_annotate_checkpoint_question",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L543",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -140219,7 +140943,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L543",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -140229,7 +140953,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L543",
+      "source_location": "L544",
       "weight": 1.0
     },
     {
@@ -140460,6 +141184,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
       "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_modality_audit",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/modality_audit.py",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -148813,6 +149547,46 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_multiome_contracts",
+      "target": "agents_modality_audit_build_capability_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts",
+      "target": "agents_data_audit_agent_dataauditagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_narrative_agent",
       "target": "agents_narrative_agent_narrativeagent",
       "relation": "imports",
@@ -150259,7 +151033,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/modality_audit.py",
-      "source_location": "L486",
+      "source_location": "L487",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_modality_audit_build_capability_matrix",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/modality_audit.py",
+      "source_location": "L491",
       "weight": 1.0
     },
     {
@@ -159113,6 +159897,76 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_multiome_contracts_test_paired_h5mu_detection_infers_ready_multiome_contract",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_paired_h5mu_detection_infers_ready_multiome_contract",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_split_scrna_scatac_without_pairing_degrades_not_blocks_modalities",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_split_scrna_scatac_without_pairing_degrades_not_blocks_modalities",
+      "target": "agents_modality_audit_build_capability_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_explicit_same_cell_contract_requires_barcode_namespace",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_explicit_same_cell_contract_accepts_shared_namespace_and_samples",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_multiome_contracts_test_explicit_same_cell_contract_blocks_mismatched_samples",
+      "target": "utils_multiome_contracts_validate_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_multiome_contracts.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_narrative_render_blocks_test_verifier_passes_real_hippocampus_scrna_block_patterns",
       "target": "narrative_types_narrativeblock",
       "relation": "calls",
@@ -161118,7 +161972,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L548",
+      "source_location": "L549",
       "weight": 1.0
     },
     {
@@ -161129,7 +161983,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L559",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -161140,7 +161994,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L560",
+      "source_location": "L561",
       "weight": 1.0
     },
     {
@@ -161151,7 +162005,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L619",
+      "source_location": "L620",
       "weight": 1.0
     },
     {
@@ -161162,7 +162016,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L771",
+      "source_location": "L772",
       "weight": 1.0
     },
     {
@@ -161173,7 +162027,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1301",
+      "source_location": "L1302",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_build_context",
+      "target": "utils_multiome_contracts_infer_multiome_contract",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L1325",
       "weight": 1.0
     },
     {
@@ -162337,29 +163202,31 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "orchestrator_agent",
+      "source": "data_audit_agent",
       "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
+    },
+    {
+      "source": "design_agent",
+      "target": "audit_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md"
+    },
+    {
+      "source": "audit_agent",
+      "target": "setup_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "bulk_rna_agent",
@@ -162367,9 +163234,23 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "environment_manager",
@@ -162377,39 +163258,55 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "chromatin_agent",
+      "source": "environment_manager",
       "target": "chromatin_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
+      "source": "chromatin_diffacc",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "biological_synthesis_agent",
+      "target": "narrative_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md"
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
     }
   ],
   "hyperedges": [],
