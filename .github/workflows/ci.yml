@@ -133,6 +133,39 @@ jobs:
             tests/test_environment_manager.py \
             tests/test_pbmc_e2e.py
 
+      - name: Chromatin + ATAC lane (honest-skip / dispatch / contracts / env specs)
+        # S7 (pre-integration audit / Codex #3): CI validated RNA/core but not the
+        # chromatin/ATAC stacks. These tests are fake-env / honest-skip / contract
+        # checks (no scanpy/snapatac2/bwa-mem2/chromap/TOBIAS needed — the binaries
+        # honest-skip), so they run in the pure-Python lane and gate every PR. They
+        # cover the raw-ingestion chain (FASTQ->BAM, FASTQ->fragments,
+        # fragments->matrix), bulk ATAC QC->peaks->counts->DA, TOBIAS/chromap
+        # honest-skip, GEO 4-modal routing, dispatch gating, readiness, and that the
+        # chromatin/atacseq/tobias env specs declare their tools. A full conda solve
+        # + chr20 end-to-end smoke is a heavier follow-up (chromatin Docker image).
+        run: |
+          python -m pytest -q \
+            tests/test_chromatin_env_specs.py \
+            tests/test_atac_align.py \
+            tests/test_chromatin_scatac_align.py \
+            tests/test_chromatin_fragments_to_matrix.py \
+            tests/test_bulk_atac_footprint.py \
+            tests/test_bulk_atac_v47.py \
+            tests/test_bulk_atac_peak_counts.py \
+            tests/test_bulk_atac_marker_mapping.py \
+            tests/test_scatac_raw_path_c4.py \
+            tests/test_scatac_da_dispatch_stack.py \
+            tests/test_geo_atac_inference.py \
+            tests/test_chromatin_peaks_c5.py \
+            tests/test_modality_readiness.py \
+            tests/test_chromatin_dispatch_gate.py \
+            tests/test_orchestrator_scatac_dispatch.py \
+            tests/test_docs_drift_guard.py \
+            tests/test_no_dead_packages.py \
+            tests/test_env_lock_numpy_consistency.py \
+            tests/test_env_lock_provenance.py \
+            tests/test_base_atomic_write.py
+
       - name: Integration smoke suite (importorskip-gated)
         run: python -m pytest -q tests/test_pytest_smoke.py
 
