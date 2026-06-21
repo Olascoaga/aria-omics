@@ -100,8 +100,12 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     assert "chromatin_readiness_beta_ack_required" in codes
     assert "chromatin_readiness_alpha_ack_required" not in codes
     readiness = card["checks"]["production_readiness"]
-    assert readiness["production_ready"] is True
+    # ADR-056: technical blockers cleared, but NOT promoted to production.
+    assert readiness["technical_blockers_cleared"] is True
     assert readiness["open_blockers"] == []
+    assert readiness["production_promoted"] is False
+    assert readiness["tier"] == "beta"
+    assert readiness["governance_blockers"]
 
 
 def test_scatac_default_registry_stays_beta_until_tier_promotion():
@@ -114,7 +118,8 @@ def test_scatac_default_registry_stays_beta_until_tier_promotion():
     assert card["validation_level"] == "beta"
     assert card["status"] == "yellow"
     assert card["dispatch_policy"] == "requires_ack"
-    assert card["checks"]["production_readiness"]["production_ready"] is True
+    assert card["checks"]["production_readiness"]["production_promoted"] is False
+    assert card["checks"]["production_readiness"]["technical_blockers_cleared"] is True
 
 
 def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
@@ -138,8 +143,10 @@ def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     codes = {f["check"] for f in card["findings"]}
     assert "bulk_atac_beta_ack_required" in codes
     readiness = card["checks"]["production_readiness"]
-    assert readiness["production_ready"] is True
+    assert readiness["technical_blockers_cleared"] is True
     assert readiness["open_blockers"] == []
+    assert readiness["production_promoted"] is False
+    assert readiness["tier"] == "beta"
 
 
 def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
@@ -153,7 +160,30 @@ def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
     assert card["validation_level"] == "beta"
     assert card["status"] == "yellow"
     assert card["dispatch_policy"] == "requires_ack"
-    assert card["checks"]["production_readiness"]["production_ready"] is True
+    assert card["checks"]["production_readiness"]["production_promoted"] is False
+    assert card["checks"]["production_readiness"]["technical_blockers_cleared"] is True
+
+
+def test_adr056_atac_never_inferred_production_no_governance_blockers_dropped():
+    # ADR-056: production is never inferred from the audit. Even with all technical
+    # blockers cleared, ATAC stays beta + requires_ack with the governance blockers
+    # listed and production_promoted hard-False.
+    from aria.agents.modality_audit import (
+        _ATAC_GOVERNANCE_BLOCKERS,
+        _atac_production_readiness,
+    )
+
+    for modality in ("scATAC", "bulk_ATAC"):
+        r = _atac_production_readiness(modality)
+        assert r["production_promoted"] is False, modality
+        assert r["tier"] == "beta" and r["requires_ack"] is True, modality
+        assert r["promotion_policy_adr"] == "ADR-056", modality
+        # The governance bar must stay visible (not silently emptied like the
+        # technical blockers were).
+        assert tuple(r["governance_blockers"]) == _ATAC_GOVERNANCE_BLOCKERS, modality
+        assert "explicit_production_promotion_adr" in r["governance_blockers"]
+    # No legacy ambiguous field that could be misread as "is production".
+    assert "production_ready" not in _atac_production_readiness("scATAC")
 
 
 def test_audit_agent_surfaces_capability_matrix_without_heavy_checks(monkeypatch):

@@ -26,10 +26,23 @@ _CHROMATIN_MODALITIES = {
     "CUT_AND_TAG",
 }
 
+# Technical (engineering/science) blockers to ATAC production. These were the
+# C1-C6 audit items; all closed. BUT closing them is NOT a tier promotion — see
+# _ATAC_GOVERNANCE_BLOCKERS + ADR-056.
 _ATAC_PRODUCTION_BLOCKERS = {
     "scATAC": (),
     "bulk_ATAC": (),
 }
+
+# ADR-056: governance criteria that must ALL be met by an explicit promotion ADR
+# before ATAC leaves beta. Technical blockers being clear does not promote the
+# tier — production is never inferred from the audit.
+_ATAC_GOVERNANCE_BLOCKERS = (
+    "end_to_end_chromatin_ci_green",       # real env solve + chr20 smoke in CI
+    "reproducible_preprint_freeze",        # artifacts regenerated from clean checkout
+    "multi_annotator_claim_review",        # independent expert review of conclusions
+    "explicit_production_promotion_adr",   # a deliberate promotion decision
+)
 
 _DOUBLET_HINTS = ("doublet", "scrublet", "demuxlet")
 _MITO_HINTS = ("pct_counts_mt", "pct_mito", "percent_mito", "mito_frac")
@@ -122,10 +135,26 @@ def _has_column_hint(columns: list[str], hints: tuple[str, ...]) -> bool:
 
 
 def _atac_production_readiness(modality: str) -> dict[str, Any]:
-    blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
+    """ATAC readiness, ADR-056-honest.
+
+    The technical C1-C6 blockers are closed, but ATAC stays beta + requires_ack:
+    a closed technical blocker list does NOT promote the tier. `production_promoted`
+    is therefore False until an explicit promotion ADR clears the governance
+    blockers. The old ambiguous `production_ready` field (which meant "no technical
+    blockers" and could be misread as "is production") is replaced by the explicit
+    `technical_blockers_cleared` + `production_promoted` pair.
+    """
+    technical_blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
     return {
-        "production_ready": not blockers,
-        "open_blockers": blockers,
+        "tier": "beta",
+        "requires_ack": True,
+        # Production is NEVER inferred from the audit (ADR-056). Flip only via a
+        # deliberate promotion ADR that clears every governance blocker.
+        "production_promoted": False,
+        "technical_blockers_cleared": not technical_blockers,
+        "open_blockers": technical_blockers,
+        "governance_blockers": list(_ATAC_GOVERNANCE_BLOCKERS),
+        "promotion_policy_adr": "ADR-056",
     }
 
 

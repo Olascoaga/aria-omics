@@ -39,7 +39,10 @@ dependencies = [
 ]
 
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    # ADR-056: RNA is production-grade and ATAC is validated beta, so "Alpha"
+    # understated the package. Not "5 - Production/Stable": chromatin assays are
+    # still scaffold and the integration (V48) + preprint freeze are pending.
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Programming Language :: Python :: 3.11",
