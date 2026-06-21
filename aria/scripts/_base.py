@@ -34,6 +34,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import tempfile
 import traceback
 import warnings
 from pathlib import Path
@@ -108,8 +109,7 @@ def run_script(analysis_fn: Callable[[dict], dict]) -> None:
         if "status" not in result:
             result["status"] = "success"
 
-        with open(output_path, "w") as f:
-            json.dump(result, f, default=_json_serializer)
+        _atomic_write_json(output_path, result, default=_json_serializer)
 
     except Exception as e:
         _write_error(
@@ -131,13 +131,52 @@ def _write_error(output_path: Path | None,
     }
     if output_path is not None:
         try:
-            with open(output_path, "w") as f:
-                json.dump(payload, f)
+            _atomic_write_json(output_path, payload)
         except Exception:
             # Last resort: print to stderr
             print(json.dumps(payload), file=sys.stderr)
     else:
         print(json.dumps(payload), file=sys.stderr)
+
+
+def _atomic_write_json(output_path, payload, *, default=None) -> None:
+    """Write JSON atomically so a crash mid-write never leaves a truncated file.
+
+    The contract everything downstream relies on is *resume-by-file-validity*: an
+    artifact on disk is assumed complete. A plain ``json.dump(f)`` violates that —
+    an OOM/timeout/SIGKILL mid-serialization (ARIA has hit all three) leaves a
+    half-written, parseable-looking JSON that corrupts resume. This:
+
+      1. serializes the WHOLE payload to a string first, so a non-serializable
+         object raises BEFORE any file is touched (no partial artifact);
+      2. writes to a temp file in the SAME directory (same filesystem so the
+         rename is atomic), flushes + fsyncs it;
+      3. ``os.replace()`` onto the final path — atomic on POSIX, so the final
+         artifact is always either the previous content or the new content,
+         never a truncated mix.
+
+    On any failure the temp file is removed and the original (if any) is intact.
+    """
+    output_path = Path(output_path)
+    parent = output_path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    # (1) Full serialization up front — fail before creating the final file.
+    data = json.dumps(payload, default=default)
+    # (2) Temp file in the same directory for an atomic same-filesystem rename.
+    fd, tmp = tempfile.mkstemp(dir=str(parent),
+                               prefix=f".{output_path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(data)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, output_path)  # (3) atomic
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def _json_serializer(obj):
