@@ -8944,21 +8944,21 @@
       "label": "mocks_allowed()",
       "file_type": "code",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "aria_scripts_base_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "scripts_base_run_script",
       "label": "run_script()",
       "file_type": "code",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L60"
+      "source_location": "L61"
     },
     {
       "id": "scripts_base_write_error",
@@ -8982,11 +8982,18 @@
       "source_location": "L123"
     },
     {
+      "id": "scripts_base_atomic_write_json",
+      "label": "_atomic_write_json()",
+      "file_type": "code",
+      "source_file": "aria/scripts/_base.py",
+      "source_location": "L142"
+    },
+    {
       "id": "scripts_base_json_serializer",
       "label": "_json_serializer()",
       "file_type": "code",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L143"
+      "source_location": "L182"
     },
     {
       "id": "scripts_atac_align",
@@ -27144,7 +27151,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27389,7 +27396,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27411,7 +27418,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -28748,6 +28755,62 @@
       "file_type": "code",
       "source_file": "tests/test_b2_annotation.py",
       "source_location": "L70"
+    },
+    {
+      "id": "tests_test_base_atomic_write",
+      "label": "test_base_atomic_write.py",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_atomic_write_produces_valid_complete_json",
+      "label": "test_atomic_write_produces_valid_complete_json()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_serialization_failure_leaves_no_partial_file",
+      "label": "test_serialization_failure_leaves_no_partial_file()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_failed_write_preserves_existing_artifact",
+      "label": "test_failed_write_preserves_existing_artifact()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_replace_failure_cleans_tmp_and_raises",
+      "label": "test_replace_failure_cleans_tmp_and_raises()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_uses_json_serializer_for_numpy",
+      "label": "test_uses_json_serializer_for_numpy()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L68"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_creates_parent_dir",
+      "label": "test_creates_parent_dir()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "tests_test_base_atomic_write_test_run_script_writes_atomically",
+      "label": "test_run_script_writes_atomically()",
+      "file_type": "code",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L83"
     },
     {
       "id": "tests_test_benchmark_a1_external_comparators",
@@ -39127,103 +39190,188 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
+      "source_file": "aria/agents/setup_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py"
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_bulk_diffacc",
       "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py"
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
@@ -76925,7 +77073,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -76935,7 +77083,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -76944,7 +77092,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L60",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -76984,6 +77132,15 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
       "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_base",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/_base.py",
+      "source_location": "L142",
       "weight": 1.0
     },
     {
@@ -76992,7 +77149,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L143",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -77002,7 +77159,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L82",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -77012,7 +77169,37 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/_base.py",
-      "source_location": "L92",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_base_run_script",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/_base.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_base_write_error",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/_base.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_base_atomic_write_json",
+      "target": "aria_scripts_base_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/_base.py",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -116913,7 +117100,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -116966,7 +117153,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116976,7 +117163,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116986,7 +117173,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -116996,7 +117183,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117006,7 +117193,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117328,7 +117515,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -117337,7 +117524,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -117372,7 +117559,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117382,7 +117569,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_x3idvd_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_brdpfp_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -119447,6 +119634,69 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_b2_annotation.py",
       "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_atomic_write_produces_valid_complete_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_serialization_failure_leaves_no_partial_file",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_failed_write_preserves_existing_artifact",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_replace_failure_cleans_tmp_and_raises",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_uses_json_serializer_for_numpy",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L68",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_creates_parent_dir",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "tests_test_base_atomic_write_test_run_script_writes_atomically",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L83",
       "weight": 1.0
     },
     {
@@ -142448,6 +142698,26 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_base_atomic_write",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write",
+      "target": "scripts_base_json_serializer",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_benchmark_a1_external_comparators",
       "target": "scripts_benchmark_a1_external_comparators_benchmark_a1_external_comparators",
       "relation": "imports",
@@ -150195,6 +150465,66 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_b2_annotation.py",
       "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_atomic_write_produces_valid_complete_json",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_serialization_failure_leaves_no_partial_file",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_failed_write_preserves_existing_artifact",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_replace_failure_cleans_tmp_and_raises",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_uses_json_serializer_for_numpy",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_base_atomic_write_test_creates_parent_dir",
+      "target": "scripts_base_atomic_write_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_base_atomic_write.py",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -159472,7 +159802,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159480,7 +159812,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159488,7 +159822,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159496,7 +159832,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159504,7 +159842,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159512,7 +159852,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159520,7 +159862,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159528,7 +159872,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
@@ -159536,7 +159882,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "scrna_agent",
@@ -159544,7 +159892,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "chromatin_agent",
@@ -159552,7 +159902,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
@@ -159560,7 +159912,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
@@ -159568,7 +159922,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
@@ -159576,15 +159932,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
-      "target": "chromatin_footprint_tobias",
+      "target": "chromatin_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "narrative_agent",
@@ -159592,7 +159952,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159600,7 +159962,9 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -159608,7 +159972,9 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
