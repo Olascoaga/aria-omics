@@ -22,8 +22,12 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+from aria.utils.reference_integrity import sha256_file
+
 RO_CRATE_CONTEXT = "https://w3id.org/ro/crate/1.1/context"
 _METHODOLOGY_NAME = "methodology.json"
+_CAPSULE_MANIFEST = "capsule_manifest.json"
+_CAPSULE_SCHEMA_VERSION = "s14.reproducibility_capsule.v1"
 
 
 # ── loading ──────────────────────────────────────────────────────────────────
@@ -190,19 +194,251 @@ def write_ro_crate(report_dir: str | Path) -> Path:
     return out
 
 
-def write_reproducible_capsule(report_dir: str | Path,
-                               out_zip: str | Path | None = None) -> Path:
-    """Bundle a report dir (+ its RO-Crate metadata) into a reproducible ZIP."""
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _file_entry(path: Path, arcname: str, role: str) -> dict[str, Any]:
+    return {
+        "path": arcname,
+        "role": role,
+        "size_bytes": path.stat().st_size,
+        "sha256": sha256_file(path),
+    }
+
+
+def _repo_snapshot_files(repo_root: Path) -> list[tuple[Path, str, str]]:
+    files: list[tuple[Path, str, str]] = []
+    for pattern in ("*.lock", "*.pip.lock"):
+        for path in sorted((repo_root / "envs").glob(pattern)):
+            if path.is_file():
+                rel = path.relative_to(repo_root).as_posix()
+                files.append((path, f"repository/{rel}", "lockfile"))
+    for rel in (
+        "requirements.lock",
+        "docs/architecture/code_graph.md",
+        "docs/architecture/graphify/README.md",
+        "docs/architecture/graphify/GRAPH_REPORT.md",
+        "docs/architecture/graphify/manifest.json",
+        "docs/architecture/graphify/graph.json",
+    ):
+        path = repo_root / rel
+        if path.is_file():
+            role = "graph_snapshot" if rel.startswith("docs/architecture") else "lockfile"
+            files.append((path, f"repository/{rel}", role))
+    return files
+
+
+def _capsule_reproduction_plan(methodology: dict) -> dict[str, Any]:
+    prov = _provenance(methodology)
+    env = prov.get("environment") if isinstance(prov.get("environment"), dict) else {}
+    inputs = methodology.get("inputs", []) or []
+    return {
+        "status": "verification_ready",
+        "automatic_rerun": False,
+        "reason": (
+            "The capsule can verify report, input, code, graph, and environment "
+            "identity. Automatic re-execution requires the original data paths "
+            "and biological question/run policy; use the command template after "
+            "confirming those inputs."
+        ),
+        "required_git_commit": _commit(methodology),
+        "required_workflow_hash": prov.get("workflow_hash"),
+        "required_env_lock_file": env.get("env_lock_file"),
+        "required_env_lock_sha256": env.get("env_lock_sha256"),
+        "input_hashes": [
+            {
+                "path": item.get("path"),
+                "sha256": item.get("sha256"),
+                "size_bytes": item.get("size_bytes") or item.get("bytes"),
+                "modality": item.get("modality"),
+            }
+            for item in inputs if isinstance(item, dict)
+        ],
+        "command_template": (
+            "aria --reproducible  # or use aria.headless.run_headless(...) with "
+            "the same input files, biological question, and checkpoint policy"
+        ),
+    }
+
+
+def build_capsule_manifest(
+    report_dir: str | Path,
+    *,
+    repo_root: str | Path | None = None,
+) -> tuple[dict[str, Any], list[tuple[Path, str, str]]]:
+    """Return the S14 capsule manifest and source files to zip."""
     rd = Path(report_dir)
-    # Ensure the crate exists/refreshes before bundling.
-    if (rd / _METHODOLOGY_NAME).exists():
-        write_ro_crate(rd)
+    root = Path(repo_root).resolve() if repo_root else _repo_root()
+    methodology = load_methodology(rd)
+    write_ro_crate(rd)
+
+    sources: list[tuple[Path, str, str]] = []
+    for path in sorted(rd.rglob("*")):
+        if path.is_file():
+            sources.append((path, path.relative_to(rd.parent).as_posix(), "report_artifact"))
+    sources.extend(_repo_snapshot_files(root))
+
+    files = [_file_entry(path, arcname, role) for path, arcname, role in sources]
+    manifest = {
+        "schema_version": _CAPSULE_SCHEMA_VERSION,
+        "report_dir": rd.name,
+        "aria_version": _version(methodology),
+        "git_commit": _commit(methodology),
+        "git_dirty": _provenance(methodology).get("git_dirty"),
+        "workflow_hash": _provenance(methodology).get("workflow_hash"),
+        "provenance": _provenance(methodology),
+        "environment": _provenance(methodology).get("environment", {}),
+        "ro_crate": "ro-crate-metadata.json",
+        "files": files,
+        "reproduction": _capsule_reproduction_plan(methodology),
+    }
+    return manifest, sources
+
+
+def write_reproducible_capsule(report_dir: str | Path,
+                               out_zip: str | Path | None = None,
+                               *,
+                               repo_root: str | Path | None = None) -> Path:
+    """Bundle a report dir, RO-Crate, lockfiles, graph snapshot, and checksums."""
+    rd = Path(report_dir)
+    manifest, sources = build_capsule_manifest(rd, repo_root=repo_root)
     out = Path(out_zip) if out_zip else rd.parent / f"{rd.name}_capsule.zip"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for path in sorted(rd.rglob("*")):
-            if path.is_file() and path.resolve() != out.resolve():
-                z.write(path, path.relative_to(rd.parent))
+        for path, arcname, _role in sources:
+            if path.resolve() != out.resolve():
+                z.write(path, arcname)
+        z.writestr(
+            _CAPSULE_MANIFEST,
+            json.dumps(manifest, indent=2, sort_keys=True, default=str),
+        )
     return out
+
+
+def _zip_sha256(z: zipfile.ZipFile, name: str) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with z.open(name, "r") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _methodology_from_zip(z: zipfile.ZipFile, manifest: dict) -> dict:
+    report_dir = str(manifest.get("report_dir") or "")
+    candidates = [
+        f"{report_dir}/{_METHODOLOGY_NAME}" if report_dir else "",
+        _METHODOLOGY_NAME,
+    ]
+    for name in candidates:
+        if name and name in z.namelist():
+            return json.loads(z.read(name).decode("utf-8"))
+    for name in z.namelist():
+        if name.endswith(f"/{_METHODOLOGY_NAME}"):
+            return json.loads(z.read(name).decode("utf-8"))
+    return {}
+
+
+def verify_reproducible_capsule(
+    capsule_zip: str | Path,
+    *,
+    compare_report: str | Path | None = None,
+    repo_root: str | Path | None = None,
+) -> dict[str, Any]:
+    """Verify a capsule ZIP and optionally diff it against a reproduced report."""
+    root = Path(repo_root).resolve() if repo_root else _repo_root()
+    result: dict[str, Any] = {
+        "capsule": str(capsule_zip),
+        "status": "pass",
+        "files": {"checked": 0, "missing": [], "mismatched": []},
+        "inputs": {"checked": 0, "missing": [], "mismatched": []},
+        "environment": {},
+        "git": {},
+        "diff": None,
+    }
+    with zipfile.ZipFile(capsule_zip, "r") as z:
+        if _CAPSULE_MANIFEST not in z.namelist():
+            result["status"] = "fail"
+            result["files"]["missing"].append(_CAPSULE_MANIFEST)
+            return result
+        manifest = json.loads(z.read(_CAPSULE_MANIFEST).decode("utf-8"))
+        result["manifest"] = {
+            "schema_version": manifest.get("schema_version"),
+            "git_commit": manifest.get("git_commit"),
+            "workflow_hash": manifest.get("workflow_hash"),
+        }
+        for entry in manifest.get("files", []) or []:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("path") or "")
+            expected = entry.get("sha256")
+            if not name:
+                continue
+            if name not in z.namelist():
+                result["files"]["missing"].append(name)
+                continue
+            observed = _zip_sha256(z, name)
+            result["files"]["checked"] += 1
+            if expected and observed != expected:
+                result["files"]["mismatched"].append({
+                    "path": name, "expected": expected, "observed": observed,
+                })
+
+        methodology = _methodology_from_zip(z, manifest)
+
+    for item in (methodology.get("inputs", []) or []):
+        if not isinstance(item, dict):
+            continue
+        path = item.get("path")
+        expected = item.get("sha256")
+        if not path or not expected or expected == "unavailable":
+            continue
+        p = Path(str(path)).expanduser()
+        if not p.is_file():
+            result["inputs"]["missing"].append(str(path))
+            continue
+        observed = sha256_file(p)
+        result["inputs"]["checked"] += 1
+        if observed != expected:
+            result["inputs"]["mismatched"].append({
+                "path": str(path), "expected": expected, "observed": observed,
+            })
+
+    try:
+        from aria.version import collect_environment_metadata, collect_version_metadata
+        current_env = collect_environment_metadata(root)
+        expected_env = (_provenance(methodology).get("environment") or {})
+        result["environment"] = {
+            "expected_env_lock_file": expected_env.get("env_lock_file"),
+            "expected_env_lock_sha256": expected_env.get("env_lock_sha256"),
+            "current_env_lock_file": current_env.get("env_lock_file"),
+            "current_env_lock_sha256": current_env.get("env_lock_sha256"),
+            "matches": (
+                bool(expected_env.get("env_lock_sha256"))
+                and current_env.get("env_lock_sha256") == expected_env.get("env_lock_sha256")
+            ),
+        }
+        current_version = collect_version_metadata(root)
+        expected_commit = _commit(methodology)
+        result["git"] = {
+            "expected_commit": expected_commit,
+            "current_commit": current_version.get("git_commit"),
+            "matches": current_version.get("git_commit") == expected_commit,
+            "current_dirty": current_version.get("git_dirty"),
+        }
+    except Exception as exc:
+        result["environment"] = {"status": "unverified", "error": str(exc)}
+
+    if compare_report:
+        result["diff"] = diff_methodologies(methodology, load_methodology(compare_report))
+
+    if (result["files"]["missing"] or result["files"]["mismatched"]
+            or result["inputs"]["mismatched"]):
+        result["status"] = "fail"
+    elif result["inputs"]["missing"]:
+        result["status"] = "warning"
+    return result
 
 
 # ── aria diff ────────────────────────────────────────────────────────────────
@@ -329,7 +565,7 @@ def format_diff(diff: dict) -> str:
 # ── CLI (routed from aria.tui:main) ──────────────────────────────────────────
 
 def cli_main(argv: list[str]) -> int:
-    """`aria diff A B` and `aria export <reportDir> [--zip out.zip]`."""
+    """`aria diff`, `aria export`, and `aria reproduce` over run ledgers."""
     import argparse
 
     parser = argparse.ArgumentParser(prog="aria")
@@ -344,6 +580,15 @@ def cli_main(argv: list[str]) -> int:
     p_exp.add_argument("report_dir", help="Report directory containing methodology.json")
     p_exp.add_argument("--zip", dest="zip_out", default=None, help="Capsule ZIP output path")
     p_exp.add_argument("--no-zip", action="store_true", help="Only write ro-crate-metadata.json")
+
+    p_rep = sub.add_parser("reproduce", help="Verify a reproducible capsule.")
+    p_rep.add_argument("capsule_zip", help="Capsule ZIP created by `aria export`")
+    p_rep.add_argument(
+        "--compare-report",
+        default=None,
+        help="Optional reproduced report dir/methodology.json to diff against the capsule.",
+    )
+    p_rep.add_argument("--json", action="store_true", help="Emit verification as JSON.")
 
     args = parser.parse_args(argv)
 
@@ -362,4 +607,51 @@ def cli_main(argv: list[str]) -> int:
             print(f"wrote {cap}")
         return 0
 
+    if args.cmd == "reproduce":
+        result = verify_reproducible_capsule(
+            args.capsule_zip,
+            compare_report=args.compare_report,
+        )
+        if args.json:
+            print(json.dumps(result, indent=2, default=str))
+        else:
+            print(format_reproduce_result(result))
+        return 0 if result.get("status") in {"pass", "warning"} else 1
+
     return 2
+
+
+def format_reproduce_result(result: dict[str, Any]) -> str:
+    """Human-readable capsule verification report."""
+    lines = [f"Capsule verification: {result.get('status', 'unknown')}"]
+    files = result.get("files", {})
+    lines.append(f"  Files checked: {files.get('checked', 0)}")
+    if files.get("missing"):
+        lines.append(f"  Missing files: {', '.join(files['missing'])}")
+    if files.get("mismatched"):
+        lines.append(f"  Mismatched files: {len(files['mismatched'])}")
+
+    inputs = result.get("inputs", {})
+    lines.append(f"  Inputs checked: {inputs.get('checked', 0)}")
+    if inputs.get("missing"):
+        lines.append(f"  Inputs missing locally: {', '.join(inputs['missing'])}")
+    if inputs.get("mismatched"):
+        lines.append(f"  Input hash mismatches: {len(inputs['mismatched'])}")
+
+    env = result.get("environment", {})
+    if env:
+        lines.append(
+            "  Env lock: "
+            f"{env.get('current_env_lock_sha256')} "
+            f"({'match' if env.get('matches') else 'no match or unrecorded'})"
+        )
+    git = result.get("git", {})
+    if git:
+        lines.append(
+            "  Git commit: "
+            f"{git.get('current_commit')} "
+            f"({'match' if git.get('matches') else 'differs'})"
+        )
+    if result.get("diff"):
+        lines.append(format_diff(result["diff"]))
+    return "\n".join(lines)

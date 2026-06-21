@@ -8,8 +8,10 @@ import zipfile
 
 from aria.agents.narrative.ledger_export import (
     build_ro_crate,
+    build_capsule_manifest,
     write_ro_crate,
     write_reproducible_capsule,
+    verify_reproducible_capsule,
     diff_methodologies,
     format_diff,
 )
@@ -64,17 +66,103 @@ def test_write_ro_crate_and_capsule(tmp_path):
     rd.mkdir()
     (rd / "methodology.json").write_text(json.dumps(_methodology()))
     (rd / "report.html").write_text("<html></html>")
+    repo = tmp_path / "repo"
+    (repo / "envs").mkdir(parents=True)
+    (repo / "envs" / "aria-rna-env.linux-64.lock").write_text("lock\n")
+    graph_dir = repo / "docs" / "architecture" / "graphify"
+    graph_dir.mkdir(parents=True)
+    (repo / "docs" / "architecture").mkdir(parents=True, exist_ok=True)
+    (repo / "docs" / "architecture" / "code_graph.md").write_text("graph\n")
+    (graph_dir / "graph.json").write_text("{}\n")
+    (graph_dir / "manifest.json").write_text("{}\n")
+    (graph_dir / "README.md").write_text("readme\n")
+    (graph_dir / "GRAPH_REPORT.md").write_text("report\n")
 
     crate_path = write_ro_crate(rd)
     assert crate_path.exists() and crate_path.name == "ro-crate-metadata.json"
 
-    zip_path = write_reproducible_capsule(rd)
+    zip_path = write_reproducible_capsule(rd, repo_root=repo)
     assert zip_path.exists()
     with zipfile.ZipFile(zip_path) as z:
         names = z.namelist()
+        manifest = json.loads(z.read("capsule_manifest.json"))
     assert any(n.endswith("methodology.json") for n in names)
     assert any(n.endswith("ro-crate-metadata.json") for n in names)
     assert any(n.endswith("report.html") for n in names)
+    assert "repository/envs/aria-rna-env.linux-64.lock" in names
+    assert "repository/docs/architecture/graphify/graph.json" in names
+    assert manifest["schema_version"].startswith("s14.")
+    assert any(f["role"] == "lockfile" for f in manifest["files"])
+    assert any(f["role"] == "graph_snapshot" for f in manifest["files"])
+
+
+def test_build_capsule_manifest_records_reproduction_plan(tmp_path):
+    rd = tmp_path / "report"
+    rd.mkdir()
+    (rd / "methodology.json").write_text(json.dumps(_methodology()))
+    (rd / "report.html").write_text("<html></html>")
+
+    manifest, sources = build_capsule_manifest(rd, repo_root=tmp_path / "empty_repo")
+
+    assert manifest["reproduction"]["automatic_rerun"] is False
+    assert manifest["reproduction"]["required_git_commit"] == "abc123"
+    assert manifest["reproduction"]["input_hashes"][0]["sha256"] == "deadbeef"
+    assert any(src.name == "methodology.json" for src, _arc, _role in sources)
+
+
+def test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs(tmp_path):
+    rd = tmp_path / "report"
+    rd.mkdir()
+    (rd / "methodology.json").write_text(json.dumps(_methodology()))
+    (rd / "report.html").write_text("<html></html>")
+    zip_path = write_reproducible_capsule(rd, repo_root=tmp_path / "empty_repo")
+
+    result = verify_reproducible_capsule(zip_path, repo_root=tmp_path / "empty_repo")
+
+    assert result["status"] == "warning"  # /data/x.h5ad is not present locally
+    assert result["files"]["checked"] >= 3
+    assert result["files"]["mismatched"] == []
+    assert result["inputs"]["missing"] == ["/data/x.h5ad"]
+
+
+def test_verify_reproducible_capsule_detects_file_hash_mismatch(tmp_path):
+    rd = tmp_path / "report"
+    rd.mkdir()
+    (rd / "methodology.json").write_text(json.dumps(_methodology()))
+    (rd / "report.html").write_text("<html></html>")
+    zip_path = write_reproducible_capsule(rd, repo_root=tmp_path / "empty_repo")
+
+    rewritten = tmp_path / "corrupted.zip"
+    with zipfile.ZipFile(zip_path, "r") as src, zipfile.ZipFile(rewritten, "w") as dst:
+        for name in src.namelist():
+            payload = src.read(name)
+            if name == "report/report.html":
+                payload = b"<html>corrupted</html>"
+            dst.writestr(name, payload)
+
+    result = verify_reproducible_capsule(rewritten, repo_root=tmp_path / "empty_repo")
+
+    assert result["status"] == "fail"
+    assert any(m["path"] == "report/report.html" for m in result["files"]["mismatched"])
+
+
+def test_verify_reproducible_capsule_can_diff_reproduced_report(tmp_path):
+    rd = tmp_path / "report"
+    rd.mkdir()
+    (rd / "methodology.json").write_text(json.dumps(_methodology(commit="aaa")))
+    (rd / "report.html").write_text("<html></html>")
+    zip_path = write_reproducible_capsule(rd, repo_root=tmp_path / "empty_repo")
+
+    reproduced = tmp_path / "reproduced"
+    reproduced.mkdir()
+    (reproduced / "methodology.json").write_text(json.dumps(_methodology(commit="bbb")))
+
+    result = verify_reproducible_capsule(
+        zip_path, compare_report=reproduced, repo_root=tmp_path / "empty_repo"
+    )
+
+    assert result["diff"]["identical"] is False
+    assert result["diff"]["provenance"]["git_commit"] == {"a": "aaa", "b": "bbb"}
 
 
 # ── aria diff ────────────────────────────────────────────────────────────────

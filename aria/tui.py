@@ -1062,8 +1062,8 @@ def main():
             raise SystemExit(code)
         return
 
-    # W-LEDGER: `aria diff A B` and `aria export <reportDir>` over the run ledger.
-    if args and args[0] in ("diff", "export"):
+    # W-LEDGER/S14: `aria diff`, `aria export`, and `aria reproduce`.
+    if args and args[0] in ("diff", "export", "reproduce"):
         from aria.agents.narrative.ledger_export import cli_main
 
         raise SystemExit(cli_main(args))
