@@ -154,6 +154,15 @@ def _is_fastq(files: list) -> bool:
     return str(files[0]).lower().endswith(_FASTQ_SUFFIXES)
 
 
+def _pick_read(fastqs: list, tokens: tuple) -> Optional[str]:
+    """Pick the FASTQ whose name contains one of the read tokens (e.g. _R1)."""
+    for f in fastqs:
+        low = str(f).lower()
+        if any(t.lower() in low for t in tokens):
+            return f
+    return None
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -318,6 +327,23 @@ class ChromatinAgent(BaseAgent):
 
         findings = {}
 
+        # 0. FASTQ -> fragments (chromap): raw single-cell reads must be aligned
+        # to a barcoded fragments file before QC/peaks. Only runs when the
+        # barcode read + whitelist are explicitly provided (the barcode read
+        # cannot be guessed); otherwise the raw FASTQ falls through honestly.
+        if _is_fastq(files):
+            frag_attempt = self._run_scatac_fastq_to_fragments(
+                experiment_id, exp_ctx, files)
+            findings["fastq_to_fragments"] = frag_attempt
+            if (isinstance(frag_attempt, dict)
+                    and frag_attempt.get("status") == "success"
+                    and frag_attempt.get("fragments_file")):
+                files = [frag_attempt["fragments_file"]]
+            else:
+                return {"status": "done", "findings": findings,
+                        "reason": frag_attempt.get("reason")
+                        if isinstance(frag_attempt, dict) else "scatac_fastq_unaligned"}
+
         # 1. QC via EnvironmentManager
         self.publish_status(experiment_id, "scATAC QC...", 0.1)
         qc_result = self.env.run_in_stack(
@@ -374,20 +400,43 @@ class ChromatinAgent(BaseAgent):
                 experiment_id, peaks_result, "scATAC"
             )
 
+        # 2b. Bridge raw fragments -> cell x peak matrix (snapatac2), reusing the
+        # MACS3 peaks just called as the peak set. On success this unlocks the
+        # full validated matrix pipeline (LSI -> DA -> motif -> regulatory ->
+        # footprint) directly from raw fragments; on failure ARIA falls back to
+        # the honest QC + peaks (+ optional motif) C4 path.
+        matrix_attempt = self._run_fragments_to_matrix(
+            experiment_id, exp_ctx, files, peaks_result)
+        findings["fragments_to_matrix"] = matrix_attempt
+        if (isinstance(matrix_attempt, dict)
+                and matrix_attempt.get("status") == "success"
+                and matrix_attempt.get("output_path")):
+            self.publish_status(
+                experiment_id, "scATAC matrix pipeline from fragments...", 0.6)
+            matrix_result = self._run_scatac_matrix(
+                experiment_id, exp_ctx, intent,
+                matrix_attempt["output_path"], precomputed_qc=qc_result)
+            findings.update(matrix_result.get("findings", {}))
+            return {"status": "done", "findings": findings}
+
+        # Fallback: matrix not built -> stay on the honest raw path (C4).
         findings["matrix_pipeline"] = {
             "status": "skipped",
             "ran": False,
             "data_type": "scATAC",
             "analysis": "matrix_pipeline",
             "validation_level": "beta",
-            "reason": "raw_scatac_requires_peak_matrix_h5mu",
+            "reason": (matrix_attempt.get("reason")
+                       if isinstance(matrix_attempt, dict)
+                       else "raw_scatac_matrix_bridge_unavailable"),
             "message": (
-                "Raw scATAC fragments/BAM currently support measured QC, "
-                "MACS3 peak calling, and optional motif enrichment only. "
-                "LSI clustering, differential accessibility, and regulatory "
-                "layers require a processed .h5mu peak matrix."
+                "Raw scATAC fragments support measured QC, MACS3 peak calling, "
+                "and optional motif enrichment. The fragments->matrix bridge "
+                "(snapatac2) could not build a cell x peak matrix, so LSI "
+                "clustering, differential accessibility, and regulatory layers "
+                "were skipped (they need a peak matrix)."
             ),
-            "required_input": ".h5mu peak matrix",
+            "required_input": "fragments.tsv(.gz) the snapatac2 bridge can read",
             "completed_steps": [
                 "qc",
                 "peak_calling",
@@ -411,10 +460,112 @@ class ChromatinAgent(BaseAgent):
 
         return {"status": "done", "findings": findings}
 
+    def _run_fragments_to_matrix(self, experiment_id: str, exp_ctx: dict,
+                                 files: list, peaks_result: dict) -> dict:
+        """Dispatch the snapatac2 fragments->cell x peak matrix bridge.
+
+        Detects the fragments file among the inputs and reuses the MACS3 peaks
+        already called (peaks_result) as the peak set when available (the
+        deterministic 'provided' mode); otherwise the bridge calls peaks de novo.
+        Returns the bridge result (honest skip dict when no fragments file is
+        present or snapatac2/genome are unavailable).
+        """
+        frag = next(
+            (f for f in files
+             if "fragment" in str(f).lower()
+             and str(f).lower().endswith((".tsv", ".tsv.gz", ".bed", ".bed.gz"))),
+            None,
+        )
+        if frag is None:
+            # A single tsv/bed.gz with no "fragment" token: accept only when it
+            # is the lone input (avoid grabbing peak/annotation BEDs).
+            tsvs = [f for f in files
+                    if str(f).lower().endswith((".tsv", ".tsv.gz"))]
+            frag = tsvs[0] if len(tsvs) == 1 else None
+        if frag is None:
+            return {"status": "skipped", "ran": False,
+                    "analysis": "fragments_to_peak_matrix",
+                    "reason": "no_fragments_file"}
+
+        peak_file = None
+        if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
+            peak_file = (peaks_result.get("consensus_peaks_path")
+                         or peaks_result.get("peaks_path"))
+        return self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/chromatin_fragments_to_matrix.py",
+            params={
+                "fragments_file": frag,
+                "genome": exp_ctx.get("genome", "hg38"),
+                "peak_file": peak_file,
+                "output_dir": str(Path(frag).parent / "aria_chromatin"),
+                "min_fragments": int(exp_ctx.get("min_fragments", 1000)),
+                "resolution": exp_ctx.get("leiden_resolution", 1.0),
+            },
+        )
+
+    def _run_scatac_fastq_to_fragments(self, experiment_id: str, exp_ctx: dict,
+                                       files: list) -> dict:
+        """Dispatch the chromap scATAC FASTQ->fragments front-end (atacseq stack).
+
+        The barcode read cannot be inferred from the genomic FASTQs, so the
+        barcode read + whitelist must be explicit (exp_context); otherwise this
+        honestly skips and the raw FASTQ goes no further. The genomic mates fall
+        back to positional R1/R3 detection among the inputs.
+        """
+        fastqs = [f for f in files if _is_fastq([f])]
+        r1 = exp_ctx.get("r1_fastq") or _pick_read(fastqs, ("_r1", "_R1"))
+        r3 = (exp_ctx.get("r3_fastq") or exp_ctx.get("r2_fastq")
+              or _pick_read(fastqs, ("_r3", "_R3")))
+        barcode = (exp_ctx.get("barcode_fastq") or exp_ctx.get("cell_barcode_fastq"))
+        whitelist = (exp_ctx.get("barcode_whitelist")
+                     or exp_ctx.get("cell_barcode_whitelist"))
+
+        if not barcode or not whitelist:
+            return {"status": "skipped", "ran": False,
+                    "analysis": "scatac_fastq_to_fragments",
+                    "reason": "missing_barcode_inputs",
+                    "message": ("scATAC FASTQ alignment needs an explicit cell-"
+                                "barcode read (barcode_fastq) and 10x whitelist "
+                                "(barcode_whitelist); the barcode read cannot be "
+                                "inferred from the genomic FASTQs.")}
+
+        from aria.utils import genomes
+        assembly = exp_ctx.get("genome", "hg38")
+        genome_fasta = exp_ctx.get("genome_fasta")
+        if not genome_fasta:
+            local, _src = genomes.resolve_local_genome_fasta(assembly)
+            genome_fasta = local
+        if not genome_fasta:
+            return {"status": "skipped", "ran": False,
+                    "analysis": "scatac_fastq_to_fragments",
+                    "reason": "no_reference_genome_fasta",
+                    "message": (f"scATAC FASTQ alignment needs a reference FASTA "
+                                f"for assembly '{assembly}'.")}
+
+        self.publish_status(
+            experiment_id, "scATAC FASTQ alignment (chromap)...", 0.05)
+        return self.env.run_in_stack(
+            stack="atacseq",
+            script_path="aria/scripts/chromatin_scatac_align.py",
+            params={
+                "r1_fastq": r1, "r3_fastq": r3, "barcode_fastq": barcode,
+                "genome_fasta": genome_fasta,
+                "chromap_index": exp_ctx.get("chromap_index"),
+                "barcode_whitelist": whitelist,
+                "output_dir": str(Path((r1 or barcode)).parent
+                                  / "aria_scatac_aligned"),
+                "threads": int(exp_ctx.get("threads", 8)),
+            },
+        )
+
     def _run_scatac_matrix(self, experiment_id: str, exp_ctx: dict,
-                           intent: dict, h5mu_path: str) -> dict:
-        """v4.6 scATAC peak-matrix pipeline for a `.h5mu` (pre-called peaks):
-        QC -> LSI/clustering -> differential accessibility -> motif enrichment.
+                           intent: dict, h5mu_path: str,
+                           precomputed_qc: Optional[dict] = None) -> dict:
+        """v4.6 scATAC peak-matrix pipeline for a peak matrix (`.h5mu` with
+        pre-called peaks, or a cell x peak `.h5ad` built from fragments by the
+        fragments->matrix bridge): QC -> LSI/clustering -> differential
+        accessibility -> motif enrichment.
 
         Every stage is honest: each result carries its own status, downstream
         stages only run when the upstream produced a usable output, and motif
@@ -422,25 +573,33 @@ class ChromatinAgent(BaseAgent):
         collection are present (it never fabricates). Findings are stored under
         the keys the ChromatinNarrator and run-ledger read (`qc`, `lsi`,
         `differential_accessibility`, `motifs`).
+
+        ``precomputed_qc``: when the caller already ran QC (e.g. the raw-fragments
+        path computed real TSSe/FRiP on the fragments before building the matrix),
+        it is reused instead of re-running QC on the derived matrix.
         """
         findings: dict = {}
         out_dir = str(Path(h5mu_path).parent / "aria_chromatin")
 
-        # 1. QC (chromatin_qc routes a .h5mu through the MuData reader)
-        self.publish_status(experiment_id, "scATAC QC (.h5mu)...", 0.1)
-        qc_result = self.env.run_in_stack(
-            stack="chromatin",
-            script_path="aria/scripts/chromatin_qc.py",
-            params={
-                "data_type": "scATAC",
-                "files": [h5mu_path],
-                "genome": exp_ctx.get("genome", "hg38"),
-                "organism": exp_ctx.get("organism", "Homo sapiens"),
-            },
-        )
-        findings["qc"] = qc_result
-        if qc_result.get("status") != "error":
-            self._publish_qc_finding(experiment_id, qc_result, "scATAC")
+        # 1. QC (chromatin_qc routes a .h5mu through the MuData reader). Reuse the
+        # caller's QC when provided (the fragments path already measured it).
+        if precomputed_qc is not None:
+            findings["qc"] = precomputed_qc
+        else:
+            self.publish_status(experiment_id, "scATAC QC (.h5mu)...", 0.1)
+            qc_result = self.env.run_in_stack(
+                stack="chromatin",
+                script_path="aria/scripts/chromatin_qc.py",
+                params={
+                    "data_type": "scATAC",
+                    "files": [h5mu_path],
+                    "genome": exp_ctx.get("genome", "hg38"),
+                    "organism": exp_ctx.get("organism", "Homo sapiens"),
+                },
+            )
+            findings["qc"] = qc_result
+            if qc_result.get("status") != "error":
+                self._publish_qc_finding(experiment_id, qc_result, "scATAC")
 
         # 2. LSI + Leiden clustering on the peak matrix
         self.publish_status(experiment_id, "scATAC LSI clustering...", 0.35)

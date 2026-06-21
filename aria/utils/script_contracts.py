@@ -440,6 +440,28 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("analysis", "str"),
         ),
     ),
+    "aria/scripts/chromatin_fragments_to_matrix.py": ScriptContract(
+        script_path="aria/scripts/chromatin_fragments_to_matrix.py",
+        validation_level="beta",
+        inputs=(
+            _f("fragments_file", "str", allow_empty=False),
+            _f("genome", "str", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "str", required=False),
+        ),
+    ),
+    "aria/scripts/chromatin_scatac_align.py": ScriptContract(
+        script_path="aria/scripts/chromatin_scatac_align.py",
+        validation_level="beta",
+        inputs=(
+            _f("r1_fastq", "str", allow_empty=False),
+            _f("genome_fasta", "str", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("fragments_file", "str", required=False),
+        ),
+    ),
     "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(
         script_path="aria/scripts/chromatin_lsi_clustering.py",
         validation_level="scaffold",

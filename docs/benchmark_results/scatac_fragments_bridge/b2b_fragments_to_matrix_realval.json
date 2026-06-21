@@ -1,0 +1,54 @@
+{
+  "artifact": "B2b scATAC fragments->cell x peak matrix bridge real-data validation",
+  "aria_version": "4.7.0",
+  "summary": "Validation of the new fragments->matrix bridge (aria/scripts/chromatin_fragments_to_matrix.py) that lets raw single-cell ATAC fragments reach the full validated matrix pipeline (LSI -> DA -> motif -> regulatory). Ran end-to-end on real 10x PBMC Multiome fragments: snapatac2 de-novo path (import_fragments -> tile matrix -> spectral -> leiden preliminary groups -> MACS3 per group -> merge_peaks -> make_peak_matrix) produced a cell x peak matrix, and the downstream LSI clustering script consumed it and clustered the cells. This closes the C4 gap (raw scATAC previously stopped at QC + MACS3 + motifs).",
+  "validation_scope": {
+    "validates": [
+      "chromatin_fragments_to_matrix builds a real cell x peak AnnData from a real fragments file (de-novo snapatac2 path)",
+      "the produced .h5ad is consumed by the validated LSI clustering script (chromatin_lsi_clustering) which clusters the cells",
+      "the full raw-fragments -> matrix -> LSI chain runs on real single-cell data"
+    ],
+    "does_not_validate": [
+      "this is a plumbing/end-to-end check, not a biological-accuracy benchmark of clustering or peak calling (scATAC clustering/motif concordance is validated separately in P3a/P3b)",
+      "run was restricted to chr20 of the PBMC fragments for tractability (a real-genome subset, not whole genome)",
+      "the 'provided' peak mode (reuse externally-called peaks) shares the same make_peak_matrix call but was not separately benchmarked here"
+    ]
+  },
+  "input": {
+    "dataset": "Real 10x PBMC Multiome ATAC fragments (memory/datasets/scatac/pbmc_multiome_fragments.tsv.gz), chr20 subset via tabix",
+    "chr20_fragment_lines": 5165879,
+    "chr20_unique_barcodes": 145969,
+    "genome": "hg38 (snapatac2 GRCh38)",
+    "params": {"min_fragments": 200, "resolution": 1.0, "peak_mode": "de_novo"}
+  },
+  "results": {
+    "fragments_to_matrix": {
+      "status": "success",
+      "n_cells": 9846,
+      "n_peaks": 15209,
+      "peak_mode": "de_novo",
+      "peak_source": "de_novo_macs3 (q<0.05, 11 preliminary groups)",
+      "runtime_seconds": 32
+    },
+    "downstream_lsi_clustering": {
+      "status": "success",
+      "n_clusters": 7,
+      "consumed": "fragments_peak_matrix.h5ad",
+      "runtime_seconds": 36
+    }
+  },
+  "wiring": "ChromatinAgent._run_scatac now attempts the bridge after QC + MACS3 on raw fragments (reusing the MACS3 peaks as the peak set when available, 'provided' mode); on success it dispatches the full matrix pipeline via _run_scatac_matrix (reusing the fragments-side QC, no recompute). On failure it falls back to the honest QC + peaks (+ motif) C4 path with the bridge's skip reason.",
+  "provenance": {
+    "git_commit": "63b9c7e",
+    "source_commit": "pending-b2b-commit",
+    "aria_version": "4.7.0",
+    "generated_utc": "2026-06-20T23:55:00Z",
+    "seed": null,
+    "determinism_note": "snapatac2 spectral/leiden have stochastic components; the preliminary clustering only groups cells for MACS3 and is re-clustered downstream by the validated LSI pipeline, so the final matrix peak set is stable up to MACS3's group definitions.",
+    "tool_versions": {
+      "snapatac2": "2.9.0",
+      "env": "aria-chromatin-env",
+      "macs3": "via snapatac2 tl.macs3"
+    }
+  }
+}
