@@ -2315,77 +2315,77 @@
       "label": "_null_proposer()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39"
+      "source_location": "L43"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_evidencesignal",
       "label": "EvidenceSignal",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39"
+      "source_location": "L43"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_hypothesis",
       "label": "Hypothesis",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39"
+      "source_location": "L43"
     },
     {
       "id": "agents_hypothesis_agent_gate_failure_counts",
       "label": "_gate_failure_counts()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46"
+      "source_location": "L50"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46"
+      "source_location": "L50"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46"
+      "source_location": "L50"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent",
       "label": "HypothesisAgent",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L57"
+      "source_location": "L61"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L62"
+      "source_location": "L66"
     },
     {
       "id": "proposer",
       "label": "Proposer",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L62"
+      "source_location": "L66"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent_generate",
       "label": ".generate()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65"
+      "source_location": "L69"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65"
+      "source_location": "L69"
     },
     {
       "id": "agents_integration_agent",
@@ -3212,6 +3212,69 @@
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
       "source_location": "L1"
+    },
+    {
+      "id": "hypothesis_devils_advocate",
+      "label": "devils_advocate.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "hypothesis_devils_advocate_categories",
+      "label": "_categories()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "hypothesis_devils_advocate_visible_confounds",
+      "label": "visible_confounds()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_devils_advocate_py_hypothesis",
+      "label": "Hypothesis",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_devils_advocate_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "hypothesis_devils_advocate_declared_confounds",
+      "label": "declared_confounds()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "hypothesis_devils_advocate_check_devils_advocate",
+      "label": "check_devils_advocate()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "gateresult",
+      "label": "GateResult",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92"
     },
     {
       "id": "hypothesis_gates",
@@ -28229,7 +28292,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -28474,7 +28537,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -28496,7 +28559,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36548,6 +36611,118 @@
       "source_location": "L81"
     },
     {
+      "id": "tests_test_hypothesis_devils_advocate",
+      "label": "test_hypothesis_devils_advocate.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_experiment",
+      "label": "_experiment()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_py_discriminatingexperiment",
+      "label": "DiscriminatingExperiment",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L22"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "label": "_clean_signals()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L31"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "label": "_batch_confounded_signals()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_ledger",
+      "label": "_ledger()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_hyp",
+      "label": "_hyp()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_py_hypothesis",
+      "label": "Hypothesis",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "label": "test_passes_with_simpler_explanation_and_no_visible_confounds()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L90"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "label": "test_rejects_missing_simpler_explanation()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L95"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "label": "test_rejects_unacknowledged_visible_confound()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L103"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "label": "test_passes_when_visible_confound_is_acknowledged()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L111"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "label": "test_visible_confounds_reads_inherited_caveats()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L122"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "label": "test_agent_rejects_hypothesis_hiding_a_known_confound()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L130"
+    },
+    {
+      "id": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "label": "test_agent_accepts_hypothesis_that_owns_the_confound()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L140"
+    },
+    {
       "id": "tests_test_hypothesis_gates",
       "label": "test_hypothesis_gates.py",
       "file_type": "code",
@@ -36608,84 +36783,84 @@
       "label": "test_falsifiability_passes_for_complete_experiment()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L67"
+      "source_location": "L71"
     },
     {
       "id": "tests_test_hypothesis_gates_test_falsifiability_rejects_incomplete_experiment",
       "label": "test_falsifiability_rejects_incomplete_experiment()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L71"
+      "source_location": "L75"
     },
     {
       "id": "tests_test_hypothesis_gates_test_falsifiability_rejects_vacuous_experiment",
       "label": "test_falsifiability_rejects_vacuous_experiment()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L83"
+      "source_location": "L87"
     },
     {
       "id": "tests_test_hypothesis_gates_test_falsifiability_rejects_directionless_prediction",
       "label": "test_falsifiability_rejects_directionless_prediction()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L97"
+      "source_location": "L101"
     },
     {
       "id": "tests_test_hypothesis_gates_test_language_passes_for_hedged_mechanism",
       "label": "test_language_passes_for_hedged_mechanism()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L113"
+      "source_location": "L117"
     },
     {
       "id": "tests_test_hypothesis_gates_test_language_rejects_causal_verb",
       "label": "test_language_rejects_causal_verb()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L117"
+      "source_location": "L121"
     },
     {
       "id": "tests_test_hypothesis_gates_test_language_rejects_assertive_finding",
       "label": "test_language_rejects_assertive_finding()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L124"
+      "source_location": "L128"
     },
     {
       "id": "tests_test_hypothesis_gates_test_language_rejects_unhedged_neutral_mechanism",
       "label": "test_language_rejects_unhedged_neutral_mechanism()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L131"
+      "source_location": "L135"
     },
     {
       "id": "tests_test_hypothesis_gates_test_agent_accepts_fully_valid_hypothesis",
       "label": "test_agent_accepts_fully_valid_hypothesis()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L140"
+      "source_location": "L144"
     },
     {
       "id": "tests_test_hypothesis_gates_test_agent_rejects_unfalsifiable_and_reports_failure",
       "label": "test_agent_rejects_unfalsifiable_and_reports_failure()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L148"
+      "source_location": "L152"
     },
     {
       "id": "tests_test_hypothesis_gates_test_agent_honest_null_aggregates_reasons_across_gates",
       "label": "test_agent_honest_null_aggregates_reasons_across_gates()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L165"
+      "source_location": "L169"
     },
     {
       "id": "tests_test_hypothesis_gates_test_a_single_candidate_can_fail_multiple_gates",
       "label": "test_a_single_candidate_can_fail_multiple_gates()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L181"
+      "source_location": "L185"
     },
     {
       "id": "tests_test_hypothesis_grounding",
@@ -36783,21 +36958,21 @@
       "label": "test_agent_honest_null_with_default_proposer()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L204"
+      "source_location": "L208"
     },
     {
       "id": "tests_test_hypothesis_grounding_test_causal_gate_blocks_when_verification_failed",
       "label": "test_causal_gate_blocks_when_verification_failed()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L212"
+      "source_location": "L216"
     },
     {
       "id": "tests_test_hypothesis_grounding_test_agent_does_not_mutate_inputs",
       "label": "test_agent_does_not_mutate_inputs()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L223"
+      "source_location": "L227"
     },
     {
       "id": "tests_test_image_provenance",
@@ -41038,97 +41213,210 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "setup_agent",
       "label": "SetupAgent",
       "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
+      "source_file": "aria/agents/setup_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py"
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "parameter_advisor",
+      "label": "ParameterAdvisor",
+      "file_type": "code",
+      "source_file": "aria/utils/parameter_advisor.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
+      "id": "chromatin_bulk_diffacc",
+      "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_rna_env",
+      "label": "aria-rna-env",
+      "file_type": "code",
+      "source_file": "envs/aria-rna-env.yml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_chromatin_env",
+      "label": "aria-chromatin-env",
+      "file_type": "code",
+      "source_file": "envs/aria-chromatin-env.yml",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
@@ -50081,7 +50369,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -50091,7 +50379,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -50101,7 +50389,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -50110,7 +50398,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -50120,7 +50408,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -50130,7 +50418,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L46",
+      "source_location": "L50",
       "weight": 1.0
     },
     {
@@ -50139,7 +50427,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -50148,7 +50436,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L62",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -50158,7 +50446,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L62",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -50167,7 +50455,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -50177,7 +50465,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -50187,7 +50475,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -50197,7 +50485,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L65",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -50207,7 +50495,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L144",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -53796,7 +54084,7 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_gates",
+      "target": "hypothesis_devils_advocate",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -53806,12 +54094,22 @@
     },
     {
       "source": "hypothesis_init",
+      "target": "hypothesis_gates",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
       "target": "hypothesis_grounding",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -53821,7 +54119,233 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_gates",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_categories",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_categories",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_categories",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_visible_confounds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_visible_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_hypothesis",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_visible_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_visible_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_visible_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_declared_confounds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_declared_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_hypothesis",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_declared_confounds",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_hypothesis",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "aria_agents_narrative_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "gateresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_visible_confounds",
+      "target": "hypothesis_devils_advocate_categories",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_declared_confounds",
+      "target": "hypothesis_devils_advocate_categories",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "gateresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "hypothesis_devils_advocate_visible_confounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "hypothesis_devils_advocate_declared_confounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -123558,7 +124082,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -123611,7 +124135,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123621,7 +124145,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123631,7 +124155,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123641,7 +124165,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123651,7 +124175,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123973,7 +124497,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -123982,7 +124506,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -124017,7 +124541,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124027,7 +124551,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_npzb6k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136923,6 +137447,374 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_experiment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_experiment",
+      "target": "tests_test_hypothesis_devils_advocate_py_discriminatingexperiment",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "target": "tests_test_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "target": "tests_test_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_ledger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_hyp",
+      "target": "tests_test_hypothesis_devils_advocate_py_hypothesis",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L122",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L130",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_experiment",
+      "target": "tests_test_hypothesis_devils_advocate_py_discriminatingexperiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "target": "tests_test_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "target": "tests_test_hypothesis_devils_advocate_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_hyp",
+      "target": "tests_test_hypothesis_devils_advocate_experiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_hyp",
+      "target": "tests_test_hypothesis_devils_advocate_py_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "target": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "target": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "target": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "target": "tests_test_hypothesis_devils_advocate_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "target": "tests_test_hypothesis_devils_advocate_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "target": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "target": "tests_test_hypothesis_devils_advocate_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_gates",
       "target": "tests_test_hypothesis_gates_signals",
       "relation": "contains",
@@ -136994,7 +137886,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L67",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -137003,7 +137895,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L71",
+      "source_location": "L75",
       "weight": 1.0
     },
     {
@@ -137012,7 +137904,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L83",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -137021,7 +137913,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L97",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -137030,7 +137922,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L113",
+      "source_location": "L117",
       "weight": 1.0
     },
     {
@@ -137039,7 +137931,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L117",
+      "source_location": "L121",
       "weight": 1.0
     },
     {
@@ -137048,7 +137940,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L124",
+      "source_location": "L128",
       "weight": 1.0
     },
     {
@@ -137057,7 +137949,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L131",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -137066,7 +137958,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L140",
+      "source_location": "L144",
       "weight": 1.0
     },
     {
@@ -137075,7 +137967,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L148",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -137084,7 +137976,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L165",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -137093,7 +137985,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L181",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -137133,21 +138025,11 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L62",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
       "source": "tests_test_hypothesis_gates_test_falsifiability_passes_for_complete_experiment",
-      "target": "tests_test_hypothesis_gates_valid_hypothesis",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L68",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_hypothesis_gates_test_falsifiability_rejects_incomplete_experiment",
       "target": "tests_test_hypothesis_gates_valid_hypothesis",
       "relation": "calls",
       "context": "call",
@@ -137158,12 +138040,22 @@
     },
     {
       "source": "tests_test_hypothesis_gates_test_falsifiability_rejects_incomplete_experiment",
+      "target": "tests_test_hypothesis_gates_valid_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_gates.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_gates_test_falsifiability_rejects_incomplete_experiment",
       "target": "tests_test_hypothesis_gates_py_discriminatingexperiment",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L73",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -137173,7 +138065,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L84",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -137183,7 +138075,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L85",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -137193,7 +138085,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L98",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -137203,7 +138095,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L99",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -137213,7 +138105,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L114",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -137223,7 +138115,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L118",
+      "source_location": "L122",
       "weight": 1.0
     },
     {
@@ -137233,7 +138125,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L125",
+      "source_location": "L129",
       "weight": 1.0
     },
     {
@@ -137243,7 +138135,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L132",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -137253,7 +138145,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L141",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -137263,7 +138155,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L142",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -137273,7 +138165,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L142",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -137283,7 +138175,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L149",
+      "source_location": "L153",
       "weight": 1.0
     },
     {
@@ -137293,7 +138185,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L151",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -137303,7 +138195,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L157",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -137313,7 +138205,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L157",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -137323,7 +138215,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L166",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -137333,7 +138225,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L173",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -137343,7 +138235,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L173",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -137353,7 +138245,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L183",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -137363,7 +138255,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L189",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -137373,7 +138265,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L189",
+      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -137492,7 +138384,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L204",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -137501,7 +138393,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L212",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -137510,7 +138402,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L223",
+      "source_location": "L227",
       "weight": 1.0
     },
     {
@@ -137710,7 +138602,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L191",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -137720,7 +138612,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L191",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -137730,7 +138622,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L206",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -137740,7 +138632,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L206",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
@@ -137750,7 +138642,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L217",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -137760,7 +138652,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L217",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -137770,7 +138662,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L224",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -137780,7 +138672,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L225",
+      "source_location": "L229",
       "weight": 1.0
     },
     {
@@ -145687,7 +146579,7 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_gates",
+      "target": "hypothesis_devils_advocate",
       "relation": "re_exports",
       "context": "export",
       "confidence": "EXTRACTED",
@@ -145697,12 +146589,22 @@
     },
     {
       "source": "hypothesis_init",
+      "target": "hypothesis_gates",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
       "target": "hypothesis_grounding",
       "relation": "re_exports",
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -145712,7 +146614,7 @@
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -146377,12 +147279,22 @@
     },
     {
       "source": "agents_hypothesis_agent",
-      "target": "hypothesis_gates_check_falsifiability",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
       "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent",
+      "target": "hypothesis_gates_check_falsifiability",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -146392,7 +147304,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L24",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -146402,7 +147324,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L28",
+      "source_location": "L31",
       "weight": 1.0
     },
     {
@@ -146412,7 +147334,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -146422,7 +147344,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -146647,12 +147569,42 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_gates_gateresult",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
       "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_devils_advocate_declared_confounds",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_devils_advocate_visible_confounds",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_gates_gateresult",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -146662,7 +147614,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L16",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -146672,7 +147624,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L16",
+      "source_location": "L21",
       "weight": 1.0
     },
     {
@@ -146682,7 +147634,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -146692,7 +147644,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -146702,7 +147654,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L17",
+      "source_location": "L22",
       "weight": 1.0
     },
     {
@@ -146712,7 +147664,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -146722,7 +147674,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -146732,7 +147684,37 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L22",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_gates_gateresult",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L25",
       "weight": 1.0
     },
     {
@@ -154666,6 +155648,76 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_types_discriminatingexperiment",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate",
+      "target": "hypothesis_devils_advocate_visible_confounds",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_gates",
       "target": "agents_hypothesis_agent_hypothesisagent",
       "relation": "imports",
@@ -156903,6 +157955,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
       "source_location": "L312",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_devils_advocate_check_devils_advocate",
+      "target": "hypothesis_gates_gateresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/devils_advocate.py",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -165246,6 +166308,166 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_devils_advocate_experiment",
+      "target": "hypothesis_types_discriminatingexperiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_clean_signals",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_batch_confounded_signals",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_hyp",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_with_simpler_explanation_and_no_visible_confounds",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_missing_simpler_explanation",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L104",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_rejects_unacknowledged_visible_confound",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L112",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_passes_when_visible_confound_is_acknowledged",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L123",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_reads_inherited_caveats",
+      "target": "hypothesis_devils_advocate_visible_confounds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_rejects_hypothesis_hiding_a_known_confound",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_devils_advocate_test_agent_accepts_hypothesis_that_owns_the_confound",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_devils_advocate.py",
+      "source_location": "L148",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_gates_signals",
       "target": "hypothesis_types_evidencesignal",
       "relation": "calls",
@@ -165272,7 +166494,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L62",
+      "source_location": "L66",
       "weight": 1.0
     },
     {
@@ -165282,7 +166504,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L68",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -165292,7 +166514,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L73",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -165302,7 +166524,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L78",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -165312,7 +166534,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L85",
+      "source_location": "L89",
       "weight": 1.0
     },
     {
@@ -165322,7 +166544,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L92",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -165332,7 +166554,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L99",
+      "source_location": "L103",
       "weight": 1.0
     },
     {
@@ -165342,7 +166564,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L106",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -165352,7 +166574,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L114",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -165362,7 +166584,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L119",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -165372,7 +166594,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L128",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -165382,7 +166604,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L133",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -165392,7 +166614,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L141",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -165402,7 +166624,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L151",
+      "source_location": "L155",
       "weight": 1.0
     },
     {
@@ -165412,7 +166634,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L156",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -165422,7 +166644,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L172",
+      "source_location": "L176",
       "weight": 1.0
     },
     {
@@ -165432,7 +166654,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_gates.py",
-      "source_location": "L188",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -165592,7 +166814,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L190",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -165602,7 +166824,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L205",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -165612,7 +166834,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L216",
+      "source_location": "L220",
       "weight": 1.0
     },
     {
@@ -165622,7 +166844,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
-      "source_location": "L228",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -168616,13 +169838,24 @@
     },
     {
       "source": "agents_hypothesis_agent_hypothesisagent_generate",
+      "target": "hypothesis_grounding_build_evidence_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent_hypothesisagent_generate",
       "target": "hypothesis_grounding_verify_hypothesis_grounding",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L103",
+      "source_location": "L109",
       "weight": 1.0
     },
     {
@@ -168633,7 +169866,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L117",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -168644,7 +169877,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L117",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent_hypothesisagent_generate",
+      "target": "hypothesis_devils_advocate_check_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -169764,7 +171008,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -169772,55 +171018,69 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "design_agent",
       "target": "audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "audit_agent",
+      "source": "orchestrator_agent",
       "target": "setup_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "setup_agent",
+      "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "setup_agent",
+      "source": "orchestrator_agent",
       "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "setup_agent",
+      "source": "orchestrator_agent",
       "target": "chromatin_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "narrative_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
@@ -169828,7 +171088,29 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
@@ -169836,23 +171118,29 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
+      "source": "environment_manager",
+      "target": "chromatin_bulk_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "narrative_agent",
@@ -169860,7 +171148,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -169868,7 +171168,19 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "parameter_advisor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
