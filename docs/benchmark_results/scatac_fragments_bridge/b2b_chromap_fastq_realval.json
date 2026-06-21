@@ -1,0 +1,51 @@
+{
+  "artifact": "B2b slice 2 (chromap scATAC FASTQ->fragments) real-data validation",
+  "aria_version": "4.7.0",
+  "summary": "End-to-end validation of the scATAC raw-FASTQ entry point (chromatin_scatac_align.py, chromap) using real ATAC sequencing reads from GEO, and confirmation of the full chain FASTQ -> chromap -> fragments -> snapatac2 bridge -> cell x peak matrix. Surfaced and documents a real, systematic GEO/SRA limitation: SRA does not preserve the 10x scATAC 16 bp cell-barcode read.",
+  "sra_barcode_finding": {
+    "observation": "Across 13 GEO 10x scATAC/multiome accessions probed via the NCBI SRA trace API (no download), NONE preserve the 10x scATAC 16 bp cell-barcode read as a recoverable read. Runs are nreads=2 (two genomic mates only) or carry a 28 bp read that is a 10x GEX cell-barcode+UMI (scRNA), not the standalone 16 bp scATAC barcode.",
+    "accessions_checked": ["GSE162690", "GSE194122", "GSE174072", "GSE168453", "GSE165087", "GSE163577", "GSE126074", "GSE213264", "GSE207308", "GSE200046", "GSE184462", "GSE195445", "GSE242842"],
+    "implication": "This is a documented SRA normalization behavior for 10x scATAC, not an ARIA bug. It empirically VALIDATES slice 2's honest-skip design: chromatin_scatac_align requires an explicit barcode_fastq + whitelist because the barcode read cannot be inferred from the genomic FASTQs and is frequently absent from SRA. To run scATAC FASTQ->fragments, the original 10x barcode read must come from a source that preserves it (e.g. a GEO supplementary RAW fastq tar, or the original 10x deliverable)."
+  },
+  "validation": {
+    "real_inputs_from_geo": {
+      "genomic_reads": "GSE162690 SRR13199777 (real 10x scATAC ATAC reads, 1,010,413 paired genomic reads, 33 bp) downloaded via prefetch + fasterq-dump",
+      "barcode_whitelist": "real 10x ATAC whitelist 737K-cratac-v1 (737,280 x 16 bp barcodes)"
+    },
+    "assigned_not_real": "The barcode<->read assignment (800 cell barcodes drawn from the real whitelist, assigned across the real genomic reads) is synthesized BECAUSE SRA did not preserve the real per-read barcodes. Genomic sequences, aligner, whitelist, and the full pipeline are real; only the cell identity of each read is assigned.",
+    "scope": "This validates the slice 2 CODE path end-to-end (chromap index build, alignment of real genomic reads, whitelist barcode correction, fragment generation, bgzip+tabix, handoff to the bridge). It is NOT a biological validation of cell clustering (cells are assigned, and the run is chr20-only)."
+  },
+  "results": {
+    "chromatin_scatac_align": {
+      "status": "success",
+      "aligner": "chromap",
+      "reference": "GRCh38 chr20",
+      "n_fragments": 21479,
+      "barcodes": 800,
+      "compressed": true,
+      "tabix_indexed": true,
+      "runtime_seconds": 13
+    },
+    "downstream_bridge": {
+      "status": "success",
+      "n_cells": 800,
+      "n_peaks": 53,
+      "note": "min_fragments lowered to 5 for plumbing confirmation; low peak count expected (chr20-only, dispersed cell-line genomic reads, assigned barcodes)"
+    },
+    "chain": "FASTQ (real GEO genomic reads) -> chromap -> fragments.tsv.gz (real) -> snapatac2 bridge -> cell x peak matrix"
+  },
+  "provenance": {
+    "git_commit": "1bd17c8",
+    "source_commit": "1d17468",
+    "aria_version": "4.7.0",
+    "generated_utc": "2026-06-21T04:35:00Z",
+    "seed": 42,
+    "tool_versions": {
+      "chromap": "via aria-atacseq-env",
+      "snapatac2": "2.9.0",
+      "sra-tools": "3.2.0 (prefetch/fasterq-dump)",
+      "env": "aria-atacseq-env + aria-chromatin-env"
+    },
+    "note": "Genomic reads + whitelist are real; cell-barcode assignment is synthesized because SRA does not preserve the 10x scATAC barcode read (see sra_barcode_finding)."
+  }
+}
