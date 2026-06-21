@@ -34,6 +34,7 @@ from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence, CavemanMode
 from aria.memory.memory import ARIAMemory
 from aria.utils.assay_detector import AssayDetector
+from aria.utils.multiome_contracts import infer_multiome_contract
 from aria.utils.provenance import hash_file
 
 
@@ -1308,7 +1309,7 @@ class DataAuditAgent(BaseAgent):
                         "sha256": "unavailable",
                     })
 
-        return {
+        exp_context = {
             "experiment_id":  experiment_id,
             "data_dir":       str(data_dir),
             "user_question":  user_question,
@@ -1321,6 +1322,8 @@ class DataAuditAgent(BaseAgent):
             "warnings":       warnings,
             "is_multimodal":  len(modalities) > 1,
         }
+        exp_context["multiome_contract"] = infer_multiome_contract(exp_context)
+        return exp_context
 
     def _build_checkpoint_summary(self, classified: dict,
                                    genome: str, organism: str,

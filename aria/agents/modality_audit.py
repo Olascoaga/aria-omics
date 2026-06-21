@@ -11,6 +11,7 @@ from copy import deepcopy
 from typing import Any
 
 from aria.utils.assay_contracts import validate_assay_contract
+from aria.utils.multiome_contracts import validate_multiome_contract
 
 
 _STATUS_RANK = {"green": 0, "yellow": 1, "red": 2}
@@ -486,6 +487,11 @@ def build_capability_matrix(
             validate_assay_contract(exp_context, modality, files),
         )
 
+    contracts = {}
+    multiome_contract = validate_multiome_contract(exp_context)
+    if multiome_contract.get("status") != "not_applicable":
+        contracts["multiome"] = multiome_contract
+
     dispatch = {"allowed": [], "requires_ack": [], "blocked": []}
     findings = []
     for modality, card in cards.items():
@@ -498,6 +504,8 @@ def build_capability_matrix(
         else:
             dispatch["allowed"].append(modality)
         findings.extend(card.get("findings", []))
+    for contract in contracts.values():
+        findings.extend(contract.get("findings", []))
 
     for key in dispatch:
         dispatch[key] = sorted(dispatch[key])
@@ -509,6 +517,7 @@ def build_capability_matrix(
             else "green"
         ),
         "cards": cards,
+        "contracts": contracts,
         "dispatch": dispatch,
         "findings": findings,
     }
