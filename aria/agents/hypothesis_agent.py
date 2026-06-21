@@ -21,6 +21,10 @@ from __future__ import annotations
 
 from typing import Callable
 
+from aria.agents.narrative.hypothesis.gates import (
+    check_falsifiability,
+    check_language,
+)
 from aria.agents.narrative.hypothesis.grounding import (
     verify_hypothesis_grounding,
 )
@@ -37,6 +41,17 @@ def _null_proposer(
 ) -> list[Hypothesis]:
     """Honest-null: no evidence adapter yet (S5-S8) -> no hypotheses."""
     return []
+
+
+def _gate_failure_counts(rejected: list[dict]) -> dict[str, int]:
+    """Aggregate why nothing survived, per gate (for honest-null reporting)."""
+    counts: dict[str, int] = {}
+    for record in rejected:
+        for failure in record.get("failures", []) or []:
+            gate = failure.get("gate")
+            if gate:
+                counts[gate] = counts.get(gate, 0) + 1
+    return counts
 
 
 class HypothesisAgent:
@@ -60,9 +75,11 @@ class HypothesisAgent:
 
         Gate #1 (causal gate, ADR-057 rail #1): hypotheses are only generated
         downstream of W-CLAIM + W-LEDGER passing; if verification aborted, the
-        agent does not speculate. Every candidate from the proposer must pass the
-        grounding verifier (rail #7) — ungrounded candidates are rejected with a
-        reason, never caveated into the output.
+        agent does not speculate. Every candidate must then clear all publication
+        gates — grounding (rail #7), falsifiability (rail #8) and language lint
+        (rail #11). A candidate failing any gate is rejected with the failing
+        reasons, never caveated into the output. When every candidate is
+        rejected the result is honest-null with an aggregated per-gate summary.
         """
         if not (w_claim_passed and w_ledger_passed):
             return {
@@ -81,20 +98,37 @@ class HypothesisAgent:
         accepted: list[Hypothesis] = []
         rejected: list[dict] = []
         for hyp in candidates:
+            failures: list[dict] = []
+
             grounding = verify_hypothesis_grounding(
                 hyp, signal_list, run_ledger
             )
-            if grounding.grounded:
-                accepted.append(hyp)
-            else:
-                rejected.append(
+            if not grounding.grounded:
+                failures.append(
                     {
-                        "hypothesis_id": getattr(hyp, "id", None),
-                        "grounding": grounding.to_dict(),
+                        "gate": "grounding",
+                        "passed": False,
+                        "reason": grounding.reason,
+                        "missing_entities": grounding.missing_entities,
+                        "not_run_refs": grounding.not_run_refs,
                     }
                 )
 
-        return {
+            for gate in (check_falsifiability(hyp), check_language(hyp)):
+                if not gate.passed:
+                    failures.append(gate.to_dict())
+
+            if failures:
+                rejected.append(
+                    {
+                        "hypothesis_id": getattr(hyp, "id", None),
+                        "failures": failures,
+                    }
+                )
+            else:
+                accepted.append(hyp)
+
+        result = {
             "tier": self.TIER,
             "ran": True,
             "requires_ack": True,
@@ -104,3 +138,8 @@ class HypothesisAgent:
             "rejected": rejected,
             "honest_null": not accepted,
         }
+        if not accepted and candidates:
+            # Honest-null with reasons: don't fail mute when the proposer offered
+            # candidates but none earned publication.
+            result["null_summary"] = _gate_failure_counts(rejected)
+        return result

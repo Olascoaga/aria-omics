@@ -171,14 +171,14 @@ def test_build_evidence_index_skips_blank_and_nonsignals():
 def test_agent_accepts_grounded_rejects_ungrounded():
     grounded = Hypothesis(
         id="ok",
-        mechanism="KLF1 accessibility sustains GATA1",
+        mechanism="KLF1 motif accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_experiment(),
     )
     invented = Hypothesis(
         id="bad",
-        mechanism="MYB invented",
+        mechanism="MYB may explain the shift",
         entities=["MYB"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_experiment(),
@@ -192,8 +192,12 @@ def test_agent_accepts_grounded_rejects_ungrounded():
     assert out["ran"] is True
     assert out["requires_ack"] is True
     assert [h["id"] for h in out["hypotheses"]] == ["ok"]
-    assert out["rejected"][0]["hypothesis_id"] == "bad"
-    assert "MYB" in out["rejected"][0]["grounding"]["missing_entities"]
+    bad = out["rejected"][0]
+    assert bad["hypothesis_id"] == "bad"
+    grounding_fail = next(
+        f for f in bad["failures"] if f["gate"] == "grounding"
+    )
+    assert "MYB" in grounding_fail["missing_entities"]
     assert out["honest_null"] is False
 
 
