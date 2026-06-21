@@ -12,10 +12,12 @@ dependencies:
   - python=3.11
 
   # ── Core scientific stack ────────────────────────────────────────────
-  # numpy <2.0.0 is REQUIRED — numpy 2.x breaks scanpy, pydeseq2,
-  # and most single-cell tools silently or with cryptic C-level errors.
-  # Pin until the full single-cell ecosystem migrates.
-  - numpy>=1.24,<2.0.0
+  # numpy 2.x is REQUIRED here — pydeseq2 0.5.4 (the DE/DA core) needs numpy>=2,
+  # and the validated lock is numpy 2.4.3 with scanpy 1.11 + anndata 0.12 (all
+  # green on numpy 2.x). Do NOT cap below 2.0: a numpy<2 YAML solve breaks the
+  # validated RNA stack at the pydeseq2 import. The chromatin env stays numpy 1.x
+  # (MACS2) and the ingestion/kb env stays numpy 1.x — those are separate locks.
+  - numpy>=2.0,<3.0
   - pandas>=2.0,<3.0
   - scipy>=1.11
   - scikit-learn>=1.3

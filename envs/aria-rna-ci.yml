@@ -16,8 +16,9 @@ channel_priority: strict
 dependencies:
   - python=3.11
 
-  # numpy <2.0.0 is REQUIRED — numpy 2.x breaks scanpy/pydeseq2.
-  - numpy>=1.24,<2.0.0
+  # numpy 2.x is REQUIRED — pydeseq2 0.5.4 needs numpy>=2; validated lock is
+  # numpy 2.4.3. Must match aria-rna-env.yml (a numpy<2 solve breaks pydeseq2).
+  - numpy>=2.0,<3.0
   - pandas>=2.0,<3.0
   - scipy>=1.11
   - scikit-learn>=1.3
