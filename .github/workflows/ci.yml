@@ -164,7 +164,8 @@ jobs:
             tests/test_no_dead_packages.py \
             tests/test_env_lock_numpy_consistency.py \
             tests/test_env_lock_provenance.py \
-            tests/test_base_atomic_write.py
+            tests/test_base_atomic_write.py \
+            tests/test_calibration_gate.py
 
       - name: Integration smoke suite (importorskip-gated)
         run: python -m pytest -q tests/test_pytest_smoke.py
@@ -202,7 +203,8 @@ jobs:
             tests/test_composition_collinearity.py \
             tests/test_bulk_covariates.py \
             tests/test_bulk_rna.py \
-            tests/test_scrna.py
+            tests/test_scrna.py \
+            tests/test_calibration_gate.py
 
   # ── Secret scanning (PR + push + tags): supply-chain hygiene ─────────────
   # P2-2: gitleaks fails the build if a credential is committed. Runs on the

@@ -1,0 +1,27 @@
+{
+  "_about": "S8 (pre-integration audit): versioned calibration baseline — the single source of the minimum scientific recovery ARIA must keep. The recovery benchmarks (synthetic ground-truth DE/DA) already compute recall + empirical FDR; this file pins the floor/ceiling so a refactor that degrades recall or inflates empirical FDR fails the build instead of silently passing. aria/benchmarks/calibration.check_calibration compares a benchmark's metrics against its entry here. Tighten a bound only with a deliberate commit + rationale.",
+  "baseline_version": "1",
+  "benchmarks": {
+    "synthetic_de_pseudobulk": {
+      "run": "aria.benchmarks.synthetic_de.run_pseudobulk_de_benchmark",
+      "min_recall": 0.5,
+      "max_empirical_fdr": 0.2,
+      "max_false_positive_fraction": 0.05,
+      "provenance": "Synthetic ground-truth pseudobulk DE. Validated recovery is recall 1.0 / empirical FDR 0.0 (docs/validation_status.md); the floor/ceiling here are the regression bounds the heavy lane already asserted."
+    },
+    "scatac_pseudobulk_da": {
+      "run": "aria.benchmarks.synthetic_atac_da.run_atac_pseudobulk_da_benchmark",
+      "min_recall": 0.5,
+      "max_empirical_fdr": 0.2,
+      "max_false_positive_fraction": 0.05,
+      "provenance": "Synthetic ground-truth scATAC pseudobulk DA (chromatin _pseudobulk_da -> _run_deseq2). Bounds match tests/test_benchmark_scatac_da."
+    },
+    "bulk_atac_da": {
+      "run": "aria.benchmarks.synthetic_atac_da.run_bulk_atac_da_benchmark",
+      "min_recall": 0.5,
+      "max_empirical_fdr": 0.2,
+      "max_false_positive_fraction": 0.05,
+      "provenance": "Synthetic ground-truth bulk ATAC DA (chromatin_bulk_diffacc technical-sample aggregation + replicate-gated _run_deseq2 + convergence gate). Validated recovery recall 0.667 / empirical FDR 0.0 (F12). Bounds match tests/test_benchmark_bulk_atac_da."
+    }
+  }
+}
