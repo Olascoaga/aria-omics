@@ -10,6 +10,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from aria.utils.assay_contracts import validate_assay_contract
+
 
 _STATUS_RANK = {"green": 0, "yellow": 1, "red": 2}
 _POLICY_FOR_STATUS = {
@@ -477,6 +479,12 @@ def build_capability_matrix(
                 cards.get(modality, _base_card(modality)),
                 chromatin_auditor.audit(exp_context, modality),
             )
+
+    for modality, files in modalities.items():
+        cards[modality] = _merge_cards(
+            cards.get(modality, _base_card(modality)),
+            validate_assay_contract(exp_context, modality, files),
+        )
 
     dispatch = {"allowed": [], "requires_ack": [], "blocked": []}
     findings = []

@@ -62,6 +62,7 @@ def test_scrna_readiness_red_blocks_under_replicated_pseudobulk():
 def test_capability_matrix_marks_beta_and_scatac_alpha_as_yellow():
     matrix = build_capability_matrix(
         {
+            "genome": "hg38",
             "modalities": {
                 "bulk_RNA_raw": ["/data/a.fastq.gz"],
                 "scATAC": ["/data/a.h5mu"],
@@ -89,7 +90,7 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     # De-alpha 2026-06-15 (ADR-048): the ChromatinAuditAgent card reports beta +
     # the beta readiness finding, and scATAC still requires explicit ack.
     matrix = build_capability_matrix(
-        {"modalities": {"scATAC": ["/data/a.h5mu"]}},
+        {"genome": "hg38", "modalities": {"scATAC": ["/data/a.h5mu"]}},
         modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
     )
     card = matrix["cards"]["scATAC"]
@@ -110,7 +111,7 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
 
 def test_scatac_default_registry_stays_beta_until_tier_promotion():
     matrix = build_capability_matrix(
-        {"modalities": {"scATAC": ["/data/a.h5mu"]}},
+        {"genome": "hg38", "modalities": {"scATAC": ["/data/a.h5mu"]}},
         modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
     )
 
@@ -124,7 +125,7 @@ def test_scatac_default_registry_stays_beta_until_tier_promotion():
 
 def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     matrix = build_capability_matrix(
-        {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
+        {"genome": "hg38", "modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
         modality_validation={
             "bulk_ATAC": {
                 "level": "beta",
@@ -151,7 +152,7 @@ def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
 
 def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
     matrix = build_capability_matrix(
-        {"modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
+        {"genome": "hg38", "modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
         modality_validation={"bulk_ATAC": {"level": "beta",
                                            "dispatch_enabled": True}},
     )
@@ -216,6 +217,7 @@ def test_orchestrator_filters_red_modalities_before_dispatch():
 
     orch = OrchestratorAgent.__new__(OrchestratorAgent)
     exp_context = {
+        "genome": "hg38",
         "modalities": {
             "bulk_RNA": ["/data/counts.tsv"],
             "scATAC": ["/data/atac.h5mu"],
