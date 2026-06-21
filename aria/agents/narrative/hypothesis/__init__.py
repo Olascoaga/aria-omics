@@ -24,6 +24,14 @@ from .grounding import (
     build_evidence_index,
     verify_hypothesis_grounding,
 )
+from .quarantine import (
+    SPECULATIVE_TIER,
+    SpeculativePromotionError,
+    assert_no_speculative_promotion,
+    is_hypothesis_node,
+    quarantine_hypotheses,
+    quarantine_node_id,
+)
 from .types import DiscriminatingExperiment, EvidenceSignal, Hypothesis
 
 __all__ = [
@@ -39,4 +47,10 @@ __all__ = [
     "check_devils_advocate",
     "visible_confounds",
     "declared_confounds",
+    "SPECULATIVE_TIER",
+    "SpeculativePromotionError",
+    "assert_no_speculative_promotion",
+    "is_hypothesis_node",
+    "quarantine_hypotheses",
+    "quarantine_node_id",
 ]

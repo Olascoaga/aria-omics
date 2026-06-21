@@ -32,6 +32,7 @@ from aria.agents.narrative.hypothesis.grounding import (
     build_evidence_index,
     verify_hypothesis_grounding,
 )
+from aria.agents.narrative.hypothesis.quarantine import quarantine_hypotheses
 from aria.agents.narrative.hypothesis.types import EvidenceSignal, Hypothesis
 
 # A proposer turns grounded audited evidence into candidate hypotheses. The LLM
@@ -138,6 +139,11 @@ class HypothesisAgent:
             else:
                 accepted.append(hyp)
 
+        # Quarantine: assign each accepted hypothesis its hypothesis:// node and
+        # build the non-promotable manifest (ADR-057 rail #6). Done before
+        # serialization so the emitted hypotheses carry their ledger_node.
+        quarantine = quarantine_hypotheses(accepted)
+
         result = {
             "tier": self.TIER,
             "ran": True,
@@ -145,6 +151,7 @@ class HypothesisAgent:
             "n_evidence": len(signal_list),
             "n_candidates": len(candidates),
             "hypotheses": [h.to_dict() for h in accepted],
+            "quarantine": quarantine,
             "rejected": rejected,
             "honest_null": not accepted,
         }
