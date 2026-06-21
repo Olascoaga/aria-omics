@@ -5,6 +5,27 @@ Last updated: June 20, 2026.
 ARIA uses explicit validation boundaries so users can distinguish mature
 workflows from beta analysis paths and implementation scaffolds.
 
+## Authoritative modality tiers
+
+This table MIRRORS the single source of truth — `MODALITY_VALIDATION` in
+`aria/agents/orchestrator_agent.py` — and is verified against it by
+`tests/test_docs_drift_guard.py` (the Docs Drift Guard). Edit the orchestrator
+first; this table must match or the guard fails.
+
+<!-- MODALITY_TIERS_TABLE_START -->
+| Modality | Tier |
+|---|---|
+| scRNA | production |
+| bulk_RNA | production |
+| bulk_RNA_raw | beta |
+| scATAC | beta |
+| bulk_ATAC | beta |
+| ChIP | scaffold |
+| CUT_AND_RUN | scaffold |
+| CUT_AND_TAG | scaffold |
+| HiC | scaffold |
+<!-- MODALITY_TIERS_TABLE_END -->
+
 **What "validated" means here.** ARIA's validated paths have been exercised on
 controlled synthetic data and small real datasets, with reviewed reports and a
 numerical ground-truth benchmark. This is **not** a claim of publication-grade
@@ -84,7 +105,8 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | Bulk RNA FASTQ preprocessing | Beta | Scripted path exists; dependency and real-data coverage should expand |
 | Trajectory: PAGA + root-gated DPT | Beta | PAGA validated on hippocampus subset; DPT requires precomputed `iroot`, an explicit matching root label, or a generic progenitor/stem/precursor label. If no root is available, pseudotime is skipped with `root_unresolved`; trajectory remains exploratory, not causal |
 | Cell-cell communication: LIANA | Beta | Validated on GSE278576 annotated h5ad; `n_perms=1000` default for stable ranks |
-| GEO/SRA connector | Beta | GSE183948 path validated; multi-organism (spike-in) organism inference added; public metadata remains heterogeneous |
+| GEO/SRA connector | Beta | GSE183948 path validated; multi-organism (spike-in) organism inference added; **now recognizes + routes all four ARIA modalities (scRNA/bulk_RNA/scATAC/bulk_ATAC) — real-validated on GSE96769 (full fetch) + GSE162690/GSE129785/GSE47753 (listing classification);** public metadata remains heterogeneous |
+| Raw-read ingestion (ATAC) | Beta | Bulk ATAC FASTQ→BAM (`atac_align.py`, bwa-mem2) real-validated on ENCODE K562 chr20; scATAC FASTQ→fragments (`chromatin_scatac_align.py`, chromap) + fragments→cell×peak matrix (`chromatin_fragments_to_matrix.py`, snapatac2) real-validated on 10x PBMC Multiome. Honest-skip without the aligner / barcode read / whitelist / genome |
 | scATAC-seq matrix workflow (de-alpha v4.7.0 / ADR-048) | Beta + requires acknowledgement | Scoped beta: QC/clustering, motif, and the replicate-gated pseudobulk condition-DA lane are externally concordant (SnapATAC2 on HC11; edgeR-QLF/limma-voom/R-DESeq2 on 5v5 GSE278576 donors — ARIA ⊆ R-DESeq2 recall 1.000, LFC Spearman 0.61-0.76). The per-cluster Wilcoxon marker path stays caveated as single-sample-fragile. **Peak-to-gene link recovery is promoted to beta (P4.2 / ADR-050):** externally concordant with Signac LinkPeaks on HC11 (GSE278576, 3143 paired cells) — Spearman 0.62 and 99.98% sign agreement on the 14,046 shared links; moderate set overlap (Jaccard 0.20) is method/threshold-driven (raw-count Pearson vs TF-IDF + permutation background), links stay associative. **P4.3 (fragment track) landed on a real 10x PBMC Multiome:** TOBIAS Tn5-bias-corrected footprinting + differential BINDetect + RNA cross-evidence, publication figures, and gene-activity scoring (vs Signac GeneActivity, moderate Spearman 0.51). Gene-activity and motif-activity stay caveated scaffold; footprinting is honest-skip only when fragments/motifs/genome are absent (no longer a blanket refusal). Stable promotion still needs independent expert review of biological conclusions |
 
 ## Alpha

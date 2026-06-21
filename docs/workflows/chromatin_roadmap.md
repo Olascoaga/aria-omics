@@ -1,10 +1,11 @@
 # Chromatin Workflows
 
-Validation level: scATAC matrix workflow is beta + requires explicit
-acknowledgement. Bulk ATAC is open as a V47 beta slice for measured QC + MACS3
-peak calling, peak-by-sample count matrices, and replicate-gated DESeq2 DA when
-explicit condition/replicate/comparison metadata exist, also behind acknowledgement.
-ChIP-seq, CUT&RUN, and CUT&TAG remain scaffolded.
+Validation level: scATAC and bulk ATAC are both **beta + require explicit
+acknowledgement** (CP3.5). Both now expose the full publishable workflow end-to-end
+(real-validated), but stay beta + `requires_ack` pending the readiness ADR and CI
+coverage — they are NOT autonomous production. ChIP-seq, CUT&RUN, and CUT&TAG remain
+scaffolded. The authoritative per-modality tier lives in the orchestrator's
+`MODALITY_VALIDATION` (single source) and is mirrored in `docs/validation_status.md`.
 
 This module should not yet be described as production-ready.
 
@@ -19,6 +20,9 @@ This module should not yet be described as production-ready.
 ## Existing Pieces
 
 - `ChromatinAgent`;
+- raw-read ingestion: `atac_align.py` (bulk ATAC FASTQ→BAM, bwa-mem2),
+  `chromatin_scatac_align.py` (scATAC FASTQ→fragments, chromap),
+  `chromatin_fragments_to_matrix.py` (fragments→cell×peak matrix, snapatac2);
 - `chromatin_qc.py`;
 - `chromatin_lsi_clustering.py`;
 - `chromatin_diffacc.py`;
@@ -26,33 +30,44 @@ This module should not yet be described as production-ready.
 - `chromatin_peaks.py`;
 - `chromatin_peak_counts.py`;
 - `chromatin_bulk_diffacc.py`;
+- `chromatin_peak_annotation.py` (genomic peak annotation);
+- `chromatin_peak_ora.py` (functional ORA over peak-linked genes);
+- `chromatin_footprint_tobias.py` (TOBIAS Tn5-bias-corrected footprinting,
+  scATAC + bulk condition-level);
 - MACS3 parameter profiles for assay types;
-- chromatin narrative blocks.
+- chromatin narrative blocks + publication figures (dual PNG+SVG);
+- GEO/SRA connector recognizes and routes all four ARIA modalities
+  (scRNA/bulk_RNA/scATAC/bulk_ATAC).
 
 ## Current scATAC Beta Path
 
-The same-cell RNA+ATAC `.h5mu` entry path is implemented for scATAC matrix
-analysis behind CP3.5 acknowledgement. On the local HC11 validation file, ARIA
-reads ATAC modality `atac` and reports real dimensions of 3,143 cells x 60,990
-peaks. The beta lane supports measured QC, TF-IDF/LSI clustering, per-cluster
-accessibility markers, replicate-gated pseudobulk DA, local motif enrichment
-when motif/genome resources exist, and chromatin report blocks.
+scATAC reaches the full matrix pipeline from three entry points (all behind CP3.5
+acknowledgement): a same-cell RNA+ATAC `.h5mu` (pre-called peaks); a raw fragments
+file (the `chromatin_fragments_to_matrix.py` snapatac2 bridge builds the cell×peak
+matrix — real-validated on the 10x PBMC Multiome); and raw FASTQ
+(`chromatin_scatac_align.py` chromap → fragments → bridge). The beta lane supports
+measured QC (incl. TSSe/FRiP gating figures), TF-IDF/LSI clustering, per-cluster
+accessibility markers, replicate-gated pseudobulk condition-DA, local motif
+enrichment, peak-to-gene link recovery (beta, ADR-050), TOBIAS footprinting + RNA
+cross-evidence, gene-activity scoring (caveated scaffold), and chromatin report
+blocks + publication figures.
 
-Missing resources or underpowered designs are reported
-as skipped/limited analyses, not inferred around. chromVAR-style per-cell motif
-activity remains out of scope.
+Missing resources or underpowered designs are reported as skipped/limited analyses,
+not inferred around. chromVAR-style per-cell motif activity remains out of scope.
 
-## Current Bulk ATAC Beta Slice
+## Current Bulk ATAC Beta Path
 
-Bulk ATAC dispatch is open behind CP3.5 acknowledgement for measured QC and MACS3
-peak calling. The agent reports QC and called peaks as beta evidence. When a
-comparison is requested, ARIA also builds a scaffolded peak-by-sample count
-matrix from the called peak universe using `bedtools coverage -counts`, then runs
-replicate-gated DESeq2 differential accessibility via `chromatin_bulk_diffacc.py`
-when explicit condition, biological replicate, and comparison metadata are
-present. Under-specified designs return structured skips. FRiP is computed only
-when the real post-peak-counting tools succeed; ARIA does not substitute a default
-FRiP.
+Bulk ATAC exposes the full publishable ATAC workflow behind CP3.5 acknowledgement,
+real-validated end-to-end on ENCODE replicates (K562 vs GM12878): raw FASTQ→BAM
+(`atac_align.py`, bwa-mem2 + ATAC filtering) or aligned BAM/CRAM input → measured QC
+→ MACS3 peak calling with overlap-reproducibility consensus → peak-by-sample count
+matrix (`bedtools coverage -sorted -counts`) → replicate-gated DESeq2 differential
+accessibility (`chromatin_bulk_diffacc.py`) → genomic peak annotation → functional
+ORA → TF motif enrichment → condition-level TOBIAS footprinting → figures. DA
+requires explicit condition, biological replicate, and comparison metadata;
+under-specified designs return structured skips. FRiP is computed only when the real
+post-peak-counting tools succeed; ARIA does not substitute a default FRiP. n=2
+isogenic designs run with a low-power warning (directional, not FDR-calibration).
 
 ## Required Before Stable
 
@@ -65,12 +80,12 @@ For scATAC:
 - peak-to-gene handoff contract;
 - stable promotion criteria and release review.
 
-For bulk ATAC:
+For bulk ATAC (QC→peaks→DA→annotation→ORA→motifs→footprinting→figures and raw
+FASTQ→BAM are implemented and real-validated on ENCODE replicates):
 
-- robust BAM/fragment validation;
-- broader real-data validation across BAM/fragment inputs;
-- motif/pathway summary;
-- report methods.
+- broader real-data validation across more replicated cohorts and tissues;
+- chromatin CI lane (env solve + chr20 smoke) for external reproducibility;
+- the readiness ADR + release review before any production promotion.
 
 For ChIP / CUT&RUN / CUT&TAG:
 
@@ -96,6 +111,7 @@ flowchart TD
 ## Release Recommendation
 
 Do not promote multimodal integration before standalone chromatin conclusions
-have stable validation and expert review. The current scATAC path is available
-for reviewed alpha runs; scaffolded chromatin assays remain blocked from
+have stable validation and expert review. The scATAC and bulk ATAC paths are
+available as acknowledgement-gated **beta** runs (not autonomous production);
+scaffolded chromatin assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from
 publication-looking dispatch.
