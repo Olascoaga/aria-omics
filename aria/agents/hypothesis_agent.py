@@ -21,11 +21,15 @@ from __future__ import annotations
 
 from typing import Callable
 
+from aria.agents.narrative.hypothesis.devils_advocate import (
+    check_devils_advocate,
+)
 from aria.agents.narrative.hypothesis.gates import (
     check_falsifiability,
     check_language,
 )
 from aria.agents.narrative.hypothesis.grounding import (
+    build_evidence_index,
     verify_hypothesis_grounding,
 )
 from aria.agents.narrative.hypothesis.types import EvidenceSignal, Hypothesis
@@ -76,10 +80,11 @@ class HypothesisAgent:
         Gate #1 (causal gate, ADR-057 rail #1): hypotheses are only generated
         downstream of W-CLAIM + W-LEDGER passing; if verification aborted, the
         agent does not speculate. Every candidate must then clear all publication
-        gates — grounding (rail #7), falsifiability (rail #8) and language lint
-        (rail #11). A candidate failing any gate is rejected with the failing
-        reasons, never caveated into the output. When every candidate is
-        rejected the result is honest-null with an aggregated per-gate summary.
+        gates — grounding (rail #7), falsifiability (rail #8), language lint
+        (rail #11) and the adversarial devils_advocate gate (rail #5). A
+        candidate failing any gate is rejected with the failing reasons, never
+        caveated into the output. When every candidate is rejected the result is
+        honest-null with an aggregated per-gate summary.
         """
         if not (w_claim_passed and w_ledger_passed):
             return {
@@ -93,6 +98,7 @@ class HypothesisAgent:
             }
 
         signal_list = list(signals or [])
+        evidence_index = build_evidence_index(signal_list)
         candidates = self._proposer(signal_list, exp_ctx or {}) or []
 
         accepted: list[Hypothesis] = []
@@ -114,7 +120,11 @@ class HypothesisAgent:
                     }
                 )
 
-            for gate in (check_falsifiability(hyp), check_language(hyp)):
+            for gate in (
+                check_falsifiability(hyp),
+                check_language(hyp),
+                check_devils_advocate(hyp, evidence_index),
+            ):
                 if not gate.passed:
                     failures.append(gate.to_dict())
 

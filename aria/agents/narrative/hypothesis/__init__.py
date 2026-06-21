@@ -13,6 +13,11 @@ devils_advocate (S3), ledger quarantine (S4), and per-modality evidence adapters
 
 from __future__ import annotations
 
+from .devils_advocate import (
+    check_devils_advocate,
+    declared_confounds,
+    visible_confounds,
+)
 from .gates import GateResult, check_falsifiability, check_language
 from .grounding import (
     GroundingResult,
@@ -31,4 +36,7 @@ __all__ = [
     "GateResult",
     "check_falsifiability",
     "check_language",
+    "check_devils_advocate",
+    "visible_confounds",
+    "declared_confounds",
 ]

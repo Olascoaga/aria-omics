@@ -57,6 +57,10 @@ def _valid_hypothesis(**overrides) -> Hypothesis:
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_complete_experiment(),
+        devils_advocate={
+            "simpler_explanation": "co-regulation by a shared upstream factor",
+            "confounds": [],
+        },
     )
     base.update(overrides)
     return Hypothesis(**base)

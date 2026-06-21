@@ -175,6 +175,10 @@ def test_agent_accepts_grounded_rejects_ungrounded():
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_experiment(),
+        devils_advocate={
+            "simpler_explanation": "co-regulation by a shared upstream factor",
+            "confounds": [],
+        },
     )
     invented = Hypothesis(
         id="bad",
