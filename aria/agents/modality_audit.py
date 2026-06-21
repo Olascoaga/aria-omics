@@ -11,6 +11,7 @@ from copy import deepcopy
 from typing import Any
 
 from aria.utils.assay_contracts import validate_assay_contract
+from aria.utils.design_power import assess_design_power
 from aria.utils.multiome_contracts import validate_multiome_contract
 
 
@@ -492,6 +493,11 @@ def build_capability_matrix(
     if multiome_contract.get("status") != "not_applicable":
         contracts["multiome"] = multiome_contract
 
+    preflight = {}
+    design_power = assess_design_power(exp_context)
+    if design_power.get("status") != "not_applicable":
+        preflight["design_power"] = design_power
+
     dispatch = {"allowed": [], "requires_ack": [], "blocked": []}
     findings = []
     for modality, card in cards.items():
@@ -506,6 +512,8 @@ def build_capability_matrix(
         findings.extend(card.get("findings", []))
     for contract in contracts.values():
         findings.extend(contract.get("findings", []))
+    for check in preflight.values():
+        findings.extend(check.get("findings", []))
 
     for key in dispatch:
         dispatch[key] = sorted(dispatch[key])
@@ -518,6 +526,7 @@ def build_capability_matrix(
         ),
         "cards": cards,
         "contracts": contracts,
+        "preflight": preflight,
         "dispatch": dispatch,
         "findings": findings,
     }
