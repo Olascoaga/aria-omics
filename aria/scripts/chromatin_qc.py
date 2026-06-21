@@ -36,7 +36,7 @@ Output:
       "n_fragments_is_lower_bound": bool (True if the scan cap was reached),
       "frip":            float|None,  — None until peaks are called
       "tss_enrichment":  float|None,  — None until a reference TSS QC runs
-      "mito_fraction":   float,       — mitochondrial read fraction
+      "mito_fraction":   float|None,  — mitochondrial read fraction
       "dup_rate":        float|None,  — None if samtools unavailable (bulk)
       "fragment_sizes":  dict,        — distribution summary + barcode count
       "qc_complete":     bool,        — whether the gating metrics were computed
@@ -180,7 +180,11 @@ def _scatac_qc(files: list, genome: str,
                 f"(marginal quality — acceptable but not ideal)."
             )
 
-        if mito_frac > MAX_MITO:
+        if mito_frac is None:
+            not_computed.append(
+                "mito_fraction (could not read fragment contigs)"
+            )
+        elif mito_frac > MAX_MITO:
             qc_failures.append(
                 f"Mitochondrial fraction {mito_frac:.1%} > {MAX_MITO:.0%}. "
                 f"High mtDNA contamination detected."
@@ -223,7 +227,9 @@ def _scatac_qc(files: list, genome: str,
             "frip":            (round(float(frip), 4) if frip is not None else None),
             "tss_enrichment":  (round(float(tss_enrichment), 3)
                                 if tss_enrichment is not None else None),
-            "mito_fraction":   round(float(mito_frac), 4),
+            "mito_fraction":   (
+                round(float(mito_frac), 4) if mito_frac is not None else None
+            ),
             "fragment_sizes":  frag_sizes,
             # P4.1 [B]: per-barcode FRiP distribution (list) or None (no peaks).
             "frip_distribution": frip_distribution,
@@ -613,7 +619,7 @@ def _compute_fragment_sizes(frag_file: str) -> dict:
         return {"n_barcodes": 0, "n_fragments": 0, "scan_truncated": False}
 
 
-def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float:
+def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float | None:
     """Estimate mitochondrial fragment fraction from fragment file."""
     try:
         import gzip
@@ -629,8 +635,8 @@ def _compute_mito_fraction(frag_file: str, mito_chr: str) -> float:
                     if parts[0] in (mito_chr, "M", "MT", "chrM"):
                         mito += 1
         return mito / max(total, 1)
-    except Exception:
-        return 0.05
+    except (OSError, EOFError, gzip.BadGzipFile, UnicodeDecodeError):
+        return None
 
 
 def _peaks_by_chrom_from_bed(peaks_bed: str) -> dict:

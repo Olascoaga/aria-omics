@@ -319,3 +319,33 @@ def test_bulk_atac_diffacc_skips_when_metadata_lacks_replicates(tmp_path):
     assert res["status"] == "success"
     assert res["ran"] is False
     assert "replicate" in res["reason"]
+
+
+def test_bulk_atac_diffacc_does_not_mask_unexpected_aggregation_bug(
+        tmp_path, monkeypatch):
+    from aria.scripts import chromatin_bulk_diffacc as mod
+
+    counts = tmp_path / "counts.tsv"
+    counts.write_text("peak_id\tA\tB\nchr1:1-10\t1\t2\n")
+    meta = tmp_path / "samples.tsv"
+    meta.write_text(
+        "sample_id\tcondition\treplicate\n"
+        "A\tctrl\tr1\nB\ttreated\tr2\n"
+    )
+
+    def boom(*_args, **_kwargs):
+        raise RuntimeError("internal aggregation bug")
+
+    monkeypatch.setattr(mod, "_prepare_replicate_matrix", boom)
+
+    try:
+        mod.chromatin_bulk_diffacc({
+            "data_type": "bulk_ATAC",
+            "counts_matrix_path": str(counts),
+            "sample_metadata_path": str(meta),
+            "comparisons": [["treated", "ctrl"]],
+        })
+    except RuntimeError as exc:
+        assert "internal aggregation bug" in str(exc)
+    else:
+        raise AssertionError("unexpected aggregation bug was masked as skipped")

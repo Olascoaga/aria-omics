@@ -301,7 +301,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
             _prepare_replicate_matrix(
                 counts, metadata, condition_col, replicate_col, covariates)
         )
-    except Exception as exc:
+    except (ValueError, OSError) as exc:
         return _skipped(str(exc))
 
     for dropped in covariates_dropped:

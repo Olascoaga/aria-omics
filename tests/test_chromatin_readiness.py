@@ -53,6 +53,43 @@ def test_fragment_sizes_counts_real_barcodes(tmp_path):
     assert out["median_size"] > 0
 
 
+def test_mito_fraction_read_failure_is_not_fabricated(tmp_path):
+    from aria.scripts.chromatin_qc import _compute_mito_fraction
+
+    missing = tmp_path / "missing_fragments.tsv"
+    assert _compute_mito_fraction(str(missing), "chrM") is None
+
+
+def test_scatac_qc_reports_missing_mito_fraction(monkeypatch, tmp_path):
+    import sys
+    import types
+
+    from aria.scripts import chromatin_qc
+
+    frags = tmp_path / "fragments.tsv"
+    frags.write_text("chr1\t100\t250\tAAA\t1\n", encoding="utf-8")
+    fake_mu = types.SimpleNamespace(
+        atac=types.SimpleNamespace(tl=types.SimpleNamespace(
+            locate_fragments=lambda *a, **k: None)))
+    monkeypatch.setitem(sys.modules, "muon", fake_mu)
+    monkeypatch.setattr(chromatin_qc, "_tss_qc", lambda *_a, **_k: {
+        "median": None,
+        "reason": "test",
+        "tsse": None,
+        "log10_depth": None,
+    })
+    monkeypatch.setattr(chromatin_qc, "_compute_mito_fraction",
+                        lambda *_a, **_k: None)
+
+    res = chromatin_qc._scatac_qc(
+        [str(frags)], "unknown", "Homo sapiens", [], allow_mocks=True)
+
+    assert res["status"] == "success"
+    assert res["mito_fraction"] is None
+    assert any("mito_fraction" in item for item in res["metrics_not_computed"])
+    assert res["pass_qc"] is None
+
+
 # ── C8: .h5mu detection + real reader ─────────────────────────────────────────
 
 def _audit_agent():
