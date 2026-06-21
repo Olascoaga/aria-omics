@@ -2315,77 +2315,77 @@
       "label": "_null_proposer()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_evidencesignal",
       "label": "EvidenceSignal",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_hypothesis",
       "label": "Hypothesis",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43"
+      "source_location": "L44"
     },
     {
       "id": "agents_hypothesis_agent_gate_failure_counts",
       "label": "_gate_failure_counts()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50"
+      "source_location": "L51"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50"
+      "source_location": "L51"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50"
+      "source_location": "L51"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent",
       "label": "HypothesisAgent",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L61"
+      "source_location": "L62"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L66"
+      "source_location": "L67"
     },
     {
       "id": "proposer",
       "label": "Proposer",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L66"
+      "source_location": "L67"
     },
     {
       "id": "agents_hypothesis_agent_hypothesisagent_generate",
       "label": ".generate()",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69"
+      "source_location": "L70"
     },
     {
       "id": "aria_agents_hypothesis_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69"
+      "source_location": "L70"
     },
     {
       "id": "agents_integration_agent",
@@ -3380,6 +3380,83 @@
       "file_type": "code",
       "source_file": "aria/agents/narrative/hypothesis/grounding.py",
       "source_location": "L57"
+    },
+    {
+      "id": "hypothesis_quarantine",
+      "label": "quarantine.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "hypothesis_quarantine_speculativepromotionerror",
+      "label": "SpeculativePromotionError",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "valueerror",
+      "label": "ValueError",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": ""
+    },
+    {
+      "id": "hypothesis_quarantine_quarantine_node_id",
+      "label": "quarantine_node_id()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_quarantine_py_hypothesis",
+      "label": "Hypothesis",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_quarantine_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "hypothesis_quarantine_is_hypothesis_node",
+      "label": "is_hypothesis_node()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_quarantine_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_quarantine_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "hypothesis_quarantine_quarantine_hypotheses",
+      "label": "quarantine_hypotheses()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L47"
+    },
+    {
+      "id": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "label": "assert_no_speculative_promotion()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L71"
     },
     {
       "id": "hypothesis_types",
@@ -28292,7 +28369,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -28537,7 +28614,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -28559,7 +28636,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36975,6 +37052,125 @@
       "source_location": "L227"
     },
     {
+      "id": "tests_test_hypothesis_quarantine",
+      "label": "test_hypothesis_quarantine.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_experiment",
+      "label": "_experiment()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_py_discriminatingexperiment",
+      "label": "DiscriminatingExperiment",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_signals",
+      "label": "_signals()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_ledger",
+      "label": "_ledger()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_hyp",
+      "label": "_hyp()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L64"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_py_hypothesis",
+      "label": "Hypothesis",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L64"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_quarantine_node_id_uses_hypothesis_scheme",
+      "label": "test_quarantine_node_id_uses_hypothesis_scheme()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L82"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_quarantine_stamps_node_and_builds_non_promotable_manifest",
+      "label": "test_quarantine_stamps_node_and_builds_non_promotable_manifest()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "label": "test_agent_emits_quarantine_for_accepted_hypotheses()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L99"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_speculative_is_not_a_claim_tier",
+      "label": "test_speculative_is_not_a_claim_tier()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L109"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_claim_node_ids_never_collide_with_hypothesis_namespace",
+      "label": "test_claim_node_ids_never_collide_with_hypothesis_namespace()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L114"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_enforcer_passes_clean_claim_manifest",
+      "label": "test_enforcer_passes_clean_claim_manifest()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L122"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_enforcer_rejects_speculative_tier_in_claims",
+      "label": "test_enforcer_rejects_speculative_tier_in_claims()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L131"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_enforcer_rejects_hypothesis_node_in_claims",
+      "label": "test_enforcer_rejects_hypothesis_node_in_claims()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L137"
+    },
+    {
+      "id": "tests_test_hypothesis_quarantine_test_quarantined_hypothesis_cannot_pass_as_a_claim",
+      "label": "test_quarantined_hypothesis_cannot_pass_as_a_claim()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L146"
+    },
+    {
       "id": "tests_test_image_provenance",
       "label": "test_image_provenance.py",
       "file_type": "code",
@@ -41353,17 +41549,6 @@
       "contributor": null
     },
     {
-      "id": "parameter_advisor",
-      "label": "ParameterAdvisor",
-      "file_type": "code",
-      "source_file": "aria/utils/parameter_advisor.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -41379,39 +41564,6 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_rna_env",
-      "label": "aria-rna-env",
-      "file_type": "code",
-      "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_chromatin_env",
-      "label": "aria-chromatin-env",
-      "file_type": "code",
-      "source_file": "envs/aria-chromatin-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -50369,7 +50521,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -50379,7 +50531,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -50389,7 +50541,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0
     },
     {
@@ -50398,7 +50550,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -50408,7 +50560,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -50418,7 +50570,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L50",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -50427,7 +50579,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L61",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -50436,7 +50588,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L66",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -50446,7 +50598,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L66",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -50455,7 +50607,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -50465,7 +50617,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -50475,7 +50627,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -50485,7 +50637,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L69",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -50495,7 +50647,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L154",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -54114,12 +54266,22 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_types",
+      "target": "hypothesis_quarantine",
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -54627,6 +54789,150 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/grounding.py",
       "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_quarantine_speculativepromotionerror",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_speculativepromotionerror",
+      "target": "valueerror",
+      "relation": "inherits",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_quarantine_quarantine_node_id",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_quarantine_node_id",
+      "target": "aria_agents_narrative_hypothesis_quarantine_py_hypothesis",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_quarantine_node_id",
+      "target": "aria_agents_narrative_hypothesis_quarantine_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_is_hypothesis_node",
+      "target": "aria_agents_narrative_hypothesis_quarantine_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_is_hypothesis_node",
+      "target": "aria_agents_narrative_hypothesis_quarantine_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_quarantine_hypotheses",
+      "target": "aria_agents_narrative_hypothesis_quarantine_py_hypothesis",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_quarantine_hypotheses",
+      "target": "hypothesis_quarantine_quarantine_node_id",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "target": "hypothesis_quarantine_speculativepromotionerror",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
@@ -124082,7 +124388,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -124135,7 +124441,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124145,7 +124451,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124155,7 +124461,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124165,7 +124471,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124175,7 +124481,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124497,7 +124803,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -124506,7 +124812,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -124541,7 +124847,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -124551,7 +124857,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rf6ddz_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_3hr7vs_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -138676,6 +138982,253 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_experiment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_experiment",
+      "target": "tests_test_hypothesis_quarantine_py_discriminatingexperiment",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_signals",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_signals",
+      "target": "tests_test_hypothesis_quarantine_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_ledger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_hyp",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_hyp",
+      "target": "tests_test_hypothesis_quarantine_py_hypothesis",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_quarantine_node_id_uses_hypothesis_scheme",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_quarantine_stamps_node_and_builds_non_promotable_manifest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_speculative_is_not_a_claim_tier",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_claim_node_ids_never_collide_with_hypothesis_namespace",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_enforcer_passes_clean_claim_manifest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L122",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_enforcer_rejects_speculative_tier_in_claims",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_enforcer_rejects_hypothesis_node_in_claims",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "tests_test_hypothesis_quarantine_test_quarantined_hypothesis_cannot_pass_as_a_claim",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_experiment",
+      "target": "tests_test_hypothesis_quarantine_py_discriminatingexperiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_signals",
+      "target": "tests_test_hypothesis_quarantine_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_hyp",
+      "target": "tests_test_hypothesis_quarantine_experiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L70",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_hyp",
+      "target": "tests_test_hypothesis_quarantine_py_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantine_node_id_uses_hypothesis_scheme",
+      "target": "tests_test_hypothesis_quarantine_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantine_stamps_node_and_builds_non_promotable_manifest",
+      "target": "tests_test_hypothesis_quarantine_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "target": "tests_test_hypothesis_quarantine_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "target": "tests_test_hypothesis_quarantine_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "target": "tests_test_hypothesis_quarantine_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantined_hypothesis_cannot_pass_as_a_claim",
+      "target": "tests_test_hypothesis_quarantine_hyp",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L149",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_image_provenance",
       "target": "aria_version",
       "relation": "imports_from",
@@ -146609,12 +147162,22 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_types",
+      "target": "hypothesis_quarantine",
       "relation": "re_exports",
       "context": "export",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_types",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -147329,7 +147892,7 @@
     },
     {
       "source": "agents_hypothesis_agent",
-      "target": "hypothesis_types_evidencesignal",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -147339,12 +147902,22 @@
     },
     {
       "source": "agents_hypothesis_agent",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent",
       "target": "hypothesis_types_hypothesis",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -147659,12 +148232,62 @@
     },
     {
       "source": "hypothesis_init",
-      "target": "hypothesis_types_discriminatingexperiment",
+      "target": "hypothesis_quarantine_speculativepromotionerror",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
       "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_quarantine_quarantine_node_id",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
+      "target": "hypothesis_types_discriminatingexperiment",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -147674,7 +148297,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -147684,7 +148307,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/__init__.py",
-      "source_location": "L27",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -147755,6 +148378,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/grounding.py",
       "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_quarantine",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/quarantine.py",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -155835,6 +156468,106 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_grounding.py",
       "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_types_discriminatingexperiment",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_quarantine_speculativepromotionerror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "hypothesis_quarantine_quarantine_node_id",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine",
+      "target": "narrative_run_ledger_node_id_for",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -166848,6 +167581,146 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_quarantine_experiment",
+      "target": "hypothesis_types_discriminatingexperiment",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_signals",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L43",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_hyp",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantine_node_id_uses_hypothesis_scheme",
+      "target": "hypothesis_quarantine_quarantine_node_id",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantine_node_id_uses_hypothesis_scheme",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantine_stamps_node_and_builds_non_promotable_manifest",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_agent_emits_quarantine_for_accepted_hypotheses",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_claim_node_ids_never_collide_with_hypothesis_namespace",
+      "target": "narrative_run_ledger_node_id_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_claim_node_ids_never_collide_with_hypothesis_namespace",
+      "target": "hypothesis_quarantine_is_hypothesis_node",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_enforcer_passes_clean_claim_manifest",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_enforcer_rejects_speculative_tier_in_claims",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_enforcer_rejects_hypothesis_node_in_claims",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantined_hypothesis_cannot_pass_as_a_claim",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L150",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_quarantine_test_quarantined_hypothesis_cannot_pass_as_a_claim",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_quarantine.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_image_provenance_test_image_metadata_null_when_not_containerized",
       "target": "aria_version_collect_image_metadata",
       "relation": "calls",
@@ -169844,7 +170717,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L101",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -169855,7 +170728,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -169866,7 +170739,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L124",
+      "source_location": "L125",
       "weight": 1.0
     },
     {
@@ -169877,7 +170750,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -169888,7 +170761,18 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/hypothesis_agent.py",
-      "source_location": "L126",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_hypothesis_agent_hypothesisagent_generate",
+      "target": "hypothesis_quarantine_quarantine_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/hypothesis_agent.py",
+      "source_location": "L145",
       "weight": 1.0
     },
     {
@@ -171024,86 +171908,16 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
+      "target": "message_bus",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "chromatin_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -171123,18 +171937,8 @@
       "weight": 1.0
     },
     {
-      "source": "environment_manager",
+      "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "environment_manager",
-      "target": "chromatin_bulk_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -171153,28 +171957,8 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "parameter_advisor",
+      "source": "audit_agent",
+      "target": "setup_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
