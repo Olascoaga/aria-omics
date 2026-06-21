@@ -12486,28 +12486,28 @@
       "label": "_is_progenitor_label()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57"
+      "source_location": "L61"
     },
     {
       "id": "aria_scripts_rna_trajectory_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57"
+      "source_location": "L61"
     },
     {
       "id": "aria_scripts_rna_trajectory_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57"
+      "source_location": "L61"
     },
     {
       "id": "scripts_rna_trajectory_rna_trajectory",
       "label": "rna_trajectory()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L64"
+      "source_location": "L68"
     },
     {
       "id": "aria_tui",
@@ -27172,7 +27172,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -27417,7 +27417,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -27439,7 +27439,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -31025,6 +31025,41 @@
       "source_location": "L27"
     },
     {
+      "id": "tests_test_chromatin_env_specs",
+      "label": "test_chromatin_env_specs.py",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_chromatin_env_specs_dep_text",
+      "label": "_dep_text()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "tests_test_chromatin_env_specs_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L36"
+    },
+    {
+      "id": "tests_test_chromatin_env_specs_test_chromatin_env_declares_its_tools",
+      "label": "test_chromatin_env_declares_its_tools()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L50"
+    },
+    {
+      "id": "tests_test_chromatin_env_specs_test_atacseq_env_name_matches_environment_manager",
+      "label": "test_atacseq_env_name_matches_environment_manager()",
+      "file_type": "code",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L58"
+    },
+    {
       "id": "tests_test_chromatin_figures_w01",
       "label": "test_chromatin_figures_w01.py",
       "file_type": "code",
@@ -33655,6 +33690,48 @@
       "file_type": "code",
       "source_file": "tests/test_docker_hermeticity.py",
       "source_location": "L57"
+    },
+    {
+      "id": "tests_test_docs_drift_guard",
+      "label": "test_docs_drift_guard.py",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_docs_drift_guard_doc_tiers",
+      "label": "_doc_tiers()",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "tests_test_docs_drift_guard_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L33"
+    },
+    {
+      "id": "tests_test_docs_drift_guard_test_doc_tier_table_matches_single_source",
+      "label": "test_doc_tier_table_matches_single_source()",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L52"
+    },
+    {
+      "id": "tests_test_docs_drift_guard_test_roadmap_does_not_reassert_corrected_obsolete_states",
+      "label": "test_roadmap_does_not_reassert_corrected_obsolete_states()",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L66"
+    },
+    {
+      "id": "tests_test_docs_drift_guard_test_roadmap_points_to_single_source",
+      "label": "test_roadmap_points_to_single_source()",
+      "file_type": "code",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L83"
     },
     {
       "id": "tests_test_doctor",
@@ -36639,6 +36716,34 @@
       "source_location": "L579"
     },
     {
+      "id": "tests_test_no_dead_packages",
+      "label": "test_no_dead_packages.py",
+      "file_type": "code",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_no_dead_packages_source_dirs",
+      "label": "_source_dirs()",
+      "file_type": "code",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L18"
+    },
+    {
+      "id": "tests_test_no_dead_packages_test_no_dir_under_aria_lacks_python_source",
+      "label": "test_no_dir_under_aria_lacks_python_source()",
+      "file_type": "code",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "tests_test_no_dead_packages_test_aria_core_is_gone",
+      "label": "test_aria_core_is_gone()",
+      "file_type": "code",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L44"
+    },
+    {
       "id": "tests_test_no_fabrication_guard",
       "label": "test_no_fabrication_guard.py",
       "file_type": "code",
@@ -38487,6 +38592,20 @@
       "source_location": "L36"
     },
     {
+      "id": "tests_test_rna_trajectory_root_policy_test_trajectory_seeds_neighbors_umap_diffmap",
+      "label": "test_trajectory_seeds_neighbors_umap_diffmap()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_trajectory_root_policy.py",
+      "source_location": "L118"
+    },
+    {
+      "id": "tests_test_rna_trajectory_root_policy_test_trajectory_seed_defaults_to_zero",
+      "label": "test_trajectory_seed_defaults_to_zero()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_trajectory_root_policy.py",
+      "source_location": "L182"
+    },
+    {
       "id": "tests_test_run_ledger_and_devils",
       "label": "test_run_ledger_and_devils.py",
       "file_type": "code",
@@ -39260,85 +39379,166 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py"
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py"
-    },
-    {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     }
   ],
   "edges": [
@@ -89721,7 +89921,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -89731,7 +89931,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -89741,7 +89941,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -89750,7 +89950,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L64",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -89760,7 +89960,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L167",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -117195,7 +117395,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -117248,7 +117448,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117258,7 +117458,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117268,7 +117468,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117278,7 +117478,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117288,7 +117488,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117610,7 +117810,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -117619,7 +117819,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -117654,7 +117854,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -117664,7 +117864,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_unm0gp_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_0m4cgd_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -123180,6 +123380,63 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_chromatin_env_specs",
+      "target": "tests_test_chromatin_env_specs_dep_text",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs_dep_text",
+      "target": "tests_test_chromatin_env_specs_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs_dep_text",
+      "target": "tests_test_chromatin_env_specs_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs",
+      "target": "tests_test_chromatin_env_specs_test_chromatin_env_declares_its_tools",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs",
+      "target": "tests_test_chromatin_env_specs_test_atacseq_env_name_matches_environment_manager",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs_test_chromatin_env_declares_its_tools",
+      "target": "tests_test_chromatin_env_specs_dep_text",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L51",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_chromatin_figures_w01",
       "target": "tests_test_chromatin_figures_w01_scatac_envelope",
       "relation": "contains",
@@ -127530,6 +127787,72 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_docker_hermeticity.py",
       "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard",
+      "target": "tests_test_docs_drift_guard_doc_tiers",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard_doc_tiers",
+      "target": "tests_test_docs_drift_guard_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard_doc_tiers",
+      "target": "tests_test_docs_drift_guard_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard",
+      "target": "tests_test_docs_drift_guard_test_doc_tier_table_matches_single_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard",
+      "target": "tests_test_docs_drift_guard_test_roadmap_does_not_reassert_corrected_obsolete_states",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard",
+      "target": "tests_test_docs_drift_guard_test_roadmap_points_to_single_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_docs_drift_guard_test_doc_tier_table_matches_single_source",
+      "target": "tests_test_docs_drift_guard_doc_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_docs_drift_guard.py",
+      "source_location": "L55",
       "weight": 1.0
     },
     {
@@ -132560,6 +132883,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_no_dead_packages",
+      "target": "tests_test_no_dead_packages_source_dirs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_no_dead_packages",
+      "target": "tests_test_no_dead_packages_test_no_dir_under_aria_lacks_python_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_no_dead_packages",
+      "target": "tests_test_no_dead_packages_test_aria_core_is_gone",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_no_dead_packages_test_no_dir_under_aria_lacks_python_source",
+      "target": "tests_test_no_dead_packages_source_dirs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_no_dead_packages.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_no_fabrication_guard",
       "target": "ast",
       "relation": "imports",
@@ -136008,6 +136368,24 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_rna_trajectory_root_policy.py",
       "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_trajectory_root_policy",
+      "target": "tests_test_rna_trajectory_root_policy_test_trajectory_seeds_neighbors_umap_diffmap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_trajectory_root_policy.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_trajectory_root_policy",
+      "target": "tests_test_rna_trajectory_root_policy_test_trajectory_seed_defaults_to_zero",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_trajectory_root_policy.py",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -142003,7 +142381,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -142013,7 +142391,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L68",
+      "source_location": "L72",
       "weight": 1.0
     },
     {
@@ -144234,6 +144612,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_dispatch_gate.py",
       "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_chromatin_env_specs",
+      "target": "utils_environment_manager_environmentmanager",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_chromatin_env_specs.py",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -149923,7 +150311,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_trajectory.py",
-      "source_location": "L75",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -160051,7 +160439,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -160059,7 +160449,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -160067,7 +160469,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -160075,7 +160479,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -160083,39 +160489,79 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "narrative_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
-      "target": "chromatin_bulk_diffacc",
-      "relation": "calls",
+      "source": "chromatin_diffacc",
+      "target": "rna_bulk_de",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "narrative_agent",
@@ -160123,23 +160569,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "source": "orchestrator_agent",
+      "target": "message_bus",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -160147,7 +160589,9 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
