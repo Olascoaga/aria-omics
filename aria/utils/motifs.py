@@ -27,6 +27,10 @@ import json
 import os
 from pathlib import Path
 
+from aria.utils.reference_integrity import (
+    public_integrity_result, reference_is_usable, verify_reference_file,
+)
+
 MOTIF_DIR_ENV = "ARIA_MOTIF_DIR"
 
 # Curated, CC0, semantically versioned, field-standard for ATAC reporting.
@@ -86,12 +90,20 @@ def load_local_motif_collection(collection: str = DEFAULT_COLLECTION):
     if n_motifs == 0:
         return None
     version: dict = {"collection": collection, "n_motifs": n_motifs}
+    integrity = verify_reference_file(meme_path, manifest_path=manifest_path)
+    if not reference_is_usable(integrity):
+        return None
     if manifest_path.is_file():
-        try:
-            version.update(json.loads(manifest_path.read_text(encoding="utf-8")))
-        except Exception:
-            pass
+        manifest_data = integrity.get("manifest")
+        if isinstance(manifest_data, dict):
+            version.update(manifest_data)
+        else:
+            try:
+                version.update(json.loads(manifest_path.read_text(encoding="utf-8")))
+            except Exception:
+                pass
     version.setdefault("source", "unknown")
     version.setdefault("release", "unknown")
     version["n_motifs"] = n_motifs  # counted value is authoritative
+    version["integrity"] = public_integrity_result(integrity)
     return str(meme_path), version

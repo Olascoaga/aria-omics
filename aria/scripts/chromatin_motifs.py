@@ -219,12 +219,23 @@ def chromatin_motifs(params: dict) -> dict:
     from aria.utils.motifs import (
         load_local_motif_collection, DEFAULT_COLLECTION,
     )
+    from aria.utils.reference_integrity import (
+        public_integrity_result, reference_is_usable, verify_reference_file,
+    )
     if motif_file:
         if not Path(motif_file).is_file():
             return _skip(f"motif_file not found: {motif_file}")
+        motif_integrity = verify_reference_file(str(motif_file))
+        if not reference_is_usable(motif_integrity):
+            return _skip(
+                "motif_file checksum validation failed; re-stage the MEME file "
+                "or fix its manifest before motif enrichment.",
+                reference_integrity=public_integrity_result(motif_integrity),
+            )
         meme_path = str(motif_file)
         motif_version = {"collection": Path(motif_file).stem, "source": "explicit",
-                         "release": "unknown"}
+                         "release": "unknown",
+                         "integrity": public_integrity_result(motif_integrity)}
     else:
         coll = motif_collection or DEFAULT_COLLECTION
         loaded = load_local_motif_collection(coll)
@@ -246,10 +257,30 @@ def chromatin_motifs(params: dict) -> dict:
     if genome_fasta and not Path(str(genome_fasta)).is_file():
         return _skip(f"genome_fasta not found: {genome_fasta}",
                      motif_source=motif_version)
+    if genome_fasta:
+        genome_integrity = verify_reference_file(str(genome_fasta))
+        if not reference_is_usable(genome_integrity):
+            return _skip(
+                "reference genome checksum validation failed; re-stage the "
+                "FASTA or fix its manifest before motif enrichment.",
+                motif_source=motif_version,
+                reference_integrity=public_integrity_result(genome_integrity),
+            )
+    else:
+        genome_integrity = None
     if not genome_fasta:
-        local, src = genomes.resolve_local_genome_fasta(assembly)
+        local, src, local_integrity = genomes.resolve_local_genome_fasta_with_integrity(
+            assembly
+        )
+        if local_integrity and not reference_is_usable(local_integrity):
+            return _skip(
+                "reference genome checksum validation failed; re-stage the "
+                "FASTA or fix its manifest before motif enrichment.",
+                motif_source=motif_version,
+                reference_integrity=public_integrity_result(local_integrity),
+            )
         if local:
-            genome_fasta, genome_source = local, src
+            genome_fasta, genome_source, genome_integrity = local, src, local_integrity
 
     # Decide whether a governed snapatac2 auto-fetch is warranted. It downloads +
     # caches the assembly FASTA (~hundreds of MB), so it requires an explicit
@@ -470,6 +501,7 @@ def chromatin_motifs(params: dict) -> dict:
         "method": method,
         "genome_fasta": str(genome_fasta),
         "genome_source": genome_source,
+        "reference_integrity": public_integrity_result(genome_integrity),
         "assembly": assembly or None,
         "motif_source": motif_version,
         "n_groups": len(per_group),

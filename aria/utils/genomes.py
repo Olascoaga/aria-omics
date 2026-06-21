@@ -24,6 +24,8 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+from aria.utils.reference_integrity import reference_is_usable, verify_reference_file
+
 GENOME_DIR_ENV = "ARIA_GENOME_DIR"
 GENOME_FASTA_ENV = "ARIA_GENOME_FASTA"
 
@@ -77,36 +79,67 @@ def _candidate_dirs(assembly: str) -> set[str]:
     return _DIR_ALIASES.get(n, {n}) if n else set()
 
 
-def local_genome_fasta(assembly: str | None) -> str | None:
-    """Find a curated FASTA for ``assembly`` under the managed store, or None.
-
-    Looks for ``ARIA_GENOME_DIR/<dir>/<*.fa[.gz]>`` and ``ARIA_GENOME_DIR/<dir>.fa``
-    across the assembly's alias dir names. No network, no fabrication."""
+def _candidate_fasta_paths(assembly: str | None) -> list[Path]:
     base = genome_dir()
+    candidates: list[Path] = []
     for d in _candidate_dirs(assembly):
         sub = base / d
         if sub.is_dir():
             for pat in _FASTA_GLOBS:
-                hits = sorted(sub.glob(pat))
-                if hits:
-                    return str(hits[0])
+                candidates.extend(sorted(sub.glob(pat)))
         for pat in _FASTA_GLOBS:
-            flat = base / pat.replace("*", d)
-            if flat.is_file():
-                return str(flat)
-    return None
+            candidates.append(base / pat.replace("*", d))
+    return candidates
+
+
+def local_genome_fasta_with_integrity(
+    assembly: str | None,
+) -> tuple[str | None, dict | None]:
+    """Find a usable curated FASTA and return ``(path, integrity)``.
+
+    A declared SHA-256 mismatch makes the candidate unusable. Missing manifests
+    remain accepted for backwards compatibility, but are reported as unchecked.
+    """
+    for cand in _candidate_fasta_paths(assembly):
+        if not cand.is_file():
+            continue
+        integrity = verify_reference_file(cand)
+        if reference_is_usable(integrity):
+            return str(cand), integrity
+        return None, integrity
+    return None, None
+
+
+def local_genome_fasta(assembly: str | None) -> str | None:
+    """Find a curated, checksum-usable FASTA for ``assembly`` under the managed store.
+
+    Looks for ``ARIA_GENOME_DIR/<dir>/<*.fa[.gz]>`` and ``ARIA_GENOME_DIR/<dir>.fa``
+    across the assembly's alias dir names. No network, no fabrication."""
+    path, _integrity = local_genome_fasta_with_integrity(assembly)
+    return path
+
+
+def resolve_local_genome_fasta_with_integrity(
+    assembly: str | None,
+) -> tuple[str | None, str | None, dict | None]:
+    """Resolve a local genome FASTA and include checksum integrity metadata."""
+    env = genome_fasta_from_env()
+    if env:
+        integrity = verify_reference_file(env)
+        if reference_is_usable(integrity):
+            return env, "env:ARIA_GENOME_FASTA", integrity
+        return None, "env:ARIA_GENOME_FASTA", integrity
+    local, integrity = local_genome_fasta_with_integrity(assembly)
+    if local:
+        return local, "managed:ARIA_GENOME_DIR", integrity
+    return None, None, integrity
 
 
 def resolve_local_genome_fasta(assembly: str | None) -> tuple[str | None, str | None]:
     """Resolve a LOCAL genome FASTA (no network): env fallback, then the managed
     store keyed by assembly. Returns ``(path|None, source|None)``."""
-    env = genome_fasta_from_env()
-    if env:
-        return env, "env:ARIA_GENOME_FASTA"
-    local = local_genome_fasta(assembly)
-    if local:
-        return local, "managed:ARIA_GENOME_DIR"
-    return None, None
+    path, source, _integrity = resolve_local_genome_fasta_with_integrity(assembly)
+    return path, source
 
 
 def snapatac2_attr(assembly: str | None) -> str | None:

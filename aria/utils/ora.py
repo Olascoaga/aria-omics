@@ -27,6 +27,9 @@ import math
 import os
 from pathlib import Path
 
+from aria.utils.reference_integrity import (
+    public_integrity_result, reference_is_usable, verify_reference_file,
+)
 from aria.utils.stats import bh_correct
 
 ENRICHR_OPT_IN_ENV = "ARIA_ALLOW_ENRICHR"
@@ -90,14 +93,22 @@ def load_local_library(library_name: str):
         return None
     version: dict = {"library": library_name, "n_terms": len(gene_sets)}
     manifest = base / "manifest.json"
+    integrity = verify_reference_file(gmt, manifest_path=manifest)
+    if not reference_is_usable(integrity):
+        return None
     if manifest.is_file():
-        try:
-            version.update(json.loads(manifest.read_text(encoding="utf-8")))
-        except Exception:
-            pass
+        manifest_data = integrity.get("manifest")
+        if isinstance(manifest_data, dict):
+            version.update(manifest_data)
+        else:
+            try:
+                version.update(json.loads(manifest.read_text(encoding="utf-8")))
+            except Exception:
+                pass
     version.setdefault("source", "unknown")
     version.setdefault("release", "unknown")
     version["n_terms"] = len(gene_sets)
+    version["integrity"] = public_integrity_result(integrity)
     return gene_sets, version
 
 

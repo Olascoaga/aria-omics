@@ -50,10 +50,12 @@ def _stage_collection(motif_dir: Path, collection: str, manifest=True):
     base.mkdir(parents=True, exist_ok=True)
     (base / f"{collection}.meme").write_text(_MEME, encoding="utf-8")
     if manifest:
+        import hashlib
         import json
         (base / "manifest.json").write_text(json.dumps({
             "collection": collection, "source": "test",
-            "release": "2024", "sha256": "deadbeef",
+            "release": "2024",
+            "sha256": hashlib.sha256(_MEME.encode("utf-8")).hexdigest(),
         }), encoding="utf-8")
 
 

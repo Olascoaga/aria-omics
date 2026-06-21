@@ -13,6 +13,7 @@ from typing import Any
 from aria.utils.assay_contracts import validate_assay_contract
 from aria.utils.design_power import assess_design_power
 from aria.utils.multiome_contracts import validate_multiome_contract
+from aria.utils.reference_integrity import assess_reference_integrity
 
 
 _STATUS_RANK = {"green": 0, "yellow": 1, "red": 2}
@@ -497,6 +498,9 @@ def build_capability_matrix(
     design_power = assess_design_power(exp_context)
     if design_power.get("status") != "not_applicable":
         preflight["design_power"] = design_power
+    reference_integrity = assess_reference_integrity(exp_context)
+    if reference_integrity.get("status") != "not_applicable":
+        preflight["reference_integrity"] = reference_integrity
 
     dispatch = {"allowed": [], "requires_ack": [], "blocked": []}
     findings = []
