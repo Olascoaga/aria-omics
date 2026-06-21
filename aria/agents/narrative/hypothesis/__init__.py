@@ -13,10 +13,16 @@ devils_advocate (S3), ledger quarantine (S4), and per-modality evidence adapters
 
 from __future__ import annotations
 
+from .adapters import bulk_rna_evidence
 from .devils_advocate import (
     check_devils_advocate,
     declared_confounds,
     visible_confounds,
+)
+from .proposer_llm import (
+    LLMProposer,
+    build_proposer_prompt,
+    parse_hypotheses,
 )
 from .gates import GateResult, check_falsifiability, check_language
 from .grounding import (
@@ -53,4 +59,8 @@ __all__ = [
     "is_hypothesis_node",
     "quarantine_hypotheses",
     "quarantine_node_id",
+    "bulk_rna_evidence",
+    "LLMProposer",
+    "build_proposer_prompt",
+    "parse_hypotheses",
 ]
