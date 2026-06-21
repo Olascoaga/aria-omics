@@ -10,7 +10,8 @@ becomes a 5th adapter (S10) emitting the same ``EvidenceSignal``.
 
 from __future__ import annotations
 
+from .bulk_atac import bulk_atac_evidence
 from .bulk_rna import bulk_rna_evidence
 from .scrna import scrna_evidence
 
-__all__ = ["bulk_rna_evidence", "scrna_evidence"]
+__all__ = ["bulk_rna_evidence", "scrna_evidence", "bulk_atac_evidence"]
