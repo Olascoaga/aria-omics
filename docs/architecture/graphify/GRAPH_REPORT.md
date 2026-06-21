@@ -4,12 +4,12 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 5372 nodes · 11059 edges · 332 communities (322 shown, 10 thin omitted)
+- 5546 nodes · 11268 edges · 350 communities (341 shown, 9 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `84d4f41f`
+- Built from commit: `1d174684`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -277,6 +277,7 @@
 - [[_COMMUNITY_Community 260|Community 260]]
 - [[_COMMUNITY_Community 261|Community 261]]
 - [[_COMMUNITY_Community 262|Community 262]]
+- [[_COMMUNITY_Community 263|Community 263]]
 - [[_COMMUNITY_Community 264|Community 264]]
 - [[_COMMUNITY_Community 265|Community 265]]
 - [[_COMMUNITY_Community 266|Community 266]]
@@ -288,7 +289,6 @@
 - [[_COMMUNITY_Community 272|Community 272]]
 - [[_COMMUNITY_Community 273|Community 273]]
 - [[_COMMUNITY_Community 274|Community 274]]
-- [[_COMMUNITY_Community 275|Community 275]]
 - [[_COMMUNITY_Community 276|Community 276]]
 - [[_COMMUNITY_Community 277|Community 277]]
 - [[_COMMUNITY_Community 278|Community 278]]
@@ -305,6 +305,7 @@
 - [[_COMMUNITY_Community 289|Community 289]]
 - [[_COMMUNITY_Community 290|Community 290]]
 - [[_COMMUNITY_Community 291|Community 291]]
+- [[_COMMUNITY_Community 292|Community 292]]
 - [[_COMMUNITY_Community 293|Community 293]]
 - [[_COMMUNITY_Community 294|Community 294]]
 - [[_COMMUNITY_Community 295|Community 295]]
@@ -323,14 +324,32 @@
 - [[_COMMUNITY_Community 308|Community 308]]
 - [[_COMMUNITY_Community 309|Community 309]]
 - [[_COMMUNITY_Community 310|Community 310]]
-- [[_COMMUNITY_Community 311|Community 311]]
 - [[_COMMUNITY_Community 312|Community 312]]
+- [[_COMMUNITY_Community 313|Community 313]]
 - [[_COMMUNITY_Community 314|Community 314]]
 - [[_COMMUNITY_Community 315|Community 315]]
 - [[_COMMUNITY_Community 316|Community 316]]
 - [[_COMMUNITY_Community 317|Community 317]]
+- [[_COMMUNITY_Community 318|Community 318]]
+- [[_COMMUNITY_Community 319|Community 319]]
+- [[_COMMUNITY_Community 320|Community 320]]
 - [[_COMMUNITY_Community 321|Community 321]]
 - [[_COMMUNITY_Community 322|Community 322]]
+- [[_COMMUNITY_Community 323|Community 323]]
+- [[_COMMUNITY_Community 324|Community 324]]
+- [[_COMMUNITY_Community 325|Community 325]]
+- [[_COMMUNITY_Community 326|Community 326]]
+- [[_COMMUNITY_Community 327|Community 327]]
+- [[_COMMUNITY_Community 328|Community 328]]
+- [[_COMMUNITY_Community 329|Community 329]]
+- [[_COMMUNITY_Community 330|Community 330]]
+- [[_COMMUNITY_Community 331|Community 331]]
+- [[_COMMUNITY_Community 332|Community 332]]
+- [[_COMMUNITY_Community 333|Community 333]]
+- [[_COMMUNITY_Community 334|Community 334]]
+- [[_COMMUNITY_Community 335|Community 335]]
+- [[_COMMUNITY_Community 337|Community 337]]
+- [[_COMMUNITY_Community 342|Community 342]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `ChromatinNarrator` - 58 edges
@@ -339,7 +358,7 @@
 4. `scRNAAgent` - 51 edges
 5. `read_h5ad()` - 49 edges
 6. `Caveat` - 47 edges
-7. `run_script()` - 45 edges
+7. `run_script()` - 47 edges
 8. `collect_version_metadata()` - 45 edges
 9. `OrchestratorAgent` - 42 edges
 10. `verify_block_claim_support()` - 41 edges
@@ -359,11 +378,11 @@
 ## Import Cycles
 - 1-file cycle: `aria/runtime/experiment_view.py -> aria/runtime/experiment_view.py`
 
-## Communities (332 total, 10 thin omitted)
+## Communities (350 total, 9 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.03
-Nodes (26): bool, CompletedProcess, _cache_params(), _cache_matches(), _assert_legacy_script_passed(), bool, Path, str (+18 more)
+Cohesion: 0.05
+Nodes (41): scRNAAgent, ARIAMemory, bool, LLMProvider, Path, str, Any, bool (+33 more)
 
 ### Community 1 - "Community 1"
 Cohesion: 0.06
@@ -371,527 +390,531 @@ Nodes (68): AuditAgent, _find_star_logs(), _infer_batch_labels(), _infer_group_l
 
 ### Community 2 - "Community 2"
 Cohesion: 0.06
-Nodes (55): _collapse_mex_directories(), DataAuditAgent, DataAuditScanLimits, _env_bool(), _env_float(), _env_int(), _env_optional_int(), _incomplete_mex_warnings() (+47 more)
+Nodes (63): Any, bool, NarrativeBlock, str, NarrativeBlock, Path, str, Any (+55 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.06
-Nodes (28): apply_metadata_corrections(), DesignIntelligence, format_design_intelligence(), OrchestratorAgent, bool, int, str, ARIAMemory (+20 more)
+Nodes (52): Any, ARIAMemory, float, int, LLMProvider, str, Any, float (+44 more)
 
 ### Community 4 - "Community 4"
-Cohesion: 0.06
-Nodes (31): scRNAAgent, ARIAMemory, bool, LLMProvider, Path, str, Any, float (+23 more)
+Cohesion: 0.03
+Nodes (13): bool, CompletedProcess, _cache_params(), _cache_matches(), _assert_legacy_script_passed(), test_clustering_cache_requires_matching_parameters(), test_clustering_skip_leiden_when_cluster_col_provided(), test_concat_cache_requires_matching_manifest() (+5 more)
 
 ### Community 5 - "Community 5"
-Cohesion: 0.07
-Nodes (71): default_genome_for_organism(), int, Path, str, Exception, object, str, ask_biological_question() (+63 more)
+Cohesion: 0.06
+Nodes (23): DesignIntelligence, format_design_intelligence(), OrchestratorAgent, bool, int, str, ARIAMemory, bool (+15 more)
 
 ### Community 6 - "Community 6"
-Cohesion: 0.07
-Nodes (50): bool, NarrativeBlock, str, bool, EvidenceItem, NarrativeBlock, Path, str (+42 more)
+Cohesion: 0.08
+Nodes (62): int, Path, str, Exception, ask_biological_question(), _collect_metadata_corrections(), _data_summary_lines(), _discard_queued_stdin_lines() (+54 more)
 
 ### Community 7 - "Community 7"
-Cohesion: 0.08
-Nodes (40): Any, ARIAMemory, float, int, LLMProvider, str, MetricEvaluator, ParameterAdvisor (+32 more)
-
-### Community 8 - "Community 8"
 Cohesion: 0.09
 Nodes (53): BiologicalSynthesisAgent, bool, Any, EvidenceItem, int, NarrativeBlock, str, Any (+45 more)
 
-### Community 9 - "Community 9"
+### Community 8 - "Community 8"
 Cohesion: 0.06
 Nodes (21): DesignAgent, AnswerPolicy, ARIAMemory, float, LLMProvider, str, default_answer_policy(), drain_pending_checkpoints() (+13 more)
 
-### Community 10 - "Community 10"
+### Community 9 - "Community 9"
 Cohesion: 0.08
 Nodes (46): bool, float, int, str, bool, str, _basic_chromatin_qc(), _bulk_chromatin_qc() (+38 more)
 
-### Community 11 - "Community 11"
-Cohesion: 0.06
-Nodes (50): float, str, str, _abs_corr(), _composition_covariate_decision(), _effective_alpha_from_significant(), _expressed_background(), _fdr_filtering_basis() (+42 more)
+### Community 10 - "Community 10"
+Cohesion: 0.07
+Nodes (45): int, str, bool, int, Path, str, str, map_peaks_to_gene_markers() (+37 more)
 
-### Community 12 - "Community 12"
+### Community 11 - "Community 11"
 Cohesion: 0.08
 Nodes (18): NarrativeAgent, ARIAMemory, LLMProvider, str, _agent(), _bulk_agent_results(), _exp_ctx(), test_bulk_executive_summary_is_deterministic_and_grounded() (+10 more)
 
-### Community 13 - "Community 13"
+### Community 12 - "Community 12"
 Cohesion: 0.07
 Nodes (15): GenomeArchAgent, ARIAMemory, int, LLMProvider, str, str, hic_inspect(), _inspect_cool() (+7 more)
 
-### Community 14 - "Community 14"
+### Community 13 - "Community 13"
 Cohesion: 0.14
 Nodes (42): Any, bool, float, int, str, _bh_adjust(), DEBenchmarkResult, _finite_float() (+34 more)
 
-### Community 15 - "Community 15"
+### Community 14 - "Community 14"
 Cohesion: 0.07
-Nodes (37): Path, str, str, float, bool, bool, Any, bool (+29 more)
+Nodes (24): ComposeResult, int, CheckpointView, ExperimentHistoryView, ExperimentSnapshot, ExperimentSnapshot, _snap(), test_artifacts_toggle_shows_and_hides() (+16 more)
 
-### Community 16 - "Community 16"
-Cohesion: 0.08
-Nodes (39): bool, float, int, str, main(), int, str, _auto_contrasts() (+31 more)
-
-### Community 17 - "Community 17"
-Cohesion: 0.04
-Nodes (47): aria_version, artifacts, manifest_json, benchmark, benchmark_version, dataset, base_rate, donor_sigma (+39 more)
-
-### Community 18 - "Community 18"
+### Community 15 - "Community 15"
 Cohesion: 0.12
 Nodes (41): Any, float, int, ndarray, str, Any, str, adjusted_rand_index() (+33 more)
 
-### Community 19 - "Community 19"
-Cohesion: 0.07
-Nodes (23): ComposeResult, int, CheckpointView, ExperimentHistoryView, ExperimentSnapshot, ExperimentSnapshot, _snap(), test_artifacts_toggle_shows_and_hides() (+15 more)
+### Community 16 - "Community 16"
+Cohesion: 0.04
+Nodes (47): aria_version, artifacts, manifest_json, benchmark, benchmark_version, dataset, base_rate, donor_sigma (+39 more)
 
-### Community 20 - "Community 20"
-Cohesion: 0.11
-Nodes (46): Any, bool, float, int, Message, Path, str, PathLike (+38 more)
+### Community 17 - "Community 17"
+Cohesion: 0.08
+Nodes (41): float, str, str, _abs_corr(), _composition_covariate_decision(), _effective_alpha_from_significant(), _expressed_background(), _global_bh() (+33 more)
 
-### Community 21 - "Community 21"
-Cohesion: 0.10
-Nodes (39): object, str, Any, bool, str, adjudicate(), cohen_kappa(), export_labeling_sheet() (+31 more)
-
-### Community 22 - "Community 22"
+### Community 18 - "Community 18"
 Cohesion: 0.12
 Nodes (35): Any, bool, float, int, Path, str, _aggregate_plots(), _chrom_sizes_from_fai() (+27 more)
 
-### Community 23 - "Community 23"
+### Community 19 - "Community 19"
+Cohesion: 0.10
+Nodes (39): object, str, Any, bool, str, adjudicate(), cohen_kappa(), export_labeling_sheet() (+31 more)
+
+### Community 20 - "Community 20"
 Cohesion: 0.12
 Nodes (38): Any, float, int, Path, str, _auc(), _finite_float(), _group_means_cpm() (+30 more)
 
-### Community 24 - "Community 24"
+### Community 21 - "Community 21"
 Cohesion: 0.05
 Nodes (43): aria_n_genes, aria_version, benchmark, caveats, concordance, n_aria_genes, n_ref_genes, n_shared_genes (+35 more)
 
-### Community 25 - "Community 25"
-Cohesion: 0.14
-Nodes (40): int, str, int, str, Any, float, int, Path (+32 more)
+### Community 22 - "Community 22"
+Cohesion: 0.08
+Nodes (33): Path, str, float, bool, bool, Any, bool, Path (+25 more)
 
-### Community 26 - "Community 26"
+### Community 23 - "Community 23"
 Cohesion: 0.05
 Nodes (42): aria_version, artifacts, figure_svg, manifest_json, axis_pass, honest_not_over_flagged, no_fabricated_slips_through, benchmark (+34 more)
 
-### Community 27 - "Community 27"
+### Community 24 - "Community 24"
+Cohesion: 0.05
+Nodes (40): aria_version, artifact, consumed, n_clusters, runtime_seconds, status, n_cells, n_peaks (+32 more)
+
+### Community 25 - "Community 25"
 Cohesion: 0.17
 Nodes (39): _annotation_state(), build_scrna_html_section(), build_scrna_integrated_interpretation(), build_scrna_methods(), _concise_question(), _describe_abundance_de_relationship(), _describe_cellcomm_context(), _describe_pathway_support() (+31 more)
 
-### Community 28 - "Community 28"
-Cohesion: 0.10
-Nodes (33): bool, int, Path, str, str, annotate_one_peak(), annotate_peaks(), chromatin_peak_annotation() (+25 more)
-
-### Community 29 - "Community 29"
+### Community 26 - "Community 26"
 Cohesion: 0.16
 Nodes (32): bool, bytes, float, int, object, Path, str, test_data_audit_classifies_paired_rna_fastq_as_bulk_rna_raw() (+24 more)
 
-### Community 30 - "Community 30"
+### Community 27 - "Community 27"
 Cohesion: 0.13
-Nodes (35): Any, bool, str, build_run_ledger(), _bulk_findings_normalized(), _entries_for(), _is_planned(), _ledger_modality_group() (+27 more)
+Nodes (39): Any, bool, float, int, Message, Path, str, PathLike (+31 more)
 
-### Community 31 - "Community 31"
+### Community 28 - "Community 28"
 Cohesion: 0.13
 Nodes (8): BulkRNAAgent, _is_fastq(), _normalise_sample_token(), ARIAMemory, bool, LLMProvider, Path, str
 
-### Community 32 - "Community 32"
-Cohesion: 0.16
-Nodes (34): Any, Path, str, Any, bool, int, Path, str (+26 more)
+### Community 29 - "Community 29"
+Cohesion: 0.13
+Nodes (33): bool, NarrativeBlock, Path, str, _apply_causal_guard(), _apply_low_confidence_warning(), _apply_trajectory_guard(), _evidence_is_named_entity() (+25 more)
 
-### Community 33 - "Community 33"
+### Community 30 - "Community 30"
 Cohesion: 0.12
-Nodes (26): bool, render_blocks(), EvidenceItem, NarrativeBlock, find_causal_language(), _causal_block(), _ora_block_with_regulatory_term_name(), test_causal_claim_still_caught_despite_term_name_evidence() (+18 more)
+Nodes (16): Any, float, int, str, _LazyMessageBus, Message, MessageBus, _escalation() (+8 more)
 
-### Community 34 - "Community 34"
+### Community 31 - "Community 31"
 Cohesion: 0.11
-Nodes (17): Any, float, int, str, _LazyMessageBus, Message, MessageBus, _escalation() (+9 more)
+Nodes (25): _default_lfc_threshold(), suggest_lfc_profile(), float, _infer_groups(), _run_vst(), _sample_qc(), _serialize_fit_warnings(), make_counts() (+17 more)
 
-### Community 35 - "Community 35"
-Cohesion: 0.09
-Nodes (20): bool, float, _json_serializer(), _cache_matches(), _cache_params(), _mad_bounds(), rna_qc(), _run_ambient_decontamination() (+12 more)
-
-### Community 36 - "Community 36"
+### Community 32 - "Community 32"
 Cohesion: 0.10
 Nodes (14): App, ComposeResult, ExperimentHistoryView, str, Input, Pressed, _IntakeHost, test_intake_app_hosts_the_screen() (+6 more)
 
-### Community 37 - "Community 37"
-Cohesion: 0.11
-Nodes (24): _default_lfc_threshold(), suggest_lfc_profile(), float, _infer_groups(), _run_vst(), _sample_qc(), _serialize_fit_warnings(), make_counts() (+16 more)
+### Community 33 - "Community 33"
+Cohesion: 0.09
+Nodes (20): bool, float, _json_serializer(), _cache_matches(), _cache_params(), _mad_bounds(), rna_qc(), _run_ambient_decontamination() (+12 more)
 
-### Community 38 - "Community 38"
+### Community 34 - "Community 34"
 Cohesion: 0.16
-Nodes (28): Any, bool, NarrativeBlock, str, build_evidence_card(), _claim_entities(), _claim_numbers(), EvidenceCard (+20 more)
+Nodes (20): bool, EvidenceItem, NarrativeBlock, Path, str, validate_blocks(), BulkRnaNarrator, _evidence() (+12 more)
 
-### Community 39 - "Community 39"
+### Community 35 - "Community 35"
+Cohesion: 0.10
+Nodes (28): float, int, str, main(), int, str, _auto_contrasts(), _build_design_formula() (+20 more)
+
+### Community 36 - "Community 36"
 Cohesion: 0.16
 Nodes (31): FindingView, LedgerNodeView, ModalityCardView, ProgressEvent, _capture(), ExperimentSnapshot, str, _snap() (+23 more)
 
-### Community 40 - "Community 40"
+### Community 37 - "Community 37"
 Cohesion: 0.17
 Nodes (25): generate_figures(), render_da_figures(), render_fragment_size_figure(), render_frip_distribution(), render_motif_dotplot(), render_peak_annotation(), render_sample_correlation(), render_tss_depth_scatter() (+17 more)
 
-### Community 41 - "Community 41"
-Cohesion: 0.17
-Nodes (28): bool, float, int, ndarray, str, _raw_counts(), test_classification_is_order_independent_R7(), test_classifier_reports_required_score_evidence_keys() (+20 more)
+### Community 38 - "Community 38"
+Cohesion: 0.06
+Nodes (30): aria_version, artifact, counts, peaks, accession, bytes_downloaded, data_type, description (+22 more)
 
-### Community 42 - "Community 42"
+### Community 39 - "Community 39"
+Cohesion: 0.17
+Nodes (27): Any, bool, NarrativeBlock, str, build_evidence_card(), _claim_entities(), _claim_numbers(), EvidenceCard (+19 more)
+
+### Community 40 - "Community 40"
+Cohesion: 0.19
+Nodes (3): ChromatinAgent, bool, str
+
+### Community 41 - "Community 41"
 Cohesion: 0.20
 Nodes (27): Any, bool, float, NarrativeBlock, str, annotate_claim_tiers(), _block_evidence_category(), _block_subject() (+19 more)
 
+### Community 42 - "Community 42"
+Cohesion: 0.22
+Nodes (27): Any, bool, int, Path, str, ProgressCallback, hash_params(), build_kb_count_command() (+19 more)
+
 ### Community 43 - "Community 43"
-Cohesion: 0.21
-Nodes (27): float, Path, str, adapt(), _entities_from_pb(), _first_mt_threshold(), _genome_for_organism(), _input_record() (+19 more)
+Cohesion: 0.17
+Nodes (28): bool, float, int, ndarray, str, _raw_counts(), test_classification_is_order_independent_R7(), test_classifier_reports_required_score_evidence_keys() (+20 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.07
 Nodes (28): method, n_called, n_tested, results_tsv, status, method, n_called, n_tested (+20 more)
 
 ### Community 45 - "Community 45"
+Cohesion: 0.21
+Nodes (27): float, Path, str, adapt(), _entities_from_pb(), _first_mt_threshold(), _genome_for_organism(), _input_record() (+19 more)
+
+### Community 46 - "Community 46"
+Cohesion: 0.18
+Nodes (28): datetime, build_snapshot(), _heartbeat_event(), status_text(), _eid(), _escalation(), _finding(), str (+20 more)
+
+### Community 47 - "Community 47"
+Cohesion: 0.23
+Nodes (27): int, str, Any, float, int, Path, str, main() (+19 more)
+
+### Community 48 - "Community 48"
 Cohesion: 0.22
 Nodes (10): NarrativeBlock, Caveat, ChromatinNarrator, _ev(), _modality_label(), _safe_id(), test_chromatin_narrator_fabricates_no_science_without_qc(), test_chromatin_narrator_is_a_registered_builtin() (+2 more)
 
-### Community 46 - "Community 46"
+### Community 49 - "Community 49"
 Cohesion: 0.16
 Nodes (25): Any, Path, str, chromatin_bulk_diffacc(), _error(), _load_counts_matrix(), _load_sample_metadata(), _normalise_comparisons() (+17 more)
 
-### Community 47 - "Community 47"
+### Community 50 - "Community 50"
 Cohesion: 0.15
 Nodes (22): Any, bool, float, int, Path, str, benchmark_a1_external_comparators(), _finite() (+14 more)
 
-### Community 48 - "Community 48"
-Cohesion: 0.19
-Nodes (8): NarrativeBlock, Path, str, int, _executive_summary_numbers(), _normalize_exec_summary_number(), ReportBuilderMixin, collect_llm_usage()
-
-### Community 49 - "Community 49"
+### Community 51 - "Community 51"
 Cohesion: 0.22
 Nodes (27): bool, ExperimentHistoryView, ExperimentSnapshot, float, int, str, Panel, Text (+19 more)
 
-### Community 50 - "Community 50"
-Cohesion: 0.14
-Nodes (25): bool, int, str, RuntimeError, _as_bool(), _celltypist_model_cached(), _extract_assigned_confidences(), _resolve_celltypist_model() (+17 more)
-
 ### Community 52 - "Community 52"
-Cohesion: 0.15
-Nodes (25): Any, bool, NarrativeBlock, str, _block_composition_ok(), _block_low_power(), build_devils_advocate(), _challenges_for() (+17 more)
+Cohesion: 0.14
+Nodes (13): Any, bool, int, Path, str, ContractIssue, main(), int (+5 more)
 
 ### Community 53 - "Community 53"
 Cohesion: 0.10
 Nodes (13): _agent(), _exec_summary_block(), _PromptCaptureLLM, NarrativeBlock, str, _ReportHarness, test_exec_summary_correct_count_is_supported(), test_exec_summary_reused_identifier_as_count_is_unsupported() (+5 more)
 
 ### Community 54 - "Community 54"
+Cohesion: 0.22
+Nodes (4): DataAuditAgent, ARIAMemory, Path, str
+
+### Community 55 - "Community 55"
+Cohesion: 0.16
+Nodes (20): _bare_agent(), _collect(), _FakeEnv, _findings(), Path_basename(), test_agent_h5mu_flow_dispatches_and_stores_findings(), test_blocks_group_into_chromatin_section(), test_blocks_pass_strict_wclaim_render() (+12 more)
+
+### Community 56 - "Community 56"
+Cohesion: 0.19
+Nodes (22): Path, str, bool, str, float, str, _gtf_to_symbol_map(), _load_gene_annotation() (+14 more)
+
+### Community 57 - "Community 57"
+Cohesion: 0.12
+Nodes (20): bool, float, int, str, bulk_rna_de(), _compute_tpm(), _contrast_overlap(), _format_top_genes() (+12 more)
+
+### Community 58 - "Community 58"
 Cohesion: 0.21
 Nodes (22): Any, int, Path, str, chromatin_peak_counts(), _count_one_sample(), _error(), _genome_sizes_from_bam() (+14 more)
 
-### Community 55 - "Community 55"
-Cohesion: 0.15
-Nodes (12): Any, bool, int, Path, str, ContractIssue, main(), int (+4 more)
-
-### Community 56 - "Community 56"
+### Community 59 - "Community 59"
 Cohesion: 0.21
 Nodes (6): SetupAgent, ARIAMemory, bool, LLMProvider, Path, str
 
-### Community 57 - "Community 57"
+### Community 60 - "Community 60"
 Cohesion: 0.19
 Nodes (22): Path, ScrnaNarrator, _findings_with_annotation_confidence(), _findings_with_confidence_extraction_failed(), _synthetic_marker_success_findings(), _synthetic_scrna_findings(), test_composition_claim_names_the_fdr_threshold(), test_data_quality_block_surfaces_confidence_extraction_failure() (+14 more)
 
-### Community 58 - "Community 58"
-Cohesion: 0.15
-Nodes (11): ABC, BaseAgent, ARIAMemory, float, int, LLMProvider, Message, str (+3 more)
-
-### Community 59 - "Community 59"
+### Community 61 - "Community 61"
 Cohesion: 0.21
 Nodes (21): Any, float, int, str, ATACDACaller, aria_bulk_atac_da_caller(), aria_pseudobulk_da_caller(), _emit_bulk_atac_tsvs() (+13 more)
 
-### Community 60 - "Community 60"
+### Community 62 - "Community 62"
 Cohesion: 0.20
 Nodes (10): bool, EvidenceItem, NarrativeBlock, str, _annotation_confidence_by_label(), _blocking_integration_caveat(), _design_issues(), _evidence() (+2 more)
 
-### Community 61 - "Community 61"
+### Community 63 - "Community 63"
+Cohesion: 0.16
+Nodes (11): ABC, BaseAgent, ARIAMemory, float, int, LLMProvider, Message, str (+3 more)
+
+### Community 64 - "Community 64"
 Cohesion: 0.16
 Nodes (22): float, int, Path, str, _avg_pct_passed(), _build_calibration_badge(), _build_lockfile_section(), _build_raw_ingestion_section() (+14 more)
 
-### Community 62 - "Community 62"
+### Community 65 - "Community 65"
+Cohesion: 0.16
+Nodes (22): bool, int, str, _as_bool(), _celltypist_model_cached(), _extract_assigned_confidences(), _resolve_celltypist_model(), rna_celltypist() (+14 more)
+
+### Community 66 - "Community 66"
 Cohesion: 0.19
 Nodes (19): _check_env_file_permissions(), _check_llm(), _check_secrets(), _check_synthetic_assets(), console_main(), main(), _probe_latency(), int (+11 more)
 
-### Community 63 - "Community 63"
-Cohesion: 0.26
-Nodes (22): datetime, build_snapshot(), _heartbeat_event(), _eid(), _escalation(), _finding(), str, _status() (+14 more)
+### Community 67 - "Community 67"
+Cohesion: 0.14
+Nodes (16): str, _get_gene_sets(), _gseapy_organism(), rna_pathway_per_cluster(), test_per_cluster_ora_refuses_enrichr_when_air_gapped(), _import_bulk(), _ref_sf(), test_bulk_run_pathway_enrichment_defaults_to_local() (+8 more)
 
-### Community 64 - "Community 64"
+### Community 68 - "Community 68"
 Cohesion: 0.09
 Nodes (21): aria_version, artifacts, figure_svg, manifest_json, axis_pass, lfc_concordance, sig_overlap, benchmark (+13 more)
 
-### Community 65 - "Community 65"
-Cohesion: 0.20
-Nodes (7): DebateCouncil, DebateResult, DebateRound, DebateVerdict, int, LLMProvider, str
+### Community 69 - "Community 69"
+Cohesion: 0.11
+Nodes (8): str, integration_wnn(), _load_atac(), _load_rna(), _Decision, MockAdvisor, MockEnvManager, MockMemory
 
-### Community 66 - "Community 66"
+### Community 70 - "Community 70"
+Cohesion: 0.23
+Nodes (19): bool, float, int, str, _build_macs3_cmd(), chromatin_peaks(), _compute_frip(), _count_peaks() (+11 more)
+
+### Community 71 - "Community 71"
+Cohesion: 0.19
+Nodes (12): EvidenceItem, NarrativeBlock, test_gsea_prose_nes_matches_evidence_after_rounding_fix(), test_render_blocks_does_not_duplicate_associative_badge_label(), test_render_blocks_fails_on_unsupported_claim_sentence(), test_render_blocks_shows_claim_evidence_caveats_and_validates_files(), test_render_blocks_stores_claim_verification_metadata(), test_render_blocks_strict_false_withholds_bad_block_without_aborting() (+4 more)
+
+### Community 72 - "Community 72"
 Cohesion: 0.18
 Nodes (20): bool, float, int, Path, str, main(), int, Path (+12 more)
 
-### Community 67 - "Community 67"
-Cohesion: 0.10
-Nodes (5): _Decision, MockAdvisor, MockEnvManager, MockLLM, MockMemory
+### Community 73 - "Community 73"
+Cohesion: 0.20
+Nodes (7): DebateCouncil, DebateResult, DebateRound, DebateVerdict, int, LLMProvider, str
 
-### Community 68 - "Community 68"
+### Community 74 - "Community 74"
 Cohesion: 0.22
 Nodes (6): IntegrationAgent, ARIAMemory, bool, int, LLMProvider, str
 
-### Community 69 - "Community 69"
+### Community 75 - "Community 75"
 Cohesion: 0.15
 Nodes (17): Any, str, ModelConfig, build_robustness_multiverse(), _fake_response(), _provider(), test_absent_tier_falls_back_to_medium(), test_heavy_only_config_does_not_keyerror_on_present_tier() (+9 more)
 
-### Community 70 - "Community 70"
+### Community 76 - "Community 76"
 Cohesion: 0.26
 Nodes (5): RawIngestionAgent, ARIAMemory, bool, Path, str
 
-### Community 71 - "Community 71"
-Cohesion: 0.24
-Nodes (18): bool, float, int, str, _build_macs3_cmd(), chromatin_peaks(), _compute_frip(), _count_peaks() (+10 more)
-
-### Community 72 - "Community 72"
-Cohesion: 0.22
-Nodes (19): bool, NarrativeBlock, Path, str, _apply_causal_guard(), _apply_low_confidence_warning(), _apply_trajectory_guard(), _evidence_is_named_entity() (+11 more)
-
-### Community 73 - "Community 73"
-Cohesion: 0.22
-Nodes (7): DesignStep, CavemanMode, Confidence, MessageType, Enum, TaskTier, record_llm_usage()
-
-### Community 74 - "Community 74"
-Cohesion: 0.26
-Nodes (6): float, int, Path, str, LLMProvider, test_llm_provider_loads_aria_env_file()
-
-### Community 75 - "Community 75"
-Cohesion: 0.24
-Nodes (5): bool, int, str, ContextManager, ModelProfile
-
-### Community 76 - "Community 76"
-Cohesion: 0.20
-Nodes (18): Any, float, int, Path, str, _finite(), _jaccard(), run_kang_muscat_benchmark() (+10 more)
-
 ### Community 77 - "Community 77"
-Cohesion: 0.27
-Nodes (10): Path, str, _cb(), GEOConnector, _gse_prefix(), _infer_design(), _parse_soft_text(), _resolve_organism() (+2 more)
-
-### Community 78 - "Community 78"
-Cohesion: 0.17
-Nodes (17): _bulk_da_motif_regions(), _positive_int(), _rank_bulk_da_motif_peaks(), int, _agent(), _FakeBulkAtacEnv, test_bulk_atac_agent_runs_qc_peaks_counts_and_da(), test_bulk_atac_da_runs_in_rna_stack_with_replicate_override() (+9 more)
-
-### Community 79 - "Community 79"
-Cohesion: 0.19
-Nodes (17): bool, str, _as_bool(), _cache_matches(), _cache_params(), chromatin_lsi_clustering(), _jsonable(), _load_atac_adata() (+9 more)
-
-### Community 80 - "Community 80"
 Cohesion: 0.24
 Nodes (18): Any, float, int, str, test_atac_batch_qc_warns_on_hidden_batch_and_batch_dominated_lsi(), test_atac_doublet_detector_flags_synthetic_doublets_and_keeps_clean_cells(), test_atac_doublet_detector_skips_honestly_when_too_few_cells(), test_consensus_peak_provenance_distinguishes_verified_from_unverified() (+10 more)
 
+### Community 78 - "Community 78"
+Cohesion: 0.19
+Nodes (17): bool, str, _as_bool(), _cache_matches(), _cache_params(), chromatin_lsi_clustering(), _jsonable(), _load_atac_adata() (+9 more)
+
+### Community 79 - "Community 79"
+Cohesion: 0.20
+Nodes (18): Any, float, int, Path, str, _finite(), _jaccard(), run_kang_muscat_benchmark() (+10 more)
+
+### Community 80 - "Community 80"
+Cohesion: 0.24
+Nodes (5): bool, int, str, ContextManager, ModelProfile
+
 ### Community 81 - "Community 81"
+Cohesion: 0.26
+Nodes (6): float, int, Path, str, LLMProvider, test_llm_provider_loads_aria_env_file()
+
+### Community 82 - "Community 82"
+Cohesion: 0.24
+Nodes (6): DesignStep, CavemanMode, Confidence, MessageType, Enum, TaskTier
+
+### Community 83 - "Community 83"
+Cohesion: 0.18
+Nodes (17): RuntimeError, Any, bool, str, test_bulk_local_ora_still_runs_when_air_gapped(), test_egress_gate_tracks_air_gapped(), test_geo_fetch_refuses_when_air_gapped(), _write_human_gmts() (+9 more)
+
+### Community 84 - "Community 84"
+Cohesion: 0.18
+Nodes (19): _geo_bucket_map(), _classify_suppl_file(), _infer_data_type(), test_atac_beats_rna_branch_for_10x_atac(), test_atacseq_no_separator(), test_bam_bucket(), test_bulk_atac_from_library_strategy(), test_dnase_open_chromatin_not_atac() (+11 more)
+
+### Community 85 - "Community 85"
+Cohesion: 0.27
+Nodes (10): Path, str, _cb(), GEOConnector, _gse_prefix(), _infer_design(), _parse_soft_text(), _resolve_organism() (+2 more)
+
+### Community 86 - "Community 86"
+Cohesion: 0.39
+Nodes (19): bool, NarrativeBlock, str, compose_block_prose(), _compose_cellcomm(), _compose_composition(), _compose_de(), _compose_gsea() (+11 more)
+
+### Community 87 - "Community 87"
 Cohesion: 0.11
 Nodes (19): containerized, digest, env_lock_sha256, kind, reference, revision, validation, provenance (+11 more)
 
-### Community 82 - "Community 82"
+### Community 88 - "Community 88"
 Cohesion: 0.18
 Nodes (16): Any, float, int, str, main(), int, str, footprint_rna_concordance() (+8 more)
 
-### Community 83 - "Community 83"
-Cohesion: 0.23
-Nodes (16): _bare_agent(), _collect(), _FakeEnv, _findings(), Path_basename(), test_agent_h5mu_flow_dispatches_and_stores_findings(), test_blocks_group_into_chromatin_section(), test_blocks_pass_strict_wclaim_render() (+8 more)
-
-### Community 84 - "Community 84"
-Cohesion: 0.14
-Nodes (8): _is_fastq(), bool, _agent(), _FakeFastqEnv, test_bulk_atac_fastq_alignment_failure_skips_honestly(), test_bulk_atac_fastq_no_genome_skips(), test_bulk_atac_fastq_triggers_alignment(), test_is_fastq_helper()
-
-### Community 85 - "Community 85"
-Cohesion: 0.30
-Nodes (15): Any, bool, Path, str, BaseModel, FieldType, _canonical_script_key(), ContractField (+7 more)
-
-### Community 86 - "Community 86"
+### Community 89 - "Community 89"
 Cohesion: 0.15
 Nodes (14): _resolve_modality_thresholds(), _load_fetch_motifs(), Path, str, _stage_collection(), test_fetch_motifs_refuses_egress_when_air_gapped(), test_load_local_collection_reads_meme_and_manifest(), test_motif_modality_thresholds_resolve_by_caller_not_hardcoded_scatac() (+6 more)
 
-### Community 87 - "Community 87"
+### Community 90 - "Community 90"
+Cohesion: 0.19
+Nodes (16): _bulk_da_motif_regions(), _positive_int(), _rank_bulk_da_motif_peaks(), int, _agent(), _FakeBulkAtacEnv, test_bulk_atac_agent_runs_qc_peaks_counts_and_da(), test_bulk_atac_da_runs_in_rna_stack_with_replicate_override() (+8 more)
+
+### Community 91 - "Community 91"
+Cohesion: 0.30
+Nodes (15): Any, bool, Path, str, BaseModel, FieldType, _canonical_script_key(), ContractField (+7 more)
+
+### Community 92 - "Community 92"
 Cohesion: 0.18
 Nodes (15): Any, bool, ExperimentSnapshot, float, str, CheckpointResolver, IntakeScreenFactory, MetaProvider (+7 more)
 
-### Community 88 - "Community 88"
+### Community 93 - "Community 93"
 Cohesion: 0.11
 Nodes (17): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, comparison, denominator (+9 more)
 
-### Community 89 - "Community 89"
+### Community 94 - "Community 94"
+Cohesion: 0.15
+Nodes (7): _is_fastq(), _agent(), _FakeFastqEnv, test_bulk_atac_fastq_alignment_failure_skips_honestly(), test_bulk_atac_fastq_no_genome_skips(), test_bulk_atac_fastq_triggers_alignment(), test_is_fastq_helper()
+
+### Community 95 - "Community 95"
 Cohesion: 0.22
 Nodes (15): Any, int, str, _block(), build_null_corpus(), govern_block(), _null_evidence(), run_b4_benchmark() (+7 more)
 
-### Community 90 - "Community 90"
+### Community 96 - "Community 96"
 Cohesion: 0.12
 Nodes (16): aria_version, artifacts, figure_svg, manifest_json, axis_pass, dynamic_range, fold_change_recovery, benchmark (+8 more)
-
-### Community 91 - "Community 91"
-Cohesion: 0.22
-Nodes (13): Any, datetime, Path, str, stamp_artifacts(), stamp_body(), _strip_provenance(), main() (+5 more)
-
-### Community 92 - "Community 92"
-Cohesion: 0.12
-Nodes (17): provenance, aria_version, determinism, generated_utc, git_commit, git_describe, git_dirty, git_sha (+9 more)
-
-### Community 93 - "Community 93"
-Cohesion: 0.12
-Nodes (17): provenance, aria_version, determinism, generated_utc, git_commit, git_describe, git_dirty, git_sha (+9 more)
-
-### Community 94 - "Community 94"
-Cohesion: 0.21
-Nodes (16): _geo_bucket_map(), _classify_suppl_file(), _infer_data_type(), test_atac_beats_rna_branch_for_10x_atac(), test_bam_bucket(), test_bulk_atac_from_library_strategy(), test_fragments_bucketed_not_counts(), test_geo_bucket_map_rna_unchanged() (+8 more)
-
-### Community 95 - "Community 95"
-Cohesion: 0.13
-Nodes (3): MockEnvManager, MockLLM, MockMemory
-
-### Community 96 - "Community 96"
-Cohesion: 0.15
-Nodes (5): str, ModalScreen, Submitted, test_design_editor_submits_json_to_callback(), DesignEditorScreen
 
 ### Community 97 - "Community 97"
 Cohesion: 0.40
 Nodes (16): bool, int, str, _calibrate_insulation(), _compute_compartments(), _compute_loops(), _compute_tads(), _cooltools_dots() (+8 more)
 
 ### Community 98 - "Community 98"
-Cohesion: 0.17
-Nodes (16): AGR, BGI, CNL, MAY, NVS, cross_site, mean_offdiagonal_pearson, median_pair_genes (+8 more)
+Cohesion: 0.22
+Nodes (13): Any, datetime, Path, str, stamp_artifacts(), stamp_body(), _strip_provenance(), main() (+5 more)
 
 ### Community 99 - "Community 99"
 Cohesion: 0.12
-Nodes (16): n_denominator, n_genes_tested, n_numerator, status, n_denominator, n_genes_tested, n_numerator, status (+8 more)
+Nodes (17): provenance, aria_version, determinism, generated_utc, git_commit, git_describe, git_dirty, git_sha (+9 more)
 
 ### Community 100 - "Community 100"
 Cohesion: 0.12
-Nodes (15): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, comparison, denominator (+7 more)
+Nodes (17): provenance, aria_version, determinism, generated_utc, git_commit, git_describe, git_dirty, git_sha (+9 more)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.23
-Nodes (12): int, str, map_peaks_to_gene_markers(), parse_peak_interval(), main(), int, str, _read_rows() (+4 more)
+Cohesion: 0.12
+Nodes (13): ARIAMemory, AuditAgent, BiologicalSynthesisAgent, BulkRNAAgent, ChromatinAgent, DataAuditAgent, DesignAgent, EnvironmentManager (+5 more)
 
 ### Community 102 - "Community 102"
+Cohesion: 0.13
+Nodes (3): MockEnvManager, MockLLM, MockMemory
+
+### Community 103 - "Community 103"
+Cohesion: 0.36
+Nodes (16): bool, NarrativeBlock, Path, str, _claim_tier_badge(), group_blocks_by_prefix(), _group_key(), _image_uri() (+8 more)
+
+### Community 104 - "Community 104"
+Cohesion: 0.15
+Nodes (5): str, ModalScreen, Submitted, test_design_editor_submits_json_to_callback(), DesignEditorScreen
+
+### Community 105 - "Community 105"
+Cohesion: 0.17
+Nodes (16): AGR, BGI, CNL, MAY, NVS, cross_site, mean_offdiagonal_pearson, median_pair_genes (+8 more)
+
+### Community 106 - "Community 106"
+Cohesion: 0.12
+Nodes (16): n_denominator, n_genes_tested, n_numerator, status, n_denominator, n_genes_tested, n_numerator, status (+8 more)
+
+### Community 107 - "Community 107"
+Cohesion: 0.12
+Nodes (15): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, comparison, denominator (+7 more)
+
+### Community 108 - "Community 108"
+Cohesion: 0.25
+Nodes (15): _collapse_mex_directories(), _incomplete_mex_warnings(), _mex_dir_components(), test_complete_triplet_collapses_and_emits_no_warning(), test_gzipped_components_count_toward_completeness(), test_gzipped_v3_features_triplet_collapses(), test_h5ad_and_h5_are_untouched(), test_incomplete_mex_matrix_only_is_not_collapsed() (+7 more)
+
+### Community 109 - "Community 109"
 Cohesion: 0.29
 Nodes (12): collect_version_metadata(), _fallback_source_hash(), _git_bytes(), _git_text(), bytes, Path, str, _repo_root() (+4 more)
 
-### Community 103 - "Community 103"
+### Community 110 - "Community 110"
 Cohesion: 0.23
 Nodes (14): float, int, ndarray, str, build_consensus_pseudobulk(), _consensus_index(), merge_consensus_peaks(), remap_to_consensus() (+6 more)
 
-### Community 104 - "Community 104"
-Cohesion: 0.22
-Nodes (13): str, bool, _get_gene_sets(), _gseapy_organism(), rna_pathway_per_cluster(), test_bulk_local_ora_still_runs_when_air_gapped(), test_egress_gate_tracks_air_gapped(), test_geo_fetch_refuses_when_air_gapped() (+5 more)
+### Community 111 - "Community 111"
+Cohesion: 0.17
+Nodes (9): str, _resolve_groupby(), _agent(), test_agent_cellcomm_params_satisfy_the_contract(), test_cellcomm_contract_accepts_cell_type_col_alias(), test_cellcomm_contract_still_rejects_when_neither_key_present(), test_script_resolves_groupby_then_cell_type_col_alias(), test_contract_registered() (+1 more)
 
-### Community 105 - "Community 105"
-Cohesion: 0.19
-Nodes (10): _import_bulk(), _ref_sf(), test_bulk_run_pathway_enrichment_defaults_to_local(), test_bulk_run_pathway_enrichment_skips_without_gmt_or_optin(), test_hypergeom_sf_matches_reference(), test_load_local_library_with_manifest(), test_local_ora_for_databases_reports_missing(), test_parse_gmt() (+2 more)
-
-### Community 106 - "Community 106"
+### Community 112 - "Community 112"
 Cohesion: 0.22
 Nodes (15): AST, FunctionDef, _call_name(), _module_gates_mocks(), bool, Call, int, str (+7 more)
 
-### Community 107 - "Community 107"
-Cohesion: 0.36
-Nodes (15): NarrativeBlock, Path, str, _claim_tier_badge(), group_blocks_by_prefix(), _group_key(), _image_uri(), _render_block() (+7 more)
-
-### Community 108 - "Community 108"
-Cohesion: 0.23
-Nodes (13): Any, float, str, test_integration_classic_overcorrection_signature_is_blocking(), test_integration_clean_when_mixed_and_structure_preserved(), test_integration_flags_overcorrection_on_negative_cluster_silhouette(), test_integration_flags_residual_batch_effect(), test_integration_flags_worsened_mixing() (+5 more)
-
-### Community 109 - "Community 109"
+### Community 113 - "Community 113"
 Cohesion: 0.13
 Nodes (14): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, messages, method_under_test (+6 more)
 
-### Community 110 - "Community 110"
-Cohesion: 0.26
-Nodes (14): bool, float, int, Path, str, _categorical_colors(), _compute_umap(), _embedding_label() (+6 more)
-
-### Community 111 - "Community 111"
-Cohesion: 0.24
-Nodes (12): _build_clr_design(), _clr_transform_counts(), rna_diff_abundance(), _run_one_type_up(), test_clr_abundance_reports_compositional_dependence_caveat(), test_clr_design_adds_donor_fixed_effect_for_paired_design(), test_clr_transform_rows_sum_to_zero(), test_composition_block_surfaces_compositional_dependence_caveat() (+4 more)
-
-### Community 112 - "Community 112"
-Cohesion: 0.19
-Nodes (9): Any, str, ExperimentSession, DummyDesignAgent, _orchestrator(), OrchestratorAgent, str, test_experiment_session_scopes_design_agent_per_experiment() (+1 more)
-
-### Community 113 - "Community 113"
+### Community 114 - "Community 114"
 Cohesion: 0.39
 Nodes (14): bool, int, Path, str, _align_sample(), atac_align(), _bam_metrics(), _bam_valid() (+6 more)
 
-### Community 114 - "Community 114"
+### Community 115 - "Community 115"
 Cohesion: 0.25
 Nodes (12): Any, bool, str, test_candidate_column_corrected_by_integration_is_downgraded(), test_clean_when_no_candidate_batch_columns(), test_declared_batch_is_not_flagged(), test_flags_unmodeled_technical_column(), test_graceful_on_empty_inputs() (+4 more)
 
-### Community 115 - "Community 115"
+### Community 116 - "Community 116"
+Cohesion: 0.26
+Nodes (14): bool, float, int, Path, str, _categorical_colors(), _compute_umap(), _embedding_label() (+6 more)
+
+### Community 117 - "Community 117"
+Cohesion: 0.19
+Nodes (9): Any, str, ExperimentSession, DummyDesignAgent, _orchestrator(), OrchestratorAgent, str, test_experiment_session_scopes_design_agent_per_experiment() (+1 more)
+
+### Community 118 - "Community 118"
+Cohesion: 0.24
+Nodes (12): _build_clr_design(), _clr_transform_counts(), rna_diff_abundance(), _run_one_type_up(), test_clr_abundance_reports_compositional_dependence_caveat(), test_clr_design_adds_donor_fixed_effect_for_paired_design(), test_clr_transform_rows_sum_to_zero(), test_composition_block_surfaces_compositional_dependence_caveat() (+4 more)
+
+### Community 119 - "Community 119"
 Cohesion: 0.14
 Nodes (13): artifact_version, benchmark, benchmark_version, comparison, denominator, numerator, external_comparator_status, messages (+5 more)
 
-### Community 116 - "Community 116"
+### Community 120 - "Community 120"
 Cohesion: 0.14
 Nodes (13): artifact_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, external_reference_lane, reason (+5 more)
 
-### Community 117 - "Community 117"
+### Community 121 - "Community 121"
 Cohesion: 0.14
 Nodes (14): design, aria_da_core, comparators, consensus_peaks, feature_space, n_per_group, reference_group_COND_A, test_group_COND_B (+6 more)
 
-### Community 118 - "Community 118"
-Cohesion: 0.29
-Nodes (11): _binary_pct(), chromatin_diffacc(), _per_cluster_accessibility(), _clustered_adata(), test_diffacc_file_not_found(), test_per_cluster_accessibility_runs(), test_per_cluster_skips_single_cluster(), test_pseudobulk_da_runs_with_replicates() (+3 more)
-
-### Community 119 - "Community 119"
-Cohesion: 0.15
-Nodes (13): counts.tsv, ercc_counts.tsv, ercc_truth.tsv, samples.tsv, taqman.tsv, source, count_table, env (+5 more)
-
-### Community 120 - "Community 120"
-Cohesion: 0.26
-Nodes (12): _agent(), _nested_chromatin_agent_result(), test_chromatin_narrator_emits_blocks_from_nested_agent_result(), test_chromatin_qc_finding_handles_uncomputed_frip_tss(), test_design_skips_de_phase_for_chromatin_only_run(), test_design_skips_de_phase_for_other_chromatin_modalities(), test_design_still_fails_when_no_modalities_at_all(), test_executive_summary_concrete_block_includes_chromatin_outputs() (+4 more)
-
-### Community 121 - "Community 121"
-Cohesion: 0.15
-Nodes (13): arms, governed, guards_off, template_only, causal_overreach_rate, false_narrative_rate, informative_coverage, causal_overreach_rate (+5 more)
-
 ### Community 122 - "Community 122"
-Cohesion: 0.15
-Nodes (13): axes, lfc_concordance, ranking_concordance, n_genes_scored, n_true_de_scored, pearson_all_tested, pearson_true_de, spearman_all_tested (+5 more)
+Cohesion: 0.19
+Nodes (7): _pick_read(), _agent(), _Env, test_contract_registered(), test_pick_read(), test_scatac_fastq_aligns_then_continues(), test_scatac_fastq_without_barcode_skips()
 
 ### Community 123 - "Community 123"
 Cohesion: 0.15
-Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
+Nodes (13): counts.tsv, ercc_counts.tsv, ercc_truth.tsv, samples.tsv, taqman.tsv, source, count_table, env (+5 more)
 
 ### Community 124 - "Community 124"
-Cohesion: 0.15
-Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
+Cohesion: 0.26
+Nodes (12): _agent(), _nested_chromatin_agent_result(), test_chromatin_narrator_emits_blocks_from_nested_agent_result(), test_chromatin_qc_finding_handles_uncomputed_frip_tss(), test_design_skips_de_phase_for_chromatin_only_run(), test_design_skips_de_phase_for_other_chromatin_modalities(), test_design_still_fails_when_no_modalities_at_all(), test_executive_summary_concrete_block_includes_chromatin_outputs() (+4 more)
 
 ### Community 125 - "Community 125"
 Cohesion: 0.15
-Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
+Nodes (13): arms, governed, guards_off, template_only, causal_overreach_rate, false_narrative_rate, informative_coverage, causal_overreach_rate (+5 more)
 
 ### Community 126 - "Community 126"
 Cohesion: 0.15
-Nodes (12): aria_version, artifacts, manifest_json, benchmark, benchmark_version, caveats, da_certifying, messages (+4 more)
+Nodes (13): axes, lfc_concordance, ranking_concordance, n_genes_scored, n_true_de_scored, pearson_all_tested, pearson_true_de, spearman_all_tested (+5 more)
+
+### Community 127 - "Community 127"
+Cohesion: 0.15
+Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
 
 ### Community 128 - "Community 128"
+Cohesion: 0.15
+Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
+
+### Community 129 - "Community 129"
+Cohesion: 0.15
+Nodes (13): lfc_pearson, lfc_sign_agreement, lfc_spearman, n_aria_sig, n_aria_tested, n_ref_sig, n_ref_tested, n_shared_tested (+5 more)
+
+### Community 130 - "Community 130"
+Cohesion: 0.15
+Nodes (12): aria_version, artifacts, manifest_json, benchmark, benchmark_version, caveats, da_certifying, messages (+4 more)
+
+### Community 131 - "Community 131"
 Cohesion: 0.26
 Nodes (11): int, Path, str, _collection_name(), main(), int, str, collection_paths() (+3 more)
 
-### Community 129 - "Community 129"
+### Community 132 - "Community 132"
 Cohesion: 0.17
 Nodes (5): float, int, str, test_as_pseudobulk_params_shape(), AnalysisThresholds
 
-### Community 130 - "Community 130"
-Cohesion: 0.17
-Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
-
-### Community 131 - "Community 131"
-Cohesion: 0.17
-Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
-
-### Community 132 - "Community 132"
-Cohesion: 0.17
-Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
-
-### Community 133 - "Community 133"
-Cohesion: 0.17
-Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
-
 ### Community 134 - "Community 134"
-Cohesion: 0.17
-Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
+Cohesion: 0.18
+Nodes (13): bool, Path, str, test_raw_ingestion_agent_updates_scrna_modalities(), test_raw_ingestion_converts_10x_triplet_with_reader_provenance(), test_raw_ingestion_detects_valid_10x_triplet(), test_raw_ingestion_fastq_plan_blocks_without_explicit_metadata(), test_raw_ingestion_kb_execution_blocks_without_tooling() (+5 more)
 
 ### Community 135 - "Community 135"
 Cohesion: 0.17
@@ -906,88 +929,88 @@ Cohesion: 0.17
 Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 138 - "Community 138"
-Cohesion: 0.29
-Nodes (7): bool, Path, str, _chromatin_findings(), _is_bulk_atac(), _ok(), unwrap_chromatin_findings()
+Cohesion: 0.17
+Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 139 - "Community 139"
-Cohesion: 0.27
-Nodes (10): float, int, str, export_de_table(), export_pathways_table(), make_gsea_running_sums(), make_ora_dotplot(), _ranked_signature_frame() (+2 more)
+Cohesion: 0.17
+Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 140 - "Community 140"
-Cohesion: 0.32
-Nodes (10): float, test_bulk_de_global_contrast_family_is_recorded(), test_contrast_family_can_skip_lfc_gate_when_wald_test_used_lfc_null(), test_contrast_family_significance_pools_and_gates_on_lfc(), test_pooled_bh_is_more_conservative_than_per_group(), test_preregister_contrast_family_normalizes_and_declares(), bh_correct(), contrast_family_significance() (+2 more)
+Cohesion: 0.17
+Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 141 - "Community 141"
 Cohesion: 0.17
-Nodes (11): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, messages, method_under_test (+3 more)
+Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.17
-Nodes (11): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, messages, method_under_test (+3 more)
+Nodes (12): lfc_pearson, lfc_spearman, lfc_spearman_sig, n_aria_sig, n_genes_common, n_muscat_sig, n_shared_sig, shared_sig_direction_agreement (+4 more)
 
 ### Community 143 - "Community 143"
-Cohesion: 0.17
-Nodes (11): analysis, aria_version, contig_filter, dataset, engine, genome_assembly, honesty_notes, max_regions_per_group (+3 more)
+Cohesion: 0.29
+Nodes (10): _env_bool(), _env_float(), _env_int(), _env_optional_int(), _usable_design_col(), _usable_groupby_col(), _usable_replicate_col(), bool (+2 more)
 
 ### Community 144 - "Community 144"
-Cohesion: 0.17
-Nodes (9): ARIAMemory, BulkRNAAgent, ChromatinAgent, DataAuditAgent, DesignAgent, EnvironmentManager, MessageBus, OrchestratorAgent (+1 more)
+Cohesion: 0.30
+Nodes (11): _agent(), DataAuditAgent, test_data_audit_classifies_10x_like_mtx_triplet_as_scrna(), test_data_audit_classifies_count_table_by_numeric_content(), test_data_audit_classifies_h5ad_by_content_with_nonstandard_suffix(), test_data_audit_classifies_misnamed_bam_from_header(), test_data_audit_classifies_paired_h5mu_by_internal_modalities(), test_data_audit_classifies_salmon_quant_with_opaque_name() (+3 more)
 
 ### Community 145 - "Community 145"
-Cohesion: 0.17
-Nodes (12): concordance, link_jaccard, n_aria_genes, n_aria_links, n_ref_genes, n_ref_links, n_shared_links, recall_aria_in_ref (+4 more)
+Cohesion: 0.32
+Nodes (8): DataAuditScanLimits, _agent(), DataAuditAgent, test_scan_directory_respects_configured_file_size_limit(), test_scan_directory_respects_depth_and_skips_symlinks(), test_scan_directory_respects_immediate_time_budget(), test_scan_directory_respects_max_files(), test_scan_limits_can_come_from_context_or_environment()
 
 ### Community 146 - "Community 146"
-Cohesion: 0.20
-Nodes (5): Path, str, test_agent_registry_imports_and_script_contracts_are_valid(), check_registry_integrity(), _scripts()
-
-### Community 147 - "Community 147"
-Cohesion: 0.18
-Nodes (4): _Proc, int, str, test_read_clipboard_normalizes_crlf_and_trailing_newline()
-
-### Community 148 - "Community 148"
 Cohesion: 0.39
 Nodes (11): bool, int, Path, str, _align_sample(), _build_star_index(), _index_exists(), _mock_alignment() (+3 more)
 
-### Community 149 - "Community 149"
+### Community 147 - "Community 147"
 Cohesion: 0.30
 Nodes (11): build_combined_adata(), _donor_of(), main(), _parse_peak(), _presence_filter(), Path, str, _read_lines() (+3 more)
 
+### Community 148 - "Community 148"
+Cohesion: 0.17
+Nodes (11): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, messages, method_under_test (+3 more)
+
+### Community 149 - "Community 149"
+Cohesion: 0.17
+Nodes (11): aria_version, artifacts, figure_svg, manifest_json, benchmark, benchmark_version, messages, method_under_test (+3 more)
+
 ### Community 150 - "Community 150"
-Cohesion: 0.20
-Nodes (11): scores, scores, n_true_de_scored, pearson_true_de, spearman_true_de, rank_biased_overlap_p0.9, top_k, top_k_jaccard (+3 more)
+Cohesion: 0.17
+Nodes (11): analysis, aria_version, contig_filter, dataset, engine, genome_assembly, honesty_notes, max_regions_per_group (+3 more)
 
 ### Community 151 - "Community 151"
-Cohesion: 0.18
-Nodes (11): axes, dynamic_range, fold_change_recovery, dynamic_range_orders_of_magnitude, n_points, pearson_log_cpm_vs_log_conc, slope, n_ercc_detected (+3 more)
+Cohesion: 0.32
+Nodes (10): float, test_bulk_de_global_contrast_family_is_recorded(), test_contrast_family_can_skip_lfc_gate_when_wald_test_used_lfc_null(), test_contrast_family_significance_pools_and_gates_on_lfc(), test_pooled_bh_is_more_conservative_than_per_group(), test_preregister_contrast_family_normalizes_and_declares(), bh_correct(), contrast_family_significance() (+2 more)
 
 ### Community 152 - "Community 152"
-Cohesion: 0.18
-Nodes (11): expected_log2, measured_log2_mean, measured_log2_sd, n, A, D, expected_log2, measured_log2_mean (+3 more)
+Cohesion: 0.17
+Nodes (12): concordance, link_jaccard, n_aria_genes, n_aria_links, n_ref_genes, n_ref_links, n_shared_links, recall_aria_in_ref (+4 more)
 
 ### Community 153 - "Community 153"
-Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Cohesion: 0.24
+Nodes (6): bool, NarrativeBlock, Path, str, ModalityNarrator, Protocol
 
 ### Community 154 - "Community 154"
 Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Nodes (4): _Proc, int, str, test_read_clipboard_normalizes_crlf_and_trailing_newline()
 
 ### Community 155 - "Community 155"
-Cohesion: 0.18
-Nodes (11): counts.tsv, samples.tsv, taqman.tsv, source, count_table, env, fetched_utc, references (+3 more)
+Cohesion: 0.20
+Nodes (5): Path, str, test_agent_registry_imports_and_script_contracts_are_valid(), check_registry_integrity(), _scripts()
 
 ### Community 156 - "Community 156"
-Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Cohesion: 0.20
+Nodes (11): scores, n_true_de_scored, pearson_true_de, spearman_true_de, scores, rank_biased_overlap_p0.9, top_k, top_k_jaccard (+3 more)
 
 ### Community 157 - "Community 157"
-Cohesion: 0.29
-Nodes (7): _FakeEM, _scatac_envelope(), test_generate_figures_renders_umap_in_chromatin_stack(), test_live_findings_returns_mutable_nested_dict(), test_narrator_figures_empty_when_no_figures(), test_narrator_figures_surface_findings_figures(), test_report_builder_wires_chromatin_figures_to_narrator()
+Cohesion: 0.18
+Nodes (11): axes, dynamic_range, fold_change_recovery, dynamic_range_orders_of_magnitude, n_points, pearson_log_cpm_vs_log_conc, slope, n_ercc_detected (+3 more)
 
 ### Community 158 - "Community 158"
 Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Nodes (11): expected_log2, measured_log2_mean, measured_log2_sd, n, A, D, expected_log2, measured_log2_mean (+3 more)
 
 ### Community 159 - "Community 159"
 Cohesion: 0.18
@@ -995,47 +1018,47 @@ Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_s
 
 ### Community 160 - "Community 160"
 Cohesion: 0.18
-Nodes (11): summary, false_narrative_reduction, governed_causal_overreach_rate, governed_false_narrative_rate, governed_informative_coverage, n_causal_labelled, n_claims, n_false_labelled (+3 more)
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
 
 ### Community 161 - "Community 161"
 Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Nodes (11): counts.tsv, samples.tsv, taqman.tsv, source, count_table, env, fetched_utc, references (+3 more)
 
 ### Community 162 - "Community 162"
 Cohesion: 0.18
-Nodes (11): called_genes_top, false_positive_rate, method, min_abs_log2fc, n_called, n_cells_condition_a, n_cells_condition_b, n_tested (+3 more)
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
 
 ### Community 163 - "Community 163"
-Cohesion: 0.18
-Nodes (11): called_genes_top, false_positive_rate, lfc_min, method, n_biological_replicates_condition_a, n_biological_replicates_condition_b, n_called, n_tested (+3 more)
+Cohesion: 0.33
+Nodes (6): bool, Path, str, _is_bulk_atac(), _ok(), unwrap_chromatin_findings()
 
 ### Community 164 - "Community 164"
+Cohesion: 0.29
+Nodes (7): _FakeEM, _scatac_envelope(), test_generate_figures_renders_umap_in_chromatin_stack(), test_live_findings_returns_mutable_nested_dict(), test_narrator_figures_empty_when_no_figures(), test_narrator_figures_surface_findings_figures(), test_report_builder_wires_chromatin_figures_to_narrator()
+
+### Community 165 - "Community 165"
+Cohesion: 0.25
+Nodes (6): _agent(), _BridgeOkEnv, _RawScatacEnv, test_raw_scatac_bridge_success_runs_full_matrix_pipeline(), test_raw_scatac_matrix_skip_becomes_narrative_limitation(), test_raw_scatac_path_discloses_matrix_pipeline_skip_without_dead_lsi()
+
+### Community 166 - "Community 166"
 Cohesion: 0.22
 Nodes (6): _marker_peaks_by_cluster(), _FakeEM, test_fragment_size_figure_honest_none_without_histogram(), test_fragment_size_figure_renders_from_histogram(), test_generate_figures_renders_cluster_figures_in_chromatin_stack(), test_marker_peaks_by_cluster_extraction()
 
-### Community 165 - "Community 165"
-Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
-
-### Community 166 - "Community 166"
-Cohesion: 0.18
-Nodes (11): GM12878, K562, conditions, experiment, filtered_alignments, lab, lineage, experiment (+3 more)
-
 ### Community 167 - "Community 167"
-Cohesion: 0.18
-Nodes (11): groups, up_in_GM12878, up_in_K562, n_enriched, n_regions_dropped_offcontig_or_cap, n_regions_scanned, top_motifs, n_enriched (+3 more)
+Cohesion: 0.38
+Nodes (10): bool, int, Path, str, _build_ensembl_to_symbol_map(), _clean_counts_matrix(), _counts_outputs_valid(), _detect_strandedness() (+2 more)
 
 ### Community 168 - "Community 168"
-Cohesion: 0.18
-Nodes (10): contrast, denominator, name, numerator, description, design_factor, max_false_up_among_null, min_recall (+2 more)
+Cohesion: 0.36
+Nodes (10): bool, int, Path, str, _detect_samples(), _fastp_outputs_valid(), _mock_fastp_result(), rna_fastq_qc() (+2 more)
 
 ### Community 169 - "Community 169"
-Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Cohesion: 0.38
+Nodes (9): chromatin_diffacc(), _clustered_adata(), test_diffacc_file_not_found(), test_per_cluster_accessibility_runs(), test_per_cluster_skips_single_cluster(), test_pseudobulk_da_runs_with_replicates(), test_pseudobulk_requires_explicit_comparison(), test_pseudobulk_skips_without_condition() (+1 more)
 
 ### Community 170 - "Community 170"
 Cohesion: 0.18
-Nodes (11): da_peak_concordance, jaccard, matched_a, matched_b, mode, n_a, n_b, overlap_fraction (+3 more)
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
 
 ### Community 171 - "Community 171"
 Cohesion: 0.18
@@ -1043,191 +1066,195 @@ Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_s
 
 ### Community 172 - "Community 172"
 Cohesion: 0.18
-Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+Nodes (11): summary, false_narrative_reduction, governed_causal_overreach_rate, governed_false_narrative_rate, governed_informative_coverage, n_causal_labelled, n_claims, n_false_labelled (+3 more)
 
 ### Community 173 - "Community 173"
 Cohesion: 0.18
 Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
 
+### Community 174 - "Community 174"
+Cohesion: 0.18
+Nodes (11): called_genes_top, false_positive_rate, method, min_abs_log2fc, n_called, n_cells_condition_a, n_cells_condition_b, n_tested (+3 more)
+
 ### Community 175 - "Community 175"
-Cohesion: 0.36
-Nodes (10): bool, int, Path, str, _detect_samples(), _fastp_outputs_valid(), _mock_fastp_result(), rna_fastq_qc() (+2 more)
+Cohesion: 0.18
+Nodes (11): called_genes_top, false_positive_rate, lfc_min, method, n_biological_replicates_condition_a, n_biological_replicates_condition_b, n_called, n_tested (+3 more)
 
 ### Community 176 - "Community 176"
-Cohesion: 0.38
-Nodes (10): bool, int, Path, str, _build_ensembl_to_symbol_map(), _clean_counts_matrix(), _counts_outputs_valid(), _detect_strandedness() (+2 more)
+Cohesion: 0.18
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
 
 ### Community 177 - "Community 177"
-Cohesion: 0.24
-Nodes (9): Any, bool, int, str, test_annotation_clean_when_all_labels_distinct(), test_annotation_flags_label_without_distinct_markers(), test_annotation_unverified_when_reused_without_markers(), assess_annotation_coherence() (+1 more)
+Cohesion: 0.18
+Nodes (11): GM12878, K562, conditions, experiment, filtered_alignments, lab, lineage, experiment (+3 more)
 
 ### Community 178 - "Community 178"
+Cohesion: 0.18
+Nodes (11): groups, up_in_GM12878, up_in_K562, n_enriched, n_regions_dropped_offcontig_or_cap, n_regions_scanned, top_motifs, n_enriched (+3 more)
+
+### Community 179 - "Community 179"
+Cohesion: 0.18
+Nodes (10): contrast, denominator, name, numerator, description, design_factor, max_false_up_among_null, min_recall (+2 more)
+
+### Community 180 - "Community 180"
+Cohesion: 0.18
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+
+### Community 181 - "Community 181"
+Cohesion: 0.18
+Nodes (11): da_peak_concordance, jaccard, matched_a, matched_b, mode, n_a, n_b, overlap_fraction (+3 more)
+
+### Community 182 - "Community 182"
+Cohesion: 0.18
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+
+### Community 183 - "Community 183"
+Cohesion: 0.18
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+
+### Community 184 - "Community 184"
+Cohesion: 0.18
+Nodes (11): provenance, aria_version, git_commit, git_describe, git_dirty, git_sha, git_tree_sha, version (+3 more)
+
+### Community 185 - "Community 185"
+Cohesion: 0.25
+Nodes (10): Any, int, Path, str, test_hash_file_stable_under_chunk_size(), test_provenance_block_contains_required_fields(), collect_llm_usage(), collect_provenance() (+2 more)
+
+### Community 187 - "Community 187"
+Cohesion: 0.38
+Nodes (10): bool, int, Path, str, _bgzip_tabix(), chromatin_scatac_align(), _count_gz_lines(), _count_lines() (+2 more)
+
+### Community 188 - "Community 188"
 Cohesion: 0.36
 Nodes (10): n_samples, n_samples, n_samples, n_samples, n_samples, n_samples, n_samples, denominator (+2 more)
 
-### Community 179 - "Community 179"
+### Community 189 - "Community 189"
 Cohesion: 0.20
 Nodes (10): summary, mean_lfc_pearson, mean_lfc_spearman, mean_lfc_spearman_sig, mean_shared_sig_direction_agreement, mean_sig_jaccard, mean_top_k_jaccard, min_lfc_pearson (+2 more)
 
-### Community 180 - "Community 180"
-Cohesion: 0.20
-Nodes (10): design, contrast, feature_space, group_a, group_b, method, motifs, n_reads_per_condition (+2 more)
-
-### Community 181 - "Community 181"
-Cohesion: 0.20
-Nodes (10): biological_sanity, convention, marker_peak_to_gene_mapping, markers, n_markers_correct, n_markers_total, declared_parameters, interpretation (+2 more)
-
-### Community 182 - "Community 182"
-Cohesion: 0.20
-Nodes (10): method, note, tool, mode, n_peaks, params, tool, pipeline (+2 more)
-
-### Community 183 - "Community 183"
-Cohesion: 0.20
-Nodes (10): result, comparison, fraction_significant, low_power_reason, low_power_warning, n_peaks_tested, n_replicate_samples, n_significant (+2 more)
-
-### Community 184 - "Community 184"
-Cohesion: 0.20
-Nodes (10): design, contrast, feature_space, group_a, group_b, method, motifs, n_fragments_per_group (+2 more)
-
-### Community 185 - "Community 185"
+### Community 190 - "Community 190"
 Cohesion: 0.31
-Nodes (9): Any, Path, str, benchmark_scatac_reference_snapatac2(), _ranked_motifs_from_enrichment(), _run_reference_pipeline(), test_ranked_motifs_from_enrichment_orders_and_dedups(), test_reference_driver_honest_not_run_when_snapatac2_absent() (+1 more)
+Nodes (7): apply_metadata_corrections(), default_genome_for_organism(), test_correction_collapses_all_files_to_chosen_modality(), test_correction_none_is_noop(), test_correction_partial_only_organism_leaves_modality(), test_correction_rekeys_modality_and_sets_species(), test_default_genome_for_organism()
 
-### Community 186 - "Community 186"
-Cohesion: 0.31
-Nodes (8): str, _resolve_groupby(), _agent(), test_agent_cellcomm_params_satisfy_the_contract(), test_cellcomm_contract_accepts_cell_type_col_alias(), test_cellcomm_contract_still_rejects_when_neither_key_present(), test_script_resolves_groupby_then_cell_type_col_alias(), contract_for_script()
+### Community 191 - "Community 191"
+Cohesion: 0.29
+Nodes (5): NarrativeBlock, ModalityNarrator, NarrativeRegistry, registry_with(), test_registry_collects_first_accepting_narrator()
 
-### Community 187 - "Community 187"
-Cohesion: 0.47
-Nodes (9): Path, str, _candidate_dirs(), genome_dir(), genome_fasta_from_env(), local_genome_fasta(), _norm(), resolve_local_genome_fasta() (+1 more)
-
-### Community 188 - "Community 188"
+### Community 192 - "Community 192"
 Cohesion: 0.53
 Nodes (9): bool, int, str, _balance_cooler(), hic_qc_and_balance(), _mock_hic_qc(), _process_cooler(), _process_hic() (+1 more)
 
-### Community 189 - "Community 189"
+### Community 193 - "Community 193"
 Cohesion: 0.36
 Nodes (8): _load_harness(), _synth_adata(), test_combined_builder_real_data_smoke(), test_donor_parsing_handles_deep_suffix(), test_harness_wires_real_aria_scripts(), test_presence_filter_drops_present_absent_and_rare_peaks(), test_subsample_preserves_donors_and_filters_peaks(), test_unify_peaks_merges_overlapping_and_sums_counts()
 
-### Community 190 - "Community 190"
+### Community 194 - "Community 194"
+Cohesion: 0.31
+Nodes (9): Any, Path, str, benchmark_scatac_reference_snapatac2(), _ranked_motifs_from_enrichment(), _run_reference_pipeline(), test_ranked_motifs_from_enrichment_orders_and_dedups(), test_reference_driver_honest_not_run_when_snapatac2_absent() (+1 more)
+
+### Community 195 - "Community 195"
+Cohesion: 0.20
+Nodes (9): aria_version, artifact, findings, biological_sanity, doc_accuracy_fix, summary, validation_scope, does_not_validate (+1 more)
+
+### Community 196 - "Community 196"
+Cohesion: 0.20
+Nodes (10): input, params, read_pairs, reads_origin, reference, aligner, mapq, remove_mito (+2 more)
+
+### Community 197 - "Community 197"
+Cohesion: 0.20
+Nodes (10): note, ram_gb, provenance, aria_version, compute, determinism_note, generated_utc, git_commit (+2 more)
+
+### Community 198 - "Community 198"
+Cohesion: 0.20
+Nodes (10): filtered_bam_quickcheck, index_built, n_final_after_filter, n_reads, pct_dup, pct_mapped, pct_mito, runtime_seconds (+2 more)
+
+### Community 199 - "Community 199"
+Cohesion: 0.20
+Nodes (10): design, contrast, feature_space, group_a, group_b, method, motifs, n_reads_per_condition (+2 more)
+
+### Community 200 - "Community 200"
+Cohesion: 0.20
+Nodes (10): biological_sanity, convention, marker_peak_to_gene_mapping, markers, n_markers_correct, n_markers_total, declared_parameters, interpretation (+2 more)
+
+### Community 201 - "Community 201"
+Cohesion: 0.20
+Nodes (10): method, note, tool, mode, n_peaks, params, tool, pipeline (+2 more)
+
+### Community 202 - "Community 202"
+Cohesion: 0.20
+Nodes (10): result, comparison, fraction_significant, low_power_reason, low_power_warning, n_peaks_tested, n_replicate_samples, n_significant (+2 more)
+
+### Community 203 - "Community 203"
+Cohesion: 0.20
+Nodes (10): design, contrast, feature_space, group_a, group_b, method, motifs, n_fragments_per_group (+2 more)
+
+### Community 204 - "Community 204"
+Cohesion: 0.47
+Nodes (9): Path, str, _candidate_dirs(), genome_dir(), genome_fasta_from_env(), local_genome_fasta(), _norm(), resolve_local_genome_fasta() (+1 more)
+
+### Community 205 - "Community 205"
+Cohesion: 0.38
+Nodes (9): _corr(), _vectorized_corr(), test_regulatory_script_runs_with_explicit_maps_gtf_and_paired_rna(), test_regulatory_script_skips_missing_optional_inputs(), test_vectorized_corr_matches_per_pair_corr(), test_vectorized_corr_undefined_when_too_few_cells(), _write_atac(), _write_gtf() (+1 more)
+
+### Community 206 - "Community 206"
 Cohesion: 0.22
 Nodes (9): taqman_de_detection, auc, empirical_fdr_ref, n_called_total, n_negative, n_positive, recall_at_padj, taqman_de_threshold (+1 more)
 
-### Community 191 - "Community 191"
+### Community 207 - "Community 207"
 Cohesion: 0.56
 Nodes (9): taqman, taqman, taqman, taqman, taqman, auc, n_overlap, pearson (+1 more)
 
-### Community 192 - "Community 192"
-Cohesion: 0.47
-Nodes (8): bool, str, _to_symbols(), _enrichr_enrichment(), _get_gene_sets(), _gseapy_organism(), _mock_pathways(), _run_pathway_enrichment()
-
-### Community 193 - "Community 193"
-Cohesion: 0.22
-Nodes (9): block, escalate, infer, confusion_matrix, block, infer, block, escalate (+1 more)
-
-### Community 194 - "Community 194"
-Cohesion: 0.22
-Nodes (9): summary, correct_escalation_rate, correct_inference_rate, correct_refusal_rate, n_block_gold, n_cases, n_correct, overall_accuracy (+1 more)
-
-### Community 195 - "Community 195"
-Cohesion: 0.22
-Nodes (9): donor_aware_recovery, empirical_fdr, messages, n_called, n_false_positive, n_true_de, n_true_positive, recall (+1 more)
-
-### Community 196 - "Community 196"
-Cohesion: 0.22
-Nodes (9): pseudoreplication_null, cells_per_donor, dispersion, donor_gene_sd, donors_per_condition, n_de, n_genes, null_model (+1 more)
-
-### Community 197 - "Community 197"
+### Community 208 - "Community 208"
 Cohesion: 0.42
 Nodes (7): collect_image_metadata(), Any, _clear(), test_blank_env_is_treated_as_null(), test_image_metadata_null_when_not_containerized(), test_image_metadata_populated_from_env(), test_version_metadata_includes_image_block()
 
-### Community 198 - "Community 198"
+### Community 209 - "Community 209"
 Cohesion: 0.22
-Nodes (8): aria_version, benchmark, caveats, de_da_core, lane_fixes_landed, purpose, title, validation_level
+Nodes (9): block, escalate, infer, confusion_matrix, block, infer, block, escalate (+1 more)
 
-### Community 199 - "Community 199"
+### Community 210 - "Community 210"
+Cohesion: 0.22
+Nodes (9): summary, correct_escalation_rate, correct_inference_rate, correct_refusal_rate, n_block_gold, n_cases, n_correct, overall_accuracy (+1 more)
+
+### Community 211 - "Community 211"
+Cohesion: 0.22
+Nodes (9): donor_aware_recovery, empirical_fdr, messages, n_called, n_false_positive, n_true_de, n_true_positive, recall (+1 more)
+
+### Community 212 - "Community 212"
+Cohesion: 0.22
+Nodes (9): pseudoreplication_null, cells_per_donor, dispersion, donor_gene_sd, donors_per_condition, n_de, n_genes, null_model (+1 more)
+
+### Community 213 - "Community 213"
 Cohesion: 0.42
 Nodes (8): _conda_run(), _donor_atac_pseudobulk(), _index_key(), main(), int, ndarray, Path, str
 
-### Community 200 - "Community 200"
+### Community 214 - "Community 214"
+Cohesion: 0.22
+Nodes (8): aria_version, benchmark, caveats, de_da_core, lane_fixes_landed, purpose, title, validation_level
+
+### Community 215 - "Community 215"
 Cohesion: 0.44
 Nodes (6): _organism_from_gene_symbols(), test_organism_from_ensembl_prefixes(), test_organism_from_human_hgnc_symbols(), test_organism_from_mouse_mgi_symbols(), test_organism_inference_is_uncertain_for_mixed_ids(), _write_counts()
 
-### Community 201 - "Community 201"
+### Community 216 - "Community 216"
 Cohesion: 0.36
 Nodes (8): bool, int, Path, str, _categorical_colors(), _draw_paga(), make_paga_figures(), _spring_layout()
 
-### Community 202 - "Community 202"
-Cohesion: 0.25
-Nodes (8): dataset, dispersion, max_abs_log2fc, min_abs_log2fc, n_de, n_genes, replicates_per_condition, seed
-
-### Community 203 - "Community 203"
-Cohesion: 0.25
-Nodes (8): significant_call_concordance, empirical_fdr, n_called, n_false_positive, n_true_de, n_true_positive, precision, recall
-
-### Community 204 - "Community 204"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 205 - "Community 205"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 206 - "Community 206"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 208 - "Community 208"
-Cohesion: 0.57
-Nodes (7): Path, str, _gtf_to_symbol_map(), _load_gene_annotation(), _load_symbol_map(), _locate_gtf(), _parse_gtf_biotype_and_length()
-
-### Community 209 - "Community 209"
-Cohesion: 0.43
-Nodes (7): float, str, _generate_plots(), _plot_heatmap(), _plot_pca_mds(), _plot_sample_pca(), _save_single_dr_plot()
-
-### Community 210 - "Community 210"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 211 - "Community 211"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 212 - "Community 212"
-Cohesion: 0.25
-Nodes (8): fdr_calibration, calls_per_permutation, false_positive_rate, max_false_positive_rate, n_permutations, n_tested, nominal_alpha, status
-
-### Community 213 - "Community 213"
-Cohesion: 0.25
-Nodes (8): significant_call_concordance, empirical_fdr, n_called, n_false_positive, n_true_de, n_true_positive, precision, recall
-
-### Community 214 - "Community 214"
-Cohesion: 0.25
-Nodes (8): dataset, dispersion, max_abs_log2fc, min_abs_log2fc, n_de, n_genes, replicates_per_condition, seed
-
-### Community 215 - "Community 215"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
-
-### Community 216 - "Community 216"
-Cohesion: 0.25
-Nodes (8): tolerances, lfc_min, max_empirical_fdr, max_null_false_positive_rate, min_lfc_spearman, min_recall, min_top_k_jaccard, padj_max
-
 ### Community 217 - "Community 217"
-Cohesion: 0.25
-Nodes (8): tolerances, tolerances, max_empirical_fdr, max_pseudobulk_null_fpr, max_recovery_empirical_fdr, min_naive_cell_level_null_fpr, min_naive_vs_pseudobulk_inflation, min_recall
+Cohesion: 0.28
+Nodes (5): bool, str, _is_progenitor_label(), rna_trajectory(), test_progenitor_label_matches_whole_words_only()
 
 ### Community 218 - "Community 218"
-Cohesion: 0.46
-Nodes (7): _conda_run(), main(), int, Path, str, _read_aria_links(), _read_signac_links()
+Cohesion: 0.25
+Nodes (8): dataset, dispersion, max_abs_log2fc, min_abs_log2fc, n_de, n_genes, replicates_per_condition, seed
 
 ### Community 219 - "Community 219"
 Cohesion: 0.25
-Nodes (7): aria_version, benchmark, caveats, dataset, ran, reason, scope
+Nodes (8): significant_call_concordance, empirical_fdr, n_called, n_false_positive, n_true_de, n_true_positive, precision, recall
 
 ### Community 220 - "Community 220"
 Cohesion: 0.25
-Nodes (8): biological_sanity, honest_nuances, interpretation_caveat, K562_erythroid, verdict, expected, note, observed_top
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
 
 ### Community 221 - "Community 221"
 Cohesion: 0.25
@@ -1238,20 +1265,20 @@ Cohesion: 0.25
 Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
 
 ### Community 223 - "Community 223"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+Cohesion: 0.43
+Nodes (7): bool, str, annotate_checkpoint_question(), checkpoint_options(), classify_sensitivity(), decision_enables_air_gapped(), _norm()
 
 ### Community 224 - "Community 224"
-Cohesion: 0.25
-Nodes (7): aria_n_sig, aria_n_tested, aria_version, benchmark, caveats, methods, scope
+Cohesion: 0.39
+Nodes (7): bool, int, str, mocks_allowed(), integration_mofa(), _load_modality(), _mock_mofa()
 
 ### Community 225 - "Community 225"
-Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+Cohesion: 0.46
+Nodes (7): object, str, _get_gene_coordinates(), _get_peak_coordinates(), integration_peak2gene(), _load_atac_matrix(), MissingGTFError
 
 ### Community 226 - "Community 226"
-Cohesion: 0.25
-Nodes (8): inputs, dataset, external_tool_present, modality, n_cells, n_cluster_seeds, n_da_peaks, n_motifs
+Cohesion: 0.46
+Nodes (7): _conda_run(), main(), int, Path, str, _read_aria_links(), _read_signac_links()
 
 ### Community 227 - "Community 227"
 Cohesion: 0.25
@@ -1263,351 +1290,423 @@ Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, va
 
 ### Community 229 - "Community 229"
 Cohesion: 0.25
-Nodes (7): aria_version, benchmark, caveats, dataset, ran, reason, scope
+Nodes (8): fdr_calibration, calls_per_permutation, false_positive_rate, max_false_positive_rate, n_permutations, n_tested, nominal_alpha, status
 
 ### Community 230 - "Community 230"
 Cohesion: 0.25
-Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+Nodes (8): significant_call_concordance, empirical_fdr, n_called, n_false_positive, n_true_de, n_true_positive, precision, recall
 
 ### Community 231 - "Community 231"
 Cohesion: 0.25
-Nodes (8): rna_cross_evidence, concordance_rate, group_a, group_b, n_checked, n_concordant, toward_Monocyte, toward_T_cell
+Nodes (8): dataset, dispersion, max_abs_log2fc, min_abs_log2fc, n_de, n_genes, replicates_per_condition, seed
 
 ### Community 232 - "Community 232"
-Cohesion: 0.46
-Nodes (7): run_bulk_de_spike_in(), simulate_spike_in_bulk_dataset(), SpikeInDataset, SpikeInResult, test_calibration_suite_includes_spike_in_block(), test_spike_in_dataset_is_deterministic_and_well_formed(), test_spike_in_recovery_is_a_dose_response_and_nulls_stay_quiet()
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
 
 ### Community 233 - "Community 233"
-Cohesion: 0.43
-Nodes (7): _fetch_ercc_truth(), main(), bool, int, Path, str, _sha256()
+Cohesion: 0.25
+Nodes (8): tolerances, lfc_min, max_empirical_fdr, max_null_false_positive_rate, min_lfc_spearman, min_recall, min_top_k_jaccard, padj_max
 
 ### Community 234 - "Community 234"
-Cohesion: 0.39
-Nodes (7): Any, str, test_privacy_redacts_paths_and_secrets(), air_gapped_runtime_reason(), enable_air_gapped_runtime(), _redact_scalar(), redact_sensitive_params()
+Cohesion: 0.25
+Nodes (8): tolerances, tolerances, max_empirical_fdr, max_pseudobulk_null_fpr, max_recovery_empirical_fdr, min_naive_cell_level_null_fpr, min_naive_vs_pseudobulk_inflation, min_recall
 
 ### Community 235 - "Community 235"
 Cohesion: 0.46
-Nodes (7): _fake_popen_factory(), _manager(), test_bulk_rna_production_contract_requires_metadata_and_contrasts(), test_environment_manager_attaches_contract_metadata_on_success(), test_environment_manager_validates_script_output_contract(), test_script_contract_rejects_missing_required_input(), test_script_contract_rejects_version_mismatch()
+Nodes (7): run_bulk_de_spike_in(), simulate_spike_in_bulk_dataset(), SpikeInDataset, SpikeInResult, test_calibration_suite_includes_spike_in_block(), test_spike_in_dataset_is_deterministic_and_well_formed(), test_spike_in_recovery_is_a_dose_response_and_nulls_stay_quiet()
 
 ### Community 236 - "Community 236"
+Cohesion: 0.25
+Nodes (7): aria_version, benchmark, caveats, dataset, ran, reason, scope
+
+### Community 237 - "Community 237"
+Cohesion: 0.25
+Nodes (8): biological_sanity, honest_nuances, interpretation_caveat, K562_erythroid, verdict, expected, note, observed_top
+
+### Community 238 - "Community 238"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 239 - "Community 239"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 240 - "Community 240"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 242 - "Community 242"
+Cohesion: 0.25
+Nodes (7): aria_n_sig, aria_n_tested, aria_version, benchmark, caveats, methods, scope
+
+### Community 243 - "Community 243"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 244 - "Community 244"
+Cohesion: 0.25
+Nodes (8): inputs, dataset, external_tool_present, modality, n_cells, n_cluster_seeds, n_da_peaks, n_motifs
+
+### Community 245 - "Community 245"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 246 - "Community 246"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 247 - "Community 247"
+Cohesion: 0.25
+Nodes (7): aria_version, benchmark, caveats, dataset, ran, reason, scope
+
+### Community 248 - "Community 248"
+Cohesion: 0.25
+Nodes (8): containerized, digest, env_lock_sha256, kind, reference, revision, validation, image
+
+### Community 249 - "Community 249"
+Cohesion: 0.25
+Nodes (8): rna_cross_evidence, concordance_rate, group_a, group_b, n_checked, n_concordant, toward_Monocyte, toward_T_cell
+
+### Community 250 - "Community 250"
 Cohesion: 0.54
 Nodes (7): _as_float(), chromatin_motifs(), _detect_col(), _genome_chroms(), _rank_da_region_group(), _regions_from_csv(), _skip()
 
-### Community 237 - "Community 237"
+### Community 251 - "Community 251"
 Cohesion: 0.36
 Nodes (6): object, str, test_persist_csv_failure_records_warning_and_returns_none(), test_persist_csv_success_returns_path_without_warning(), test_persist_csv_surfaces_writer_exception_type_and_message(), persist_csv()
 
-### Community 239 - "Community 239"
-Cohesion: 0.39
-Nodes (7): bool, int, str, mocks_allowed(), integration_mofa(), _load_modality(), _mock_mofa()
+### Community 252 - "Community 252"
+Cohesion: 0.43
+Nodes (7): _fetch_ercc_truth(), main(), bool, int, Path, str, _sha256()
 
-### Community 240 - "Community 240"
+### Community 253 - "Community 253"
+Cohesion: 0.46
+Nodes (7): _fake_popen_factory(), _manager(), test_bulk_rna_production_contract_requires_metadata_and_contrasts(), test_environment_manager_attaches_contract_metadata_on_success(), test_environment_manager_validates_script_output_contract(), test_script_contract_rejects_missing_required_input(), test_script_contract_rejects_version_mismatch()
+
+### Community 255 - "Community 255"
 Cohesion: 0.39
 Nodes (5): _proj(), test_console_scripts_present(), test_core_dependencies_have_version_ceilings(), test_no_python_310_classifier(), test_requires_python_is_3_11()
 
-### Community 241 - "Community 241"
-Cohesion: 0.29
-Nodes (7): method, n_called, n_tested, results_tsv, status, methods, deseq2
-
-### Community 242 - "Community 242"
-Cohesion: 0.29
-Nodes (7): method, n_called, n_tested, results_tsv, scores, status, limma_voom
-
-### Community 243 - "Community 243"
-Cohesion: 0.29
-Nodes (7): lfc_concordance, n_genes_scored, n_signal_genes, pearson, signal_floor, spearman, spearman_signal
-
-### Community 244 - "Community 244"
-Cohesion: 0.29
-Nodes (7): axes, titration_monotonicity, fraction_monotone, n_evaluated, n_monotone, order, status
-
-### Community 245 - "Community 245"
-Cohesion: 0.48
-Nodes (7): AGR, BGI, CNL, MAY, NVS, BGI, BGI
-
-### Community 246 - "Community 246"
-Cohesion: 0.48
-Nodes (7): AGR, BGI, CNL, MAY, NVS, MAY, MAY
-
-### Community 247 - "Community 247"
-Cohesion: 0.48
-Nodes (7): AGR, BGI, CNL, MAY, NVS, NVS, NVS
-
-### Community 248 - "Community 248"
-Cohesion: 0.48
-Nodes (7): AGR, BGI, CNL, MAY, NVS, AGR, AGR
-
-### Community 249 - "Community 249"
-Cohesion: 0.38
-Nodes (4): _agent(), _RawScatacEnv, test_raw_scatac_matrix_skip_becomes_narrative_limitation(), test_raw_scatac_path_discloses_matrix_pipeline_skip_without_dead_lsi()
-
-### Community 250 - "Community 250"
-Cohesion: 0.62
-Nodes (6): float, str, clipboard_backend(), _ordered_backends(), read_clipboard(), _resolve()
-
-### Community 251 - "Community 251"
-Cohesion: 0.29
-Nodes (7): datasets, recovery, cells_per_donor, donors_per_condition, n_de, n_genes, seed
-
-### Community 252 - "Community 252"
-Cohesion: 0.43
-Nodes (6): _export(), main(), bool, int, Path, str
-
-### Community 253 - "Community 253"
-Cohesion: 0.52
-Nodes (6): _conda_run(), main(), int, Path, str, _read_scores()
-
-### Community 254 - "Community 254"
-Cohesion: 0.43
-Nodes (6): version_badge_url(), main(), int, update_readme_badge(), validate_current_release_notes(), test_version_stamps_are_derived_from_single_source()
-
-### Community 255 - "Community 255"
-Cohesion: 0.33
-Nodes (3): _umap_color_keys(), test_estimate_frip_reads_narrowpeak(), test_umap_color_keys_include_depth()
-
 ### Community 256 - "Community 256"
 Cohesion: 0.29
-Nodes (7): dataset, assay, assembly, design, local_path, note, source
+Nodes (7): method, n_called, n_tested, results_tsv, scores, status, deseq2
 
 ### Community 257 - "Community 257"
 Cohesion: 0.29
-Nodes (7): convergence_gate, lfc_min, min_replicates_per_condition, model, padj_max, tool, differential_accessibility
+Nodes (7): method, n_called, n_tested, results_tsv, status, methods, edgeR_QLF
 
 ### Community 258 - "Community 258"
-Cohesion: 0.52
-Nodes (6): error(), info(), step(), success(), warn(), install.sh script
+Cohesion: 0.29
+Nodes (7): lfc_concordance, n_genes_scored, n_signal_genes, pearson, signal_floor, spearman, spearman_signal
 
 ### Community 259 - "Community 259"
 Cohesion: 0.29
-Nodes (6): aria_n_links, aria_version, benchmark, caveats, dataset, scope
+Nodes (7): axes, titration_monotonicity, fraction_monotone, n_evaluated, n_monotone, order, status
 
 ### Community 260 - "Community 260"
-Cohesion: 0.33
-Nodes (4): bool, str, _is_progenitor_label(), test_progenitor_label_matches_whole_words_only()
+Cohesion: 0.48
+Nodes (7): AGR, BGI, CNL, MAY, NVS, BGI, BGI
 
 ### Community 261 - "Community 261"
-Cohesion: 0.43
-Nodes (6): _discover_dispatched_scripts(), Call, str, _script_path_of(), test_contract_lookup_resolves_for_each_contract_key(), test_every_dispatched_script_on_disk_has_a_contract()
+Cohesion: 0.48
+Nodes (7): AGR, BGI, CNL, MAY, NVS, MAY, MAY
 
 ### Community 262 - "Community 262"
-Cohesion: 0.57
-Nodes (6): _conda_numpy(), _pip_numpy(), int, str, test_env_pins_numpy_exactly_once_and_consistently(), test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1()
+Cohesion: 0.48
+Nodes (7): AGR, BGI, CNL, MAY, NVS, NVS, NVS
+
+### Community 263 - "Community 263"
+Cohesion: 0.48
+Nodes (7): AGR, BGI, CNL, MAY, NVS, AGR, AGR
 
 ### Community 264 - "Community 264"
 Cohesion: 0.33
-Nodes (6): artifacts, counts_tsv, manifest_json, metadata_tsv, r_json, truth_tsv
+Nodes (3): _umap_color_keys(), test_estimate_frip_reads_narrowpeak(), test_umap_color_keys_include_depth()
 
 ### Community 265 - "Community 265"
-Cohesion: 0.33
-Nodes (6): method, n_called, n_tested, results_tsv, status, edgeR_QLF
+Cohesion: 0.43
+Nodes (6): _export(), main(), bool, int, Path, str
 
 ### Community 266 - "Community 266"
-Cohesion: 0.47
-Nodes (5): bool, Path, str, load_aria_env(), _parse_env_line()
+Cohesion: 0.52
+Nodes (6): _conda_run(), main(), int, Path, str, _read_scores()
 
 ### Community 267 - "Community 267"
-Cohesion: 0.73
-Nodes (5): _load_counts(), test_lognorm_matrix_is_hard_refused_by_default(), test_nonraw_matrix_coerced_only_when_allowed(), test_raw_counts_load_and_are_tagged_raw(), _write_matrix()
+Cohesion: 0.43
+Nodes (6): version_badge_url(), main(), int, update_readme_badge(), validate_current_release_notes(), test_version_stamps_are_derived_from_single_source()
 
 ### Community 268 - "Community 268"
-Cohesion: 0.60
-Nodes (4): _agent(), _ctx_with_unmappable_design(), test_failed_confirmed_design_stops_in_production(), test_flag_opt_in_allows_filename_fallback()
+Cohesion: 0.29
+Nodes (7): datasets, recovery, cells_per_donor, donors_per_condition, n_de, n_genes, seed
 
 ### Community 269 - "Community 269"
+Cohesion: 0.29
+Nodes (7): caller, n_peaks_chr20, runtime_seconds, status, top_peak_score, results, downstream_macs3
+
+### Community 270 - "Community 270"
+Cohesion: 0.29
+Nodes (7): convergence_gate, lfc_min, min_replicates_per_condition, model, padj_max, tool, differential_accessibility
+
+### Community 271 - "Community 271"
+Cohesion: 0.29
+Nodes (7): dataset, assay, assembly, design, local_path, note, source
+
+### Community 272 - "Community 272"
+Cohesion: 0.29
+Nodes (6): aria_n_links, aria_version, benchmark, caveats, dataset, scope
+
+### Community 273 - "Community 273"
+Cohesion: 0.43
+Nodes (6): _discover_dispatched_scripts(), Call, str, _script_path_of(), test_contract_lookup_resolves_for_each_contract_key(), test_every_dispatched_script_on_disk_has_a_contract()
+
+### Community 274 - "Community 274"
+Cohesion: 0.57
+Nodes (6): _conda_numpy(), _pip_numpy(), int, str, test_env_pins_numpy_exactly_once_and_consistently(), test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1()
+
+### Community 276 - "Community 276"
+Cohesion: 0.52
+Nodes (6): error(), info(), step(), success(), warn(), install.sh script
+
+### Community 277 - "Community 277"
+Cohesion: 0.62
+Nodes (6): float, str, clipboard_backend(), _ordered_backends(), read_clipboard(), _resolve()
+
+### Community 278 - "Community 278"
+Cohesion: 0.52
+Nodes (6): bool, Path, chromatin_fragments_to_matrix(), _de_novo_peaks(), _matrix_meta(), _matrix_valid()
+
+### Community 279 - "Community 279"
+Cohesion: 0.33
+Nodes (6): artifacts, counts_tsv, manifest_json, metadata_tsv, r_json, truth_tsv
+
+### Community 280 - "Community 280"
+Cohesion: 0.33
+Nodes (6): method, n_called, n_tested, results_tsv, status, limma_voom
+
+### Community 281 - "Community 281"
 Cohesion: 0.33
 Nodes (6): lfc_threshold_frontier, description, n_true_de, padj_max, points, policy_threshold
 
-### Community 270 - "Community 270"
+### Community 282 - "Community 282"
 Cohesion: 0.33
 Nodes (6): differential_summary, n_motifs_tested, n_significant, parsed, top_toward_GM12878, top_toward_K562
 
-### Community 271 - "Community 271"
+### Community 283 - "Community 283"
+Cohesion: 0.47
+Nodes (5): bool, Path, str, load_aria_env(), _parse_env_line()
+
+### Community 284 - "Community 284"
+Cohesion: 0.73
+Nodes (5): _load_counts(), test_lognorm_matrix_is_hard_refused_by_default(), test_nonraw_matrix_coerced_only_when_allowed(), test_raw_counts_load_and_are_tagged_raw(), _write_matrix()
+
+### Community 285 - "Community 285"
+Cohesion: 0.60
+Nodes (4): _agent(), _ctx_with_unmappable_design(), test_failed_confirmed_design_stops_in_production(), test_flag_opt_in_allows_filename_fallback()
+
+### Community 286 - "Community 286"
 Cohesion: 0.33
 Nodes (6): design, aria_method, distance_bp, feature_space, min_corr, reference
 
-### Community 272 - "Community 272"
+### Community 287 - "Community 287"
 Cohesion: 0.33
 Nodes (6): signac_status, n_cells, n_genes, n_links, n_peaks, status
 
-### Community 273 - "Community 273"
+### Community 288 - "Community 288"
 Cohesion: 0.33
 Nodes (6): differential_summary, n_motifs_tested, n_significant, parsed, top_toward_Monocyte, top_toward_T_cell
 
-### Community 274 - "Community 274"
-Cohesion: 0.60
-Nodes (5): float, test_power_estimate_monotone_in_n(), _as_pair(), bulk_power_estimate(), pseudobulk_power_estimate()
-
-### Community 275 - "Community 275"
+### Community 289 - "Community 289"
 Cohesion: 0.47
 Nodes (3): _agent(), _FakeScatacEnv, test_scatac_da_dispatches_to_rna_stack()
 
-### Community 276 - "Community 276"
+### Community 290 - "Community 290"
 Cohesion: 0.80
 Nodes (5): _expanded(), _load_validation_config(), Path, test_real_scrna_fastq_kb_validation_hands_off_to_scrna_qc_and_clustering(), _validation_data_dir()
 
-### Community 277 - "Community 277"
+### Community 291 - "Community 291"
+Cohesion: 0.73
+Nodes (5): _fdr_filtering_basis(), _block(), test_basis_flags_independent_filtered_genes(), test_basis_ignores_nonfinite_pvalues(), test_basis_same_when_no_filtering()
+
+### Community 292 - "Community 292"
+Cohesion: 0.60
+Nodes (5): float, test_power_estimate_monotone_in_n(), _as_pair(), bulk_power_estimate(), pseudobulk_power_estimate()
+
+### Community 293 - "Community 293"
+Cohesion: 0.60
+Nodes (5): str, make_cluster_figures(), _marker_heatmap(), _qc_depth_violin(), _save_dual()
+
+### Community 294 - "Community 294"
 Cohesion: 0.40
 Nodes (5): r_versions, DESeq2, edgeR, limma, R
 
-### Community 278 - "Community 278"
+### Community 295 - "Community 295"
 Cohesion: 0.40
 Nodes (5): expected_log2, measured_log2_mean, measured_log2_sd, n, B
 
-### Community 279 - "Community 279"
+### Community 296 - "Community 296"
 Cohesion: 0.40
 Nodes (5): C, expected_log2, measured_log2_mean, measured_log2_sd, n
 
-### Community 280 - "Community 280"
+### Community 297 - "Community 297"
 Cohesion: 0.40
 Nodes (5): n_denominator, n_genes_tested, n_numerator, status, NVS
 
-### Community 281 - "Community 281"
+### Community 298 - "Community 298"
 Cohesion: 0.40
 Nodes (5): n_denominator, n_genes_tested, n_numerator, status, MAY
 
-### Community 284 - "Community 284"
+### Community 300 - "Community 300"
 Cohesion: 0.40
 Nodes (5): arms_definition, governed, guards_off, naive_llm, template_only
 
-### Community 285 - "Community 285"
+### Community 301 - "Community 301"
 Cohesion: 0.40
 Nodes (5): axis_pass, fdr_calibration, lfc_concordance, ranking_concordance, significant_call_concordance
 
-### Community 286 - "Community 286"
+### Community 302 - "Community 302"
 Cohesion: 0.40
 Nodes (5): axes, pseudoreplication_guard, inflation_ratio_vs_pseudobulk_floor, naive_cell_level_false_positive_rate, pseudobulk_false_positive_rate
 
-### Community 287 - "Community 287"
+### Community 303 - "Community 303"
+Cohesion: 0.40
+Nodes (5): tool_versions, bwa-mem2, env, macs3, samtools
+
+### Community 304 - "Community 304"
 Cohesion: 0.40
 Nodes (5): validation_scope, calibration_validated_elsewhere, does_not_validate, scope, validates
 
-### Community 288 - "Community 288"
+### Community 307 - "Community 307"
+Cohesion: 0.70
+Nodes (4): test_disclosure_is_deterministic(), test_disclosure_keeps_bh_as_primary_and_never_claims_ihw(), test_disclosure_marks_ihw_and_svalues_unavailable_with_reasons(), fdr_advanced_methods_disclosure()
+
+### Community 308 - "Community 308"
 Cohesion: 0.40
 Nodes (5): seed_stability, mean_pairwise_ari, min_pairwise_ari, n_pairs, n_seeds
 
-### Community 289 - "Community 289"
+### Community 309 - "Community 309"
 Cohesion: 0.80
 Nodes (4): env_installed(), snapshot_one(), snapshot_requirements(), generate_locks.sh script
 
-### Community 290 - "Community 290"
-Cohesion: 0.70
-Nodes (4): str, integration_wnn(), _load_atac(), _load_rna()
-
-### Community 291 - "Community 291"
+### Community 310 - "Community 310"
 Cohesion: 0.60
 Nodes (4): str, _run(), test_mock_alignment_deterministic_across_hashseeds(), test_mock_fastp_deterministic_across_hashseeds()
 
-### Community 293 - "Community 293"
+### Community 312 - "Community 312"
+Cohesion: 0.60
+Nodes (4): int, str, main(), _parse_peak()
+
+### Community 313 - "Community 313"
 Cohesion: 0.50
 Nodes (4): method_status, deseq2, edgeR_QLF, limma_voom
 
-### Community 294 - "Community 294"
+### Community 314 - "Community 314"
 Cohesion: 0.50
 Nodes (4): comparison, denominator, mix_assumption, numerator
 
-### Community 295 - "Community 295"
+### Community 315 - "Community 315"
 Cohesion: 0.50
 Nodes (4): samples, groups_present, n_denominator, n_numerator
 
-### Community 296 - "Community 296"
+### Community 316 - "Community 316"
+Cohesion: 0.50
+Nodes (3): main(), int, str
+
+### Community 317 - "Community 317"
 Cohesion: 0.50
 Nodes (4): axis_pass, inference, refusal, unsafe_execution_near_zero
 
-### Community 297 - "Community 297"
+### Community 318 - "Community 318"
 Cohesion: 0.50
 Nodes (4): escalate, block, escalate, infer
 
-### Community 298 - "Community 298"
+### Community 319 - "Community 319"
 Cohesion: 0.50
 Nodes (4): naive_llm, causal_overreach_rate, false_narrative_rate, informative_coverage
 
-### Community 299 - "Community 299"
+### Community 320 - "Community 320"
 Cohesion: 0.50
 Nodes (4): axis_pass, governs_causal_overreach, preserves_informative_coverage, reduces_false_narrative
 
-### Community 300 - "Community 300"
+### Community 321 - "Community 321"
 Cohesion: 0.50
 Nodes (4): axis_pass, cell_level_antipattern_detected, donor_aware_recovery, pseudobulk_null_control
 
-### Community 301 - "Community 301"
+### Community 322 - "Community 322"
 Cohesion: 0.50
 Nodes (4): provenance, git_commit, git_dirty, runtime_note
 
-### Community 302 - "Community 302"
+### Community 323 - "Community 323"
 Cohesion: 0.50
 Nodes (3): main(), int, str
 
-### Community 303 - "Community 303"
+### Community 324 - "Community 324"
+Cohesion: 0.50
+Nodes (3): main(), int, str
+
+### Community 325 - "Community 325"
+Cohesion: 0.50
+Nodes (3): main(), int, str
+
+### Community 326 - "Community 326"
 Cohesion: 0.50
 Nodes (4): GM12878_B_lymphoblastoid, expected, note, observed_top
 
-### Community 304 - "Community 304"
+### Community 327 - "Community 327"
 Cohesion: 0.50
 Nodes (4): tool_versions, bedtools, macs3, pydeseq2
 
-### Community 305 - "Community 305"
+### Community 328 - "Community 328"
 Cohesion: 0.50
 Nodes (4): biological_validation, interpretation_caveat, up_in_GM12878, up_in_K562
 
-### Community 306 - "Community 306"
+### Community 329 - "Community 329"
 Cohesion: 0.50
 Nodes (4): motif_collection, collection, n_motifs, release
 
-### Community 307 - "Community 307"
+### Community 330 - "Community 330"
 Cohesion: 0.50
 Nodes (4): tool_versions, engine, motif_collection, snapatac2
 
-### Community 308 - "Community 308"
+### Community 331 - "Community 331"
 Cohesion: 0.50
 Nodes (4): cluster_concordance, ari, n_cells, nmi
 
-### Community 309 - "Community 309"
-Cohesion: 0.50
-Nodes (3): main(), int, str
-
-### Community 310 - "Community 310"
-Cohesion: 0.50
-Nodes (3): main(), int, str
-
-### Community 311 - "Community 311"
-Cohesion: 0.50
-Nodes (3): main(), int, str
-
-### Community 312 - "Community 312"
+### Community 332 - "Community 332"
 Cohesion: 0.67
 Nodes (3): filter_graph(), main(), int
 
-### Community 314 - "Community 314"
+### Community 333 - "Community 333"
 Cohesion: 0.67
 Nodes (3): axis_pass, lfc_concordance, taqman_de_detection
 
-### Community 315 - "Community 315"
+### Community 334 - "Community 334"
 Cohesion: 0.67
 Nodes (3): comparison, denominator, numerator
 
-### Community 316 - "Community 316"
+### Community 335 - "Community 335"
 Cohesion: 0.67
 Nodes (3): thresholds, lfc_threshold, padj
 
 ## Knowledge Gaps
-- **1412 isolated node(s):** `float`, `int`, `float`, `ARIAMemory`, `LLMProvider` (+1407 more)
+- **1512 isolated node(s):** `float`, `int`, `float`, `ARIAMemory`, `LLMProvider` (+1507 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **9 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `collect_version_metadata()` connect `Community 102` to `Community 0`, `Community 1`, `Community 32`, `Community 197`, `Community 199`, `Community 59`, `Community 76`, `Community 14`, `Community 18`, `Community 82`, `Community 21`, `Community 23`, `Community 89`, `Community 218`, `Community 91`, `Community 253`, `Community 254`?**
-  _High betweenness centrality (0.071) - this node is a cross-community bridge._
-- **Why does `BaseAgent` connect `Community 58` to `Community 32`, `Community 1`, `Community 2`, `Community 3`, `Community 68`, `Community 4`, `Community 70`, `Community 0`, `Community 73`, `Community 9`, `Community 12`, `Community 13`, `Community 146`, `Community 51`, `Community 56`, `Community 31`?**
-  _High betweenness centrality (0.065) - this node is a cross-community bridge._
-- **Why does `NarrativeAgent` connect `Community 12` to `Community 0`, `Community 33`, `Community 197`, `Community 73`, `Community 43`, `Community 48`, `Community 53`, `Community 120`, `Community 58`, `Community 30`?**
-  _High betweenness centrality (0.046) - this node is a cross-community bridge._
+- **Why does `collect_version_metadata()` connect `Community 109` to `Community 1`, `Community 98`, `Community 226`, `Community 4`, `Community 266`, `Community 267`, `Community 13`, `Community 79`, `Community 208`, `Community 15`, `Community 19`, `Community 20`, `Community 213`, `Community 88`, `Community 185`, `Community 61`, `Community 95`?**
+  _High betweenness centrality (0.069) - this node is a cross-community bridge._
+- **Why does `BaseAgent` connect `Community 63` to `Community 0`, `Community 1`, `Community 3`, `Community 4`, `Community 5`, `Community 8`, `Community 11`, `Community 12`, `Community 143`, `Community 155`, `Community 28`, `Community 31`, `Community 40`, `Community 42`, `Community 54`, `Community 59`, `Community 74`, `Community 76`, `Community 82`?**
+  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `run_script()` connect `Community 22` to `Community 9`, `Community 12`, `Community 15`, `Community 17`, `Community 18`, `Community 146`, `Community 278`, `Community 33`, `Community 293`, `Community 167`, `Community 168`, `Community 47`, `Community 49`, `Community 50`, `Community 56`, `Community 58`, `Community 187`, `Community 186`, `Community 192`, `Community 65`, `Community 194`, `Community 67`, `Community 69`, `Community 70`, `Community 78`, `Community 216`, `Community 217`, `Community 224`, `Community 97`, `Community 225`, `Community 114`, `Community 116`, `Community 118`, `Community 250`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
 - **What connects `float`, `int`, `float` to the rest of the system?**
-  _1412 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _1512 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.025755879059350503 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05201465201465202 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.05642633228840126 - nodes in this community are weakly interconnected._
 - **Should `Community 2` be split into smaller, more focused modules?**
-  _Cohesion score 0.057455540355677154 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.06228281208233093 - nodes in this community are weakly interconnected._
