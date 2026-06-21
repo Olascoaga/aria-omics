@@ -3312,6 +3312,90 @@
       "source_location": "L87"
     },
     {
+      "id": "adapters_scrna",
+      "label": "scrna.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "adapters_scrna_node_ran",
+      "label": "_node_ran()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scrna_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scrna_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "adapters_scrna_num",
+      "label": "_num()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scrna_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scrna_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46"
+    },
+    {
+      "id": "adapters_scrna_num_direction",
+      "label": "_num_direction()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L53"
+    },
+    {
+      "id": "adapters_scrna_str_direction",
+      "label": "_str_direction()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L60"
+    },
+    {
+      "id": "adapters_scrna_scrna_caveats",
+      "label": "_scrna_caveats()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "adapters_scrna_scrna_evidence",
+      "label": "scrna_evidence()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "aria_agents_narrative_hypothesis_adapters_scrna_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L88"
+    },
+    {
       "id": "hypothesis_devils_advocate",
       "label": "devils_advocate.py",
       "file_type": "code",
@@ -28572,7 +28656,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -28817,7 +28901,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -28839,7 +28923,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36961,6 +37045,76 @@
       "source_location": "L99"
     },
     {
+      "id": "tests_test_hypothesis_adapter_scrna",
+      "label": "test_hypothesis_adapter_scrna.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "label": "_agent_results()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_ledger",
+      "label": "_ledger()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L61"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_adapter_empty_without_scrna_findings",
+      "label": "test_adapter_empty_without_scrna_findings()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L71"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_pseudobulk_genes_with_direction_and_node",
+      "label": "test_pseudobulk_genes_with_direction_and_node()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L75"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_only_significant_abundance_celltypes",
+      "label": "test_only_significant_abundance_celltypes()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L85"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_liana_emits_ligand_receptor_and_celltypes",
+      "label": "test_liana_emits_ligand_receptor_and_celltypes()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_global_confounds_inherited",
+      "label": "test_global_confounds_inherited()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L106"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_layer_skipped_when_ledger_node_not_run",
+      "label": "test_layer_skipped_when_ledger_node_not_run()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L114"
+    },
+    {
+      "id": "tests_test_hypothesis_adapter_scrna_test_celltype_appears_once_per_node",
+      "label": "test_celltype_appears_once_per_node()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L125"
+    },
+    {
       "id": "tests_test_hypothesis_devils_advocate",
       "label": "test_hypothesis_devils_advocate.py",
       "file_type": "code",
@@ -41887,17 +42041,6 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "message_bus",
       "label": "MessageBus",
       "file_type": "code",
@@ -41920,6 +42063,17 @@
       "contributor": null
     },
     {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -41935,50 +42089,6 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_cellcomm",
-      "label": "rna_cellcomm.py (LIANA)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_cellcomm.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_trajectory",
-      "label": "rna_trajectory.py (PAGA/DPT)",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_trajectory.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -54720,6 +54830,16 @@
       "weight": 1.0
     },
     {
+      "source": "adapters_init",
+      "target": "adapters_scrna",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "adapters_bulk_rna",
       "target": "hypothesis_types",
       "relation": "imports_from",
@@ -54960,6 +55080,240 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "hypothesis_types",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_node_ran",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_node_ran",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_node_ran",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_num",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_num",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_num",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_num_direction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_num_direction",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_num_direction",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_str_direction",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_str_direction",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_str_direction",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_scrna_caveats",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_caveats",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "aria_agents_narrative_hypothesis_adapters_scrna_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_num_direction",
+      "target": "adapters_scrna_num",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_str_direction",
+      "target": "adapters_scrna_num",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scrna_scrna_caveats",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scrna_node_ran",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scrna_num",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scrna_num_direction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "adapters_scrna_str_direction",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -125338,7 +125692,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -125391,7 +125745,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125401,7 +125755,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125411,7 +125765,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125421,7 +125775,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125431,7 +125785,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125753,7 +126107,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -125762,7 +126116,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -125797,7 +126151,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -125807,7 +126161,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_n7rzol_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_kjlgrl_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -138894,6 +139248,207 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_adapter_empty_without_scrna_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_pseudobulk_genes_with_direction_and_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_only_significant_abundance_celltypes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_liana_emits_ligand_receptor_and_celltypes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_global_confounds_inherited",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_layer_skipped_when_ledger_node_not_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L114",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "tests_test_hypothesis_adapter_scrna_test_celltype_appears_once_per_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_pseudobulk_genes_with_direction_and_node",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_pseudobulk_genes_with_direction_and_node",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_only_significant_abundance_celltypes",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_only_significant_abundance_celltypes",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_liana_emits_ligand_receptor_and_celltypes",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_liana_emits_ligand_receptor_and_celltypes",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_global_confounds_inherited",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_global_confounds_inherited",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_layer_skipped_when_ledger_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_layer_skipped_when_ledger_node_not_run",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_celltype_appears_once_per_node",
+      "target": "tests_test_hypothesis_adapter_scrna_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_celltype_appears_once_per_node",
+      "target": "tests_test_hypothesis_adapter_scrna_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate",
       "target": "tests_test_hypothesis_devils_advocate_experiment",
       "relation": "contains",
@@ -148620,6 +149175,16 @@
       "weight": 1.0
     },
     {
+      "source": "adapters_init",
+      "target": "adapters_scrna",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "narrators_init",
       "target": "narrators_scrna",
       "relation": "re_exports",
@@ -149591,6 +150156,16 @@
     },
     {
       "source": "hypothesis_init",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/__init__.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_init",
       "target": "hypothesis_devils_advocate_check_devils_advocate",
       "relation": "imports",
       "context": "import",
@@ -149800,6 +150375,16 @@
       "weight": 1.0
     },
     {
+      "source": "adapters_init",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/__init__.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
       "source": "adapters_bulk_rna",
       "target": "narrative_run_ledger_node_index",
       "relation": "imports",
@@ -149817,6 +150402,46 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "narrative_devils_advocate_run_signals",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "narrative_run_ledger_node_index",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "narrative_run_ledger_scrna_findings",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -157820,6 +158445,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scrna",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate",
       "target": "agents_hypothesis_agent_hypothesisagent",
       "relation": "imports",
@@ -160297,6 +160932,46 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/hypothesis/adapters/bulk_rna.py",
       "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_node_ran",
+      "target": "narrative_run_ledger_node_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_caveats",
+      "target": "narrative_devils_advocate_run_signals",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "narrative_run_ledger_scrna_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "adapters_scrna_scrna_evidence",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/hypothesis/adapters/scrna.py",
+      "source_location": "L114",
       "weight": 1.0
     },
     {
@@ -168720,6 +169395,76 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_adapter_scrna_test_adapter_empty_without_scrna_findings",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_pseudobulk_genes_with_direction_and_node",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_only_significant_abundance_celltypes",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_liana_emits_ligand_receptor_and_celltypes",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_global_confounds_inherited",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_layer_skipped_when_ledger_node_not_run",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_adapter_scrna_test_celltype_appears_once_per_node",
+      "target": "adapters_scrna_scrna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_adapter_scrna.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate_experiment",
       "target": "hypothesis_types_discriminatingexperiment",
       "relation": "calls",
@@ -173826,6 +174571,16 @@
       "weight": 1.0
     },
     {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
       "source": "environment_manager",
       "target": "rna_bulk_de",
       "relation": "calls",
@@ -173836,48 +174591,8 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
+      "source": "environment_manager",
       "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_cellcomm",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_trajectory",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_bulk_diffacc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -173912,16 +174627,6 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_bulk_diffacc",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     }
