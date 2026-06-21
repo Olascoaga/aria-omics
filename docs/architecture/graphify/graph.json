@@ -3113,112 +3113,189 @@
       "label": "load_methodology()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31"
+      "source_location": "L35"
     },
     {
       "id": "aria_agents_narrative_ledger_export_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31"
+      "source_location": "L35"
     },
     {
       "id": "aria_agents_narrative_ledger_export_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31"
+      "source_location": "L35"
     },
     {
       "id": "narrative_ledger_export_provenance",
       "label": "_provenance()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L39"
+      "source_location": "L43"
     },
     {
       "id": "narrative_ledger_export_version",
       "label": "_version()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L43"
+      "source_location": "L47"
     },
     {
       "id": "narrative_ledger_export_commit",
       "label": "_commit()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L48"
+      "source_location": "L52"
     },
     {
       "id": "narrative_ledger_export_calibration",
       "label": "_calibration()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L53"
+      "source_location": "L57"
     },
     {
       "id": "narrative_ledger_export_build_ro_crate",
       "label": "build_ro_crate()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L63"
+      "source_location": "L67"
     },
     {
       "id": "narrative_ledger_export_write_ro_crate",
       "label": "write_ro_crate()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L183"
+      "source_location": "L187"
+    },
+    {
+      "id": "narrative_ledger_export_repo_root",
+      "label": "_repo_root()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L197"
+    },
+    {
+      "id": "narrative_ledger_export_file_entry",
+      "label": "_file_entry()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201"
+    },
+    {
+      "id": "aria_agents_narrative_ledger_export_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201"
+    },
+    {
+      "id": "narrative_ledger_export_repo_snapshot_files",
+      "label": "_repo_snapshot_files()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210"
+    },
+    {
+      "id": "narrative_ledger_export_capsule_reproduction_plan",
+      "label": "_capsule_reproduction_plan()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L232"
+    },
+    {
+      "id": "narrative_ledger_export_build_capsule_manifest",
+      "label": "build_capsule_manifest()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265"
     },
     {
       "id": "narrative_ledger_export_write_reproducible_capsule",
       "label": "write_reproducible_capsule()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193"
+      "source_location": "L299"
+    },
+    {
+      "id": "narrative_ledger_export_zip_sha256",
+      "label": "_zip_sha256()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318"
+    },
+    {
+      "id": "zipfile",
+      "label": "ZipFile",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318"
+    },
+    {
+      "id": "narrative_ledger_export_methodology_from_zip",
+      "label": "_methodology_from_zip()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L328"
+    },
+    {
+      "id": "narrative_ledger_export_verify_reproducible_capsule",
+      "label": "verify_reproducible_capsule()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343"
     },
     {
       "id": "narrative_ledger_export_ledger_index",
       "label": "_ledger_index()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L210"
+      "source_location": "L446"
     },
     {
       "id": "narrative_ledger_export_claim_index",
       "label": "_claim_index()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L216"
+      "source_location": "L452"
     },
     {
       "id": "narrative_ledger_export_diff_methodologies",
       "label": "diff_methodologies()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L222"
+      "source_location": "L458"
     },
     {
       "id": "narrative_ledger_export_format_diff",
       "label": "format_diff()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L296"
+      "source_location": "L532"
     },
     {
       "id": "narrative_ledger_export_cli_main",
       "label": "cli_main()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L331"
+      "source_location": "L567"
     },
     {
       "id": "aria_agents_narrative_ledger_export_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L331"
+      "source_location": "L567"
+    },
+    {
+      "id": "narrative_ledger_export_format_reproduce_result",
+      "label": "format_reproduce_result()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L624"
     },
     {
       "id": "narrators_init",
@@ -27851,7 +27928,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -28096,7 +28173,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -28118,7 +28195,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36594,35 +36671,63 @@
       "label": "_methodology()",
       "file_type": "code",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L18"
+      "source_location": "L20"
     },
     {
       "id": "tests_test_ledger_export_test_ro_crate_is_valid_jsonld_with_provenance_and_claims",
       "label": "test_ro_crate_is_valid_jsonld_with_provenance_and_claims()",
       "file_type": "code",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L49"
+      "source_location": "L51"
     },
     {
       "id": "tests_test_ledger_export_test_write_ro_crate_and_capsule",
       "label": "test_write_ro_crate_and_capsule()",
       "file_type": "code",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L62"
+      "source_location": "L64"
+    },
+    {
+      "id": "tests_test_ledger_export_test_build_capsule_manifest_records_reproduction_plan",
+      "label": "test_build_capsule_manifest_records_reproduction_plan()",
+      "file_type": "code",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L99"
+    },
+    {
+      "id": "tests_test_ledger_export_test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs",
+      "label": "test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs()",
+      "file_type": "code",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L113"
+    },
+    {
+      "id": "tests_test_ledger_export_test_verify_reproducible_capsule_detects_file_hash_mismatch",
+      "label": "test_verify_reproducible_capsule_detects_file_hash_mismatch()",
+      "file_type": "code",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L128"
+    },
+    {
+      "id": "tests_test_ledger_export_test_verify_reproducible_capsule_can_diff_reproduced_report",
+      "label": "test_verify_reproducible_capsule_can_diff_reproduced_report()",
+      "file_type": "code",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L149"
     },
     {
       "id": "tests_test_ledger_export_test_diff_detects_ledger_and_claim_and_provenance_changes",
       "label": "test_diff_detects_ledger_and_claim_and_provenance_changes()",
       "file_type": "code",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L82"
+      "source_location": "L170"
     },
     {
       "id": "tests_test_ledger_export_test_diff_identical_is_empty",
       "label": "test_diff_identical_is_empty()",
       "file_type": "code",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L96"
+      "source_location": "L184"
     },
     {
       "id": "tests_test_lfc_shrinkage",
@@ -40368,17 +40473,6 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
@@ -40493,17 +40587,6 @@
       "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -53101,11 +53184,21 @@
     },
     {
       "source": "narrative_ledger_export",
+      "target": "zipfile",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
       "target": "narrative_ledger_export_load_methodology",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -53115,7 +53208,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -53125,7 +53218,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L31",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
@@ -53134,7 +53227,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L39",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -53143,7 +53236,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L43",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -53153,7 +53246,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L43",
+      "source_location": "L47",
       "weight": 1.0
     },
     {
@@ -53162,7 +53255,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L48",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -53172,7 +53265,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L48",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -53181,7 +53274,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L53",
+      "source_location": "L57",
       "weight": 1.0
     },
     {
@@ -53190,7 +53283,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L63",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -53200,7 +53293,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L63",
+      "source_location": "L67",
       "weight": 1.0
     },
     {
@@ -53209,7 +53302,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L183",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -53219,7 +53312,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L183",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -53229,7 +53322,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L183",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -53239,7 +53332,262 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L183",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_repo_root",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_root",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_file_entry",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "aria_agents_narrative_ledger_export_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_repo_snapshot_files",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_snapshot_files",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_snapshot_files",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_snapshot_files",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_snapshot_files",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_capsule_reproduction_plan",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_capsule_reproduction_plan",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_capsule_reproduction_plan",
+      "target": "aria_agents_narrative_ledger_export_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_build_capsule_manifest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L265",
       "weight": 1.0
     },
     {
@@ -53248,7 +53596,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -53258,7 +53606,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -53268,7 +53616,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -53278,7 +53626,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -53288,7 +53636,27 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_write_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_write_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L299",
       "weight": 1.0
     },
     {
@@ -53298,7 +53666,154 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L193",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_zip_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_zip_sha256",
+      "target": "zipfile",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_zip_sha256",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_zip_sha256",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L318",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_methodology_from_zip",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L328",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_methodology_from_zip",
+      "target": "zipfile",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L328",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L343",
       "weight": 1.0
     },
     {
@@ -53307,7 +53822,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L210",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -53317,7 +53832,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L210",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -53326,7 +53841,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L216",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -53336,7 +53851,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L216",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -53345,7 +53860,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L222",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -53354,7 +53869,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L296",
+      "source_location": "L532",
       "weight": 1.0
     },
     {
@@ -53364,7 +53879,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L296",
+      "source_location": "L532",
       "weight": 1.0
     },
     {
@@ -53373,7 +53888,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L331",
+      "source_location": "L567",
       "weight": 1.0
     },
     {
@@ -53383,7 +53898,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L331",
+      "source_location": "L567",
       "weight": 1.0
     },
     {
@@ -53393,7 +53908,46 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L331",
+      "source_location": "L567",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "narrative_ledger_export_format_reproduce_result",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L624",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_format_reproduce_result",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L624",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_format_reproduce_result",
+      "target": "aria_agents_narrative_ledger_export_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L624",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_format_reproduce_result",
+      "target": "aria_agents_narrative_ledger_export_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L624",
       "weight": 1.0
     },
     {
@@ -53403,7 +53957,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L33",
+      "source_location": "L37",
       "weight": 1.0
     },
     {
@@ -53413,7 +53967,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L44",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -53423,7 +53977,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L49",
+      "source_location": "L53",
       "weight": 1.0
     },
     {
@@ -53433,7 +53987,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L57",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -53443,7 +53997,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L72",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -53453,7 +54007,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L73",
+      "source_location": "L77",
       "weight": 1.0
     },
     {
@@ -53463,7 +54017,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L74",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
@@ -53473,7 +54027,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L100",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -53483,7 +54037,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L133",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -53493,7 +54047,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L185",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -53503,7 +54057,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L186",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -53513,7 +54067,137 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L187",
+      "source_location": "L191",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_repo_root",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_capsule_reproduction_plan",
+      "target": "narrative_ledger_export_provenance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L233",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_capsule_reproduction_plan",
+      "target": "narrative_ledger_export_commit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L271",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_repo_root",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_load_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L273",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_write_ro_crate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L274",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_repo_snapshot_files",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L280",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_file_entry",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L282",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_version",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L286",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_commit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L287",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_provenance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L288",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_build_capsule_manifest",
+      "target": "narrative_ledger_export_capsule_reproduction_plan",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -53523,17 +54207,117 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L196",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
       "source": "narrative_ledger_export_write_reproducible_capsule",
-      "target": "narrative_ledger_export_write_ro_crate",
+      "target": "narrative_ledger_export_build_capsule_manifest",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L199",
+      "source_location": "L305",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_write_reproducible_capsule",
+      "target": "zipfile",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L307",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_agents_narrative_ledger_export_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L350",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_repo_root",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L350",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "zipfile",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_zip_sha256",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L381",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_methodology_from_zip",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L388",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_provenance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L411",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_commit",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L423",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_diff_methodologies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L434",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "narrative_ledger_export_load_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L434",
       "weight": 1.0
     },
     {
@@ -53543,7 +54327,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L230",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -53553,7 +54337,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L251",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -53563,7 +54347,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L263",
+      "source_location": "L499",
       "weight": 1.0
     },
     {
@@ -53573,7 +54357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L279",
+      "source_location": "L515",
       "weight": 1.0
     },
     {
@@ -53583,7 +54367,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L351",
+      "source_location": "L596",
       "weight": 1.0
     },
     {
@@ -53593,7 +54377,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L351",
+      "source_location": "L596",
       "weight": 1.0
     },
     {
@@ -53603,7 +54387,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L353",
+      "source_location": "L598",
       "weight": 1.0
     },
     {
@@ -53613,7 +54397,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L357",
+      "source_location": "L602",
       "weight": 1.0
     },
     {
@@ -53623,7 +54407,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L358",
+      "source_location": "L603",
       "weight": 1.0
     },
     {
@@ -53633,7 +54417,37 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/ledger_export.py",
-      "source_location": "L361",
+      "source_location": "L606",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_cli_main",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L611",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_cli_main",
+      "target": "narrative_ledger_export_format_reproduce_result",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L618",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_format_reproduce_result",
+      "target": "narrative_ledger_export_format_diff",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L656",
       "weight": 1.0
     },
     {
@@ -121721,7 +122535,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -121774,7 +122588,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -121784,7 +122598,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -121794,7 +122608,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -121804,7 +122618,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -121814,7 +122628,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -122136,7 +122950,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -122145,7 +122959,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -122180,7 +122994,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -122190,7 +123004,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_gxxnfi_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_k4qufx_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -135792,11 +136606,21 @@
     },
     {
       "source": "tests_test_ledger_export",
+      "target": "zipfile",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
       "target": "tests_test_ledger_export_methodology",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L18",
+      "source_location": "L20",
       "weight": 1.0
     },
     {
@@ -135805,7 +136629,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L49",
+      "source_location": "L51",
       "weight": 1.0
     },
     {
@@ -135814,7 +136638,43 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L62",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
+      "target": "tests_test_ledger_export_test_build_capsule_manifest_records_reproduction_plan",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
+      "target": "tests_test_ledger_export_test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
+      "target": "tests_test_ledger_export_test_verify_reproducible_capsule_detects_file_hash_mismatch",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
+      "target": "tests_test_ledger_export_test_verify_reproducible_capsule_can_diff_reproduced_report",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -135823,7 +136683,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L82",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -135832,7 +136692,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L96",
+      "source_location": "L184",
       "weight": 1.0
     },
     {
@@ -135842,7 +136702,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L50",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -135852,7 +136712,47 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L65",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_build_capsule_manifest_records_reproduction_plan",
+      "target": "tests_test_ledger_export_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs",
+      "target": "tests_test_ledger_export_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_detects_file_hash_mismatch",
+      "target": "tests_test_ledger_export_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_can_diff_reproduced_report",
+      "target": "tests_test_ledger_export_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L152",
       "weight": 1.0
     },
     {
@@ -135862,7 +136762,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L83",
+      "source_location": "L171",
       "weight": 1.0
     },
     {
@@ -135872,7 +136772,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L97",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -143684,6 +144584,36 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
       "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "utils_reference_integrity_sha256_file",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "aria_version_collect_environment_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L409",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L409",
       "weight": 1.0
     },
     {
@@ -151838,6 +152768,16 @@
     },
     {
       "source": "tests_test_ledger_export",
+      "target": "narrative_ledger_export_build_capsule_manifest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
       "target": "narrative_ledger_export_write_ro_crate",
       "relation": "imports",
       "context": "import",
@@ -151849,6 +152789,16 @@
     {
       "source": "tests_test_ledger_export",
       "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -153634,6 +154584,46 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
       "source_location": "L312",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_file_entry",
+      "target": "utils_reference_integrity_sha256_file",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "utils_reference_integrity_sha256_file",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L401",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_version_collect_environment_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L410",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_ledger_export_verify_reproducible_capsule",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/ledger_export.py",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -162343,7 +163333,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L50",
+      "source_location": "L52",
       "weight": 1.0
     },
     {
@@ -162353,7 +163343,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L68",
+      "source_location": "L81",
       "weight": 1.0
     },
     {
@@ -162363,7 +163353,77 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L71",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_build_capsule_manifest_records_reproduction_plan",
+      "target": "narrative_ledger_export_build_capsule_manifest",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs",
+      "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L120",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_detects_file_hash_mismatch",
+      "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_detects_file_hash_mismatch",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_can_diff_reproduced_report",
+      "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_export_test_verify_reproducible_capsule_can_diff_reproduced_report",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_export.py",
+      "source_location": "L160",
       "weight": 1.0
     },
     {
@@ -162373,7 +163433,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L85",
+      "source_location": "L173",
       "weight": 1.0
     },
     {
@@ -162383,7 +163443,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L92",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -162393,7 +163453,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L97",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -162403,7 +163463,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_export.py",
-      "source_location": "L99",
+      "source_location": "L187",
       "weight": 1.0
     },
     {
@@ -165988,16 +167048,6 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
       "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -166087,9 +167137,9 @@
       "weight": 1.0
     },
     {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
+      "source": "chromatin_bulk_diffacc",
+      "target": "rna_bulk_de",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
