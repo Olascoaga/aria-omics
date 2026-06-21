@@ -163,6 +163,38 @@ class ReportBuilderMixin:
         except Exception as e:
             log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
 
+    def _build_speculative_section_html(self, agent_results: dict,
+                                        run_ledger: dict | None,
+                                        exp_ctx: dict) -> str:
+        """ADR-057 S9: render the opt-in SPECULATIVE hypotheses section, or ''.
+
+        Off unless ``exp_ctx['enable_hypotheses']`` is set (opt-in, never
+        inferred). Uses the agent's LLM as the proposer; the HypothesisAgent's
+        gates + quarantine wall the output. Fully guarded — a failure here never
+        breaks report generation.
+        """
+        try:
+            if not (exp_ctx or {}).get("enable_hypotheses"):
+                return ""
+            from aria.agents.narrative.hypothesis import (
+                LLMProposer,
+                build_speculative_section,
+                render_speculative_section_html,
+            )
+            proposer = None
+            llm = getattr(self, "llm", None)
+            if llm is not None:
+                proposer = LLMProposer.from_provider(llm)
+            section = build_speculative_section(
+                agent_results, run_ledger, exp_ctx, proposer=proposer
+            )
+            return render_speculative_section_html(section)
+        except Exception as exc:
+            log.warning(
+                f"Speculative hypotheses section failed: {exc}", exc_info=True
+            )
+            return ""
+
     def _render_html_report(self, experiment_id: str,
                              exp_ctx: dict,
                              intent: dict,
@@ -308,6 +340,13 @@ class ReportBuilderMixin:
             agent_results,
             narrative_blocks=narrative_blocks,
             report_dir=report_dir,
+        )
+        # ADR-057 S9: opt-in SPECULATIVE hypotheses section. Off by default, so
+        # existing reports are unchanged. Only built downstream of a non-aborted
+        # report (W-CLAIM/W-LEDGER passed), over audited evidence only, and fully
+        # guarded so it can never break report generation.
+        speculative_html = self._build_speculative_section_html(
+            agent_results, run_ledger, exp_ctx
         )
         executive_summary_warning_html = ""
         if executive_summary_warning:
@@ -515,6 +554,7 @@ class ReportBuilderMixin:
 
 <h2>Findings</h2>
 {findings_html}
+{speculative_html}
 
 <h2>All Findings ({sum(len(v) for v in grouped_findings.values())} total)</h2>
 <table>
@@ -883,6 +923,12 @@ class ReportBuilderMixin:
         except Exception as exc:
             log.warning(f"Claim manifest compilation failed: {exc}", exc_info=True)
             claims = []
+        # ADR-057 rail #6: the active non-promotion wall. A machine hypothesis
+        # (SPECULATIVE tier / hypothesis:// node) must never enter the audited
+        # claim manifest; this raises loudly if one ever leaks here. It is a
+        # no-op on clean claims (a speculation cannot become a premise).
+        from aria.agents.narrative.hypothesis import assert_no_speculative_promotion
+        assert_no_speculative_promotion(claims)
         # P-DEVIL: deterministic devil's advocate over associative+ claims
         # (annotate_claim_tiers ran inside compile_claims, so tiers exist). The
         # build pass is idempotent, so recomputing here when a caller did not

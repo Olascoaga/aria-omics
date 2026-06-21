@@ -33,6 +33,7 @@ from aria.agents.narrative.hypothesis.grounding import (
     verify_hypothesis_grounding,
 )
 from aria.agents.narrative.hypothesis.quarantine import quarantine_hypotheses
+from aria.agents.narrative.hypothesis.ranking import rank_hypotheses
 from aria.agents.narrative.hypothesis.types import EvidenceSignal, Hypothesis
 
 # A proposer turns grounded audited evidence into candidate hypotheses. The LLM
@@ -138,6 +139,11 @@ class HypothesisAgent:
                 )
             else:
                 accepted.append(hyp)
+
+        # Competitive ranking (ADR-057 rail #4): order the surviving set by
+        # independent converging evidence / effect strength, penalising confound
+        # load — never by narrative elegance. Stamps each rank_evidence.
+        accepted = rank_hypotheses(accepted, signal_list)
 
         # Quarantine: assign each accepted hypothesis its hypothesis:// node and
         # build the non-promotable manifest (ADR-057 rail #6). Done before

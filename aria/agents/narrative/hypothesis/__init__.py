@@ -29,6 +29,12 @@ from .proposer_llm import (
     build_proposer_prompt,
     parse_hypotheses,
 )
+from .ranking import rank_hypotheses
+from .report_section import (
+    build_speculative_section,
+    gather_evidence,
+    render_speculative_section_html,
+)
 from .gates import GateResult, check_falsifiability, check_language
 from .grounding import (
     GroundingResult,
@@ -71,4 +77,8 @@ __all__ = [
     "LLMProposer",
     "build_proposer_prompt",
     "parse_hypotheses",
+    "rank_hypotheses",
+    "build_speculative_section",
+    "gather_evidence",
+    "render_speculative_section_html",
 ]
