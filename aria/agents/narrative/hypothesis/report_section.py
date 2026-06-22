@@ -137,10 +137,28 @@ def render_speculative_section_html(section: dict | None) -> str:
         "promoted to a finding.</p>",
     ]
     if not hypotheses:
-        body.append(
-            "<p>No defensible hypothesis from the audited evidence "
-            "(honest-null).</p>"
-        )
+        # Distinguish a true honest-null (model declined / nothing survived the
+        # gates) from a generation failure (the model answered but the response
+        # could not be parsed, almost always a token-budget truncation). Never
+        # present a generation failure as "no defensible hypothesis".
+        reason = section.get("null_reason")
+        if reason in ("parse_error", "malformed_items"):
+            body.append(
+                "<p>The generator returned a response that could not be parsed "
+                "(likely truncated); no hypothesis is shown. This is a generation "
+                "issue, not a conclusion that the evidence supports none. "
+                "Re-running may resolve it.</p>"
+            )
+        elif reason in ("empty_response", "no_evidence"):
+            body.append(
+                "<p>The generator returned no usable response; no hypothesis is "
+                "shown (generation issue, not a conclusion about the evidence).</p>"
+            )
+        else:
+            body.append(
+                "<p>No defensible hypothesis from the audited evidence "
+                "(honest-null).</p>"
+            )
     else:
         for i, hyp in enumerate(hypotheses, start=1):
             body.append(_render_hypothesis(hyp, i))

@@ -102,6 +102,10 @@ class HypothesisAgent:
         signal_list = list(signals or [])
         evidence_index = build_evidence_index(signal_list)
         candidates = self._proposer(signal_list, exp_ctx or {}) or []
+        # ADR-057 rail #10 (C): surface the proposer's parse diagnostic so an
+        # honest-null can never silently hide a model that DID answer but whose
+        # response we failed to parse (e.g. JSON truncated by the token budget).
+        proposer_diag = getattr(self._proposer, "last_diagnostics", None)
 
         accepted: list[Hypothesis] = []
         rejected: list[dict] = []
@@ -160,9 +164,16 @@ class HypothesisAgent:
             "quarantine": quarantine,
             "rejected": rejected,
             "honest_null": not accepted,
+            "proposer_diagnostics": proposer_diag,
         }
         if not accepted and candidates:
             # Honest-null with reasons: don't fail mute when the proposer offered
             # candidates but none earned publication.
             result["null_summary"] = _gate_failure_counts(rejected)
+        elif not candidates and isinstance(proposer_diag, dict) and (
+            proposer_diag.get("status") not in (None, "ok", "no_candidates")
+        ):
+            # The proposer produced no candidates for a non-benign reason (e.g.
+            # a truncated/invalid response). Name it so the honest-null is honest.
+            result["null_reason"] = proposer_diag.get("status")
         return result

@@ -27,6 +27,7 @@ from .devils_advocate import (
 from .proposer_llm import (
     LLMProposer,
     build_proposer_prompt,
+    classify_parse,
     parse_hypotheses,
 )
 from .ranking import rank_hypotheses
@@ -76,6 +77,7 @@ __all__ = [
     "scatac_evidence",
     "LLMProposer",
     "build_proposer_prompt",
+    "classify_parse",
     "parse_hypotheses",
     "rank_hypotheses",
     "build_speculative_section",

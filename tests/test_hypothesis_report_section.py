@@ -145,6 +145,20 @@ def test_section_honest_null_renders_note():
     assert "honest-null" in html
 
 
+def test_section_renders_generation_failure_note_not_honest_null():
+    # C: a truncated/unparseable proposer response must render as a generation
+    # issue, never as "no defensible hypothesis (honest-null)".
+    truncated = '```json\n[\n  {\n    "id": "v0",\n    "mechanism": "co-regulation of the markers may'
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: truncated),
+    )
+    assert section["null_reason"] == "parse_error"
+    html = render_speculative_section_html(section)
+    assert "could not be parsed" in html
+    assert "honest-null" not in html
+
+
 # ── active non-promotion wall ───────────────────────────────────────────────
 
 def test_enforcer_is_a_noop_on_clean_claims():
