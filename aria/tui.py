@@ -953,11 +953,13 @@ def _use_cockpit(reproducible_mode: bool) -> bool:
 
 def _launch_context(data_dir: Path, question: str,
                     geo_meta: dict | None,
-                    reproducible_mode: bool) -> dict:
+                    reproducible_mode: bool,
+                    enable_hypotheses: bool = False) -> dict:
     ctx: dict = {
         "data_dir": str(data_dir),
         "user_question": question,
         "reproducible_mode": reproducible_mode,
+        "enable_hypotheses": enable_hypotheses,
     }
     if geo_meta:
         ctx["geo_metadata"] = geo_meta
@@ -995,7 +997,8 @@ def _print_launch_summary(experiment_id: str, data_dir: Path,
 
 def _run_cockpit_front_door(memory: ARIAMemory,
                             orchestrator: OrchestratorAgent,
-                            reproducible_mode: bool) -> bool:
+                            reproducible_mode: bool,
+                            enable_hypotheses: bool = False) -> bool:
     """Run the intake and cockpit as ONE Textual app (seamless transition).
 
     The intake is the app's first screen; on Start the run begins on a worker
@@ -1012,7 +1015,8 @@ def _run_cockpit_front_door(memory: ARIAMemory,
         data_dir, geo_meta = resolved
         experiment_id = str(uuid.uuid4())[:12]
         ctx = _launch_context(
-            data_dir, result.question, geo_meta, reproducible_mode
+            data_dir, result.question, geo_meta, reproducible_mode,
+            enable_hypotheses,
         )
         return experiment_id, ctx
 
@@ -1053,7 +1057,8 @@ def _print_llm_runtime_error(exc: RuntimeError) -> bool:
 
 
 def main():
-    args = [arg for arg in sys.argv[1:] if arg != "--reproducible"]
+    args = [arg for arg in sys.argv[1:]
+            if arg not in ("--reproducible", "--hypotheses")]
     if args and args[0] == "doctor":
         from aria.doctor import main as doctor_main
 
@@ -1069,13 +1074,14 @@ def main():
         raise SystemExit(cli_main(args))
 
     reproducible_mode = "--reproducible" in sys.argv[1:]
+    enable_hypotheses = "--hypotheses" in sys.argv[1:]
     memory       = ARIAMemory()
     orchestrator = OrchestratorAgent(memory)
 
     try:
         if _use_cockpit(reproducible_mode):
             if _run_cockpit_front_door(
-                memory, orchestrator, reproducible_mode
+                memory, orchestrator, reproducible_mode, enable_hypotheses
             ):
                 return
 
@@ -1118,7 +1124,8 @@ def main():
             return
 
         ctx = _launch_context(
-            data_dir, question, geo_meta, reproducible_mode
+            data_dir, question, geo_meta, reproducible_mode,
+            enable_hypotheses,
         )
         run_analysis(
             orchestrator=orchestrator,

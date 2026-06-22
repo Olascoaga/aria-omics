@@ -850,6 +850,7 @@ def test_cockpit_front_door_builds_context_before_legacy_prompt(monkeypatch, tmp
         "data_dir": str(tmp_path),
         "user_question": "What changed?",
         "reproducible_mode": False,
+        "enable_hypotheses": False,  # ADR-057 opt-in, off by default
     }
     assert experiment_id  # a run id was minted
     # The intake is wired with the data validator (in-place path validation).

@@ -507,6 +507,16 @@ class DataAuditAgent(BaseAgent):
             genome, organism, warnings, user_question
         )
         exp_context["reproducible_mode"] = reproducible_mode
+        # ADR-057: opt-in SPECULATIVE hypotheses section. Mirrors the
+        # reproducible_mode plumbing — surfaced explicitly via the entrypoints
+        # (run_headless param / TUI --hypotheses) with an
+        # ARIA_ENABLE_HYPOTHESES env fallback for power users. Off by default,
+        # never inferred from the data or question.
+        env_hyp = os.environ.get("ARIA_ENABLE_HYPOTHESES", "").strip().lower()
+        exp_context["enable_hypotheses"] = (
+            bool(context.get("enable_hypotheses"))
+            or env_hyp in ("1", "true", "yes", "on")
+        )
         if context.get("provenance"):
             exp_context["provenance"] = context["provenance"]
 

@@ -155,6 +155,7 @@ def drain_pending_checkpoints(orchestrator, experiment_id: str,
 def run_headless(data_dir: str, question: str,
                  policy: AnswerPolicy = default_answer_policy,
                  reproducible_mode: bool = False,
+                 enable_hypotheses: bool = False,
                  timeout: float = 3600.0,
                  log: Callable[[str], None] = print) -> HeadlessResult:
     """Run a full ARIA analysis without a TTY.
@@ -174,6 +175,7 @@ def run_headless(data_dir: str, question: str,
         "data_dir": str(data_dir),
         "user_question": question,
         "reproducible_mode": reproducible_mode,
+        "enable_hypotheses": enable_hypotheses,
     }
 
     started = orch.run(experiment_id, ctx)
