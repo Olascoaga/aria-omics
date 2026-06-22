@@ -60,12 +60,33 @@ _FALLBACK_PATHS: dict[str, list[str]] = {
 }
 
 
+# Named clipboard sources for the ARIA_CLIPBOARD_SOURCE override.
+_SOURCE_GROUPS: dict[str, list[list[str]]] = {
+    "windows": _WINDOWS,
+    "x11": _X11,
+    "wayland": _WAYLAND,
+    "mac": _MAC,
+}
+_SOURCE_ORDER = ("windows", "x11", "wayland", "mac")
+
+
 def _ordered_backends() -> list[list[str]]:
     """Backend order matching the active GUI session's clipboard.
 
     A copy made in the user's environment lands in the clipboard of whatever GUI
     session they are in, so prefer that source and keep the others as fallback.
+
+    ``ARIA_CLIPBOARD_SOURCE`` (windows|x11|wayland|mac) forces a primary source,
+    keeping the rest as fallback. This is the escape hatch for MobaXterm and
+    other WSL+X setups where ``DISPLAY`` is set (so X11 is auto-preferred) but the
+    real copy lives in the Windows clipboard, so Ctrl+V otherwise reads a stale
+    X11 selection. ``auto`` / unset keeps the session-derived default.
     """
+    forced = os.environ.get("ARIA_CLIPBOARD_SOURCE", "").strip().lower()
+    if forced and forced != "auto" and forced in _SOURCE_GROUPS:
+        rest = [c for name in _SOURCE_ORDER if name != forced
+                for c in _SOURCE_GROUPS[name]]
+        return _SOURCE_GROUPS[forced] + rest
     if os.environ.get("WAYLAND_DISPLAY"):
         return _WAYLAND + _X11 + _WINDOWS + _MAC
     if os.environ.get("DISPLAY"):

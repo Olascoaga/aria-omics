@@ -24,6 +24,7 @@ def no_display(monkeypatch):
     """Force the Windows-first order (headless WSL): no X11/Wayland session."""
     monkeypatch.delenv("DISPLAY", raising=False)
     monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.delenv("ARIA_CLIPBOARD_SOURCE", raising=False)
 
 
 def test_read_clipboard_none_when_no_backend(monkeypatch, no_display):
@@ -69,6 +70,7 @@ def test_x11_clipboard_preferred_over_windows_when_display_set(monkeypatch):
     # MobaXterm/X11 session: a Linux copy lands in X11, not the Windows clipboard.
     monkeypatch.setenv("DISPLAY", "localhost:11.0")
     monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.delenv("ARIA_CLIPBOARD_SOURCE", raising=False)
     monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
     monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
 
@@ -80,6 +82,55 @@ def test_x11_clipboard_preferred_over_windows_when_display_set(monkeypatch):
     monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
     assert clipboard.clipboard_backend() == "xclip"
     assert clipboard.read_clipboard() == "from-x11"
+
+
+def test_clipboard_source_override_forces_windows_under_display(monkeypatch):
+    # The MobaXterm fix: DISPLAY is set (X11 would win by default), but the user
+    # forces the Windows clipboard so Ctrl+V reads their fresh Windows copy
+    # instead of a stale X11 selection.
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.setenv("ARIA_CLIPBOARD_SOURCE", "windows")
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+
+    def fake_run(argv, **kwargs):
+        if "xclip" in argv[0]:
+            return _Proc(0, "stale-x11\n")
+        return _Proc(0, "fresh-windows\n")
+
+    monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
+    assert clipboard.clipboard_backend() == "powershell.exe"
+    assert clipboard.read_clipboard() == "fresh-windows"
+
+
+def test_clipboard_source_override_falls_back_when_primary_empty(monkeypatch):
+    # Forced source has no content -> still falls back to the others (X11 here).
+    monkeypatch.setenv("ARIA_CLIPBOARD_SOURCE", "windows")
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+
+    def fake_run(argv, **kwargs):
+        if "xclip" in argv[0]:
+            return _Proc(0, "from-x11\n")
+        return _Proc(0, "")  # windows empty
+
+    monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
+    assert clipboard.read_clipboard() == "from-x11"
+
+
+def test_clipboard_source_override_auto_keeps_default(monkeypatch):
+    monkeypatch.setenv("ARIA_CLIPBOARD_SOURCE", "auto")
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+    monkeypatch.setattr(
+        clipboard.subprocess, "run",
+        lambda argv, **k: _Proc(0, "from-x11\n" if "xclip" in argv[0] else "win\n"),
+    )
+    assert clipboard.read_clipboard() == "from-x11"  # unchanged default
 
 
 def test_read_clipboard_skips_failing_backend(monkeypatch, no_display):
