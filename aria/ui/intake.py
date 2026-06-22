@@ -19,7 +19,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, Checkbox, Footer, Input, Static, TextArea
+from textual.widgets import Button, Footer, Input, Static, TextArea
 
 from aria.runtime.experiment_view import ExperimentHistoryView
 from aria.ui import clipboard
@@ -104,7 +104,8 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
     #memory { height: 1fr; color: $text-muted; }
     #experiments { height: auto; color: $text-muted; }
     #data-input { margin-top: 1; margin-bottom: 1; }
-    #question-input { height: 10; margin-top: 1; margin-bottom: 1; }
+    #enable-hypotheses { width: 50; margin-bottom: 1; }
+    #question-input { height: 8; margin-top: 1; margin-bottom: 1; }
     #status { height: 1; color: $warning; margin-top: 1; }
     #actions { height: auto; margin-top: 1; }
     Button { margin-right: 2; }
@@ -132,6 +133,7 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
         self._data_validator = data_validator
         self.submitted: IntakeResult | None = None
         self.status_message = ""
+        self._enable_hypotheses = False
 
     def compose(self) -> ComposeResult:
         yield Horizontal(
@@ -150,13 +152,12 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
                     placeholder="/data/my_experiment or GSE183948",
                     id="data-input",
                 ),
-                Static("Biological question"),
-                _ClipboardTextArea(id="question-input"),
-                Checkbox(
-                    "Generate speculative hypotheses (experimental)",
-                    value=False,
+                Button(
+                    "Hypotheses: off",
                     id="enable-hypotheses",
                 ),
+                Static("Biological question"),
+                _ClipboardTextArea(id="question-input"),
                 Static("", id="status"),
                 Horizontal(
                     Button("Start", id="start", variant="primary"),
@@ -219,6 +220,11 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
         question = self.query_one("#question-input", TextArea).text.strip()
         return data_input, question
 
+    def _set_hypotheses_enabled(self, enabled: bool) -> None:
+        self._enable_hypotheses = bool(enabled)
+        label = "Hypotheses: on" if self._enable_hypotheses else "Hypotheses: off"
+        self.query_one("#enable-hypotheses", Button).label = label
+
     def action_start(self) -> None:
         data_input, question = self._values()
         if not data_input:
@@ -237,10 +243,9 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
             self._set_status("Enter a biological question.")
             self.query_one("#question-input", TextArea).focus()
             return
-        enable_hypotheses = self.query_one("#enable-hypotheses", Checkbox).value
         result = IntakeResult(
             data_input=data_input, question=question,
-            enable_hypotheses=bool(enable_hypotheses),
+            enable_hypotheses=bool(self._enable_hypotheses),
         )
         self.submitted = result
         self.dismiss(result)
@@ -254,6 +259,8 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
             self.action_start()
         elif event.button.id == "exit":
             self.action_cancel()
+        elif event.button.id == "enable-hypotheses":
+            self._set_hypotheses_enabled(not self._enable_hypotheses)
 
 
 class AriaIntakeApp(App):

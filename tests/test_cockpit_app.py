@@ -382,15 +382,49 @@ def test_intake_hypotheses_toggle_opt_in(tmp_path):
         app = _IntakeHost(version="4.6.1")
         async with app.run_test() as pilot:
             scr = await _mounted_intake(app, pilot)
-            from textual.widgets import Checkbox, Input, TextArea
+            from textual.widgets import Input, TextArea
             scr.query_one("#data-input", Input).value = str(tmp_path)
             scr.query_one("#question-input", TextArea).load_text("Q?")
-            scr.query_one("#enable-hypotheses", Checkbox).value = True
+            scr._set_hypotheses_enabled(True)
+            scr.action_start()
+            return scr.submitted
+
+    assert asyncio.run(_run()).enable_hypotheses is True
+
+
+def test_intake_hypotheses_toggle_opt_in_by_mouse(tmp_path):
+    """Clicking the visible opt-in control must set the submitted flag.
+
+    Regression guard for remote terminal front doors where a mouse click focused
+    the old checkbox but the submitted IntakeResult still carried
+    enable_hypotheses=False.
+    """
+    async def _run():
+        app = _IntakeHost(version="4.6.1")
+        async with app.run_test() as pilot:
+            scr = await _mounted_intake(app, pilot)
+            from textual.widgets import Input, TextArea
+            scr.query_one("#data-input", Input).value = str(tmp_path)
+            scr.query_one("#question-input", TextArea).load_text("Q?")
+            await pilot.click("#enable-hypotheses")
             await pilot.pause()
             scr.action_start()
             return scr.submitted
 
     assert asyncio.run(_run()).enable_hypotheses is True
+
+
+def test_intake_hypotheses_control_visible_on_small_terminal():
+    async def _run():
+        app = _IntakeHost(version="4.6.1")
+        async with app.run_test(size=(80, 24)) as pilot:
+            scr = await _mounted_intake(app, pilot)
+            control = scr.query_one("#enable-hypotheses")
+            return control.region
+
+    region = asyncio.run(_run())
+    assert region.y >= 0
+    assert region.y + region.height <= 24
 
 
 def test_intake_requires_question(tmp_path):
