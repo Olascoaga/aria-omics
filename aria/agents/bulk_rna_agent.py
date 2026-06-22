@@ -25,14 +25,6 @@ from aria.memory.memory import ARIAMemory
 log = logging.getLogger("aria.bulk_rna")
 
 
-KNOWN_TFS = {
-    "bmal1", "arntl", "clock", "per1", "per2", "per3", "cry1", "cry2", "nr1d1", "reverba", "nr1d2",
-    "rora", "rorb", "rorc", "oct4", "pou5f1", "sox2", "nanog", "klf4", "lin28", "gata1", "gata2", 
-    "gata3", "gata4", "gata6", "tbx5", "runx1", "runx2", "runx3", "foxa1", "foxa2", "foxp3", 
-    "foxo1", "foxo3", "cebpa", "cebpb", "pparg", "ppara", "rela", "relb", "stat1", "stat3", 
-    "stat5", "tp53", "trp53", "myc", "max", "sp1", "e2f1", "hif1a", "arnt", "yap1", "wwtr1",
-}
-
 def _is_fastq(files: list) -> bool:
     if not files: return False
     return any(str(files[0]).lower().endswith(s) for s in [".fastq.gz", ".fq.gz", ".fastq", ".fq"])
@@ -55,22 +47,29 @@ def _default_lfc_threshold() -> float:
 def suggest_lfc_profile(intent: dict) -> str | None:
     """ADVISORY ONLY — never applied to the threshold.
 
-    Returns a non-binding hint (``"exploratory_tf"`` or ``None``) that a TF /
-    knockout / overexpression study often warrants the user-selectable
-    Exploratory/TF CP3 profile (LFC 0.58), so the checkpoint can surface it. ARIA
-    guides from the biological question, but the actual cutoff is only ever
-    changed by an explicit user choice — code does NOT silently move the
+    Returns a non-binding hint (``"exploratory_tf"`` or ``None``) that a
+    perturbation study (knockout / knockdown / overexpression) often warrants the
+    user-selectable Exploratory/TF CP3 profile (LFC 0.58), so the checkpoint can
+    surface it. ARIA guides from the biological question, but the actual cutoff is
+    only ever changed by an explicit user choice — code does NOT silently move the
     statistical threshold based on prompt text.
+
+    The hint is derived ONLY from generic experimental-design keywords, never from
+    a hardcoded gene list (ADR-055): the advisory must not depend on which
+    specific genes ARIA happens to know about, otherwise it silently privileges a
+    curated, incomplete set of genes and bakes biology into the code.
     """
-    entities = [str(e).lower() for e in intent.get("biological_entities", [])]
-    text = re.sub(r'[\-\s]', '', " ".join([
-        str(intent.get("summary", "")), str(intent.get("comparison", "")),
-        *entities]).lower())
-    if (any(tf in text for tf in KNOWN_TFS)
-            or re.search(r"\b(knockout|knockdown|ko|kd|overexpression|oe)\b", text)
-            or "transcriptionfactor" in text):
-        return "exploratory_tf"
-    return None
+    text = " ".join([
+        str(intent.get("summary", "")),
+        str(intent.get("comparison", "")),
+        *[str(e) for e in intent.get("biological_entities", [])],
+    ]).lower()
+    perturbation = re.search(
+        r"\b(knock[\s-]?outs?|knock[\s-]?downs?|ko|kd|over[\s-]?expression|oe|"
+        r"transcription[\s-]?factors?)\b",
+        text,
+    )
+    return "exploratory_tf" if perturbation else None
 
 
 def _normalise_sample_token(value: str) -> str:
