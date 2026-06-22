@@ -70,6 +70,24 @@ _SOURCE_GROUPS: dict[str, list[list[str]]] = {
 _SOURCE_ORDER = ("windows", "x11", "wayland", "mac")
 
 
+def _remote_wsl_x_forwarded() -> bool:
+    """True for a remote SSH session into WSL2 with X11 forwarding (MobaXterm).
+
+    In that topology the forwarded X11 selection (``DISPLAY=localhost:10.0`` and
+    up) is frequently stale, while the user's real copy lives in the Windows
+    clipboard reachable from WSL via ``powershell.exe`` interop. So we prefer the
+    Windows clipboard there, keeping X11 as fallback. None of this triggers when
+    working physically/locally (no ``SSH_CONNECTION``) or on native Linux/Wayland
+    (no Windows interop), so those cases keep the session-derived default.
+    """
+    if not os.environ.get("SSH_CONNECTION"):
+        return False
+    host = os.environ.get("DISPLAY", "").split(":", 1)[0]
+    if not host:  # local display like ":0" — not a forwarded X11 channel
+        return False
+    return _resolve("powershell.exe") is not None or _resolve("pwsh.exe") is not None
+
+
 def _ordered_backends() -> list[list[str]]:
     """Backend order matching the active GUI session's clipboard.
 
@@ -77,16 +95,18 @@ def _ordered_backends() -> list[list[str]]:
     session they are in, so prefer that source and keep the others as fallback.
 
     ``ARIA_CLIPBOARD_SOURCE`` (windows|x11|wayland|mac) forces a primary source,
-    keeping the rest as fallback. This is the escape hatch for MobaXterm and
-    other WSL+X setups where ``DISPLAY`` is set (so X11 is auto-preferred) but the
-    real copy lives in the Windows clipboard, so Ctrl+V otherwise reads a stale
-    X11 selection. ``auto`` / unset keeps the session-derived default.
+    keeping the rest as fallback. This is the explicit escape hatch; ``auto`` /
+    unset keeps the session-derived default, which now auto-prefers the Windows
+    clipboard for a remote MobaXterm→WSL2 session (see ``_remote_wsl_x_forwarded``)
+    where the forwarded X11 selection is stale.
     """
     forced = os.environ.get("ARIA_CLIPBOARD_SOURCE", "").strip().lower()
     if forced and forced != "auto" and forced in _SOURCE_GROUPS:
         rest = [c for name in _SOURCE_ORDER if name != forced
                 for c in _SOURCE_GROUPS[name]]
         return _SOURCE_GROUPS[forced] + rest
+    if _remote_wsl_x_forwarded():
+        return _WINDOWS + _X11 + _WAYLAND + _MAC
     if os.environ.get("WAYLAND_DISPLAY"):
         return _WAYLAND + _X11 + _WINDOWS + _MAC
     if os.environ.get("DISPLAY"):
