@@ -1016,7 +1016,7 @@ def _run_cockpit_front_door(memory: ARIAMemory,
         experiment_id = str(uuid.uuid4())[:12]
         ctx = _launch_context(
             data_dir, result.question, geo_meta, reproducible_mode,
-            enable_hypotheses,
+            enable_hypotheses or getattr(result, "enable_hypotheses", False),
         )
         return experiment_id, ctx
 

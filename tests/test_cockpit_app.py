@@ -361,6 +361,38 @@ def test_intake_submits_data_and_question(tmp_path):
     )
 
 
+def test_intake_hypotheses_toggle_defaults_off(tmp_path):
+    """ADR-057: the speculative-hypotheses opt-in is off unless the user ticks
+    the intake checkbox (mirrors --hypotheses / ARIA_ENABLE_HYPOTHESES)."""
+    async def _run():
+        app = _IntakeHost(version="4.6.1")
+        async with app.run_test() as pilot:
+            scr = await _mounted_intake(app, pilot)
+            from textual.widgets import Input, TextArea
+            scr.query_one("#data-input", Input).value = str(tmp_path)
+            scr.query_one("#question-input", TextArea).load_text("Q?")
+            scr.action_start()
+            return scr.submitted
+
+    assert asyncio.run(_run()).enable_hypotheses is False
+
+
+def test_intake_hypotheses_toggle_opt_in(tmp_path):
+    async def _run():
+        app = _IntakeHost(version="4.6.1")
+        async with app.run_test() as pilot:
+            scr = await _mounted_intake(app, pilot)
+            from textual.widgets import Checkbox, Input, TextArea
+            scr.query_one("#data-input", Input).value = str(tmp_path)
+            scr.query_one("#question-input", TextArea).load_text("Q?")
+            scr.query_one("#enable-hypotheses", Checkbox).value = True
+            await pilot.pause()
+            scr.action_start()
+            return scr.submitted
+
+    assert asyncio.run(_run()).enable_hypotheses is True
+
+
 def test_intake_requires_question(tmp_path):
     async def _run():
         app = _IntakeHost(version="4.6.1")

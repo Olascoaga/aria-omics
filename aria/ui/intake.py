@@ -19,7 +19,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.containers import Horizontal, Vertical
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Input, Static, TextArea
+from textual.widgets import Button, Checkbox, Footer, Input, Static, TextArea
 
 from aria.runtime.experiment_view import ExperimentHistoryView
 from aria.ui import clipboard
@@ -33,6 +33,9 @@ class IntakeResult:
 
     data_input: str
     question: str
+    # ADR-057: opt-in to the SPECULATIVE hypotheses report section. Off by
+    # default; never inferred. OR-combined with the CLI flag / env var upstream.
+    enable_hypotheses: bool = False
 
 
 class _ClipboardInput(Input):
@@ -151,6 +154,11 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
                 ),
                 Static("Biological question"),
                 _ClipboardTextArea(id="question-input"),
+                Checkbox(
+                    "Generate speculative hypotheses (experimental)",
+                    value=False,
+                    id="enable-hypotheses",
+                ),
                 Static("", id="status"),
                 Horizontal(
                     Button("Start", id="start", variant="primary"),
@@ -231,7 +239,11 @@ class AriaIntakeScreen(Screen[Optional[IntakeResult]]):
             self._set_status("Enter a biological question.")
             self.query_one("#question-input", TextArea).focus()
             return
-        result = IntakeResult(data_input=data_input, question=question)
+        enable_hypotheses = self.query_one("#enable-hypotheses", Checkbox).value
+        result = IntakeResult(
+            data_input=data_input, question=question,
+            enable_hypotheses=bool(enable_hypotheses),
+        )
         self.submitted = result
         self.dismiss(result)
 
