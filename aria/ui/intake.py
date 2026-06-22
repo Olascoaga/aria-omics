@@ -60,8 +60,7 @@ class _ClipboardInput(Input):
         if clipboard.clipboard_backend() is None:
             self.app.bell()
             self.notify(
-                "No clipboard tool found. Install xclip/wl-clipboard, or use the "
-                "terminal paste (Shift+Insert or right-click).",
+                clipboard.unavailable_message(),
                 severity="warning", timeout=6,
             )
 
@@ -77,8 +76,7 @@ class _ClipboardTextArea(TextArea):
             if clipboard.clipboard_backend() is None:
                 self.app.bell()
                 self.notify(
-                    "No clipboard tool found. Install xclip/wl-clipboard, or use "
-                    "the terminal paste (Shift+Insert or right-click).",
+                    clipboard.unavailable_message(),
                     severity="warning", timeout=6,
                 )
             return

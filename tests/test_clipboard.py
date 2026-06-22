@@ -25,6 +25,7 @@ def _hermetic_clipboard_env(monkeypatch):
     WSL auto-detection and the explicit override are exercised deterministically
     (the dev/CI shell may itself be an SSH session)."""
     monkeypatch.delenv("SSH_CONNECTION", raising=False)
+    monkeypatch.delenv("SSH_CLIENT", raising=False)
     monkeypatch.delenv("ARIA_CLIPBOARD_SOURCE", raising=False)
 
 
@@ -129,9 +130,9 @@ def test_clipboard_source_override_falls_back_when_primary_empty(monkeypatch):
     assert clipboard.read_clipboard() == "from-x11"
 
 
-def test_remote_wsl_ssh_forwarded_prefers_windows(monkeypatch):
-    # MobaXterm → WSL2 over SSH with forwarded X11: the forwarded X11 selection
-    # is stale, so auto-prefer the Windows clipboard (reachable via interop).
+def test_remote_ssh_does_not_read_remote_clipboard_by_default(monkeypatch):
+    # MobaXterm/SSH: the user's clipboard is on the client, but OS clipboard
+    # commands run on the remote host. Do not paste stale/remote text by default.
     monkeypatch.setenv("SSH_CONNECTION", "172.30.16.1 59344 172.30.24.44 2222")
     monkeypatch.setenv("DISPLAY", "localhost:11.0")
     monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
@@ -144,8 +145,40 @@ def test_remote_wsl_ssh_forwarded_prefers_windows(monkeypatch):
         return _Proc(0, "https://github.com/JoshuaChou2018/AutoBA\n")
 
     monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
+    assert clipboard.clipboard_backend() is None
+    assert clipboard.read_clipboard() is None
+    assert "Remote SSH sessions" in clipboard.unavailable_message()
+
+
+def test_remote_ssh_can_force_remote_windows_clipboard(monkeypatch):
+    # Explicit override remains available for users who genuinely want the
+    # remote host clipboard, but it is no longer inferred.
+    monkeypatch.setenv("SSH_CONNECTION", "172.30.16.1 59344 172.30.24.44 2222")
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.setenv("ARIA_CLIPBOARD_SOURCE", "windows")
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+
+    def fake_run(argv, **kwargs):
+        if "xclip" in argv[0]:
+            return _Proc(0, "x11\n")
+        return _Proc(0, "remote-windows\n")
+
+    monkeypatch.setattr(clipboard.subprocess, "run", fake_run)
     assert clipboard.clipboard_backend() == "powershell.exe"
-    assert clipboard.read_clipboard() == "https://github.com/JoshuaChou2018/AutoBA"
+    assert clipboard.read_clipboard() == "remote-windows"
+
+
+def test_clipboard_source_off_disables_backends(monkeypatch):
+    monkeypatch.setenv("ARIA_CLIPBOARD_SOURCE", "off")
+    monkeypatch.delenv("SSH_CONNECTION", raising=False)
+    monkeypatch.setenv("DISPLAY", "localhost:11.0")
+    monkeypatch.setattr(clipboard.shutil, "which", lambda name: "/usr/bin/" + name)
+    monkeypatch.setattr(clipboard.os.path, "isfile", lambda path: False)
+
+    assert clipboard.clipboard_backend() is None
+    assert clipboard.read_clipboard() is None
+    assert "disabled" in clipboard.unavailable_message()
 
 
 def test_local_physical_x11_session_unchanged(monkeypatch):
@@ -163,13 +196,12 @@ def test_local_physical_x11_session_unchanged(monkeypatch):
     assert clipboard.read_clipboard() == "from-x11"
 
 
-def test_remote_wsl_without_interop_keeps_x11(monkeypatch):
-    # Remote SSH + forwarded X11 but NO Windows interop (native Linux server):
-    # there is no Windows clipboard to prefer, so X11 stays primary.
-    monkeypatch.setenv("SSH_CONNECTION", "10.0.0.1 5 10.0.0.2 22")
+def test_remote_ssh_client_env_also_disables_backends(monkeypatch):
+    # Some SSH servers expose SSH_CLIENT without SSH_CONNECTION.
+    monkeypatch.delenv("SSH_CONNECTION", raising=False)
+    monkeypatch.setenv("SSH_CLIENT", "10.0.0.1 5 22")
     monkeypatch.setenv("DISPLAY", "localhost:10.0")
     monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
-    # only xclip resolves; powershell/pwsh are absent
     monkeypatch.setattr(
         clipboard.shutil, "which",
         lambda name: "/usr/bin/xclip" if name == "xclip" else None,
@@ -179,7 +211,7 @@ def test_remote_wsl_without_interop_keeps_x11(monkeypatch):
         clipboard.subprocess, "run",
         lambda argv, **k: _Proc(0, "from-x11\n"),
     )
-    assert clipboard.read_clipboard() == "from-x11"
+    assert clipboard.read_clipboard() is None
 
 
 def test_clipboard_source_override_auto_keeps_default(monkeypatch):
