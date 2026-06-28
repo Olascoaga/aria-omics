@@ -109,6 +109,42 @@ def test_hypothesis_citing_absent_entity_is_rejected():
     assert "FOXP3" in (result.reason or "")
 
 
+def test_mechanism_prose_naming_undeclared_entity_is_rejected():
+    # The structured entities are all grounded and the cited observation ran, but
+    # the mechanism PROSE smuggles in SPI1 — never measured, never declared. The
+    # wall must guard the rendered prose, not only the structured entities field;
+    # otherwise an LLM evades grounding by naming an invented entity in the text
+    # the reader actually sees.
+    hyp = Hypothesis(
+        id="h_prose",
+        mechanism="GATA1 accessibility may be co-opted by SPI1 at shared loci",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "SPI1" in result.ungrounded_mechanism_entities
+    # The declared entities are all grounded -> the structured-only check is clean.
+    assert result.missing_entities == []
+    assert "SPI1" in (result.reason or "")
+
+
+def test_mechanism_prose_with_only_grounded_entities_passes():
+    # A mechanism that names only measured entities (and hedge/connective words)
+    # must NOT be flagged: the prose check targets invented entities, not prose.
+    hyp = Hypothesis(
+        id="h_ok_prose",
+        mechanism="KLF1 motif accessibility may sustain GATA1 expression",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is True
+    assert result.ungrounded_mechanism_entities == []
+
+
 def test_hypothesis_from_not_run_analysis_is_rejected():
     # Entities are real, but the cited observation analysis was skipped.
     hyp = Hypothesis(
