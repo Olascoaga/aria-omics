@@ -124,10 +124,65 @@ def test_mechanism_prose_naming_undeclared_entity_is_rejected():
     )
     result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
     assert result.grounded is False
-    assert "SPI1" in result.ungrounded_mechanism_entities
+    assert "SPI1" in result.ungrounded_prose_entities
     # The declared entities are all grounded -> the structured-only check is clean.
     assert result.missing_entities == []
     assert "SPI1" in (result.reason or "")
+
+
+def test_experiment_smuggling_undeclared_entity_is_rejected():
+    # H1 bug 2: the mechanism is clean and the entities are grounded, but the
+    # discriminating experiment perturbs TP53 — never measured, never declared.
+    # The wall must scan EVERY generated field, not only the mechanism.
+    hyp = Hypothesis(
+        id="h_exp",
+        mechanism="GATA1 accessibility may sustain the erythroid program",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=DiscriminatingExperiment(
+            perturbation="TP53 knockout",
+            readout="GATA1 expression by qPCR",
+            predicted_direction="down",
+            refuting_outcome="GATA1 unchanged",
+        ),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "TP53" in result.ungrounded_prose_entities
+    assert result.missing_entities == []
+
+
+def test_vacuous_hypothesis_naming_nothing_is_rejected():
+    # H1 bug 1: no declared entities and no cited observation -> anchored to
+    # nothing. "Grounded by naming nothing" must not be accepted.
+    hyp = Hypothesis(
+        id="h_void",
+        mechanism="the observed shift may reflect a regulatory rewiring",
+        entities=[],
+        observation_refs=[],
+        experiment=DiscriminatingExperiment(
+            "perturb the system", "measure a readout", "up", "no change"
+        ),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert result.vacuous is True
+    assert "vacuous" in (result.reason or "")
+
+
+def test_hypothesis_with_entities_but_no_observation_is_vacuous():
+    # Grounded entities but zero cited observations is still anchored to no
+    # audited result.
+    hyp = Hypothesis(
+        id="h_noref",
+        mechanism="KLF1 may sustain GATA1 expression",
+        entities=["GATA1", "KLF1"],
+        observation_refs=[],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert result.vacuous is True
 
 
 def test_mechanism_prose_with_only_grounded_entities_passes():
@@ -142,7 +197,7 @@ def test_mechanism_prose_with_only_grounded_entities_passes():
     )
     result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
     assert result.grounded is True
-    assert result.ungrounded_mechanism_entities == []
+    assert result.ungrounded_prose_entities == []
 
 
 def test_hypothesis_from_not_run_analysis_is_rejected():
@@ -184,10 +239,11 @@ def test_entity_grounding_is_case_insensitive():
         id="h5",
         mechanism="connection",
         entities=["gata1", "Klf1"],
-        observation_refs=[],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_experiment(),
     )
-    # No run_ledger -> only entity grounding is enforced.
+    # No run_ledger -> the ledger-node check is skipped; entity grounding,
+    # prose grounding and non-vacuity are still enforced.
     result = verify_hypothesis_grounding(hyp, _signals(), None)
     assert result.grounded is True
 

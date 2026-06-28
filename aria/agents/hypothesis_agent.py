@@ -122,9 +122,10 @@ class HypothesisAgent:
                         "passed": False,
                         "reason": grounding.reason,
                         "missing_entities": grounding.missing_entities,
-                        "ungrounded_mechanism_entities": (
-                            grounding.ungrounded_mechanism_entities
+                        "ungrounded_prose_entities": (
+                            grounding.ungrounded_prose_entities
                         ),
+                        "vacuous": grounding.vacuous,
                         "not_run_refs": grounding.not_run_refs,
                     }
                 )
