@@ -20,8 +20,8 @@ The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `704a22c` (HEAD the graph was built from)
-- Generated: 2026-06-21
+- Commit: `984da2c` (HEAD the graph was built from)
+- Generated: 2026-06-28
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
 - Structure-only graph: **5796 code nodes / 13133 EXTRACTED structural edges** in
