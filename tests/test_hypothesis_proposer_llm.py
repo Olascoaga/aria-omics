@@ -98,6 +98,50 @@ def test_proposer_returns_empty_for_no_signals():
     assert proposer([], {}) == []
 
 
+def test_parse_ignores_model_supplied_governance_fields():
+    # H9 (F1): the model must not be able to self-assign code-owned governance /
+    # derived fields. tier, provenance, ledger_node, competing_with and
+    # rank_evidence are dropped at the deserialisation boundary.
+    raw = json.dumps([{
+        "id": "h", "mechanism": "GATA1 may act", "entities": ["GATA1"],
+        "observation_refs": ["ledger://bulk/differential_expression"],
+        "tier": "causal_experimental",
+        "provenance": {"model_label": "FAKE-INJECTED"},
+        "ledger_node": "hypothesis://evil",
+        "competing_with": ["x"],
+        "rank_evidence": {"n_independent_lines": 999},
+        "experiment": {"perturbation": "GATA1 KD", "readout": "qPCR",
+                       "predicted_direction": "down", "refuting_outcome": "no change"},
+        "devils_advocate": {"simpler_explanation": "x", "confounds": []},
+    }])
+    h = parse_hypotheses(raw)[0]
+    assert h.tier == "SPECULATIVE"
+    assert h.provenance == {}
+    assert h.ledger_node is None
+    assert h.competing_with == []
+    assert h.rank_evidence == {}
+    # Scientific content the model DOES own is preserved.
+    assert h.entities == ["GATA1"]
+    assert h.devils_advocate["simpler_explanation"] == "x"
+
+
+def test_proposer_provenance_overrides_model_supplied():
+    # H9 (F1): even if the model returns a forged provenance, the proposer stamps
+    # the real code-authored one (never the model's).
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    raw = json.dumps([{
+        "id": "h", "mechanism": "GATA1 and KLF1 may share a program",
+        "entities": ["GATA1", "KLF1"],
+        "observation_refs": ["ledger://bulk/differential_expression"],
+        "provenance": {"model_label": "FAKE-INJECTED"},
+        "experiment": {"perturbation": "GATA1 KD", "readout": "qPCR",
+                       "predicted_direction": "down", "refuting_outcome": "no change"},
+        "devils_advocate": {"simpler_explanation": "x", "confounds": ["low replication"]},
+    }])
+    hyps = LLMProposer(lambda p, s: raw, model_label="real-model")(signals, {})
+    assert hyps[0].provenance["model_label"] == "real-model"
+
+
 def test_proposer_stamps_model_provenance():
     signals = bulk_rna_evidence(_agent_results(), _ledger())
     proposer = LLMProposer(

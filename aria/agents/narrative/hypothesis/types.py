@@ -173,6 +173,19 @@ class Hypothesis:
 
     @classmethod
     def from_dict(cls, data: dict) -> "Hypothesis":
+        """Deserialize a hypothesis from (untrusted, LLM-authored) JSON.
+
+        H9 (F1): ``tier``, ``provenance``, ``ledger_node``, ``rank_evidence`` and
+        ``competing_with`` are CODE-OWNED governance/derived fields and are NEVER
+        read from the input. ``tier`` is always SPECULATIVE; the rest fall to their
+        empty defaults and are stamped downstream by the proposer (provenance), the
+        quarantine (``ledger_node``) and the ranking (``rank_evidence`` /
+        ``competing_with``). This is the deserialisation boundary for model output,
+        so a model cannot self-assign a stronger tier, forge its provenance, mint a
+        quarantine node, or inflate its own ranking. Only the scientific content
+        (``id``, ``mechanism``, ``entities``, ``observation_refs``, ``experiment``,
+        ``devils_advocate``) is taken from the model.
+        """
         return cls(
             id=str(data.get("id", "")),
             mechanism=str(data.get("mechanism", "")),
@@ -181,10 +194,6 @@ class Hypothesis:
             experiment=DiscriminatingExperiment.from_dict(
                 data.get("experiment", {}) or {}
             ),
-            competing_with=list(data.get("competing_with", []) or []),
             devils_advocate=dict(data.get("devils_advocate", {}) or {}),
-            rank_evidence=dict(data.get("rank_evidence", {}) or {}),
-            provenance=dict(data.get("provenance", {}) or {}),
-            tier=str(data.get("tier", "SPECULATIVE")),
-            ledger_node=data.get("ledger_node"),
+            tier="SPECULATIVE",
         )

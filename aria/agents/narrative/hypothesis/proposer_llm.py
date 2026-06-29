@@ -338,6 +338,8 @@ class LLMProposer:
             )
         provenance = self._provenance(prompt, signals, diag, served)
         for hyp in candidates:
-            if not hyp.provenance:
-                hyp.provenance = dict(provenance)
+            # H9 (F1): provenance is ALWAYS code-stamped, never inherited from the
+            # model's JSON (from_dict already drops a model-supplied provenance;
+            # overwrite unconditionally so no future path can let one through).
+            hyp.provenance = dict(provenance)
         return candidates
