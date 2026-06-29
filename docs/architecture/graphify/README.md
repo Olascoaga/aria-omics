@@ -20,7 +20,7 @@ The graph carries a `"structure_only": true` provenance stamp.
 
 ## Snapshot
 
-- Commit: `740ba4a` (HEAD the graph was built from)
+- Commit: `c69bc86` (HEAD the graph was built from)
 - Generated: 2026-06-28
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
