@@ -67,16 +67,24 @@ def _categories(text: str) -> set[str]:
 
 
 def visible_confounds(
-    hyp: Hypothesis, evidence_index: Mapping[str, EvidenceSignal]
+    hyp: Hypothesis,
+    evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
 ) -> set[str]:
-    """Confound categories the audited evidence the hypothesis cites already flags."""
+    """Confound categories the audited evidence the hypothesis cites already flags.
+
+    Accepts either an entity->signal index or an entity->[signals] index (H4): a
+    confound flagged on the entity in ANY context it was measured in must be
+    owned, so all of an entity's context-distinct signals are unioned.
+    """
     cats: set[str] = set()
     for ent in hyp.entities or []:
-        sig = evidence_index.get(str(ent).strip().lower())
-        if sig is None:
+        value = evidence_index.get(str(ent).strip().lower())
+        if value is None:
             continue
-        for caveat in sig.caveats_inherited or []:
-            cats |= _categories(caveat)
+        sigs = value if isinstance(value, list) else [value]
+        for sig in sigs:
+            for caveat in getattr(sig, "caveats_inherited", None) or []:
+                cats |= _categories(caveat)
     return cats
 
 

@@ -14,9 +14,29 @@ from aria.agents.narrative.hypothesis import (
     EvidenceSignal,
     Hypothesis,
     build_evidence_index,
+    build_signals_by_entity,
     check_devils_advocate,
     visible_confounds,
 )
+
+
+def test_visible_confounds_unions_across_contexts():
+    # H4: GATA1 is measured in two contexts; only ONE flags batch. The gate must
+    # still see batch — confounds are unioned across all of the entity's signals,
+    # so a confound flagged in any context cannot be hidden by another.
+    sigs = [
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="scRNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://scRNA/pseudobulk_de",
+                       context="A", caveats_inherited=[]),
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="scRNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://scRNA/pseudobulk_de",
+                       context="B",
+                       caveats_inherited=["residual batch effect (integration)"]),
+    ]
+    hyp = Hypothesis(id="h", mechanism="m", entities=["GATA1"])
+    assert "batch" in visible_confounds(hyp, build_signals_by_entity(sigs))
 
 
 def _experiment() -> DiscriminatingExperiment:

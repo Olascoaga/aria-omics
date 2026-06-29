@@ -45,8 +45,27 @@ def build_evidence_index(
     index: dict[str, EvidenceSignal] = {}
     for sig in signals or []:
         if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
-            index[_norm(sig.entity)] = sig
+            # First-wins: deterministic representative. An entity can now carry
+            # several context-distinct signals (H4); use build_signals_by_entity
+            # when ALL of them matter (caveat union, independent-line counting).
+            index.setdefault(_norm(sig.entity), sig)
     return index
+
+
+def build_signals_by_entity(
+    signals: list[EvidenceSignal],
+) -> dict[str, list[EvidenceSignal]]:
+    """Index audited evidence by entity, KEEPING every context-distinct signal.
+
+    Unlike :func:`build_evidence_index` (one representative per entity), this
+    preserves the full list so a gene measured in two contrasts contributes both
+    its confounds and both its converging lines (H4: no destructive dedup).
+    """
+    out: dict[str, list[EvidenceSignal]] = {}
+    for sig in signals or []:
+        if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
+            out.setdefault(_norm(sig.entity), []).append(sig)
+    return out
 
 
 @dataclass

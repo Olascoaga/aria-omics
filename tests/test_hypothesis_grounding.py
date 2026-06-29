@@ -14,6 +14,7 @@ from aria.agents.narrative.hypothesis import (
     EvidenceSignal,
     Hypothesis,
     build_evidence_index,
+    build_signals_by_entity,
     verify_hypothesis_grounding,
 )
 
@@ -246,6 +247,31 @@ def test_entity_grounding_is_case_insensitive():
     # prose grounding and non-vacuity are still enforced.
     result = verify_hypothesis_grounding(hyp, _signals(), None)
     assert result.grounded is True
+
+
+def _ctx_signal(entity, context, value, direction):
+    return EvidenceSignal(
+        entity=entity, entity_kind="gene", modality="bulk_RNA",
+        measure="log2fc", audited_node_ref="ledger://bulk/differential_expression",
+        value=value, direction=direction, context=context,
+    )
+
+
+def test_signal_id_distinguishes_context():
+    # H4: the SAME entity in two contexts is two distinct signals.
+    a = _ctx_signal("GATA1", "old_vs_young", 2.0, "up")
+    b = _ctx_signal("GATA1", "treated_vs_ctrl", -1.0, "down")
+    assert a.signal_id and b.signal_id
+    assert a.signal_id != b.signal_id
+
+
+def test_build_signals_by_entity_keeps_every_context():
+    a = _ctx_signal("GATA1", "old_vs_young", 2.0, "up")
+    b = _ctx_signal("GATA1", "treated_vs_ctrl", -1.0, "down")
+    by_entity = build_signals_by_entity([a, b])
+    assert len(by_entity["gata1"]) == 2
+    # build_evidence_index still yields one deterministic representative.
+    assert build_evidence_index([a, b])["gata1"] is a
 
 
 def test_build_evidence_index_skips_blank_and_nonsignals():

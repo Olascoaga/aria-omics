@@ -43,6 +43,7 @@ from .gates import GateResult, check_falsifiability, check_language
 from .grounding import (
     GroundingResult,
     build_evidence_index,
+    build_signals_by_entity,
     verify_hypothesis_grounding,
 )
 from .quarantine import (
@@ -61,6 +62,7 @@ __all__ = [
     "DiscriminatingExperiment",
     "GroundingResult",
     "build_evidence_index",
+    "build_signals_by_entity",
     "verify_hypothesis_grounding",
     "GateResult",
     "check_falsifiability",
