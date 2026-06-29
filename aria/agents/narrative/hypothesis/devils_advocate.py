@@ -26,6 +26,12 @@ from .types import EvidenceSignal, Hypothesis
 
 # Technical confounder categories — mirror the alternatives enumerated in
 # narrative/devils_advocate.py. Methodological vocabulary only.
+#
+# Matching here is intentionally PERMISSIVE substring/stem (unlike the
+# word-boundary lints in gates.py): the goal is to never MISS a flagged confound
+# ("batch" must match "batches"/"batch effect"/"batch-corrected"), so a caveat
+# can be owned by the hypothesis. Best-effort, deterministic; a confound phrased
+# entirely outside this vocabulary is not detected.
 _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
     "batch": ("batch",),
     "composition": (

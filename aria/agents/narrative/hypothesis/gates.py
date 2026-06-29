@@ -16,9 +16,36 @@ LLM); a failing hypothesis is REJECTED, never caveated:
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from .types import Hypothesis
+
+# Best-effort, deterministic lints (no LLM). They are word-boundary matched, not
+# raw substrings: a substring lint both MISSED hedges (the old ``"may "`` needed a
+# literal trailing space, so ``"...may."`` failed to count as hedged) and FIRED
+# falsely (a direction token ``"up"`` matched inside ``"upstream"``). Word
+# boundaries fix both; STEM lints still match inflections on purpose
+# (``"suggest"`` -> suggests/suggested). These remain a heuristic register check,
+# not a semantic judge — a determined paraphrase can still evade them.
+
+
+def _word_patterns(terms: tuple[str, ...]) -> tuple[re.Pattern, ...]:
+    """Match each term as a whole word/phrase (``\\bterm\\b``)."""
+    return tuple(re.compile(r"\b" + re.escape(t) + r"\b") for t in terms)
+
+
+def _stem_patterns(terms: tuple[str, ...]) -> tuple[re.Pattern, ...]:
+    """Match each term at a word start, allowing inflected suffixes (``\\bstem``)."""
+    return tuple(re.compile(r"\b" + re.escape(t)) for t in terms)
+
+
+def _first_match(text: str, patterns: tuple[re.Pattern, ...]) -> str | None:
+    for pattern in patterns:
+        m = pattern.search(text)
+        if m:
+            return m.group(0)
+    return None
 
 
 @dataclass
@@ -73,6 +100,9 @@ _VALID_DIRECTION_TOKENS = (
     "rescue",
 )
 
+_VACUOUS_PATTERNS = _word_patterns(_VACUOUS_EXPERIMENT_PHRASES)
+_DIRECTION_PATTERNS = _word_patterns(_VALID_DIRECTION_TOKENS)
+
 
 def check_falsifiability(hyp: Hypothesis) -> GateResult:
     """Reject a hypothesis without a complete, concrete discriminating experiment."""
@@ -92,15 +122,15 @@ def check_falsifiability(hyp: Hypothesis) -> GateResult:
             exp.refuting_outcome,
         ]
     ).lower()
-    for phrase in _VACUOUS_EXPERIMENT_PHRASES:
-        if phrase in blob:
-            return GateResult(
-                "falsifiability",
-                False,
-                f"discriminating experiment is non-specific ({phrase!r})",
-            )
+    vacuous = _first_match(blob, _VACUOUS_PATTERNS)
+    if vacuous is not None:
+        return GateResult(
+            "falsifiability",
+            False,
+            f"discriminating experiment is non-specific ({vacuous!r})",
+        )
     direction = str(exp.predicted_direction or "").lower()
-    if not any(tok in direction for tok in _VALID_DIRECTION_TOKENS):
+    if _first_match(direction, _DIRECTION_PATTERNS) is None:
         return GateResult(
             "falsifiability",
             False,
@@ -136,23 +166,33 @@ _FORBIDDEN_LANGUAGE = (
     "is responsible for",
     "determines",
 )
+_FORBIDDEN_PATTERNS = _word_patterns(_FORBIDDEN_LANGUAGE)
 
 # At least one explicit hedge must be present so the register stays speculative.
-_SPECULATIVE_MARKERS = (
-    "may ",
+# Whole-word markers are ambiguous as substrings (``may`` is inside "mayonnaise",
+# so it needs a boundary); stem markers must still catch inflections
+# (``suggest`` -> suggests/suggested), so they are word-START anchored only.
+_SPECULATIVE_MARKER_WORDS = (
+    "may",
     "might",
     "could",
     "would",
-    "suggest",
-    "consistent with",
-    "hypothesiz",
-    "propose",
-    "possibl",
-    "potentially",
-    "predict",
     "candidate",
-    "plausibl",
+    "consistent with",
     "raises the possibility",
+)
+_SPECULATIVE_MARKER_STEMS = (
+    "suggest",
+    "hypothesiz",
+    "propos",
+    "possibl",
+    "potential",
+    "predict",
+    "plausibl",
+)
+_MARKER_PATTERNS = (
+    _word_patterns(_SPECULATIVE_MARKER_WORDS)
+    + _stem_patterns(_SPECULATIVE_MARKER_STEMS)
 )
 
 
@@ -161,7 +201,7 @@ def check_language(hyp: Hypothesis) -> GateResult:
     text = str(getattr(hyp, "mechanism", "") or "").lower()
     if not text.strip():
         return GateResult("language", False, "empty mechanism")
-    hit = next((t for t in _FORBIDDEN_LANGUAGE if t in text), None)
+    hit = _first_match(text, _FORBIDDEN_PATTERNS)
     if hit is not None:
         return GateResult(
             "language",
@@ -169,7 +209,7 @@ def check_language(hyp: Hypothesis) -> GateResult:
             f"mechanism uses assertive/causal language ({hit!r}); the "
             "SPECULATIVE tier requires a hedged register",
         )
-    if not any(m in text for m in _SPECULATIVE_MARKERS):
+    if _first_match(text, _MARKER_PATTERNS) is None:
         return GateResult(
             "language",
             False,
