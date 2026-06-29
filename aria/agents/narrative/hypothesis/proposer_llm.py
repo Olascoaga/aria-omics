@@ -73,9 +73,15 @@ def build_proposer_prompt(
         caveats = ", ".join(d.get("caveats_inherited") or []) or "none"
         value = d.get("value")
         value_str = f" value={value}" if value is not None else ""
+        # H12 (F4): print the analysis context so the model can distinguish the
+        # SAME entity measured in different contrasts/groups. Without it, GATA1 up
+        # in one contrast and GATA1 down in another collapse into one ambiguous
+        # line and the model cannot reason about which contrast it is connecting.
+        context = str(d.get("context") or "").strip()
+        context_str = f" (context: {context})" if context else ""
         lines.append(
             f"- {d.get('entity')} [{d.get('entity_kind')}] "
-            f"{d.get('measure')} {d.get('direction')}{value_str} "
+            f"{d.get('measure')} {d.get('direction')}{value_str}{context_str} "
             f"from {d.get('audited_node_ref')}; confounds: {caveats}"
         )
     lines.append("")

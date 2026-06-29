@@ -13,6 +13,7 @@ import json
 
 from aria.agents.hypothesis_agent import HypothesisAgent
 from aria.agents.narrative.hypothesis import (
+    EvidenceSignal,
     LLMProposer,
     bulk_rna_evidence,
     build_proposer_prompt,
@@ -152,6 +153,24 @@ def test_proposer_stamps_model_provenance():
     assert prov["model_label"] == "test-model"
     assert "prompt_sha256" in prov
     assert "input_evidence_sha256" in prov
+
+
+def test_prompt_prints_context_to_distinguish_same_entity():
+    # H12 (F4): the same gene measured in two contrasts must be distinguishable in
+    # the prompt by its context, so opposite effects do not collapse into one line.
+    sigs = [
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="bulk_RNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://bulk/differential_expression",
+                       value=2.3, direction="up", context="old_vs_young"),
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="bulk_RNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://bulk/differential_expression",
+                       value=-1.5, direction="down", context="treated_vs_ctrl"),
+    ]
+    prompt = build_proposer_prompt(sigs, {}, 3)
+    assert "context: old_vs_young" in prompt
+    assert "context: treated_vs_ctrl" in prompt
 
 
 def test_prompt_lists_only_audited_evidence():
