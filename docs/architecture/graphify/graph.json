@@ -29153,7 +29153,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -29398,7 +29398,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -29420,7 +29420,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -38452,109 +38452,123 @@
       "source_location": "L96"
     },
     {
+      "id": "tests_test_hypothesis_proposer_llm_test_parse_ignores_model_supplied_governance_fields",
+      "label": "test_parse_ignores_model_supplied_governance_fields()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L101"
+    },
+    {
+      "id": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "label": "test_proposer_provenance_overrides_model_supplied()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L128"
+    },
+    {
       "id": "tests_test_hypothesis_proposer_llm_test_proposer_stamps_model_provenance",
       "label": "test_proposer_stamps_model_provenance()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L101"
+      "source_location": "L145"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_prompt_lists_only_audited_evidence",
       "label": "test_prompt_lists_only_audited_evidence()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L113"
+      "source_location": "L157"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_end_to_end_accepts_grounded_gated_hypothesis",
       "label": "test_end_to_end_accepts_grounded_gated_hypothesis()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L123"
+      "source_location": "L167"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_end_to_end_rejects_model_inventing_a_gene",
       "label": "test_end_to_end_rejects_model_inventing_a_gene()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L135"
+      "source_location": "L179"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_verbose_hypotheses_json",
       "label": "_verbose_hypotheses_json()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L167"
+      "source_location": "L211"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L167"
+      "source_location": "L211"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_truncated_response",
       "label": "_truncated_response()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L198"
+      "source_location": "L242"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_from_provider_uses_generous_token_budget",
       "label": "test_from_provider_uses_generous_token_budget()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L204"
+      "source_location": "L248"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_proposer_retries_with_larger_budget_on_truncation",
       "label": "test_proposer_retries_with_larger_budget_on_truncation()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L224"
+      "source_location": "L268"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_proposer_stops_retrying_at_max_retries",
       "label": "test_proposer_stops_retrying_at_max_retries()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L243"
+      "source_location": "L287"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_from_provider_records_real_served_model_and_finish_reason",
       "label": "test_from_provider_records_real_served_model_and_finish_reason()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L261"
+      "source_location": "L305"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_classify_parse_distinguishes_failure_modes",
       "label": "test_classify_parse_distinguishes_failure_modes()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L294"
+      "source_location": "L338"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_proposer_records_truncation_diagnostic",
       "label": "test_proposer_records_truncation_diagnostic()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L301"
+      "source_location": "L345"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_agent_honest_null_names_a_parse_failure",
       "label": "test_agent_honest_null_names_a_parse_failure()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L310"
+      "source_location": "L354"
     },
     {
       "id": "tests_test_hypothesis_proposer_llm_test_end_to_end_rejects_model_dropping_a_confound",
       "label": "test_end_to_end_rejects_model_dropping_a_confound()",
       "file_type": "code",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L327"
+      "source_location": "L371"
     },
     {
       "id": "tests_test_hypothesis_quarantine",
@@ -43154,110 +43168,10 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
-    },
-    {
-      "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
-    },
-    {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
-    },
-    {
-      "id": "design_agent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
-    },
-    {
-      "id": "audit_agent",
-      "label": "AuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
-    },
-    {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py"
-    },
-    {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
-    },
-    {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py"
-    },
-    {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
     }
   ],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -128492,7 +128406,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -128545,7 +128459,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128555,7 +128469,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128565,7 +128479,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128575,7 +128489,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128585,7 +128499,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128907,7 +128821,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -128916,7 +128830,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -128951,7 +128865,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -128961,7 +128875,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wkgffw_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_uguq1p_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -144617,7 +144531,7 @@
     },
     {
       "source": "tests_test_hypothesis_proposer_llm",
-      "target": "tests_test_hypothesis_proposer_llm_test_proposer_stamps_model_provenance",
+      "target": "tests_test_hypothesis_proposer_llm_test_parse_ignores_model_supplied_governance_fields",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
@@ -144626,11 +144540,29 @@
     },
     {
       "source": "tests_test_hypothesis_proposer_llm",
+      "target": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_proposer_llm",
+      "target": "tests_test_hypothesis_proposer_llm_test_proposer_stamps_model_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_proposer_llm",
       "target": "tests_test_hypothesis_proposer_llm_test_prompt_lists_only_audited_evidence",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L113",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -144639,7 +144571,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L123",
+      "source_location": "L167",
       "weight": 1.0
     },
     {
@@ -144648,7 +144580,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L135",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -144657,7 +144589,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L167",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -144667,7 +144599,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L167",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -144677,7 +144609,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L167",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -144686,7 +144618,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L198",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -144696,7 +144628,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L198",
+      "source_location": "L242",
       "weight": 1.0
     },
     {
@@ -144705,7 +144637,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L204",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -144714,7 +144646,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L224",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -144723,7 +144655,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L243",
+      "source_location": "L287",
       "weight": 1.0
     },
     {
@@ -144732,7 +144664,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L261",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -144741,7 +144673,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L294",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -144750,7 +144682,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L301",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -144759,7 +144691,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L310",
+      "source_location": "L354",
       "weight": 1.0
     },
     {
@@ -144768,7 +144700,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L327",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -144802,13 +144734,33 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "target": "tests_test_hypothesis_proposer_llm_agent_results",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "target": "tests_test_hypothesis_proposer_llm_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_proposer_llm_test_proposer_stamps_model_provenance",
       "target": "tests_test_hypothesis_proposer_llm_agent_results",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L102",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -144818,7 +144770,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L102",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -144828,7 +144780,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L104",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -144838,7 +144790,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L114",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -144848,7 +144800,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L114",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -144858,7 +144810,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L124",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -144868,7 +144820,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L124",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -144878,7 +144830,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L126",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -144888,7 +144840,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L136",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -144898,7 +144850,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L136",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -144908,7 +144860,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L200",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -144918,7 +144870,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L215",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -144928,7 +144880,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L215",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -144938,7 +144890,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L234",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -144948,7 +144900,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L234",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -144958,7 +144910,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L253",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -144968,7 +144920,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L253",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -144978,7 +144930,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L283",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -144988,7 +144940,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L283",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -144998,7 +144950,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L297",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -145008,7 +144960,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L298",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -145018,7 +144970,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L303",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -145028,7 +144980,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L303",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -145038,7 +144990,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L304",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -145048,7 +145000,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L313",
+      "source_location": "L357",
       "weight": 1.0
     },
     {
@@ -145058,7 +145010,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L313",
+      "source_location": "L357",
       "weight": 1.0
     },
     {
@@ -145068,7 +145020,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L314",
+      "source_location": "L358",
       "weight": 1.0
     },
     {
@@ -145078,7 +145030,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L330",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -145088,7 +145040,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L330",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -176130,13 +176082,43 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_proposer_llm_test_parse_ignores_model_supplied_governance_fields",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "target": "adapters_bulk_rna_bulk_rna_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_proposer_llm_test_proposer_provenance_overrides_model_supplied",
+      "target": "hypothesis_proposer_llm_llmproposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_proposer_llm.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_proposer_llm_test_proposer_stamps_model_provenance",
       "target": "adapters_bulk_rna_bulk_rna_evidence",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L102",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -176146,7 +176128,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L103",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -176156,7 +176138,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L114",
+      "source_location": "L158",
       "weight": 1.0
     },
     {
@@ -176166,7 +176148,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L115",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -176176,7 +176158,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L124",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -176186,7 +176168,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L125",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -176196,7 +176178,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L126",
+      "source_location": "L170",
       "weight": 1.0
     },
     {
@@ -176206,7 +176188,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L136",
+      "source_location": "L180",
       "weight": 1.0
     },
     {
@@ -176216,7 +176198,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L157",
+      "source_location": "L201",
       "weight": 1.0
     },
     {
@@ -176226,7 +176208,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L157",
+      "source_location": "L201",
       "weight": 1.0
     },
     {
@@ -176236,7 +176218,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L215",
+      "source_location": "L259",
       "weight": 1.0
     },
     {
@@ -176246,7 +176228,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L233",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -176256,7 +176238,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L234",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -176266,7 +176248,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L252",
+      "source_location": "L296",
       "weight": 1.0
     },
     {
@@ -176276,7 +176258,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L253",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -176286,7 +176268,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L283",
+      "source_location": "L327",
       "weight": 1.0
     },
     {
@@ -176296,7 +176278,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L295",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -176306,7 +176288,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L303",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -176316,7 +176298,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L304",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -176326,7 +176308,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L313",
+      "source_location": "L357",
       "weight": 1.0
     },
     {
@@ -176336,7 +176318,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L314",
+      "source_location": "L358",
       "weight": 1.0
     },
     {
@@ -176346,7 +176328,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L314",
+      "source_location": "L358",
       "weight": 1.0
     },
     {
@@ -176356,7 +176338,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L330",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -176366,7 +176348,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L351",
+      "source_location": "L395",
       "weight": 1.0
     },
     {
@@ -176376,7 +176358,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_proposer_llm.py",
-      "source_location": "L351",
+      "source_location": "L395",
       "weight": 1.0
     },
     {
@@ -181251,147 +181233,8 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3728",
       "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "design_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "bulk_rna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "scrna_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "chromatin_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "environment_manager",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_bulk_diffacc",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_bulk_diffacc",
-      "target": "rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/workflows/chromatin_roadmap.md"
     }
   ],
   "hyperedges": [],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "structure_only": true
 }
