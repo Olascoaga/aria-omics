@@ -76,6 +76,7 @@ class GroundingResult:
     missing_entities: list[str] = field(default_factory=list)
     not_run_refs: list[dict] = field(default_factory=list)
     ungrounded_prose_entities: list[str] = field(default_factory=list)
+    misattributed_refs: list[str] = field(default_factory=list)
     vacuous: bool = False
     reason: str | None = None
 
@@ -157,12 +158,18 @@ def verify_hypothesis_grounding(
        cite at least one observation. A hypothesis anchored to nothing (no
        entities, no refs) is the ultimate ungrounded case — it is rejected, not
        vacuously accepted (H1, bug 1).
-    4. Every ``hypothesis.observation_refs`` ledger node must exist AND have run
+    4. Evidence↔citation lineage (H10): every cited ``observation_ref`` must be
+       the ``audited_node_ref`` of at least one of the hypothesis's named
+       entities. Existing + run is not enough — a DE gene cited to the pathway
+       node is a misattribution (the cited analysis did not produce that entity),
+       and is rejected.
+    5. Every ``hypothesis.observation_refs`` ledger node must exist AND have run
        (status not in not-run/skipped/error). Reusing W-LEDGER, a hypothesis
        cannot arise from an analysis that did not actually produce results.
 
-    The check on (4) only runs when a ``run_ledger`` is supplied; entity
-    grounding (1), prose grounding (2) and non-vacuity (3) are always enforced.
+    The check on (5) only runs when a ``run_ledger`` is supplied; entity
+    grounding (1), prose grounding (2), non-vacuity (3) and lineage (4) are
+    always enforced.
     """
     evidence = build_evidence_index(signals)
     declared = {_norm(ent) for ent in (hypothesis.entities or [])}
@@ -193,6 +200,23 @@ def verify_hypothesis_grounding(
     has_observation = bool(hypothesis.observation_refs)
     vacuous = (not grounded_entities) or (not has_observation)
 
+    # (4) Evidence↔citation lineage: the nodes that actually produced the
+    # hypothesis's named entities. A cited observation_ref that is NOT one of
+    # them is a misattribution — the analysis it points to did not produce any
+    # entity the hypothesis names.
+    entity_nodes = {
+        sig.audited_node_ref
+        for sig in (signals or [])
+        if isinstance(sig, EvidenceSignal)
+        and _norm(sig.entity) in declared
+        and sig.audited_node_ref
+    }
+    misattributed = [
+        ref
+        for ref in (hypothesis.observation_refs or [])
+        if ref not in entity_nodes
+    ]
+
     not_run: list[dict] = []
     if run_ledger is not None:
         index = _node_index(run_ledger)
@@ -214,6 +238,7 @@ def verify_hypothesis_grounding(
         and not not_run
         and not ungrounded_prose
         and not vacuous
+        and not misattributed
     )
     reason = None
     if not grounded:
@@ -222,6 +247,11 @@ def verify_hypothesis_grounding(
             parts.append(
                 "vacuous: requires at least one grounded entity and one "
                 "cited observation"
+            )
+        if misattributed:
+            parts.append(
+                "misattributed observation refs (did not produce a named "
+                f"entity): {misattributed}"
             )
         if missing:
             parts.append(f"ungrounded entities: {sorted(set(missing))}")
@@ -238,6 +268,7 @@ def verify_hypothesis_grounding(
         missing_entities=missing,
         not_run_refs=not_run,
         ungrounded_prose_entities=ungrounded_prose,
+        misattributed_refs=misattributed,
         vacuous=vacuous,
         reason=reason,
     )

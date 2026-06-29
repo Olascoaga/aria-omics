@@ -129,6 +129,7 @@ class HypothesisAgent:
                         "ungrounded_prose_entities": (
                             grounding.ungrounded_prose_entities
                         ),
+                        "misattributed_refs": grounding.misattributed_refs,
                         "vacuous": grounding.vacuous,
                         "not_run_refs": grounding.not_run_refs,
                     }

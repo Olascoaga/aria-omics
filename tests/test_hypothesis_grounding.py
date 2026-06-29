@@ -201,6 +201,37 @@ def test_mechanism_prose_with_only_grounded_entities_passes():
     assert result.ungrounded_prose_entities == []
 
 
+def test_misattributed_observation_ref_is_rejected():
+    # H10 (F3): GATA1 comes from pseudobulk_de; citing it to motif_enrichment
+    # (a node that RAN but did not produce GATA1) is a misattribution. Existing +
+    # run is not enough — the cited analysis must have produced a named entity.
+    hyp = Hypothesis(
+        id="mis",
+        mechanism="GATA1 may act",
+        entities=["GATA1"],
+        observation_refs=["ledger://chromatin/motif_enrichment"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "ledger://chromatin/motif_enrichment" in result.misattributed_refs
+    assert result.not_run_refs == []  # the node DID run; the defect is lineage
+
+
+def test_citation_to_the_producing_node_is_accepted():
+    # The same entity cited to the node that actually produced it is fine.
+    hyp = Hypothesis(
+        id="ok",
+        mechanism="GATA1 may act",
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is True
+    assert result.misattributed_refs == []
+
+
 def test_hypothesis_from_not_run_analysis_is_rejected():
     # Entities are real, but the cited observation analysis was skipped.
     hyp = Hypothesis(
