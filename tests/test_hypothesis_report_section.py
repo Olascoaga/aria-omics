@@ -138,6 +138,82 @@ def test_render_empty_for_none_or_not_ran():
     assert render_speculative_section_html({"ran": False}) == ""
 
 
+# ── H2: real verification wiring + visible failures ─────────────────────────
+
+def _ungrounded_json() -> str:
+    return json.dumps([{
+        "id": "u1",
+        "mechanism": "FOXP3 may rewire the erythroid program",
+        "entities": ["FOXP3"],  # never measured in _bulk_results -> grounding fails
+        "observation_refs": ["ledger://bulk/differential_expression"],
+        "experiment": {"perturbation": "FOXP3 KD", "readout": "qPCR",
+                       "predicted_direction": "decrease",
+                       "refuting_outcome": "no change"},
+        "devils_advocate": {"simpler_explanation": "shared stimulus",
+                            "confounds": []},
+    }])
+
+
+def test_gate_blocked_renders_visible_note_not_silence():
+    # H2: when the run's claims fail W-CLAIM/W-LEDGER, the causal gate withholds
+    # the section — but VISIBLY, never as a silent empty string.
+    proposer = LLMProposer(lambda p, s: _good_json())
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {}, proposer=proposer,
+        w_ledger_passed=False,
+    )
+    assert section["ran"] is False
+    assert section["reason"] == "verification_gate_not_passed"
+    html = render_speculative_section_html(section)
+    assert "SPECULATIVE" in html
+    assert "W-CLAIM/W-LEDGER" in html
+    assert "withheld" in html
+
+
+def test_honest_null_renders_per_gate_breakdown():
+    # H2: an honest-null caused by gate rejections must explain WHY (per-gate
+    # counts), not present an opaque "nothing here".
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: _ungrounded_json()),
+    )
+    assert section["honest_null"] is True
+    assert section.get("null_summary", {}).get("grounding")
+    html = render_speculative_section_html(section)
+    assert "rejections by gate" in html
+    assert "grounding" in html
+
+
+def test_speculative_verification_state_reads_real_signals():
+    # H2: the report builder feeds the gate the run's REAL W-CLAIM/W-LEDGER
+    # state, not an unconditional pass.
+    from aria.agents.narrative.report_builder import ReportBuilderMixin
+
+    rb = ReportBuilderMixin.__new__(ReportBuilderMixin)
+
+    class _Block:
+        def __init__(self, status):
+            self.metadata = {"claim_verification": {"status": status}}
+
+    # Clean run: claims supported, no ledger violations -> gate passes.
+    clean_ledger = {"claim_ledger_verification": {"n_violations": 0}}
+    w_claim, w_ledger = rb._speculative_verification_state(
+        clean_ledger, [_Block("supported")]
+    )
+    assert (w_claim, w_ledger) == (True, True)
+
+    # A W-LEDGER violation OR an unsupported W-CLAIM block closes the gate.
+    bad_ledger = {"claim_ledger_verification": {"n_violations": 2}}
+    w_claim2, w_ledger2 = rb._speculative_verification_state(
+        bad_ledger, [_Block("supported")]
+    )
+    assert w_ledger2 is False
+    w_claim3, _ = rb._speculative_verification_state(
+        clean_ledger, [_Block("unsupported")]
+    )
+    assert w_claim3 is False
+
+
 def test_section_honest_null_renders_note():
     # Default (null) proposer -> no hypotheses -> honest-null note, no crash.
     section = build_speculative_section(_bulk_results(), _ledger(), {})

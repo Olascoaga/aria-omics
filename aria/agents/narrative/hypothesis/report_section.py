@@ -11,6 +11,7 @@ node. This section is NEVER part of the audited claim manifest.
 from __future__ import annotations
 
 import html as _html
+import logging
 
 from .adapters import (
     bulk_atac_evidence,
@@ -18,6 +19,8 @@ from .adapters import (
     scatac_evidence,
     scrna_evidence,
 )
+
+log = logging.getLogger(__name__)
 
 SPECULATIVE_HEADER = (
     "Machine-generated hypotheses. Not findings. Not verified against evidence. "
@@ -42,7 +45,15 @@ def _chromatin_signals(agent_results, run_ledger, exp_ctx):
         if _is_bulk_atac(findings):
             return bulk_atac_evidence(agent_results, run_ledger, exp_ctx)
         return scatac_evidence(agent_results, run_ledger, exp_ctx)
-    except Exception:
+    except Exception as exc:
+        # A chromatin-adapter failure must NOT silently masquerade as "no
+        # evidence"; log it so the missing speculative input is visible.
+        log.warning(
+            "Speculative chromatin evidence adapter failed; treating as no "
+            "chromatin evidence: %s",
+            exc,
+            exc_info=True,
+        )
         return []
 
 
@@ -119,9 +130,58 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
     )
 
 
+def _render_gate_blocked(section: dict) -> str:
+    """Visible note when the causal gate withheld the section (rail #1).
+
+    The agent did not run because the run's audited claims failed W-CLAIM/
+    W-LEDGER verification. That is a governance signal, not nothing — render it
+    instead of silently dropping the section.
+    """
+    return "\n".join(
+        [
+            "<h2>Speculative Hypotheses "
+            "<span style='font-size:0.7rem;background:var(--amber);color:#000;"
+            "padding:0.1rem 0.4rem;border-radius:0.25rem'>SPECULATIVE</span></h2>",
+            "<div class='card' style='border-left:4px solid var(--amber)'>",
+            f"<p><strong>{_esc(SPECULATIVE_HEADER)}</strong></p>",
+            "<p>No hypotheses were generated: the run's audited claims did not "
+            "pass W-CLAIM/W-LEDGER verification, so the speculative layer is "
+            "withheld (a hypothesis must not build on an unverified claim).</p>",
+            "</div>",
+        ]
+    )
+
+
+def _render_null_summary(section: dict) -> str:
+    """Per-gate breakdown of why every candidate was rejected (honest-null)."""
+    summary = section.get("null_summary") or {}
+    if not summary:
+        return ""
+    parts = ", ".join(
+        f"{_esc(gate)}: {_esc(count)}"
+        for gate, count in sorted(summary.items())
+    )
+    n = section.get("n_candidates")
+    lead = (
+        f"{_esc(n)} candidate(s) proposed; none survived the publication gates"
+        if n is not None
+        else "No candidate survived the publication gates"
+    )
+    return (
+        f"<p style='color:var(--muted);font-size:0.85rem'>{lead} "
+        f"(rejections by gate &mdash; {parts}).</p>"
+    )
+
+
 def render_speculative_section_html(section: dict | None) -> str:
     """Render the SPECULATIVE section to HTML, or '' when there is nothing to show."""
-    if not section or not section.get("ran"):
+    if not section:
+        return ""
+    if not section.get("ran"):
+        # The causal gate withheld generation (verification did not pass). Make
+        # it visible rather than silently emitting nothing.
+        if section.get("reason") == "verification_gate_not_passed":
+            return _render_gate_blocked(section)
         return ""
     hypotheses = section.get("hypotheses") or []
     prov = (hypotheses[0].get("provenance") if hypotheses else None) or {}
@@ -159,6 +219,12 @@ def render_speculative_section_html(section: dict | None) -> str:
                 "<p>No defensible hypothesis from the audited evidence "
                 "(honest-null).</p>"
             )
+            # Surface WHY: the per-gate rejection breakdown, so an honest-null is
+            # explainable (e.g. grounding rejected an un-measured entity) and not
+            # an opaque "nothing here".
+            summary_html = _render_null_summary(section)
+            if summary_html:
+                body.append(summary_html)
     else:
         for i, hyp in enumerate(hypotheses, start=1):
             body.append(_render_hypothesis(hyp, i))
