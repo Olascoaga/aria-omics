@@ -188,7 +188,7 @@ def test_end_to_end_accepts_grounded_gated_hypothesis():
     agent = HypothesisAgent(
         proposer=LLMProposer(lambda p, s: _good_hypothesis_json())
     )
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert [h["id"] for h in out["hypotheses"]] == ["g1"]
     assert out["honest_null"] is False
     assert out["quarantine"][0]["hypothesis_node"] == "hypothesis://g1"
@@ -218,7 +218,7 @@ def test_end_to_end_rejects_model_inventing_a_gene():
         ]
     )
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: invented))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
@@ -375,14 +375,14 @@ def test_agent_honest_null_names_a_parse_failure():
     # a generation failure (null_reason) instead of staying mute.
     signals = bulk_rna_evidence(_agent_results(), _ledger())
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: _truncated_response()))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["honest_null"] is True
     assert out["n_candidates"] == 0
     assert out["null_reason"] == "parse_error"
     assert out["proposer_diagnostics"]["status"] == "parse_error"
     # A genuine empty-list decline must NOT be labelled a failure.
     agent_ok = HypothesisAgent(proposer=LLMProposer(lambda p, s: "[]"))
-    out_ok = agent_ok.generate(signals, _ledger())
+    out_ok = agent_ok.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out_ok["honest_null"] is True
     assert "null_reason" not in out_ok
 
@@ -412,7 +412,7 @@ def test_end_to_end_rejects_model_dropping_a_confound():
         ]
     )
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: no_confound))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
     assert "devils_advocate" in gates

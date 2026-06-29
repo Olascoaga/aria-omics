@@ -8,6 +8,8 @@ the run did not execute — is REJECTED, never caveated into the output.
 
 from __future__ import annotations
 
+import pytest
+
 from aria.agents.hypothesis_agent import HypothesisAgent
 from aria.agents.narrative.hypothesis import (
     DiscriminatingExperiment,
@@ -371,7 +373,7 @@ def test_agent_accepts_grounded_rejects_ungrounded():
         return [grounded, invented]
 
     agent = HypothesisAgent(proposer=proposer)
-    out = agent.generate(_signals(), _ran_ledger())
+    out = agent.generate(_signals(), _ran_ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["ran"] is True
     assert out["requires_ack"] is True
     assert [h["id"] for h in out["hypotheses"]] == ["ok"]
@@ -386,10 +388,19 @@ def test_agent_accepts_grounded_rejects_ungrounded():
 
 def test_agent_honest_null_with_default_proposer():
     agent = HypothesisAgent()
-    out = agent.generate(_signals(), _ran_ledger())
+    out = agent.generate(_signals(), _ran_ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["ran"] is True
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
+
+
+def test_generate_requires_explicit_verification_flags():
+    # H13 (F5): the W-CLAIM/W-LEDGER flags are fail-closed — a caller MUST pass
+    # them explicitly. There is no permissive default for a future caller to
+    # forget, so the gate cannot be silently bypassed.
+    agent = HypothesisAgent()
+    with pytest.raises(TypeError):
+        agent.generate(_signals(), _ran_ledger())
 
 
 def test_causal_gate_blocks_when_verification_failed():
@@ -397,7 +408,7 @@ def test_causal_gate_blocks_when_verification_failed():
         raise AssertionError("proposer must not run when the gate is closed")
 
     agent = HypothesisAgent(proposer=proposer)
-    out = agent.generate(_signals(), _ran_ledger(), w_ledger_passed=False)
+    out = agent.generate(_signals(), _ran_ledger(), w_claim_passed=True, w_ledger_passed=False)
     assert out["ran"] is False
     assert out["reason"] == "verification_gate_not_passed"
     assert out["hypotheses"] == []
@@ -408,6 +419,6 @@ def test_agent_does_not_mutate_inputs():
     ledger = _ran_ledger()
     n_signals = len(signals)
     n_entries = len(ledger["entries"])
-    HypothesisAgent().generate(signals, ledger)
+    HypothesisAgent().generate(signals, ledger, w_claim_passed=True, w_ledger_passed=True)
     assert len(signals) == n_signals
     assert len(ledger["entries"]) == n_entries

@@ -75,14 +75,17 @@ class HypothesisAgent:
         run_ledger: dict | None = None,
         exp_ctx: dict | None = None,
         *,
-        w_claim_passed: bool = True,
-        w_ledger_passed: bool = True,
+        w_claim_passed: bool,
+        w_ledger_passed: bool,
     ) -> dict:
         """Produce a grounded SPECULATIVE hypothesis set (read-only).
 
         Gate #1 (causal gate, ADR-057 rail #1): hypotheses are only generated
         downstream of W-CLAIM + W-LEDGER passing; if verification aborted, the
-        agent does not speculate. Every candidate must then clear all publication
+        agent does not speculate. ``w_claim_passed`` and ``w_ledger_passed`` are
+        REQUIRED (fail-closed, H13/F5): a caller must explicitly assert the run's
+        verification state — there is no permissive default to forget. Every
+        candidate must then clear all publication
         gates — grounding (rail #7), falsifiability (rail #8), language lint
         (rail #11) and the adversarial devils_advocate gate (rail #5). A
         candidate failing any gate is rejected with the failing reasons, never

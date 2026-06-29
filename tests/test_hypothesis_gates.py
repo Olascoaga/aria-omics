@@ -179,7 +179,7 @@ def test_language_rejects_unhedged_neutral_mechanism():
 
 def test_agent_accepts_fully_valid_hypothesis():
     agent = HypothesisAgent(proposer=lambda s, c: [_valid_hypothesis(id="ok")])
-    out = agent.generate(_signals(), _ledger())
+    out = agent.generate(_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert [h["id"] for h in out["hypotheses"]] == ["ok"]
     assert out["honest_null"] is False
     assert "null_summary" not in out
@@ -194,7 +194,7 @@ def test_agent_rejects_unfalsifiable_and_reports_failure():
         ),
     )
     agent = HypothesisAgent(proposer=lambda s, c: [bad])
-    out = agent.generate(_signals(), _ledger())
+    out = agent.generate(_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
@@ -210,7 +210,7 @@ def test_agent_honest_null_aggregates_reasons_across_gates():
         id="invented", mechanism="MYB may explain it", entities=["MYB"]
     )
     agent = HypothesisAgent(proposer=lambda s, c: [causal, invented])
-    out = agent.generate(_signals(), _ledger())
+    out = agent.generate(_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
     summary = out["null_summary"]
@@ -226,6 +226,6 @@ def test_a_single_candidate_can_fail_multiple_gates():
         entities=["FOXP3"],
     )
     agent = HypothesisAgent(proposer=lambda s, c: [hyp])
-    out = agent.generate(_signals(), _ledger())
+    out = agent.generate(_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
     assert {"grounding", "language"} <= gates

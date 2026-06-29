@@ -98,7 +98,7 @@ def test_quarantine_stamps_node_and_builds_non_promotable_manifest():
 
 def test_agent_emits_quarantine_for_accepted_hypotheses():
     agent = HypothesisAgent(proposer=lambda s, c: [_hyp(id="ok")])
-    out = agent.generate(_signals(), _ledger())
+    out = agent.generate(_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"][0]["ledger_node"] == "hypothesis://ok"
     assert out["quarantine"][0]["hypothesis_node"] == "hypothesis://ok"
     assert out["quarantine"][0]["promotable"] is False

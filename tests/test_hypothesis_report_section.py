@@ -174,7 +174,8 @@ def test_build_section_returns_none_without_evidence():
 def test_build_and_render_section():
     proposer = LLMProposer(lambda p, s: _good_json())
     section = build_speculative_section(
-        _bulk_results(), _ledger(), {}, proposer=proposer
+        _bulk_results(), _ledger(), {}, proposer=proposer,
+        w_claim_passed=True, w_ledger_passed=True,
     )
     assert section["ran"] is True
     assert section["header"].startswith("Machine-generated hypotheses")
@@ -229,6 +230,7 @@ def test_honest_null_renders_per_gate_breakdown():
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _ungrounded_json()),
+        w_claim_passed=True, w_ledger_passed=True,
     )
     assert section["honest_null"] is True
     assert section.get("null_summary", {}).get("grounding")
@@ -269,7 +271,10 @@ def test_speculative_verification_state_reads_real_signals():
 
 def test_section_honest_null_renders_note():
     # Default (null) proposer -> no hypotheses -> honest-null note, no crash.
-    section = build_speculative_section(_bulk_results(), _ledger(), {})
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        w_claim_passed=True, w_ledger_passed=True,
+    )
     html = render_speculative_section_html(section)
     assert "honest-null" in html
 
@@ -281,6 +286,7 @@ def test_section_renders_generation_failure_note_not_honest_null():
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: truncated),
+        w_claim_passed=True, w_ledger_passed=True,
     )
     assert section["null_reason"] == "parse_error"
     html = render_speculative_section_html(section)
@@ -294,6 +300,7 @@ def test_persist_manifest_is_auditable_and_non_promotable(tmp_path):
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _good_json()),
+        w_claim_passed=True, w_ledger_passed=True,
     )
     path = persist_speculative_manifest(section, tmp_path)
     assert path is not None and path.name == "speculative_hypotheses.json"
@@ -311,6 +318,7 @@ def test_persist_manifest_records_honest_null_with_reasons(tmp_path):
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _ungrounded_json()),
+        w_claim_passed=True, w_ledger_passed=True,
     )
     path = persist_speculative_manifest(section, tmp_path)
     data = json.loads(path.read_text())
@@ -341,6 +349,7 @@ def test_persist_manifest_reproducible_redacts_timestamp(tmp_path):
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _good_json()),
+        w_claim_passed=True, w_ledger_passed=True,
     )
     data = json.loads(
         persist_speculative_manifest(section, tmp_path, reproducible=True).read_text()
