@@ -22,6 +22,7 @@ is rejected, the same way W-CLAIM rejects it for an audited claim.
 
 from __future__ import annotations
 
+import re
 from dataclasses import asdict, dataclass, field
 
 from aria.agents.narrative.evidence_verifier import _claim_entities
@@ -85,15 +86,37 @@ class GroundingResult:
 
 
 # Methodological/assay tokens that look gene-like but are NOT biological
-# entities (perturbation systems, readout assays). Same rationale as W-CLAIM's
-# ``_GENE_STOPWORDS``: fixed methodological vocabulary, not biological content
-# (ADR-011 does not apply). Two-letter tokens (KO/KD/WB/IF/IP) are already
-# dropped by the length>=3 filter, so they are not listed here.
+# entities (perturbation systems, readout assays, reporters, stains, reagents).
+# Same rationale as W-CLAIM's ``_GENE_STOPWORDS``: fixed methodological
+# vocabulary, not biological content (ADR-011 does not apply). Compared in an
+# alphanumeric-normalized, upper-cased form, so ``RT-PCR`` / ``RT-qPCR`` /
+# ``RNA-seq`` all resolve to a listed token. Two-letter tokens (KO/KD/WB/IF/IP)
+# are already dropped by the length>=3 filter. This list is intentionally
+# extensible — readout grounding (H11) is best-effort; an exotic assay acronym
+# not listed here will surface as a visible (tunable) rejection, never a silent
+# pass of a smuggled gene.
 _METHOD_STOPWORDS = {
+    # perturbation systems
     "CRISPR", "CRISPRI", "CRISPRA", "CAS9", "CAS12", "CAS13",
-    "SHRNA", "SIRNA", "SGRNA", "GRNA", "QPCR", "RTPCR", "PCR",
-    "FACS", "ELISA", "CHIP", "FISH", "IHC", "ICC", "WES", "WGS",
+    "SHRNA", "SIRNA", "SGRNA", "GRNA",
+    # PCR / sequencing assays
+    "PCR", "QPCR", "RTPCR", "RTQPCR", "DDPCR", "RNASEQ", "SCRNASEQ",
+    "ATACSEQ", "CHIPSEQ", "CUTRUN", "CUTTAG", "NGS", "WES", "WGS", "UMI", "CHIP",
+    # protein / blot / interaction assays
+    "ELISA", "WESTERN", "NORTHERN", "SOUTHERN", "IHC", "ICC", "COIP", "FRET",
+    # microscopy / imaging / flow cytometry
+    "FACS", "MFI", "FSC", "SSC", "FMO", "TEM", "SEM", "DAPI", "FISH",
+    "SMFISH", "TUNEL",
+    # reporters / tags
+    "GFP", "EGFP", "RFP", "YFP", "CFP", "BFP", "LUC", "LACZ",
+    # common reagents / buffers
+    "BSA", "PBS", "FBS", "DMEM", "EDTA", "DMSO",
 }
+
+
+def _stop_key(token: str) -> str:
+    """Alphanumeric-normalized, upper-cased key for method-stopword matching."""
+    return re.sub(r"[^A-Za-z0-9]", "", token).upper()
 
 
 def _prose_entity_tokens(text: str) -> set[str]:
@@ -101,25 +124,25 @@ def _prose_entity_tokens(text: str) -> set[str]:
 
     Reuses W-CLAIM's ``_claim_entities`` (which already drops ``_GENE_STOPWORDS``),
     then strips edge punctuation (so ``RT-qPCR`` does not leak a ``RT-`` fragment)
-    and drops short fragments and methodological acronyms.
+    and drops short fragments and methodological acronyms (compared in an
+    alphanumeric-normalized form so hyphenated assays like ``RT-PCR`` resolve).
     """
     tokens: set[str] = set()
     for raw in _claim_entities(text):
         cleaned = raw.strip("-_.")
-        if len(cleaned) < 3 or cleaned.upper() in _METHOD_STOPWORDS:
+        if len(cleaned) < 3 or _stop_key(cleaned) in _METHOD_STOPWORDS:
             continue
         tokens.add(cleaned)
     return tokens
 
 
-# The free-text fields the reader sees and the model is free to author. The
-# grounding wall scans the reasoning/causal surfaces — an entity smuggled into
-# the discriminating experiment's perturbation or the "simpler explanation" is
-# just as much an invented fact as one in the mechanism (H1, bug 2). The
-# experiment ``readout`` is deliberately NOT scanned: it describes the measurement
-# assay (RT-qPCR / FACS / ELISA ...) and is dense in technique acronyms that look
-# gene-like; grounding the causal surfaces closes the smuggling path without
-# muzzling honest assay descriptions.
+# EVERY generated free-text field the reader sees and the model is free to
+# author — including the experiment ``readout`` (H11, reversing the H1 carve-out).
+# An entity smuggled into the readout ("TP53 protein abundance") is just as much
+# an invented fact as one in the mechanism; the assay vocabulary that made the
+# readout noisy (RT-qPCR / FACS / ELISA / GFP / DAPI ...) is now handled by the
+# alphanumeric-normalized ``_METHOD_STOPWORDS`` + length filter, so honest assay
+# descriptions pass while a smuggled gene is caught.
 def _generated_prose(hypothesis: Hypothesis) -> str:
     exp = getattr(hypothesis, "experiment", None)
     da = getattr(hypothesis, "devils_advocate", None) or {}
@@ -127,6 +150,7 @@ def _generated_prose(hypothesis: Hypothesis) -> str:
     if exp is not None:
         parts += [
             str(getattr(exp, "perturbation", "") or ""),
+            str(getattr(exp, "readout", "") or ""),
             str(getattr(exp, "predicted_direction", "") or ""),
             str(getattr(exp, "refuting_outcome", "") or ""),
         ]

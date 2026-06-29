@@ -218,6 +218,36 @@ def test_misattributed_observation_ref_is_rejected():
     assert result.not_run_refs == []  # the node DID run; the defect is lineage
 
 
+def test_readout_smuggling_an_entity_is_rejected():
+    # H11 (F2): the experiment readout is scanned too — TP53 in the readout, with
+    # TP53 absent from the evidence, is a smuggled fact (reverses the H1 carve-out).
+    hyp = Hypothesis(
+        id="ro", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=DiscriminatingExperiment(
+            "GATA1 knockdown", "TP53 protein abundance by Western blot",
+            "down", "no change"),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "TP53" in result.ungrounded_prose_entities
+
+
+def test_readout_assay_vocabulary_is_not_flagged():
+    # H11: honest assay descriptions in the readout (RT-qPCR / FACS / GFP / DAPI)
+    # must NOT be mistaken for smuggled entities.
+    hyp = Hypothesis(
+        id="ra", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=DiscriminatingExperiment(
+            "GATA1 knockdown", "GATA1 by RT-qPCR, FACS and GFP reporter with DAPI",
+            "down", "no change"),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is True
+    assert result.ungrounded_prose_entities == []
+
+
 def test_citation_to_the_producing_node_is_accepted():
     # The same entity cited to the node that actually produced it is fine.
     hyp = Hypothesis(
