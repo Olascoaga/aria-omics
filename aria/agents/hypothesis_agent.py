@@ -170,6 +170,12 @@ class HypothesisAgent:
                             grounding.ungrounded_prose_entities
                         ),
                         "misattributed_refs": grounding.misattributed_refs,
+                        "unknown_signals": grounding.unknown_signals,
+                        "misattributed_signals": grounding.misattributed_signals,
+                        "contradicting_claims": grounding.contradicting_claims,
+                        "missing_observed_claims": (
+                            grounding.missing_observed_claims
+                        ),
                         "vacuous": grounding.vacuous,
                         "not_run_refs": grounding.not_run_refs,
                     }

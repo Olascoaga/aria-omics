@@ -156,6 +156,14 @@ class Hypothesis:
     mechanism: str
     entities: list[str] = field(default_factory=list)
     observation_refs: list[str] = field(default_factory=list)
+    # H15 (round-3, Codex blocker 2): the signal-level data the hypothesis claims
+    # to READ — each ``{"signal_id", "stated_direction"}`` cites an exact audited
+    # EvidenceSignal and the direction the hypothesis reads it as. The grounding
+    # verifier reconstructs the cited signal from code and rejects a stated
+    # direction that contradicts the audited one. This is where faithfulness to the
+    # data is enforced; the speculative ``mechanism`` stays free to propose
+    # downstream effects in any direction.
+    observed_claims: list[dict] = field(default_factory=list)
     experiment: DiscriminatingExperiment = field(
         default_factory=DiscriminatingExperiment
     )
@@ -191,6 +199,14 @@ class Hypothesis:
             mechanism=str(data.get("mechanism", "")),
             entities=list(data.get("entities", []) or []),
             observation_refs=list(data.get("observation_refs", []) or []),
+            observed_claims=[
+                {
+                    "signal_id": str(c.get("signal_id", "")),
+                    "stated_direction": str(c.get("stated_direction", "")),
+                }
+                for c in (data.get("observed_claims") or [])
+                if isinstance(c, dict)
+            ],
             experiment=DiscriminatingExperiment.from_dict(
                 data.get("experiment", {}) or {}
             ),

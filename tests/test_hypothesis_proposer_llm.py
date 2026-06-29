@@ -52,6 +52,9 @@ def _ledger() -> dict:
 
 
 def _good_hypothesis_json() -> str:
+    # H15: cite the real signal_ids the adapter derives, faithful to the audited
+    # UP direction (GATA1 +2.3 / KLF1 +1.9). The mechanism stays free speculation.
+    by = {s.entity.lower(): s for s in bulk_rna_evidence(_agent_results(), _ledger())}
     return json.dumps(
         [
             {
@@ -60,6 +63,10 @@ def _good_hypothesis_json() -> str:
                 "shared erythroid program",
                 "entities": ["GATA1", "KLF1"],
                 "observation_refs": ["ledger://bulk/differential_expression"],
+                "observed_claims": [
+                    {"signal_id": by["gata1"].signal_id, "stated_direction": "up"},
+                    {"signal_id": by["klf1"].signal_id, "stated_direction": "up"},
+                ],
                 "experiment": {
                     "perturbation": "GATA1 knockdown",
                     "readout": "KLF1 expression by qPCR",

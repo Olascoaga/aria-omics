@@ -153,12 +153,25 @@ def _ledger() -> dict:
         {"node_id": "ledger://bulk/pathway_enrichment", "status": "ran"}]}
 
 
+def _bulk_signals_by_entity() -> dict:
+    """H15: the real signal_ids the bulk_rna adapter derives from _bulk_results()."""
+    sigs = gather_evidence(_bulk_results(), _ledger(), {})
+    return {s.entity.lower(): s for s in sigs}
+
+
 def _good_json() -> str:
+    by = _bulk_signals_by_entity()
     return json.dumps([{
         "id": "g1",
         "mechanism": "GATA1 and KLF1 may share an erythroid program",
         "entities": ["GATA1", "KLF1"],
         "observation_refs": ["ledger://bulk/differential_expression"],
+        # GATA1/KLF1 are both audited UP (log2fc 2.3 / 1.9); the observed_claims
+        # restate that faithfully (H15). The mechanism stays free speculation.
+        "observed_claims": [
+            {"signal_id": by["gata1"].signal_id, "stated_direction": "up"},
+            {"signal_id": by["klf1"].signal_id, "stated_direction": "up"},
+        ],
         "experiment": {"perturbation": "GATA1 KD", "readout": "KLF1 qPCR",
                        "predicted_direction": "decrease",
                        "refuting_outcome": "no change"},

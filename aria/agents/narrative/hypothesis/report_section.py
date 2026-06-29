@@ -189,6 +189,26 @@ def _esc(value) -> str:
     return _html.escape(str(value if value is not None else ""))
 
 
+def _render_observed_claims(hyp: dict) -> str:
+    """H15: the faithful data the hypothesis READS, separate from its speculation.
+
+    Renders each ``{signal_id, stated_direction}`` so a reader sees exactly which
+    audited measurement the hypothesis is grounded on (the grounding verifier
+    guarantees these match the audited direction). Empty -> no row.
+    """
+    claims = hyp.get("observed_claims") or []
+    if not claims:
+        return ""
+    rendered = "; ".join(
+        f"{_esc(c.get('stated_direction'))} [{_esc(c.get('signal_id'))}]"
+        for c in claims
+        if isinstance(c, dict)
+    )
+    return (
+        f"<p><strong>Reads from data:</strong> {rendered}</p>"
+    )
+
+
 def _render_hypothesis(hyp: dict, rank: int) -> str:
     exp = hyp.get("experiment") or {}
     da = hyp.get("devils_advocate") or {}
@@ -206,6 +226,7 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
         f"<h3>{rank}. {_esc(hyp.get('mechanism'))}</h3>"
         f"<p><strong>Arises from:</strong> {_esc(', '.join(hyp.get('observation_refs') or []))} "
         f"(entities: {_esc(', '.join(hyp.get('entities') or []))})</p>"
+        f"{_render_observed_claims(hyp)}"
         f"<p><strong>Discriminating experiment:</strong> "
         f"{_esc(exp.get('perturbation'))} &rarr; {_esc(exp.get('readout'))}; "
         f"predicts <em>{_esc(exp.get('predicted_direction'))}</em>; "

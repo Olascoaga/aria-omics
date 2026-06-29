@@ -89,12 +89,25 @@ def _ledger() -> dict:
     }
 
 
+def _observed(*entities) -> list[dict]:
+    """H15: faithful observed_claims citing real signal_ids (ids are caveat-independent)."""
+    by_ent = {s.entity.lower(): s for s in _clean_signals()}
+    return [
+        {
+            "signal_id": by_ent[e.lower()].signal_id,
+            "stated_direction": by_ent[e.lower()].direction or "na",
+        }
+        for e in entities
+    ]
+
+
 def _hyp(**overrides) -> Hypothesis:
     base = dict(
         id="h",
         mechanism="KLF1 accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
         devils_advocate={
             "simpler_explanation": "shared upstream regulator",

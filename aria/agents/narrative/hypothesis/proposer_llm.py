@@ -29,19 +29,25 @@ CompleteFn = Callable[[str, str], str]
 
 _SYSTEM = (
     "You are a careful molecular-biology hypothesis generator. You are given ONLY "
-    "a list of audited measurements (entities, directions, the analysis node each "
-    "came from, and any confounds that analysis already flagged). Propose competing, "
-    "falsifiable hypotheses that connect these measurements. RULES: (1) name ONLY "
-    "entities present in the evidence — this applies to the mechanism prose too: "
-    "do NOT name a gene/protein/TF in the mechanism that is not in the evidence "
-    "list (a mechanism naming an un-measured entity is rejected); (2) cite ONLY "
-    "the given audited_node_ref "
-    "values in observation_refs; (3) the mechanism must be hedged speculation "
-    "(may/could/suggests/we hypothesize), never an assertion of causation or finding; "
-    "(4) every hypothesis needs a concrete discriminating experiment; (5) each "
-    "hypothesis must offer a simpler/competing explanation and acknowledge every "
-    "confound flagged on the evidence it uses. If the evidence does not support a "
-    "defensible hypothesis, return an empty list."
+    "a list of audited measurements (each with a signal_id, entity, direction, the "
+    "analysis node it came from, and any confounds that analysis already flagged). "
+    "Propose competing, falsifiable hypotheses that connect these measurements. "
+    "RULES: (1) name ONLY entities present in the evidence — this applies to the "
+    "mechanism prose too: do NOT name a gene/protein/TF in the mechanism that is "
+    "not in the evidence list (a mechanism naming an un-measured entity is "
+    "rejected); (2) cite ONLY the given audited_node_ref values in "
+    "observation_refs; (3) every hypothesis MUST record the measurements it reads "
+    "in observed_claims as {signal_id, stated_direction}, citing the EXACT "
+    "signal_id shown in parentheses for each line, and stated_direction MUST match "
+    "that signal's audited direction — NEVER state a direction opposite to the "
+    "evidence (a contradiction is rejected). Your speculative mechanism may propose "
+    "downstream effects in ANY direction, but observed_claims must be faithful to "
+    "the data; (4) the mechanism must be hedged speculation "
+    "(may/could/suggests/we hypothesize), never an assertion of causation or "
+    "finding; (5) every hypothesis needs a concrete discriminating experiment; "
+    "(6) each hypothesis must offer a simpler/competing explanation and acknowledge "
+    "every confound flagged on the evidence it uses. If the evidence does not "
+    "support a defensible hypothesis, return an empty list."
 )
 
 _SCHEMA_HINT = (
@@ -50,6 +56,9 @@ _SCHEMA_HINT = (
     '"mechanism" (hedged speculative sentence), '
     '"entities" (list of entity names taken from the evidence), '
     '"observation_refs" (list of audited_node_ref values from the evidence), '
+    '"observed_claims" (list of {"signal_id","stated_direction"} citing the '
+    'signal_ids you actually read, each direction faithful to that signal\'s '
+    'audited direction), '
     '"experiment" {"perturbation","readout","predicted_direction","refuting_outcome"}, '
     '"devils_advocate" {"simpler_explanation", "confounds" (list)}.'
 )
@@ -79,8 +88,11 @@ def build_proposer_prompt(
         # line and the model cannot reason about which contrast it is connecting.
         context = str(d.get("context") or "").strip()
         context_str = f" (context: {context})" if context else ""
+        # H15: print the signal_id so the model can cite the EXACT measurement it
+        # reads in observed_claims; the grounding verifier checks the stated
+        # direction against this signal's audited direction.
         lines.append(
-            f"- {d.get('entity')} [{d.get('entity_kind')}] "
+            f"- ({d.get('signal_id')}) {d.get('entity')} [{d.get('entity_kind')}] "
             f"{d.get('measure')} {d.get('direction')}{value_str}{context_str} "
             f"from {d.get('audited_node_ref')}; confounds: {caveats}"
         )

@@ -78,11 +78,104 @@ class GroundingResult:
     not_run_refs: list[dict] = field(default_factory=list)
     ungrounded_prose_entities: list[str] = field(default_factory=list)
     misattributed_refs: list[str] = field(default_factory=list)
+    # H15: signal-level grounding of the hypothesis's observed_claims.
+    unknown_signals: list[str] = field(default_factory=list)
+    misattributed_signals: list[str] = field(default_factory=list)
+    contradicting_claims: list[dict] = field(default_factory=list)
+    missing_observed_claims: bool = False
     vacuous: bool = False
     reason: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+# H15 (Codex blocker 2): direction vocabularies to reconstruct, from code, what a
+# stated reading of a signal means and whether it contradicts the audited
+# direction. Best-effort and deterministic: a stated_direction carrying BOTH an
+# up- and a down-token (or neither) normalises to ``na`` (ambiguous → not a
+# contradiction). Only a DEFINITE opposite (up vs down) is rejected, so a
+# speculative downstream effect is never caught here — only a false restatement of
+# the audited measurement.
+_UP_DIRECTION_TOKENS = {
+    "up", "increase", "increased", "increases", "increasing", "higher", "high",
+    "elevated", "elevation", "gain", "gained", "enriched", "enrichment",
+    "upregulated", "upregulation", "induced", "induction", "activated", "more",
+    "accumulate", "accumulation", "accumulated", "positive",
+}
+_DOWN_DIRECTION_TOKENS = {
+    "down", "decrease", "decreased", "decreases", "decreasing", "lower", "low",
+    "reduced", "reduction", "depleted", "depletion", "loss", "lost",
+    "downregulated", "downregulation", "repressed", "suppressed", "silenced",
+    "diminished", "less", "fewer", "negative",
+}
+
+
+def _normalize_direction(text: str) -> str:
+    """Map a free-text stated direction to ``up`` / ``down`` / ``na``.
+
+    Ambiguous (both polarities, or neither) → ``na``, which never contradicts an
+    audited direction. Hyphens are split so ``down-regulated`` matches.
+    """
+    toks = set(re.split(r"[^a-z0-9]+", str(text or "").lower()))
+    up = bool(toks & _UP_DIRECTION_TOKENS)
+    down = bool(toks & _DOWN_DIRECTION_TOKENS)
+    if up and not down:
+        return "up"
+    if down and not up:
+        return "down"
+    return "na"
+
+
+def _verify_observed_claims(
+    hypothesis: Hypothesis,
+    signals: list[EvidenceSignal],
+    declared: set[str],
+) -> tuple[list[str], list[str], list[dict], bool]:
+    """Validate the signal-level observed_claims (H15).
+
+    Returns ``(unknown_signals, misattributed_signals, contradicting, missing)``:
+
+    - ``unknown_signals``: a cited ``signal_id`` not in the audited universe — the
+      hypothesis claims to read a measurement that does not exist.
+    - ``misattributed_signals``: a cited signal whose entity the hypothesis never
+      named — a reading attributed to an entity it is not about.
+    - ``contradicting``: a stated_direction that is the DEFINITE opposite of the
+      cited signal's audited direction (e.g. "increased" over a ``down`` signal).
+    - ``missing``: the hypothesis cites NO audited signal at all — it must declare
+      at least one measurement it reads (faithful), so a directional claim can
+      never live only in un-anchored prose.
+    """
+    by_id = {
+        sig.signal_id: sig
+        for sig in (signals or [])
+        if isinstance(sig, EvidenceSignal) and sig.signal_id
+    }
+    unknown: list[str] = []
+    misattributed: list[str] = []
+    contradicting: list[dict] = []
+    claims = hypothesis.observed_claims or []
+    for claim in claims:
+        sid = str((claim or {}).get("signal_id", ""))
+        sig = by_id.get(sid)
+        if sig is None:
+            unknown.append(sid)
+            continue
+        if _norm(sig.entity) not in declared:
+            misattributed.append(sid)
+            continue
+        stated = _normalize_direction((claim or {}).get("stated_direction", ""))
+        audited = sig.direction if sig.direction in ("up", "down") else "na"
+        if stated in ("up", "down") and audited in ("up", "down") and stated != audited:
+            contradicting.append(
+                {
+                    "signal_id": sid,
+                    "entity": sig.entity,
+                    "stated": stated,
+                    "audited": audited,
+                }
+            )
+    return unknown, misattributed, contradicting, not claims
 
 
 # Methodological/assay tokens that look gene-like but are NOT biological
@@ -241,6 +334,16 @@ def verify_hypothesis_grounding(
         if ref not in entity_nodes
     ]
 
+    # (6) Signal-level grounding (H15): the hypothesis must cite the exact audited
+    # signals it reads (observed_claims), and a stated reading must not contradict
+    # the audited direction/entity of the cited signal.
+    (
+        unknown_signals,
+        misattributed_signals,
+        contradicting_claims,
+        missing_observed,
+    ) = _verify_observed_claims(hypothesis, signals, declared)
+
     not_run: list[dict] = []
     if run_ledger is not None:
         index = _node_index(run_ledger)
@@ -263,6 +366,10 @@ def verify_hypothesis_grounding(
         and not ungrounded_prose
         and not vacuous
         and not misattributed
+        and not unknown_signals
+        and not misattributed_signals
+        and not contradicting_claims
+        and not missing_observed
     )
     reason = None
     if not grounded:
@@ -271,6 +378,25 @@ def verify_hypothesis_grounding(
             parts.append(
                 "vacuous: requires at least one grounded entity and one "
                 "cited observation"
+            )
+        if missing_observed:
+            parts.append(
+                "no observed_claims: must cite at least one audited signal it "
+                "reads (signal_id + stated_direction)"
+            )
+        if contradicting_claims:
+            parts.append(
+                "stated direction contradicts the audited signal: "
+                f"{contradicting_claims}"
+            )
+        if unknown_signals:
+            parts.append(
+                f"unknown cited signal_ids: {sorted(set(unknown_signals))}"
+            )
+        if misattributed_signals:
+            parts.append(
+                "observed_claims cite a signal whose entity is not named: "
+                f"{sorted(set(misattributed_signals))}"
             )
         if misattributed:
             parts.append(
@@ -293,6 +419,10 @@ def verify_hypothesis_grounding(
         not_run_refs=not_run,
         ungrounded_prose_entities=ungrounded_prose,
         misattributed_refs=misattributed,
+        unknown_signals=unknown_signals,
+        misattributed_signals=misattributed_signals,
+        contradicting_claims=contradicting_claims,
+        missing_observed_claims=missing_observed,
         vacuous=vacuous,
         reason=reason,
     )
