@@ -219,6 +219,78 @@ def test_from_provider_uses_generous_token_budget():
     assert len(hyps) == 4
 
 
+# ── H6: adaptive retry on truncation + real provenance ──────────────────────
+
+def test_proposer_retries_with_larger_budget_on_truncation():
+    # H6 (issue 7): a truncated response triggers a retry with a doubled budget
+    # until the JSON fits — not a silent honest-null.
+    calls: list[int] = []
+
+    def fake(prompt, system, max_tokens):
+        calls.append(max_tokens)
+        return _truncated_response() if max_tokens < 8192 else _verbose_hypotheses_json(4)
+
+    proposer = LLMProposer(fake, max_tokens=2048, max_tokens_cap=16384, max_retries=3)
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    hyps = proposer(signals, {})
+    assert len(hyps) == 4
+    assert calls == [2048, 4096, 8192]  # escalated until it fit
+    assert proposer.last_diagnostics["retries"] == 2
+    assert proposer.last_diagnostics["status"] == "ok"
+    assert proposer.last_diagnostics["finish_reason"] == "stop"
+
+
+def test_proposer_stops_retrying_at_max_retries():
+    # H6: retries are bounded — a persistently truncated model degrades to an
+    # honest, labelled generation failure, not an infinite loop.
+    calls: list[int] = []
+
+    def fake(prompt, system, max_tokens):
+        calls.append(max_tokens)
+        return _truncated_response()
+
+    proposer = LLMProposer(fake, max_tokens=2048, max_tokens_cap=100000, max_retries=2)
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    assert proposer(signals, {}) == []
+    assert len(calls) == 3  # initial + 2 retries
+    assert proposer.last_diagnostics["retries"] == 2
+    assert proposer.last_diagnostics["status"] == "parse_error"
+    assert proposer.last_diagnostics["finish_reason"] == "length"
+
+
+def test_from_provider_records_real_served_model_and_finish_reason():
+    # H6 (issue 8): provenance reflects the REAL configured + served model,
+    # fallback flag and provider finish_reason — not a static label.
+    class _Cfg:
+        provider = "anthropic"
+        model = "claude-opus-4-8"
+
+    class _LLM:
+        def __init__(self):
+            self._last_completion = None
+
+        def get_active_model(self, tier):
+            return _Cfg()
+
+        def complete(self, *, prompt, system, tier, max_tokens):
+            self._last_completion = {
+                "provider": "anthropic", "model": "claude-opus-4-8",
+                "is_fallback": True, "fallback_from": "gemini/gemini-2.5-pro",
+                "finish_reason": "stop",
+            }
+            return _verbose_hypotheses_json(2)
+
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    hyps = LLMProposer.from_provider(_LLM())(signals, {})
+    prov = hyps[0].provenance
+    assert prov["model_label"] == "anthropic/claude-opus-4-8"
+    assert prov["served_model"] == "claude-opus-4-8"
+    assert prov["is_fallback"] is True
+    assert prov["fallback_from"] == "gemini/gemini-2.5-pro"
+    assert prov["finish_reason"] == "stop"
+    assert prov["max_tokens"] == 8192
+
+
 def test_classify_parse_distinguishes_failure_modes():
     assert classify_parse("", 0)["status"] == "empty_response"
     assert classify_parse("```json\n[]\n```", 0)["status"] == "no_candidates"

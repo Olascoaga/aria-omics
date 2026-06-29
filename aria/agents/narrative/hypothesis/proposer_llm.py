@@ -170,11 +170,24 @@ class LLMProposer:
         n_hypotheses: int = 4,
         model_label: str = "aria-llm",
         temperature: float | None = None,
+        max_tokens: int = 8192,
+        max_tokens_cap: int = 32768,
+        max_retries: int = 2,
+        served_meta: Callable[[], dict | None] | None = None,
     ) -> None:
         self._complete = complete
         self._n = n_hypotheses
         self._model_label = model_label
         self._temperature = temperature
+        # H6 (issue 7): adaptive token budget. Start here and escalate on a
+        # truncation, up to the cap, so a large evidence set cannot silently
+        # truncate the JSON into an honest-null.
+        self._max_tokens = int(max_tokens)
+        self._max_tokens_cap = int(max_tokens_cap)
+        self._max_retries = int(max_retries)
+        # H6 (issue 8): a callable returning the provider's REAL last-completion
+        # metadata (served model, fallback, finish_reason). None for fakes.
+        self._served_meta = served_meta
         # ADR-057 rail #10 (C): last parse diagnostic, so an honest-null can
         # distinguish "model declined" from "model answered, we failed to parse".
         self.last_diagnostics: dict | None = None
@@ -185,17 +198,18 @@ class LLMProposer:
     ) -> "LLMProposer":
         """Wire ARIA's LLMProvider (HEAVY tier) into a proposer.
 
-        ADR-057 rail #10 (A): the default ``max_tokens`` is 8192. A full set of
-        competing hypotheses — each with a hedged mechanism AND a four-field
-        discriminating experiment AND a devils_advocate — runs to several thousand
-        tokens on realistic evidence; a smaller budget truncates the JSON
-        mid-object, which parses to zero candidates and silently collapses to
-        honest-null (the v4.7.0 bug: hypotheses never appeared on real runs while
-        the small curated S5 fixture fit and "passed").
+        ADR-057 rail #10 (A): the default ``max_tokens`` is 8192 and escalates on
+        truncation (H6). A full set of competing hypotheses — each with a hedged
+        mechanism AND a four-field discriminating experiment AND a devils_advocate
+        — runs to several thousand tokens on realistic evidence; a smaller budget
+        truncates the JSON mid-object, which parses to zero candidates and
+        silently collapses to honest-null (the v4.7.0 bug). The model_label and
+        served metadata are read from the provider so provenance reflects the REAL
+        model (issue 8), not a static label.
         """
         from aria.llm.provider import TaskTier
 
-        def _complete(prompt: str, system: str) -> str:
+        def _complete(prompt: str, system: str, max_tokens: int = max_tokens) -> str:
             return llm.complete(
                 prompt=prompt,
                 system=system,
@@ -203,18 +217,49 @@ class LLMProposer:
                 max_tokens=max_tokens,
             )
 
-        label = getattr(llm, "model_label", None) or "aria-llm:heavy"
+        label = "aria-llm:heavy"
+        try:
+            active = llm.get_active_model(TaskTier.HEAVY)
+            if active is not None:
+                label = "/".join(
+                    p for p in (
+                        str(getattr(active, "provider", "") or ""),
+                        str(getattr(active, "model", "") or ""),
+                    ) if p
+                ) or label
+        except Exception:
+            pass
+
         return cls(
-            _complete, n_hypotheses=n_hypotheses, model_label=label, **kwargs
+            _complete,
+            n_hypotheses=n_hypotheses,
+            model_label=label,
+            max_tokens=max_tokens,
+            served_meta=lambda: getattr(llm, "_last_completion", None),
+            **kwargs,
         )
 
-    def _provenance(self, prompt: str, signals: list) -> dict:
+    def _invoke(self, prompt: str, system: str, budget: int) -> str:
+        """Call the completion fn with an explicit budget, tolerating fakes.
+
+        Injected test fakes use the simple ``(prompt, system)`` signature; the
+        real provider-backed callable accepts a ``max_tokens`` override so the
+        budget can escalate on truncation.
+        """
+        try:
+            return self._complete(prompt, system, max_tokens=budget)
+        except TypeError:
+            return self._complete(prompt, system)
+
+    def _provenance(
+        self, prompt: str, signals: list, diag: dict, served: dict | None
+    ) -> dict:
         evidence = json.dumps(
             [s.to_dict() if hasattr(s, "to_dict") else dict(s) for s in signals],
             sort_keys=True,
             default=str,
         )
-        return {
+        prov = {
             "generator": "HypothesisAgent.LLMProposer",
             "model_label": self._model_label,
             "temperature": self._temperature,
@@ -222,7 +267,17 @@ class LLMProposer:
             "input_evidence_sha256": hashlib.sha256(
                 evidence.encode("utf-8")
             ).hexdigest(),
+            # H6: real generation provenance.
+            "max_tokens": diag.get("max_tokens", self._max_tokens),
+            "retries": diag.get("retries", 0),
+            "finish_reason": diag.get("finish_reason"),
         }
+        if served:
+            prov["served_provider"] = served.get("provider")
+            prov["served_model"] = served.get("model")
+            prov["is_fallback"] = served.get("is_fallback")
+            prov["fallback_from"] = served.get("fallback_from")
+        return prov
 
     def __call__(self, signals: list, exp_ctx: dict | None) -> list[Hypothesis]:
         signals = list(signals or [])
@@ -230,19 +285,58 @@ class LLMProposer:
             self.last_diagnostics = {"status": "no_evidence", "parsed": 0}
             return []
         prompt = build_proposer_prompt(signals, exp_ctx, self._n)
-        raw = self._complete(prompt, _SYSTEM)
-        candidates = parse_hypotheses(raw)
-        self.last_diagnostics = classify_parse(raw, len(candidates))
-        if self.last_diagnostics.get("status") not in ("ok", "no_candidates"):
+
+        # H6 (issue 7): generate, and retry with a doubled budget ONLY on a
+        # truncation (parse_error), up to max_retries / the cap. A clean parse,
+        # an honest empty list, or malformed items are not retried.
+        budget = self._max_tokens
+        attempts = 0
+        candidates: list[Hypothesis] = []
+        diag: dict = {}
+        while True:
+            raw = self._invoke(prompt, _SYSTEM, budget)
+            candidates = parse_hypotheses(raw)
+            diag = classify_parse(raw, len(candidates))
+            if (
+                diag.get("status") != "parse_error"
+                or attempts >= self._max_retries
+                or budget >= self._max_tokens_cap
+            ):
+                break
+            attempts += 1
+            budget = min(budget * 2, self._max_tokens_cap)
+
+        diag["max_tokens"] = budget
+        diag["retries"] = attempts
+        # Inferred finish_reason; overridden by the provider's real value below.
+        diag["finish_reason"] = (
+            "length" if diag.get("status") == "parse_error" else "stop"
+        )
+        served = None
+        if self._served_meta is not None:
+            try:
+                served = self._served_meta()
+            except Exception:
+                served = None
+        if served:
+            diag["served_model"] = served.get("model")
+            diag["served_fallback"] = bool(served.get("is_fallback"))
+            if served.get("finish_reason"):
+                diag["finish_reason"] = served["finish_reason"]
+        self.last_diagnostics = diag
+
+        if diag.get("status") not in ("ok", "no_candidates"):
             # Visible, non-silent: the model answered but we got nothing usable.
             log.warning(
                 "HypothesisAgent proposer yielded no usable hypotheses "
-                "(status=%s, raw_chars=%s). %s",
-                self.last_diagnostics.get("status"),
-                self.last_diagnostics.get("raw_chars"),
-                self.last_diagnostics.get("detail", ""),
+                "(status=%s, raw_chars=%s, retries=%s, max_tokens=%s). %s",
+                diag.get("status"),
+                diag.get("raw_chars"),
+                diag.get("retries"),
+                diag.get("max_tokens"),
+                diag.get("detail", ""),
             )
-        provenance = self._provenance(prompt, signals)
+        provenance = self._provenance(prompt, signals, diag, served)
         for hyp in candidates:
             if not hyp.provenance:
                 hyp.provenance = dict(provenance)
