@@ -13,6 +13,7 @@ import json
 
 from aria.agents.hypothesis_agent import HypothesisAgent
 from aria.agents.narrative.hypothesis import (
+    EvidenceSignal,
     LLMProposer,
     bulk_rna_evidence,
     build_proposer_prompt,
@@ -98,6 +99,50 @@ def test_proposer_returns_empty_for_no_signals():
     assert proposer([], {}) == []
 
 
+def test_parse_ignores_model_supplied_governance_fields():
+    # H9 (F1): the model must not be able to self-assign code-owned governance /
+    # derived fields. tier, provenance, ledger_node, competing_with and
+    # rank_evidence are dropped at the deserialisation boundary.
+    raw = json.dumps([{
+        "id": "h", "mechanism": "GATA1 may act", "entities": ["GATA1"],
+        "observation_refs": ["ledger://bulk/differential_expression"],
+        "tier": "causal_experimental",
+        "provenance": {"model_label": "FAKE-INJECTED"},
+        "ledger_node": "hypothesis://evil",
+        "competing_with": ["x"],
+        "rank_evidence": {"n_independent_lines": 999},
+        "experiment": {"perturbation": "GATA1 KD", "readout": "qPCR",
+                       "predicted_direction": "down", "refuting_outcome": "no change"},
+        "devils_advocate": {"simpler_explanation": "x", "confounds": []},
+    }])
+    h = parse_hypotheses(raw)[0]
+    assert h.tier == "SPECULATIVE"
+    assert h.provenance == {}
+    assert h.ledger_node is None
+    assert h.competing_with == []
+    assert h.rank_evidence == {}
+    # Scientific content the model DOES own is preserved.
+    assert h.entities == ["GATA1"]
+    assert h.devils_advocate["simpler_explanation"] == "x"
+
+
+def test_proposer_provenance_overrides_model_supplied():
+    # H9 (F1): even if the model returns a forged provenance, the proposer stamps
+    # the real code-authored one (never the model's).
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    raw = json.dumps([{
+        "id": "h", "mechanism": "GATA1 and KLF1 may share a program",
+        "entities": ["GATA1", "KLF1"],
+        "observation_refs": ["ledger://bulk/differential_expression"],
+        "provenance": {"model_label": "FAKE-INJECTED"},
+        "experiment": {"perturbation": "GATA1 KD", "readout": "qPCR",
+                       "predicted_direction": "down", "refuting_outcome": "no change"},
+        "devils_advocate": {"simpler_explanation": "x", "confounds": ["low replication"]},
+    }])
+    hyps = LLMProposer(lambda p, s: raw, model_label="real-model")(signals, {})
+    assert hyps[0].provenance["model_label"] == "real-model"
+
+
 def test_proposer_stamps_model_provenance():
     signals = bulk_rna_evidence(_agent_results(), _ledger())
     proposer = LLMProposer(
@@ -108,6 +153,24 @@ def test_proposer_stamps_model_provenance():
     assert prov["model_label"] == "test-model"
     assert "prompt_sha256" in prov
     assert "input_evidence_sha256" in prov
+
+
+def test_prompt_prints_context_to_distinguish_same_entity():
+    # H12 (F4): the same gene measured in two contrasts must be distinguishable in
+    # the prompt by its context, so opposite effects do not collapse into one line.
+    sigs = [
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="bulk_RNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://bulk/differential_expression",
+                       value=2.3, direction="up", context="old_vs_young"),
+        EvidenceSignal(entity="GATA1", entity_kind="gene", modality="bulk_RNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://bulk/differential_expression",
+                       value=-1.5, direction="down", context="treated_vs_ctrl"),
+    ]
+    prompt = build_proposer_prompt(sigs, {}, 3)
+    assert "context: old_vs_young" in prompt
+    assert "context: treated_vs_ctrl" in prompt
 
 
 def test_prompt_lists_only_audited_evidence():
@@ -125,7 +188,7 @@ def test_end_to_end_accepts_grounded_gated_hypothesis():
     agent = HypothesisAgent(
         proposer=LLMProposer(lambda p, s: _good_hypothesis_json())
     )
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert [h["id"] for h in out["hypotheses"]] == ["g1"]
     assert out["honest_null"] is False
     assert out["quarantine"][0]["hypothesis_node"] == "hypothesis://g1"
@@ -155,7 +218,7 @@ def test_end_to_end_rejects_model_inventing_a_gene():
         ]
     )
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: invented))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
@@ -312,14 +375,14 @@ def test_agent_honest_null_names_a_parse_failure():
     # a generation failure (null_reason) instead of staying mute.
     signals = bulk_rna_evidence(_agent_results(), _ledger())
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: _truncated_response()))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["honest_null"] is True
     assert out["n_candidates"] == 0
     assert out["null_reason"] == "parse_error"
     assert out["proposer_diagnostics"]["status"] == "parse_error"
     # A genuine empty-list decline must NOT be labelled a failure.
     agent_ok = HypothesisAgent(proposer=LLMProposer(lambda p, s: "[]"))
-    out_ok = agent_ok.generate(signals, _ledger())
+    out_ok = agent_ok.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out_ok["honest_null"] is True
     assert "null_reason" not in out_ok
 
@@ -349,7 +412,7 @@ def test_end_to_end_rejects_model_dropping_a_confound():
         ]
     )
     agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: no_confound))
-    out = agent.generate(signals, _ledger())
+    out = agent.generate(signals, _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
     assert "devils_advocate" in gates

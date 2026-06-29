@@ -149,7 +149,7 @@ def test_visible_confounds_reads_inherited_caveats():
 
 def test_agent_rejects_hypothesis_hiding_a_known_confound():
     agent = HypothesisAgent(proposer=lambda s, c: [_hyp(id="hide")])
-    out = agent.generate(_batch_confounded_signals(), _ledger())
+    out = agent.generate(_batch_confounded_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert out["hypotheses"] == []
     assert out["honest_null"] is True
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
@@ -166,6 +166,6 @@ def test_agent_accepts_hypothesis_that_owns_the_confound():
         },
     )
     agent = HypothesisAgent(proposer=lambda s, c: [good])
-    out = agent.generate(_batch_confounded_signals(), _ledger())
+    out = agent.generate(_batch_confounded_signals(), _ledger(), w_claim_passed=True, w_ledger_passed=True)
     assert [h["id"] for h in out["hypotheses"]] == ["owns"]
     assert out["honest_null"] is False

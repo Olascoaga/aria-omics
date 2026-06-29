@@ -82,14 +82,19 @@ def build_speculative_section(
     exp_ctx=None,
     *,
     proposer=None,
-    w_claim_passed: bool = True,
-    w_ledger_passed: bool = True,
+    w_claim_passed: bool = False,
+    w_ledger_passed: bool = False,
 ):
     """Build the SPECULATIVE section result, or None when there is nothing to show.
 
     Opt-in is the caller's responsibility (e.g. ``exp_ctx['enable_hypotheses']``).
     Returns the HypothesisAgent output augmented with a ``header``; returns None
     when no audited evidence is available so no empty section is emitted.
+
+    H13/F5: ``w_claim_passed`` / ``w_ledger_passed`` are fail-closed (default
+    ``False``) — the real caller (``report_builder._speculative_verification_state``)
+    passes the run's actual verification state; a caller that omits them gets no
+    speculation rather than a silent fail-open.
     """
     from aria.agents.hypothesis_agent import HypothesisAgent
 
