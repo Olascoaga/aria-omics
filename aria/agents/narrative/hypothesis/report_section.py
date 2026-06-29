@@ -82,8 +82,9 @@ def build_speculative_section(
     exp_ctx=None,
     *,
     proposer=None,
-    w_claim_passed: bool = False,
-    w_ledger_passed: bool = False,
+    verification=None,
+    w_claim_passed: bool | None = None,
+    w_ledger_passed: bool | None = None,
 ):
     """Build the SPECULATIVE section result, or None when there is nothing to show.
 
@@ -91,10 +92,13 @@ def build_speculative_section(
     Returns the HypothesisAgent output augmented with a ``header``; returns None
     when no audited evidence is available so no empty section is emitted.
 
-    H13/F5: ``w_claim_passed`` / ``w_ledger_passed`` are fail-closed (default
-    ``False``) — the real caller (``report_builder._speculative_verification_state``)
-    passes the run's actual verification state; a caller that omits them gets no
-    speculation rather than a silent fail-open.
+    Round-3 H14: the verification state is a ``VerificationReceipt`` passed as
+    ``verification=`` by the real caller
+    (``report_builder._speculative_verification_state``), which is fail-closed on
+    absence. The ``w_claim_passed`` / ``w_ledger_passed`` booleans remain as the
+    H13 explicit-assertion path (for callers/tests that already resolved the
+    state); supplying neither a receipt nor both booleans is a fail-closed error
+    in the agent, never a silent fail-open.
     """
     from aria.agents.hypothesis_agent import HypothesisAgent
 
@@ -105,6 +109,7 @@ def build_speculative_section(
         signals,
         run_ledger,
         exp_ctx,
+        verification=verification,
         w_claim_passed=w_claim_passed,
         w_ledger_passed=w_ledger_passed,
     )

@@ -55,11 +55,13 @@ from .quarantine import (
     quarantine_node_id,
 )
 from .types import DiscriminatingExperiment, EvidenceSignal, Hypothesis
+from .verification import VerificationReceipt
 
 __all__ = [
     "EvidenceSignal",
     "Hypothesis",
     "DiscriminatingExperiment",
+    "VerificationReceipt",
     "GroundingResult",
     "build_evidence_index",
     "build_signals_by_entity",

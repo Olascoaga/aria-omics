@@ -214,7 +214,7 @@ def test_gate_blocked_renders_visible_note_not_silence():
     proposer = LLMProposer(lambda p, s: _good_json())
     section = build_speculative_section(
         _bulk_results(), _ledger(), {}, proposer=proposer,
-        w_ledger_passed=False,
+        w_claim_passed=True, w_ledger_passed=False,
     )
     assert section["ran"] is False
     assert section["reason"] == "verification_gate_not_passed"
@@ -241,7 +241,8 @@ def test_honest_null_renders_per_gate_breakdown():
 
 def test_speculative_verification_state_reads_real_signals():
     # H2: the report builder feeds the gate the run's REAL W-CLAIM/W-LEDGER
-    # state, not an unconditional pass.
+    # state, not an unconditional pass. Round-3 H14: it now returns a typed,
+    # fail-closed VerificationReceipt.
     from aria.agents.narrative.report_builder import ReportBuilderMixin
 
     rb = ReportBuilderMixin.__new__(ReportBuilderMixin)
@@ -250,23 +251,77 @@ def test_speculative_verification_state_reads_real_signals():
         def __init__(self, status):
             self.metadata = {"claim_verification": {"status": status}}
 
-    # Clean run: claims supported, no ledger violations -> gate passes.
+    # Clean run: claims supported, no ledger violations -> gate open.
     clean_ledger = {"claim_ledger_verification": {"n_violations": 0}}
-    w_claim, w_ledger = rb._speculative_verification_state(
-        clean_ledger, [_Block("supported")]
-    )
-    assert (w_claim, w_ledger) == (True, True)
+    r = rb._speculative_verification_state(clean_ledger, [_Block("supported")])
+    assert r.complete is True
+    assert (r.w_claim_passed, r.w_ledger_passed) == (True, True)
+    assert r.gate_open is True
 
-    # A W-LEDGER violation OR an unsupported W-CLAIM block closes the gate.
+    # A W-LEDGER violation OR an unsupported W-CLAIM block closes the gate, but
+    # the verification is still COMPLETE (we saw it; it failed).
     bad_ledger = {"claim_ledger_verification": {"n_violations": 2}}
-    w_claim2, w_ledger2 = rb._speculative_verification_state(
-        bad_ledger, [_Block("supported")]
+    r2 = rb._speculative_verification_state(bad_ledger, [_Block("supported")])
+    assert r2.complete is True and r2.w_ledger_passed is False
+    assert r2.gate_open is False
+    assert r2.blocked_reason == "verification_gate_not_passed"
+    r3 = rb._speculative_verification_state(clean_ledger, [_Block("unsupported")])
+    assert r3.w_claim_passed is False and r3.gate_open is False
+
+
+def test_speculative_verification_state_fail_closed_on_absence():
+    # Round-3 H14 (Codex blocker 1): ABSENCE of the verification artifacts must
+    # NOT be read as approval. The old tuple form returned (True, True) here.
+    from aria.agents.narrative.report_builder import ReportBuilderMixin
+
+    rb = ReportBuilderMixin.__new__(ReportBuilderMixin)
+
+    # No ledger record AND no rendered blocks -> incomplete -> gate shut.
+    r = rb._speculative_verification_state(None, None)
+    assert r.complete is False
+    assert r.gate_open is False
+    assert r.blocked_reason == "verification_evidence_absent"
+
+    # A ledger dict WITHOUT the verification record is still absence on that side.
+    r2 = rb._speculative_verification_state({}, [])
+    assert r2.complete is False and r2.gate_open is False
+
+    # Blocks present but ledger record absent -> still incomplete.
+
+    class _Block:
+        metadata = {"claim_verification": {"status": "supported"}}
+
+    r3 = rb._speculative_verification_state({}, [_Block()])
+    assert r3.complete is False and r3.gate_open is False
+
+
+def test_agent_fail_closed_when_verification_absent():
+    # The agent must honest-null with the DISTINCT 'evidence absent' reason when
+    # handed an incomplete receipt, and TypeError when handed nothing at all.
+    import pytest
+
+    from aria.agents.hypothesis_agent import HypothesisAgent
+    from aria.agents.narrative.hypothesis import VerificationReceipt
+
+    absent = VerificationReceipt(
+        w_claim_passed=False, w_ledger_passed=False, complete=False
     )
-    assert w_ledger2 is False
-    w_claim3, _ = rb._speculative_verification_state(
-        clean_ledger, [_Block("unsupported")]
+    out = HypothesisAgent(proposer=lambda s, c: []).generate(
+        _signals(), _ledger(), {}, verification=absent
     )
-    assert w_claim3 is False
+    assert out["ran"] is False
+    assert out["reason"] == "verification_evidence_absent"
+    assert out["verification"]["gate_open"] is False
+
+    # Neither a receipt nor both booleans -> fail-closed TypeError (H13 preserved).
+    with pytest.raises(TypeError):
+        HypothesisAgent(proposer=lambda s, c: []).generate(_signals(), _ledger(), {})
+
+    # Explicit booleans remain a valid positive assertion (backward-compatible).
+    ok = HypothesisAgent(proposer=lambda s, c: []).generate(
+        _signals(), _ledger(), {}, w_claim_passed=True, w_ledger_passed=True
+    )
+    assert ok["ran"] is True
 
 
 def test_section_honest_null_renders_note():
@@ -333,7 +388,7 @@ def test_persist_manifest_records_gate_block(tmp_path):
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _good_json()),
-        w_ledger_passed=False,
+        w_claim_passed=True, w_ledger_passed=False,
     )
     data = json.loads(persist_speculative_manifest(section, tmp_path).read_text())
     assert data["ran"] is False

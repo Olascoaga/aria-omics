@@ -36,6 +36,7 @@ from aria.agents.narrative.hypothesis.grounding import (
 from aria.agents.narrative.hypothesis.quarantine import quarantine_hypotheses
 from aria.agents.narrative.hypothesis.ranking import rank_hypotheses
 from aria.agents.narrative.hypothesis.types import EvidenceSignal, Hypothesis
+from aria.agents.narrative.hypothesis.verification import VerificationReceipt
 
 # A proposer turns grounded audited evidence into candidate hypotheses. The LLM
 # lives HERE (injected at call time), so the agent core has no LLM dependency and
@@ -69,35 +70,71 @@ class HypothesisAgent:
     def __init__(self, proposer: Proposer | None = None) -> None:
         self._proposer = proposer or _null_proposer
 
+    @staticmethod
+    def _resolve_receipt(
+        verification: VerificationReceipt | None,
+        w_claim_passed: bool | None,
+        w_ledger_passed: bool | None,
+    ) -> VerificationReceipt:
+        """Resolve the causal-gate input to a typed, fail-closed receipt.
+
+        Round-3 H14: the verification state is a ``VerificationReceipt`` (typed,
+        carries whether the artifacts were actually observed), not a bare boolean
+        pair that could be synthesised from absence. A caller may instead assert
+        the resolved state explicitly with the two booleans (backward-compatible
+        H13 path) — that is positive evidence, so it builds a complete receipt.
+        Supplying NEITHER is the fail-closed error H13 introduced: a caller must
+        not silently forget to assert the verification state.
+        """
+        if verification is not None:
+            return verification
+        if w_claim_passed is None or w_ledger_passed is None:
+            raise TypeError(
+                "HypothesisAgent.generate requires the run's verification state: "
+                "pass verification=VerificationReceipt(...), or assert both "
+                "w_claim_passed AND w_ledger_passed explicitly (fail-closed, "
+                "ADR-057 rail #1 / round-3 H14)."
+            )
+        return VerificationReceipt.from_explicit(w_claim_passed, w_ledger_passed)
+
     def generate(
         self,
         signals: list[EvidenceSignal] | None,
         run_ledger: dict | None = None,
         exp_ctx: dict | None = None,
         *,
-        w_claim_passed: bool,
-        w_ledger_passed: bool,
+        verification: VerificationReceipt | None = None,
+        w_claim_passed: bool | None = None,
+        w_ledger_passed: bool | None = None,
     ) -> dict:
         """Produce a grounded SPECULATIVE hypothesis set (read-only).
 
         Gate #1 (causal gate, ADR-057 rail #1): hypotheses are only generated
-        downstream of W-CLAIM + W-LEDGER passing; if verification aborted, the
-        agent does not speculate. ``w_claim_passed`` and ``w_ledger_passed`` are
-        REQUIRED (fail-closed, H13/F5): a caller must explicitly assert the run's
-        verification state — there is no permissive default to forget. Every
-        candidate must then clear all publication
-        gates — grounding (rail #7), falsifiability (rail #8), language lint
-        (rail #11) and the adversarial devils_advocate gate (rail #5). A
-        candidate failing any gate is rejected with the failing reasons, never
-        caveated into the output. When every candidate is rejected the result is
-        honest-null with an aggregated per-gate summary.
+        downstream of W-CLAIM + W-LEDGER passing; if verification aborted OR its
+        artifacts were never observed, the agent does not speculate. The state is
+        a typed ``VerificationReceipt`` (round-3 H14): the gate opens only when
+        the receipt is ``complete`` (both artifacts seen) AND both sides passed —
+        absence is fail-closed with the distinct reason
+        ``verification_evidence_absent``, never read as approval. Callers may pass
+        ``verification=`` directly, or assert ``w_claim_passed`` /
+        ``w_ledger_passed`` explicitly (the H13 backward-compatible path);
+        supplying neither is a fail-closed ``TypeError``. Every candidate must
+        then clear all publication gates — grounding (rail #7), falsifiability
+        (rail #8), language lint (rail #11) and the adversarial devils_advocate
+        gate (rail #5). A candidate failing any gate is rejected with the failing
+        reasons, never caveated into the output. When every candidate is rejected
+        the result is honest-null with an aggregated per-gate summary.
         """
-        if not (w_claim_passed and w_ledger_passed):
+        receipt = self._resolve_receipt(
+            verification, w_claim_passed, w_ledger_passed
+        )
+        if not receipt.gate_open:
             return {
                 "tier": self.TIER,
                 "ran": False,
                 "requires_ack": True,
-                "reason": "verification_gate_not_passed",
+                "reason": receipt.blocked_reason,
+                "verification": receipt.to_dict(),
                 "hypotheses": [],
                 "rejected": [],
                 "honest_null": True,
