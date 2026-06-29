@@ -20,6 +20,11 @@ from __future__ import annotations
 
 from aria.agents.narrative.run_ledger import _chromatin_findings
 
+from ..caveats import (
+    GENE_ACTIVITY_PROXY,
+    MOTIF_NOT_BINDING,
+    PEAK2GENE_ASSOCIATIVE,
+)
 from ..types import EvidenceSignal
 from ._chromatin_common import motif_signals, node_ran, num
 
@@ -28,18 +33,11 @@ _REG_NODE = "ledger://chromatin/regulatory_layers"
 _MAX_MOTIFS = 40
 _MAX_GENES = 20
 
-_MOTIF_CAVEAT = (
-    "enriched motif is an associative database match, not evidence of TF "
-    "binding or activity"
-)
-_GENE_ACTIVITY_CAVEAT = (
-    "gene activity score is moderate/caveated (~0.51 external concordance) and "
-    "summarizes nearby accessibility, not RNA expression"
-)
-_PEAK2GENE_CAVEAT = (
-    "peak-to-gene link is an associative correlation across cells; it does not "
-    "establish regulatory mechanism"
-)
+# H16: caveats are structured codes (the gate's source of truth); the human gloss
+# is rendered downstream from aria/agents/narrative/hypothesis/caveats.py.
+_MOTIF_CAVEAT = MOTIF_NOT_BINDING
+_GENE_ACTIVITY_CAVEAT = GENE_ACTIVITY_PROXY
+_PEAK2GENE_CAVEAT = PEAK2GENE_ASSOCIATIVE
 
 
 def _corr_direction(value) -> str:

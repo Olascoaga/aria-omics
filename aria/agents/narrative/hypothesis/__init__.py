@@ -19,9 +19,15 @@ from .adapters import (
     scatac_evidence,
     scrna_evidence,
 )
+from .caveats import (
+    CAVEAT_CODES,
+    CAVEAT_GLOSSES,
+    caveat_gloss,
+)
 from .devils_advocate import (
     check_devils_advocate,
     declared_confounds,
+    inherited_caveat_codes,
     visible_confounds,
 )
 from .proposer_llm import (
@@ -72,6 +78,10 @@ __all__ = [
     "check_devils_advocate",
     "visible_confounds",
     "declared_confounds",
+    "inherited_caveat_codes",
+    "CAVEAT_CODES",
+    "CAVEAT_GLOSSES",
+    "caveat_gloss",
     "SPECULATIVE_TIER",
     "SpeculativePromotionError",
     "assert_no_speculative_promotion",

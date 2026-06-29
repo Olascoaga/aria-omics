@@ -21,17 +21,18 @@ from __future__ import annotations
 
 from typing import Mapping
 
+from .caveats import CAVEAT_CODES, is_caveat_code
 from .gates import GateResult
 from .types import EvidenceSignal, Hypothesis
 
-# Technical confounder categories — mirror the alternatives enumerated in
-# narrative/devils_advocate.py. Methodological vocabulary only.
-#
-# Matching here is intentionally PERMISSIVE substring/stem (unlike the
-# word-boundary lints in gates.py): the goal is to never MISS a flagged confound
-# ("batch" must match "batches"/"batch effect"/"batch-corrected"), so a caveat
-# can be owned by the hypothesis. Best-effort, deterministic; a confound phrased
-# entirely outside this vocabulary is not detected.
+# Recognition tokens per caveat CODE (H16). The inherited caveats on the evidence
+# are now structured codes (caveats.py), so visible_confounds reads them directly.
+# These tokens exist only to parse the model's free-text DECLARED confounds back
+# to a code — it may echo a code, the code's gloss, or its own phrasing. Matching
+# is intentionally PERMISSIVE substring (unlike the word-boundary lints in
+# gates.py): the goal is to never MISS an acknowledged confound. Now covers the
+# SCIENTIFIC caveats Codex flagged (motif != binding, gene-activity proxy,
+# peak-to-gene associative), not only the five technical ones.
 _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
     "batch": ("batch",),
     "composition": (
@@ -45,6 +46,7 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
     "ambient": ("ambient", "soupx", "decontx", "contamination"),
     "doublet": ("doublet", "scrublet"),
     "low_replication": (
+        "low_replication",
         "low replicate",
         "low replication",
         "low power",
@@ -54,18 +56,54 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "single-sample",
         "single sample",
         "underpowered",
+        "not fdr",
+        "directional, not",
+        "directional not",
+    ),
+    "motif_not_binding": (
+        "motif_not_binding",
+        "not binding",
+        "not evidence of tf binding",
+        "not evidence of binding",
+        "associative database match",
+        "not direct binding",
+        "does not imply binding",
+        "binding or activity",
+        "not tf binding",
+        "motif is associative",
+        "not actual binding",
+    ),
+    "gene_activity_proxy": (
+        "gene_activity_proxy",
+        "gene activity",
+        "gene-activity",
+        "accessibility proxy",
+        "chromatin proxy",
+        "not rna expression",
+        "moderate",
+    ),
+    "peak2gene_associative": (
+        "peak2gene_associative",
+        "peak-to-gene",
+        "peak to gene",
+        "peak2gene",
+        "associative correlation",
+        "not regulatory mechanism",
+        "not establish regulatory",
+        "associative cross-cell",
     ),
 }
 
 
 def _categories(text: str) -> set[str]:
+    """Map a free-text declared confound (or a bare code) to caveat codes."""
     t = str(text or "").lower()
     cats = {
         cat
         for cat, toks in _CONFOUND_TOKENS.items()
         if any(tok in t for tok in toks)
     }
-    # Also accept a bare category name (e.g. a declared confound "batch").
+    # Also accept a bare code (e.g. the model declares "batch" or "motif_not_binding").
     norm = t.strip()
     if norm in _CONFOUND_TOKENS:
         cats.add(norm)
@@ -76,11 +114,13 @@ def visible_confounds(
     hyp: Hypothesis,
     evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
 ) -> set[str]:
-    """Confound categories the audited evidence the hypothesis cites already flags.
+    """Caveat codes the audited evidence the hypothesis cites already flags.
 
     Accepts either an entity->signal index or an entity->[signals] index (H4): a
-    confound flagged on the entity in ANY context it was measured in must be
-    owned, so all of an entity's context-distinct signals are unioned.
+    caveat flagged on the entity in ANY context it was measured in must be owned,
+    so all of an entity's context-distinct signals are unioned. H16: the inherited
+    caveats are structured CODES, read directly; a legacy free-text caveat is
+    still mapped through ``_categories`` so external callers do not break.
     """
     cats: set[str] = set()
     for ent in hyp.entities or []:
@@ -90,8 +130,19 @@ def visible_confounds(
         sigs = value if isinstance(value, list) else [value]
         for sig in sigs:
             for caveat in getattr(sig, "caveats_inherited", None) or []:
-                cats |= _categories(caveat)
+                if is_caveat_code(caveat):
+                    cats.add(caveat)
+                else:
+                    cats |= _categories(caveat)
     return cats
+
+
+def inherited_caveat_codes(
+    hyp: Hypothesis,
+    evidence_index: Mapping[str, EvidenceSignal | list[EvidenceSignal]],
+) -> list[str]:
+    """Sorted list of the caveat codes inherited by a hypothesis (for rendering)."""
+    return sorted(c for c in visible_confounds(hyp, evidence_index) if c in CAVEAT_CODES)
 
 
 def declared_confounds(hyp: Hypothesis) -> set[str]:

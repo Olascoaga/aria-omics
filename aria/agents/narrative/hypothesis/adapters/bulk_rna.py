@@ -16,6 +16,7 @@ from typing import Any
 
 from aria.agents.narrative.run_ledger import _node_index
 
+from ..caveats import BATCH, LOW_REPLICATION
 from ..types import EvidenceSignal
 
 _DE_NODE = "ledger://bulk/differential_expression"
@@ -54,11 +55,11 @@ def _direction(value: Any) -> str:
 def _design_caveats(findings: dict, exp_ctx: dict | None) -> list[str]:
     caveats: list[str] = []
     if findings.get("low_power_warning") or findings.get("low_power"):
-        caveats.append("low replication")
+        caveats.append(LOW_REPLICATION)
     design = ((exp_ctx or {}).get("design", {}) or {})
     covariates = [str(c).lower() for c in (design.get("covariates", []) or [])]
     if design.get("has_batch") and not any("batch" in c for c in covariates):
-        caveats.append("batch effect not modeled")
+        caveats.append(BATCH)
     return caveats
 
 
@@ -116,8 +117,8 @@ def bulk_rna_evidence(
         caveats = list(base_caveats)
         if (
             contrast.get("low_power") or contrast.get("low_power_warning")
-        ) and "low replication" not in caveats:
-            caveats.append("low replication")
+        ) and LOW_REPLICATION not in caveats:
+            caveats.append(LOW_REPLICATION)
 
         if de_ran:
             n_genes = 0

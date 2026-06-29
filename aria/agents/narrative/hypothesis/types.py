@@ -170,6 +170,10 @@ class Hypothesis:
     competing_with: list[str] = field(default_factory=list)
     devils_advocate: dict = field(default_factory=dict)
     rank_evidence: dict = field(default_factory=dict)
+    # H16: the structured caveat codes inherited from the cited evidence. CODE-OWNED
+    # (stamped by the agent from the audited signals, never read from the model), so
+    # the report auto-lists every caveat even if the model never mentioned it.
+    inherited_caveats: list[str] = field(default_factory=list)
     provenance: dict = field(default_factory=dict)
     tier: str = "SPECULATIVE"
     ledger_node: str | None = None

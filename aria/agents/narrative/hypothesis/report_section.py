@@ -209,6 +209,22 @@ def _render_observed_claims(hyp: dict) -> str:
     )
 
 
+def _render_inherited_caveats(hyp: dict) -> str:
+    """H16: auto-list every structured caveat the cited evidence carries.
+
+    Rendered from the code-owned ``inherited_caveats`` (glossed), so the reader
+    always sees the scientific/technical caveats on the evidence the hypothesis
+    uses — independent of whether the model acknowledged them.
+    """
+    from .caveats import caveat_gloss
+
+    codes = hyp.get("inherited_caveats") or []
+    if not codes:
+        return ""
+    rendered = "; ".join(_esc(caveat_gloss(c)) for c in codes)
+    return f"<p><strong>Evidence caveats:</strong> {rendered}</p>"
+
+
 def _render_hypothesis(hyp: dict, rank: int) -> str:
     exp = hyp.get("experiment") or {}
     da = hyp.get("devils_advocate") or {}
@@ -227,6 +243,7 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
         f"<p><strong>Arises from:</strong> {_esc(', '.join(hyp.get('observation_refs') or []))} "
         f"(entities: {_esc(', '.join(hyp.get('entities') or []))})</p>"
         f"{_render_observed_claims(hyp)}"
+        f"{_render_inherited_caveats(hyp)}"
         f"<p><strong>Discriminating experiment:</strong> "
         f"{_esc(exp.get('perturbation'))} &rarr; {_esc(exp.get('readout'))}; "
         f"predicts <em>{_esc(exp.get('predicted_direction'))}</em>; "

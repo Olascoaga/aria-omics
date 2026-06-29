@@ -23,6 +23,7 @@ from typing import Callable
 
 from aria.agents.narrative.hypothesis.devils_advocate import (
     check_devils_advocate,
+    inherited_caveat_codes,
 )
 from aria.agents.narrative.hypothesis.gates import (
     check_falsifiability,
@@ -197,6 +198,11 @@ class HypothesisAgent:
                     }
                 )
             else:
+                # H16: stamp the inherited caveat codes (code-owned) so the report
+                # auto-lists every caveat on the evidence used, model-mentioned or not.
+                hyp.inherited_caveats = inherited_caveat_codes(
+                    hyp, signals_by_entity
+                )
                 accepted.append(hyp)
 
         # Competitive ranking (ADR-057 rail #4): order the surviving set by

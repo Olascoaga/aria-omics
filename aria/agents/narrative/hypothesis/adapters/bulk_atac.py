@@ -21,20 +21,16 @@ from __future__ import annotations
 
 from aria.agents.narrative.run_ledger import _chromatin_findings
 
+from ..caveats import LOW_REPLICATION, MOTIF_NOT_BINDING
 from ..types import EvidenceSignal
 from ._chromatin_common import motif_signals, node_ran
 
 _MOTIF_NODE = "ledger://chromatin/motif_enrichment"
 _MAX_MOTIFS = 40
 
-_ASSOCIATIVE_CAVEAT = (
-    "enriched motif is an associative database match, not evidence of TF "
-    "binding or activity"
-)
-_LOW_REPLICATION_CAVEAT = (
-    "low replication (bulk ATAC n is typically small; directional, not "
-    "FDR-calibrated)"
-)
+# H16: structured caveat codes (human gloss lives in caveats.py).
+_ASSOCIATIVE_CAVEAT = MOTIF_NOT_BINDING
+_LOW_REPLICATION_CAVEAT = LOW_REPLICATION
 
 
 def _low_power(findings: dict) -> bool:

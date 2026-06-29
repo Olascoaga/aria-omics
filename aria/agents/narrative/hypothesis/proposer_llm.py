@@ -21,6 +21,7 @@ import json
 import logging
 from typing import Any, Callable
 
+from .caveats import caveat_gloss
 from .types import Hypothesis
 
 log = logging.getLogger(__name__)
@@ -46,8 +47,11 @@ _SYSTEM = (
     "(may/could/suggests/we hypothesize), never an assertion of causation or "
     "finding; (5) every hypothesis needs a concrete discriminating experiment; "
     "(6) each hypothesis must offer a simpler/competing explanation and acknowledge "
-    "every confound flagged on the evidence it uses. If the evidence does not "
-    "support a defensible hypothesis, return an empty list."
+    "EVERY confound flagged on the evidence it uses — list the exact bracketed "
+    "code (e.g. motif_not_binding, low_replication) of each such confound in "
+    "devils_advocate.confounds; scientific caveats (motif != binding, gene-activity "
+    "proxy, peak-to-gene associative) count too. If the evidence does not support a "
+    "defensible hypothesis, return an empty list."
 )
 
 _SCHEMA_HINT = (
@@ -79,7 +83,12 @@ def build_proposer_prompt(
     lines.append("Audited evidence:")
     for sig in signals:
         d = sig.to_dict() if hasattr(sig, "to_dict") else dict(sig)
-        caveats = ", ".join(d.get("caveats_inherited") or []) or "none"
+        # H16: caveats are structured codes; render each as "[code] gloss" so the
+        # model can acknowledge it by its exact code in devils_advocate.confounds.
+        codes = d.get("caveats_inherited") or []
+        caveats = (
+            "; ".join(f"[{c}] {caveat_gloss(c)}" for c in codes) or "none"
+        )
         value = d.get("value")
         value_str = f" value={value}" if value is not None else ""
         # H12 (F4): print the analysis context so the model can distinguish the
