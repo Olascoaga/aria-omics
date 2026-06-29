@@ -184,6 +184,13 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
     da = hyp.get("devils_advocate") or {}
     confounds = ", ".join(str(c) for c in (da.get("confounds") or [])) or "none"
     rank_ev = hyp.get("rank_evidence") or {}
+    competing = ", ".join(str(c) for c in (hyp.get("competing_with") or []))
+    competing_html = (
+        f"<p style='color:var(--muted);font-size:0.85rem'>competes with: "
+        f"{_esc(competing)}</p>"
+        if competing
+        else ""
+    )
     return (
         "<div class='card' style='margin:0.5rem 0'>"
         f"<h3>{rank}. {_esc(hyp.get('mechanism'))}</h3>"
@@ -195,9 +202,10 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
         f"refuted if {_esc(exp.get('refuting_outcome'))}</p>"
         f"<p><strong>Devil's advocate:</strong> simpler explanation &mdash; "
         f"{_esc(da.get('simpler_explanation'))}; confounds &mdash; {_esc(confounds)}</p>"
+        f"{competing_html}"
         f"<p style='color:var(--muted);font-size:0.85rem'>ranking basis: "
         f"{_esc(rank_ev.get('n_independent_lines'))} independent line(s), "
-        f"mean |effect| {_esc(rank_ev.get('mean_abs_effect'))}, "
+        f"mean normalized effect {_esc(rank_ev.get('mean_effect_norm'))}, "
         f"confound load {_esc(rank_ev.get('evidence_caveat_load'))} &middot; "
         f"quarantine node {_esc(hyp.get('ledger_node'))}</p>"
         "</div>"

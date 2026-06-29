@@ -70,7 +70,58 @@ def test_ranking_populates_rank_evidence():
     h = Hypothesis(id="h", mechanism="m", entities=["GATA1"],
                    observation_refs=[], experiment=_exp())
     rank_hypotheses([h], _signals())
-    assert h.rank_evidence["mean_abs_effect"] == 2.0
+    # H5: effect is normalised (log2FC squashed via tanh), no longer the raw mean.
+    import math
+    assert h.rank_evidence["mean_effect_norm"] == round(math.tanh(2.0), 4)
+    # One grounded entity -> one (node, context) line; independence is code-derived.
+    assert h.rank_evidence["n_independent_lines"] == 1
+
+
+def test_ranking_independence_ignores_llm_observation_refs():
+    # H5 (issue 5b): the LLM cannot inflate its own rank by padding
+    # observation_refs — independence is derived from the grounded entities'
+    # audited signals, not from the model-authored refs.
+    padded = Hypothesis(
+        id="padded", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=["ledger://a", "ledger://b", "ledger://c", "ledger://d"],
+        experiment=_exp(),
+    )
+    rank_hypotheses([padded], _signals())
+    assert padded.rank_evidence["n_independent_lines"] == 1  # one grounded entity
+
+
+def test_ranking_normalises_incomparable_measures():
+    # H5 (issue 5a): a correlation (peak2gene, ~0.6) and a log2FC (~2.3) must not
+    # be compared on raw magnitude. Both normalise into [0, 1].
+    corr = Hypothesis(id="corr", mechanism="m", entities=["KLF1"],
+                      observation_refs=[], experiment=_exp())
+    sigs = [
+        EvidenceSignal(entity="KLF1", entity_kind="gene", modality="scATAC",
+                       measure="peak2gene",
+                       audited_node_ref="ledger://chromatin/regulatory_layers",
+                       value=0.6),
+    ]
+    rank_hypotheses([corr], sigs)
+    assert corr.rank_evidence["mean_effect_norm"] == 0.6  # correlation clamped, not tanh'd
+
+
+def test_ranking_marks_competing_and_dedupes_exact_duplicates():
+    # H5 (issue 6): rivals sharing an entity are cross-linked; exact duplicates
+    # collapse (same entities + mechanism + predicted direction).
+    a = Hypothesis(id="a", mechanism="GATA1 sustains KLF1", entities=["GATA1", "KLF1"],
+                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+    b = Hypothesis(id="b", mechanism="KLF1 acts independently", entities=["KLF1"],
+                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+    dup_of_a = Hypothesis(id="a2", mechanism="GATA1 sustains KLF1",
+                          entities=["GATA1", "KLF1"],
+                          observation_refs=["ledger://scRNA/pseudobulk_de"],
+                          experiment=_exp())
+    ranked = rank_hypotheses([a, b, dup_of_a], _signals())
+    ids = [h.id for h in ranked]
+    assert "a2" not in ids  # exact duplicate of "a" collapsed
+    a_out = next(h for h in ranked if h.id == "a")
+    b_out = next(h for h in ranked if h.id == "b")
+    assert "b" in a_out.competing_with and "a" in b_out.competing_with
 
 
 # ── evidence gathering by modality ──────────────────────────────────────────
