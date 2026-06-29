@@ -32,8 +32,11 @@ from .proposer_llm import (
 )
 from .ranking import rank_hypotheses
 from .report_section import (
+    SPECULATIVE_MANIFEST_SCHEMA,
+    build_speculative_manifest,
     build_speculative_section,
     gather_evidence,
+    persist_speculative_manifest,
     render_speculative_section_html,
 )
 from .gates import GateResult, check_falsifiability, check_language
@@ -83,4 +86,7 @@ __all__ = [
     "build_speculative_section",
     "gather_evidence",
     "render_speculative_section_html",
+    "build_speculative_manifest",
+    "persist_speculative_manifest",
+    "SPECULATIVE_MANIFEST_SCHEMA",
 ]

@@ -196,15 +196,19 @@ class ReportBuilderMixin:
     def _build_speculative_section_html(self, agent_results: dict,
                                         run_ledger: dict | None,
                                         exp_ctx: dict,
-                                        narrative_blocks: list | None = None
+                                        narrative_blocks: list | None = None,
+                                        report_dir: Optional[Path] = None
                                         ) -> str:
         """ADR-057 S9: render the opt-in SPECULATIVE hypotheses section, or ''.
 
         Off unless ``exp_ctx['enable_hypotheses']`` is set (opt-in, never
         inferred). Uses the agent's LLM as the proposer; the HypothesisAgent's
         gates + quarantine wall the output. The causal gate (rail #1) is fed the
-        run's REAL W-CLAIM/W-LEDGER state, not an unconditional pass. Fully
-        guarded — a failure here never breaks report generation.
+        run's REAL W-CLAIM/W-LEDGER state, not an unconditional pass. The
+        structured result is persisted to a SEPARATE, non-promotable
+        ``speculative_hypotheses.json`` so the speculative layer is auditable
+        outside the HTML. Fully guarded — a failure here never breaks report
+        generation.
         """
         try:
             if not (exp_ctx or {}).get("enable_hypotheses"):
@@ -212,6 +216,7 @@ class ReportBuilderMixin:
             from aria.agents.narrative.hypothesis import (
                 LLMProposer,
                 build_speculative_section,
+                persist_speculative_manifest,
                 render_speculative_section_html,
             )
             proposer = None
@@ -225,6 +230,19 @@ class ReportBuilderMixin:
                 agent_results, run_ledger, exp_ctx, proposer=proposer,
                 w_claim_passed=w_claim_passed, w_ledger_passed=w_ledger_passed,
             )
+            if report_dir is not None and section is not None:
+                # Auditable, non-promotable manifest — separate from the audited
+                # claim manifest. A persist failure must not lose the HTML.
+                try:
+                    persist_speculative_manifest(
+                        section, report_dir,
+                        reproducible=bool(exp_ctx.get("reproducible_mode")),
+                    )
+                except Exception as exc:
+                    log.warning(
+                        "Persisting speculative manifest failed: %s",
+                        exc, exc_info=True,
+                    )
             return render_speculative_section_html(section)
         except Exception as exc:
             log.warning(
@@ -383,7 +401,8 @@ class ReportBuilderMixin:
         # report (W-CLAIM/W-LEDGER passed), over audited evidence only, and fully
         # guarded so it can never break report generation.
         speculative_html = self._build_speculative_section_html(
-            agent_results, run_ledger, exp_ctx, narrative_blocks=narrative_blocks
+            agent_results, run_ledger, exp_ctx,
+            narrative_blocks=narrative_blocks, report_dir=report_dir,
         )
         executive_summary_warning_html = ""
         if executive_summary_warning:

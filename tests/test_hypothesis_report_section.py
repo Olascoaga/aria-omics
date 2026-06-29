@@ -19,8 +19,10 @@ from aria.agents.narrative.hypothesis import (
     LLMProposer,
     SpeculativePromotionError,
     assert_no_speculative_promotion,
+    build_speculative_manifest,
     build_speculative_section,
     gather_evidence,
+    persist_speculative_manifest,
     rank_hypotheses,
     render_speculative_section_html,
 )
@@ -233,6 +235,70 @@ def test_section_renders_generation_failure_note_not_honest_null():
     html = render_speculative_section_html(section)
     assert "could not be parsed" in html
     assert "honest-null" not in html
+
+
+# ── H3: persisted, auditable, non-promotable manifest ───────────────────────
+
+def test_persist_manifest_is_auditable_and_non_promotable(tmp_path):
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: _good_json()),
+    )
+    path = persist_speculative_manifest(section, tmp_path)
+    assert path is not None and path.name == "speculative_hypotheses.json"
+    data = json.loads(path.read_text())
+    assert data["schema"] == "aria.speculative_hypotheses.v1"
+    assert data["promotable"] is False
+    assert data["tier"] == "SPECULATIVE"
+    assert data["ran"] is True
+    assert any(h["id"] == "g1" for h in data["hypotheses"])
+    assert data["quarantine"][0]["promotable"] is False
+    assert data["provenance"]  # model provenance carried from the proposer
+
+
+def test_persist_manifest_records_honest_null_with_reasons(tmp_path):
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: _ungrounded_json()),
+    )
+    path = persist_speculative_manifest(section, tmp_path)
+    data = json.loads(path.read_text())
+    assert data["ran"] is True
+    assert data["honest_null"] is True
+    assert data["null_summary"].get("grounding")
+    assert data["hypotheses"] == []
+    assert data["rejected"]  # what was rejected is captured for audit
+
+
+def test_persist_manifest_records_gate_block(tmp_path):
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: _good_json()),
+        w_ledger_passed=False,
+    )
+    data = json.loads(persist_speculative_manifest(section, tmp_path).read_text())
+    assert data["ran"] is False
+    assert data["reason"] == "verification_gate_not_passed"
+
+
+def test_persist_manifest_none_section_writes_nothing(tmp_path):
+    assert persist_speculative_manifest(None, tmp_path) is None
+    assert not (tmp_path / "speculative_hypotheses.json").exists()
+
+
+def test_persist_manifest_reproducible_redacts_timestamp(tmp_path):
+    section = build_speculative_section(
+        _bulk_results(), _ledger(), {},
+        proposer=LLMProposer(lambda p, s: _good_json()),
+    )
+    data = json.loads(
+        persist_speculative_manifest(section, tmp_path, reproducible=True).read_text()
+    )
+    assert "redacted" in data["generated_utc"]
+
+
+def test_build_manifest_none_for_no_section():
+    assert build_speculative_manifest(None) is None
 
 
 # ── active non-promotion wall ───────────────────────────────────────────────

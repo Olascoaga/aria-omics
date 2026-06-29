@@ -11,7 +11,10 @@ node. This section is NEVER part of the audited claim manifest.
 from __future__ import annotations
 
 import html as _html
+import json
 import logging
+from datetime import datetime, timezone
+from pathlib import Path
 
 from .adapters import (
     bulk_atac_evidence,
@@ -21,6 +24,9 @@ from .adapters import (
 )
 
 log = logging.getLogger(__name__)
+
+SPECULATIVE_MANIFEST_SCHEMA = "aria.speculative_hypotheses.v1"
+SPECULATIVE_MANIFEST_FILENAME = "speculative_hypotheses.json"
 
 SPECULATIVE_HEADER = (
     "Machine-generated hypotheses. Not findings. Not verified against evidence. "
@@ -99,6 +105,74 @@ def build_speculative_section(
     )
     out["header"] = SPECULATIVE_HEADER
     return out
+
+
+def build_speculative_manifest(
+    section: dict | None, *, generated_utc: str | None = None
+) -> dict | None:
+    """Build the auditable, NON-PROMOTABLE speculative manifest from a section.
+
+    A structured record of the speculative layer for a run: the quarantine nodes,
+    the model provenance, the ranked hypotheses, and — when nothing was emitted —
+    the honest reason (gate withheld / per-gate rejections). It is deliberately a
+    SEPARATE artifact from the audited claim manifest and is stamped
+    ``promotable: False`` + the ``hypothesis://`` tier so it can never be mistaken
+    for an audited claim. Returns None when there was no speculative section.
+    """
+    if not section:
+        return None
+    hypotheses = section.get("hypotheses") or []
+    provenance = (hypotheses[0].get("provenance") if hypotheses else None) or {}
+    return {
+        "schema": SPECULATIVE_MANIFEST_SCHEMA,
+        "tier": "SPECULATIVE",
+        "promotable": False,
+        "note": (
+            "Machine-generated speculative hypotheses (ADR-057). NOT part of the "
+            "audited claim manifest and mechanically non-promotable "
+            "(hypothesis:// namespace)."
+        ),
+        "generated_utc": (
+            generated_utc
+            if generated_utc is not None
+            else datetime.now(timezone.utc).isoformat()
+        ),
+        "ran": bool(section.get("ran")),
+        "honest_null": bool(section.get("honest_null")),
+        "reason": section.get("reason"),
+        "null_reason": section.get("null_reason"),
+        "null_summary": section.get("null_summary") or {},
+        "proposer_diagnostics": section.get("proposer_diagnostics"),
+        "n_evidence": section.get("n_evidence"),
+        "n_candidates": section.get("n_candidates"),
+        "provenance": provenance,
+        "quarantine": section.get("quarantine") or [],
+        "hypotheses": hypotheses,
+        "rejected": section.get("rejected") or [],
+    }
+
+
+def persist_speculative_manifest(
+    section: dict | None, report_dir, *, reproducible: bool = False
+) -> Path | None:
+    """Write ``speculative_hypotheses.json`` next to the report. Returns its path.
+
+    Persists whenever a speculative section was engaged (including honest-null and
+    gate-withheld runs — the attempt + reason is itself auditable provenance). No
+    file is written when there was no section (no evidence / opt-out). Under
+    ``reproducible`` the timestamp is redacted so the artifact stays byte-identical.
+    """
+    if not section or report_dir is None:
+        return None
+    generated = (
+        "<timestamp redacted for byte-identity>" if reproducible else None
+    )
+    manifest = build_speculative_manifest(section, generated_utc=generated)
+    path = Path(report_dir) / SPECULATIVE_MANIFEST_FILENAME
+    path.write_text(
+        json.dumps(manifest, indent=2, default=str), encoding="utf-8"
+    )
+    return path
 
 
 def _esc(value) -> str:
