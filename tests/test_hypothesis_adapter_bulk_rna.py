@@ -96,6 +96,21 @@ def test_adapter_without_ledger_emits_audited_inputs():
     assert any(s.entity == "GATA1" for s in signals)
 
 
+def test_same_gene_in_two_contrasts_is_not_deduped():
+    # H4: a gene significant in TWO contrasts is two independent signals — the
+    # adapter must preserve both (distinct context + signal_id), not collapse it.
+    results = {"bulk_rna_agent": {"findings": {"contrasts": [
+        {"name": "old_vs_young", "top_genes": [{"symbol": "GATA1", "log2fc": 2.3}]},
+        {"name": "treated_vs_ctrl", "top_genes": [{"symbol": "GATA1", "log2fc": -1.5}]},
+    ]}}}
+    signals = bulk_rna_evidence(results, _ledger())
+    gata1 = [s for s in signals if s.entity == "GATA1"]
+    assert len(gata1) == 2
+    assert {s.context for s in gata1} == {"old_vs_young", "treated_vs_ctrl"}
+    assert {s.direction for s in gata1} == {"up", "down"}
+    assert len({s.signal_id for s in gata1}) == 2
+
+
 def test_adapter_flags_unmodeled_batch():
     results = _agent_results()
     exp_ctx = {"design": {"has_batch": True, "covariates": ["age"]}}

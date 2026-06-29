@@ -30,6 +30,7 @@ from aria.agents.narrative.hypothesis.gates import (
 )
 from aria.agents.narrative.hypothesis.grounding import (
     build_evidence_index,
+    build_signals_by_entity,
     verify_hypothesis_grounding,
 )
 from aria.agents.narrative.hypothesis.quarantine import quarantine_hypotheses
@@ -101,7 +102,14 @@ class HypothesisAgent:
 
         signal_list = list(signals or [])
         evidence_index = build_evidence_index(signal_list)
+        # Entity -> ALL its context-distinct signals, so the adversarial gate
+        # unions confounds across every context the entity was measured in (H4).
+        signals_by_entity = build_signals_by_entity(signal_list)
         candidates = self._proposer(signal_list, exp_ctx or {}) or []
+        # ADR-057 rail #10 (C): surface the proposer's parse diagnostic so an
+        # honest-null can never silently hide a model that DID answer but whose
+        # response we failed to parse (e.g. JSON truncated by the token budget).
+        proposer_diag = getattr(self._proposer, "last_diagnostics", None)
 
         accepted: list[Hypothesis] = []
         rejected: list[dict] = []
@@ -118,6 +126,10 @@ class HypothesisAgent:
                         "passed": False,
                         "reason": grounding.reason,
                         "missing_entities": grounding.missing_entities,
+                        "ungrounded_prose_entities": (
+                            grounding.ungrounded_prose_entities
+                        ),
+                        "vacuous": grounding.vacuous,
                         "not_run_refs": grounding.not_run_refs,
                     }
                 )
@@ -125,7 +137,7 @@ class HypothesisAgent:
             for gate in (
                 check_falsifiability(hyp),
                 check_language(hyp),
-                check_devils_advocate(hyp, evidence_index),
+                check_devils_advocate(hyp, signals_by_entity),
             ):
                 if not gate.passed:
                     failures.append(gate.to_dict())
@@ -160,9 +172,16 @@ class HypothesisAgent:
             "quarantine": quarantine,
             "rejected": rejected,
             "honest_null": not accepted,
+            "proposer_diagnostics": proposer_diag,
         }
         if not accepted and candidates:
             # Honest-null with reasons: don't fail mute when the proposer offered
             # candidates but none earned publication.
             result["null_summary"] = _gate_failure_counts(rejected)
+        elif not candidates and isinstance(proposer_diag, dict) and (
+            proposer_diag.get("status") not in (None, "ok", "no_candidates")
+        ):
+            # The proposer produced no candidates for a non-benign reason (e.g.
+            # a truncated/invalid response). Name it so the honest-null is honest.
+            result["null_reason"] = proposer_diag.get("status")
         return result

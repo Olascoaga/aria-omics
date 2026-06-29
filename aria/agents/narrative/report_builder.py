@@ -163,15 +163,52 @@ class ReportBuilderMixin:
         except Exception as e:
             log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
 
+    def _speculative_verification_state(
+        self, run_ledger: dict | None, narrative_blocks: list | None
+    ) -> tuple[bool, bool]:
+        """Resolve the REAL W-CLAIM / W-LEDGER state for the causal gate (rail #1).
+
+        ADR-057 rail #1 says the agent only speculates downstream of W-CLAIM +
+        W-LEDGER passing. Passing ``True``/``True`` unconditionally (the old
+        default) made that guarantee decorative. Here it is the run's real state:
+
+        - ``w_claim_passed``: no rendered block recorded an ``unsupported`` W-CLAIM
+          verification (strict W-CLAIM hard-fails at render, so a surviving block
+          is normally supported; a recorded ``unsupported`` still blocks).
+        - ``w_ledger_passed``: W-LEDGER recorded zero violations. W-LEDGER is
+          record-only (it never aborts the report), so this is the only place its
+          finding actually gates anything — speculation must not be layered on a
+          run whose audited claims cite a node the run did not execute.
+        """
+        w_claim_passed = not any(
+            (getattr(b, "metadata", {}) or {}).get("claim_verification", {}).get(
+                "status"
+            )
+            == "unsupported"
+            for b in (narrative_blocks or [])
+        )
+        ledger_verification = (run_ledger or {}).get(
+            "claim_ledger_verification"
+        ) or {}
+        w_ledger_passed = int(ledger_verification.get("n_violations", 0) or 0) == 0
+        return w_claim_passed, w_ledger_passed
+
     def _build_speculative_section_html(self, agent_results: dict,
                                         run_ledger: dict | None,
-                                        exp_ctx: dict) -> str:
+                                        exp_ctx: dict,
+                                        narrative_blocks: list | None = None,
+                                        report_dir: Optional[Path] = None
+                                        ) -> str:
         """ADR-057 S9: render the opt-in SPECULATIVE hypotheses section, or ''.
 
         Off unless ``exp_ctx['enable_hypotheses']`` is set (opt-in, never
         inferred). Uses the agent's LLM as the proposer; the HypothesisAgent's
-        gates + quarantine wall the output. Fully guarded — a failure here never
-        breaks report generation.
+        gates + quarantine wall the output. The causal gate (rail #1) is fed the
+        run's REAL W-CLAIM/W-LEDGER state, not an unconditional pass. The
+        structured result is persisted to a SEPARATE, non-promotable
+        ``speculative_hypotheses.json`` so the speculative layer is auditable
+        outside the HTML. Fully guarded — a failure here never breaks report
+        generation.
         """
         try:
             if not (exp_ctx or {}).get("enable_hypotheses"):
@@ -179,15 +216,33 @@ class ReportBuilderMixin:
             from aria.agents.narrative.hypothesis import (
                 LLMProposer,
                 build_speculative_section,
+                persist_speculative_manifest,
                 render_speculative_section_html,
             )
             proposer = None
             llm = getattr(self, "llm", None)
             if llm is not None:
                 proposer = LLMProposer.from_provider(llm)
-            section = build_speculative_section(
-                agent_results, run_ledger, exp_ctx, proposer=proposer
+            w_claim_passed, w_ledger_passed = self._speculative_verification_state(
+                run_ledger, narrative_blocks
             )
+            section = build_speculative_section(
+                agent_results, run_ledger, exp_ctx, proposer=proposer,
+                w_claim_passed=w_claim_passed, w_ledger_passed=w_ledger_passed,
+            )
+            if report_dir is not None and section is not None:
+                # Auditable, non-promotable manifest — separate from the audited
+                # claim manifest. A persist failure must not lose the HTML.
+                try:
+                    persist_speculative_manifest(
+                        section, report_dir,
+                        reproducible=bool(exp_ctx.get("reproducible_mode")),
+                    )
+                except Exception as exc:
+                    log.warning(
+                        "Persisting speculative manifest failed: %s",
+                        exc, exc_info=True,
+                    )
             return render_speculative_section_html(section)
         except Exception as exc:
             log.warning(
@@ -346,7 +401,8 @@ class ReportBuilderMixin:
         # report (W-CLAIM/W-LEDGER passed), over audited evidence only, and fully
         # guarded so it can never break report generation.
         speculative_html = self._build_speculative_section_html(
-            agent_results, run_ledger, exp_ctx
+            agent_results, run_ledger, exp_ctx,
+            narrative_blocks=narrative_blocks, report_dir=report_dir,
         )
         executive_summary_warning_html = ""
         if executive_summary_warning:

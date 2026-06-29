@@ -11,12 +11,20 @@ Reuses the existing W-LEDGER machinery (``run_ledger._node_index`` +
 ``_NOT_RUN_STATUSES``) so a hypothesis cannot arise from an analysis the run
 marked not-run/skipped/error — the same contradiction W-LEDGER catches for
 claims. S1 does not modify the ledger; it only reads it.
+
+The wall also guards the rendered ``mechanism`` prose, not only the structured
+``entities`` field: an LLM can list grounded entities yet still smuggle an
+un-measured entity into the free-text mechanism the reader actually sees. This
+reuses W-CLAIM's own named-entity check (``evidence_verifier._claim_entities``)
+so a gene-like token named in the mechanism but absent from the audited evidence
+is rejected, the same way W-CLAIM rejects it for an audited claim.
 """
 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 
+from aria.agents.narrative.evidence_verifier import _claim_entities
 from aria.agents.narrative.run_ledger import _NOT_RUN_STATUSES, _node_index
 
 from .types import EvidenceSignal, Hypothesis
@@ -37,8 +45,27 @@ def build_evidence_index(
     index: dict[str, EvidenceSignal] = {}
     for sig in signals or []:
         if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
-            index[_norm(sig.entity)] = sig
+            # First-wins: deterministic representative. An entity can now carry
+            # several context-distinct signals (H4); use build_signals_by_entity
+            # when ALL of them matter (caveat union, independent-line counting).
+            index.setdefault(_norm(sig.entity), sig)
     return index
+
+
+def build_signals_by_entity(
+    signals: list[EvidenceSignal],
+) -> dict[str, list[EvidenceSignal]]:
+    """Index audited evidence by entity, KEEPING every context-distinct signal.
+
+    Unlike :func:`build_evidence_index` (one representative per entity), this
+    preserves the full list so a gene measured in two contrasts contributes both
+    its confounds and both its converging lines (H4: no destructive dedup).
+    """
+    out: dict[str, list[EvidenceSignal]] = {}
+    for sig in signals or []:
+        if isinstance(sig, EvidenceSignal) and _norm(sig.entity):
+            out.setdefault(_norm(sig.entity), []).append(sig)
+    return out
 
 
 @dataclass
@@ -48,10 +75,62 @@ class GroundingResult:
     grounded: bool
     missing_entities: list[str] = field(default_factory=list)
     not_run_refs: list[dict] = field(default_factory=list)
+    ungrounded_prose_entities: list[str] = field(default_factory=list)
+    vacuous: bool = False
     reason: str | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+# Methodological/assay tokens that look gene-like but are NOT biological
+# entities (perturbation systems, readout assays). Same rationale as W-CLAIM's
+# ``_GENE_STOPWORDS``: fixed methodological vocabulary, not biological content
+# (ADR-011 does not apply). Two-letter tokens (KO/KD/WB/IF/IP) are already
+# dropped by the length>=3 filter, so they are not listed here.
+_METHOD_STOPWORDS = {
+    "CRISPR", "CRISPRI", "CRISPRA", "CAS9", "CAS12", "CAS13",
+    "SHRNA", "SIRNA", "SGRNA", "GRNA", "QPCR", "RTPCR", "PCR",
+    "FACS", "ELISA", "CHIP", "FISH", "IHC", "ICC", "WES", "WGS",
+}
+
+
+def _prose_entity_tokens(text: str) -> set[str]:
+    """Gene-like tokens from prose, cleaned of edge punctuation and method noise.
+
+    Reuses W-CLAIM's ``_claim_entities`` (which already drops ``_GENE_STOPWORDS``),
+    then strips edge punctuation (so ``RT-qPCR`` does not leak a ``RT-`` fragment)
+    and drops short fragments and methodological acronyms.
+    """
+    tokens: set[str] = set()
+    for raw in _claim_entities(text):
+        cleaned = raw.strip("-_.")
+        if len(cleaned) < 3 or cleaned.upper() in _METHOD_STOPWORDS:
+            continue
+        tokens.add(cleaned)
+    return tokens
+
+
+# The free-text fields the reader sees and the model is free to author. The
+# grounding wall scans the reasoning/causal surfaces — an entity smuggled into
+# the discriminating experiment's perturbation or the "simpler explanation" is
+# just as much an invented fact as one in the mechanism (H1, bug 2). The
+# experiment ``readout`` is deliberately NOT scanned: it describes the measurement
+# assay (RT-qPCR / FACS / ELISA ...) and is dense in technique acronyms that look
+# gene-like; grounding the causal surfaces closes the smuggling path without
+# muzzling honest assay descriptions.
+def _generated_prose(hypothesis: Hypothesis) -> str:
+    exp = getattr(hypothesis, "experiment", None)
+    da = getattr(hypothesis, "devils_advocate", None) or {}
+    parts = [str(getattr(hypothesis, "mechanism", "") or "")]
+    if exp is not None:
+        parts += [
+            str(getattr(exp, "perturbation", "") or ""),
+            str(getattr(exp, "predicted_direction", "") or ""),
+            str(getattr(exp, "refuting_outcome", "") or ""),
+        ]
+    parts.append(str(da.get("simpler_explanation", "") or ""))
+    return " . ".join(p for p in parts if p)
 
 
 def verify_hypothesis_grounding(
@@ -59,26 +138,60 @@ def verify_hypothesis_grounding(
     signals: list[EvidenceSignal],
     run_ledger: dict | None = None,
 ) -> GroundingResult:
-    """Reject a hypothesis that invents facts.
+    """Reject a hypothesis that invents facts or is anchored to nothing.
 
-    Two mechanical checks:
+    Four mechanical checks:
 
     1. Every entity in ``hypothesis.entities`` must exist in the audited
        evidence index (built from ``signals``). An entity not measured by any
        audited signal is invented — the hypothesis is rejected.
-    2. Every ``hypothesis.observation_refs`` ledger node must exist AND have run
+    2. Every gene-like entity named in ANY generated free-text field — the
+       mechanism, the discriminating experiment, AND the devils-advocate
+       "simpler explanation" — must also resolve to the audited evidence. The
+       structured ``entities`` field is not the only surface the reader sees; an
+       entity smuggled only into the prose would otherwise evade check (1).
+       Reuses W-CLAIM's ``_claim_entities`` extractor (which already drops
+       non-gene acronyms via ``_GENE_STOPWORDS``); an undeclared prose entity
+       absent from evidence is rejected.
+    3. Non-vacuity: the hypothesis must name at least one GROUNDED entity AND
+       cite at least one observation. A hypothesis anchored to nothing (no
+       entities, no refs) is the ultimate ungrounded case — it is rejected, not
+       vacuously accepted (H1, bug 1).
+    4. Every ``hypothesis.observation_refs`` ledger node must exist AND have run
        (status not in not-run/skipped/error). Reusing W-LEDGER, a hypothesis
        cannot arise from an analysis that did not actually produce results.
 
-    The check on (2) only runs when a ``run_ledger`` is supplied; entity
-    grounding (1) is always enforced.
+    The check on (4) only runs when a ``run_ledger`` is supplied; entity
+    grounding (1), prose grounding (2) and non-vacuity (3) are always enforced.
     """
     evidence = build_evidence_index(signals)
+    declared = {_norm(ent) for ent in (hypothesis.entities or [])}
     missing = [
         ent
         for ent in (hypothesis.entities or [])
         if _norm(ent) not in evidence
     ]
+
+    # (2) Prose grounding over EVERY generated field. Gene-like tokens that are
+    # neither in the evidence universe nor among the declared entities are the
+    # evasion path the structured-only check (1) misses. Declared-but-missing
+    # entities are already reported by (1), so exclude them here to keep the
+    # signals distinct.
+    ungrounded_prose = sorted(
+        {
+            token
+            for token in _prose_entity_tokens(_generated_prose(hypothesis))
+            if _norm(token) not in evidence and _norm(token) not in declared
+        }
+    )
+
+    # (3) Non-vacuity: at least one grounded entity AND at least one cited
+    # observation. Closes the "grounded by naming nothing" acceptance.
+    grounded_entities = [
+        ent for ent in (hypothesis.entities or []) if _norm(ent) in evidence
+    ]
+    has_observation = bool(hypothesis.observation_refs)
+    vacuous = (not grounded_entities) or (not has_observation)
 
     not_run: list[dict] = []
     if run_ledger is not None:
@@ -96,12 +209,24 @@ def verify_hypothesis_grounding(
                     }
                 )
 
-    grounded = not missing and not not_run
+    grounded = (
+        not missing
+        and not not_run
+        and not ungrounded_prose
+        and not vacuous
+    )
     reason = None
     if not grounded:
         parts: list[str] = []
+        if vacuous:
+            parts.append(
+                "vacuous: requires at least one grounded entity and one "
+                "cited observation"
+            )
         if missing:
             parts.append(f"ungrounded entities: {sorted(set(missing))}")
+        if ungrounded_prose:
+            parts.append(f"ungrounded prose entities: {ungrounded_prose}")
         if not_run:
             parts.append(
                 "observations not run: "
@@ -112,5 +237,7 @@ def verify_hypothesis_grounding(
         grounded=grounded,
         missing_entities=missing,
         not_run_refs=not_run,
+        ungrounded_prose_entities=ungrounded_prose,
+        vacuous=vacuous,
         reason=reason,
     )

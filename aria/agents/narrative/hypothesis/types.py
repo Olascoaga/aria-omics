@@ -13,6 +13,7 @@ distinct name avoids the collision.
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import asdict, dataclass, field
 from typing import Literal
 
@@ -46,6 +47,33 @@ class EvidenceSignal:
     value: float | int | str | None = None
     direction: Direction = "na"
     caveats_inherited: list[str] = field(default_factory=list)
+    # The analysis context the signal was measured in (a contrast / comparison /
+    # cluster / group label). The SAME entity measured in two contexts is two
+    # distinct, independent signals — the adapters must NOT collapse them, or a
+    # contrast is lost and the ranking under-counts the converging lines (H4).
+    context: str = ""
+    # Stable identity. Two signals are the same iff they share modality, node,
+    # entity, measure, direction AND context. Derived deterministically when not
+    # supplied so the index keys by signal, not by bare entity.
+    signal_id: str = ""
+
+    def __post_init__(self) -> None:
+        if not self.signal_id:
+            self.signal_id = self._derive_signal_id()
+
+    def _derive_signal_id(self) -> str:
+        basis = "|".join(
+            str(part)
+            for part in (
+                self.modality,
+                self.audited_node_ref,
+                str(self.entity).strip().lower(),
+                self.measure,
+                self.direction,
+                self.context,
+            )
+        )
+        return "sig_" + hashlib.sha1(basis.encode("utf-8")).hexdigest()[:12]
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -67,6 +95,8 @@ class EvidenceSignal:
             value=data.get("value"),
             direction=direction,  # type: ignore[arg-type]
             caveats_inherited=list(data.get("caveats_inherited", []) or []),
+            context=str(data.get("context", "") or ""),
+            signal_id=str(data.get("signal_id", "") or ""),
         )
 
 

@@ -40,8 +40,10 @@ def motif_signals(
     """Flatten audited ``top_motifs`` per group into tf_motif EvidenceSignals.
 
     Keeps only motifs enriched at the run's padj threshold; the enriched peak
-    group is recorded in ``measure`` and the log2 enrichment in ``value``. Dedups
-    by TF name. Shared verbatim by the bulk ATAC (S7) and scATAC (S8) adapters.
+    group is recorded in ``measure``/``context`` and the log2 enrichment in
+    ``value``. Dedups by (TF name, group): the SAME TF enriched in two clusters
+    is two distinct, independent signals — not collapsed (H4). Shared verbatim by
+    the bulk ATAC (S7) and scATAC (S8) adapters.
     """
     out: list[EvidenceSignal] = []
     if not isinstance(motifs, dict):
@@ -60,8 +62,9 @@ def motif_signals(
             padj = num(motif.get("padj"))
             if padj is not None and padj_max is not None and padj >= padj_max:
                 continue
-            key = str(name).strip().lower()
-            if not key or key in seen:
+            name_key = str(name).strip().lower()
+            key = (name_key, str(group))
+            if not name_key or key in seen:
                 continue
             seen.add(key)
             out.append(
@@ -74,6 +77,7 @@ def motif_signals(
                     value=num(motif.get("log2_enrichment")),
                     direction="na",
                     caveats_inherited=list(base_caveats),
+                    context=str(group),
                 )
             )
             if len(out) >= max_motifs:

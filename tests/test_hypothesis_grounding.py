@@ -14,6 +14,7 @@ from aria.agents.narrative.hypothesis import (
     EvidenceSignal,
     Hypothesis,
     build_evidence_index,
+    build_signals_by_entity,
     verify_hypothesis_grounding,
 )
 
@@ -109,6 +110,97 @@ def test_hypothesis_citing_absent_entity_is_rejected():
     assert "FOXP3" in (result.reason or "")
 
 
+def test_mechanism_prose_naming_undeclared_entity_is_rejected():
+    # The structured entities are all grounded and the cited observation ran, but
+    # the mechanism PROSE smuggles in SPI1 — never measured, never declared. The
+    # wall must guard the rendered prose, not only the structured entities field;
+    # otherwise an LLM evades grounding by naming an invented entity in the text
+    # the reader actually sees.
+    hyp = Hypothesis(
+        id="h_prose",
+        mechanism="GATA1 accessibility may be co-opted by SPI1 at shared loci",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "SPI1" in result.ungrounded_prose_entities
+    # The declared entities are all grounded -> the structured-only check is clean.
+    assert result.missing_entities == []
+    assert "SPI1" in (result.reason or "")
+
+
+def test_experiment_smuggling_undeclared_entity_is_rejected():
+    # H1 bug 2: the mechanism is clean and the entities are grounded, but the
+    # discriminating experiment perturbs TP53 — never measured, never declared.
+    # The wall must scan EVERY generated field, not only the mechanism.
+    hyp = Hypothesis(
+        id="h_exp",
+        mechanism="GATA1 accessibility may sustain the erythroid program",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=DiscriminatingExperiment(
+            perturbation="TP53 knockout",
+            readout="GATA1 expression by qPCR",
+            predicted_direction="down",
+            refuting_outcome="GATA1 unchanged",
+        ),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "TP53" in result.ungrounded_prose_entities
+    assert result.missing_entities == []
+
+
+def test_vacuous_hypothesis_naming_nothing_is_rejected():
+    # H1 bug 1: no declared entities and no cited observation -> anchored to
+    # nothing. "Grounded by naming nothing" must not be accepted.
+    hyp = Hypothesis(
+        id="h_void",
+        mechanism="the observed shift may reflect a regulatory rewiring",
+        entities=[],
+        observation_refs=[],
+        experiment=DiscriminatingExperiment(
+            "perturb the system", "measure a readout", "up", "no change"
+        ),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert result.vacuous is True
+    assert "vacuous" in (result.reason or "")
+
+
+def test_hypothesis_with_entities_but_no_observation_is_vacuous():
+    # Grounded entities but zero cited observations is still anchored to no
+    # audited result.
+    hyp = Hypothesis(
+        id="h_noref",
+        mechanism="KLF1 may sustain GATA1 expression",
+        entities=["GATA1", "KLF1"],
+        observation_refs=[],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert result.vacuous is True
+
+
+def test_mechanism_prose_with_only_grounded_entities_passes():
+    # A mechanism that names only measured entities (and hedge/connective words)
+    # must NOT be flagged: the prose check targets invented entities, not prose.
+    hyp = Hypothesis(
+        id="h_ok_prose",
+        mechanism="KLF1 motif accessibility may sustain GATA1 expression",
+        entities=["GATA1", "KLF1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is True
+    assert result.ungrounded_prose_entities == []
+
+
 def test_hypothesis_from_not_run_analysis_is_rejected():
     # Entities are real, but the cited observation analysis was skipped.
     hyp = Hypothesis(
@@ -148,12 +240,38 @@ def test_entity_grounding_is_case_insensitive():
         id="h5",
         mechanism="connection",
         entities=["gata1", "Klf1"],
-        observation_refs=[],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
         experiment=_experiment(),
     )
-    # No run_ledger -> only entity grounding is enforced.
+    # No run_ledger -> the ledger-node check is skipped; entity grounding,
+    # prose grounding and non-vacuity are still enforced.
     result = verify_hypothesis_grounding(hyp, _signals(), None)
     assert result.grounded is True
+
+
+def _ctx_signal(entity, context, value, direction):
+    return EvidenceSignal(
+        entity=entity, entity_kind="gene", modality="bulk_RNA",
+        measure="log2fc", audited_node_ref="ledger://bulk/differential_expression",
+        value=value, direction=direction, context=context,
+    )
+
+
+def test_signal_id_distinguishes_context():
+    # H4: the SAME entity in two contexts is two distinct signals.
+    a = _ctx_signal("GATA1", "old_vs_young", 2.0, "up")
+    b = _ctx_signal("GATA1", "treated_vs_ctrl", -1.0, "down")
+    assert a.signal_id and b.signal_id
+    assert a.signal_id != b.signal_id
+
+
+def test_build_signals_by_entity_keeps_every_context():
+    a = _ctx_signal("GATA1", "old_vs_young", 2.0, "up")
+    b = _ctx_signal("GATA1", "treated_vs_ctrl", -1.0, "down")
+    by_entity = build_signals_by_entity([a, b])
+    assert len(by_entity["gata1"]) == 2
+    # build_evidence_index still yields one deterministic representative.
+    assert build_evidence_index([a, b])["gata1"] is a
 
 
 def test_build_evidence_index_skips_blank_and_nonsignals():

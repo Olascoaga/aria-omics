@@ -62,6 +62,15 @@ def _design_caveats(findings: dict, exp_ctx: dict | None) -> list[str]:
     return caveats
 
 
+def _contrast_label(contrast: dict, index: int) -> str:
+    """A stable label for the contrast a signal was measured in (its context)."""
+    for key in ("name", "contrast", "comparison", "label", "id"):
+        value = contrast.get(key)
+        if value:
+            return str(value)
+    return f"contrast_{index}"
+
+
 def _ora_terms(contrast: dict) -> list[str]:
     pw = contrast.get("pathways")
     items: list[Any] = []
@@ -99,10 +108,11 @@ def bulk_rna_evidence(
     base_caveats = _design_caveats(findings, exp_ctx)
 
     signals: list[EvidenceSignal] = []
-    seen: set[tuple[str, str]] = set()
-    for contrast in findings.get("contrasts") or []:
+    seen: set[tuple[str, str, str]] = set()
+    for c_index, contrast in enumerate(findings.get("contrasts") or []):
         if not isinstance(contrast, dict):
             continue
+        label = _contrast_label(contrast, c_index)
         caveats = list(base_caveats)
         if (
             contrast.get("low_power") or contrast.get("low_power_warning")
@@ -118,7 +128,7 @@ def bulk_rna_evidence(
                 lfc = gene.get("log2fc")
                 if not symbol or lfc is None:
                     continue
-                key = ("gene", str(symbol))
+                key = ("gene", str(symbol), label)
                 if key in seen:
                     continue
                 seen.add(key)
@@ -132,6 +142,7 @@ def bulk_rna_evidence(
                         value=_num(lfc),
                         direction=_direction(lfc),
                         caveats_inherited=list(caveats),
+                        context=label,
                     )
                 )
                 n_genes += 1
@@ -140,7 +151,7 @@ def bulk_rna_evidence(
 
         if ora_ran:
             for term in _ora_terms(contrast):
-                key = ("pathway", term)
+                key = ("pathway", term, label)
                 if key in seen:
                     continue
                 seen.add(key)
@@ -153,6 +164,7 @@ def bulk_rna_evidence(
                         audited_node_ref=_ORA_NODE,
                         direction="na",
                         caveats_inherited=list(caveats),
+                        context=label,
                     )
                 )
     return signals

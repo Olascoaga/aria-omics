@@ -143,6 +143,27 @@ def test_enforcer_rejects_hypothesis_node_in_claims():
         assert_no_speculative_promotion(claims)
 
 
+def test_duplicate_ids_get_distinct_quarantine_nodes():
+    # H1 bug 3: two hypotheses with the same id must NOT collapse onto one
+    # quarantine node, or one would silently inherit the other's cites/provenance.
+    a = _hyp(id="dup", entities=["GATA1"])
+    b = _hyp(id="dup", entities=["KLF1"])
+    manifest = quarantine_hypotheses([a, b])
+    nodes = [m["hypothesis_node"] for m in manifest]
+    assert a.ledger_node != b.ledger_node
+    assert len(set(nodes)) == len(nodes)
+    assert nodes[0] == "hypothesis://dup"
+
+
+def test_unsafe_id_is_slugged():
+    # An LLM-authored id cannot inject scheme/path characters into the namespace.
+    hyp = _hyp(id="../evil id://x")
+    node = quarantine_node_id(hyp)
+    assert node.startswith("hypothesis://")
+    assert "://x" not in node[len("hypothesis://"):]
+    assert " " not in node
+
+
 def test_quarantined_hypothesis_cannot_pass_as_a_claim():
     # Simulate a leak: build a "claim" from the quarantine manifest and prove the
     # enforcer catches it before it could be emitted as audited.

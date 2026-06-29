@@ -16,8 +16,10 @@ from aria.agents.narrative.hypothesis import (
     LLMProposer,
     bulk_rna_evidence,
     build_proposer_prompt,
+    classify_parse,
     parse_hypotheses,
 )
+from aria.llm.provider import TaskTier
 
 
 def _agent_results() -> dict:
@@ -158,6 +160,168 @@ def test_end_to_end_rejects_model_inventing_a_gene():
     assert out["honest_null"] is True
     gates = {f["gate"] for f in out["rejected"][0]["failures"]}
     assert "grounding" in gates
+
+
+# ── A+C: token budget + non-silent truncation diagnostics ───────────────────
+
+def _verbose_hypotheses_json(n: int = 4) -> str:
+    """A realistic multi-hypothesis response (mechanism + 4-field experiment +
+    devils_advocate), the shape that overran the old 2048-token budget."""
+    items = []
+    for i in range(n):
+        items.append(
+            {
+                "id": f"v{i}",
+                "mechanism": (
+                    "co-upregulation of the two flagged markers may reflect a "
+                    "shared upstream regulatory program that could be probed by "
+                    "targeted perturbation rather than direct interaction " * 3
+                ),
+                "entities": ["GATA1", "KLF1"],
+                "observation_refs": ["ledger://bulk/differential_expression"],
+                "experiment": {
+                    "perturbation": "knock down the candidate regulator and "
+                    "profile by RNA-seq " * 3,
+                    "readout": "expression of the two markers by qPCR " * 3,
+                    "predicted_direction": "decrease in both markers " * 3,
+                    "refuting_outcome": "markers remain unchanged " * 3,
+                },
+                "devils_advocate": {
+                    "simpler_explanation": "both respond to a shared stimulus " * 3,
+                    "confounds": ["low replication"],
+                },
+            }
+        )
+    return "```json\n" + json.dumps(items, indent=2) + "\n```"
+
+
+def _truncated_response() -> str:
+    """A response cut off mid-object, exactly the max_tokens failure mode."""
+    full = _verbose_hypotheses_json(4)
+    return full[: int(len(full) * 0.55)]
+
+
+def test_from_provider_uses_generous_token_budget():
+    # A (root cause): the proposer must request enough tokens for a full set of
+    # verbose hypotheses, not the old 2048 that truncated the JSON.
+    seen: list[int] = []
+
+    class _RecordingLLM:
+        def complete(self, *, prompt, system, tier, max_tokens):
+            assert tier is TaskTier.HEAVY
+            seen.append(max_tokens)
+            return _verbose_hypotheses_json(4)
+
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    proposer = LLMProposer.from_provider(_RecordingLLM())
+    hyps = proposer(signals, {})
+    assert seen == [8192]
+    assert len(hyps) == 4
+
+
+# ── H6: adaptive retry on truncation + real provenance ──────────────────────
+
+def test_proposer_retries_with_larger_budget_on_truncation():
+    # H6 (issue 7): a truncated response triggers a retry with a doubled budget
+    # until the JSON fits — not a silent honest-null.
+    calls: list[int] = []
+
+    def fake(prompt, system, max_tokens):
+        calls.append(max_tokens)
+        return _truncated_response() if max_tokens < 8192 else _verbose_hypotheses_json(4)
+
+    proposer = LLMProposer(fake, max_tokens=2048, max_tokens_cap=16384, max_retries=3)
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    hyps = proposer(signals, {})
+    assert len(hyps) == 4
+    assert calls == [2048, 4096, 8192]  # escalated until it fit
+    assert proposer.last_diagnostics["retries"] == 2
+    assert proposer.last_diagnostics["status"] == "ok"
+    assert proposer.last_diagnostics["finish_reason"] == "stop"
+
+
+def test_proposer_stops_retrying_at_max_retries():
+    # H6: retries are bounded — a persistently truncated model degrades to an
+    # honest, labelled generation failure, not an infinite loop.
+    calls: list[int] = []
+
+    def fake(prompt, system, max_tokens):
+        calls.append(max_tokens)
+        return _truncated_response()
+
+    proposer = LLMProposer(fake, max_tokens=2048, max_tokens_cap=100000, max_retries=2)
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    assert proposer(signals, {}) == []
+    assert len(calls) == 3  # initial + 2 retries
+    assert proposer.last_diagnostics["retries"] == 2
+    assert proposer.last_diagnostics["status"] == "parse_error"
+    assert proposer.last_diagnostics["finish_reason"] == "length"
+
+
+def test_from_provider_records_real_served_model_and_finish_reason():
+    # H6 (issue 8): provenance reflects the REAL configured + served model,
+    # fallback flag and provider finish_reason — not a static label.
+    class _Cfg:
+        provider = "anthropic"
+        model = "claude-opus-4-8"
+
+    class _LLM:
+        def __init__(self):
+            self._last_completion = None
+
+        def get_active_model(self, tier):
+            return _Cfg()
+
+        def complete(self, *, prompt, system, tier, max_tokens):
+            self._last_completion = {
+                "provider": "anthropic", "model": "claude-opus-4-8",
+                "is_fallback": True, "fallback_from": "gemini/gemini-2.5-pro",
+                "finish_reason": "stop",
+            }
+            return _verbose_hypotheses_json(2)
+
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    hyps = LLMProposer.from_provider(_LLM())(signals, {})
+    prov = hyps[0].provenance
+    assert prov["model_label"] == "anthropic/claude-opus-4-8"
+    assert prov["served_model"] == "claude-opus-4-8"
+    assert prov["is_fallback"] is True
+    assert prov["fallback_from"] == "gemini/gemini-2.5-pro"
+    assert prov["finish_reason"] == "stop"
+    assert prov["max_tokens"] == 8192
+
+
+def test_classify_parse_distinguishes_failure_modes():
+    assert classify_parse("", 0)["status"] == "empty_response"
+    assert classify_parse("```json\n[]\n```", 0)["status"] == "no_candidates"
+    assert classify_parse(_truncated_response(), 0)["status"] == "parse_error"
+    assert classify_parse(_verbose_hypotheses_json(4), 4)["status"] == "ok"
+
+
+def test_proposer_records_truncation_diagnostic():
+    # C: a truncated response yields zero candidates AND a non-silent diagnostic.
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    proposer = LLMProposer(lambda p, s: _truncated_response())
+    assert proposer(signals, {}) == []
+    assert proposer.last_diagnostics["status"] == "parse_error"
+    assert proposer.last_diagnostics["raw_chars"] > 0
+
+
+def test_agent_honest_null_names_a_parse_failure():
+    # C: when the model answered but parsing failed, the honest-null is labelled
+    # a generation failure (null_reason) instead of staying mute.
+    signals = bulk_rna_evidence(_agent_results(), _ledger())
+    agent = HypothesisAgent(proposer=LLMProposer(lambda p, s: _truncated_response()))
+    out = agent.generate(signals, _ledger())
+    assert out["honest_null"] is True
+    assert out["n_candidates"] == 0
+    assert out["null_reason"] == "parse_error"
+    assert out["proposer_diagnostics"]["status"] == "parse_error"
+    # A genuine empty-list decline must NOT be labelled a failure.
+    agent_ok = HypothesisAgent(proposer=LLMProposer(lambda p, s: "[]"))
+    out_ok = agent_ok.generate(signals, _ledger())
+    assert out_ok["honest_null"] is True
+    assert "null_reason" not in out_ok
 
 
 def test_end_to_end_rejects_model_dropping_a_confound():

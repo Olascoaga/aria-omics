@@ -27,18 +27,23 @@ from .devils_advocate import (
 from .proposer_llm import (
     LLMProposer,
     build_proposer_prompt,
+    classify_parse,
     parse_hypotheses,
 )
 from .ranking import rank_hypotheses
 from .report_section import (
+    SPECULATIVE_MANIFEST_SCHEMA,
+    build_speculative_manifest,
     build_speculative_section,
     gather_evidence,
+    persist_speculative_manifest,
     render_speculative_section_html,
 )
 from .gates import GateResult, check_falsifiability, check_language
 from .grounding import (
     GroundingResult,
     build_evidence_index,
+    build_signals_by_entity,
     verify_hypothesis_grounding,
 )
 from .quarantine import (
@@ -57,6 +62,7 @@ __all__ = [
     "DiscriminatingExperiment",
     "GroundingResult",
     "build_evidence_index",
+    "build_signals_by_entity",
     "verify_hypothesis_grounding",
     "GateResult",
     "check_falsifiability",
@@ -76,9 +82,13 @@ __all__ = [
     "scatac_evidence",
     "LLMProposer",
     "build_proposer_prompt",
+    "classify_parse",
     "parse_hypotheses",
     "rank_hypotheses",
     "build_speculative_section",
     "gather_evidence",
     "render_speculative_section_html",
+    "build_speculative_manifest",
+    "persist_speculative_manifest",
+    "SPECULATIVE_MANIFEST_SCHEMA",
 ]

@@ -202,6 +202,11 @@ class LLMProvider:
         except (TypeError, ValueError):
             self._timeout_s = self.DEFAULT_TIMEOUT_S
         self._context_managers: dict[str, ContextManager] = {}
+        # Metadata of the most recent completion (the REAL served model, whether
+        # it was a degraded fallback, and the provider finish_reason). Additive:
+        # `complete` still returns just the text; callers that need provenance
+        # (e.g. the HypothesisAgent proposer) read this after the call.
+        self._last_completion: Optional[dict] = None
         self._inject_api_keys()
         # File-backed prompt cache. Disabled when ARIA_LLM_CACHE=0.
         # Cache key: sha256(model + system + prompt + max_tokens + deterministic
@@ -376,6 +381,13 @@ class LLMProvider:
                     "estimated_cost_usd": 0.0,
                     **degradation,
                 })
+                self._last_completion = {
+                    "provider": cfg.provider,
+                    "model": cfg.model,
+                    "cache_hit": True,
+                    "finish_reason": None,
+                    **degradation,
+                }
                 return cached
 
         # Get or build ContextManager for this model
@@ -423,6 +435,10 @@ class LLMProvider:
 
         response = completion(**kwargs)
         text = response.choices[0].message.content
+        try:
+            finish_reason = getattr(response.choices[0], "finish_reason", None)
+        except Exception:
+            finish_reason = None
         usage = getattr(response, "usage", None)
         prompt_tokens = int(getattr(usage, "prompt_tokens", 0) or 0)
         completion_tokens = int(getattr(usage, "completion_tokens", 0) or 0)
@@ -450,6 +466,13 @@ class LLMProvider:
             "estimated_cost_usd": cost,
             **degradation,
         })
+        self._last_completion = {
+            "provider": cfg.provider,
+            "model": cfg.model,
+            "cache_hit": False,
+            "finish_reason": finish_reason,
+            **degradation,
+        }
         if cache_key is not None and text:
             self._cache_put(cache_key, text)
         return text

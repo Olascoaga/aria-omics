@@ -99,11 +99,14 @@ def scrna_evidence(
     signals: list[EvidenceSignal] = []
     seen: set[tuple[str, str]] = set()
 
-    def _add(entity, kind, measure, node, *, value=None, direction="na", extra=None):
+    def _add(entity, kind, measure, node, *, value=None, direction="na",
+             extra=None, context=""):
         ent = str(entity or "").strip()
         if not ent or ent == "?":
             return
-        key = (ent.lower(), node)
+        # Context-aware dedup: the same gene/cell-type in a DIFFERENT comparison
+        # is a distinct, independent signal — preserve it (H4).
+        key = (ent.lower(), node, context)
         if key in seen:
             return
         seen.add(key)
@@ -120,18 +123,20 @@ def scrna_evidence(
                 value=value,
                 direction=direction,
                 caveats_inherited=caveats,
+                context=context,
             )
         )
 
     # pseudobulk donor-level DE -> gene signals
     if _node_ran(run_ledger, _DE_NODE):
         pb = findings.get("pseudobulk_de") or {}
-        for info in (pb.get("per_group") or {}).values():
+        for group_key, info in (pb.get("per_group") or {}).items():
             if not isinstance(info, dict):
                 continue
-            for comp in (info.get("per_comparison") or {}).values():
+            for comp_key, comp in (info.get("per_comparison") or {}).items():
                 if not isinstance(comp, dict) or comp.get("status") != "success":
                     continue
+                ctx = f"{group_key}:{comp_key}" if group_key else str(comp_key)
                 n = 0
                 for gene in comp.get("top_genes") or []:
                     if not isinstance(gene, dict):
@@ -141,7 +146,8 @@ def scrna_evidence(
                     if not symbol or lfc is None:
                         continue
                     _add(symbol, "gene", "log2fc", _DE_NODE,
-                         value=_num(lfc), direction=_num_direction(lfc))
+                         value=_num(lfc), direction=_num_direction(lfc),
+                         context=ctx)
                     n += 1
                     if n >= _MAX_GENES_PER_COMPARISON:
                         break
@@ -149,7 +155,7 @@ def scrna_evidence(
     # differential abundance -> cell-type signals
     if _node_ran(run_ledger, _DA_NODE):
         da = findings.get("differential_abundance") or {}
-        for comp in (da.get("per_comparison") or {}).values():
+        for comp_key, comp in (da.get("per_comparison") or {}).items():
             if not isinstance(comp, dict) or comp.get("status", "success") != "success":
                 continue
             for row in comp.get("per_cell_type") or []:
@@ -157,7 +163,7 @@ def scrna_evidence(
                     continue
                 _add(row.get("name"), "celltype", "abundance", _DA_NODE,
                      direction=_str_direction(row.get("direction")),
-                     extra="cell-type composition shift")
+                     extra="cell-type composition shift", context=str(comp_key))
 
     # LIANA cell-cell communication -> ligand/receptor genes + cell-type signals
     if _node_ran(run_ledger, _CCC_NODE):
@@ -172,12 +178,12 @@ def scrna_evidence(
                     f"({row.get('ligand', '?')}-{row.get('receptor', '?')})"
                 )
                 _add(row.get("ligand"), "gene", "cell_communication", _CCC_NODE,
-                     value=pair, extra=extra)
+                     value=pair, extra=extra, context=pair)
                 _add(row.get("receptor"), "gene", "cell_communication", _CCC_NODE,
-                     value=pair, extra=extra)
+                     value=pair, extra=extra, context=pair)
                 _add(row.get("source"), "celltype", "cell_communication", _CCC_NODE,
-                     extra=extra)
+                     extra=extra, context=pair)
                 _add(row.get("target"), "celltype", "cell_communication", _CCC_NODE,
-                     extra=extra)
+                     extra=extra, context=pair)
 
     return signals

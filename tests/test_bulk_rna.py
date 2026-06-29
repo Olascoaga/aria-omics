@@ -123,6 +123,26 @@ def test_lfc_threshold_is_prompt_independent():
 
 
 @needs_agent
+def test_lfc_suggestion_does_not_depend_on_hardcoded_gene_names():
+    """ADR-055: the advisory must fire on generic perturbation-design KEYWORDS,
+    never on a hardcoded list of gene symbols. A study naming a transcription
+    factor WITHOUT a perturbation keyword must NOT trigger the hint, and the
+    module must not carry a gene whitelist."""
+    import aria.agents.bulk_rna_agent as bra
+    # No hardcoded gene-symbol set survives in the module.
+    assert not hasattr(bra, "KNOWN_TFS")
+    # A bare gene symbol (no knockout/knockdown/overexpression wording) -> no hint.
+    bare_gene = {"comparison": "BMAL1 vs WT",
+                 "summary": "compare BMAL1 against wild type",
+                 "biological_entities": ["BMAL1", "WT"]}
+    assert suggest_lfc_profile(bare_gene) is None
+    # The same biology phrased as a perturbation -> hint fires (keyword, not gene).
+    perturbed = {"comparison": "BMAL1 knockdown vs WT",
+                 "biological_entities": ["BMAL1", "WT"]}
+    assert suggest_lfc_profile(perturbed) == "exploratory_tf"
+
+
+@needs_agent
 def test_lfc_suggestion_does_not_change_resolved_threshold():
     """The advisory suggestion never moves the cutoff: a TF-flagged intent with
     no explicit override still resolves to the fixed default."""

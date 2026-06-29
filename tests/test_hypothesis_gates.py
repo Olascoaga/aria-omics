@@ -66,6 +66,42 @@ def _valid_hypothesis(**overrides) -> Hypothesis:
     return Hypothesis(**base)
 
 
+# ── H7: word-boundary lint hardening ────────────────────────────────────────
+
+def test_hedge_marker_matches_before_punctuation():
+    # H7: the old "may " (literal trailing space) missed a hedge before
+    # punctuation; word boundaries fix it.
+    assert check_language(
+        _valid_hypothesis(mechanism="KLF1 may sustain GATA1.")
+    ).passed is True
+    assert check_language(
+        _valid_hypothesis(mechanism="this may, in turn, sustain GATA1")
+    ).passed is True
+
+
+def test_hedge_word_not_matched_inside_a_larger_word():
+    # H7: "may" inside "mayonnaise" is not a hedge — needs a real marker.
+    assert check_language(
+        _valid_hypothesis(mechanism="the mayonnaise mapping shifts GATA1")
+    ).passed is False
+
+
+def test_direction_token_not_matched_inside_a_word():
+    # H7: "up" must NOT satisfy the direction check inside "upstream".
+    hyp = _valid_hypothesis(experiment=DiscriminatingExperiment(
+        perturbation="KLF1 knockdown", readout="GATA1 by qPCR",
+        predicted_direction="altered upstream regulation",
+        refuting_outcome="no effect"))
+    assert check_falsifiability(hyp).passed is False
+
+
+def test_stem_marker_still_matches_inflections():
+    # H7: stem markers keep catching inflections (suggests/proposed).
+    assert check_language(
+        _valid_hypothesis(mechanism="the data suggests a shared GATA1 program")
+    ).passed is True
+
+
 # ── falsifiability ──────────────────────────────────────────────────────────
 
 def test_falsifiability_passes_for_complete_experiment():
