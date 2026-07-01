@@ -2367,7 +2367,7 @@
       "source_location": "L71"
     },
     {
-      "id": "proposer",
+      "id": "aria_agents_hypothesis_agent_py_proposer",
       "label": "Proposer",
       "file_type": "code",
       "source_file": "aria/agents/hypothesis_agent.py",
@@ -8483,6 +8483,265 @@
       "file_type": "code",
       "source_file": "aria/benchmarks/governance_b4.py",
       "source_location": "L247"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval",
+      "label": "hypothesis_blind_eval.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_sig",
+      "label": "_sig()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L48"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_scenarios",
+      "label": "scenarios()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L56"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_run_governed",
+      "label": "run_governed()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L113"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_proposer",
+      "label": "Proposer",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L113"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_run_ungoverned",
+      "label": "run_ungoverned()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L124"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "label": "_as_hypothesis()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_hypothesis",
+      "label": "Hypothesis",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_factuality",
+      "label": "factuality()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L139"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_top_k_signature",
+      "label": "_top_k_signature()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L178"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L178"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_jaccard",
+      "label": "_jaccard()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L187"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_blind_eval_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L187"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_stability",
+      "label": "stability()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L194"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_blind_id",
+      "label": "_blind_id()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "label": "build_grading_sheet()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_median_by_axis",
+      "label": "_median_by_axis()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L270"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "label": "evaluate_promotion_gate()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L285"
+    },
+    {
+      "id": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "label": "run_blind_eval()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam",
+      "label": "hypothesis_redteam.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_evidence",
+      "label": "_evidence()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "label": "EvidenceSignal",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_ledger",
+      "label": "_ledger()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L61"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_by_entity",
+      "label": "_by_entity()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_redteam_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_valid_item",
+      "label": "_valid_item()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L73"
+    },
+    {
+      "id": "aria_benchmarks_hypothesis_redteam_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L73"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_json",
+      "label": "_json()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L103"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_fixed_proposer",
+      "label": "_fixed_proposer()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L107"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_redteamcase",
+      "label": "RedTeamCase",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L115"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_gates_for",
+      "label": "_gates_for()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L124"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_build_cases",
+      "label": "build_cases()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L131"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_run_case",
+      "label": "run_case()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L312"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_run_redteam",
+      "label": "run_redteam()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L391"
+    },
+    {
+      "id": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "label": "evaluate_redteam()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L396"
     },
     {
       "id": "benchmarks_reference_kang",
@@ -26412,6 +26671,223 @@
       "source_location": "L66"
     },
     {
+      "id": "hypothesis_hypothesis_redteam",
+      "label": "hypothesis_redteam.json",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L1"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_schema",
+      "label": "schema",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L2"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_n_cases",
+      "label": "n_cases",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L3"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_evasions",
+      "label": "evasions",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L4"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_passed",
+      "label": "passed",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L5"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_evaded_cases",
+      "label": "evaded_cases",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L6"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_results",
+      "label": "results",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L7"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance",
+      "label": "provenance",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L165"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_aria_version",
+      "label": "aria_version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L166"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_version",
+      "label": "version",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L167"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_version_source",
+      "label": "version_source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L168"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_git_sha",
+      "label": "git_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L169"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_git_commit",
+      "label": "git_commit",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L170"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_git_dirty",
+      "label": "git_dirty",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L171"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_git_tree_sha",
+      "label": "git_tree_sha",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L172"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_git_describe",
+      "label": "git_describe",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L173"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_workflow_hash",
+      "label": "workflow_hash",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L174"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_workflow_hash_algorithm",
+      "label": "workflow_hash_algorithm",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L175"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_image",
+      "label": "image",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L176"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_containerized",
+      "label": "containerized",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L177"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_kind",
+      "label": "kind",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L178"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_digest",
+      "label": "digest",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L179"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_reference",
+      "label": "reference",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L180"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_revision",
+      "label": "revision",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L181"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L182"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_image_validation",
+      "label": "validation",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L183"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_provenance_environment",
+      "label": "environment",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L185"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_environment_env_name",
+      "label": "env_name",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L186"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_environment_env_lock_file",
+      "label": "env_lock_file",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L187"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_environment_env_lock_sha256",
+      "label": "env_lock_sha256",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L188"
+    },
+    {
+      "id": "hypothesis_hypothesis_redteam_environment_source",
+      "label": "source",
+      "file_type": "code",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L189"
+    },
+    {
       "id": "scatac_concordance_p3_multisample_aging_da_concordance",
       "label": "p3_multisample_aging_da_concordance.json",
       "file_type": "code",
@@ -29335,7 +29811,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -29580,7 +30056,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -29602,7 +30078,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -30106,6 +30582,48 @@
       "file_type": "code",
       "source_file": "scripts/run_bulk_atac_v47_provenance.py",
       "source_location": "L22"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval",
+      "label": "run_hypothesis_blind_eval.py",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval_public_provenance",
+      "label": "_public_provenance()",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "label": "_build_proposers()",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L57"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77"
+    },
+    {
+      "id": "scripts_run_hypothesis_blind_eval_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77"
     },
     {
       "id": "scripts_run_scatac_concordance_benchmark",
@@ -38032,6 +38550,104 @@
       "source_location": "L125"
     },
     {
+      "id": "tests_test_hypothesis_blind_eval",
+      "label": "test_hypothesis_blind_eval.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "label": "_governed_proposer()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L25"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_inventing_proposer",
+      "label": "_inventing_proposer()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "label": "test_factuality_scores_governed_and_baseline_apart()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_stability_is_one_for_a_deterministic_arm",
+      "label": "test_stability_is_one_for_a_deterministic_arm()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L83"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "label": "test_grading_sheet_is_arm_blind_and_deanonymisable()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L91"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_report",
+      "label": "_report()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L116"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_awaits_human_review_when_mechanical_passes",
+      "label": "test_gate_awaits_human_review_when_mechanical_passes()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L126"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_fails_on_redteam_evasion",
+      "label": "test_gate_fails_on_redteam_evasion()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L133"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_fails_when_governance_does_not_beat_baseline",
+      "label": "test_gate_fails_when_governance_does_not_beat_baseline()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L140"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_fails_on_governed_invention",
+      "label": "test_gate_fails_on_governed_invention()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L146"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_promotes_only_when_mechanical_and_human_pass",
+      "label": "test_gate_promotes_only_when_mechanical_and_human_pass()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L151"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_gate_blocks_promotion_on_weak_human_panel",
+      "label": "test_gate_blocks_promotion_on_weak_human_panel()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L163"
+    },
+    {
+      "id": "tests_test_hypothesis_blind_eval_test_run_blind_eval_end_to_end_with_fakes",
+      "label": "test_run_blind_eval_end_to_end_with_fakes()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L174"
+    },
+    {
       "id": "tests_test_hypothesis_devils_advocate",
       "label": "test_hypothesis_devils_advocate.py",
       "file_type": "code",
@@ -39094,6 +39710,55 @@
       "file_type": "code",
       "source_file": "tests/test_hypothesis_quarantine.py",
       "source_location": "L227"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam",
+      "label": "test_hypothesis_redteam.py",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_redteam_reports_zero_evasions",
+      "label": "test_redteam_reports_zero_evasions()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_every_case_holds",
+      "label": "test_every_case_holds()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_gate_attacks_are_caught_by_the_expected_wall",
+      "label": "test_gate_attacks_are_caught_by_the_expected_wall()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_battery_covers_all_walls",
+      "label": "test_battery_covers_all_walls()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L52"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_verification_absence_is_fail_closed",
+      "label": "test_verification_absence_is_fail_closed()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L62"
+    },
+    {
+      "id": "tests_test_hypothesis_redteam_test_nested_quarantine_node_raises",
+      "label": "test_nested_quarantine_node_raises()",
+      "file_type": "code",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L71"
     },
     {
       "id": "tests_test_hypothesis_report_section",
@@ -43623,10 +44288,104 @@
       "file_type": "code",
       "source_file": "tests/test_wnn_no_fabrication.py",
       "source_location": "L49"
+    },
+    {
+      "id": "orchestrator_agent",
+      "label": "OrchestratorAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/orchestrator_agent.py"
+    },
+    {
+      "id": "data_audit_agent",
+      "label": "DataAuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py"
+    },
+    {
+      "id": "design_agent",
+      "label": "DesignAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/design_agent.py"
+    },
+    {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py"
+    },
+    {
+      "id": "setup_agent",
+      "label": "SetupAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/setup_agent.py"
+    },
+    {
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py"
+    },
+    {
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/scrna_agent.py"
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py"
+    },
+    {
+      "id": "narrative_agent",
+      "label": "NarrativeAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative_agent.py"
+    },
+    {
+      "id": "biological_synthesis_agent",
+      "label": "BiologicalSynthesisAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/biological_synthesis_agent.py"
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py"
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py"
+    },
+    {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py"
+    },
+    {
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk_de.py"
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+    },
+    {
+      "id": "chromatin_footprint_tobias",
+      "label": "chromatin_footprint_tobias.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
     }
   ],
-  "input_tokens": 0,
-  "output_tokens": 0,
   "edges": [
     {
       "source": "aria_init",
@@ -52649,7 +53408,7 @@
     },
     {
       "source": "agents_hypothesis_agent_hypothesisagent_init",
-      "target": "proposer",
+      "target": "aria_agents_hypothesis_agent_py_proposer",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
@@ -76189,6 +76948,890 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/governance_b4.py",
       "source_location": "L265",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_sig",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_scenarios",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_governed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_governed",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_proposer",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_ungoverned",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_ungoverned",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_proposer",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_hypothesis",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_factuality",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_top_k_signature",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_top_k_signature",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_jaccard",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_jaccard",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_float",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_stability",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_stability",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_stability",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_blind_id",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_blind_id",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_blind_id",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_blind_id",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_blind_id",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_blind_id",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_median_by_axis",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_median_by_axis",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L270",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L285",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_proposer",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_proposer",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "aria_benchmarks_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L348",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_scenarios",
+      "target": "benchmarks_hypothesis_blind_eval_sig",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_factuality",
+      "target": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_top_k_signature",
+      "target": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_stability",
+      "target": "benchmarks_hypothesis_blind_eval_top_k_signature",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_stability",
+      "target": "benchmarks_hypothesis_blind_eval_jaccard",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "target": "benchmarks_hypothesis_blind_eval_as_hypothesis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L237",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "target": "benchmarks_hypothesis_blind_eval_blind_id",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L238",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "target": "benchmarks_hypothesis_blind_eval_median_by_axis",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L317",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L363",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_governed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L372",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_ungoverned",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L373",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_factuality",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L376",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_stability",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L378",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L398",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L419",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_evidence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_evidence",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_ledger",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_by_entity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_by_entity",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_by_entity",
+      "target": "aria_benchmarks_hypothesis_redteam_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_by_entity",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_valid_item",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_valid_item",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_valid_item",
+      "target": "aria_benchmarks_hypothesis_redteam_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_json",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_json",
+      "target": "aria_benchmarks_hypothesis_redteam_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_fixed_proposer",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_fixed_proposer",
+      "target": "aria_benchmarks_hypothesis_redteam_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L107",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_redteamcase",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_gates_for",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_gates_for",
+      "target": "aria_benchmarks_hypothesis_redteam_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_gates_for",
+      "target": "aria_benchmarks_hypothesis_redteam_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_build_cases",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_redteamcase",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_case",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L312",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "benchmarks_hypothesis_redteam_redteamcase",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L312",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L391",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_redteam",
+      "target": "benchmarks_hypothesis_redteam_redteamcase",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L391",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L396",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_evidence",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_valid_item",
+      "target": "benchmarks_hypothesis_redteam_by_entity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_by_entity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_redteamcase",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_json",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "benchmarks_hypothesis_redteam_valid_item",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "aria_benchmarks_hypothesis_redteam_py_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L275",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "benchmarks_hypothesis_redteam_evidence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L314",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "benchmarks_hypothesis_redteam_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L315",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "benchmarks_hypothesis_redteam_fixed_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L319",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "benchmarks_hypothesis_redteam_gates_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L327",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_case",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L393",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_redteam",
+      "target": "benchmarks_hypothesis_redteam_build_cases",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L393",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -125881,6 +127524,276 @@
       "weight": 1.0
     },
     {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_schema",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L2",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_n_cases",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L3",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_evasions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_passed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_evaded_cases",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L6",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_results",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L7",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam",
+      "target": "hypothesis_hypothesis_redteam_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_aria_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_version",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_version_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L168",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_git_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_git_commit",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_git_dirty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_git_tree_sha",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L172",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_git_describe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_workflow_hash",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_workflow_hash_algorithm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_image",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_containerized",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_kind",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_digest",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_reference",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_revision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_image",
+      "target": "hypothesis_hypothesis_redteam_image_validation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance",
+      "target": "hypothesis_hypothesis_redteam_provenance_environment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_environment",
+      "target": "hypothesis_hypothesis_redteam_environment_env_name",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_environment",
+      "target": "hypothesis_hypothesis_redteam_environment_env_lock_file",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_environment",
+      "target": "hypothesis_hypothesis_redteam_environment_env_lock_sha256",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "hypothesis_hypothesis_redteam_provenance_environment",
+      "target": "hypothesis_hypothesis_redteam_environment_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/benchmark_results/hypothesis/hypothesis_redteam.json",
+      "source_location": "L189",
+      "weight": 1.0
+    },
+    {
       "source": "scatac_concordance_p3_multisample_aging_da_concordance",
       "target": "scatac_concordance_p3_multisample_aging_da_concordance_aria_n_sig",
       "relation": "contains",
@@ -129554,7 +131467,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -129607,7 +131520,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129617,7 +131530,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129627,7 +131540,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129637,7 +131550,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129647,7 +131560,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -129969,7 +131882,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -129978,7 +131891,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -130013,7 +131926,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -130023,7 +131936,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_a4nrgk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_2aa1e6_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -130620,6 +132533,83 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_bulk_atac_v47_provenance.py",
       "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "aria_version",
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "scripts_run_hypothesis_blind_eval_public_provenance",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L57",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "scripts_run_hypothesis_blind_eval_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "scripts_run_hypothesis_blind_eval_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "scripts_run_hypothesis_blind_eval_py_int",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L77",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "scripts_run_hypothesis_blind_eval_public_provenance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -143859,6 +145849,233 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_inventing_proposer",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_stability_is_one_for_a_deterministic_arm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_awaits_human_review_when_mechanical_passes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_fails_on_redteam_evasion",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_fails_when_governance_does_not_beat_baseline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_fails_on_governed_invention",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_promotes_only_when_mechanical_and_human_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_gate_blocks_promotion_on_weak_human_panel",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "tests_test_hypothesis_blind_eval_test_run_blind_eval_end_to_end_with_fakes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L174",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "target": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "target": "tests_test_hypothesis_blind_eval_inventing_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_stability_is_one_for_a_deterministic_arm",
+      "target": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "target": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "target": "tests_test_hypothesis_blind_eval_inventing_proposer",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_awaits_human_review_when_mechanical_passes",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_on_redteam_evasion",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_when_governance_does_not_beat_baseline",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_on_governed_invention",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_promotes_only_when_mechanical_and_human_pass",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_blocks_promotion_on_weak_human_panel",
+      "target": "tests_test_hypothesis_blind_eval_report",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate",
       "target": "tests_test_hypothesis_devils_advocate_test_visible_confounds_unions_across_contexts",
       "relation": "contains",
@@ -147384,6 +149601,60 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_quarantine.py",
       "source_location": "L230",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_redteam_reports_zero_evasions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_every_case_holds",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_gate_attacks_are_caught_by_the_expected_wall",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_battery_covers_all_walls",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_verification_absence_is_fail_closed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "tests_test_hypothesis_redteam_test_nested_quarantine_node_raises",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L71",
       "weight": 1.0
     },
     {
@@ -159841,6 +162112,116 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "hypothesis_grounding_verify_hypothesis_grounding",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "hypothesis_types_hypothesis",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "hypothesis_quarantine_speculativepromotionerror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "hypothesis_verification_verificationreceipt",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_reference_kang",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "imports",
@@ -162428,6 +164809,86 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_bulk_atac_v47_provenance.py",
       "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L25",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "llm_provider_llmprovider",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "hypothesis_proposer_llm_llmproposer",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "hypothesis_proposer_llm_build_proposer_prompt",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval",
+      "target": "llm_provider_tasktier",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L68",
       "weight": 1.0
     },
     {
@@ -166181,6 +168642,76 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_factuality",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval",
+      "target": "benchmarks_hypothesis_blind_eval_stability",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate",
       "target": "agents_hypothesis_agent_hypothesisagent",
       "relation": "imports",
@@ -166588,6 +169119,46 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_quarantine.py",
       "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_build_cases",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_case",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -169591,6 +172162,106 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_hypothesis_blind_eval_sig",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_governed",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L115",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_factuality",
+      "target": "hypothesis_grounding_verify_hypothesis_grounding",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L154",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_blind_eval.py",
+      "source_location": "L399",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_evidence",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_fixed_proposer",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "hypothesis_verification_verificationreceipt",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_build_cases",
+      "target": "hypothesis_types_evidencesignal",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L275",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "agents_hypothesis_agent_hypothesisagent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L319",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_hypothesis_redteam_run_case",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/hypothesis_redteam.py",
+      "source_location": "L350",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_reference_kang_score_cluster",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
@@ -171548,6 +174219,66 @@
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_bulk_atac_v47_provenance.py",
       "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_public_provenance",
+      "target": "aria_version_collect_version_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "target": "llm_provider_llmprovider",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "target": "hypothesis_proposer_llm_build_proposer_prompt",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_build_proposers",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_hypothesis_blind_eval_main",
+      "target": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_hypothesis_blind_eval.py",
+      "source_location": "L97",
       "weight": 1.0
     },
     {
@@ -177791,6 +180522,166 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_hypothesis_blind_eval_governed_proposer",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_inventing_proposer",
+      "target": "hypothesis_proposer_llm_parse_hypotheses",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_factuality_scores_governed_and_baseline_apart",
+      "target": "benchmarks_hypothesis_blind_eval_factuality",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_stability_is_one_for_a_deterministic_arm",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_stability_is_one_for_a_deterministic_arm",
+      "target": "benchmarks_hypothesis_blind_eval_stability",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L85",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_grading_sheet_is_arm_blind_and_deanonymisable",
+      "target": "benchmarks_hypothesis_blind_eval_build_grading_sheet",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L99",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_awaits_human_review_when_mechanical_passes",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_on_redteam_evasion",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L134",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_when_governance_does_not_beat_baseline",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_fails_on_governed_invention",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L147",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_promotes_only_when_mechanical_and_human_pass",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_gate_blocks_promotion_on_weak_human_panel",
+      "target": "benchmarks_hypothesis_blind_eval_evaluate_promotion_gate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_run_blind_eval_end_to_end_with_fakes",
+      "target": "benchmarks_hypothesis_blind_eval_run_blind_eval",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_blind_eval_test_run_blind_eval_end_to_end_with_fakes",
+      "target": "benchmarks_hypothesis_blind_eval_scenarios",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_blind_eval.py",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_hypothesis_devils_advocate_test_visible_confounds_unions_across_contexts",
       "target": "hypothesis_types_evidencesignal",
       "relation": "calls",
@@ -179548,6 +182439,76 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_hypothesis_quarantine.py",
       "source_location": "L238",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_redteam_reports_zero_evasions",
+      "target": "benchmarks_hypothesis_redteam_evaluate_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_every_case_holds",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_gate_attacks_are_caught_by_the_expected_wall",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L46",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_battery_covers_all_walls",
+      "target": "benchmarks_hypothesis_redteam_build_cases",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L53",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_verification_absence_is_fail_closed",
+      "target": "benchmarks_hypothesis_redteam_run_redteam",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_nested_quarantine_node_raises",
+      "target": "benchmarks_hypothesis_redteam_build_cases",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_hypothesis_redteam_test_nested_quarantine_node_raises",
+      "target": "benchmarks_hypothesis_redteam_run_case",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_hypothesis_redteam.py",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -184363,8 +187324,74 @@
       "source_file": "tests/test_pytest_smoke.py",
       "source_location": "L3728",
       "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md"
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "design_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md"
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "environment_manager",
+      "target": "rna_bulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_footprint_tobias",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md"
     }
   ],
   "hyperedges": [],
+  "input_tokens": 0,
+  "output_tokens": 0,
   "structure_only": true
 }
