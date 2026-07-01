@@ -217,21 +217,31 @@ def test_mechanism_prose_with_only_grounded_entities_passes():
     assert result.ungrounded_prose_entities == []
 
 
-def test_misattributed_observation_ref_is_rejected():
-    # H10 (F3): GATA1 comes from pseudobulk_de; citing it to motif_enrichment
-    # (a node that RAN but did not produce GATA1) is a misattribution. Existing +
-    # run is not enough — the cited analysis must have produced a named entity.
-    hyp = Hypothesis(
-        id="mis",
-        mechanism="GATA1 may act",
-        entities=["GATA1"],
-        observation_refs=["ledger://chromatin/motif_enrichment"],
-        experiment=_experiment(),
+def test_citing_any_audited_node_is_allowed_but_fabricated_node_is_rejected():
+    # Round-4 (softens H10): citing an audited node that produced OTHER entities
+    # (the pathway/motif node alongside the DE node) is legitimate provenance, not
+    # misattribution — a hypothesis reasonably cites the DE node for its genes AND
+    # the enriched-pathway node for context. What STAYS rejected is a ref that
+    # points at NO audited node in the run (a fabricated citation).
+    ok = Hypothesis(
+        id="ok", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=[
+            "ledger://scRNA/pseudobulk_de",       # GATA1's node
+            "ledger://chromatin/motif_enrichment",  # an audited node (KLF1's)
+        ],
+        observed_claims=_observed("GATA1"), experiment=_experiment(),
     )
-    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
-    assert result.grounded is False
-    assert "ledger://chromatin/motif_enrichment" in result.misattributed_refs
-    assert result.not_run_refs == []  # the node DID run; the defect is lineage
+    r_ok = verify_hypothesis_grounding(ok, _signals(), _ran_ledger())
+    assert r_ok.misattributed_refs == []  # both are audited nodes in the run
+
+    fabricated = Hypothesis(
+        id="fab", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=["ledger://bulk/made_up_node"],
+        observed_claims=_observed("GATA1"), experiment=_experiment(),
+    )
+    r_fab = verify_hypothesis_grounding(fabricated, _signals(), _ran_ledger())
+    assert r_fab.grounded is False
+    assert "ledger://bulk/made_up_node" in r_fab.misattributed_refs
 
 
 def test_readout_smuggling_an_entity_is_rejected():
@@ -482,24 +492,130 @@ def test_observed_claim_unknown_signal_id_is_rejected():
     assert "sig_does_not_exist" in result.unknown_signals
 
 
-def test_observed_claim_for_unnamed_entity_is_rejected():
-    # Citing KLF1's signal while only naming GATA1: a reading attributed to an
-    # entity the hypothesis is not about.
+def test_observed_claim_for_a_real_signal_is_allowed_even_if_entity_unlisted():
+    # Round-4 (softens H15's misattributed_signals): the evidence uses official
+    # symbols while a model cites in common names, so requiring the cited signal's
+    # gene to be in `entities` rejected FAITHFUL citations of real measurements
+    # (NR1D1 cited while the hypothesis names REV-ERBα). A cited REAL signal is
+    # evidence — invention stays blocked because the signal must EXIST and its
+    # direction must not be contradicted.
     sigs = _signals()
     klf1 = next(s for s in sigs if s.entity == "KLF1")
     hyp = Hypothesis(
-        id="mis_sig",
-        mechanism="GATA1 may act",
-        entities=["GATA1"],
+        id="cite", mechanism="GATA1 may act with a partner", entities=["GATA1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
         observed_claims=[
-            {"signal_id": klf1.signal_id, "stated_direction": "up"}
+            {"signal_id": klf1.signal_id, "stated_direction": klf1.direction or "na"}
         ],
         experiment=_experiment(),
     )
     result = verify_hypothesis_grounding(hyp, sigs, _ran_ledger())
+    assert result.misattributed_signals == []  # no longer rejected
+    assert result.grounded is True
+
+    # But citing a NON-existent signal is still rejected as invention.
+    bad = Hypothesis(
+        id="badcite", mechanism="GATA1 may act", entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[{"signal_id": "sig_does_not_exist", "stated_direction": "up"}],
+        experiment=_experiment(),
+    )
+    rbad = verify_hypothesis_grounding(bad, sigs, _ran_ledger())
+    assert rbad.grounded is False
+    assert "sig_does_not_exist" in rbad.unknown_signals
+
+
+def _design_signals() -> list[EvidenceSignal]:
+    """Evidence from a real KO study: official symbols + contrast-label contexts."""
+    return [
+        EvidenceSignal(
+            entity="NR1D1", entity_kind="gene", modality="bulk_RNA",
+            measure="log2fc", audited_node_ref="ledger://bulk/differential_expression",
+            value=-2.1, direction="down", context="rev_erba_ko_vs_wt",
+        ),
+        EvidenceSignal(
+            entity="TP53", entity_kind="gene", modality="bulk_RNA",
+            measure="log2fc", audited_node_ref="ledger://bulk/differential_expression",
+            value=1.5, direction="up", context="rev_erba_ko_vs_wt",
+        ),
+        EvidenceSignal(
+            entity="apoptosis", entity_kind="pathway", modality="bulk_RNA",
+            measure="ora", audited_node_ref="ledger://bulk/pathway_enrichment",
+            value=None, direction="na", context="rev_erba_ko_vs_wt",
+        ),
+    ]
+
+
+def _design_ledger() -> dict:
+    return {"entries": [
+        {"node_id": "ledger://bulk/differential_expression", "status": "ran"},
+        {"node_id": "ledger://bulk/pathway_enrichment", "status": "ran"},
+    ]}
+
+
+def test_common_name_of_a_perturbation_target_grounds_via_design():
+    # Round-4 (calibration): the model names the KO'd gene by its common name
+    # (REV-ERBα = NR1D1, declared by the rev_erba_ko contrast). It grounds via the
+    # design target, cites NR1D1's real signal, mentions TP53 (measured), a residue
+    # (Ser15, dropped) and the pathway node. A run that used to emit NOTHING emits.
+    sigs = _design_signals()
+    nr1d1 = next(s for s in sigs if s.entity == "NR1D1")
+    hyp = Hypothesis(
+        id="h4",
+        mechanism="REV-ERBα loss may de-repress TP53 and promote apoptosis via Ser15",
+        entities=["REV-ERBα"],
+        observation_refs=[
+            "ledger://bulk/pathway_enrichment",
+            "ledger://bulk/differential_expression",
+        ],
+        observed_claims=[{"signal_id": nr1d1.signal_id, "stated_direction": "down"}],
+        experiment=DiscriminatingExperiment(
+            "REV-ERBα knockdown", "TP53 target expression by qPCR",
+            "increase", "no change"),
+        devils_advocate={"simpler_explanation": "shared stress response",
+                         "confounds": []},
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _design_ledger())
+    assert result.grounded is True, result.reason
+
+
+def test_assay_and_concept_prose_tokens_are_not_flagged_as_entities():
+    # Round-4: ICP-MS / ATAC / ECM / SASP are assays/concepts, not genes; a residue
+    # (Ser15) and a labelled condition (BMAL1_KO -> the design target) must not read
+    # as ungrounded entities.
+    sigs = _design_signals()
+    nr1d1 = next(s for s in sigs if s.entity == "NR1D1")
+    hyp = Hypothesis(
+        id="prose",
+        mechanism="NR1D1 loss may reshape the ECM and SASP, probed by ATAC and ICP-MS",
+        entities=["NR1D1"],
+        observation_refs=["ledger://bulk/differential_expression"],
+        observed_claims=[{"signal_id": nr1d1.signal_id, "stated_direction": "down"}],
+        experiment=DiscriminatingExperiment(
+            "NR1D1 knockdown", "chromatin accessibility by ATAC-seq",
+            "increase", "no change"),
+        devils_advocate={"simpler_explanation": "batch", "confounds": []},
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _design_ledger())
+    assert result.ungrounded_prose_entities == []
+    assert result.grounded is True, result.reason
+
+
+def test_invented_gene_still_rejected_after_calibration():
+    # The calibration must NOT reopen the invention hole: a gene that is neither
+    # measured nor a design target is still rejected.
+    sigs = _design_signals()
+    nr1d1 = next(s for s in sigs if s.entity == "NR1D1")
+    hyp = Hypothesis(
+        id="inv", mechanism="SOX2 may drive the program", entities=["SOX2"],
+        observation_refs=["ledger://bulk/differential_expression"],
+        observed_claims=[{"signal_id": nr1d1.signal_id, "stated_direction": "down"}],
+        experiment=_experiment(),
+        devils_advocate={"simpler_explanation": "x", "confounds": []},
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _design_ledger())
     assert result.grounded is False
-    assert klf1.signal_id in result.misattributed_signals
+    assert "SOX2" in result.missing_entities
 
 
 def test_missing_observed_claims_is_rejected():

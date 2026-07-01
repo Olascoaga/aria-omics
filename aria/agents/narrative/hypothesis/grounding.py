@@ -35,6 +35,85 @@ def _norm(entity: str) -> str:
     return str(entity or "").strip().lower()
 
 
+# ── entity resolution (round-4 grounding calibration) ────────────────────────
+# The audited evidence uses OFFICIAL gene symbols (NR1D1, ARNTL); a model reasons
+# in common names and formatting variants (REV-ERBα, REV-ERBa, BMAL1). Literal
+# string grounding then rejects a common name for a gene that IS measured. These
+# helpers canonicalise names for MATCHING only (never for display), and resolve
+# the declared perturbation targets from the run's own contrast labels so a
+# hypothesis about the knocked-out gene is grounded in the DESIGN, not "invented".
+# No gene names are hardcoded: the design targets come from the data.
+
+_GREEK_TO_LATIN = str.maketrans({
+    "α": "a", "β": "b", "γ": "g", "δ": "d", "ε": "e", "κ": "k", "λ": "l",
+    "μ": "u", "σ": "s", "ω": "w",
+})
+
+# Condition markers that identify an explicitly PERTURBED gene in a contrast label
+# (``bmal1_ko`` -> target ``bmal1``). Baselines (wt/ctrl/control) are NOT targets.
+_PERTURBATION_MARKERS = (
+    "ko", "kd", "oe", "ki", "mut", "knockout", "knockdown", "overexpression",
+)
+# All condition suffixes stripped from a prose token before grounding
+# (``BMAL1_KO`` -> ``BMAL1``); includes the baselines so a labelled prose token
+# resolves to its gene.
+_CONDITION_SUFFIXES = _PERTURBATION_MARKERS + ("wt", "ctrl", "control")
+
+# 3-letter amino-acid codes: a residue+position token (Ser15, Thr183) is a
+# phospho-site, not a gene — it must not read as an ungrounded entity.
+_AMINO_ACIDS = {
+    "SER", "THR", "TYR", "CYS", "LYS", "ARG", "HIS", "ASP", "GLU", "ASN",
+    "GLN", "GLY", "ALA", "VAL", "LEU", "ILE", "PRO", "PHE", "TRP", "MET",
+}
+
+
+def _canon(name: str) -> str:
+    """Canonical match key: lowercase, Greek→latin, alphanumeric only.
+
+    ``REV-ERBα`` / ``REV-ERBa`` / ``rev_erba`` all collapse to ``reverba`` so a
+    model's common name matches a design target or a measured symbol. For MATCHING
+    only — the original string is always what is displayed.
+    """
+    lowered = str(name or "").strip().lower().translate(_GREEK_TO_LATIN)
+    return re.sub(r"[^a-z0-9]", "", lowered)
+
+
+def _strip_condition_suffix(token: str) -> str:
+    """``BMAL1_KO`` / ``BMAL1-KO`` -> ``BMAL1`` (drop a trailing condition marker)."""
+    m = re.match(
+        r"^(.*?)[_\- ]?(" + "|".join(_CONDITION_SUFFIXES) + r")$",
+        str(token or "").strip(),
+        re.IGNORECASE,
+    )
+    return m.group(1) if (m and m.group(1)) else str(token or "").strip()
+
+
+def _design_targets(signals: list[EvidenceSignal]) -> set[str]:
+    """Canonical perturbation targets declared by the run's own contrast labels.
+
+    Each signal's ``context`` is its contrast label (``bmal1_ko_vs_wt``). The gene
+    a group explicitly perturbs (``bmal1_ko`` -> ``bmal1``) is part of the study's
+    DESIGN — the most grounded fact of the experiment — so a hypothesis naming it
+    is grounded even when the gene is not itself a differentially expressed row.
+    Only explicitly perturbed groups (ko/kd/oe/...) yield a target; baselines do
+    not. Data-driven; no gene name is hardcoded.
+    """
+    targets: set[str] = set()
+    for sig in signals or []:
+        ctx = str(getattr(sig, "context", "") or "")
+        for group in re.split(r"_vs_|\bvs\b|_versus_|\bversus\b", ctx, flags=re.IGNORECASE):
+            group = group.strip(" _-")
+            m = re.match(
+                r"^(.+?)[_\- ]?(" + "|".join(_PERTURBATION_MARKERS) + r")$",
+                group, re.IGNORECASE,
+            )
+            if m and m.group(1):
+                canon = _canon(m.group(1))
+                if len(canon) >= 2:
+                    targets.add(canon)
+    return targets
+
+
 def build_evidence_index(
     signals: list[EvidenceSignal],
 ) -> dict[str, EvidenceSignal]:
@@ -138,8 +217,14 @@ def _verify_observed_claims(
 
     - ``unknown_signals``: a cited ``signal_id`` not in the audited universe — the
       hypothesis claims to read a measurement that does not exist.
-    - ``misattributed_signals``: a cited signal whose entity the hypothesis never
-      named — a reading attributed to an entity it is not about.
+    - ``misattributed_signals``: retained for shape compatibility but no longer
+      populated (round-4). The old rule rejected a cited signal whose gene was not
+      in ``entities``; because the evidence uses official symbols while a model
+      cites in common names (NR1D1 vs REV-ERBα), that literal check rejected a
+      FAITHFUL citation of a real measurement. Invention is still blocked: the
+      signal must EXIST (``unknown``), its direction must not be contradicted
+      (``contradicting``), and the hypothesis's own entities are grounded
+      separately. Citing a real audited signal is evidence, not fabrication.
     - ``contradicting``: a stated_direction that is the DEFINITE opposite of the
       cited signal's audited direction (e.g. "increased" over a ``down`` signal).
     - ``missing``: the hypothesis cites NO audited signal at all — it must declare
@@ -152,7 +237,7 @@ def _verify_observed_claims(
         if isinstance(sig, EvidenceSignal) and sig.signal_id
     }
     unknown: list[str] = []
-    misattributed: list[str] = []
+    misattributed: list[str] = []  # round-4: intentionally never populated
     contradicting: list[dict] = []
     claims = hypothesis.observed_claims or []
     for claim in claims:
@@ -160,9 +245,6 @@ def _verify_observed_claims(
         sig = by_id.get(sid)
         if sig is None:
             unknown.append(sid)
-            continue
-        if _norm(sig.entity) not in declared:
-            misattributed.append(sid)
             continue
         stated = _normalize_direction((claim or {}).get("stated_direction", ""))
         audited = sig.direction if sig.direction in ("up", "down") else "na"
@@ -204,6 +286,11 @@ _METHOD_STOPWORDS = {
     "GFP", "EGFP", "RFP", "YFP", "CFP", "BFP", "LUC", "LACZ",
     # common reagents / buffers
     "BSA", "PBS", "FBS", "DMEM", "EDTA", "DMSO",
+    # bare assay/modality acronyms + mass-spec / genomics + biological concepts
+    # that read gene-like but are not entities (round-4 calibration)
+    "ATAC", "RNA", "DNA", "CHROMATIN", "ICPMS", "ICP", "MS", "LCMS", "GCMS",
+    "MALDI", "SPR", "ITC", "NMR", "EMSA", "SELEX", "GSEA", "ORA", "GO", "KEGG",
+    "ECM", "SASP", "ROS", "TCA", "OXPHOS", "EMT",
 }
 
 
@@ -223,10 +310,25 @@ def _prose_entity_tokens(text: str) -> set[str]:
     tokens: set[str] = set()
     for raw in _claim_entities(text):
         cleaned = raw.strip("-_.")
+        # Round-4: drop a trailing condition marker (BMAL1_KO -> BMAL1) so a
+        # labelled perturbation resolves to its gene, and drop residue+position
+        # phospho-site tokens (Ser15) which are not entities.
+        cleaned = _strip_condition_suffix(cleaned)
         if len(cleaned) < 3 or _stop_key(cleaned) in _METHOD_STOPWORDS:
+            continue
+        if _is_residue_token(cleaned):
             continue
         tokens.add(cleaned)
     return tokens
+
+
+def _is_residue_token(token: str) -> bool:
+    """True for a residue+position phospho-site token (Ser15, Thr183, S15)."""
+    m = re.match(r"^([A-Za-z]{1,3})(\d+)$", str(token or "").strip())
+    if not m:
+        return False
+    aa = m.group(1).upper()
+    return aa in _AMINO_ACIDS or len(aa) == 1
 
 
 # EVERY generated free-text field the reader sees and the model is free to
@@ -288,61 +390,80 @@ def verify_hypothesis_grounding(
     grounding (1), prose grounding (2), non-vacuity (3) and lineage (4) are
     always enforced.
     """
-    evidence = build_evidence_index(signals)
-    declared = {_norm(ent) for ent in (hypothesis.entities or [])}
+    # Round-4 grounding universe: audited entities PLUS the run's declared
+    # perturbation targets, matched by canonical key so a common name / formatting
+    # variant (REV-ERBα) resolves to a measured symbol (NR1D1) or a design target
+    # (rev_erba_ko). ``_grounded`` is the single membership test used everywhere.
+    evidence_canon = {
+        _canon(sig.entity)
+        for sig in (signals or [])
+        if isinstance(sig, EvidenceSignal) and _norm(sig.entity)
+    }
+    design_targets = _design_targets(signals)
+    universe = evidence_canon | design_targets
+
+    def _grounded(name: str) -> bool:
+        return _canon(name) in universe
+
+    declared_canon = {_canon(ent) for ent in (hypothesis.entities or [])}
     missing = [
-        ent
-        for ent in (hypothesis.entities or [])
-        if _norm(ent) not in evidence
+        ent for ent in (hypothesis.entities or []) if not _grounded(ent)
     ]
 
-    # (2) Prose grounding over EVERY generated field. Gene-like tokens that are
-    # neither in the evidence universe nor among the declared entities are the
-    # evasion path the structured-only check (1) misses. Declared-but-missing
-    # entities are already reported by (1), so exclude them here to keep the
-    # signals distinct.
+    # (2) Prose grounding over EVERY generated field. A gene-like token neither in
+    # the universe nor among the declared entities is the evasion path check (1)
+    # misses. A token that is a FRAGMENT of a design target (``REV`` split from
+    # ``REV-ERBα``) is not invention — it is tolerated. Declared-but-missing
+    # entities are already reported by (1), so exclude them here.
+    def _fragment_of_target(canon_tok: str) -> bool:
+        return len(canon_tok) >= 3 and any(
+            canon_tok in tgt or tgt in canon_tok for tgt in design_targets
+        )
+
     ungrounded_prose = sorted(
         {
             token
             for token in _prose_entity_tokens(_generated_prose(hypothesis))
-            if _norm(token) not in evidence and _norm(token) not in declared
+            if not _grounded(token)
+            and _canon(token) not in declared_canon
+            and not _fragment_of_target(_canon(token))
         }
     )
 
     # (3) Non-vacuity: at least one grounded entity AND at least one cited
     # observation. Closes the "grounded by naming nothing" acceptance.
     grounded_entities = [
-        ent for ent in (hypothesis.entities or []) if _norm(ent) in evidence
+        ent for ent in (hypothesis.entities or []) if _grounded(ent)
     ]
     has_observation = bool(hypothesis.observation_refs)
     vacuous = (not grounded_entities) or (not has_observation)
 
-    # (4) Evidence↔citation lineage: the nodes that actually produced the
-    # hypothesis's named entities. A cited observation_ref that is NOT one of
-    # them is a misattribution — the analysis it points to did not produce any
-    # entity the hypothesis names.
-    entity_nodes = {
+    # (4) Evidence↔citation lineage (round-4 softening of H10): a cited
+    # observation_ref is valid when it is the node of ANY audited signal in this
+    # run — citing the DE node for genes AND the enriched-pathway node for the
+    # pathway context is legitimate provenance, not misattribution. What stays
+    # rejected is a ref that points at NO audited node (a fabricated citation).
+    # Node existence-and-ran is still enforced by check (5) below.
+    audited_nodes = {
         sig.audited_node_ref
         for sig in (signals or [])
-        if isinstance(sig, EvidenceSignal)
-        and _norm(sig.entity) in declared
-        and sig.audited_node_ref
+        if isinstance(sig, EvidenceSignal) and sig.audited_node_ref
     }
     misattributed = [
         ref
         for ref in (hypothesis.observation_refs or [])
-        if ref not in entity_nodes
+        if ref not in audited_nodes
     ]
 
     # (6) Signal-level grounding (H15): the hypothesis must cite the exact audited
     # signals it reads (observed_claims), and a stated reading must not contradict
-    # the audited direction/entity of the cited signal.
+    # the audited direction of the cited signal.
     (
         unknown_signals,
         misattributed_signals,
         contradicting_claims,
         missing_observed,
-    ) = _verify_observed_claims(hypothesis, signals, declared)
+    ) = _verify_observed_claims(hypothesis, signals, declared_canon)
 
     not_run: list[dict] = []
     if run_ledger is not None:
