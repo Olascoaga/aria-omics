@@ -6,6 +6,8 @@ ledgers. Pure bookkeeping over methodology.json; no LLM, no biology.
 import json
 import zipfile
 
+import pytest
+
 from aria.agents.narrative.ledger_export import (
     build_ro_crate,
     build_capsule_manifest,
@@ -15,6 +17,7 @@ from aria.agents.narrative.ledger_export import (
     diff_methodologies,
     format_diff,
 )
+from aria.agents.narrative.hypothesis import SpeculativePromotionError
 
 
 def _methodology(version="4.5.4", commit="abc123", claims=None, ran=True,
@@ -185,3 +188,36 @@ def test_diff_identical_is_empty():
     d = diff_methodologies(_methodology(), _methodology())
     assert d["identical"] is True
     assert format_diff(d).strip()           # still renders a human-readable line
+
+
+# ── H17: the quarantine wall is enforced by the export/diff paths ────────────
+
+def _contaminated_methodology():
+    # A quarantined hypothesis node hidden inside a claim's nested evidence.
+    return _methodology(claims=[{
+        "claim_id": "leak", "tier": "associative",
+        "ledger_node_id": "ledger://scRNA/pseudobulk_de", "ledger_status": "ran",
+        "evidence": [{"source": "hypothesis://h1"}],
+    }])
+
+
+def test_build_ro_crate_rejects_quarantined_hypothesis_in_claims():
+    with pytest.raises(SpeculativePromotionError):
+        build_ro_crate(_contaminated_methodology())
+
+
+def test_write_capsule_rejects_quarantined_hypothesis(tmp_path):
+    rd = tmp_path / "report"
+    rd.mkdir()
+    (rd / "report.html").write_text("<html></html>")
+    (rd / "methodology.json").write_text(json.dumps(_contaminated_methodology()))
+    with pytest.raises(SpeculativePromotionError):
+        write_reproducible_capsule(rd)
+
+
+def test_diff_rejects_quarantined_hypothesis_in_either_report():
+    clean, dirty = _methodology(), _contaminated_methodology()
+    with pytest.raises(SpeculativePromotionError):
+        diff_methodologies(clean, dirty)
+    with pytest.raises(SpeculativePromotionError):
+        diff_methodologies(dirty, clean)

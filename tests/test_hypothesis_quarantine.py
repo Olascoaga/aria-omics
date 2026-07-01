@@ -156,6 +156,53 @@ def test_enforcer_rejects_hypothesis_node_in_claims():
         assert_no_speculative_promotion(claims)
 
 
+def test_enforcer_rejects_hypothesis_node_nested_in_evidence():
+    # H17: a hypothesis:// node hidden inside claim["evidence"][...] must not
+    # slip past the top-level key check.
+    claims = [
+        {
+            "claim_id": "leak",
+            "tier": "associative",
+            "node_id": "ledger://scRNA/pseudobulk_de",
+            "evidence": [
+                {"source": "ledger://scRNA/pseudobulk_de"},
+                {"source": "hypothesis://h1"},
+            ],
+        },
+    ]
+    with pytest.raises(SpeculativePromotionError):
+        assert_no_speculative_promotion(claims)
+
+
+def test_enforcer_rejects_speculative_tier_nested_in_evidence():
+    # H17: a SPECULATIVE tier nested at any depth must raise.
+    claims = [
+        {
+            "claim_id": "leak",
+            "tier": "associative",
+            "evidence": {"provenance": {"tier": SPECULATIVE_TIER}},
+        },
+    ]
+    with pytest.raises(SpeculativePromotionError):
+        assert_no_speculative_promotion(claims)
+
+
+def test_enforcer_passes_deeply_nested_clean_claim():
+    # A clean claim with nested ledger:// refs at depth must NOT raise.
+    claims = [
+        {
+            "claim_id": "c1",
+            "tier": "associative",
+            "evidence": [
+                {"refs": ["ledger://scRNA/pseudobulk_de",
+                          "ledger://chromatin/motif_enrichment"]},
+            ],
+            "children": {"nested": {"tier": "descriptive"}},
+        },
+    ]
+    assert_no_speculative_promotion(claims)  # no raise
+
+
 def test_duplicate_ids_get_distinct_quarantine_nodes():
     # H1 bug 3: two hypotheses with the same id must NOT collapse onto one
     # quarantine node, or one would silently inherit the other's cites/provenance.

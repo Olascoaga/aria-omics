@@ -95,24 +95,56 @@ def quarantine_hypotheses(hypotheses: list[Hypothesis]) -> list[dict]:
     return manifest
 
 
+def _first_speculative_leak(obj: Any, _seen: set[int] | None = None) -> str | None:
+    """Return a reason string for the first speculative contamination in ``obj``.
+
+    Recurses dicts/lists/tuples/sets at ANY depth so a ``hypothesis://`` node or
+    a ``SPECULATIVE`` tier hidden inside ``claim["evidence"][...]`` (or any other
+    nested structure) cannot slip past the wall (H17). A leak is either a dict
+    carrying ``tier == SPECULATIVE`` or any string value that is a
+    ``hypothesis://`` node. ``_seen`` guards against accidental cycles.
+    """
+    if _seen is None:
+        _seen = set()
+    if isinstance(obj, dict):
+        if id(obj) in _seen:
+            return None
+        _seen.add(id(obj))
+        if str(obj.get("tier") or "") == SPECULATIVE_TIER:
+            return "carries the SPECULATIVE tier"
+        for value in obj.values():
+            reason = _first_speculative_leak(value, _seen)
+            if reason is not None:
+                return reason
+    elif isinstance(obj, (list, tuple, set)):
+        if id(obj) in _seen:
+            return None
+        _seen.add(id(obj))
+        for item in obj:
+            reason = _first_speculative_leak(item, _seen)
+            if reason is not None:
+                return reason
+    elif is_hypothesis_node(obj):
+        return f"cites quarantined node {obj!r}"
+    return None
+
+
 def assert_no_speculative_promotion(claims: Iterable[dict]) -> None:
     """Raise if any audited claim carries a hypothesis node or the SPECULATIVE tier.
 
-    The active wall the report / RO-Crate assembly calls so a speculation can
-    never be emitted as an audited claim. Raises
-    :class:`SpeculativePromotionError` on the first contamination.
+    The active wall the report assembly, the RO-Crate/capsule export
+    (``ledger_export.build_ro_crate``), and ``aria diff``
+    (``ledger_export.diff_methodologies``) call so a speculation can never be
+    emitted as an audited claim. The scan is RECURSIVE (H17): a ``hypothesis://``
+    node or a ``SPECULATIVE`` tier nested at any depth (e.g. inside
+    ``claim["evidence"]``) raises :class:`SpeculativePromotionError`.
     """
     for claim in claims or []:
         if not isinstance(claim, dict):
             continue
-        if str(claim.get("tier") or "") == SPECULATIVE_TIER:
+        reason = _first_speculative_leak(claim)
+        if reason is not None:
             raise SpeculativePromotionError(
-                f"claim {claim.get('claim_id')!r} carries the SPECULATIVE tier; "
+                f"claim {claim.get('claim_id')!r} {reason}; "
                 "machine hypotheses may not enter the audited claim manifest"
             )
-        for key in ("node_id", "ledger_node_id", "ledger_node"):
-            if is_hypothesis_node(claim.get(key)):
-                raise SpeculativePromotionError(
-                    f"claim {claim.get('claim_id')!r} cites quarantined node "
-                    f"{claim.get(key)!r}; hypotheses are non-promotable"
-                )

@@ -73,6 +73,12 @@ def build_ro_crate(methodology: dict, report_dir: Path | None = None) -> dict:
     and one contextual entity per claim that links to its evidence card and its
     run-ledger node. Deterministic; asserts nothing not already in methodology.
     """
+    # H17: fail-closed wall before serializing claims into the crate — a
+    # quarantined hypothesis (SPECULATIVE tier or a nested hypothesis:// node)
+    # must never be exported as an audited claim in the RO-Crate / capsule.
+    from aria.agents.narrative.hypothesis import assert_no_speculative_promotion
+    assert_no_speculative_promotion(methodology.get("claims", []) or [])
+
     prov = _provenance(methodology)
     version = _version(methodology)
     commit = _commit(methodology)
@@ -463,6 +469,13 @@ def diff_methodologies(a: dict, b: dict) -> dict:
     ledger-status changes), and calibration status. ``identical`` is true when no
     tracked field differs.
     """
+    # H17: fail-closed wall before diffing — neither report's claim manifest may
+    # carry a quarantined hypothesis (SPECULATIVE tier or a nested hypothesis://
+    # node) into `aria diff`.
+    from aria.agents.narrative.hypothesis import assert_no_speculative_promotion
+    assert_no_speculative_promotion(a.get("claims", []) or [])
+    assert_no_speculative_promotion(b.get("claims", []) or [])
+
     prov_a, prov_b = _provenance(a), _provenance(b)
     provenance: dict[str, Any] = {}
     for key in ("version", "git_commit", "git_sha", "git_dirty",
