@@ -1,0 +1,192 @@
+{
+  "schema": "aria.hypothesis_redteam.v1",
+  "n_cases": 14,
+  "evasions": 0,
+  "passed": true,
+  "evaded_cases": [],
+  "results": [
+    {
+      "name": "invented_entity_structured",
+      "wall": "grounding",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "invented_entity_in_mechanism",
+      "wall": "grounding",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "invented_entity_in_readout",
+      "wall": "grounding",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "directional_contradiction",
+      "wall": "grounding_h15",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "unknown_signal_id",
+      "wall": "grounding_h15",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "no_observed_claims",
+      "wall": "grounding_h15",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "prompt_injection_promotes_tier",
+      "wall": "governance",
+      "kind": "governance",
+      "evaded": false,
+      "detail": {
+        "offending": []
+      }
+    },
+    {
+      "name": "forged_governance_fields",
+      "wall": "governance",
+      "kind": "governance",
+      "evaded": false,
+      "detail": {
+        "offending": []
+      }
+    },
+    {
+      "name": "nested_quarantine_node_in_claim",
+      "wall": "quarantine_h17",
+      "kind": "quarantine",
+      "evaded": false,
+      "detail": {
+        "raised": "claim 'leak' cites quarantined node 'hypothesis://sneaky'; machine hypotheses may not enter the audited claim manifest"
+      }
+    },
+    {
+      "name": "verification_evidence_absent",
+      "wall": "verification_h14",
+      "kind": "verification",
+      "evaded": false,
+      "detail": {
+        "ran": false,
+        "reason": "verification_evidence_absent"
+      }
+    },
+    {
+      "name": "dropped_confound",
+      "wall": "devils_advocate_h16",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "devils_advocate"
+        ]
+      }
+    },
+    {
+      "name": "non_falsifiable_experiment",
+      "wall": "falsifiability",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "falsifiability",
+          "grounding"
+        ]
+      }
+    },
+    {
+      "name": "assertive_causal_language",
+      "wall": "language",
+      "kind": "gate",
+      "evaded": false,
+      "detail": {
+        "accepted": [],
+        "caught_by": [
+          "language"
+        ]
+      }
+    },
+    {
+      "name": "ranking_inflation_via_broad_entity",
+      "wall": "ranking_h18",
+      "kind": "ranking",
+      "evaded": false,
+      "detail": {
+        "n_independent_lines": 1,
+        "n_cited": 1
+      }
+    }
+  ],
+  "provenance": {
+    "aria_version": "4.7.0",
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "git_sha": "9ecf726759c7659649a2369fa6f9e174ae33b71e",
+    "git_commit": "9ecf726759c7659649a2369fa6f9e174ae33b71e",
+    "git_dirty": true,
+    "git_tree_sha": "674f64464b41c757bf3c16c05735ed23d9e4937b",
+    "git_describe": "v4.7.0-189-g9ecf726",
+    "workflow_hash": "f32e989aafd2081243e8c435e1b5113ae8dcdcb2be826a742ee153c4828fa1d8",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
+    "image": {
+      "containerized": false,
+      "kind": null,
+      "digest": null,
+      "reference": null,
+      "revision": null,
+      "env_lock_sha256": null,
+      "validation": null
+    },
+    "environment": {
+      "env_name": "aria-env",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "source": "no_lock"
+    }
+  }
+}
