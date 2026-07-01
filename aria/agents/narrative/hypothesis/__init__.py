@@ -35,6 +35,7 @@ from .proposer_llm import (
     build_proposer_prompt,
     classify_parse,
     parse_hypotheses,
+    schema_errors,
 )
 from .ranking import rank_hypotheses
 from .report_section import (
@@ -96,6 +97,7 @@ __all__ = [
     "build_proposer_prompt",
     "classify_parse",
     "parse_hypotheses",
+    "schema_errors",
     "rank_hypotheses",
     "build_speculative_section",
     "gather_evidence",
