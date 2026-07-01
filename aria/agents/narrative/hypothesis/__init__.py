@@ -19,9 +19,15 @@ from .adapters import (
     scatac_evidence,
     scrna_evidence,
 )
+from .caveats import (
+    CAVEAT_CODES,
+    CAVEAT_GLOSSES,
+    caveat_gloss,
+)
 from .devils_advocate import (
     check_devils_advocate,
     declared_confounds,
+    inherited_caveat_codes,
     visible_confounds,
 )
 from .proposer_llm import (
@@ -29,6 +35,7 @@ from .proposer_llm import (
     build_proposer_prompt,
     classify_parse,
     parse_hypotheses,
+    schema_errors,
 )
 from .ranking import rank_hypotheses
 from .report_section import (
@@ -55,11 +62,13 @@ from .quarantine import (
     quarantine_node_id,
 )
 from .types import DiscriminatingExperiment, EvidenceSignal, Hypothesis
+from .verification import VerificationReceipt
 
 __all__ = [
     "EvidenceSignal",
     "Hypothesis",
     "DiscriminatingExperiment",
+    "VerificationReceipt",
     "GroundingResult",
     "build_evidence_index",
     "build_signals_by_entity",
@@ -70,6 +79,10 @@ __all__ = [
     "check_devils_advocate",
     "visible_confounds",
     "declared_confounds",
+    "inherited_caveat_codes",
+    "CAVEAT_CODES",
+    "CAVEAT_GLOSSES",
+    "caveat_gloss",
     "SPECULATIVE_TIER",
     "SpeculativePromotionError",
     "assert_no_speculative_promotion",
@@ -84,6 +97,7 @@ __all__ = [
     "build_proposer_prompt",
     "classify_parse",
     "parse_hypotheses",
+    "schema_errors",
     "rank_hypotheses",
     "build_speculative_section",
     "gather_evidence",

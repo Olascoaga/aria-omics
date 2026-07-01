@@ -79,6 +79,18 @@ def _experiment() -> DiscriminatingExperiment:
     )
 
 
+def _observed(*entities) -> list[dict]:
+    """H15: faithful observed_claims citing the real signal_id + audited direction."""
+    by_ent = {s.entity.lower(): s for s in _signals()}
+    return [
+        {
+            "signal_id": by_ent[e.lower()].signal_id,
+            "stated_direction": by_ent[e.lower()].direction,
+        }
+        for e in entities
+    ]
+
+
 def test_grounded_hypothesis_passes():
     hyp = Hypothesis(
         id="h1",
@@ -88,6 +100,7 @@ def test_grounded_hypothesis_passes():
             "ledger://scRNA/pseudobulk_de",
             "ledger://chromatin/motif_enrichment",
         ],
+        observed_claims=_observed("GATA1", "KLF1"),
         experiment=_experiment(),
     )
     result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
@@ -196,6 +209,7 @@ def test_mechanism_prose_with_only_grounded_entities_passes():
         mechanism="KLF1 motif accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
     )
     result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
@@ -241,6 +255,7 @@ def test_readout_assay_vocabulary_is_not_flagged():
     hyp = Hypothesis(
         id="ra", mechanism="GATA1 may act", entities=["GATA1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=DiscriminatingExperiment(
             "GATA1 knockdown", "GATA1 by RT-qPCR, FACS and GFP reporter with DAPI",
             "down", "no change"),
@@ -257,6 +272,7 @@ def test_citation_to_the_producing_node_is_accepted():
         mechanism="GATA1 may act",
         entities=["GATA1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
     )
     result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
@@ -304,6 +320,7 @@ def test_entity_grounding_is_case_insensitive():
         mechanism="connection",
         entities=["gata1", "Klf1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
     )
     # No run_ledger -> the ledger-node check is skipped; entity grounding,
@@ -355,6 +372,7 @@ def test_agent_accepts_grounded_rejects_ungrounded():
         mechanism="KLF1 motif accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
         devils_advocate={
             "simpler_explanation": "co-regulation by a shared upstream factor",
@@ -422,3 +440,102 @@ def test_agent_does_not_mutate_inputs():
     HypothesisAgent().generate(signals, ledger, w_claim_passed=True, w_ledger_passed=True)
     assert len(signals) == n_signals
     assert len(ledger["entries"]) == n_entries
+
+
+# ── H15 (round-3, Codex blocker 2): signal-level direction/context grounding ──
+
+def test_observed_claim_contradicting_audited_direction_is_rejected():
+    # GATA1 is audited UP; a hypothesis that CITES that exact signal but reads it
+    # as "increased"... is faithful. The contradiction is reading it "decreased".
+    sigs = _signals()
+    gata1 = next(s for s in sigs if s.entity == "GATA1")  # direction up
+    hyp = Hypothesis(
+        id="contra",
+        mechanism="GATA1 accessibility may sustain the program",
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[
+            {"signal_id": gata1.signal_id, "stated_direction": "decreased"}
+        ],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _ran_ledger())
+    assert result.grounded is False
+    assert result.contradicting_claims
+    assert result.contradicting_claims[0]["entity"] == "GATA1"
+    assert "contradicts" in (result.reason or "")
+
+
+def test_observed_claim_unknown_signal_id_is_rejected():
+    hyp = Hypothesis(
+        id="unk",
+        mechanism="GATA1 may act",
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[
+            {"signal_id": "sig_does_not_exist", "stated_direction": "up"}
+        ],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert "sig_does_not_exist" in result.unknown_signals
+
+
+def test_observed_claim_for_unnamed_entity_is_rejected():
+    # Citing KLF1's signal while only naming GATA1: a reading attributed to an
+    # entity the hypothesis is not about.
+    sigs = _signals()
+    klf1 = next(s for s in sigs if s.entity == "KLF1")
+    hyp = Hypothesis(
+        id="mis_sig",
+        mechanism="GATA1 may act",
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[
+            {"signal_id": klf1.signal_id, "stated_direction": "up"}
+        ],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _ran_ledger())
+    assert result.grounded is False
+    assert klf1.signal_id in result.misattributed_signals
+
+
+def test_missing_observed_claims_is_rejected():
+    # Entities + refs are fine, but the hypothesis declares no signal it reads.
+    hyp = Hypothesis(
+        id="no_obs",
+        mechanism="GATA1 may act",
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, _signals(), _ran_ledger())
+    assert result.grounded is False
+    assert result.missing_observed_claims is True
+
+
+def test_downstream_speculation_opposite_direction_is_allowed():
+    # The OBSERVED claim is faithful (GATA1 up); the mechanism freely speculates a
+    # DOWNSTREAM repression in the opposite direction. That speculation must NOT be
+    # rejected — only a false restatement of the audited signal is (no over-reject).
+    sigs = _signals()
+    gata1 = next(s for s in sigs if s.entity == "GATA1")  # up
+    hyp = Hypothesis(
+        id="downstream",
+        mechanism=(
+            "elevated GATA1 may in turn repress its downstream targets, "
+            "lowering their accessibility"
+        ),
+        entities=["GATA1"],
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=[
+            {"signal_id": gata1.signal_id, "stated_direction": "up"}
+        ],
+        experiment=_experiment(),
+    )
+    result = verify_hypothesis_grounding(hyp, sigs, _ran_ledger())
+    assert result.grounded is True
+    assert result.contradicting_claims == []

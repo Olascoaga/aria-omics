@@ -61,12 +61,25 @@ def _ledger() -> dict:
     }
 
 
+def _observed(*entities) -> list[dict]:
+    """H15: faithful observed_claims citing real signal_ids."""
+    by_ent = {s.entity.lower(): s for s in _signals()}
+    return [
+        {
+            "signal_id": by_ent[e.lower()].signal_id,
+            "stated_direction": by_ent[e.lower()].direction or "na",
+        }
+        for e in entities
+    ]
+
+
 def _hyp(**overrides) -> Hypothesis:
     base = dict(
         id="h1",
         mechanism="KLF1 accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_experiment(),
         devils_advocate={
             "simpler_explanation": "shared upstream regulator",
@@ -141,6 +154,53 @@ def test_enforcer_rejects_hypothesis_node_in_claims():
     ]
     with pytest.raises(SpeculativePromotionError):
         assert_no_speculative_promotion(claims)
+
+
+def test_enforcer_rejects_hypothesis_node_nested_in_evidence():
+    # H17: a hypothesis:// node hidden inside claim["evidence"][...] must not
+    # slip past the top-level key check.
+    claims = [
+        {
+            "claim_id": "leak",
+            "tier": "associative",
+            "node_id": "ledger://scRNA/pseudobulk_de",
+            "evidence": [
+                {"source": "ledger://scRNA/pseudobulk_de"},
+                {"source": "hypothesis://h1"},
+            ],
+        },
+    ]
+    with pytest.raises(SpeculativePromotionError):
+        assert_no_speculative_promotion(claims)
+
+
+def test_enforcer_rejects_speculative_tier_nested_in_evidence():
+    # H17: a SPECULATIVE tier nested at any depth must raise.
+    claims = [
+        {
+            "claim_id": "leak",
+            "tier": "associative",
+            "evidence": {"provenance": {"tier": SPECULATIVE_TIER}},
+        },
+    ]
+    with pytest.raises(SpeculativePromotionError):
+        assert_no_speculative_promotion(claims)
+
+
+def test_enforcer_passes_deeply_nested_clean_claim():
+    # A clean claim with nested ledger:// refs at depth must NOT raise.
+    claims = [
+        {
+            "claim_id": "c1",
+            "tier": "associative",
+            "evidence": [
+                {"refs": ["ledger://scRNA/pseudobulk_de",
+                          "ledger://chromatin/motif_enrichment"]},
+            ],
+            "children": {"nested": {"tier": "descriptive"}},
+        },
+    ]
+    assert_no_speculative_promotion(claims)  # no raise
 
 
 def test_duplicate_ids_get_distinct_quarantine_nodes():

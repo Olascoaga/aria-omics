@@ -24,6 +24,7 @@ from typing import Any
 from aria.agents.narrative.devils_advocate import _run_signals
 from aria.agents.narrative.run_ledger import _node_index, _scrna_findings
 
+from ..caveats import AMBIENT, BATCH, DOUBLET
 from ..types import EvidenceSignal
 
 _DE_NODE = "ledger://scRNA/pseudobulk_de"
@@ -77,11 +78,11 @@ def _scrna_caveats(agent_results: dict, exp_ctx: dict | None) -> list[str]:
         return []
     caveats: list[str] = []
     if not sig.get("ambient_corrected"):
-        caveats.append("ambient RNA contamination not corrected")
+        caveats.append(AMBIENT)
     if not sig.get("doublets_handled"):
-        caveats.append("doublets not ruled out")
+        caveats.append(DOUBLET)
     if not sig.get("integration_clean"):
-        caveats.append("residual batch effect (integration not clean)")
+        caveats.append(BATCH)
     return caveats
 
 

@@ -165,33 +165,76 @@ class ReportBuilderMixin:
 
     def _speculative_verification_state(
         self, run_ledger: dict | None, narrative_blocks: list | None
-    ) -> tuple[bool, bool]:
+    ) -> "VerificationReceipt":
         """Resolve the REAL W-CLAIM / W-LEDGER state for the causal gate (rail #1).
 
         ADR-057 rail #1 says the agent only speculates downstream of W-CLAIM +
-        W-LEDGER passing. Passing ``True``/``True`` unconditionally (the old
-        default) made that guarantee decorative. Here it is the run's real state:
+        W-LEDGER PASSING. The old tuple form synthesised ``(True, True)`` from the
+        ABSENCE of the verification artifacts (``not any([])`` is True; a missing
+        ledger record defaults ``n_violations`` to 0) — i.e. absence was read as
+        approval, making the guarantee decorative exactly in the dangerous case.
 
-        - ``w_claim_passed``: no rendered block recorded an ``unsupported`` W-CLAIM
-          verification (strict W-CLAIM hard-fails at render, so a surviving block
-          is normally supported; a recorded ``unsupported`` still blocks).
-        - ``w_ledger_passed``: W-LEDGER recorded zero violations. W-LEDGER is
-          record-only (it never aborts the report), so this is the only place its
-          finding actually gates anything — speculation must not be layered on a
-          run whose audited claims cite a node the run did not execute.
+        Round-3 H14: this returns a fail-closed ``VerificationReceipt`` that
+        requires POSITIVE evidence on each side; absence yields ``complete=False``
+        and the gate stays shut.
+
+        - W-CLAIM: requires rendered blocks to exist. With blocks, it passes iff
+          none recorded an ``unsupported`` W-CLAIM verification (strict W-CLAIM
+          hard-fails at render, so a surviving block is normally supported). With
+          ``narrative_blocks is None`` there is no evidence — incomplete, shut.
+        - W-LEDGER: requires the ``claim_ledger_verification`` record (written
+          unconditionally on a normal run, see the W-LEDGER block above). Present,
+          it passes iff ``n_violations == 0``. Absent, W-LEDGER did not complete —
+          incomplete, shut. W-LEDGER is record-only (never aborts the report), so
+          this is the only place its finding actually gates anything.
         """
-        w_claim_passed = not any(
-            (getattr(b, "metadata", {}) or {}).get("claim_verification", {}).get(
-                "status"
+        from aria.agents.narrative.hypothesis import VerificationReceipt
+
+        if narrative_blocks is None:
+            w_claim_passed = False
+            w_claim_complete = False
+            w_claim_evidence = "absent: no rendered narrative blocks"
+        else:
+            n_unsupported = sum(
+                1
+                for b in narrative_blocks
+                if (getattr(b, "metadata", {}) or {})
+                .get("claim_verification", {})
+                .get("status")
+                == "unsupported"
             )
-            == "unsupported"
-            for b in (narrative_blocks or [])
+            w_claim_passed = n_unsupported == 0
+            w_claim_complete = True
+            w_claim_evidence = (
+                f"{len(narrative_blocks)} block(s), {n_unsupported} unsupported"
+            )
+
+        has_ledger_record = (
+            isinstance(run_ledger, dict)
+            and "claim_ledger_verification" in run_ledger
         )
-        ledger_verification = (run_ledger or {}).get(
-            "claim_ledger_verification"
-        ) or {}
-        w_ledger_passed = int(ledger_verification.get("n_violations", 0) or 0) == 0
-        return w_claim_passed, w_ledger_passed
+        if not has_ledger_record:
+            w_ledger_passed = False
+            w_ledger_complete = False
+            w_ledger_evidence = "absent: no claim_ledger_verification record"
+        else:
+            n_violations = int(
+                (run_ledger["claim_ledger_verification"] or {}).get(
+                    "n_violations", 0
+                )
+                or 0
+            )
+            w_ledger_passed = n_violations == 0
+            w_ledger_complete = True
+            w_ledger_evidence = f"n_violations={n_violations}"
+
+        return VerificationReceipt(
+            w_claim_passed=w_claim_passed,
+            w_ledger_passed=w_ledger_passed,
+            complete=w_claim_complete and w_ledger_complete,
+            w_claim_evidence=w_claim_evidence,
+            w_ledger_evidence=w_ledger_evidence,
+        )
 
     def _build_speculative_section_html(self, agent_results: dict,
                                         run_ledger: dict | None,
@@ -223,12 +266,12 @@ class ReportBuilderMixin:
             llm = getattr(self, "llm", None)
             if llm is not None:
                 proposer = LLMProposer.from_provider(llm)
-            w_claim_passed, w_ledger_passed = self._speculative_verification_state(
+            verification = self._speculative_verification_state(
                 run_ledger, narrative_blocks
             )
             section = build_speculative_section(
                 agent_results, run_ledger, exp_ctx, proposer=proposer,
-                w_claim_passed=w_claim_passed, w_ledger_passed=w_ledger_passed,
+                verification=verification,
             )
             if report_dir is not None and section is not None:
                 # Auditable, non-promotable manifest — separate from the audited

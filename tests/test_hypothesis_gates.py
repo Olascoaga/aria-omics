@@ -50,12 +50,25 @@ def _complete_experiment() -> DiscriminatingExperiment:
     )
 
 
+def _observed(*entities) -> list[dict]:
+    """H15: faithful observed_claims citing real signal_ids."""
+    by_ent = {s.entity.lower(): s for s in _signals()}
+    return [
+        {
+            "signal_id": by_ent[e.lower()].signal_id,
+            "stated_direction": by_ent[e.lower()].direction or "na",
+        }
+        for e in entities
+    ]
+
+
 def _valid_hypothesis(**overrides) -> Hypothesis:
     base = dict(
         id="h",
         mechanism="KLF1 accessibility may sustain GATA1 expression",
         entities=["GATA1", "KLF1"],
         observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_observed("GATA1"),
         experiment=_complete_experiment(),
         devils_advocate={
             "simpler_explanation": "co-regulation by a shared upstream factor",

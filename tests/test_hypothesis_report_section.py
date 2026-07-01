@@ -50,57 +50,98 @@ def _signals() -> list[EvidenceSignal]:
     ]
 
 
+def _cite(signals: list[EvidenceSignal], *entities: str) -> list[dict]:
+    """H18: observed_claims citing the given entities' audited signals by signal_id."""
+    by_ent = {s.entity.lower(): s for s in signals}
+    return [{"signal_id": by_ent[e.lower()].signal_id, "stated_direction": "na"}
+            for e in entities]
+
+
 def test_ranking_prefers_more_independent_lines():
+    sigs = _signals()
     two_lines = Hypothesis(
         id="two", mechanism="GATA1 and KLF1 may interact",
         entities=["GATA1", "KLF1"],
-        observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp(),
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_cite(sigs, "GATA1", "KLF1"), experiment=_exp(),
     )
     one_line = Hypothesis(
         id="one", mechanism="GATA1 may act alone",
         entities=["GATA1"],
-        observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp(),
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_cite(sigs, "GATA1"), experiment=_exp(),
     )
-    ranked = rank_hypotheses([one_line, two_lines], _signals())
+    ranked = rank_hypotheses([one_line, two_lines], sigs)
     assert [h.id for h in ranked] == ["two", "one"]
     assert ranked[0].rank_evidence["n_independent_lines"] == 2
 
 
 def test_ranking_populates_rank_evidence():
+    sigs = _signals()
     h = Hypothesis(id="h", mechanism="m", entities=["GATA1"],
-                   observation_refs=[], experiment=_exp())
-    rank_hypotheses([h], _signals())
+                   observation_refs=[], observed_claims=_cite(sigs, "GATA1"),
+                   experiment=_exp())
+    rank_hypotheses([h], sigs)
     # H5: effect is normalised (log2FC squashed via tanh), no longer the raw mean.
     import math
     assert h.rank_evidence["mean_effect_norm"] == round(math.tanh(2.0), 4)
-    # One grounded entity -> one (node, context) line; independence is code-derived.
+    # One CITED signal -> one (node, context) line (H18).
     assert h.rank_evidence["n_independent_lines"] == 1
 
 
-def test_ranking_independence_ignores_llm_observation_refs():
-    # H5 (issue 5b): the LLM cannot inflate its own rank by padding
-    # observation_refs — independence is derived from the grounded entities'
-    # audited signals, not from the model-authored refs.
+def test_ranking_independence_counts_only_cited_signals():
+    # H18 (Codex M1): the LLM cannot inflate its own rank by naming an entity that
+    # was measured in many contexts nor by padding observation_refs — independence
+    # is scored ONLY over the signals it cites in observed_claims. GATA1 is
+    # measured once here; even with 4 padded refs, one cited signal = one line.
+    sigs = _signals()
     padded = Hypothesis(
         id="padded", mechanism="GATA1 may act", entities=["GATA1"],
         observation_refs=["ledger://a", "ledger://b", "ledger://c", "ledger://d"],
-        experiment=_exp(),
+        observed_claims=_cite(sigs, "GATA1"), experiment=_exp(),
     )
-    rank_hypotheses([padded], _signals())
-    assert padded.rank_evidence["n_independent_lines"] == 1  # one grounded entity
+    rank_hypotheses([padded], sigs)
+    assert padded.rank_evidence["n_independent_lines"] == 1
+
+
+def test_ranking_independence_scales_with_cited_contrasts():
+    # H18 guard: the SAME entity cited in 1 vs 3 contrasts counts as 1 vs 3
+    # independent lines — independence tracks what the hypothesis actually reads.
+    sigs = [
+        EvidenceSignal(entity="MYC", entity_kind="gene", modality="scRNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://scRNA/pseudobulk_de",
+                       value=1.0, context=ctx)
+        for ctx in ("young_vs_old", "treated_vs_ctrl", "hi_vs_lo")
+    ]
+    one = Hypothesis(id="one", mechanism="MYC drives it", entities=["MYC"],
+                     observation_refs=[],
+                     observed_claims=[{"signal_id": sigs[0].signal_id,
+                                       "stated_direction": "na"}],
+                     experiment=_exp())
+    three = Hypothesis(id="three", mechanism="MYC converges", entities=["MYC"],
+                       observation_refs=[],
+                       observed_claims=[{"signal_id": s.signal_id,
+                                         "stated_direction": "na"} for s in sigs],
+                       experiment=_exp())
+    ranked = rank_hypotheses([one, three], sigs)
+    assert [h.id for h in ranked] == ["three", "one"]
+    assert three.rank_evidence["n_independent_lines"] == 3
+    assert one.rank_evidence["n_independent_lines"] == 1
 
 
 def test_ranking_normalises_incomparable_measures():
     # H5 (issue 5a): a correlation (peak2gene, ~0.6) and a log2FC (~2.3) must not
     # be compared on raw magnitude. Both normalise into [0, 1].
-    corr = Hypothesis(id="corr", mechanism="m", entities=["KLF1"],
-                      observation_refs=[], experiment=_exp())
     sigs = [
         EvidenceSignal(entity="KLF1", entity_kind="gene", modality="scATAC",
                        measure="peak2gene",
                        audited_node_ref="ledger://chromatin/regulatory_layers",
                        value=0.6),
     ]
+    corr = Hypothesis(id="corr", mechanism="m", entities=["KLF1"],
+                      observation_refs=[], observed_claims=_cite(sigs, "KLF1"),
+                      experiment=_exp())
     rank_hypotheses([corr], sigs)
     assert corr.rank_evidence["mean_effect_norm"] == 0.6  # correlation clamped, not tanh'd
 
@@ -108,15 +149,19 @@ def test_ranking_normalises_incomparable_measures():
 def test_ranking_marks_competing_and_dedupes_exact_duplicates():
     # H5 (issue 6): rivals sharing an entity are cross-linked; exact duplicates
     # collapse (same entities + mechanism + predicted direction).
+    sigs = _signals()
     a = Hypothesis(id="a", mechanism="GATA1 sustains KLF1", entities=["GATA1", "KLF1"],
-                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+                   observation_refs=["ledger://scRNA/pseudobulk_de"],
+                   observed_claims=_cite(sigs, "GATA1", "KLF1"), experiment=_exp())
     b = Hypothesis(id="b", mechanism="KLF1 acts independently", entities=["KLF1"],
-                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+                   observation_refs=["ledger://scRNA/pseudobulk_de"],
+                   observed_claims=_cite(sigs, "KLF1"), experiment=_exp())
     dup_of_a = Hypothesis(id="a2", mechanism="GATA1 sustains KLF1",
                           entities=["GATA1", "KLF1"],
                           observation_refs=["ledger://scRNA/pseudobulk_de"],
+                          observed_claims=_cite(sigs, "GATA1", "KLF1"),
                           experiment=_exp())
-    ranked = rank_hypotheses([a, b, dup_of_a], _signals())
+    ranked = rank_hypotheses([a, b, dup_of_a], sigs)
     ids = [h.id for h in ranked]
     assert "a2" not in ids  # exact duplicate of "a" collapsed
     a_out = next(h for h in ranked if h.id == "a")
@@ -153,12 +198,25 @@ def _ledger() -> dict:
         {"node_id": "ledger://bulk/pathway_enrichment", "status": "ran"}]}
 
 
+def _bulk_signals_by_entity() -> dict:
+    """H15: the real signal_ids the bulk_rna adapter derives from _bulk_results()."""
+    sigs = gather_evidence(_bulk_results(), _ledger(), {})
+    return {s.entity.lower(): s for s in sigs}
+
+
 def _good_json() -> str:
+    by = _bulk_signals_by_entity()
     return json.dumps([{
         "id": "g1",
         "mechanism": "GATA1 and KLF1 may share an erythroid program",
         "entities": ["GATA1", "KLF1"],
         "observation_refs": ["ledger://bulk/differential_expression"],
+        # GATA1/KLF1 are both audited UP (log2fc 2.3 / 1.9); the observed_claims
+        # restate that faithfully (H15). The mechanism stays free speculation.
+        "observed_claims": [
+            {"signal_id": by["gata1"].signal_id, "stated_direction": "up"},
+            {"signal_id": by["klf1"].signal_id, "stated_direction": "up"},
+        ],
         "experiment": {"perturbation": "GATA1 KD", "readout": "KLF1 qPCR",
                        "predicted_direction": "decrease",
                        "refuting_outcome": "no change"},
@@ -214,7 +272,7 @@ def test_gate_blocked_renders_visible_note_not_silence():
     proposer = LLMProposer(lambda p, s: _good_json())
     section = build_speculative_section(
         _bulk_results(), _ledger(), {}, proposer=proposer,
-        w_ledger_passed=False,
+        w_claim_passed=True, w_ledger_passed=False,
     )
     assert section["ran"] is False
     assert section["reason"] == "verification_gate_not_passed"
@@ -241,7 +299,8 @@ def test_honest_null_renders_per_gate_breakdown():
 
 def test_speculative_verification_state_reads_real_signals():
     # H2: the report builder feeds the gate the run's REAL W-CLAIM/W-LEDGER
-    # state, not an unconditional pass.
+    # state, not an unconditional pass. Round-3 H14: it now returns a typed,
+    # fail-closed VerificationReceipt.
     from aria.agents.narrative.report_builder import ReportBuilderMixin
 
     rb = ReportBuilderMixin.__new__(ReportBuilderMixin)
@@ -250,23 +309,77 @@ def test_speculative_verification_state_reads_real_signals():
         def __init__(self, status):
             self.metadata = {"claim_verification": {"status": status}}
 
-    # Clean run: claims supported, no ledger violations -> gate passes.
+    # Clean run: claims supported, no ledger violations -> gate open.
     clean_ledger = {"claim_ledger_verification": {"n_violations": 0}}
-    w_claim, w_ledger = rb._speculative_verification_state(
-        clean_ledger, [_Block("supported")]
-    )
-    assert (w_claim, w_ledger) == (True, True)
+    r = rb._speculative_verification_state(clean_ledger, [_Block("supported")])
+    assert r.complete is True
+    assert (r.w_claim_passed, r.w_ledger_passed) == (True, True)
+    assert r.gate_open is True
 
-    # A W-LEDGER violation OR an unsupported W-CLAIM block closes the gate.
+    # A W-LEDGER violation OR an unsupported W-CLAIM block closes the gate, but
+    # the verification is still COMPLETE (we saw it; it failed).
     bad_ledger = {"claim_ledger_verification": {"n_violations": 2}}
-    w_claim2, w_ledger2 = rb._speculative_verification_state(
-        bad_ledger, [_Block("supported")]
+    r2 = rb._speculative_verification_state(bad_ledger, [_Block("supported")])
+    assert r2.complete is True and r2.w_ledger_passed is False
+    assert r2.gate_open is False
+    assert r2.blocked_reason == "verification_gate_not_passed"
+    r3 = rb._speculative_verification_state(clean_ledger, [_Block("unsupported")])
+    assert r3.w_claim_passed is False and r3.gate_open is False
+
+
+def test_speculative_verification_state_fail_closed_on_absence():
+    # Round-3 H14 (Codex blocker 1): ABSENCE of the verification artifacts must
+    # NOT be read as approval. The old tuple form returned (True, True) here.
+    from aria.agents.narrative.report_builder import ReportBuilderMixin
+
+    rb = ReportBuilderMixin.__new__(ReportBuilderMixin)
+
+    # No ledger record AND no rendered blocks -> incomplete -> gate shut.
+    r = rb._speculative_verification_state(None, None)
+    assert r.complete is False
+    assert r.gate_open is False
+    assert r.blocked_reason == "verification_evidence_absent"
+
+    # A ledger dict WITHOUT the verification record is still absence on that side.
+    r2 = rb._speculative_verification_state({}, [])
+    assert r2.complete is False and r2.gate_open is False
+
+    # Blocks present but ledger record absent -> still incomplete.
+
+    class _Block:
+        metadata = {"claim_verification": {"status": "supported"}}
+
+    r3 = rb._speculative_verification_state({}, [_Block()])
+    assert r3.complete is False and r3.gate_open is False
+
+
+def test_agent_fail_closed_when_verification_absent():
+    # The agent must honest-null with the DISTINCT 'evidence absent' reason when
+    # handed an incomplete receipt, and TypeError when handed nothing at all.
+    import pytest
+
+    from aria.agents.hypothesis_agent import HypothesisAgent
+    from aria.agents.narrative.hypothesis import VerificationReceipt
+
+    absent = VerificationReceipt(
+        w_claim_passed=False, w_ledger_passed=False, complete=False
     )
-    assert w_ledger2 is False
-    w_claim3, _ = rb._speculative_verification_state(
-        clean_ledger, [_Block("unsupported")]
+    out = HypothesisAgent(proposer=lambda s, c: []).generate(
+        _signals(), _ledger(), {}, verification=absent
     )
-    assert w_claim3 is False
+    assert out["ran"] is False
+    assert out["reason"] == "verification_evidence_absent"
+    assert out["verification"]["gate_open"] is False
+
+    # Neither a receipt nor both booleans -> fail-closed TypeError (H13 preserved).
+    with pytest.raises(TypeError):
+        HypothesisAgent(proposer=lambda s, c: []).generate(_signals(), _ledger(), {})
+
+    # Explicit booleans remain a valid positive assertion (backward-compatible).
+    ok = HypothesisAgent(proposer=lambda s, c: []).generate(
+        _signals(), _ledger(), {}, w_claim_passed=True, w_ledger_passed=True
+    )
+    assert ok["ran"] is True
 
 
 def test_section_honest_null_renders_note():
@@ -333,7 +446,7 @@ def test_persist_manifest_records_gate_block(tmp_path):
     section = build_speculative_section(
         _bulk_results(), _ledger(), {},
         proposer=LLMProposer(lambda p, s: _good_json()),
-        w_ledger_passed=False,
+        w_claim_passed=True, w_ledger_passed=False,
     )
     data = json.loads(persist_speculative_manifest(section, tmp_path).read_text())
     assert data["ran"] is False

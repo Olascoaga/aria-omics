@@ -70,7 +70,8 @@ def test_adapter_flattens_genes_with_direction_and_node():
 def test_adapter_inherits_low_replication_caveat():
     signals = bulk_rna_evidence(_agent_results(), _ledger())
     gata1 = next(s for s in signals if s.entity == "GATA1")
-    assert "low replication" in gata1.caveats_inherited
+    # H16: caveats are structured codes now.
+    assert "low_replication" in gata1.caveats_inherited
 
 
 def test_adapter_emits_pathway_terms():

@@ -89,16 +89,17 @@ def test_measure_carries_peak_group_and_value():
 
 def test_inherits_associative_and_low_replication_caveats():
     signals = bulk_atac_evidence(_agent_results(low_power=True), _ledger())
-    blob = " ".join(signals[0].caveats_inherited).lower()
-    assert "associative" in blob
-    assert "low replication" in blob
+    # H16: caveats are structured codes now.
+    codes = signals[0].caveats_inherited
+    assert "motif_not_binding" in codes
+    assert "low_replication" in codes
 
 
 def test_low_replication_caveat_absent_when_not_flagged():
     signals = bulk_atac_evidence(_agent_results(low_power=False), _ledger())
-    blob = " ".join(signals[0].caveats_inherited).lower()
-    assert "associative" in blob
-    assert "low replication" not in blob
+    codes = signals[0].caveats_inherited
+    assert "motif_not_binding" in codes
+    assert "low_replication" not in codes
 
 
 def test_layer_skipped_when_ledger_node_not_run():

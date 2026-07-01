@@ -6,11 +6,11 @@ when more INDEPENDENT audited observations converge on it and the cited effects
 are stronger, and lower when the evidence it leans on carries more inherited
 confounds. Narrative elegance is never a factor.
 
+``Hypothesis.rank_evidence`` is a HEURISTIC ORDERING KEY, not a scientific
+confidence score. It says which of two rival speculations rests on more
+independent audited lines — it never asserts how likely either is to be true.
+
 H5 hardening (audit Codex issues 5 + 6):
-  - Independence is CODE-DERIVED from the audited signals of the grounded
-    entities the hypothesis names — distinct (node, context) observations — NOT
-    from the LLM-authored ``observation_refs`` (which the model could pad to
-    inflate its own rank).
   - Effects are NORMALISED per measure type before they are combined: raw
     log2FC, correlation, enrichment and gene-activity live on different scales
     and must not be averaged directly. Each is mapped to a comparable [0, 1]
@@ -18,6 +18,16 @@ H5 hardening (audit Codex issues 5 + 6):
   - The set is made genuinely competitive: exact-duplicate hypotheses collapse,
     and every hypothesis records the rivals it ``competing_with`` (others that
     explain overlapping evidence differently).
+
+H18 hardening (audit Codex issue 5/M1):
+  - Independence, effect and confound load are scored over the exact audited
+    signals the hypothesis CITES in ``observed_claims`` (resolved by
+    ``signal_id``) — NOT over every signal the named entities were ever measured
+    in. Naming an entity broadly can no longer inherit independence the
+    hypothesis never read: a hypothesis that cites one contrast counts as one
+    line even if the gene was measured in three. The cited signals are already
+    grounded (H15 rejects unknown/misattributed/contradicting citations before a
+    hypothesis reaches the ranking), so this cannot be padded either.
 
 The per-hypothesis basis is recorded in ``Hypothesis.rank_evidence`` so the
 report can show why one outranks another.
@@ -27,8 +37,7 @@ from __future__ import annotations
 
 import math
 
-from .grounding import build_signals_by_entity
-from .types import Hypothesis
+from .types import EvidenceSignal, Hypothesis
 
 
 def _norm(entity: str) -> str:
@@ -60,27 +69,47 @@ def _normalized_effect(signal) -> float | None:
     return math.tanh(abs(value))  # log2FC, motif enrichment, generic log-scale
 
 
-def _rank_basis(hyp: Hypothesis, by_entity: dict) -> dict:
-    """Evidence basis for one hypothesis, derived ONLY from audited signals."""
+def _signals_by_id(signals: list) -> dict[str, EvidenceSignal]:
+    """Index audited signals by ``signal_id`` (first-wins, deterministic)."""
+    out: dict[str, EvidenceSignal] = {}
+    for sig in signals or []:
+        if isinstance(sig, EvidenceSignal) and sig.signal_id:
+            out.setdefault(sig.signal_id, sig)
+    return out
+
+
+def _rank_basis(hyp: Hypothesis, by_id: dict) -> dict:
+    """Heuristic evidence basis for one hypothesis, scored ONLY over cited signals.
+
+    H18 (Codex M1): independence, effect and confound load come from the exact
+    audited signals the hypothesis cites in ``observed_claims`` (resolved by
+    ``signal_id``), never from every signal its named entities were measured in.
+    An independent line = a distinct ``(audited node, context)`` among the CITED
+    signals: the same entity cited in two contrasts is two lines; cited in one is
+    one, even if it was measured in three. This is an ordering key, not a
+    confidence score.
+    """
     lines: set[tuple[str, str]] = set()
     effects: list[float] = []
     caveats: set[str] = set()
-    for ent in hyp.entities or []:
-        for sig in by_entity.get(_norm(ent), []):
-            # An independent line = a distinct (audited node, context) the entity
-            # was actually measured in. Same gene in two contrasts = two lines.
-            lines.add((str(sig.audited_node_ref or ""), str(sig.context or "")))
-            effect = _normalized_effect(sig)
-            if effect is not None:
-                effects.append(effect)
-            for caveat in sig.caveats_inherited or []:
-                caveats.add(str(caveat).strip().lower())
+    for claim in hyp.observed_claims or []:
+        sid = str((claim or {}).get("signal_id", ""))
+        sig = by_id.get(sid)
+        if sig is None:
+            continue
+        lines.add((str(sig.audited_node_ref or ""), str(sig.context or "")))
+        effect = _normalized_effect(sig)
+        if effect is not None:
+            effects.append(effect)
+        for caveat in sig.caveats_inherited or []:
+            caveats.add(str(caveat).strip().lower())
     mean_effect = round(sum(effects) / len(effects), 4) if effects else 0.0
     return {
         "n_independent_lines": len(lines),
         "n_entities": len({_norm(e) for e in (hyp.entities or [])}),
         "mean_effect_norm": mean_effect,
         "evidence_caveat_load": len(caveats),
+        "basis": "cited_signals",  # heuristic ordering key, not a confidence score
     }
 
 
@@ -137,14 +166,15 @@ def rank_hypotheses(
 
     Order key (descending): independent converging observations, then mean
     NORMALISED effect, then FEWER inherited confounds. Independence and effects
-    are derived from the audited signals of the hypothesis's grounded entities
-    (never from the LLM's ``observation_refs``). Exact duplicates are collapsed
+    are derived from the audited signals the hypothesis CITES in
+    ``observed_claims`` (H18) — never from the LLM's ``observation_refs`` nor from
+    every signal its entities were measured in. Exact duplicates are collapsed
     and the surviving rivals are cross-linked. Deterministic and stable.
     """
-    by_entity = build_signals_by_entity(signals)
+    by_id = _signals_by_id(signals)
     decorated: list[tuple[tuple, int, Hypothesis]] = []
     for i, hyp in enumerate(hypotheses or []):
-        basis = _rank_basis(hyp, by_entity)
+        basis = _rank_basis(hyp, by_id)
         hyp.rank_evidence = basis
         key = (
             basis["n_independent_lines"],

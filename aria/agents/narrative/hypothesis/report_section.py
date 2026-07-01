@@ -82,8 +82,9 @@ def build_speculative_section(
     exp_ctx=None,
     *,
     proposer=None,
-    w_claim_passed: bool = False,
-    w_ledger_passed: bool = False,
+    verification=None,
+    w_claim_passed: bool | None = None,
+    w_ledger_passed: bool | None = None,
 ):
     """Build the SPECULATIVE section result, or None when there is nothing to show.
 
@@ -91,10 +92,13 @@ def build_speculative_section(
     Returns the HypothesisAgent output augmented with a ``header``; returns None
     when no audited evidence is available so no empty section is emitted.
 
-    H13/F5: ``w_claim_passed`` / ``w_ledger_passed`` are fail-closed (default
-    ``False``) — the real caller (``report_builder._speculative_verification_state``)
-    passes the run's actual verification state; a caller that omits them gets no
-    speculation rather than a silent fail-open.
+    Round-3 H14: the verification state is a ``VerificationReceipt`` passed as
+    ``verification=`` by the real caller
+    (``report_builder._speculative_verification_state``), which is fail-closed on
+    absence. The ``w_claim_passed`` / ``w_ledger_passed`` booleans remain as the
+    H13 explicit-assertion path (for callers/tests that already resolved the
+    state); supplying neither a receipt nor both booleans is a fail-closed error
+    in the agent, never a silent fail-open.
     """
     from aria.agents.hypothesis_agent import HypothesisAgent
 
@@ -105,6 +109,7 @@ def build_speculative_section(
         signals,
         run_ledger,
         exp_ctx,
+        verification=verification,
         w_claim_passed=w_claim_passed,
         w_ledger_passed=w_ledger_passed,
     )
@@ -184,6 +189,42 @@ def _esc(value) -> str:
     return _html.escape(str(value if value is not None else ""))
 
 
+def _render_observed_claims(hyp: dict) -> str:
+    """H15: the faithful data the hypothesis READS, separate from its speculation.
+
+    Renders each ``{signal_id, stated_direction}`` so a reader sees exactly which
+    audited measurement the hypothesis is grounded on (the grounding verifier
+    guarantees these match the audited direction). Empty -> no row.
+    """
+    claims = hyp.get("observed_claims") or []
+    if not claims:
+        return ""
+    rendered = "; ".join(
+        f"{_esc(c.get('stated_direction'))} [{_esc(c.get('signal_id'))}]"
+        for c in claims
+        if isinstance(c, dict)
+    )
+    return (
+        f"<p><strong>Reads from data:</strong> {rendered}</p>"
+    )
+
+
+def _render_inherited_caveats(hyp: dict) -> str:
+    """H16: auto-list every structured caveat the cited evidence carries.
+
+    Rendered from the code-owned ``inherited_caveats`` (glossed), so the reader
+    always sees the scientific/technical caveats on the evidence the hypothesis
+    uses — independent of whether the model acknowledged them.
+    """
+    from .caveats import caveat_gloss
+
+    codes = hyp.get("inherited_caveats") or []
+    if not codes:
+        return ""
+    rendered = "; ".join(_esc(caveat_gloss(c)) for c in codes)
+    return f"<p><strong>Evidence caveats:</strong> {rendered}</p>"
+
+
 def _render_hypothesis(hyp: dict, rank: int) -> str:
     exp = hyp.get("experiment") or {}
     da = hyp.get("devils_advocate") or {}
@@ -201,6 +242,8 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
         f"<h3>{rank}. {_esc(hyp.get('mechanism'))}</h3>"
         f"<p><strong>Arises from:</strong> {_esc(', '.join(hyp.get('observation_refs') or []))} "
         f"(entities: {_esc(', '.join(hyp.get('entities') or []))})</p>"
+        f"{_render_observed_claims(hyp)}"
+        f"{_render_inherited_caveats(hyp)}"
         f"<p><strong>Discriminating experiment:</strong> "
         f"{_esc(exp.get('perturbation'))} &rarr; {_esc(exp.get('readout'))}; "
         f"predicts <em>{_esc(exp.get('predicted_direction'))}</em>; "
@@ -208,8 +251,9 @@ def _render_hypothesis(hyp: dict, rank: int) -> str:
         f"<p><strong>Devil's advocate:</strong> simpler explanation &mdash; "
         f"{_esc(da.get('simpler_explanation'))}; confounds &mdash; {_esc(confounds)}</p>"
         f"{competing_html}"
-        f"<p style='color:var(--muted);font-size:0.85rem'>ranking basis: "
-        f"{_esc(rank_ev.get('n_independent_lines'))} independent line(s), "
+        f"<p style='color:var(--muted);font-size:0.85rem'>ranking basis "
+        f"(heuristic ordering, not a confidence score): "
+        f"{_esc(rank_ev.get('n_independent_lines'))} cited independent line(s), "
         f"mean normalized effect {_esc(rank_ev.get('mean_effect_norm'))}, "
         f"confound load {_esc(rank_ev.get('evidence_caveat_load'))} &middot; "
         f"quarantine node {_esc(hyp.get('ledger_node'))}</p>"

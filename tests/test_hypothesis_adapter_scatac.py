@@ -81,7 +81,8 @@ def test_gene_activity_signals_with_moderate_caveat():
     assert set(ga) == {"CD8A", "GZMK"}
     assert ga["CD8A"].entity_kind == "gene"
     assert ga["CD8A"].audited_node_ref == "ledger://chromatin/regulatory_layers"
-    assert "moderate" in " ".join(ga["CD8A"].caveats_inherited).lower()
+    # H16: structured caveat code for the gene-activity proxy.
+    assert "gene_activity_proxy" in ga["CD8A"].caveats_inherited
 
 
 def test_peak2gene_signals_with_direction_and_caveat():
@@ -90,7 +91,7 @@ def test_peak2gene_signals_with_direction_and_caveat():
     assert set(p2g) == {"IFNG", "LEF1"}
     assert p2g["IFNG"].direction == "up"
     assert p2g["LEF1"].direction == "down"
-    assert "associative" in " ".join(p2g["IFNG"].caveats_inherited).lower()
+    assert "peak2gene_associative" in p2g["IFNG"].caveats_inherited
 
 
 def test_regulatory_skipped_when_node_not_run():
