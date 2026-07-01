@@ -50,57 +50,98 @@ def _signals() -> list[EvidenceSignal]:
     ]
 
 
+def _cite(signals: list[EvidenceSignal], *entities: str) -> list[dict]:
+    """H18: observed_claims citing the given entities' audited signals by signal_id."""
+    by_ent = {s.entity.lower(): s for s in signals}
+    return [{"signal_id": by_ent[e.lower()].signal_id, "stated_direction": "na"}
+            for e in entities]
+
+
 def test_ranking_prefers_more_independent_lines():
+    sigs = _signals()
     two_lines = Hypothesis(
         id="two", mechanism="GATA1 and KLF1 may interact",
         entities=["GATA1", "KLF1"],
-        observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp(),
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_cite(sigs, "GATA1", "KLF1"), experiment=_exp(),
     )
     one_line = Hypothesis(
         id="one", mechanism="GATA1 may act alone",
         entities=["GATA1"],
-        observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp(),
+        observation_refs=["ledger://scRNA/pseudobulk_de"],
+        observed_claims=_cite(sigs, "GATA1"), experiment=_exp(),
     )
-    ranked = rank_hypotheses([one_line, two_lines], _signals())
+    ranked = rank_hypotheses([one_line, two_lines], sigs)
     assert [h.id for h in ranked] == ["two", "one"]
     assert ranked[0].rank_evidence["n_independent_lines"] == 2
 
 
 def test_ranking_populates_rank_evidence():
+    sigs = _signals()
     h = Hypothesis(id="h", mechanism="m", entities=["GATA1"],
-                   observation_refs=[], experiment=_exp())
-    rank_hypotheses([h], _signals())
+                   observation_refs=[], observed_claims=_cite(sigs, "GATA1"),
+                   experiment=_exp())
+    rank_hypotheses([h], sigs)
     # H5: effect is normalised (log2FC squashed via tanh), no longer the raw mean.
     import math
     assert h.rank_evidence["mean_effect_norm"] == round(math.tanh(2.0), 4)
-    # One grounded entity -> one (node, context) line; independence is code-derived.
+    # One CITED signal -> one (node, context) line (H18).
     assert h.rank_evidence["n_independent_lines"] == 1
 
 
-def test_ranking_independence_ignores_llm_observation_refs():
-    # H5 (issue 5b): the LLM cannot inflate its own rank by padding
-    # observation_refs — independence is derived from the grounded entities'
-    # audited signals, not from the model-authored refs.
+def test_ranking_independence_counts_only_cited_signals():
+    # H18 (Codex M1): the LLM cannot inflate its own rank by naming an entity that
+    # was measured in many contexts nor by padding observation_refs — independence
+    # is scored ONLY over the signals it cites in observed_claims. GATA1 is
+    # measured once here; even with 4 padded refs, one cited signal = one line.
+    sigs = _signals()
     padded = Hypothesis(
         id="padded", mechanism="GATA1 may act", entities=["GATA1"],
         observation_refs=["ledger://a", "ledger://b", "ledger://c", "ledger://d"],
-        experiment=_exp(),
+        observed_claims=_cite(sigs, "GATA1"), experiment=_exp(),
     )
-    rank_hypotheses([padded], _signals())
-    assert padded.rank_evidence["n_independent_lines"] == 1  # one grounded entity
+    rank_hypotheses([padded], sigs)
+    assert padded.rank_evidence["n_independent_lines"] == 1
+
+
+def test_ranking_independence_scales_with_cited_contrasts():
+    # H18 guard: the SAME entity cited in 1 vs 3 contrasts counts as 1 vs 3
+    # independent lines — independence tracks what the hypothesis actually reads.
+    sigs = [
+        EvidenceSignal(entity="MYC", entity_kind="gene", modality="scRNA",
+                       measure="log2fc",
+                       audited_node_ref="ledger://scRNA/pseudobulk_de",
+                       value=1.0, context=ctx)
+        for ctx in ("young_vs_old", "treated_vs_ctrl", "hi_vs_lo")
+    ]
+    one = Hypothesis(id="one", mechanism="MYC drives it", entities=["MYC"],
+                     observation_refs=[],
+                     observed_claims=[{"signal_id": sigs[0].signal_id,
+                                       "stated_direction": "na"}],
+                     experiment=_exp())
+    three = Hypothesis(id="three", mechanism="MYC converges", entities=["MYC"],
+                       observation_refs=[],
+                       observed_claims=[{"signal_id": s.signal_id,
+                                         "stated_direction": "na"} for s in sigs],
+                       experiment=_exp())
+    ranked = rank_hypotheses([one, three], sigs)
+    assert [h.id for h in ranked] == ["three", "one"]
+    assert three.rank_evidence["n_independent_lines"] == 3
+    assert one.rank_evidence["n_independent_lines"] == 1
 
 
 def test_ranking_normalises_incomparable_measures():
     # H5 (issue 5a): a correlation (peak2gene, ~0.6) and a log2FC (~2.3) must not
     # be compared on raw magnitude. Both normalise into [0, 1].
-    corr = Hypothesis(id="corr", mechanism="m", entities=["KLF1"],
-                      observation_refs=[], experiment=_exp())
     sigs = [
         EvidenceSignal(entity="KLF1", entity_kind="gene", modality="scATAC",
                        measure="peak2gene",
                        audited_node_ref="ledger://chromatin/regulatory_layers",
                        value=0.6),
     ]
+    corr = Hypothesis(id="corr", mechanism="m", entities=["KLF1"],
+                      observation_refs=[], observed_claims=_cite(sigs, "KLF1"),
+                      experiment=_exp())
     rank_hypotheses([corr], sigs)
     assert corr.rank_evidence["mean_effect_norm"] == 0.6  # correlation clamped, not tanh'd
 
@@ -108,15 +149,19 @@ def test_ranking_normalises_incomparable_measures():
 def test_ranking_marks_competing_and_dedupes_exact_duplicates():
     # H5 (issue 6): rivals sharing an entity are cross-linked; exact duplicates
     # collapse (same entities + mechanism + predicted direction).
+    sigs = _signals()
     a = Hypothesis(id="a", mechanism="GATA1 sustains KLF1", entities=["GATA1", "KLF1"],
-                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+                   observation_refs=["ledger://scRNA/pseudobulk_de"],
+                   observed_claims=_cite(sigs, "GATA1", "KLF1"), experiment=_exp())
     b = Hypothesis(id="b", mechanism="KLF1 acts independently", entities=["KLF1"],
-                   observation_refs=["ledger://scRNA/pseudobulk_de"], experiment=_exp())
+                   observation_refs=["ledger://scRNA/pseudobulk_de"],
+                   observed_claims=_cite(sigs, "KLF1"), experiment=_exp())
     dup_of_a = Hypothesis(id="a2", mechanism="GATA1 sustains KLF1",
                           entities=["GATA1", "KLF1"],
                           observation_refs=["ledger://scRNA/pseudobulk_de"],
+                          observed_claims=_cite(sigs, "GATA1", "KLF1"),
                           experiment=_exp())
-    ranked = rank_hypotheses([a, b, dup_of_a], _signals())
+    ranked = rank_hypotheses([a, b, dup_of_a], sigs)
     ids = [h.id for h in ranked]
     assert "a2" not in ids  # exact duplicate of "a" collapsed
     a_out = next(h for h in ranked if h.id == "a")
