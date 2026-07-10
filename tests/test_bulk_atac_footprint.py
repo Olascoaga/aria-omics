@@ -112,8 +112,9 @@ def test_bulk_footprint_narrator_block_uses_condition_labels():
         "ran": True, "data_type": "bulk_ATAC",
         "group_a": "K562", "group_b": "GM12878",
         "group_label": "Conditions", "group_kind": "conditions",
-        "differential_summary": {"parsed": True, "n_significant": 12,
+        "differential_summary": {"parsed": True, "n_ranked_candidates": 12,
                                  "n_motifs_tested": 800,
+                                 "ranking_basis": {"fdr_controlled": False},
                                  "top_group_a": [], "top_group_b": []},
     }
     blocks = ChromatinNarrator().collect(
@@ -125,3 +126,6 @@ def test_bulk_footprint_narrator_block_uses_condition_labels():
     assert "K562 and GM12878" in block.claim
     assert any("between conditions" in c.text for c in block.caveats)
     assert "regulates" not in block.claim.lower()
+    # B7 interim: the block must NOT present pseudobulk footprints as significance.
+    assert "not FDR-controlled significance" in block.claim
+    assert not any(e.label.startswith("Significant") for e in block.evidence)

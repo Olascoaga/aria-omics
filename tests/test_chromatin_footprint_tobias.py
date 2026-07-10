@@ -62,11 +62,14 @@ def test_summarize_bindetect_top_differential_per_group(tmp_path):
         "CEBPB\t97\t1.10\t1e-100\n"        # strongly toward Monocyte
         "TCF7\t500\t-0.40\t1e-50\n"          # toward T_cell
         "NOISE\t5\t0.90\t1e-80\n"            # below min_sites -> excluded
-        "FLAT\t300\t0.01\t0.4\n",            # not significant -> excluded
+        "FLAT\t300\t0.01\t0.4\n",            # above p threshold -> excluded
         encoding="utf-8")
     s = summarize_bindetect(str(res), "Monocyte", "T_cell")
     assert s["parsed"] is True
-    assert s["n_motifs_tested"] == 4 and s["n_significant"] == 2
+    # B7 interim: descriptive candidate ranking, not an FDR-significance count.
+    assert s["n_motifs_tested"] == 4 and s["n_ranked_candidates"] == 2
+    assert "n_significant" not in s
+    assert s["ranking_basis"]["fdr_controlled"] is False
     assert s["top_toward_Monocyte"][0]["tf"] == "CEBPB"
     assert s["top_toward_T_cell"][0]["tf"] == "TCF7"
 

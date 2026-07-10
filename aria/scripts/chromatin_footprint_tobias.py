@@ -193,9 +193,18 @@ def summarize_bindetect(results_txt: str, group_a: str, group_b: str,
                         top_n: int = 15, pvalue_max: float = 0.05,
                         min_sites: int = 20) -> dict[str, Any]:
     """Pure summary of a TOBIAS ``bindetect_results.txt``: the top differential-binding
-    TFs toward each group (by the ``<A>_<B>_change`` score, gated on pvalue + site
-    count) plus counts. Differential TF binding is ASSOCIATIVE, never causal. Returns
-    an honest ``parsed: false`` when the expected columns are absent."""
+    TFs toward each group (by the ``<A>_<B>_change`` score), plus counts.
+
+    INTERIM (preprint audit B7, 2026-07-09): this is a DESCRIPTIVE candidate ranking,
+    NOT FDR-controlled significance. TOBIAS pools every cell/BAM of a condition into a
+    single pseudobulk, so the per-site ``<A>_<B>_pvalue`` ignores biological replication
+    and cannot support a significance claim; the ``pvalue_max``/``min_sites`` gate only
+    prunes the ranked candidate list by an uncorrected p and a site-count floor. Real
+    inference (per-replicate/donor model + BH multiplicity + null-label controls) is
+    deferred to the full B7 fix. Until then the count is exported as
+    ``n_ranked_candidates`` with an explicit ``ranking_basis`` disclosure — never as
+    ``n_significant``. Differential TF binding is ASSOCIATIVE, never causal. Returns an
+    honest ``parsed: false`` when the expected columns are absent."""
     import csv
 
     change_col = f"{group_a}_{group_b}_change"
@@ -212,17 +221,29 @@ def summarize_bindetect(results_txt: str, group_a: str, group_b: str,
             except (ValueError, KeyError):
                 continue
 
-    def _sig(rs):
+    def _ranked(rs):
+        # Descriptive candidate filter (see docstring): an uncorrected p<pvalue_max
+        # gate + site-count floor over a pseudobulk-per-condition contrast. NOT
+        # FDR-controlled significance; it only prunes the ranked candidate list.
         return [x for x in rs if (x[2] == x[2]) and x[2] < pvalue_max and x[3] >= min_sites]
 
-    sig = _sig(rows)
+    ranked = _ranked(rows)
     fmt = lambda x: {"tf": x[0], "change": round(x[1], 4), "pvalue": x[2], "n_sites": x[3]}
     return {
         "parsed": True,
         "n_motifs_tested": len(rows),
-        "n_significant": len(sig),
-        f"top_toward_{group_a}": [fmt(x) for x in sorted(sig, key=lambda x: -x[1])[:top_n]],
-        f"top_toward_{group_b}": [fmt(x) for x in sorted(sig, key=lambda x: x[1])[:top_n]],
+        "n_ranked_candidates": len(ranked),
+        "ranking_basis": {
+            "fdr_controlled": False,
+            "replicate_inference": False,
+            "pseudobulk": True,
+            "filter": f"uncorrected p<{pvalue_max} and n_sites>={min_sites}",
+            "note": ("descriptive candidate ranking by |change|; NOT FDR-controlled "
+                     "significance. TOBIAS pools each condition into one pseudobulk, so "
+                     "per-site p-values ignore biological replication."),
+        },
+        f"top_toward_{group_a}": [fmt(x) for x in sorted(ranked, key=lambda x: -x[1])[:top_n]],
+        f"top_toward_{group_b}": [fmt(x) for x in sorted(ranked, key=lambda x: x[1])[:top_n]],
     }
 
 

@@ -11,7 +11,9 @@ import pytest
 
 def _summary():
     return {
-        "parsed": True, "n_motifs_tested": 879, "n_significant": 873,
+        "parsed": True, "n_motifs_tested": 879, "n_ranked_candidates": 873,
+        "ranking_basis": {"fdr_controlled": False, "replicate_inference": False,
+                          "pseudobulk": True},
         "top_toward_Monocyte": [
             {"tf": "CEBPB", "change": 1.01, "pvalue": 1e-195, "n_sites": 8987},
             {"tf": "FOSL2::JUND", "change": 0.48, "pvalue": 1e-188, "n_sites": 25363},
