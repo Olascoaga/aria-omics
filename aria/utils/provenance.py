@@ -77,20 +77,34 @@ def hash_params(params: dict) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def record_llm_usage(event: dict) -> None:
-    """Append one LLM usage event for later report provenance."""
+def record_llm_usage(
+    event: dict,
+    *,
+    experiment_id: str | None = None,
+    usage_log: str | Path | None = None,
+) -> None:
+    """Append one LLM usage event to its execution-owned provenance log."""
+    record = dict(event or {})
+    embedded_usage_log = record.pop("_usage_log", None)
+    path = Path(usage_log or embedded_usage_log or USAGE_LOG)
+    if experiment_id:
+        record["experiment_id"] = experiment_id
     try:
-        USAGE_LOG.parent.mkdir(parents=True, exist_ok=True)
-        with USAGE_LOG.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(event, sort_keys=True, default=str) + "\n")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(record, sort_keys=True, default=str) + "\n")
     except Exception:
         pass
 
 
 def collect_llm_usage(
-    since_utc: str | None = None, grace_seconds: int = 5
+    since_utc: str | None = None,
+    grace_seconds: int = 5,
+    *,
+    experiment_id: str | None = None,
+    usage_log: str | Path | None = None,
 ) -> dict[str, Any]:
-    """Summarize LLM token/cost events since an ISO UTC timestamp."""
+    """Summarize one execution's LLM events since an ISO UTC timestamp."""
     totals = {
         "calls": 0,
         "cache_hits": 0,
@@ -122,14 +136,18 @@ def collect_llm_usage(
                 since = since - timedelta(seconds=max(0, int(grace_seconds)))
         except Exception:
             return totals
-    if not USAGE_LOG.exists():
+    path = Path(usage_log) if usage_log is not None else USAGE_LOG
+    if not path.exists():
         return totals
     try:
-        with USAGE_LOG.open("r", encoding="utf-8") as fh:
+        with path.open("r", encoding="utf-8") as fh:
             for line in fh:
                 try:
                     event = json.loads(line)
                 except Exception:
+                    continue
+                if (experiment_id is not None
+                        and event.get("experiment_id") != experiment_id):
                     continue
                 if since is not None:
                     try:

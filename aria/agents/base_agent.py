@@ -54,7 +54,8 @@ class BaseAgent(ABC):
     def think(self, prompt: str, system: str = "",
               caveman: CavemanMode = CavemanMode.FULL,
               tier: TaskTier = TaskTier.MEDIUM,
-              max_tokens: int = 1024) -> str:
+              max_tokens: int = 1024,
+              llm: LLMProvider | None = None) -> str:
         """
         Core LLM call. Provider-agnostic via LLMProvider.
         Caveman compression injected for internal calls.
@@ -72,7 +73,8 @@ class BaseAgent(ABC):
                 )
 
         full_system = "\n\n".join(system_parts)
-        return self.llm.complete(
+        provider = llm or self.llm
+        return provider.complete(
             prompt=prompt,
             system=full_system,
             tier=tier,
@@ -81,7 +83,8 @@ class BaseAgent(ABC):
 
     def think_structured(self, prompt: str, system: str = "",
                          schema_hint: str = "",
-                         tier: TaskTier = TaskTier.MEDIUM) -> dict:
+                         tier: TaskTier = TaskTier.MEDIUM,
+                         llm: LLMProvider | None = None) -> dict:
         """LLM call returning structured JSON. Always ULTRA caveman."""
         json_instruction = (
             f"Respond ONLY with valid JSON. No preamble. No markdown. "
@@ -93,6 +96,7 @@ class BaseAgent(ABC):
             caveman=CavemanMode.ULTRA,
             tier=tier,
             max_tokens=2048,
+            llm=llm,
         )
         raw = raw.strip()
         if raw.startswith("```"):

@@ -17,6 +17,7 @@ Each tier falls back to the next available model automatically.
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import os
@@ -39,7 +40,7 @@ from litellm import completion
 from aria.version import __version__ as ARIA_VERSION
 from aria.llm.context_manager import ContextManager, ModelProfile
 from aria.utils.env_loader import load_aria_env
-from aria.utils.privacy import air_gapped_enabled
+from aria.utils.privacy import EgressPolicy, air_gapped_enabled
 from aria.utils.provenance import record_llm_usage
 
 log = logging.getLogger("aria.llm")
@@ -182,8 +183,14 @@ class LLMProvider:
         models:      dict[TaskTier, list[ModelConfig]] = None,
         api_keys:    dict[str, str] = None,
         cache_dir:   Optional[str] = None,
+        experiment_id: Optional[str] = None,
+        usage_log: Optional[str | Path] = None,
+        egress_policy: Optional[EgressPolicy] = None,
     ):
         load_aria_env()
+        self.experiment_id = experiment_id
+        self.usage_log = Path(usage_log) if usage_log is not None else None
+        self.egress_policy = egress_policy
         self.models   = models or DEFAULT_MODELS
         # If ALREADY air-gapped at construction, drop cloud models up front (an
         # optimization + backward-compatible behavior). Preprint audit A1: this is
@@ -245,7 +252,41 @@ class LLMProvider:
         construction). Preprint audit A1: a provider built before the user opts
         into air-gap must still refuse every cloud call afterward, so all
         egress decisions read this property rather than a stored flag."""
+        if self.egress_policy is not None:
+            return bool(self.egress_policy.air_gapped)
         return air_gapped_enabled()
+
+    def for_execution(
+        self,
+        experiment_id: str,
+        usage_log: str | Path,
+        egress_policy: EgressPolicy,
+    ) -> "LLMProvider":
+        """Return a run-owned provider view with isolated mutable provenance.
+
+        Model/API-key configuration and the deterministic disk cache are safe to
+        share. Context managers, last-completion state, usage log, and egress policy
+        are execution-local.
+        """
+        provider = copy.copy(self)
+        provider.models = {
+            tier: list(configs) for tier, configs in self.models.items()
+        }
+        provider._context_managers = {}
+        provider._last_completion = None
+        provider.experiment_id = experiment_id
+        provider.usage_log = Path(usage_log)
+        provider.egress_policy = egress_policy
+        return provider
+
+    def _record_usage(self, event: dict) -> None:
+        """Record usage while preserving the legacy one-argument call seam."""
+        scoped_event = dict(event)
+        if self.experiment_id:
+            scoped_event["experiment_id"] = self.experiment_id
+        if self.usage_log is not None:
+            scoped_event["_usage_log"] = str(self.usage_log)
+        record_llm_usage(scoped_event)
 
     # ── Public interface ─────────────────────────────────────────────────
 
@@ -378,7 +419,7 @@ class LLMProvider:
             cached = self._cache_get(cache_key)
             if cached is not None:
                 log.debug(f"LLM cache hit: {cfg.model} key={cache_key[:8]}")
-                record_llm_usage({
+                self._record_usage({
                     "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                     "provider": cfg.provider,
                     "model": cfg.model,
@@ -462,7 +503,7 @@ class LLMProvider:
             cost = float(litellm.completion_cost(completion_response=response) or 0.0)
         except Exception:
             cost = 0.0
-        record_llm_usage({
+        self._record_usage({
             "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             "provider": cfg.provider,
             "model": cfg.model,

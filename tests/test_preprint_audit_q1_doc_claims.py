@@ -2,7 +2,7 @@
 
 Codex A8 flagged four overclaims in the public docs that runtime does not back:
   1. "every LLM call ... fixed seed"      -> seed only on backends that accept one
-  2. air-gap "governs **all** egress/Done" -> Partial; per-run enforcement pending (A1/A3)
+  2. air-gap "governs **all** egress/Done" -> Partial; pre-CP1 parse pending (A1b)
   3. GEO "all four modalities"             -> classification/routing, not general fetch (E6)
   4. ATAC "full publishable workflow"      -> footprinting is descriptive-only (B7)
 
@@ -35,9 +35,9 @@ def test_seed_claim_is_qualified_per_backend():
 def test_air_gap_claim_is_not_overstated():
     # No "Done" row that claims the flag governs ALL egress.
     assert "governs **all** egress" not in _VALIDATION
-    # The row is honestly marked Partial with the known enforcement gap.
+    # The row stays Partial after A3 because the initial parse still precedes CP1.
     assert "| Air-gapped mode | Partial |" in _VALIDATION
-    assert "resolved at provider construction" in _VALIDATION
+    assert "biological-question LLM parse still occurs before CP1" in _VALIDATION
 
 
 def test_geo_connector_does_not_claim_general_four_modality_fetch():

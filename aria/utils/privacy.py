@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import os
 import re
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -24,8 +27,49 @@ _PATH_KEYS = {
 _SECRET_RE = re.compile(r"(api[_-]?key|token|secret|password|credential)", re.I)
 
 
+@dataclass
+class EgressPolicy:
+    """Mutable network policy owned by exactly one experiment execution."""
+
+    air_gapped: bool = False
+    reason: str | None = None
+
+    @classmethod
+    def from_environment(cls) -> "EgressPolicy":
+        enabled = os.environ.get("ARIA_AIR_GAPPED", "0").strip().lower() in {
+            "1", "true", "yes", "on",
+        }
+        return cls(air_gapped=enabled, reason="environment" if enabled else None)
+
+    def enable(self, reason: str = "user_decision") -> None:
+        self.air_gapped = True
+        self.reason = reason
+
+
+_ACTIVE_EGRESS_POLICY: ContextVar[EgressPolicy | None] = ContextVar(
+    "aria_active_egress_policy", default=None
+)
+
+
+@contextmanager
+def use_egress_policy(policy: EgressPolicy):
+    """Bind one execution's egress policy for the current thread/context."""
+    token = _ACTIVE_EGRESS_POLICY.set(policy)
+    try:
+        yield policy
+    finally:
+        _ACTIVE_EGRESS_POLICY.reset(token)
+
+
+def active_egress_policy() -> EgressPolicy | None:
+    return _ACTIVE_EGRESS_POLICY.get()
+
+
 def air_gapped_enabled() -> bool:
     """Return True when ARIA must avoid cloud/network LLM calls."""
+    policy = active_egress_policy()
+    if policy is not None:
+        return bool(policy.air_gapped)
     return os.environ.get("ARIA_AIR_GAPPED", "0").strip().lower() in {
         "1", "true", "yes", "on",
     }
@@ -36,22 +80,46 @@ def air_gapped_enabled() -> bool:
 _runtime_air_gapped_reason: str | None = None
 
 
-def enable_air_gapped_runtime(reason: str = "user_decision") -> None:
-    """Turn on air-gapped mode for the rest of the run (P1-8a).
+def enable_air_gapped_runtime(
+    reason: str = "user_decision",
+    policy: EgressPolicy | None = None,
+) -> None:
+    """Turn on air-gapped mode for one run (P1-8a/A3).
 
-    Sets ``ARIA_AIR_GAPPED`` in the process environment so BOTH in-process egress
-    (LLM) and dispatched subprocesses (which inherit the env via ``conda run``)
-    refuse network egress. Used when the user opts into air-gapped at the
-    sensitivity checkpoint; ARIA never flips this on without the user's choice.
+    An explicit or context-bound policy stays execution-local and is injected
+    only into that run's child-process environment. Calls without either retain
+    the legacy process-wide behavior for backward compatibility.
     """
+    target = policy or active_egress_policy()
+    if target is not None:
+        target.enable(reason)
+        return
     global _runtime_air_gapped_reason
     os.environ["ARIA_AIR_GAPPED"] = "1"
     _runtime_air_gapped_reason = reason
 
 
-def air_gapped_runtime_reason() -> str | None:
+def air_gapped_runtime_reason(
+    policy: EgressPolicy | None = None,
+) -> str | None:
     """Reason air-gapped was enabled at runtime, or None if preset/off."""
+    target = policy or active_egress_policy()
+    if target is not None:
+        return target.reason
     return _runtime_air_gapped_reason
+
+
+def execution_environment(base: dict[str, str] | None = None) -> dict[str, str]:
+    """Return a subprocess environment carrying only the active run's policy."""
+    env = dict(os.environ if base is None else base)
+    policy = active_egress_policy()
+    if policy is None:
+        return env
+    if policy.air_gapped:
+        env["ARIA_AIR_GAPPED"] = "1"
+    else:
+        env.pop("ARIA_AIR_GAPPED", None)
+    return env
 
 
 class EgressBlocked(RuntimeError):

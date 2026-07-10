@@ -24,6 +24,7 @@ import logging
 import os
 import threading
 import uuid
+from pathlib import Path
 from typing import Optional
 
 from aria.agents.base_agent import BaseAgent
@@ -31,6 +32,7 @@ from aria.bus.message_bus import Message, MessageType, Confidence
 from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
 from aria.runtime.experiment_session import ExperimentSession
+from aria.utils.privacy import use_egress_policy
 from aria.utils.provenance import collect_provenance
 
 log = logging.getLogger("aria.orchestrator")
@@ -232,7 +234,28 @@ class OrchestratorAgent(BaseAgent):
             self._sessions = sessions
         if experiment_id not in sessions:
             sessions[experiment_id] = ExperimentSession(experiment_id=experiment_id)
-        return sessions[experiment_id]
+        session = sessions[experiment_id]
+        session.message_bus.register(self.name, self)
+        if session.usage_log is None:
+            session.usage_log = (
+                Path.home() / ".aria" / "workspace" / experiment_id
+                / "llm_usage.jsonl"
+            )
+        if session.llm_provider is None:
+            provider = getattr(self, "llm", None)
+            if provider is not None and hasattr(provider, "for_execution"):
+                provider = provider.for_execution(
+                    experiment_id=experiment_id,
+                    usage_log=session.usage_log,
+                    egress_policy=session.egress_policy,
+                )
+            session.llm_provider = provider
+        return session
+
+    def _register_session_agent(self, experiment_id: str, agent):
+        """Attach a run-owned agent to the matching isolated broker."""
+        self._get_session(experiment_id).message_bus.register(agent.name, agent)
+        return agent
 
     def _sync_plan_record(self, session: ExperimentSession) -> None:
         plans = getattr(self, "_experiment_plans", None)
@@ -252,11 +275,12 @@ class OrchestratorAgent(BaseAgent):
         if design_agent is None:
             return {"status": "error", "message": "No active design session"}
 
-        result = design_agent.handle_user_response(
-            experiment_id=experiment_id,
-            checkpoint_num=checkpoint,
-            choice=user_decision,
-        )
+        with use_egress_policy(session.egress_policy):
+            result = design_agent.handle_user_response(
+                experiment_id=experiment_id,
+                checkpoint_num=checkpoint,
+                choice=user_decision,
+            )
         if result.get("status") == "cancelled":
             session.design_agent = None
             self._sync_plan_record(session)
@@ -354,17 +378,19 @@ class OrchestratorAgent(BaseAgent):
         # mid-run crash keeps the findings/decisions of completed stages, and
         # concurrent runs never share a log file.
         try:
-            from pathlib import Path as _Path
             session.message_bus.enable_persistence(
-                str(_Path.home() / ".aria" / "workspace" / experiment_id
+                str(Path.home() / ".aria" / "workspace" / experiment_id
                     / "bus_log.jsonl")
             )
         except Exception as e:
             log.debug(f"Could not enable bus persistence: {e}")
 
-        self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
-        intent = self._parse_question(context["user_question"])
-        context["provenance"] = collect_provenance()
+        with use_egress_policy(session.egress_policy):
+            self.publish_status(experiment_id, "ARIA starting analysis...", 0.0)
+            intent = self._parse_question(
+                context["user_question"], llm=session.llm_provider
+            )
+            context["provenance"] = collect_provenance()
         session.context = context
         session.intent = intent
         session.status = "auditing"
@@ -374,8 +400,14 @@ class OrchestratorAgent(BaseAgent):
 
     def run_audit(self, experiment_id: str) -> dict:
         from aria.agents.data_audit_agent import DataAuditAgent
+        session = self._get_session(experiment_id)
         plan = self._experiment_plans.get(experiment_id, {})
-        return DataAuditAgent(self.memory).run(experiment_id, plan["context"])
+        agent = self._register_session_agent(
+            experiment_id,
+            DataAuditAgent(self.memory, llm=session.llm_provider),
+        )
+        with use_egress_policy(session.egress_policy):
+            return agent.run(experiment_id, plan["context"])
 
     # ── Callback principal para checkpoints resueltos ───────────────────
     def on_checkpoint_resolved(self, message_id: str,
@@ -465,9 +497,13 @@ class OrchestratorAgent(BaseAgent):
         # checkpoint. Enabling it here (before design/dispatch) makes BOTH the
         # in-process LLM and every dispatched subprocess refuse network egress.
         from aria.utils.sensitivity import decision_enables_air_gapped
+        session = self._get_session(experiment_id)
         if decision_enables_air_gapped(decision):
             from aria.utils.privacy import enable_air_gapped_runtime
-            enable_air_gapped_runtime(reason="sensitivity_checkpoint")
+            enable_air_gapped_runtime(
+                reason="sensitivity_checkpoint",
+                policy=session.egress_policy,
+            )
             exp_context["air_gapped"] = True
             sensitivity = (msg.payload.get("context", {}) or {}).get("sensitivity", {})
             self.publish_finding(
@@ -504,12 +540,18 @@ class OrchestratorAgent(BaseAgent):
 
         # ── v4.0: Iniciar máquina de estados del DesignAgent ────────────
         from aria.agents.design_agent import DesignAgent
-        design_agent = DesignAgent(memory=self.memory, llm=self.llm)
-        result = design_agent.start_design(
-            experiment_id=experiment_id,
-            exp_context=exp_context,
-            biological_intent=self._experiment_plans.get(experiment_id, {}).get("intent", {}),
+        design_agent = self._register_session_agent(
+            experiment_id,
+            DesignAgent(memory=self.memory, llm=session.llm_provider),
         )
+        with use_egress_policy(session.egress_policy):
+            result = design_agent.start_design(
+                experiment_id=experiment_id,
+                exp_context=exp_context,
+                biological_intent=self._experiment_plans.get(
+                    experiment_id, {}
+                ).get("intent", {}),
+            )
 
         if result.get("status") == "failed":
             return {"status": "cancelled", "reason": result.get("reason", "Design failed")}
@@ -518,7 +560,6 @@ class OrchestratorAgent(BaseAgent):
         # and synthesized a minimal design. Proceed straight to plan/CP2 so the
         # modality agent (e.g. ChromatinAgent for scATAC) reaches dispatch.
         if result.get("status") == "skipped":
-            session = self._get_session(experiment_id)
             session.exp_context = exp_context
             self._experiment_plans[experiment_id]["exp_context"] = exp_context
             self._sync_plan_record(session)
@@ -526,7 +567,6 @@ class OrchestratorAgent(BaseAgent):
                 experiment_id, exp_context, result["design"])
 
         # Guardar el agente activo para seguir recibiendo sus checkpoints
-        session = self._get_session(experiment_id)
         session.design_agent = design_agent
         session.exp_context = exp_context
         # Backward-compat mirror only; session.design_agent is authoritative.
@@ -654,12 +694,17 @@ class OrchestratorAgent(BaseAgent):
         """
         from aria.agents.audit_agent import AuditAgent
 
-        audit = AuditAgent(memory=self.memory, llm=self.llm)
-        audit_result = audit.run_audit(
-            exp_context,
+        session = self._get_session(experiment_id)
+        audit = self._register_session_agent(
             experiment_id,
-            modality_validation=MODALITY_VALIDATION,
+            AuditAgent(memory=self.memory, llm=session.llm_provider),
         )
+        with use_egress_policy(session.egress_policy):
+            audit_result = audit.run_audit(
+                exp_context,
+                experiment_id,
+                modality_validation=MODALITY_VALIDATION,
+            )
         exp_context = self._apply_capability_dispatch_policy(
             exp_context,
             audit_result,
@@ -707,7 +752,6 @@ class OrchestratorAgent(BaseAgent):
             )
 
             # Hold the dispatch payload
-            session = self._get_session(experiment_id)
             session.pending_dispatch = (plan, exp_context)
             self._pending_dispatch[experiment_id] = session.pending_dispatch
 
@@ -1013,8 +1057,13 @@ class OrchestratorAgent(BaseAgent):
             import importlib
             module = importlib.import_module(entry["module"])
             AgentClass = getattr(module, entry["class"])
-            agent = AgentClass(memory=self.memory, llm=self.llm)
-            return agent.run(experiment_id, context)
+            session = self._get_session(experiment_id)
+            agent = self._register_session_agent(
+                experiment_id,
+                AgentClass(memory=self.memory, llm=session.llm_provider),
+            )
+            with use_egress_policy(session.egress_policy):
+                return agent.run(experiment_id, context)
         except Exception as e:
             log.error(f"{agent_name} raised: {e}", exc_info=True)
             return {"status": "error", "error_type": type(e).__name__, "details": str(e), "agent": agent_name}
@@ -1111,7 +1160,7 @@ class OrchestratorAgent(BaseAgent):
             except Exception:
                 pass
 
-    def _parse_question(self, user_question: str) -> dict:
+    def _parse_question(self, user_question: str, llm=None) -> dict:
         prompt = f"""
 User question: "{user_question}"
 Extract the biological analysis intent. Return JSON:
@@ -1124,7 +1173,12 @@ Extract the biological analysis intent. Return JSON:
   "summary": "one sentence biological question summary"
 }}
 """
-        return self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM, schema_hint="Return analysis intent as JSON.")
+        return self.think_structured(
+            prompt,
+            system=ORCHESTRATOR_SYSTEM,
+            schema_hint="Return analysis intent as JSON.",
+            llm=llm,
+        )
 
     def _design_analysis_plan(self, experiment_id: str, exp_context: dict) -> dict:
         prompt = f"""
@@ -1145,8 +1199,14 @@ Design the analysis pipeline. Return JSON:
 }}
 """
         try:
-            plan = self.think_structured(prompt, system=ORCHESTRATOR_SYSTEM,
-                                         schema_hint="Return analysis plan as JSON.")
+            session = self._get_session(experiment_id)
+            with use_egress_policy(session.egress_policy):
+                plan = self.think_structured(
+                    prompt,
+                    system=ORCHESTRATOR_SYSTEM,
+                    schema_hint="Return analysis plan as JSON.",
+                    llm=session.llm_provider,
+                )
             if not plan or "steps" not in plan:
                 raise ValueError("Invalid plan from LLM")
         except Exception as e:

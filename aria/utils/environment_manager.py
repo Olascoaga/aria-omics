@@ -29,7 +29,7 @@ import fcntl
 from pathlib import Path
 from typing import Any
 from aria.utils.provenance import hash_params
-from aria.utils.privacy import redact_sensitive_params
+from aria.utils.privacy import execution_environment, redact_sensitive_params
 from aria.utils.script_contracts import ContractIssue, contract_for_script
 
 shutil_rmtree = shutil.rmtree
@@ -243,6 +243,7 @@ class EnvironmentManager:
                 stderr=subprocess.PIPE,
                 text=True,
                 start_new_session=True,
+                env=execution_environment(),
             )
             try:
                 stdout, stderr = proc.communicate(timeout=max_time)

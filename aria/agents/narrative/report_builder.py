@@ -61,6 +61,14 @@ def _executive_summary_numbers(text: str) -> set[str]:
 class ReportBuilderMixin:
     """Report-rendering/build/staging methods mixed into ``NarrativeAgent``."""
 
+    def _collect_execution_llm_usage(self, since_utc: str | None = None) -> dict:
+        provider = getattr(self, "llm", None)
+        return collect_llm_usage(
+            since_utc,
+            experiment_id=getattr(provider, "experiment_id", None),
+            usage_log=getattr(provider, "usage_log", None),
+        )
+
     def _build_report_dir(self, experiment_id: str,
                            intent: dict, exp_ctx: dict) -> Path:
         """
@@ -424,7 +432,7 @@ class ReportBuilderMixin:
         if isinstance(exp_ctx.get("provenance"), dict):
             provenance.update(exp_ctx["provenance"])
         llm_usage_since = provenance.get("timestamp_utc")
-        llm_usage = collect_llm_usage(llm_usage_since)
+        llm_usage = self._collect_execution_llm_usage(llm_usage_since)
         if reproducible:
             provenance = dict(provenance)
             provenance["timestamp_utc"] = "<timestamp redacted for byte-identity>"
@@ -1123,7 +1131,7 @@ class ReportBuilderMixin:
                 "harmony": 0,
             },
             "tools": tools,
-            "llm_usage": llm_usage or collect_llm_usage(
+            "llm_usage": llm_usage or self._collect_execution_llm_usage(
                 provenance.get("timestamp_utc")
             ),
             "decisions": decisions or [],

@@ -114,8 +114,7 @@ class MessageBus:
                 self._persist_path = None
 
     def enable_persistence(self, persist_path: str) -> None:
-        """Turn on append-only durability at run start (R6). Safe to call on the
-        process-global bus once the run's workspace path is known."""
+        """Turn on append-only durability for this execution's broker."""
         with self._lock:
             path = Path(persist_path)
             try:
@@ -281,11 +280,18 @@ class MessageBus:
 
 
 class _LazyMessageBus:
-    """Create the process-global MessageBus only when it is first used."""
+    """Compatibility router over isolated per-experiment MessageBus instances.
+
+    Legacy callers (TUI/headless/BaseAgent) import one ``bus`` accessor. A3 keeps
+    that API but routes scoped operations to the owning run instead of storing all
+    executions in one broker.
+    """
 
     def __init__(self):
         self._instance: MessageBus | None = None
         self._lock = threading.Lock()
+        self._routing_lock = threading.RLock()
+        self._experiment_buses: dict[str, MessageBus] = {}
 
     def _get(self) -> MessageBus:
         if self._instance is None:
@@ -293,6 +299,84 @@ class _LazyMessageBus:
                 if self._instance is None:
                     self._instance = MessageBus()
         return self._instance
+
+    def bind_experiment(
+        self, experiment_id: str, message_bus: MessageBus
+    ) -> MessageBus:
+        """Bind one execution to its broker, preserving early legacy messages."""
+        if not experiment_id:
+            raise ValueError("experiment_id is required to bind a MessageBus")
+        with self._routing_lock:
+            current = self._experiment_buses.get(experiment_id)
+            if current is message_bus:
+                return message_bus
+            early = self._get().get_log(experiment_id)
+            self._experiment_buses[experiment_id] = message_bus
+        existing = {m.id for m in message_bus.get_log(experiment_id)}
+        for message in early:
+            if message.id not in existing:
+                message_bus.publish(message)
+        return message_bus
+
+    def unbind_experiment(self, experiment_id: str) -> None:
+        with self._routing_lock:
+            self._experiment_buses.pop(experiment_id, None)
+
+    def for_experiment(self, experiment_id: str) -> MessageBus:
+        with self._routing_lock:
+            return self._experiment_buses.get(experiment_id) or self._get()
+
+    def publish(self, message: Message) -> None:
+        self.for_experiment(message.experiment_id).publish(message)
+
+    def get_log(self, experiment_id: str = None) -> list[Message]:
+        if experiment_id:
+            return self.for_experiment(experiment_id).get_log(experiment_id)
+        with self._routing_lock:
+            brokers = [self._get(), *self._experiment_buses.values()]
+        messages: dict[str, Message] = {}
+        for broker in brokers:
+            for message in broker.get_log():
+                messages.setdefault(message.id, message)
+        return sorted(messages.values(), key=lambda message: message.timestamp)
+
+    def get_findings(self, experiment_id: str) -> list[Message]:
+        return self.for_experiment(experiment_id).get_findings(experiment_id)
+
+    def get_pending_checkpoints(
+        self, experiment_id: str | None = None
+    ) -> list[Message]:
+        if experiment_id:
+            return self.for_experiment(experiment_id).get_pending_checkpoints(
+                experiment_id
+            )
+        with self._routing_lock:
+            brokers = [self._get(), *self._experiment_buses.values()]
+        pending: dict[str, Message] = {}
+        for broker in brokers:
+            for message in broker.get_pending_checkpoints():
+                pending.setdefault(message.id, message)
+        return sorted(pending.values(), key=lambda message: message.timestamp)
+
+    def _broker_for_message(self, message_id: str) -> MessageBus:
+        with self._routing_lock:
+            brokers = [*self._experiment_buses.values(), self._get()]
+        for broker in brokers:
+            if any(message.id == message_id for message in broker.get_log()):
+                return broker
+        return self._get()
+
+    def resolve_checkpoint(self, message_id: str, user_decision: dict) -> None:
+        self._broker_for_message(message_id).resolve_checkpoint(
+            message_id, user_decision
+        )
+
+    def wait_for_checkpoint_resolution(
+        self, message_id: str, timeout: float | None = None
+    ) -> dict | None:
+        return self._broker_for_message(message_id).wait_for_checkpoint_resolution(
+            message_id, timeout=timeout
+        )
 
     def __getattr__(self, name: str):
         return getattr(self._get(), name)

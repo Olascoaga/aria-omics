@@ -106,11 +106,30 @@ def test_probe_a1_airgap_after_construction_blocks_egress(monkeypatch):
 
 
 # ── A3 · global MessageBus leaks across concurrent runs ──────────────────────
-@pytest.mark.skip(reason="A3 probe owned by FASE 1: per-run bus/provider isolation; "
-                  "messages from run A must not appear in run B's LLM log "
-                  "(aria/bus/message_bus.py:91)")
-def test_probe_a3_concurrent_runs_do_not_cross_contaminate():
-    ...
+def test_probe_a3_concurrent_runs_do_not_cross_contaminate(tmp_path):
+    from aria.bus.message_bus import Message, MessageBus, MessageType, bus
+    from aria.runtime.experiment_session import ExperimentSession
+
+    a = ExperimentSession(
+        "probe-A", message_bus=MessageBus(persist_path=tmp_path / "A.jsonl")
+    )
+    b = ExperimentSession(
+        "probe-B", message_bus=MessageBus(persist_path=tmp_path / "B.jsonl")
+    )
+    try:
+        bus.publish(Message(
+            sender="probe", receiver="orchestrator", type=MessageType.STATUS,
+            payload={"run": "A"}, experiment_id="probe-A",
+        ))
+        bus.publish(Message(
+            sender="probe", receiver="orchestrator", type=MessageType.STATUS,
+            payload={"run": "B"}, experiment_id="probe-B",
+        ))
+        assert [m.payload["run"] for m in a.message_bus.get_log()] == ["A"]
+        assert [m.payload["run"] for m in b.message_bus.get_log()] == ["B"]
+    finally:
+        bus.unbind_experiment("probe-A")
+        bus.unbind_experiment("probe-B")
 
 
 # ── E2 · filename R1/R2 rule routes ATAC FASTQ to bulk RNA ───────────────────
