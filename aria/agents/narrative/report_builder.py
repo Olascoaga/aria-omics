@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 import html as _html
+import hashlib
 import re
 from datetime import datetime
 from pathlib import Path
@@ -72,9 +73,9 @@ class ReportBuilderMixin:
     def _build_report_dir(self, experiment_id: str,
                            intent: dict, exp_ctx: dict) -> Path:
         """
-        Construct (and mkdir) ~/.aria/reports/aria_<ts>_<slug>_<suffix>/
-        with figures/ + tables/ subdirs. Idempotent: call once early in
-        run() so figure subprocesses have a stable target.
+        Construct (and mkdir) ~/.aria/reports/aria_<ts>_<slug>_<run>/
+        with figures/ + tables/ subdirs. Call exactly once early in run() so
+        figure subprocesses have a stable, execution-owned target.
         """
         reproducible = bool((exp_ctx or {}).get("reproducible_mode"))
         ts        = (
@@ -89,25 +90,35 @@ class ReportBuilderMixin:
                 if rec.get("sha256") and rec.get("sha256") != "unavailable":
                     first_hash = str(rec["sha256"])[:12]
                     break
-            suffix = first_hash or "nohash"
+            content_suffix = first_hash or "nohash"
         else:
-            suffix    = (experiment_id[-4:] if len(experiment_id) >= 4
-                          else experiment_id)
+            content_suffix = ""
+
+        # A6: experiment_id is the execution identity (entrypoints allocate a
+        # fresh UUID-derived id per run).  Keep it in every directory name so
+        # two runs over identical inputs cannot resolve to the same artifact
+        # bundle.  The short hash protects uniqueness if sanitization collapses
+        # unusual caller-supplied ids.  Keep the legacy final-id suffix last for
+        # the history/headless fallback lookup contract.
+        raw_run_id = str(experiment_id or "run")
+        safe_run_id = re.sub(r"[^A-Za-z0-9_-]+", "-", raw_run_id).strip("-_")
+        safe_run_id = (safe_run_id or "run")[-48:]
+        lookup_suffix = re.sub(
+            r"[^A-Za-z0-9_-]+", "-", raw_run_id[-4:]
+        ) or "run"
+        run_token = (
+            f"{hashlib.sha256(raw_run_id.encode('utf-8')).hexdigest()[:8]}_"
+            f"{safe_run_id}_{lookup_suffix}"
+        )
+        suffix = f"{content_suffix}_{run_token}" if content_suffix else run_token
         report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
-                        else f"aria_{ts}_{suffix}")
+                       else f"aria_{ts}_{suffix}")
         report_dir = self.reports_dir / report_name
-        # Preprint audit A6 (interim): the reproducible dir name is deterministic
-        # (aria_reproducible_<slug>_<hash>), so a rerun reused the SAME directory
-        # with exist_ok=True and left STALE artifacts behind — which the capsule
-        # then bundled. Start each reproducible build from a clean, immutable dir so
-        # nothing residual from a prior run can leak in. Timestamped (non-repro)
-        # dirs are second-unique, so only wipe on the deterministic path.
-        if reproducible and report_dir.exists():
-            import shutil
-            shutil.rmtree(report_dir)
-        report_dir.mkdir(parents=True, exist_ok=True)
-        (report_dir / "figures").mkdir(exist_ok=True)
-        (report_dir / "tables").mkdir(exist_ok=True)
+        # Publish a new run identity exactly once.  A collision fails closed;
+        # never delete or reuse a previous run's evidence bundle.
+        report_dir.mkdir(parents=True, exist_ok=False)
+        (report_dir / "figures").mkdir()
+        (report_dir / "tables").mkdir()
         return report_dir
 
     def _generate_scrna_figures(self, agent_results: dict,
@@ -1216,7 +1227,8 @@ class ReportBuilderMixin:
             "calls", "cache_hits", "prompt_tokens", "completion_tokens",
             "total_tokens", "estimated_cost_usd", "deterministic",
             "degraded", "fallback_calls",
-            "temperature", "seed", "models", "tiers",
+            "temperature", "temperature_controlled", "seed", "seed_applied",
+            "seed_deterministic", "models", "tiers",
         ):
             llm_rows.append(
                 "<tr>"
@@ -1224,6 +1236,15 @@ class ReportBuilderMixin:
                 f"<td><code>{_html.escape(str(llm_usage.get(key, 0)))}</code></td>"
                 "</tr>"
             )
+        backend_determinism = json.dumps(
+            llm_usage.get("by_model", {}), sort_keys=True, default=str
+        )
+        llm_rows.append(
+            "<tr>"
+            "<td>backend_determinism</td>"
+            f"<td><code>{_html.escape(backend_determinism)}</code></td>"
+            "</tr>"
+        )
         ingestion_html = self._build_raw_ingestion_section(
             agent_results=agent_results,
             exp_ctx_records=[]

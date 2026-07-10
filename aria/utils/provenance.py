@@ -116,7 +116,10 @@ def collect_llm_usage(
         "models": [],
         "tiers": [],
         "temperature": None,
+        "temperature_controlled": None,
         "seed": None,
+        "seed_applied": None,
+        "seed_deterministic": None,
         "deterministic": True,
         # R4: model-degradation provenance. `degraded` is True if any section
         # ran on a tier fallback instead of the primary model.
@@ -127,7 +130,10 @@ def collect_llm_usage(
     models_seen = set()
     tiers_seen = set()
     temperatures_seen = set()
+    temperature_controlled_seen = set()
     seeds_seen = set()
+    seed_applied_seen = set()
+    seed_deterministic_seen = set()
     since = None
     if since_utc:
         try:
@@ -165,19 +171,31 @@ def collect_llm_usage(
                 tiers_seen.add(tier)
                 if "temperature" in event:
                     try:
-                        temperatures_seen.add(float(event.get("temperature")))
+                        temperature = float(event.get("temperature"))
+                        temperatures_seen.add(temperature)
+                        temperature_controlled_seen.add(temperature == 0.0)
                     except Exception:
+                        temperature_controlled_seen.add(False)
                         totals["deterministic"] = False
                 else:
+                    temperature_controlled_seen.add(False)
                     totals["deterministic"] = False
-                if "seed" in event:
+
+                seed_applied = event.get("seed_applied") is True
+                seed_deterministic = (
+                    seed_applied and event.get("seed_deterministic") is True
+                )
+                seed_applied_seen.add(seed_applied)
+                seed_deterministic_seen.add(seed_deterministic)
+                if seed_applied:
                     try:
                         seeds_seen.add(int(event.get("seed")))
                     except Exception:
                         totals["deterministic"] = False
                 else:
                     totals["deterministic"] = False
-                if event.get("deterministic") is not True:
+                if (event.get("deterministic") is not True
+                        or not seed_deterministic):
                     totals["deterministic"] = False
                 if event.get("cache_hit"):
                     totals["cache_hits"] += 1
@@ -199,10 +217,20 @@ def collect_llm_usage(
                     model,
                     {
                         "calls": 0,
+                        "provider": event.get("provider"),
                         "tiers": [],
                         "temperature": event.get("temperature"),
+                        "temperature_controlled": (
+                            event.get("temperature_controlled") is True
+                        ),
                         "seed": event.get("seed"),
-                        "deterministic": event.get("deterministic") is True,
+                        "seed_applied": seed_applied,
+                        "seed_deterministic": seed_deterministic,
+                        "deterministic": (
+                            event.get("deterministic") is True
+                            and seed_deterministic
+                        ),
+                        "cache_hits": 0,
                         "prompt_tokens": 0,
                         "completion_tokens": 0,
                         "total_tokens": 0,
@@ -213,12 +241,23 @@ def collect_llm_usage(
                 if tier not in by_model["tiers"]:
                     by_model["tiers"].append(tier)
                     by_model["tiers"].sort()
+                if by_model.get("provider") != event.get("provider"):
+                    by_model["provider"] = "mixed"
                 if by_model.get("temperature") != event.get("temperature"):
                     by_model["temperature"] = "mixed"
                 if by_model.get("seed") != event.get("seed"):
                     by_model["seed"] = "mixed"
-                if event.get("deterministic") is not True:
+                if event.get("temperature_controlled") is not True:
+                    by_model["temperature_controlled"] = False
+                if not seed_applied:
+                    by_model["seed_applied"] = False
+                if not seed_deterministic:
+                    by_model["seed_deterministic"] = False
+                if (event.get("deterministic") is not True
+                        or not seed_deterministic):
                     by_model["deterministic"] = False
+                if event.get("cache_hit"):
+                    by_model["cache_hits"] += 1
                 for key in ("prompt_tokens", "completion_tokens", "total_tokens"):
                     by_model[key] += int(event.get(key) or 0)
                 by_model["estimated_cost_usd"] += float(
@@ -229,6 +268,14 @@ def collect_llm_usage(
     totals["estimated_cost_usd"] = round(totals["estimated_cost_usd"], 6)
     totals["models"] = sorted(models_seen)
     totals["tiers"] = sorted(tiers_seen)
+    if totals["calls"]:
+        totals["temperature_controlled"] = (
+            temperature_controlled_seen == {True}
+        )
+        totals["seed_applied"] = seed_applied_seen == {True}
+        totals["seed_deterministic"] = seed_deterministic_seen == {True}
+    else:
+        totals["deterministic"] = None
     if len(temperatures_seen) == 1:
         totals["temperature"] = next(iter(temperatures_seen))
     elif len(temperatures_seen) > 1:

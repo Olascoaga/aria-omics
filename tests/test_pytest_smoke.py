@@ -3498,7 +3498,9 @@ def test_collect_llm_usage_summarizes_deterministic_provenance(monkeypatch, tmp_
     usage_log = tmp_path / "usage.jsonl"
     usage_log.write_text(
         '{"timestamp_utc":"2026-01-01T00:00:04+00:00","model":"m",'
-        '"tier":"heavy","temperature":0.0,"seed":0,"deterministic":true,'
+        '"tier":"heavy","temperature":0.0,"temperature_controlled":true,'
+        '"seed":0,"seed_applied":true,"seed_deterministic":true,'
+        '"deterministic":true,'
         '"prompt_tokens":10,"completion_tokens":1,"total_tokens":11,'
         '"estimated_cost_usd":0.1}\n'
     )

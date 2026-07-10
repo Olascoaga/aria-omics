@@ -403,6 +403,14 @@ class LLMProvider:
             "fallback_reason": fallback_reason,
         }
 
+        # Determinism is backend-specific.  Temperature zero is applied to all
+        # backends, but only this allowlist receives a seed; provenance must not
+        # promote a temperature-only call to seed-deterministic.
+        seed_applied = cfg.provider.lower() in _SEED_SUPPORTED_PROVIDERS
+        seed_value = self.DETERMINISTIC_SEED if seed_applied else None
+        seed_deterministic = seed_applied
+        deterministic = seed_deterministic
+
         # Cache lookup (only for single-prompt calls — multi-turn histories
         # are skipped because the cache key would explode in size).
         cache_key = None
@@ -413,7 +421,7 @@ class LLMProvider:
                 prompt,
                 max_tokens,
                 self.DETERMINISTIC_TEMPERATURE,
-                self.DETERMINISTIC_SEED,
+                seed_value,
                 self._cache_version_salt,
             )
             cached = self._cache_get(cache_key)
@@ -425,8 +433,12 @@ class LLMProvider:
                     "model": cfg.model,
                     "tier": tier.value,
                     "temperature": self.DETERMINISTIC_TEMPERATURE,
-                    "seed": self.DETERMINISTIC_SEED,
-                    "deterministic": True,
+                    "temperature_controlled": True,
+                    "seed": seed_value,
+                    "seed_applied": seed_applied,
+                    "seed_deterministic": seed_deterministic,
+                    "deterministic": deterministic,
+                    "cache_replay_deterministic": True,
                     "cache_hit": True,
                     "prompt_tokens": 0,
                     "completion_tokens": 0,
@@ -439,6 +451,10 @@ class LLMProvider:
                     "model": cfg.model,
                     "cache_hit": True,
                     "finish_reason": None,
+                    "temperature_controlled": True,
+                    "seed_applied": seed_applied,
+                    "seed_deterministic": seed_deterministic,
+                    "deterministic": deterministic,
                     **degradation,
                 }
                 return cached
@@ -463,9 +479,7 @@ class LLMProvider:
                 max_response_tokens=max_tokens,
             )
 
-        # seed only where the provider honors it (anthropic/gemini reject it).
-        seed_applied = cfg.provider in _SEED_SUPPORTED_PROVIDERS
-        seed_value = self.DETERMINISTIC_SEED if seed_applied else None
+        # Seed only where the provider honors it (Anthropic/Gemini reject it).
         kwargs = dict(
             model=cfg.model,
             messages=msgs,
@@ -509,9 +523,12 @@ class LLMProvider:
             "model": cfg.model,
             "tier": tier.value,
             "temperature": self.DETERMINISTIC_TEMPERATURE,
+            "temperature_controlled": True,
             "seed": seed_value,
             "seed_applied": seed_applied,
-            "deterministic": True,
+            "seed_deterministic": seed_deterministic,
+            "deterministic": deterministic,
+            "cache_replay_deterministic": False,
             "cache_hit": False,
             "prompt_tokens": prompt_tokens,
             "completion_tokens": completion_tokens,
@@ -524,6 +541,10 @@ class LLMProvider:
             "model": cfg.model,
             "cache_hit": False,
             "finish_reason": finish_reason,
+            "temperature_controlled": True,
+            "seed_applied": seed_applied,
+            "seed_deterministic": seed_deterministic,
+            "deterministic": deterministic,
             **degradation,
         }
         if cache_key is not None and text:
@@ -539,7 +560,7 @@ class LLMProvider:
         prompt: str,
         max_tokens: int,
         temperature: float,
-        seed: int,
+        seed: int | None,
         version_salt: str = "",
     ) -> str:
         blob = json.dumps(

@@ -4,9 +4,9 @@ A2: the lab keeps ONE SQLite for all experiments (wings), so copying the whole D
 into the report/capsule leaked every other experiment's state. The memory snapshot
 must now export ONLY the current experiment's wing subtree.
 
-A6: the reproducible report dir name is deterministic, so a rerun reused the same
-directory and left stale artifacts that the capsule then bundled. Each reproducible
-build must start from a clean directory.
+A6 interim: the reproducible report dir name was deterministic, so a rerun reused
+the same directory and left stale artifacts that the capsule then bundled. The
+full A6 fix gives every execution an immutable directory identity.
 
 Tracker: memory/audit/ARIA_PLAN_AUDITORIA_preprint_journal_2026-07-09.md
 """
@@ -97,7 +97,7 @@ def test_write_memory_snapshot_never_copies_full_db(tmp_path):
         conn.close()
 
 
-def test_reproducible_report_dir_is_wiped_clean_on_rerun(tmp_path):
+def test_reproducible_report_dir_never_reuses_prior_run(tmp_path):
     from aria.agents.narrative.report_builder import ReportBuilderMixin
 
     class _Host(ReportBuilderMixin):
@@ -111,12 +111,13 @@ def test_reproducible_report_dir_is_wiped_clean_on_rerun(tmp_path):
     exp_ctx = {"reproducible_mode": True,
                "input_files": [{"sha256": "abc123def4567890"}]}
 
-    d1 = host._build_report_dir("exp1234", {}, exp_ctx)
+    d1 = host._build_report_dir("run-exp1234", {}, exp_ctx)
     stale = d1 / "figures" / "stale_from_prior_run.png"
     stale.write_bytes(b"old")
     assert stale.exists()
 
-    d2 = host._build_report_dir("exp1234", {}, exp_ctx)  # deterministic same name
-    assert d2 == d1                      # same deterministic dir
-    assert not stale.exists()            # ... but wiped clean, no residue
+    d2 = host._build_report_dir("run-exp5678", {}, exp_ctx)
+    assert d2 != d1
+    assert stale.exists()                 # prior evidence is never deleted
+    assert not (d2 / "figures" / stale.name).exists()
     assert (d2 / "figures").is_dir() and (d2 / "tables").is_dir()
