@@ -363,6 +363,12 @@ class SetupAgent(BaseAgent):
 
     def _install_miniforge(self) -> str:
         """Download and install Miniforge silently."""
+        # Preprint audit A1: refuse the Miniforge download/install under air-gap;
+        # an air-gapped run expects a pre-provisioned conda, not a network install.
+        from aria.utils.privacy import egress_allowed
+        if not egress_allowed():
+            return ("ARIA_AIR_GAPPED is enabled; refusing to download/install "
+                    "Miniforge. Provide a pre-installed conda in air-gapped mode.")
         system  = platform.system().lower()
         machine = platform.machine().lower()
 
@@ -640,6 +646,13 @@ class SetupAgent(BaseAgent):
 
     def _download(self, url: str, dest: Path) -> Optional[str]:
         """Download a file. Returns None on success, error string on failure."""
+        # Preprint audit A1: setup egress must honor the air-gap gate too, not just
+        # the LLM layer. Fail closed — refuse the download and surface an honest
+        # reason instead of silently shelling out to curl/wget.
+        from aria.utils.privacy import egress_allowed
+        if not egress_allowed():
+            return (f"ARIA_AIR_GAPPED is enabled; refusing to download {url}. "
+                    f"Stage the reference locally or disable air-gapped mode.")
         for downloader in [
             ["curl", "-fsSL", "--progress-bar", "-o", str(dest), url],
             ["wget", "-q", "--show-progress", "-O", str(dest), url],

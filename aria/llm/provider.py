@@ -184,14 +184,18 @@ class LLMProvider:
         cache_dir:   Optional[str] = None,
     ):
         load_aria_env()
-        self._air_gapped = air_gapped_enabled()
-        configured_models = models or DEFAULT_MODELS
+        self.models   = models or DEFAULT_MODELS
+        # If ALREADY air-gapped at construction, drop cloud models up front (an
+        # optimization + backward-compatible behavior). Preprint audit A1: this is
+        # NO LONGER the only gate — ``_air_gapped`` is a LIVE property and the
+        # call-time filters in ``complete`` / ``_call`` re-check it, so a provider
+        # built BEFORE the user opts into air-gap (e.g. at the CP1 sensitivity
+        # checkpoint) still refuses every cloud call afterward.
         if self._air_gapped:
-            configured_models = {
+            self.models = {
                 tier: [m for m in cfgs if m.is_local]
-                for tier, cfgs in configured_models.items()
+                for tier, cfgs in self.models.items()
             }
-        self.models   = configured_models
         self.api_keys = api_keys or {}
         # R3: per-call timeout (seconds). Env override, clamped to a sane floor.
         try:
@@ -234,6 +238,14 @@ class LLMProvider:
                 self._cache_dir = None
         else:
             self._cache_dir = None
+
+    @property
+    def _air_gapped(self) -> bool:
+        """Live air-gap state, re-evaluated on EVERY access (never cached at
+        construction). Preprint audit A1: a provider built before the user opts
+        into air-gap must still refuse every cloud call afterward, so all
+        egress decisions read this property rather than a stored flag."""
+        return air_gapped_enabled()
 
     # ── Public interface ─────────────────────────────────────────────────
 

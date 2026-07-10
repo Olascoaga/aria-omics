@@ -18,6 +18,8 @@ Tracker: memory/audit/ARIA_PLAN_AUDITORIA_preprint_journal_2026-07-09.md
 """
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pytest
 
@@ -65,12 +67,42 @@ def test_probe_c2_gfap_claim_against_null_evidence_is_unsupported():
     assert manifest["status"] == "unsupported"
 
 
-# ── A1 · air-gap resolved once at provider construction ──────────────────────
-@pytest.mark.skip(reason="A1 probe owned by FASE 1: needs a per-run egress context; "
-                  "air-gap enabled after LLMProvider() must still block every call "
-                  "(aria/llm/provider.py:180)")
-def test_probe_a1_airgap_after_construction_blocks_egress():
-    ...
+# ── A1 · air-gap resolved once at provider construction (FIXED FASE 1) ───────
+# aria/llm/provider.py — air-gap is no longer snapshotted in __init__; the
+# _air_gapped property re-evaluates live, so enabling air-gap AFTER the provider
+# is built still refuses every cloud call with zero egress.
+def test_probe_a1_airgap_after_construction_blocks_egress(monkeypatch):
+    monkeypatch.delenv("ARIA_AIR_GAPPED", raising=False)
+    from aria.llm import provider as prov_mod
+    from aria.llm.provider import LLMProvider, ModelConfig, TaskTier
+    from aria.utils import privacy
+
+    # Restore global air-gap state after the test (enable_* mutates os.environ).
+    prev = os.environ.get("ARIA_AIR_GAPPED")
+    prev_reason = privacy._runtime_air_gapped_reason
+    try:
+        # Any real network call fails loudly -> proves zero egress.
+        def _boom(*a, **k):
+            raise AssertionError("EGRESS: litellm.completion was called")
+        monkeypatch.setattr(prov_mod.litellm, "completion", _boom)
+
+        cloud_only = {TaskTier.MEDIUM:
+                      [ModelConfig("anthropic", "claude-cloud", 8000, is_local=False)]}
+        p = LLMProvider(models=cloud_only)          # built NOT air-gapped
+        assert p._air_gapped is False
+
+        privacy.enable_air_gapped_runtime(reason="post_construction_optin")
+        assert p._air_gapped is True                # live re-check (the A1 fix)
+
+        # The cloud call is refused BEFORE any egress, not attempted.
+        with pytest.raises(RuntimeError, match="AIR_GAPPED"):
+            p.complete(prompt="hello", tier=TaskTier.MEDIUM)
+    finally:
+        if prev is None:
+            os.environ.pop("ARIA_AIR_GAPPED", None)
+        else:
+            os.environ["ARIA_AIR_GAPPED"] = prev
+        privacy._runtime_air_gapped_reason = prev_reason
 
 
 # ── A3 · global MessageBus leaks across concurrent runs ──────────────────────
