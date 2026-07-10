@@ -5577,147 +5577,147 @@
       "label": "._generate_scrna_figures()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L96"
+      "source_location": "L105"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_generate_chromatin_figures",
       "label": "._generate_chromatin_figures()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L128"
+      "source_location": "L137"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_speculative_verification_state",
       "label": "._speculative_verification_state()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L166"
+      "source_location": "L175"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_speculative_section_html",
       "label": "._build_speculative_section_html()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L239"
+      "source_location": "L248"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_render_html_report",
       "label": "._render_html_report()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296"
+      "source_location": "L305"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_govern_executive_summary",
       "label": "._govern_executive_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L749"
+      "source_location": "L758"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_unsupported_executive_summary_numbers",
       "label": "._unsupported_executive_summary_numbers()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L796"
+      "source_location": "L805"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_executive_summary_block",
       "label": "._build_executive_summary_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809"
+      "source_location": "L818"
     },
     {
       "id": "aria_agents_narrative_report_builder_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809"
+      "source_location": "L818"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_make_executive_summary_block",
       "label": "._make_executive_summary_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L875"
+      "source_location": "L884"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
       "label": "._ensure_executive_summary_ledger_node()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L945"
+      "source_location": "L954"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_write_memory_snapshot",
       "label": "._write_memory_snapshot()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L975"
+      "source_location": "L984"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_methodology_json",
       "label": "._build_methodology_json()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L986"
+      "source_location": "L1014"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_provenance_section",
       "label": "._build_provenance_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1105"
+      "source_location": "L1133"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_qc_section",
       "label": "._build_qc_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1231"
+      "source_location": "L1259"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_findings_section",
       "label": "._build_findings_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1363"
+      "source_location": "L1391"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_methodology_table",
       "label": "._build_methodology_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1440"
+      "source_location": "L1468"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_bulk_rna_plots",
       "label": "._build_bulk_rna_plots()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1497"
+      "source_location": "L1525"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_stage_artifacts",
       "label": "._stage_artifacts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1676"
+      "source_location": "L1704"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_findings_table",
       "label": "._build_findings_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1795"
+      "source_location": "L1823"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_decisions_table",
       "label": "._build_decisions_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1818"
+      "source_location": "L1846"
     },
     {
       "id": "narrative_report_sections",
@@ -29839,7 +29839,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -30084,7 +30084,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -30106,7 +30106,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -42293,6 +42293,62 @@
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_q2_tobias.py",
       "source_location": "L50"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule",
+      "label": "test_preprint_audit_q3_capsule.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_seed",
+      "label": "_seed()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_py_ariamemory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_test_export_experiment_snapshot_is_scoped_to_one_experiment",
+      "label": "test_export_experiment_snapshot_is_scoped_to_one_experiment()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L32"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_test_snapshot_of_unknown_experiment_is_empty_not_full_db",
+      "label": "test_snapshot_of_unknown_experiment_is_empty_not_full_db()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_test_write_memory_snapshot_never_copies_full_db",
+      "label": "test_write_memory_snapshot_never_copies_full_db()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L74"
+    },
+    {
+      "id": "tests_test_preprint_audit_q3_capsule_test_reproducible_report_dir_is_wiped_clean_on_rerun",
+      "label": "test_reproducible_report_dir_is_wiped_clean_on_rerun()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L100"
     },
     {
       "id": "tests_test_pseudobulk_composition_and_background",
@@ -65710,7 +65766,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L96",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -65720,7 +65776,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L96",
+      "source_location": "L105",
       "weight": 1.0
     },
     {
@@ -65729,7 +65785,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L128",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -65739,7 +65795,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L128",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -65748,7 +65804,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L166",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -65757,7 +65813,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L239",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -65767,7 +65823,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L239",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -65777,7 +65833,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L239",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -65786,7 +65842,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65796,7 +65852,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65806,7 +65862,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65816,7 +65872,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65826,7 +65882,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65836,7 +65892,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L296",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -65845,7 +65901,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L749",
+      "source_location": "L758",
       "weight": 1.0
     },
     {
@@ -65855,7 +65911,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L749",
+      "source_location": "L758",
       "weight": 1.0
     },
     {
@@ -65865,7 +65921,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L749",
+      "source_location": "L758",
       "weight": 1.0
     },
     {
@@ -65875,7 +65931,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L749",
+      "source_location": "L758",
       "weight": 1.0
     },
     {
@@ -65884,7 +65940,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L796",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -65894,7 +65950,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L796",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -65904,7 +65960,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L796",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -65913,7 +65969,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65923,7 +65979,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65933,7 +65989,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65943,7 +65999,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65953,7 +66009,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65963,7 +66019,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L809",
+      "source_location": "L818",
       "weight": 1.0
     },
     {
@@ -65972,7 +66028,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L875",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -65982,7 +66038,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L875",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -65992,7 +66048,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L875",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -66002,7 +66058,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L875",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -66011,7 +66067,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L945",
+      "source_location": "L954",
       "weight": 1.0
     },
     {
@@ -66021,7 +66077,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L945",
+      "source_location": "L954",
       "weight": 1.0
     },
     {
@@ -66030,7 +66086,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L975",
+      "source_location": "L984",
       "weight": 1.0
     },
     {
@@ -66040,7 +66096,17 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L975",
+      "source_location": "L984",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_write_memory_snapshot",
+      "target": "aria_agents_narrative_report_builder_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L984",
       "weight": 1.0
     },
     {
@@ -66049,7 +66115,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L986",
+      "source_location": "L1014",
       "weight": 1.0
     },
     {
@@ -66058,7 +66124,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1105",
+      "source_location": "L1133",
       "weight": 1.0
     },
     {
@@ -66068,7 +66134,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1105",
+      "source_location": "L1133",
       "weight": 1.0
     },
     {
@@ -66077,7 +66143,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1231",
+      "source_location": "L1259",
       "weight": 1.0
     },
     {
@@ -66087,7 +66153,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1231",
+      "source_location": "L1259",
       "weight": 1.0
     },
     {
@@ -66096,7 +66162,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1363",
+      "source_location": "L1391",
       "weight": 1.0
     },
     {
@@ -66106,7 +66172,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1363",
+      "source_location": "L1391",
       "weight": 1.0
     },
     {
@@ -66116,7 +66182,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1363",
+      "source_location": "L1391",
       "weight": 1.0
     },
     {
@@ -66125,7 +66191,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1440",
+      "source_location": "L1468",
       "weight": 1.0
     },
     {
@@ -66135,7 +66201,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1440",
+      "source_location": "L1468",
       "weight": 1.0
     },
     {
@@ -66144,7 +66210,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1497",
+      "source_location": "L1525",
       "weight": 1.0
     },
     {
@@ -66154,7 +66220,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1497",
+      "source_location": "L1525",
       "weight": 1.0
     },
     {
@@ -66163,7 +66229,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1676",
+      "source_location": "L1704",
       "weight": 1.0
     },
     {
@@ -66173,7 +66239,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1676",
+      "source_location": "L1704",
       "weight": 1.0
     },
     {
@@ -66182,7 +66248,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1795",
+      "source_location": "L1823",
       "weight": 1.0
     },
     {
@@ -66192,7 +66258,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1795",
+      "source_location": "L1823",
       "weight": 1.0
     },
     {
@@ -66201,7 +66267,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1818",
+      "source_location": "L1846",
       "weight": 1.0
     },
     {
@@ -66211,7 +66277,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1818",
+      "source_location": "L1846",
       "weight": 1.0
     },
     {
@@ -66231,7 +66297,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L160",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -66241,7 +66307,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L269",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -66251,7 +66317,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L327",
+      "source_location": "L336",
       "weight": 1.0
     },
     {
@@ -66261,7 +66327,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L329",
+      "source_location": "L338",
       "weight": 1.0
     },
     {
@@ -66271,7 +66337,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L332",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -66281,7 +66347,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L341",
+      "source_location": "L350",
       "weight": 1.0
     },
     {
@@ -66291,7 +66357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L368",
+      "source_location": "L377",
       "weight": 1.0
     },
     {
@@ -66301,7 +66367,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L404",
+      "source_location": "L413",
       "weight": 1.0
     },
     {
@@ -66311,7 +66377,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L407",
+      "source_location": "L416",
       "weight": 1.0
     },
     {
@@ -66321,7 +66387,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L429",
+      "source_location": "L438",
       "weight": 1.0
     },
     {
@@ -66331,7 +66397,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L436",
+      "source_location": "L445",
       "weight": 1.0
     },
     {
@@ -66341,7 +66407,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L446",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -66351,7 +66417,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L652",
+      "source_location": "L661",
       "weight": 1.0
     },
     {
@@ -66361,7 +66427,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L720",
+      "source_location": "L729",
       "weight": 1.0
     },
     {
@@ -66371,7 +66437,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L745",
+      "source_location": "L754",
       "weight": 1.0
     },
     {
@@ -66381,7 +66447,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L776",
+      "source_location": "L785",
       "weight": 1.0
     },
     {
@@ -66391,7 +66457,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L798",
+      "source_location": "L807",
       "weight": 1.0
     },
     {
@@ -66401,7 +66467,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L820",
+      "source_location": "L829",
       "weight": 1.0
     },
     {
@@ -66411,17 +66477,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L923",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_write_memory_snapshot",
-      "target": "aria_agents_narrative_report_builder_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L979",
+      "source_location": "L932",
       "weight": 1.0
     },
     {
@@ -66431,7 +66487,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1060",
+      "source_location": "L1088",
       "weight": 1.0
     },
     {
@@ -66441,7 +66497,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1411",
+      "source_location": "L1439",
       "weight": 1.0
     },
     {
@@ -66451,7 +66507,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1578",
+      "source_location": "L1606",
       "weight": 1.0
     },
     {
@@ -66461,7 +66517,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1655",
+      "source_location": "L1683",
       "weight": 1.0
     },
     {
@@ -66471,7 +66527,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1704",
+      "source_location": "L1732",
       "weight": 1.0
     },
     {
@@ -131701,7 +131757,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -131754,7 +131810,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -131764,7 +131820,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -131774,7 +131830,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -131784,7 +131840,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -131794,7 +131850,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -132116,7 +132172,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -132125,7 +132181,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -132160,7 +132216,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -132170,7 +132226,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_wgzhha_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zyfwov_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -155242,6 +155298,131 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "tests_test_preprint_audit_q3_capsule_seed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_seed",
+      "target": "tests_test_preprint_audit_q3_capsule_py_ariamemory",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_seed",
+      "target": "tests_test_preprint_audit_q3_capsule_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "tests_test_preprint_audit_q3_capsule_test_export_experiment_snapshot_is_scoped_to_one_experiment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "tests_test_preprint_audit_q3_capsule_test_snapshot_of_unknown_experiment_is_empty_not_full_db",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "tests_test_preprint_audit_q3_capsule_test_write_memory_snapshot_never_copies_full_db",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "tests_test_preprint_audit_q3_capsule_test_reproducible_report_dir_is_wiped_clean_on_rerun",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L100",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_export_experiment_snapshot_is_scoped_to_one_experiment",
+      "target": "tests_test_preprint_audit_q3_capsule_py_ariamemory",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_export_experiment_snapshot_is_scoped_to_one_experiment",
+      "target": "tests_test_preprint_audit_q3_capsule_seed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_snapshot_of_unknown_experiment_is_empty_not_full_db",
+      "target": "tests_test_preprint_audit_q3_capsule_py_ariamemory",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L59",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_snapshot_of_unknown_experiment_is_empty_not_full_db",
+      "target": "tests_test_preprint_audit_q3_capsule_seed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L60",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_write_memory_snapshot_never_copies_full_db",
+      "target": "tests_test_preprint_audit_q3_capsule_py_ariamemory",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule_test_write_memory_snapshot_never_copies_full_db",
+      "target": "tests_test_preprint_audit_q3_capsule_seed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_pseudobulk_composition_and_background",
       "target": "tests_test_pseudobulk_composition_and_background_test_composition_omitted_when_collinearity_unmeasurable",
       "relation": "contains",
@@ -161385,7 +161566,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L141",
+      "source_location": "L150",
       "weight": 1.0
     },
     {
@@ -161395,7 +161576,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L191",
+      "source_location": "L200",
       "weight": 1.0
     },
     {
@@ -161405,7 +161586,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L259",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -161415,7 +161596,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L259",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -161425,7 +161606,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L259",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -161435,7 +161616,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L259",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -161445,7 +161626,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L358",
+      "source_location": "L367",
       "weight": 1.0
     },
     {
@@ -161455,7 +161636,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L366",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -161465,7 +161646,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L387",
+      "source_location": "L396",
       "weight": 1.0
     },
     {
@@ -161475,7 +161656,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L740",
+      "source_location": "L749",
       "weight": 1.0
     },
     {
@@ -161485,7 +161666,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L825",
+      "source_location": "L834",
       "weight": 1.0
     },
     {
@@ -161495,7 +161676,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1020",
+      "source_location": "L1048",
       "weight": 1.0
     },
     {
@@ -161505,7 +161686,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1029",
+      "source_location": "L1057",
       "weight": 1.0
     },
     {
@@ -161515,7 +161696,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1066",
+      "source_location": "L1094",
       "weight": 1.0
     },
     {
@@ -161525,7 +161706,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1071",
+      "source_location": "L1099",
       "weight": 1.0
     },
     {
@@ -161535,7 +161716,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1371",
+      "source_location": "L1399",
       "weight": 1.0
     },
     {
@@ -161545,7 +161726,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1371",
+      "source_location": "L1399",
       "weight": 1.0
     },
     {
@@ -170996,6 +171177,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_q2_tobias.py",
       "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_q3_capsule",
+      "target": "narrative_report_builder_reportbuildermixin",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_q3_capsule.py",
+      "source_location": "L76",
       "weight": 1.0
     },
     {
@@ -187243,7 +187434,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L148",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -187254,7 +187445,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L272",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -187265,7 +187456,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L280",
+      "source_location": "L289",
       "weight": 1.0
     },
     {
@@ -187276,7 +187467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L289",
+      "source_location": "L298",
       "weight": 1.0
     },
     {
@@ -187287,7 +187478,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L359",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -187298,7 +187489,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L367",
+      "source_location": "L376",
       "weight": 1.0
     },
     {
@@ -187309,7 +187500,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L388",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -187320,7 +187511,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L414",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -187331,7 +187522,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L418",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -187342,7 +187533,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L741",
+      "source_location": "L750",
       "weight": 1.0
     },
     {
@@ -187353,7 +187544,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L767",
+      "source_location": "L776",
       "weight": 1.0
     },
     {
@@ -187364,7 +187555,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L772",
+      "source_location": "L781",
       "weight": 1.0
     },
     {
@@ -187375,7 +187566,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L828",
+      "source_location": "L837",
       "weight": 1.0
     },
     {
@@ -187386,7 +187577,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L922",
+      "source_location": "L931",
       "weight": 1.0
     },
     {
@@ -187397,7 +187588,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1021",
+      "source_location": "L1049",
       "weight": 1.0
     },
     {
@@ -187408,7 +187599,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1030",
+      "source_location": "L1058",
       "weight": 1.0
     },
     {
@@ -187419,7 +187610,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1038",
+      "source_location": "L1066",
       "weight": 1.0
     },
     {
@@ -187430,7 +187621,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1048",
+      "source_location": "L1076",
       "weight": 1.0
     },
     {
@@ -187441,7 +187632,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1067",
+      "source_location": "L1095",
       "weight": 1.0
     },
     {
@@ -187452,7 +187643,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1072",
+      "source_location": "L1100",
       "weight": 1.0
     },
     {
@@ -187463,7 +187654,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1096",
+      "source_location": "L1124",
       "weight": 1.0
     },
     {
@@ -187474,7 +187665,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1375",
+      "source_location": "L1403",
       "weight": 1.0
     },
     {
@@ -187485,7 +187676,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1407",
+      "source_location": "L1435",
       "weight": 1.0
     },
     {
