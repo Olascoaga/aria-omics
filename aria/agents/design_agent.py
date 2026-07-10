@@ -80,6 +80,7 @@ class DesignAgent(BaseAgent):
         self._batch_covariate: Optional[str] = None
         self._inferred_design: dict = {}
         self._pseudobulk_design: dict = {}
+        self._replicate_handling: Optional[dict] = None
         # IDs for current escalation (needed to resolve later)
         self._pending_escalation_id: Optional[str] = None
         self._experiment_id: Optional[str] = None
@@ -96,6 +97,7 @@ class DesignAgent(BaseAgent):
         """
         self._experiment_id = experiment_id
         self._step = DesignStep.START
+        self._replicate_handling = None
 
         # Collect sample filenames from the context
         raw_files = []
@@ -411,17 +413,42 @@ class DesignAgent(BaseAgent):
         return {"status": "awaiting_user", "step": "pseudorep"}
 
     def _handle_pseudorep_response(self, choice: str) -> dict:
-        # Just log the warning; no change to design
+        choice_l = str(choice or "").lower()
+        if choice_l.startswith("yes") and "independent" in choice_l:
+            self._replicate_handling = self._build_replicate_handling(
+                technical=False
+            )
+        elif choice_l.startswith("no") and "technical" in choice_l:
+            self._replicate_handling = self._build_replicate_handling(
+                technical=True
+            )
+        else:
+            # B1: uncertainty cannot authorize independent biological n.
+            return {
+                "status": "cancelled",
+                "reason": "replicate_structure_unresolved",
+            }
         self._step = DesignStep.CONFIRM
         self._publish_confirm_checkpoint()
         return {"status": "awaiting_user", "step": "confirm"}
 
     def _handle_confirm_response(self, choice: str) -> dict:
+        design = self._build_design()
+        if design.get("design_status") == "blocking":
+            reason = (
+                "replicate_mapping_conflict"
+                if design.get("replicate_handling", {}).get("conflicts")
+                else "insufficient_biological_replicates"
+            )
+            return {
+                "status": "cancelled",
+                "reason": reason,
+                "design": design,
+            }
         if choice != "Yes — proceed":
             return {"status": "cancelled", "reason": "User did not approve design"}
 
         # Build final design
-        design = self._build_design()
         self._store_design(design)
         self._step = DesignStep.DONE
         return {"status": "done", "design": design}
@@ -610,16 +637,16 @@ class DesignAgent(BaseAgent):
 
     def _publish_pseudorep_checkpoint(self):
         # Heuristic pseudoreplication check
-        def _root(stem: str) -> str:
-            return re.sub(r'[_\-]?(rep\d*|r\d*|_\d+)$', '', stem, flags=re.IGNORECASE)
-
         warning_groups = []
         for group, members in (self._confirmed_groups or {}).items():
-            roots = set(_root(m) for m in members)
+            roots = {self._technical_replicate_root(m) for m in members}
             if len(roots) < len(members):
                 warning_groups.append(group)
 
         if not warning_groups:
+            self._replicate_handling = self._build_replicate_handling(
+                technical=False
+            )
             self._step = DesignStep.CONFIRM
             self._publish_confirm_checkpoint()
             return
@@ -635,8 +662,8 @@ class DesignAgent(BaseAgent):
             question=question,
             options=[
                 "Yes — they are independent biological replicates",
-                "No — they are technical replicates (consider pairing)",
-                "Not sure — proceed anyway",
+                "No — technical replicates; merge by biological unit",
+                "Not sure — stop and provide a sample sheet",
             ],
         )
         self._pending_escalation_id = msg.id
@@ -650,19 +677,28 @@ class DesignAgent(BaseAgent):
             f"Factor:   {design['main_factor']}",
             f"Design formula: {design['design_formula']}",
             f"Replicates: {design['replicates']}",
+            f"Experimental unit: {design['experimental_unit']}",
+            f"Analysis design: {design['analysis_design_formula']}",
+            f"Nominal residual df: {design['nominal_residual_df']}",
         ]
+        if design.get("design_status") == "blocking":
+            summary.append(
+                "BLOCKING: " + ", ".join(design.get("blocking_reasons", []))
+            )
         if design.get("batch_covariate"):
             summary.append(f"Batch covariate: {design['batch_covariate']}")
 
         question = "Experimental design ready:\n\n" + "\n".join(summary) + "\n\nProceed with analysis?"
+        options = (
+            ["Yes — proceed", "Cancel"]
+            if design.get("design_status") != "blocking"
+            else ["Cancel — provide biological replicate mapping"]
+        )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
             checkpoint=2.6,
             question=question,
-            options=[
-                "Yes — proceed",
-                "Cancel",
-            ],
+            options=options,
         )
         self._pending_escalation_id = msg.id
 
@@ -752,20 +788,126 @@ class DesignAgent(BaseAgent):
         else:
             formula = f"~ {main_factor}"
 
-        replicates = {g: len(mems) for g, mems in (self._confirmed_groups or {}).items()}
+        handling = self._replicate_handling or self._build_replicate_handling(
+            technical=False
+        )
+        replicates = {
+            str(group): sum(
+                1 for unit in handling["units"]
+                if unit["group"] == str(group)
+            )
+            for group in (self._confirmed_groups or {})
+        }
+        n_input_libraries = sum(
+            len(members) for members in (self._confirmed_groups or {}).values()
+        )
+        n_units = sum(replicates.values())
+        n_groups = sum(1 for count in replicates.values() if count > 0)
+        nominal_residual_df = max(0, n_units - n_groups)
+        blocking_groups = (
+            {
+                group: count for group, count in replicates.items() if count < 2
+            }
+            if handling["mode"] == "technical_aggregate"
+            else {}
+        )
+        if handling["mode"] == "technical_aggregate":
+            analysis_design_formula = (
+                f"sum technical libraries by biological_unit; {formula}"
+            )
+            experimental_unit = "biological_unit"
+        else:
+            analysis_design_formula = formula
+            experimental_unit = "sample"
+        analysis_groups = {
+            str(group): [
+                unit["id"] for unit in handling["units"]
+                if unit["group"] == str(group)
+            ]
+            for group in (self._confirmed_groups or {})
+        }
+        pseudobulk_design = dict(self._pseudobulk_design or {})
+        if handling["mode"] == "technical_aggregate":
+            pseudobulk_design.setdefault("condition_col", main_factor)
+            pseudobulk_design["replicate_col"] = "biological_unit"
+
+        mapping_conflicts = handling.get("conflicts", []) or []
+        blocking_reasons = []
+        if blocking_groups:
+            blocking_reasons.append("insufficient_biological_replicates")
+        if mapping_conflicts:
+            blocking_reasons.append("replicate_mapping_conflict")
 
         return {
             "organism":        self._organism,
             "genome":          self._genome,
             "groups":          self._confirmed_groups,
+            "analysis_groups": analysis_groups,
             "main_factor":     main_factor,
             "design_formula":  formula,
             "batch_covariate": self._batch_covariate,
-            "pseudobulk":      self._pseudobulk_design,
+            "pseudobulk":      pseudobulk_design,
             "source":          self._inferred_design.get("source"),
             "sample_aliases":  self._inferred_design.get("sample_aliases", {}),
+            "replicate_handling": handling,
+            "experimental_unit": experimental_unit,
+            "analysis_design_formula": analysis_design_formula,
             "replicates":      replicates,
-            "n_total_samples": sum(replicates.values()),
+            "n_input_libraries": n_input_libraries,
+            "n_total_samples": n_units,
+            "nominal_residual_df": nominal_residual_df,
+            "design_status": "blocking" if blocking_reasons else "ready",
+            "blocking_groups": blocking_groups,
+            "blocking_reasons": blocking_reasons,
+        }
+
+    @staticmethod
+    def _technical_replicate_root(sample: str) -> str:
+        """Remove only an explicit technical suffix (``_rep1``, ``_r1``, ``_1``).
+
+        Plain biological identifiers ending in a digit (for example ``donor1``)
+        are preserved; the old permissive regex could truncate those names.
+        """
+        value = str(sample)
+        root = re.sub(
+            r"(?:[_-](?:rep|r)?\d+)$", "", value, flags=re.IGNORECASE
+        )
+        return root or value
+
+    def _build_replicate_handling(self, *, technical: bool) -> dict:
+        """Build the CP2.5 execution contract without changing raw group membership."""
+        mode = "technical_aggregate" if technical else "independent_biological"
+        units: list[dict] = []
+        sample_to_unit: dict[str, str] = {}
+        conflicts: list[str] = []
+        for group, members in (self._confirmed_groups or {}).items():
+            by_root: dict[str, list[str]] = {}
+            for member in members or []:
+                root = (
+                    self._technical_replicate_root(member)
+                    if technical else str(member)
+                )
+                by_root.setdefault(root, []).append(str(member))
+            for root, unit_members in by_root.items():
+                unit_id = f"{group}::{root}"
+                units.append({
+                    "id": unit_id,
+                    "group": str(group),
+                    "root": root,
+                    "members": unit_members,
+                })
+                for member in unit_members:
+                    prior = sample_to_unit.get(member)
+                    if technical and prior is not None and prior != unit_id:
+                        conflicts.append(member)
+                    sample_to_unit[member] = unit_id
+        return {
+            "mode": mode,
+            "source": "user_confirmed_cp2.5" if technical else "cp2.5_independent",
+            "aggregation": "sum_raw_counts" if technical else "none",
+            "units": units,
+            "sample_to_unit": sample_to_unit,
+            "conflicts": sorted(set(conflicts)),
         }
 
     def _store_design(self, design: dict):

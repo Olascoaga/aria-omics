@@ -67,7 +67,12 @@ class DesignIntelligence:
         replicate = pb_cfg.get("replicate_col")
         groupby = pb_cfg.get("groupby_col") or inferred.get("groupby_col")
         covariates = pb_cfg.get("covariates") or inferred.get("covariates") or []
-        groups = design.get("groups") or inferred.get("groups") or {}
+        groups = (
+            design.get("analysis_groups")
+            or design.get("groups")
+            or inferred.get("groups")
+            or {}
+        )
         files = (exp_context.get("modalities", {}) or {}).get("scRNA", [])
         h5ad_meta = self._inspect_h5ad(files[:1])
         focus = self._infer_focus(intent, exp_context, h5ad_meta.get("group_values", {}).get(groupby, []))
@@ -162,7 +167,9 @@ class DesignIntelligence:
 
     def _bulk_rna_profile(self, modality: str, exp_context: dict, intent: dict) -> dict:
         design = exp_context.get("design", {}) or {}
-        groups = design.get("groups", {}) or {}
+        groups = (
+            design.get("analysis_groups") or design.get("groups", {}) or {}
+        )
         recommended = []
         unsupported = []
         optional = ["PCA/sample-distance QC and pathway enrichment after DE."]
@@ -257,7 +264,11 @@ class DesignIntelligence:
         condition_col: str | None,
         covariates: list[str] | None,
     ) -> list[str]:
-        groups = (design or {}).get("groups", {}) or {}
+        groups = (
+            (design or {}).get("analysis_groups")
+            or (design or {}).get("groups", {})
+            or {}
+        )
         if not groups or not condition_col:
             return []
         try:

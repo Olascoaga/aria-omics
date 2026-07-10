@@ -286,7 +286,7 @@ def _replicate_check(
                 counts.setdefault(str(condition), set()).add(str(replicate))
     else:
         design = exp_context.get("design") or exp_context.get("inferred_design") or {}
-        groups = design.get("groups") or {}
+        groups = design.get("analysis_groups") or design.get("groups") or {}
         for condition, reps in groups.items():
             if isinstance(reps, (list, tuple, set)):
                 counts[str(condition)] = {str(r) for r in reps if str(r).strip()}

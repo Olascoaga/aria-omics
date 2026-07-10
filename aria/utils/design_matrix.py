@@ -158,6 +158,7 @@ def validate_design_matrix(
         "rank": rank,
         "n_columns": n_columns,
         "n_samples": int(len(meta)),
+        "residual_degrees_of_freedom": max(0, int(len(meta)) - rank),
         "condition_counts": {str(k): int(v) for k, v in condition_counts.items()},
     }
 
@@ -172,6 +173,7 @@ def _result(status: str, issues: list[DesignIssue]) -> dict[str, Any]:
         "rank": 0,
         "n_columns": 0,
         "n_samples": 0,
+        "residual_degrees_of_freedom": 0,
         "condition_counts": {},
     }
 

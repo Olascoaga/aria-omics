@@ -1546,7 +1546,7 @@ Rules:
         selected optional supported analyses.
         """
         design = (exp_ctx or {}).get("design", {}) or {}
-        groups = design.get("groups", {}) or {}
+        groups = design.get("analysis_groups") or design.get("groups", {}) or {}
         pb_cfg = design.get("pseudobulk", {}) or {}
         has_obs_design = bool(
             pb_cfg.get("condition_col") and pb_cfg.get("replicate_col")
@@ -1612,6 +1612,12 @@ Rules:
                 "groups":       design.get("groups", {}),
                 "factor":       design.get("main_factor", "condition"),
                 "batch_col":    design.get("batch_covariate"),
+                "replicate_units": (
+                    ((design.get("replicate_handling") or {}).get("sample_to_unit") or {})
+                    if (design.get("replicate_handling") or {}).get("mode")
+                    == "technical_aggregate"
+                    else {}
+                ),
                 "output_path":  output_path,
             },
         )
@@ -1728,8 +1734,12 @@ Rules:
         # 1. Prefer h5ad-native obs design when CP1 inferred one. Otherwise
         # inject condition obs from sample → group mapping.
         workspace = self._workspace(experiment_id, "pseudobulk")
+        technical_units = (
+            (design.get("replicate_handling") or {}).get("sample_to_unit") or {}
+        )
         use_obs_design = bool(
             pb_cfg.get("from_obs") and factor and pb_cfg.get("replicate_col")
+            and not technical_units
         )
         if use_obs_design:
             pb_input = current_h5ad

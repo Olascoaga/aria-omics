@@ -93,6 +93,9 @@ def bulk_rna_de(params: dict) -> dict:
     design_factor  = params.get("design_factor", "condition")
     # P0-4: covariates confirmed at DesignAgent CHECKPOINT 2.4 (e.g. batch).
     covariates     = params.get("covariates", []) or []
+    technical_replicate_col = str(
+        params.get("technical_replicate_col", "") or ""
+    )
     # P1-1/ADR-023: apeGLM LFC shrinkage on by default (bulk = pseudobulk rigor).
     lfc_shrink     = bool(params.get("lfc_shrink", True))
     # P1-1c: pre-register the contrast-FDR family before any p-values are seen.
@@ -190,6 +193,32 @@ def bulk_rna_de(params: dict) -> dict:
                 f"Available columns: {list(metadata.columns)}"
             ),
         }
+
+    technical_replicate_aggregation = {
+        "ran": False,
+        "reason": "not_declared",
+    }
+    if technical_replicate_col:
+        try:
+            counts, metadata, technical_replicate_aggregation = (
+                _aggregate_technical_replicates(
+                    counts,
+                    metadata,
+                    design_factor=design_factor,
+                    unit_col=technical_replicate_col,
+                    covariates=covariates,
+                )
+            )
+        except ValueError as exc:
+            return {
+                "status": "error",
+                "error_type": "TechnicalReplicateContractError",
+                "details": str(exc),
+            }
+        warnings.append(
+            "Technical libraries were summed within biological units before "
+            "QC and DE; inferential replicate counts use biological units."
+        )
 
     # ── 2b. Load gene annotation maps (biotype, length) from GTF ────────
     # Used for DR filtering (protein_coding) and TPM computation.
@@ -632,6 +661,7 @@ def bulk_rna_de(params: dict) -> dict:
         ],
         "n_genes_dr":         sample_qc.get("n_genes_dr", 0),
         "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
+        "technical_replicate_aggregation": technical_replicate_aggregation,
     }
 
     return {
@@ -654,6 +684,7 @@ def bulk_rna_de(params: dict) -> dict:
         "overlap":          overlap_info,
         "methodology":      methodology,
         "count_source":     count_source,
+        "technical_replicate_aggregation": technical_replicate_aggregation,
         "warnings":         warnings,
     }
 
@@ -1013,6 +1044,96 @@ def _load_or_infer_metadata(counts, metadata_file: str,
     )
 
     return meta, warnings
+
+
+def _aggregate_technical_replicates(
+    counts,
+    metadata,
+    *,
+    design_factor: str,
+    unit_col: str,
+    covariates: list | None = None,
+) -> tuple:
+    """Sum raw-count libraries into condition-scoped biological units.
+
+    Every design value must be invariant within a unit.  This is deliberately
+    fail-closed: a unit spanning conditions/covariates or an unmapped library
+    cannot be repaired by guessing.
+    """
+    import pandas as pd
+    from aria.utils.design_matrix import validate_design_matrix
+
+    if unit_col not in metadata.columns:
+        raise ValueError(
+            f"technical replicate column '{unit_col}' is absent from metadata"
+        )
+    missing_metadata = [
+        sample for sample in counts.columns if sample not in metadata.index
+    ]
+    if missing_metadata:
+        raise ValueError(
+            "technical replicate metadata is missing count libraries: "
+            f"{missing_metadata}"
+        )
+    meta = metadata.loc[list(counts.columns)].copy()
+    if (
+        meta[unit_col].isna().any()
+        or meta[unit_col].astype(str).str.strip().eq("").any()
+    ):
+        raise ValueError("every technical library must map to a biological unit")
+
+    design_cols = [design_factor, *[c for c in (covariates or []) if c]]
+    absent = [column for column in design_cols if column not in meta.columns]
+    if absent:
+        raise ValueError(
+            "technical replicate metadata is missing design columns: "
+            f"{absent}"
+        )
+
+    unit_rows: list[dict] = []
+    aggregated: dict[str, object] = {}
+    members: dict[str, list[str]] = {}
+    for unit, rows in meta.groupby(unit_col, sort=False, observed=True):
+        unit_id = str(unit)
+        sample_ids = [str(sample) for sample in rows.index]
+        row = {}
+        for column in design_cols:
+            values = rows[column].dropna().astype(str).unique().tolist()
+            if len(values) != 1:
+                raise ValueError(
+                    f"biological unit '{unit_id}' spans multiple {column} values: "
+                    f"{values}"
+                )
+            row[column] = values[0]
+        aggregated[unit_id] = counts[sample_ids].sum(axis=1)
+        unit_rows.append({unit_col: unit_id, **row})
+        members[unit_id] = sample_ids
+
+    unit_counts = pd.DataFrame(aggregated, index=counts.index)
+    unit_metadata = pd.DataFrame(unit_rows).set_index(unit_col)
+    design_check = validate_design_matrix(
+        unit_metadata,
+        condition_col=design_factor,
+        covariates=list(covariates or []),
+        min_replicates_per_condition=2,
+    )
+    provenance = {
+        "ran": True,
+        "method": "sum_raw_counts_by_biological_unit",
+        "unit_column": unit_col,
+        "n_input_libraries": int(counts.shape[1]),
+        "n_biological_units": int(unit_counts.shape[1]),
+        "replicates_per_condition": {
+            str(group): int(count)
+            for group, count in unit_metadata[design_factor].value_counts().items()
+        },
+        "residual_degrees_of_freedom": design_check.get(
+            "residual_degrees_of_freedom", 0
+        ),
+        "design_rank": design_check.get("rank", 0),
+        "members": members,
+    }
+    return unit_counts, unit_metadata, provenance
 
 
 def _infer_groups(samples: list) -> dict | None:

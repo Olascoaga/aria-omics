@@ -26,7 +26,9 @@ def assess_design_power(exp_context: dict[str, Any]) -> dict[str, Any]:
     `{status, assumptions, contrasts, checks, findings}`.
     """
     design = _combined_design(exp_context)
-    groups = _normalize_groups(design.get("groups") or {})
+    groups = _normalize_groups(
+        design.get("analysis_groups") or design.get("groups") or {}
+    )
     comparisons = _normalize_comparisons(
         design.get("comparisons")
         or (design.get("pseudobulk") or {}).get("comparisons")

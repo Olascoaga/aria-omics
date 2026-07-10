@@ -109,11 +109,15 @@ class BulkRNAAgent(BaseAgent):
         # ── v4.0: Attempt to apply DesignAgent output; fallback to legacy if fails ──
         design = exp_ctx.get("design")
         design_application_failed = False
+        replicate_units: dict[str, str] = {}
         if design and design.get("groups"):
             self.publish_status(experiment_id, "Applying confirmed experimental design...", 0.65)
             try:
                 sample_names, group_labels, design_factor, contrasts = \
                     self._apply_design(design, files, experiment_id)
+                replicate_units = self._resolve_replicate_units(
+                    design, sample_names
+                )
                 # Record the design fact
                 self.memory.store_decision(
                     decision_id=f"{experiment_id[:8]}-design-01",
@@ -190,7 +194,12 @@ class BulkRNAAgent(BaseAgent):
             or ("explicit_global_lfc" if "global_lfc" in exp_ctx else "default"))
         output_dir = self._output_dir(files)
         metadata_file = (
-            str(self._write_design_metadata(group_labels, design_factor, output_dir))
+            str(self._write_design_metadata(
+                group_labels,
+                design_factor,
+                output_dir,
+                replicate_units=replicate_units,
+            ))
             if design and group_labels else ""
         )
 
@@ -211,6 +220,9 @@ class BulkRNAAgent(BaseAgent):
                 # P0-4: forward confirmed covariates (e.g. batch) so DESeq2 fits
                 # `~ batch + condition`, not a bare `~ condition`.
                 "covariates":     self._design_covariates(design) if design else [],
+                "technical_replicate_col": (
+                    "biological_unit" if replicate_units else ""
+                ),
                 "organism":       exp_ctx.get("organism", "Homo sapiens"),
                 "genome":         exp_ctx.get("genome", "hg38"),
                 "output_dir":     output_dir,
@@ -448,7 +460,11 @@ class BulkRNAAgent(BaseAgent):
 
     @staticmethod
     def _write_design_metadata(
-        group_labels: dict[str, str], design_factor: str, output_dir: str | Path
+        group_labels: dict[str, str],
+        design_factor: str,
+        output_dir: str | Path,
+        *,
+        replicate_units: dict[str, str] | None = None,
     ) -> Path:
         """Persist the confirmed sample-to-group mapping for rna_bulk_de.py."""
         out = Path(output_dir)
@@ -456,10 +472,48 @@ class BulkRNAAgent(BaseAgent):
         path = out / "confirmed_design_metadata.tsv"
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
-            writer.writerow(["sample", design_factor])
+            header = ["sample", design_factor]
+            if replicate_units:
+                header.append("biological_unit")
+            writer.writerow(header)
             for sample, group in group_labels.items():
-                writer.writerow([sample, group])
+                row = [sample, group]
+                if replicate_units:
+                    row.append(replicate_units[sample])
+                writer.writerow(row)
         return path
+
+    @staticmethod
+    def _resolve_replicate_units(
+        design: dict, sample_names: list[str]
+    ) -> dict[str, str]:
+        """Map actual matrix columns to CP2.5 biological units, fail-closed."""
+        handling = (design or {}).get("replicate_handling", {}) or {}
+        if handling.get("mode") != "technical_aggregate":
+            return {}
+        declared = handling.get("sample_to_unit", {}) or {}
+        if not declared:
+            raise ValueError("technical replicate design has no sample-to-unit map")
+
+        resolved: dict[str, str] = {}
+        for sample in sample_names:
+            token = _normalise_sample_token(sample)
+            exact = [
+                unit for declared_sample, unit in declared.items()
+                if _normalise_sample_token(declared_sample) == token
+            ]
+            candidates = exact or [
+                unit for declared_sample, unit in declared.items()
+                if _normalise_sample_token(declared_sample) in token
+                or token in _normalise_sample_token(declared_sample)
+            ]
+            candidates = list(dict.fromkeys(candidates))
+            if len(candidates) != 1:
+                raise ValueError(
+                    f"sample '{sample}' maps to {len(candidates)} biological units"
+                )
+            resolved[sample] = candidates[0]
+        return resolved
 
     @staticmethod
     def _suggest_contrasts_from_groups(group_labels: dict) -> list[dict]:

@@ -215,7 +215,7 @@ class ScRNAAuditAgent:
         )
         design = _combined_design(exp_context)
         pb = design.get("pseudobulk") or {}
-        groups = design.get("groups") or {}
+        groups = design.get("analysis_groups") or design.get("groups") or {}
 
         condition_col = pb.get("condition_col") or design.get("condition_col")
         replicate_col = pb.get("replicate_col") or design.get("replicate_col")

@@ -62,6 +62,16 @@ class BulkRnaNarrator:
             f"with design {design}; significance used adjusted p-value < "
             f"{padj} from a Wald test against |log2FC| > {lfc}."
         ]
+        technical = findings.get("technical_replicate_aggregation") or {}
+        if technical.get("ran"):
+            lines.append(
+                f"Before QC and inference, {technical.get('n_input_libraries', 0)} "
+                "technical libraries were summed by their user-confirmed "
+                f"biological unit, yielding {technical.get('n_biological_units', 0)} "
+                "biological units; inferential replicate counts use those units "
+                "rather than libraries (residual degrees of freedom: "
+                f"{technical.get('residual_degrees_of_freedom', 0)})."
+            )
         dropped = [
             d.get("covariate")
             for c in contrasts

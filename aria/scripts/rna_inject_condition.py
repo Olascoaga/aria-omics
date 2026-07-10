@@ -18,6 +18,7 @@ Input params:
     groups:       dict — {group_name: [sample_ids]} from DesignAgent
     factor:       str  — name of the obs column to write (e.g. 'age_group')
     batch_col:    str  (optional) — propagated for downstream reference
+    replicate_units: dict (optional) — sample_id → biological_unit from CP2.5
     output_path:  str  — where to write the modified h5ad
 
 Output:
@@ -70,6 +71,7 @@ def inject(params: dict) -> dict:
     groups      = params.get("groups", {}) or {}
     factor      = params.get("factor", "condition")
     batch_col   = params.get("batch_col")
+    replicate_units = params.get("replicate_units", {}) or {}
     output_path = params["output_path"]
 
     if not groups:
@@ -107,6 +109,7 @@ def inject(params: dict) -> dict:
     if unmatched:
         adata = adata[mask].copy()
         mapped = mapped[mask].reset_index(drop=True)
+    matched_sample_values = np.asarray(sample_values)[mask]
 
     adata.obs[factor] = pd.Categorical(mapped.astype(str))
 
@@ -124,6 +127,32 @@ def inject(params: dict) -> dict:
         )
         replicate_col = "sample_id"
 
+    if replicate_units:
+        unit_mapped = pd.Series(matched_sample_values).map(replicate_units)
+        missing_units = sorted({
+            str(sample)
+            for sample, unit in zip(matched_sample_values, unit_mapped)
+            if pd.isna(unit)
+        })
+        if missing_units:
+            return {
+                "status": "skipped",
+                "reason": (
+                    "technical replicate mapping is incomplete for matched "
+                    f"samples: {missing_units}"
+                ),
+            }
+        adata.obs["biological_unit"] = pd.Categorical(unit_mapped.astype(str))
+        unit_condition_counts = (
+            adata.obs.groupby("biological_unit", observed=True)[factor].nunique()
+        )
+        if int(unit_condition_counts.max()) > 1:
+            return {
+                "status": "skipped",
+                "reason": "a biological unit spans multiple conditions",
+            }
+        replicate_col = "biological_unit"
+
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     adata.write_h5ad(output_path)
 
@@ -137,6 +166,9 @@ def inject(params: dict) -> dict:
         "unmatched_cells":  unmatched,
         "n_groups":         len(set(mapped)),
         "samples_seen":     sorted(set(map(str, sample_values)))[:50],
+        "n_biological_units": (
+            int(adata.obs[replicate_col].nunique()) if replicate_units else None
+        ),
     }
 
 
