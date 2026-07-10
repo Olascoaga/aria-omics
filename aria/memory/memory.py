@@ -167,6 +167,71 @@ class ARIAMemory:
         with self._lock:
             return self._conn.execute(sql, params).fetchall()
 
+    # ── Minimized per-experiment export ──────────────────────────────────
+
+    def _copy_scoped_rows(self, dest, table: str,
+                          select_sql: str, params: tuple) -> int:
+        """Copy the rows returned by ``select_sql`` from the live DB into the
+        same-named table in ``dest``, matching columns by NAME (robust to any
+        column-order drift). Read stays inside the caller's ``self._lock``."""
+        cols = [c[1] for c in dest.execute(f"PRAGMA table_info({table})").fetchall()]
+        rows = self._conn.execute(select_sql, params).fetchall()
+        if not rows:
+            return 0
+        data = [tuple(r[c] for c in cols) for r in rows]
+        placeholders = ",".join("?" * len(cols))
+        dest.executemany(
+            f"INSERT INTO {table} ({','.join(cols)}) VALUES ({placeholders})", data)
+        return len(data)
+
+    def export_experiment_snapshot(self, experiment_id: str, dest_path) -> dict:
+        """Write a MINIMIZED SQLite holding ONLY ``experiment_id``'s wing subtree
+        (the wing + its halls/rooms/findings + its tunnels/decisions) to
+        ``dest_path``. It NEVER copies the whole lab DB, so a capsule/report cannot
+        leak other experiments' state. The read runs inside the shared lock so a
+        pending WAL write cannot tear the snapshot. Returns per-table row counts."""
+        dest = Path(dest_path)
+        if dest.exists():
+            dest.unlink()
+        out = sqlite3.connect(str(dest))
+        try:
+            out.executescript(SCHEMA)
+            counts: dict[str, int] = {}
+            with self._lock:
+                hall_ids = [r["id"] for r in self._conn.execute(
+                    "SELECT id FROM halls WHERE wing_id=?", (experiment_id,))]
+                room_ids: list = []
+                if hall_ids:
+                    ph = ",".join("?" * len(hall_ids))
+                    room_ids = [r["id"] for r in self._conn.execute(
+                        f"SELECT id FROM rooms WHERE hall_id IN ({ph})",
+                        tuple(hall_ids))]
+                counts["wings"] = self._copy_scoped_rows(
+                    out, "wings", "SELECT * FROM wings WHERE id=?", (experiment_id,))
+                counts["halls"] = self._copy_scoped_rows(
+                    out, "halls", "SELECT * FROM halls WHERE wing_id=?",
+                    (experiment_id,))
+                counts["tunnels"] = self._copy_scoped_rows(
+                    out, "tunnels", "SELECT * FROM tunnels WHERE wing_id=?",
+                    (experiment_id,))
+                counts["decisions"] = self._copy_scoped_rows(
+                    out, "decisions", "SELECT * FROM decisions WHERE wing_id=?",
+                    (experiment_id,))
+                counts["rooms"] = (self._copy_scoped_rows(
+                    out, "rooms",
+                    f"SELECT * FROM rooms WHERE hall_id IN "
+                    f"({','.join('?' * len(hall_ids))})", tuple(hall_ids))
+                    if hall_ids else 0)
+                counts["findings"] = (self._copy_scoped_rows(
+                    out, "findings",
+                    f"SELECT * FROM findings WHERE room_id IN "
+                    f"({','.join('?' * len(room_ids))})", tuple(room_ids))
+                    if room_ids else 0)
+            out.commit()
+            return {"scope": experiment_id, "tables": counts}
+        finally:
+            out.close()
+
     # ── Wings ────────────────────────────────────────────────────────────
 
     def create_wing(self, experiment_id: str, name: str,

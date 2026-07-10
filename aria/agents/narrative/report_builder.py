@@ -88,6 +88,15 @@ class ReportBuilderMixin:
         report_name = (f"aria_{ts}_{slug}_{suffix}" if slug
                         else f"aria_{ts}_{suffix}")
         report_dir = self.reports_dir / report_name
+        # Preprint audit A6 (interim): the reproducible dir name is deterministic
+        # (aria_reproducible_<slug>_<hash>), so a rerun reused the SAME directory
+        # with exist_ok=True and left STALE artifacts behind — which the capsule
+        # then bundled. Start each reproducible build from a clean, immutable dir so
+        # nothing residual from a prior run can leak in. Timestamped (non-repro)
+        # dirs are second-unique, so only wipe on the deterministic path.
+        if reproducible and report_dir.exists():
+            import shutil
+            shutil.rmtree(report_dir)
         report_dir.mkdir(parents=True, exist_ok=True)
         (report_dir / "figures").mkdir(exist_ok=True)
         (report_dir / "tables").mkdir(exist_ok=True)
@@ -742,7 +751,7 @@ class ReportBuilderMixin:
         except Exception as exc:
             log.warning(f"RO-Crate export failed: {exc}", exc_info=True)
         if reproducible:
-            self._write_memory_snapshot(report_dir)
+            self._write_memory_snapshot(report_dir, experiment_id)
         log.info(f"Report written to {report_path}")
         return report_path
 
@@ -972,16 +981,35 @@ class ReportBuilderMixin:
         ]
         run_ledger["n_divergences"] = len(run_ledger["divergences"])
 
-    def _write_memory_snapshot(self, report_dir: Path) -> None:
+    def _write_memory_snapshot(self, report_dir: Path,
+                               experiment_id: str | None = None) -> None:
+        """Write a MINIMIZED, experiment-scoped memory snapshot next to the report.
+
+        Preprint audit A2 (interim): the lab keeps one SQLite for ALL experiments
+        (wings), so the previous ``shutil.copy2`` of the whole DB leaked every other
+        experiment's state into the report/capsule. Export only this experiment's
+        wing subtree via ``ARIAMemory.export_experiment_snapshot`` (consistent read
+        under the shared lock). If scoping is impossible (no experiment_id or the
+        export fails), write an EMPTY placeholder — never fall back to the full DB.
+        """
+        dest = report_dir / "memory_snapshot.sqlite"
         try:
-            import shutil
+            export = getattr(self.memory, "export_experiment_snapshot", None)
             db_path = getattr(self.memory, "db_path", "")
-            if db_path and db_path != ":memory:" and Path(db_path).exists():
-                shutil.copy2(db_path, report_dir / "memory_snapshot.sqlite")
+            if (experiment_id and callable(export)
+                    and db_path and db_path != ":memory:"):
+                result = export(experiment_id, dest)
+                log.info(f"Scoped memory snapshot for {experiment_id}: "
+                         f"{result.get('tables')}")
             else:
-                (report_dir / "memory_snapshot.sqlite").write_bytes(b"")
+                dest.write_bytes(b"")
         except Exception as exc:
-            log.warning(f"Could not write memory snapshot: {exc}")
+            log.warning(f"Could not write scoped memory snapshot: {exc}")
+            # Fail closed: never leave (or fall back to) the full lab DB.
+            try:
+                dest.write_bytes(b"")
+            except Exception:
+                pass
 
     def _build_methodology_json(self, provenance: dict, exp_ctx: dict,
                                 agent_results: dict, decisions: list,
