@@ -1,9 +1,13 @@
 # Chromatin Workflows
 
 Validation level: scATAC and bulk ATAC are both **beta + require explicit
-acknowledgement** (CP3.5). Both now expose the full publishable workflow end-to-end
-(real-validated), but stay beta + `requires_ack` pending the readiness ADR and CI
-coverage — they are NOT autonomous production. ChIP-seq, CUT&RUN, and CUT&TAG remain
+acknowledgement** (CP3.5). Both expose the full workflow end-to-end (real-validated),
+but stay beta + `requires_ack` pending the readiness ADR and CI coverage — they are
+NOT autonomous production, and one step is explicitly not publication-grade yet:
+differential TF footprinting (TOBIAS) is a DESCRIPTIVE candidate ranking, not
+FDR-controlled significance, because it contrasts a single pseudobulk per condition
+(preprint audit B7; per-replicate inference + multiplicity is the deferred fix).
+ChIP-seq, CUT&RUN, and CUT&TAG remain
 scaffolded. The authoritative per-modality tier lives in the orchestrator's
 `MODALITY_VALIDATION` (single source) and is mirrored in `docs/validation_status.md`.
 
@@ -37,7 +41,9 @@ This module should not yet be described as production-ready.
 - MACS3 parameter profiles for assay types;
 - chromatin narrative blocks + publication figures (dual PNG+SVG);
 - GEO/SRA connector recognizes and routes all four ARIA modalities
-  (scRNA/bulk_RNA/scATAC/bulk_ATAC).
+  (scRNA/bulk_RNA/scATAC/bulk_ATAC) — classification/routing of supplementary files,
+  not general reproducible retrieval (raw FASTQ from SRA stays `fastq_pending`;
+  preprint audit E6).
 
 ## Current scATAC Beta Path
 
@@ -57,7 +63,8 @@ not inferred around. chromVAR-style per-cell motif activity remains out of scope
 
 ## Current Bulk ATAC Beta Path
 
-Bulk ATAC exposes the full publishable ATAC workflow behind CP3.5 acknowledgement,
+Bulk ATAC exposes the full ATAC workflow behind CP3.5 acknowledgement (publication-
+grade except footprinting, which is descriptive-only pending the B7 fix above),
 real-validated end-to-end on ENCODE replicates (K562 vs GM12878): raw FASTQ→BAM
 (`atac_align.py`, bwa-mem2 + ATAC filtering) or aligned BAM/CRAM input → measured QC
 → MACS3 peak calling with overlap-reproducibility consensus → peak-by-sample count

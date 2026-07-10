@@ -103,7 +103,7 @@ INFRASTRUCTURE                     STATUS
 ────────────────────────────────────────────────────
 MessageBus (durable, per-run replay) done
 ARIAMemory (SQLite hierarchical)   done
-LLMProvider (deterministic+airgap) done — temp=0, fixed seed, local-only mode
+LLMProvider (deterministic+airgap) done — temp=0, per-backend seed, local-only mode
 ParameterAdvisor (3-layer)         done
 EnvironmentManager (typed IPC/JSON) done — contract for every dispatchable script
 Anti-fabrication guard (CI gate)   done — no placeholder/mock/hash-derived output
@@ -186,8 +186,9 @@ The full version-by-version history lives in the [Roadmap](#roadmap) below. Ship
 capabilities on the validated baseline:
 
 - **Deterministic, auditable narrative** — every LLM call runs at
-  `temperature=0` with a fixed seed, and each report records which model/tier
-  answered and whether it was a cache hit or a degraded fallback. A
+  `temperature=0` (with a fixed seed on backends that accept one), and each
+  report records which model/tier answered, whether that backend is
+  seed-deterministic, and whether it was a cache hit or a degraded fallback. A
   deterministic *devil's advocate* challenges every associative-or-stronger
   claim with the standard technical confounders (batch, ambient RNA, doublets,
   composition shift, low replication) and records which were addressed.
@@ -330,7 +331,8 @@ interventional; claims whose wording exceeds their evidence tier are flagged.
 Each claim ships with an evidence manifest in `methodology.json`.
 
 **Reproducible by construction** — The narrative is deterministic
-(`temperature=0`, fixed seed), every report stamps its exact version, git
+(`temperature=0`; fixed seed on backends that accept one, declared per backend),
+every report stamps its exact version, git
 commit, dirty state, input hashes, and dependency lockfiles, and a blocking CI
 runs a real numerical-recovery benchmark plus an anti-fabrication guard on every
 change. Nothing reaches a report that the code cannot reproduce.
