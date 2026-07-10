@@ -122,10 +122,13 @@ def test_verify_reproducible_capsule_passes_and_warns_for_missing_inputs(tmp_pat
 
     result = verify_reproducible_capsule(zip_path, repo_root=tmp_path / "empty_repo")
 
-    assert result["status"] == "warning"  # /data/x.h5ad is not present locally
+    assert result["status"] == "warning"  # portable input needs local relocation
     assert result["files"]["checked"] >= 3
     assert result["files"]["mismatched"] == []
-    assert result["inputs"]["missing"] == ["/data/x.h5ad"]
+    assert result["inputs"]["missing"] == []
+    assert result["inputs"]["relocation_required"] == [
+        "input://sha256/deadbeef"
+    ]
 
 
 def test_verify_reproducible_capsule_detects_file_hash_mismatch(tmp_path):

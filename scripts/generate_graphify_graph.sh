@@ -44,7 +44,9 @@ fi
 # extraction BEFORE clustering so the report/tree/html are built from the
 # filtered graph.
 python "$ROOT/scripts/graphify_structure_filter.py" \
-  "$RUN_OUT/graphify-out/graph.json"
+  "$RUN_OUT/graphify-out/graph.json" \
+  --source-root "$CORPUS" \
+  --ensure-class-members "aria/memory/memory.py:ARIAMemory"
 
 if [[ ! -f "$RUN_OUT/graphify-out/manifest.json" ]]; then
   python - "$RUN_OUT/graphify-out/graph.json" \

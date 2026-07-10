@@ -742,6 +742,10 @@ class ReportBuilderMixin:
             ),
             encoding="utf-8",
         )
+        # A2: publish the minimized experiment snapshot before the RO-Crate so the
+        # crate can describe it as part of this run's output graph.
+        if reproducible:
+            self._write_memory_snapshot(report_dir, experiment_id)
         # W-LEDGER: emit a machine-readable RO-Crate (W3C-PROV JSON-LD) next to
         # methodology.json so the run evidence graph is DOI/repository-ready. Pure
         # serialization of what was just written; never blocks report generation.
@@ -750,8 +754,6 @@ class ReportBuilderMixin:
             write_ro_crate(report_dir)
         except Exception as exc:
             log.warning(f"RO-Crate export failed: {exc}", exc_info=True)
-        if reproducible:
-            self._write_memory_snapshot(report_dir, experiment_id)
         log.info(f"Report written to {report_path}")
         return report_path
 

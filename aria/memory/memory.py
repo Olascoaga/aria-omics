@@ -15,8 +15,10 @@ Loading: Progressive (L0 -> L3), only what is needed per query
 """
 
 from __future__ import annotations
+import os
 import sqlite3
 import json
+import tempfile
 import threading
 from datetime import datetime
 from pathlib import Path
@@ -189,48 +191,87 @@ class ARIAMemory:
         (the wing + its halls/rooms/findings + its tunnels/decisions) to
         ``dest_path``. It NEVER copies the whole lab DB, so a capsule/report cannot
         leak other experiments' state. The read runs inside the shared lock so a
-        pending WAL write cannot tear the snapshot. Returns per-table row counts."""
+        pending WAL write cannot tear the snapshot. The completed SQLite is checked
+        and atomically published, so a failed export cannot replace a prior valid
+        snapshot. Returns per-table row counts."""
         dest = Path(dest_path)
-        if dest.exists():
-            dest.unlink()
-        out = sqlite3.connect(str(dest))
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        handle = tempfile.NamedTemporaryFile(
+            prefix=f".{dest.name}.", suffix=".tmp", dir=dest.parent, delete=False
+        )
+        tmp = Path(handle.name)
+        handle.close()
         try:
-            out.executescript(SCHEMA)
-            counts: dict[str, int] = {}
-            with self._lock:
-                hall_ids = [r["id"] for r in self._conn.execute(
-                    "SELECT id FROM halls WHERE wing_id=?", (experiment_id,))]
-                room_ids: list = []
-                if hall_ids:
-                    ph = ",".join("?" * len(hall_ids))
-                    room_ids = [r["id"] for r in self._conn.execute(
-                        f"SELECT id FROM rooms WHERE hall_id IN ({ph})",
-                        tuple(hall_ids))]
-                counts["wings"] = self._copy_scoped_rows(
-                    out, "wings", "SELECT * FROM wings WHERE id=?", (experiment_id,))
-                counts["halls"] = self._copy_scoped_rows(
-                    out, "halls", "SELECT * FROM halls WHERE wing_id=?",
-                    (experiment_id,))
-                counts["tunnels"] = self._copy_scoped_rows(
-                    out, "tunnels", "SELECT * FROM tunnels WHERE wing_id=?",
-                    (experiment_id,))
-                counts["decisions"] = self._copy_scoped_rows(
-                    out, "decisions", "SELECT * FROM decisions WHERE wing_id=?",
-                    (experiment_id,))
-                counts["rooms"] = (self._copy_scoped_rows(
-                    out, "rooms",
-                    f"SELECT * FROM rooms WHERE hall_id IN "
-                    f"({','.join('?' * len(hall_ids))})", tuple(hall_ids))
-                    if hall_ids else 0)
-                counts["findings"] = (self._copy_scoped_rows(
-                    out, "findings",
-                    f"SELECT * FROM findings WHERE room_id IN "
-                    f"({','.join('?' * len(room_ids))})", tuple(room_ids))
-                    if room_ids else 0)
-            out.commit()
-            return {"scope": experiment_id, "tables": counts}
-        finally:
-            out.close()
+            out = sqlite3.connect(str(tmp))
+            try:
+                out.execute("PRAGMA foreign_keys=ON")
+                out.executescript(SCHEMA)
+                counts: dict[str, int] = {}
+                with self._lock:
+                    hall_ids = [r["id"] for r in self._conn.execute(
+                        "SELECT id FROM halls WHERE wing_id=?", (experiment_id,))]
+                    room_ids: list = []
+                    if hall_ids:
+                        ph = ",".join("?" * len(hall_ids))
+                        room_ids = [r["id"] for r in self._conn.execute(
+                            f"SELECT id FROM rooms WHERE hall_id IN ({ph})",
+                            tuple(hall_ids))]
+                    counts["wings"] = self._copy_scoped_rows(
+                        out, "wings", "SELECT * FROM wings WHERE id=?", (experiment_id,))
+                    counts["halls"] = self._copy_scoped_rows(
+                        out, "halls", "SELECT * FROM halls WHERE wing_id=?",
+                        (experiment_id,))
+                    counts["tunnels"] = self._copy_scoped_rows(
+                        out, "tunnels", "SELECT * FROM tunnels WHERE wing_id=?",
+                        (experiment_id,))
+                    counts["decisions"] = self._copy_scoped_rows(
+                        out, "decisions", "SELECT * FROM decisions WHERE wing_id=?",
+                        (experiment_id,))
+                    counts["rooms"] = (self._copy_scoped_rows(
+                        out, "rooms",
+                        f"SELECT * FROM rooms WHERE hall_id IN "
+                        f"({','.join('?' * len(hall_ids))})", tuple(hall_ids))
+                        if hall_ids else 0)
+                    counts["findings"] = (self._copy_scoped_rows(
+                        out, "findings",
+                        f"SELECT * FROM findings WHERE room_id IN "
+                        f"({','.join('?' * len(room_ids))})", tuple(room_ids))
+                        if room_ids else 0)
+                out.commit()
+                integrity = out.execute("PRAGMA integrity_check").fetchone()[0]
+                foreign_key_errors = out.execute("PRAGMA foreign_key_check").fetchall()
+                if integrity != "ok" or foreign_key_errors:
+                    raise sqlite3.DatabaseError(
+                        "scoped snapshot failed SQLite integrity validation"
+                    )
+                wing_ids = {
+                    row[0] for row in out.execute("SELECT id FROM wings").fetchall()
+                }
+                if wing_ids not in ({experiment_id}, set()):
+                    raise sqlite3.DatabaseError(
+                        "scoped snapshot contains an unexpected experiment"
+                    )
+            finally:
+                out.close()
+            with tmp.open("rb") as stream:
+                os.fsync(stream.fileno())
+            os.replace(tmp, dest)
+            try:
+                dir_fd = os.open(dest.parent, os.O_RDONLY)
+                try:
+                    os.fsync(dir_fd)
+                finally:
+                    os.close(dir_fd)
+            except OSError:
+                pass
+        except Exception:
+            tmp.unlink(missing_ok=True)
+            raise
+        return {
+            "scope": experiment_id,
+            "tables": counts,
+            "integrity_check": integrity,
+        }
 
     # ── Wings ────────────────────────────────────────────────────────────
 

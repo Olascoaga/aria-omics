@@ -17,9 +17,14 @@ Pure bookkeeping over structured JSON; no LLM, no biology, no network.
 
 from __future__ import annotations
 
+import hashlib
 import json
+import os
+import shutil
+import sqlite3
+import tempfile
 import zipfile
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from aria.utils.reference_integrity import sha256_file
@@ -27,7 +32,7 @@ from aria.utils.reference_integrity import sha256_file
 RO_CRATE_CONTEXT = "https://w3id.org/ro/crate/1.1/context"
 _METHODOLOGY_NAME = "methodology.json"
 _CAPSULE_MANIFEST = "capsule_manifest.json"
-_CAPSULE_SCHEMA_VERSION = "s14.reproducibility_capsule.v1"
+_CAPSULE_SCHEMA_VERSION = "s14.reproducibility_capsule.v2"
 
 
 # ── loading ──────────────────────────────────────────────────────────────────
@@ -62,6 +67,110 @@ def _calibration(methodology: dict) -> dict:
     return cal if isinstance(cal, dict) else {}
 
 
+def _is_private_absolute_path(value: str) -> bool:
+    """Return whether a serialized string identifies a private local path."""
+    text = str(value or "")
+    if not text:
+        return False
+    try:
+        return (
+            Path(text).is_absolute()
+            or PureWindowsPath(text).is_absolute()
+            or text.startswith("~/")
+        )
+    except (OSError, ValueError):
+        return False
+
+
+def _portable_path_ref(value: str, content_sha256: Any = None) -> str:
+    digest = str(content_sha256 or "").strip()
+    if digest and digest != "unavailable":
+        return f"input://sha256/{digest}"
+    path_digest = hashlib.sha256(str(value).encode("utf-8")).hexdigest()
+    return f"private-path://sha256/{path_digest}"
+
+
+def _portable_value(value: Any, *, content_sha256: Any = None) -> Any:
+    """Recursively replace private absolute paths with stable opaque references."""
+    if isinstance(value, dict):
+        item_sha = value.get("sha256")
+        return {
+            key: _portable_value(
+                item,
+                content_sha256=item_sha if key == "path" else None,
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_portable_value(item) for item in value]
+    if isinstance(value, tuple):
+        return [_portable_value(item) for item in value]
+    if isinstance(value, Path):
+        value = str(value)
+    if isinstance(value, str) and _is_private_absolute_path(value):
+        return _portable_path_ref(value, content_sha256)
+    return value
+
+
+def _portable_methodology(methodology: dict) -> dict:
+    portable = _portable_value(methodology or {})
+    return portable if isinstance(portable, dict) else {}
+
+
+def _private_path_replacements(value: Any) -> dict[str, str]:
+    """Collect exact path replacements for text artifacts staged in a capsule."""
+    replacements: dict[str, str] = {}
+
+    def visit(item: Any, content_sha256: Any = None) -> None:
+        if isinstance(item, dict):
+            item_sha = item.get("sha256")
+            for key, child in item.items():
+                visit(child, item_sha if key == "path" else None)
+        elif isinstance(item, (list, tuple)):
+            for child in item:
+                visit(child)
+        else:
+            text = str(item) if isinstance(item, Path) else item
+            if isinstance(text, str) and _is_private_absolute_path(text):
+                replacements[text] = _portable_path_ref(text, content_sha256)
+
+    visit(value)
+    return replacements
+
+
+def _atomic_write_bytes(path: Path, payload: bytes) -> None:
+    """Publish bytes atomically without destroying a prior valid artifact."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle = tempfile.NamedTemporaryFile(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent, delete=False
+    )
+    tmp = Path(handle.name)
+    try:
+        handle.write(payload)
+        handle.flush()
+        os.fsync(handle.fileno())
+        handle.close()
+        os.replace(tmp, path)
+        try:
+            dir_fd = os.open(path.parent, os.O_RDONLY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
+        except OSError:
+            pass
+    except Exception:
+        try:
+            handle.close()
+        finally:
+            tmp.unlink(missing_ok=True)
+        raise
+
+
+def _atomic_write_text(path: Path, text: str) -> None:
+    _atomic_write_bytes(path, text.encode("utf-8"))
+
+
 # ── RO-Crate / W3C-PROV export ───────────────────────────────────────────────
 
 def build_ro_crate(methodology: dict, report_dir: Path | None = None) -> dict:
@@ -78,6 +187,7 @@ def build_ro_crate(methodology: dict, report_dir: Path | None = None) -> dict:
     # must never be exported as an audited claim in the RO-Crate / capsule.
     from aria.agents.narrative.hypothesis import assert_no_speculative_promotion
     assert_no_speculative_promotion(methodology.get("claims", []) or [])
+    methodology = _portable_methodology(methodology)
 
     prov = _provenance(methodology)
     version = _version(methodology)
@@ -94,6 +204,8 @@ def build_ro_crate(methodology: dict, report_dir: Path | None = None) -> dict:
 
     has_part: list[dict] = []
     output_files = ["report.html", _METHODOLOGY_NAME, "ro-crate-metadata.json"]
+    if report_dir is not None and (Path(report_dir) / "memory_snapshot.sqlite").is_file():
+        output_files.append("memory_snapshot.sqlite")
     for name in output_files:
         has_part.append({"@id": name})
 
@@ -196,7 +308,7 @@ def write_ro_crate(report_dir: str | Path) -> Path:
     methodology = load_methodology(rd)
     crate = build_ro_crate(methodology, rd)
     out = rd / "ro-crate-metadata.json"
-    out.write_text(json.dumps(crate, indent=2, default=str))
+    _atomic_write_text(out, json.dumps(crate, indent=2, default=str))
     return out
 
 
@@ -268,6 +380,80 @@ def _capsule_reproduction_plan(methodology: dict) -> dict[str, Any]:
     }
 
 
+def _memory_snapshot_metadata(path: Path, arcname: str) -> dict[str, Any]:
+    """Validate and describe one minimized per-experiment SQLite snapshot."""
+    metadata: dict[str, Any] = {
+        "present": True,
+        "path": arcname,
+        "integrity_check": None,
+        "experiment_id": None,
+        "valid": False,
+    }
+    if not path.is_file() or path.stat().st_size == 0:
+        raise ValueError("memory snapshot is missing or empty")
+    try:
+        with sqlite3.connect(str(path)) as conn:
+            integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
+            wing_ids = {
+                str(row[0])
+                for row in conn.execute("SELECT id FROM wings").fetchall()
+            }
+            foreign_key_errors = conn.execute(
+                "PRAGMA foreign_key_check"
+            ).fetchall()
+    except sqlite3.DatabaseError as exc:
+        raise ValueError(f"memory snapshot is not a valid scoped SQLite: {exc}") from exc
+    if integrity != "ok":
+        raise ValueError(f"memory snapshot integrity_check failed: {integrity}")
+    if foreign_key_errors:
+        raise ValueError("memory snapshot contains foreign-key violations")
+    if len(wing_ids) != 1:
+        raise ValueError("memory snapshot must identify exactly one experiment")
+    metadata.update({
+        "integrity_check": integrity,
+        "experiment_id": next(iter(wing_ids), None),
+        "valid": True,
+    })
+    return metadata
+
+
+def _report_artifact_role(path: Path) -> str:
+    return "memory_snapshot" if path.name == "memory_snapshot.sqlite" else "report_artifact"
+
+
+def _sanitize_staged_report(report_dir: Path, methodology: dict) -> None:
+    """Make the staged public copy path-portable without mutating the live report."""
+    replacements = _private_path_replacements(methodology)
+    portable = _portable_methodology(methodology)
+    _atomic_write_text(
+        report_dir / _METHODOLOGY_NAME,
+        json.dumps(portable, indent=2, sort_keys=True, default=str),
+    )
+    text_suffixes = {".html", ".json", ".md", ".txt", ".tsv", ".csv", ".yaml", ".yml"}
+    for path in sorted(report_dir.rglob("*")):
+        if (not path.is_file() or path.name == _METHODOLOGY_NAME
+                or path.suffix.lower() not in text_suffixes):
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            continue
+        updated = text
+        for private, public in sorted(
+            replacements.items(), key=lambda item: len(item[0]), reverse=True
+        ):
+            updated = updated.replace(private, public)
+        if updated != text:
+            _atomic_write_text(path, updated)
+
+
+def _safe_arcname(arcname: str) -> str:
+    path = Path(str(arcname))
+    if path.is_absolute() or ".." in path.parts or not str(path):
+        raise ValueError(f"unsafe capsule member path: {arcname!r}")
+    return path.as_posix()
+
+
 def build_capsule_manifest(
     report_dir: str | Path,
     *,
@@ -276,14 +462,34 @@ def build_capsule_manifest(
     """Return the S14 capsule manifest and source files to zip."""
     rd = Path(report_dir)
     root = Path(repo_root).resolve() if repo_root else _repo_root()
-    methodology = load_methodology(rd)
+    methodology = _portable_methodology(load_methodology(rd))
     write_ro_crate(rd)
 
     sources: list[tuple[Path, str, str]] = []
     for path in sorted(rd.rglob("*")):
         if path.is_file():
-            sources.append((path, path.relative_to(rd.parent).as_posix(), "report_artifact"))
+            sources.append((
+                path,
+                _safe_arcname(path.relative_to(rd.parent).as_posix()),
+                _report_artifact_role(path),
+            ))
     sources.extend(_repo_snapshot_files(root))
+
+    memory_source = next(
+        ((path, arcname) for path, arcname, role in sources
+         if role == "memory_snapshot"),
+        None,
+    )
+    memory_snapshot = (
+        _memory_snapshot_metadata(*memory_source)
+        if memory_source else {
+            "present": False,
+            "path": None,
+            "integrity_check": None,
+            "experiment_id": None,
+            "valid": True,
+        }
+    )
 
     files = [_file_entry(path, arcname, role) for path, arcname, role in sources]
     manifest = {
@@ -296,6 +502,7 @@ def build_capsule_manifest(
         "provenance": _provenance(methodology),
         "environment": _provenance(methodology).get("environment", {}),
         "ro_crate": "ro-crate-metadata.json",
+        "memory_snapshot": memory_snapshot,
         "files": files,
         "reproduction": _capsule_reproduction_plan(methodology),
     }
@@ -306,18 +513,94 @@ def write_reproducible_capsule(report_dir: str | Path,
                                out_zip: str | Path | None = None,
                                *,
                                repo_root: str | Path | None = None) -> Path:
-    """Bundle a report dir, RO-Crate, lockfiles, graph snapshot, and checksums."""
-    rd = Path(report_dir)
-    manifest, sources = build_capsule_manifest(rd, repo_root=repo_root)
+    """Atomically bundle one path-portable, experiment-scoped report snapshot."""
+    rd = Path(report_dir).resolve()
+    if not rd.is_dir():
+        raise FileNotFoundError(f"report directory not found: {rd}")
+    root = Path(repo_root).resolve() if repo_root else _repo_root()
     out = Path(out_zip) if out_zip else rd.parent / f"{rd.name}_capsule.zip"
-    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        for path, arcname, _role in sources:
-            if path.resolve() != out.resolve():
-                z.write(path, arcname)
-        z.writestr(
-            _CAPSULE_MANIFEST,
-            json.dumps(manifest, indent=2, sort_keys=True, default=str),
+    out = out.resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    methodology = load_methodology(rd)
+
+    # A2: take a private staging snapshot first. All hashing and ZIP writes read
+    # these immutable staged bytes, never the live report directory or lab DB.
+    with tempfile.TemporaryDirectory(
+        prefix=".aria-capsule-", dir=out.parent
+    ) as tmp_dir:
+        staging = Path(tmp_dir)
+        staged_report = staging / rd.name
+        shutil.copytree(rd, staged_report)
+
+        # If a caller stores the prior capsule inside the report directory, do
+        # not recursively include it in the next capsule.
+        try:
+            relative_out = out.relative_to(rd)
+        except ValueError:
+            relative_out = None
+        if relative_out is not None:
+            (staged_report / relative_out).unlink(missing_ok=True)
+
+        _sanitize_staged_report(staged_report, methodology)
+        manifest, sources = build_capsule_manifest(
+            staged_report, repo_root=root
         )
+
+        # Snapshot repository and report sources into one payload tree before
+        # hashing. This prevents a live source mutation between manifest hashing
+        # and the subsequent ZIP write.
+        payload_root = staging / "payload"
+        staged_sources: list[tuple[Path, str, str]] = []
+        for source, arcname, role in sources:
+            safe_name = _safe_arcname(arcname)
+            payload_path = payload_root / safe_name
+            payload_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, payload_path)
+            staged_sources.append((payload_path, safe_name, role))
+
+        manifest["files"] = [
+            _file_entry(path, arcname, role)
+            for path, arcname, role in staged_sources
+        ]
+        memory_source = next(
+            ((path, arcname) for path, arcname, role in staged_sources
+             if role == "memory_snapshot"),
+            None,
+        )
+        if memory_source:
+            manifest["memory_snapshot"] = _memory_snapshot_metadata(
+                *memory_source
+            )
+        manifest = _portable_value(manifest)
+
+        tmp_zip = staging / f".{out.name}.tmp"
+        with zipfile.ZipFile(tmp_zip, "w", zipfile.ZIP_DEFLATED) as archive:
+            for path, arcname, _role in staged_sources:
+                archive.write(path, arcname)
+            archive.writestr(
+                _CAPSULE_MANIFEST,
+                json.dumps(manifest, indent=2, sort_keys=True, default=str),
+            )
+
+        # Validate hashes and the embedded scoped SQLite before publication.
+        verification = verify_reproducible_capsule(tmp_zip, repo_root=root)
+        if verification.get("status") == "fail":
+            raise ValueError(
+                "capsule staging verification failed: "
+                f"{verification.get('files')}; "
+                f"memory snapshot={verification.get('memory_snapshot')}"
+            )
+        with tmp_zip.open("rb") as stream:
+            os.fsync(stream.fileno())
+        os.replace(tmp_zip, out)
+        try:
+            dir_fd = os.open(out.parent, os.O_RDONLY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
+        except OSError:
+            pass
     return out
 
 
@@ -346,6 +629,60 @@ def _methodology_from_zip(z: zipfile.ZipFile, manifest: dict) -> dict:
     return {}
 
 
+def _verify_zipped_memory_snapshot(
+    archive: zipfile.ZipFile, manifest: dict
+) -> dict[str, Any]:
+    expected = manifest.get("memory_snapshot")
+    expected = expected if isinstance(expected, dict) else {}
+    path = str(expected.get("path") or "")
+    if not path:
+        path = next(
+            (name for name in archive.namelist()
+             if name.endswith("/memory_snapshot.sqlite")
+             or name == "memory_snapshot.sqlite"),
+            "",
+        )
+    if not path:
+        return {
+            "present": False,
+            "path": None,
+            "integrity_check": None,
+            "experiment_id": None,
+            "valid": not bool(expected.get("present")),
+        }
+    result = {
+        "present": path in archive.namelist(),
+        "path": path,
+        "integrity_check": None,
+        "experiment_id": None,
+        "valid": False,
+    }
+    if not result["present"]:
+        return result
+
+    handle = tempfile.NamedTemporaryFile(suffix=".sqlite", delete=False)
+    tmp = Path(handle.name)
+    try:
+        handle.write(archive.read(path))
+        handle.close()
+        try:
+            observed = _memory_snapshot_metadata(tmp, path)
+        except ValueError as exc:
+            result["integrity_check"] = str(exc)
+            return result
+        result.update(observed)
+        expected_experiment = expected.get("experiment_id")
+        if (expected_experiment is not None
+                and result.get("experiment_id") != expected_experiment):
+            result["valid"] = False
+        return result
+    finally:
+        try:
+            handle.close()
+        finally:
+            tmp.unlink(missing_ok=True)
+
+
 def verify_reproducible_capsule(
     capsule_zip: str | Path,
     *,
@@ -358,7 +695,19 @@ def verify_reproducible_capsule(
         "capsule": str(capsule_zip),
         "status": "pass",
         "files": {"checked": 0, "missing": [], "mismatched": []},
-        "inputs": {"checked": 0, "missing": [], "mismatched": []},
+        "inputs": {
+            "checked": 0,
+            "missing": [],
+            "mismatched": [],
+            "relocation_required": [],
+        },
+        "memory_snapshot": {
+            "present": False,
+            "path": None,
+            "integrity_check": None,
+            "experiment_id": None,
+            "valid": True,
+        },
         "environment": {},
         "git": {},
         "diff": None,
@@ -392,6 +741,7 @@ def verify_reproducible_capsule(
                 })
 
         methodology = _methodology_from_zip(z, manifest)
+        result["memory_snapshot"] = _verify_zipped_memory_snapshot(z, manifest)
 
     for item in (methodology.get("inputs", []) or []):
         if not isinstance(item, dict):
@@ -399,6 +749,9 @@ def verify_reproducible_capsule(
         path = item.get("path")
         expected = item.get("sha256")
         if not path or not expected or expected == "unavailable":
+            continue
+        if str(path).startswith(("input://", "private-path://")):
+            result["inputs"]["relocation_required"].append(str(path))
             continue
         p = Path(str(path)).expanduser()
         if not p.is_file():
@@ -440,9 +793,11 @@ def verify_reproducible_capsule(
         result["diff"] = diff_methodologies(methodology, load_methodology(compare_report))
 
     if (result["files"]["missing"] or result["files"]["mismatched"]
-            or result["inputs"]["mismatched"]):
+            or result["inputs"]["mismatched"]
+            or not result["memory_snapshot"].get("valid", False)):
         result["status"] = "fail"
-    elif result["inputs"]["missing"]:
+    elif (result["inputs"]["missing"]
+          or result["inputs"]["relocation_required"]):
         result["status"] = "warning"
     return result
 
