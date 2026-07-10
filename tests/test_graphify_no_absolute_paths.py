@@ -7,6 +7,7 @@ root, leaking `/home/<user>/Samael/ARIA/...` into manifest/report/html on every 
 (a privacy leak + a reproducibility break — not relocatable). This guard fails on any
 absolute path under `docs/architecture/graphify/`, so the regression cannot return.
 """
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -61,3 +62,35 @@ def test_graphify_readme_commit_pointer_is_reachable_from_head():
         capture_output=True, text=True)
     assert anc.returncode == 0, (
         f"README commit pointer {sha} is not reachable from HEAD (stale/foreign)")
+
+
+def test_graphify_contains_ariamemory_scoped_export_method():
+    graph_path = GRAPHIFY_DIR / "graph.json"
+    if not graph_path.exists():
+        return
+    graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    methods = {
+        node.get("id")
+        for node in graph.get("nodes", [])
+        if node.get("source_file") == "aria/memory/memory.py"
+        and node.get("label") == ".export_experiment_snapshot()"
+    }
+    assert len(methods) == 1, (
+        "Graphify must expose ARIAMemory.export_experiment_snapshot exactly once"
+    )
+    method_id = next(iter(methods))
+    assert any(
+        edge.get("target") == method_id
+        and edge.get("relation") == "method"
+        and edge.get("confidence") == "EXTRACTED"
+        for edge in graph.get("edges", [])
+    ), "ARIAMemory scoped export has no extracted method edge"
+
+
+def test_curated_graph_documents_a2_capsule_path():
+    curated = (ROOT / "docs" / "architecture" / "code_graph.md").read_text(
+        encoding="utf-8"
+    )
+    assert "A2 transactional per-experiment publication path" in curated
+    assert "ARIAMemory.export_experiment_snapshot" in curated
+    assert "verify_reproducible_capsule" in curated

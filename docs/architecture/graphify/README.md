@@ -18,17 +18,23 @@ It **drops**: every `confidence == "INFERRED"` edge (`uses` and a few inferred
 / `document` nodes; it zeroes the LLM token counters and the hyperedge layer.
 The graph carries a `"structure_only": true` provenance stamp.
 
+One deterministic AST completeness guard restores the real members of
+`aria/memory/memory.py:ARIAMemory` when the upstream extractor emits only an
+aggregate class node. The added nodes and `method` edges come directly from the
+tracked Python AST; no inferred/semantic layer is introduced. In particular,
+`.export_experiment_snapshot()` must be queryable in every generated graph.
+
 ## Snapshot
 
-- Commit: `8c4c430` (HEAD the graph was built from)
-- Generated: 2026-07-09
+- Commit: `a0a9bf5` (HEAD the graph was built from)
+- Generated: 2026-07-10
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Structure-only graph: **6377 code nodes / 14922 EXTRACTED structural edges** in
+- Structure-only graph: **6419 code nodes / 15054 EXTRACTED structural edges** in
   `graph.json` (the structure-only filter drops non-code nodes and the
   inferred/rationale layers, then keeps only structural edges)
-- Clustered report: 6369 nodes / 13508 edges / 390 communities in
-  `GRAPH_REPORT.md` (375 shown, 15 thin omitted; community detection ignores a
+- Clustered report: 6411 nodes / 13626 edges / 384 communities in
+  `GRAPH_REPORT.md` (368 shown, 16 thin omitted; community detection ignores a
   few isolated nodes — normal)
 - No LLM layer in the final graph: 0 input/output token counters; community naming
   is skipped (`--no-label` → "Community N" placeholders). The upstream extractor
