@@ -226,6 +226,49 @@ def _classify_terms(meta, condition_col: str, covariates: list[str],
     return categorical, continuous
 
 
+def factors_confounded_with_condition(
+    sample_sheet: list[dict],
+    condition_key: str,
+    candidate_keys: list[str],
+) -> list[str]:
+    """Return candidate factors perfectly aliased with the condition.
+
+    Dependency-light sibling of :func:`_check_condition_confounding` that works on
+    a plain list-of-dict sample sheet (no pandas), so the confounding check can run
+    at design-assembly time — before any DE metadata frame exists.
+
+    A candidate is *confounded* with the condition when the level mapping is
+    bijective: every candidate level appears under exactly one condition level and
+    every condition level appears under exactly one candidate level.  Such a term
+    cannot be separated from biology and must block, not merely be "ignored".
+
+    Rows missing either key are skipped.  A candidate with fewer than two observed
+    levels, or a condition with fewer than two observed levels, is never confounded.
+    """
+    confounded: list[str] = []
+    for candidate in candidate_keys:
+        if not candidate or candidate == condition_key:
+            continue
+        cond_to_cov: dict[str, set] = {}
+        cov_to_cond: dict[str, set] = {}
+        for row in sample_sheet:
+            cond = row.get(condition_key)
+            cov = row.get(candidate)
+            if cond in (None, "") or cov in (None, ""):
+                continue
+            cond = str(cond)
+            cov = str(cov)
+            cond_to_cov.setdefault(cond, set()).add(cov)
+            cov_to_cond.setdefault(cov, set()).add(cond)
+        if len(cond_to_cov) < 2 or len(cov_to_cond) < 2:
+            continue
+        cov_to_one_condition = all(len(v) == 1 for v in cov_to_cond.values())
+        condition_to_one_cov = all(len(v) == 1 for v in cond_to_cov.values())
+        if cov_to_one_condition and condition_to_one_cov:
+            confounded.append(candidate)
+    return confounded
+
+
 def _check_condition_confounding(meta, condition_col: str, covariate: str,
                                  issues: list[DesignIssue]) -> None:
     table = meta.groupby([covariate, condition_col], dropna=False).size().unstack(fill_value=0)

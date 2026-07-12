@@ -468,10 +468,14 @@ def _infer_design(metadata: dict) -> dict:
     so downstream count matrices can match either GSM/SRR columns or readable
     sample labels.
     """
+    from aria.utils.design_matrix import factors_confounded_with_condition
+
     samples = metadata.get("samples", [])
     if not samples:
         return {"groups": {}, "factor": "condition", "main_factor": "condition",
-                "condition_col": "condition", "n_groups": 0}
+                "condition_col": "condition", "n_groups": 0,
+                "sample_sheet": [], "covariates": [], "donor_col": None,
+                "confounded_covariates": [], "unresolved_confounding": False}
 
     all_keys: set = set()
     for s in samples:
@@ -556,13 +560,60 @@ def _infer_design(metadata: dict) -> dict:
                 [title] if title and title != sample_id else []
             )
 
+    condition_col = best_key or "condition"
+
+    # Preserve the full multifactorial structure instead of collapsing the study
+    # to a single "best" characteristic.  Every sample keeps all of its
+    # characteristics in an explicit sample sheet, secondary multi-level factors
+    # are surfaced as covariates, and any secondary factor perfectly aliased with
+    # the chosen condition is flagged so the design phase blocks (B2).
+    donor_tokens = ("donor", "subject", "patient", "individual", "replicate")
+    sample_sheet: list[dict] = []
+    donor_col: Optional[str] = None
+    for s in samples:
+        sample_id = str(s.get("id") or s.get("title") or "sample")
+        row = {"sample": sample_id}
+        row.update(s.get("characteristics", {}) or {})
+        sample_sheet.append(row)
+
+    covariates: list[str] = []
+    for key in sorted(all_keys):
+        if key == best_key:
+            continue
+        vals = [
+            str(s.get("characteristics", {}).get(key, "")).strip()
+            for s in samples
+        ]
+        vals = [v for v in vals if v]
+        unique = len(set(vals))
+        if unique < 2:
+            continue
+        donor_like = any(tok in key.lower() for tok in donor_tokens)
+        # A field unique per sample is only design-relevant when it names a
+        # donor/subject/replicate block; otherwise it is an incidental id.
+        if unique == n and not donor_like:
+            continue
+        covariates.append(key)
+        if donor_like and donor_col is None:
+            donor_col = key
+
+    confounded_covariates = (
+        factors_confounded_with_condition(sample_sheet, condition_col, covariates)
+        if best_key else []
+    )
+
     return {
         "groups":   groups,
-        "factor":   best_key or "condition",
-        "main_factor": best_key or "condition",
-        "condition_col": best_key or "condition",
+        "factor":   condition_col,
+        "main_factor": condition_col,
+        "condition_col": condition_col,
         "n_groups": len(groups),
         "sample_aliases": sample_aliases,
+        "sample_sheet": sample_sheet,
+        "covariates": covariates,
+        "donor_col": donor_col,
+        "confounded_covariates": confounded_covariates,
+        "unresolved_confounding": bool(confounded_covariates),
         "source": "GEO/SRA metadata",
         "confidence": "high" if best_key and len(groups) > 1 else "low",
         "reasoning": (

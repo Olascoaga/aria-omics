@@ -435,11 +435,12 @@ class DesignAgent(BaseAgent):
     def _handle_confirm_response(self, choice: str) -> dict:
         design = self._build_design()
         if design.get("design_status") == "blocking":
-            reason = (
-                "replicate_mapping_conflict"
-                if design.get("replicate_handling", {}).get("conflicts")
-                else "insufficient_biological_replicates"
-            )
+            if design.get("confounded_covariates"):
+                reason = "condition_covariate_confounding"
+            elif design.get("replicate_handling", {}).get("conflicts"):
+                reason = "replicate_mapping_conflict"
+            else:
+                reason = "insufficient_biological_replicates"
             return {
                 "status": "cancelled",
                 "reason": reason,
@@ -685,6 +686,13 @@ class DesignAgent(BaseAgent):
             summary.append(
                 "BLOCKING: " + ", ".join(design.get("blocking_reasons", []))
             )
+            if design.get("confounded_covariates"):
+                summary.append(
+                    "Confounded with "
+                    f"'{design['main_factor']}': "
+                    f"{', '.join(design['confounded_covariates'])} "
+                    "(non-identifiable; cannot be resolved by ignoring the term)."
+                )
         if design.get("batch_covariate"):
             summary.append(f"Batch covariate: {design['batch_covariate']}")
 
@@ -692,7 +700,7 @@ class DesignAgent(BaseAgent):
         options = (
             ["Yes — proceed", "Cancel"]
             if design.get("design_status") != "blocking"
-            else ["Cancel — provide biological replicate mapping"]
+            else ["Cancel — provide an explicit sample sheet / resolve confounding"]
         )
         msg = self.publish_escalation(
             experiment_id=self._experiment_id,
@@ -832,11 +840,14 @@ class DesignAgent(BaseAgent):
             pseudobulk_design["replicate_col"] = "biological_unit"
 
         mapping_conflicts = handling.get("conflicts", []) or []
+        confounded_covariates = self._confounded_covariates(main_factor)
         blocking_reasons = []
         if blocking_groups:
             blocking_reasons.append("insufficient_biological_replicates")
         if mapping_conflicts:
             blocking_reasons.append("replicate_mapping_conflict")
+        if confounded_covariates:
+            blocking_reasons.append("condition_covariate_confounding")
 
         return {
             "organism":        self._organism,
@@ -859,7 +870,29 @@ class DesignAgent(BaseAgent):
             "design_status": "blocking" if blocking_reasons else "ready",
             "blocking_groups": blocking_groups,
             "blocking_reasons": blocking_reasons,
+            "confounded_covariates": confounded_covariates,
         }
+
+    def _confounded_covariates(self, main_factor: str) -> list[str]:
+        """Factors from the inferred sample sheet perfectly aliased with condition.
+
+        Confounding is a property of the metadata, not of the CP2.4 batch choice:
+        declining to model a confounded batch does not make biology identifiable,
+        so the block cannot be bypassed by the headless "ignore batch" default (B2).
+        The explicit sample sheet is authoritative; a precomputed flag from the
+        connector is the fallback when no sheet is present.
+        """
+        from aria.utils.design_matrix import factors_confounded_with_condition
+
+        inferred = self._inferred_design or {}
+        condition_col = inferred.get("condition_col") or main_factor
+        sheet = inferred.get("sample_sheet")
+        covariates = inferred.get("covariates") or []
+        if sheet and covariates:
+            return factors_confounded_with_condition(
+                sheet, condition_col, covariates
+            )
+        return list(inferred.get("confounded_covariates") or [])
 
     @staticmethod
     def _technical_replicate_root(sample: str) -> str:
