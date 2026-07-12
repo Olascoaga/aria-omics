@@ -269,6 +269,89 @@ def factors_confounded_with_condition(
     return confounded
 
 
+def classify_pairing(
+    sample_sheet: list[dict],
+    condition_key: str,
+    replicate_key: str,
+    *,
+    test: str | None = None,
+    ref: str | None = None,
+) -> dict:
+    """Classify the pairing structure of a two-condition contrast.
+
+    Dependency-light (no pandas): works on a plain list-of-dict sample sheet so
+    the classification runs before any DE metadata frame exists.  Only the two
+    contrast levels are considered when ``test``/``ref`` are given; a replicate
+    that pairs across other conditions does not count as paired here.
+
+    A replicate is *paired* when it appears under both contrast conditions.
+
+      * ``complete``    — every replicate present in the contrast is paired.
+      * ``partial``     — some replicates are paired, some are nested in one level.
+      * ``independent`` — no replicate spans both conditions.
+      * ``insufficient``— fewer than two usable samples/conditions.
+
+    Returns paired/unpaired replicate ids plus the sample ids that belong to each,
+    so a caller can model the within-subject block on the complete-paired subset
+    and disclose the excluded unpaired samples (B3 option B).
+    """
+    levels = {str(test), str(ref)} if (test is not None and ref is not None) else None
+
+    rep_to_conditions: dict[str, set] = {}
+    rep_to_samples: dict[str, list] = {}
+    for row in sample_sheet:
+        cond = row.get(condition_key)
+        rep = row.get(replicate_key)
+        sample = row.get("sample", row.get("id"))
+        if cond in (None, "") or rep in (None, ""):
+            continue
+        cond = str(cond)
+        rep = str(rep)
+        if levels is not None and cond not in levels:
+            continue
+        rep_to_conditions.setdefault(rep, set()).add(cond)
+        rep_to_samples.setdefault(rep, []).append(sample)
+
+    contrast_levels = levels or {
+        c for conds in rep_to_conditions.values() for c in conds
+    }
+
+    paired_replicates: list[str] = []
+    unpaired_replicates: list[str] = []
+    for rep in sorted(rep_to_conditions):
+        seen = rep_to_conditions[rep] & contrast_levels
+        if len(seen) >= 2:
+            paired_replicates.append(rep)
+        else:
+            unpaired_replicates.append(rep)
+
+    paired_samples = [
+        s for rep in paired_replicates for s in rep_to_samples[rep]
+    ]
+    unpaired_samples = [
+        s for rep in unpaired_replicates for s in rep_to_samples[rep]
+    ]
+
+    n_reps = len(rep_to_conditions)
+    n_samples = sum(len(v) for v in rep_to_samples.values())
+    if n_reps < 2 or n_samples < 2 or len(contrast_levels) < 2:
+        status = "insufficient"
+    elif not paired_replicates:
+        status = "independent"
+    elif not unpaired_replicates:
+        status = "complete"
+    else:
+        status = "partial"
+
+    return {
+        "status": status,
+        "paired_replicates": paired_replicates,
+        "unpaired_replicates": unpaired_replicates,
+        "paired_samples": paired_samples,
+        "unpaired_samples": unpaired_samples,
+    }
+
+
 def _check_condition_confounding(meta, condition_col: str, covariate: str,
                                  issues: list[DesignIssue]) -> None:
     table = meta.groupby([covariate, condition_col], dropna=False).size().unstack(fill_value=0)

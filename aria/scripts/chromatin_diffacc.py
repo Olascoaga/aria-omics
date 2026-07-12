@@ -245,6 +245,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     # Import the SHARED DESeq2 core (no module-level heavy deps; safe to import
     # in the chromatin env). This keeps one validated DE engine across modalities.
     from aria.scripts.rna_bulk_de import _run_deseq2
+    from aria.utils.design_matrix import classify_pairing
 
     obs = adata.obs[[condition_col, replicate_col]].copy()
     obs[condition_col] = obs[condition_col].astype(str)
@@ -278,7 +279,11 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
         summed = np.asarray(X[positions, :].sum(axis=0)).ravel()
         ps_rows.append(summed)
         cond = obs[condition_col].iloc[positions[0]]
-        ps_meta.append({"pseudosample": str(ps), condition_col: str(cond)})
+        rep = obs[replicate_col].iloc[positions[0]]
+        # B3: carry the biological replicate so DA can model the donor block.
+        ps_meta.append({"pseudosample": str(ps),
+                        condition_col: str(cond),
+                        replicate_col: str(rep)})
 
     if len(ps_rows) < 2:
         return {"ran": False,
@@ -323,14 +328,52 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                            f"(have {sorted(levels)})")})
             continue
 
+        # B3: classify pairing for this contrast and model the donor block when
+        # present. complete -> block on all pseudosamples; partial -> block on the
+        # complete-paired subset (option B) with the nested pseudosamples disclosed;
+        # independent -> unpaired. scATAC DA is donor-aware, never silently ~condition.
+        sub_counts, sub_meta = counts_df, meta_df
+        da_covariates = None
+        pairing_status = None
+        excluded_unpaired: list = []
+        if replicate_col in meta_df.columns:
+            pairing_sheet = [
+                {"sample": str(idx),
+                 condition_col: meta_df.at[idx, condition_col],
+                 replicate_col: meta_df.at[idx, replicate_col]}
+                for idx in meta_df.index
+            ]
+            prec = classify_pairing(
+                pairing_sheet, condition_col, replicate_col, test=test, ref=ref,
+            )
+            pairing_status = prec["status"]
+            if pairing_status == "complete":
+                da_covariates = [replicate_col]
+            elif pairing_status == "partial":
+                keep = {str(s) for s in prec["paired_samples"]}
+                excluded_unpaired = sorted(str(s) for s in prec["unpaired_samples"])
+                keep_idx = [i for i in meta_df.index if str(i) in keep]
+                sub_meta = meta_df.loc[keep_idx].copy()
+                sub_counts = counts_df.loc[:, keep_idx].copy()
+                da_covariates = [replicate_col]
+                if excluded_unpaired:
+                    warnings.append(
+                        f"[{test}_vs_{ref}] partial pairing: modeled the donor "
+                        f"block on {len(keep_idx)} paired pseudosample(s); excluded "
+                        f"unpaired {excluded_unpaired} from the contrast (B3)."
+                    )
+
         de, de_warn = _run_deseq2(
-            counts_df, meta_df, condition_col, test, ref,
+            sub_counts, sub_meta, condition_col, test, ref,
             padj_max, lfc_min, allow_mock=allow_mock,
             min_replicates_per_condition=min_reps,
+            covariates=da_covariates,
             n_cpus=n_cpus,
             expose_convergence=True,   # T15 / W0.4
         )
         warnings.extend(de_warn)
+        fitted_formula = de.get("fitted_design_formula") or ""
+        paired_block_modeled = bool(da_covariates) and (replicate_col in fitted_formula)
         if de.get("status") != "success":
             comp_results.append({
                 "test": test, "reference": ref, "status": "error",
@@ -397,6 +440,9 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             "fitted_design_formula": de.get("fitted_design_formula"),
             "convergence_available": conv_info["convergence_available"],
             "n_nonconverged_excluded": n_excluded,
+            "pairing_status": pairing_status,
+            "paired_block_modeled": paired_block_modeled,
+            "excluded_unpaired_samples": excluded_unpaired,
             "top_peaks": top_peaks,
         })
 

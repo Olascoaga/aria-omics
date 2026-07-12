@@ -275,7 +275,7 @@ def rna_pseudobulk_de(params: dict) -> dict:
     from pathlib import Path
     from scipy import sparse
     import inspect
-    from aria.utils.design_matrix import validate_design_matrix
+    from aria.utils.design_matrix import validate_design_matrix, classify_pairing
     from aria.utils.power_estimation import pseudobulk_power_estimate
     from aria.utils.safe_h5ad import read_h5ad
 
@@ -623,19 +623,52 @@ def rna_pseudobulk_de(params: dict) -> dict:
 
             design_factors = [condition_col] + (covariates or [])
             paired_donor_covariate_used = False
-            if (
-                paired_design
-                and auto_paired_donor_covariate
-                and replicate_col not in design_factors
-            ):
-                reps_by_condition = meta_sub.groupby(replicate_col)[
-                    condition_col
-                ].nunique()
-                if len(reps_by_condition) > 0 and bool(
-                    (reps_by_condition == 2).all()
-                ):
+            # B3: classify pairing for THIS contrast and pick a compatible model.
+            # complete -> block modeled on all samples; partial -> block modeled on
+            # the complete-paired subset (option B, always estimable) with the
+            # nested samples disclosed; independent -> unpaired, no block. Partial
+            # pairing is never silently degraded to an independent fit.
+            pairing_status = None
+            excluded_unpaired_samples: list = []
+            if auto_paired_donor_covariate and replicate_col not in design_factors:
+                pairing_sheet = [
+                    {"sample": str(idx),
+                     condition_col: meta_sub.at[idx, condition_col],
+                     replicate_col: meta_sub.at[idx, replicate_col]}
+                    for idx in meta_sub.index
+                ]
+                prec = classify_pairing(
+                    pairing_sheet, condition_col, replicate_col,
+                    test=test_lvl, ref=ref_lvl,
+                )
+                pairing_status = prec["status"]
+                if pairing_status == "complete":
                     design_factors = design_factors + [replicate_col]
                     paired_donor_covariate_used = True
+                elif pairing_status == "partial":
+                    keep = set(prec["paired_samples"])
+                    excluded_unpaired_samples = sorted(
+                        str(s) for s in prec["unpaired_samples"]
+                    )
+                    keep_idx = [i for i in meta_sub.index if str(i) in keep]
+                    meta_sub = meta_sub.loc[keep_idx].copy()
+                    counts_sub = counts_sub.loc[:, keep_idx].copy()
+                    n_test = int((meta_sub[condition_col] == test_lvl).sum())
+                    n_ref = int((meta_sub[condition_col] == ref_lvl).sum())
+                    design_factors = design_factors + [replicate_col]
+                    paired_donor_covariate_used = True
+                    if (n_test < min_replicates_per_condition
+                            or n_ref < min_replicates_per_condition):
+                        per_group_entry["per_comparison"][comp_key] = {
+                            "status": "skipped",
+                            "reason": "insufficient_replicates_after_pairing_subset",
+                            "pairing_status": pairing_status,
+                            "excluded_unpaired_samples": excluded_unpaired_samples,
+                            "n_paired_replicates": {
+                                "test": n_test, "ref": n_ref,
+                            },
+                        }
+                        continue
             block_corrected_for_composition = False
             composition_skipped_reason = None
             if composition_covariate and COMPOSITION_COL in meta_sub.columns:
@@ -785,6 +818,9 @@ def rna_pseudobulk_de(params: dict) -> dict:
                 },
                 "paired_design":              paired_design,
                 "paired_donor_covariate":     paired_donor_covariate_used,
+                "pairing_status":             pairing_status,
+                "paired_block_modeled":       paired_donor_covariate_used,
+                "excluded_unpaired_samples":  excluded_unpaired_samples,
                 "design_check":               design_check,
                 "top_genes":                 [],
                 "all_sig":                   [],
