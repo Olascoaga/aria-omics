@@ -11695,7 +11695,7 @@
       "label": "chromatin_diffacc()",
       "file_type": "code",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L414"
+      "source_location": "L460"
     },
     {
       "id": "scripts_chromatin_figure_clusters",
@@ -16822,18 +16822,25 @@
       "source_location": "L229"
     },
     {
+      "id": "utils_design_matrix_classify_pairing",
+      "label": "classify_pairing()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272"
+    },
+    {
       "id": "utils_design_matrix_check_condition_confounding",
       "label": "_check_condition_confounding()",
       "file_type": "code",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L272"
+      "source_location": "L355"
     },
     {
       "id": "utils_design_matrix_build_design_matrix",
       "label": "_build_design_matrix()",
       "file_type": "code",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L292"
+      "source_location": "L375"
     },
     {
       "id": "utils_design_power",
@@ -30154,7 +30161,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -30399,7 +30406,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -30421,7 +30428,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -42946,6 +42953,90 @@
       "source_location": "L167"
     },
     {
+      "id": "tests_test_preprint_audit_b3_pairing",
+      "label": "test_preprint_audit_b3_pairing.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_rows",
+      "label": "_rows()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L26"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_complete",
+      "label": "test_classify_pairing_complete()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L34"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_partial",
+      "label": "test_classify_pairing_partial()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_independent",
+      "label": "test_classify_pairing_independent()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L66"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_restricts_to_contrast_levels",
+      "label": "test_classify_pairing_restricts_to_contrast_levels()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_make_scrna",
+      "label": "_make_scrna()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L121"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_make_typei_scrna",
+      "label": "_make_typei_scrna()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L139"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "label": "_run_partial_pseudobulk()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L165"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_discloses_and_models_block",
+      "label": "test_rna_partial_pairing_discloses_and_models_block()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L188"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_controls_type_i_vs_unpaired",
+      "label": "test_rna_partial_pairing_controls_type_i_vs_unpaired()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L206"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_pairing_test_chromatin_pseudobulk_da_is_donor_aware",
+      "label": "test_chromatin_pseudobulk_da_is_donor_aware()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L233"
+    },
+    {
       "id": "tests_test_preprint_audit_probes",
       "label": "test_preprint_audit_probes.py",
       "file_type": "code",
@@ -45301,97 +45392,177 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
-    },
-    {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py"
-    },
-    {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_bulk_diffacc",
+      "label": "chromatin_bulk_diffacc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "chromatin_footprint_tobias",
       "label": "chromatin_footprint_tobias.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
+      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "python_aria_memory_memory_py",
@@ -92542,7 +92713,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L414",
+      "source_location": "L460",
       "weight": 1.0
     },
     {
@@ -92562,7 +92733,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L347",
+      "source_location": "L390",
       "weight": 1.0
     },
     {
@@ -92572,7 +92743,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L489",
+      "source_location": "L535",
       "weight": 1.0
     },
     {
@@ -92582,7 +92753,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L505",
+      "source_location": "L551",
       "weight": 1.0
     },
     {
@@ -103089,7 +103260,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L657",
+      "source_location": "L690",
       "weight": 1.0
     },
     {
@@ -103099,7 +103270,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L727",
+      "source_location": "L760",
       "weight": 1.0
     },
     {
@@ -103109,7 +103280,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L814",
+      "source_location": "L850",
       "weight": 1.0
     },
     {
@@ -103119,7 +103290,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L822",
+      "source_location": "L858",
       "weight": 1.0
     },
     {
@@ -103129,7 +103300,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L889",
+      "source_location": "L925",
       "weight": 1.0
     },
     {
@@ -103139,7 +103310,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L1010",
+      "source_location": "L1046",
       "weight": 1.0
     },
     {
@@ -111504,7 +111675,7 @@
     },
     {
       "source": "utils_design_matrix",
-      "target": "utils_design_matrix_check_condition_confounding",
+      "target": "utils_design_matrix_classify_pairing",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
@@ -111512,7 +111683,7 @@
       "weight": 1.0
     },
     {
-      "source": "utils_design_matrix_check_condition_confounding",
+      "source": "utils_design_matrix_classify_pairing",
       "target": "aria_utils_design_matrix_py_str",
       "relation": "references",
       "context": "parameter_type",
@@ -111522,13 +111693,62 @@
       "weight": 1.0
     },
     {
-      "source": "utils_design_matrix_check_condition_confounding",
+      "source": "utils_design_matrix_classify_pairing",
       "target": "aria_utils_design_matrix_py_str",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
       "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_classify_pairing",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_classify_pairing",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix",
+      "target": "utils_design_matrix_check_condition_confounding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L355",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_check_condition_confounding",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L355",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_check_condition_confounding",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -111538,7 +111758,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L272",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -111547,7 +111767,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L292",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -111557,7 +111777,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L292",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -111567,7 +111787,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L292",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -111657,7 +111877,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L281",
+      "source_location": "L364",
       "weight": 1.0
     },
     {
@@ -134701,7 +134921,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -134754,7 +134974,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134764,7 +134984,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134774,7 +134994,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134784,7 +135004,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134794,7 +135014,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -135116,7 +135336,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -135125,7 +135345,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -135160,7 +135380,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -135170,7 +135390,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_z4pk2y_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -159172,6 +159392,185 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_rows",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_complete",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_partial",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_independent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_restricts_to_contrast_levels",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_make_scrna",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_make_typei_scrna",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L139",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L165",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_discloses_and_models_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L188",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_controls_type_i_vs_unpaired",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "tests_test_preprint_audit_b3_pairing_test_chromatin_pseudobulk_da_is_donor_aware",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L233",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_complete",
+      "target": "tests_test_preprint_audit_b3_pairing_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_partial",
+      "target": "tests_test_preprint_audit_b3_pairing_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_independent",
+      "target": "tests_test_preprint_audit_b3_pairing_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_restricts_to_contrast_levels",
+      "target": "tests_test_preprint_audit_b3_pairing_rows",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "target": "tests_test_preprint_audit_b3_pairing_make_scrna",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_discloses_and_models_block",
+      "target": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_controls_type_i_vs_unpaired",
+      "target": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_rna_partial_pairing_controls_type_i_vs_unpaired",
+      "target": "tests_test_preprint_audit_b3_pairing_make_typei_scrna",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L216",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes",
       "target": "tests_test_preprint_audit_probes_test_probe_b6_fractional_row_outside_sample_is_caught",
       "relation": "contains",
@@ -167673,12 +168072,22 @@
     },
     {
       "source": "scripts_chromatin_diffacc",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L248",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_diffacc",
       "target": "utils_thresholds_analysisthresholds",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L427",
+      "source_location": "L473",
       "weight": 1.0
     },
     {
@@ -167688,7 +168097,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L455",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -167698,7 +168107,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L455",
+      "source_location": "L501",
       "weight": 1.0
     },
     {
@@ -167708,7 +168117,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L495",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -168934,6 +169343,16 @@
     {
       "source": "scripts_rna_pseudobulk_de",
       "target": "utils_design_matrix_validate_design_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": "L278",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_pseudobulk_de",
+      "target": "utils_design_matrix_classify_pairing",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -175592,6 +176011,36 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L35",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "scripts_rna_pseudobulk_de_rna_pseudobulk_de",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing",
+      "target": "scripts_chromatin_diffacc_pseudobulk_da",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L238",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes",
       "target": "utils_count_classifier_classify_matrix",
       "relation": "imports",
@@ -178133,12 +178582,22 @@
     },
     {
       "source": "scripts_chromatin_diffacc_pseudobulk_da",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
+      "source_location": "L346",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_chromatin_diffacc_pseudobulk_da",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L326",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -178148,7 +178607,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L425",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -178158,7 +178617,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L467",
+      "source_location": "L513",
       "weight": 1.0
     },
     {
@@ -178168,7 +178627,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L471",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -178178,7 +178637,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L500",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -178983,12 +179442,22 @@
     },
     {
       "source": "scripts_rna_pseudobulk_de_rna_pseudobulk_de",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": "L640",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_pseudobulk_de_rna_pseudobulk_de",
       "target": "utils_design_matrix_validate_design_matrix",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L664",
+      "source_location": "L697",
       "weight": 1.0
     },
     {
@@ -178998,7 +179467,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L692",
+      "source_location": "L725",
       "weight": 1.0
     },
     {
@@ -179008,7 +179477,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L854",
+      "source_location": "L890",
       "weight": 1.0
     },
     {
@@ -179018,7 +179487,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L855",
+      "source_location": "L891",
       "weight": 1.0
     },
     {
@@ -179028,7 +179497,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": "L1055",
+      "source_location": "L1091",
       "weight": 1.0
     },
     {
@@ -190702,6 +191171,66 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_complete",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_partial",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_independent",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_restricts_to_contrast_levels",
+      "target": "utils_design_matrix_classify_pairing",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_run_partial_pseudobulk",
+      "target": "scripts_rna_pseudobulk_de_rna_pseudobulk_de",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_pairing_test_chromatin_pseudobulk_da_is_donor_aware",
+      "target": "scripts_chromatin_diffacc_pseudobulk_da",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_pairing.py",
+      "source_location": "L261",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes_test_probe_a1_airgap_after_construction_blocks_egress",
       "target": "llm_provider_modelconfig",
       "relation": "calls",
@@ -193464,7 +193993,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -193472,7 +194003,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -193480,7 +194013,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -193488,7 +194023,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
@@ -193496,7 +194033,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
@@ -193504,7 +194043,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "environment_manager",
@@ -193512,7 +194053,9 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "scrna_agent",
@@ -193520,7 +194063,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_bulk_diffacc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "chromatin_agent",
@@ -193528,7 +194083,19 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "biological_synthesis_agent",
@@ -193536,23 +194103,29 @@
       "relation": "implements",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "python_aria_memory_memory_py",
