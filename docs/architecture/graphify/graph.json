@@ -1937,112 +1937,119 @@
       "label": "._publish_groups_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L458"
+      "source_location": "L459"
     },
     {
       "id": "agents_design_agent_designagent_publish_organism_checkpoint",
       "label": "._publish_organism_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L492"
+      "source_location": "L493"
     },
     {
       "id": "agents_design_agent_designagent_publish_factor_checkpoint",
       "label": "._publish_factor_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L530"
+      "source_location": "L531"
     },
     {
       "id": "agents_design_agent_designagent_sanitize_factor_guess",
       "label": "._sanitize_factor_guess()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L569"
+      "source_location": "L570"
     },
     {
       "id": "agents_design_agent_designagent_publish_batch_checkpoint",
       "label": "._publish_batch_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L603"
+      "source_location": "L604"
     },
     {
       "id": "agents_design_agent_designagent_publish_pseudorep_checkpoint",
       "label": "._publish_pseudorep_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L638"
+      "source_location": "L639"
     },
     {
       "id": "agents_design_agent_designagent_publish_confirm_checkpoint",
       "label": "._publish_confirm_checkpoint()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L671"
+      "source_location": "L672"
     },
     {
       "id": "agents_design_agent_designagent_parse_samples",
       "label": "._parse_samples()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L708"
+      "source_location": "L716"
     },
     {
       "id": "agents_design_agent_designagent_propose_groups",
       "label": "._propose_groups()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L732"
+      "source_location": "L740"
     },
     {
       "id": "agents_design_agent_designagent_build_design",
       "label": "._build_design()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L784"
+      "source_location": "L792"
+    },
+    {
+      "id": "agents_design_agent_designagent_confounded_covariates",
+      "label": "._confounded_covariates()",
+      "file_type": "code",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L876"
     },
     {
       "id": "agents_design_agent_designagent_technical_replicate_root",
       "label": "._technical_replicate_root()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L865"
+      "source_location": "L898"
     },
     {
       "id": "agents_design_agent_designagent_build_replicate_handling",
       "label": "._build_replicate_handling()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L877"
+      "source_location": "L910"
     },
     {
       "id": "aria_agents_design_agent_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L877"
+      "source_location": "L910"
     },
     {
       "id": "agents_design_agent_designagent_store_design",
       "label": "._store_design()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L913"
+      "source_location": "L946"
     },
     {
       "id": "agents_design_agent_designagent_run",
       "label": ".run()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L929"
+      "source_location": "L962"
     },
     {
       "id": "agents_design_agent_designagent_receive",
       "label": ".receive()",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L938"
+      "source_location": "L971"
     },
     {
       "id": "agents_design_intelligence",
@@ -9931,21 +9938,21 @@
       "label": "_organism_from_gene_symbols()",
       "file_type": "code",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L576"
+      "source_location": "L627"
     },
     {
       "id": "connectors_geo_connector_classify_suppl_file",
       "label": "_classify_suppl_file()",
       "file_type": "code",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L626"
+      "source_location": "L677"
     },
     {
       "id": "connectors_geo_connector_infer_data_type",
       "label": "_infer_data_type()",
       "file_type": "code",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L652"
+      "source_location": "L703"
     },
     {
       "id": "aria_doctor",
@@ -16808,18 +16815,25 @@
       "source_location": "L181"
     },
     {
+      "id": "utils_design_matrix_factors_confounded_with_condition",
+      "label": "factors_confounded_with_condition()",
+      "file_type": "code",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L229"
+    },
+    {
       "id": "utils_design_matrix_check_condition_confounding",
       "label": "_check_condition_confounding()",
       "file_type": "code",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L229"
+      "source_location": "L272"
     },
     {
       "id": "utils_design_matrix_build_design_matrix",
       "label": "_build_design_matrix()",
       "file_type": "code",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L249"
+      "source_location": "L292"
     },
     {
       "id": "utils_design_power",
@@ -30140,7 +30154,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -30385,7 +30399,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -30407,7 +30421,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -42855,6 +42869,83 @@
       "source_location": "L307"
     },
     {
+      "id": "tests_test_preprint_audit_b2_confounding",
+      "label": "test_preprint_audit_b2_confounding.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_detects_bijective_alias",
+      "label": "test_confounding_helper_detects_bijective_alias()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_ignores_balanced_covariate",
+      "label": "test_confounding_helper_ignores_balanced_covariate()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L37"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "label": "_confounded_geo_metadata()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L52"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_preserves_secondary_factors",
+      "label": "test_geo_infer_design_preserves_secondary_factors()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L73"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_flags_confounded_covariate",
+      "label": "test_geo_infer_design_flags_confounded_covariate()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L93"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "label": "_design_agent()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L105"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_build_design_blocks_confounded_metadata",
+      "label": "test_build_design_blocks_confounded_metadata()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L121"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_ignore_batch_choice_cannot_bypass_confounding",
+      "label": "test_ignore_batch_choice_cannot_bypass_confounding()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L135"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_confirm_response_reports_confounding_reason",
+      "label": "test_confirm_response_reports_confounding_reason()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L152"
+    },
+    {
+      "id": "tests_test_preprint_audit_b2_confounding_test_build_design_allows_balanced_block",
+      "label": "test_build_design_allows_balanced_block()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L167"
+    },
+    {
       "id": "tests_test_preprint_audit_probes",
       "label": "test_preprint_audit_probes.py",
       "file_type": "code",
@@ -45267,12 +45358,6 @@
       "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
@@ -45285,6 +45370,12 @@
       "source_file": "aria/bus/message_bus.py"
     },
     {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py"
+    },
+    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -45295,12 +45386,6 @@
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py"
-    },
-    {
-      "id": "chromatin_diffacc",
-      "label": "chromatin_diffacc.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_diffacc.py"
     },
     {
       "id": "chromatin_footprint_tobias",
@@ -53154,7 +53239,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L458",
+      "source_location": "L459",
       "weight": 1.0
     },
     {
@@ -53163,7 +53248,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L492",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -53172,7 +53257,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L530",
+      "source_location": "L531",
       "weight": 1.0
     },
     {
@@ -53181,7 +53266,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L569",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -53191,7 +53276,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L569",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -53201,7 +53286,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L569",
+      "source_location": "L570",
       "weight": 1.0
     },
     {
@@ -53210,7 +53295,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L603",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
@@ -53219,7 +53304,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L638",
+      "source_location": "L639",
       "weight": 1.0
     },
     {
@@ -53228,7 +53313,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L671",
+      "source_location": "L672",
       "weight": 1.0
     },
     {
@@ -53237,7 +53322,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L708",
+      "source_location": "L716",
       "weight": 1.0
     },
     {
@@ -53247,7 +53332,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L708",
+      "source_location": "L716",
       "weight": 1.0
     },
     {
@@ -53256,7 +53341,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L732",
+      "source_location": "L740",
       "weight": 1.0
     },
     {
@@ -53265,7 +53350,36 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L784",
+      "source_location": "L792",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_design_agent_designagent",
+      "target": "agents_design_agent_designagent_confounded_covariates",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L876",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_design_agent_designagent_confounded_covariates",
+      "target": "aria_agents_design_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L876",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_design_agent_designagent_confounded_covariates",
+      "target": "aria_agents_design_agent_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L876",
       "weight": 1.0
     },
     {
@@ -53274,7 +53388,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L865",
+      "source_location": "L898",
       "weight": 1.0
     },
     {
@@ -53284,7 +53398,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L865",
+      "source_location": "L898",
       "weight": 1.0
     },
     {
@@ -53294,7 +53408,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L865",
+      "source_location": "L898",
       "weight": 1.0
     },
     {
@@ -53303,7 +53417,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L877",
+      "source_location": "L910",
       "weight": 1.0
     },
     {
@@ -53313,7 +53427,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L877",
+      "source_location": "L910",
       "weight": 1.0
     },
     {
@@ -53322,7 +53436,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L913",
+      "source_location": "L946",
       "weight": 1.0
     },
     {
@@ -53331,7 +53445,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L929",
+      "source_location": "L962",
       "weight": 1.0
     },
     {
@@ -53341,7 +53455,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L929",
+      "source_location": "L962",
       "weight": 1.0
     },
     {
@@ -53350,7 +53464,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L938",
+      "source_location": "L971",
       "weight": 1.0
     },
     {
@@ -53570,7 +53684,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L452",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -53580,7 +53694,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L542",
+      "source_location": "L543",
       "weight": 1.0
     },
     {
@@ -53590,7 +53704,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L619",
+      "source_location": "L620",
       "weight": 1.0
     },
     {
@@ -53600,7 +53714,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L642",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -53610,7 +53724,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L647",
+      "source_location": "L648",
       "weight": 1.0
     },
     {
@@ -53620,7 +53734,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L651",
+      "source_location": "L652",
       "weight": 1.0
     },
     {
@@ -53630,7 +53744,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L672",
+      "source_location": "L673",
       "weight": 1.0
     },
     {
@@ -53640,7 +53754,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L791",
+      "source_location": "L799",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_design_agent_designagent_build_design",
+      "target": "agents_design_agent_designagent_confounded_covariates",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L843",
       "weight": 1.0
     },
     {
@@ -53650,7 +53774,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/design_agent.py",
-      "source_location": "L887",
+      "source_location": "L920",
       "weight": 1.0
     },
     {
@@ -85580,7 +85704,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L576",
+      "source_location": "L627",
       "weight": 1.0
     },
     {
@@ -85590,7 +85714,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L576",
+      "source_location": "L627",
       "weight": 1.0
     },
     {
@@ -85600,7 +85724,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L576",
+      "source_location": "L627",
       "weight": 1.0
     },
     {
@@ -85609,7 +85733,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L626",
+      "source_location": "L677",
       "weight": 1.0
     },
     {
@@ -85619,7 +85743,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L626",
+      "source_location": "L677",
       "weight": 1.0
     },
     {
@@ -85629,7 +85753,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L626",
+      "source_location": "L677",
       "weight": 1.0
     },
     {
@@ -85638,7 +85762,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L652",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -85648,7 +85772,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L652",
+      "source_location": "L703",
       "weight": 1.0
     },
     {
@@ -85888,7 +86012,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
-      "source_location": "L589",
+      "source_location": "L640",
       "weight": 1.0
     },
     {
@@ -111341,7 +111465,7 @@
     },
     {
       "source": "utils_design_matrix",
-      "target": "utils_design_matrix_check_condition_confounding",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
@@ -111349,7 +111473,7 @@
       "weight": 1.0
     },
     {
-      "source": "utils_design_matrix_check_condition_confounding",
+      "source": "utils_design_matrix_factors_confounded_with_condition",
       "target": "aria_utils_design_matrix_py_str",
       "relation": "references",
       "context": "parameter_type",
@@ -111359,18 +111483,18 @@
       "weight": 1.0
     },
     {
-      "source": "utils_design_matrix_check_condition_confounding",
+      "source": "utils_design_matrix_factors_confounded_with_condition",
       "target": "aria_utils_design_matrix_py_str",
       "relation": "references",
-      "context": "parameter_type",
+      "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
       "source_location": "L229",
       "weight": 1.0
     },
     {
-      "source": "utils_design_matrix_check_condition_confounding",
-      "target": "utils_design_matrix_designissue",
+      "source": "utils_design_matrix_factors_confounded_with_condition",
+      "target": "aria_utils_design_matrix_py_str",
       "relation": "references",
       "context": "generic_arg",
       "confidence": "EXTRACTED",
@@ -111380,11 +111504,50 @@
     },
     {
       "source": "utils_design_matrix",
+      "target": "utils_design_matrix_check_condition_confounding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_check_condition_confounding",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_check_condition_confounding",
+      "target": "aria_utils_design_matrix_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix_check_condition_confounding",
+      "target": "utils_design_matrix_designissue",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/utils/design_matrix.py",
+      "source_location": "L272",
+      "weight": 1.0
+    },
+    {
+      "source": "utils_design_matrix",
       "target": "utils_design_matrix_build_design_matrix",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L249",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -111394,7 +111557,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L249",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -111404,7 +111567,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L249",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -111494,7 +111657,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/design_matrix.py",
-      "source_location": "L238",
+      "source_location": "L281",
       "weight": 1.0
     },
     {
@@ -134538,7 +134701,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -134591,7 +134754,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134601,7 +134764,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134611,7 +134774,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134621,7 +134784,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134631,7 +134794,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -134953,7 +135116,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -134962,7 +135125,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -134997,7 +135160,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -135007,7 +135170,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_bz7jgy_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_rvs1zu_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -158829,6 +158992,186 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_detects_bijective_alias",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_ignores_balanced_covariate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_preserves_secondary_factors",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_flags_confounded_covariate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_build_design_blocks_confounded_metadata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_ignore_batch_choice_cannot_bypass_confounding",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L135",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_confirm_response_reports_confounding_reason",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L152",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_test_build_design_allows_balanced_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_preserves_secondary_factors",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_flags_confounded_covariate",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_build_design_blocks_confounded_metadata",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_build_design_blocks_confounded_metadata",
+      "target": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_ignore_batch_choice_cannot_bypass_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_ignore_batch_choice_cannot_bypass_confounding",
+      "target": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_confirm_response_reports_confounding_reason",
+      "target": "tests_test_preprint_audit_b2_confounding_confounded_geo_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_confirm_response_reports_confounding_reason",
+      "target": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_build_design_allows_balanced_block",
+      "target": "tests_test_preprint_audit_b2_confounding_design_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes",
       "target": "tests_test_preprint_audit_probes_test_probe_b6_fractional_row_outside_sample_is_caught",
       "relation": "contains",
@@ -163679,6 +164022,16 @@
       "weight": 1.0
     },
     {
+      "source": "agents_design_agent",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L885",
+      "weight": 1.0
+    },
+    {
       "source": "agents_design_intelligence",
       "target": "utils_design_matrix_validate_design_matrix",
       "relation": "imports",
@@ -166866,6 +167219,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/connectors/geo_connector.py",
       "source_location": "L105",
+      "weight": 1.0
+    },
+    {
+      "source": "connectors_geo_connector",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/connectors/geo_connector.py",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -175199,6 +175562,36 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L22",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding",
+      "target": "agents_design_agent_designagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes",
       "target": "utils_count_classifier_classify_matrix",
       "relation": "imports",
@@ -177466,6 +177859,16 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
       "source_location": "L1556",
+      "weight": 1.0
+    },
+    {
+      "source": "connectors_geo_connector_infer_design",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/connectors/geo_connector.py",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -190229,6 +190632,76 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_detects_bijective_alias",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_confounding_helper_ignores_balanced_covariate",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L47",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_preserves_secondary_factors",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_geo_infer_design_flags_confounded_covariate",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_build_design_blocks_confounded_metadata",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_ignore_batch_choice_cannot_bypass_confounding",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L140",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b2_confounding_test_confirm_response_reports_confounding_reason",
+      "target": "connectors_geo_connector_infer_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b2_confounding.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_probes_test_probe_a1_airgap_after_construction_blocks_egress",
       "target": "llm_provider_modelconfig",
       "relation": "calls",
@@ -191531,6 +192004,17 @@
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
       "source_location": "L1335",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_design_agent_designagent_confounded_covariates",
+      "target": "utils_design_matrix_factors_confounded_with_condition",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": "L892",
       "weight": 1.0
     },
     {
@@ -192992,22 +193476,6 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -193031,31 +193499,7 @@
       "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
       "target": "environment_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -193071,7 +193515,7 @@
       "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "environment_manager",
+      "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -193079,20 +193523,12 @@
       "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "environment_manager",
-      "target": "chromatin_diffacc",
+      "source": "chromatin_agent",
+      "target": "chromatin_footprint_tobias",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
       "source": "biological_synthesis_agent",
@@ -193108,7 +193544,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -193116,15 +193552,7 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "python_aria_memory_memory_py",
