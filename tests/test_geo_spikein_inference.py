@@ -1,13 +1,16 @@
 """Deferred WIP closeout: GEO multi-organism (spike-in) handling.
 
-Two pure helpers added for spike-in GEO series, where the SOFT metadata lists
-several organisms and the GEO sample count can mismatch the count-matrix columns:
+Pure helper for spike-in GEO series, where the SOFT metadata lists several
+organisms:
 
 - geo_connector._organism_from_gene_symbols: infer the experimental organism from
   gene-ID style (a technical species-detection, like the ADR-011 `human_markers`
   exception — it picks a reference genome, it makes no biological claim).
-- BulkRNAAgent._infer_col_groups: recover group labels from column names when the
-  confirmed design cannot be mapped to the matrix columns.
+
+The former ``BulkRNAAgent._infer_col_groups`` column-name group recovery was
+removed by preprint-readiness audit B4 (no post-confirmation column-name
+inference; an unmappable confirmed design fails closed). See
+``tests/test_preprint_audit_b4_no_name_fallback.py``.
 """
 
 import pytest
@@ -49,15 +52,8 @@ def test_organism_inference_is_uncertain_for_mixed_ids(tmp_path):
     assert _organism_from_gene_symbols(p) == ""
 
 
-def test_infer_col_groups_recovers_condition_replicate_names():
+def test_infer_col_groups_helper_is_removed():
+    """B4: the column-name group-inference back door no longer exists."""
     pytest.importorskip("litellm")  # importing the agent pulls aria.llm.provider
     from aria.agents.bulk_rna_agent import BulkRNAAgent
-    cols = ["ctrl_1", "ctrl_2", "treat_1", "treat_2"]
-    groups = BulkRNAAgent._infer_col_groups(cols)
-    assert set(groups.values()) == {"ctrl", "treat"}
-
-
-def test_infer_col_groups_returns_empty_when_single_group():
-    pytest.importorskip("litellm")
-    from aria.agents.bulk_rna_agent import BulkRNAAgent
-    assert BulkRNAAgent._infer_col_groups(["sampleA", "sampleB"]) == {}
+    assert not hasattr(BulkRNAAgent, "_infer_col_groups")

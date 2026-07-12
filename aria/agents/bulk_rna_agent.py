@@ -349,24 +349,20 @@ class BulkRNAAgent(BaseAgent):
                 for i, col in enumerate(ordered_cols):
                     group_labels[col] = sample_stems[ordered_samples[i]]
 
-        # Step 4: column-name inference when GEO sample count mismatches matrix columns
-        # (e.g. spike-in experiments where only a subset of GEO samples is in the matrix)
-        if not group_labels or len(set(group_labels.values())) < 2:
-            col_groups = self._infer_col_groups(ordered_cols)
-            if len(set(col_groups.values())) >= 2:
-                log.warning(
-                    f"GEO design has {len(sample_stems)} samples but matrix has "
-                    f"{len(ordered_cols)} columns — using column-name group inference."
-                )
-                group_labels = col_groups
-                groups = {}
-                for col, grp in col_groups.items():
-                    groups.setdefault(grp, []).append(col)
-
+        # B4 preprint-readiness: NO column-name inference rescue here. When the
+        # confirmed design cannot be mapped to the matrix columns (e.g. a
+        # sample-count mismatch from incomplete metadata), fail closed so the
+        # caller's P0-6 gate handles it — blocking, or inferring only under the
+        # explicit ARIA_ALLOW_FILENAME_FALLBACK opt-in via the sample-name path.
+        # Rebuilding the design from ctrl_*/treat_* column names would silently
+        # discard the confirmed design and run DE on a guess (P0-5/F5).
         if not group_labels or len(set(group_labels.values())) < 2:
             raise ValueError(
-                f"Could not map design groups to count matrix columns. "
-                f"Design stems: {list(sample_stems.keys())}, Columns: {colnames}"
+                f"Could not map the confirmed design groups to the count matrix "
+                f"columns. Design stems: {list(sample_stems.keys())}, "
+                f"Columns: {colnames}. ARIA refuses to infer the design from "
+                f"column names; provide metadata that maps the confirmed design "
+                f"to these columns."
             )
 
         sample_names = list(group_labels.keys())
@@ -617,23 +613,6 @@ class BulkRNAAgent(BaseAgent):
         if all("_" in s for s in samples):
             gr = {s: "_".join(s.split("_")[:-1]) for s in samples}
             if len(set(gr.values())) >= 2: return gr
-        return {}
-
-    @staticmethod
-    def _infer_col_groups(cols: list[str]) -> dict:
-        """Infer group labels from column names using the same patterns as rna_bulk_de.py."""
-        for pattern in [
-            r'^([A-Za-z][A-Za-z0-9]+)[_\-](\d+)$',
-            r'^([A-Za-z][A-Za-z0-9]+)[_\-]([Rr]ep\d+|[A-Za-z]\d*)$',
-            r'^([A-Za-z][A-Za-z0-9\-]*?)(\d.*)$',
-        ]:
-            m = {c: match.group(1).rstrip("_-") for c in cols if (match := re.compile(pattern).match(c))}
-            if len(m) == len(cols) and len(set(m.values())) >= 2:
-                return m
-        if all("_" in c for c in cols):
-            gr = {c: "_".join(c.split("_")[:-1]) for c in cols}
-            if len(set(gr.values())) >= 2:
-                return gr
         return {}
 
     def _build_contrasts(self, intent: dict, group_labels: dict, experiment_id: str) -> tuple[str, list]:
