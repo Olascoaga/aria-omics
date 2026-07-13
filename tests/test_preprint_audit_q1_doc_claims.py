@@ -14,12 +14,18 @@ Tracker: memory/audit/ARIA_PLAN_AUDITORIA_preprint_journal_2026-07-09.md
 """
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]
 _README = (_ROOT / "README.md").read_text(encoding="utf-8")
 _VALIDATION = (_ROOT / "docs" / "validation_status.md").read_text(encoding="utf-8")
 _ROADMAP = (_ROOT / "docs" / "workflows" / "chromatin_roadmap.md").read_text(encoding="utf-8")
+_E6_EVIDENCE = json.loads(
+    (_ROOT / "docs/benchmark_results/geo_connector/e6_atomic_retrieval.json").read_text(
+        encoding="utf-8"
+    )
+)
 
 
 def test_seed_claim_is_qualified_per_backend():
@@ -46,6 +52,13 @@ def test_geo_connector_discloses_e6_atomic_retrieval_boundary():
     assert "SRA Toolkit" in _VALIDATION
     assert "downstream assay contracts still apply" in _VALIDATION
     assert "publishes only a complete generation" in _ROADMAP
+    assert _E6_EVIDENCE["summary"] == {
+        "all_data_audit_transitions_valid": True,
+        "all_manifests_valid": True,
+        "modalities": ["bulk_ATAC", "bulk_RNA", "scATAC", "scRNA"],
+        "study_count": 4,
+    }
+    assert _E6_EVIDENCE["scope"]["does_not_validate"]
 
 
 def test_atac_is_not_claimed_publication_grade_end_to_end():

@@ -1,0 +1,217 @@
+{
+  "aria_version": "4.7.0",
+  "artifact": "E6 atomic GEO/SRA accession ingestion validation",
+  "generated_utc": "2026-07-13T18:53:52.142400+00:00",
+  "provenance": {
+    "git_commit": "89ced37cd68d2e4f3a81a9f391e51daff6c15af1",
+    "git_dirty": false,
+    "network": "NCBI GEO FTP over HTTPS"
+  },
+  "scope": {
+    "does_not_validate": [
+      "downstream biological analysis of the retrieved payloads",
+      "live raw-SRA conversion; external SRA Toolkit behavior is guarded deterministically in tests"
+    ],
+    "validates": [
+      "four real public GEO studies spanning bulk_RNA, scRNA, scATAC, and bulk_ATAC",
+      "atomic retrieval manifests with byte size and SHA-256 verification",
+      "archive extraction or gzip decompression where supplied upstream",
+      "published connector result accepted as analyzable input by DataAudit"
+    ]
+  },
+  "studies": [
+    {
+      "accession": "GSE183948",
+      "analyzable_payload_count": 9,
+      "analyzable_payloads": [
+        {
+          "bucket": "counts",
+          "path": "downloads/GSE183948_HCA2count.csv.gz",
+          "sha256": "e4389c589330eb713db01a89dede31efe5db90ed63a438ab4c848f7a1de6dd33",
+          "size": 215464
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574745_R035_A_381.count.txt.gz",
+          "sha256": "469f5715f4319d869de813db2fa031cf236e76688c0e7c3d37bf6931b92ad3e6",
+          "size": 64429
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574746_R036_A_382.count.txt.gz",
+          "sha256": "fcdaf77ed08c806cbd75ce0c3b2492bd6d14c66aad0ee6db6a73cf29dce61c3e",
+          "size": 69943
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574747_R037_C_383.count.txt.gz",
+          "sha256": "f7b8ae87ce1e32ee74801fc33191d74b70acc37e9b8c8de7c7e1ebdec350d5ef",
+          "size": 62778
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574748_R038_C_385.count.txt.gz",
+          "sha256": "a5177a4d40b9d586997d5565cd9145f34dadc66a23fd04642f90dae0b485c7f5",
+          "size": 72583
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574749_R053_Ctr1_count.txt.gz",
+          "sha256": "d54894ed3f1af32529d2e910e5a841cad259f31b1fdb25b42edcaff8697472a0",
+          "size": 101135
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574750_R054_Ctr3_count.txt.gz",
+          "sha256": "afb65e1ef129ec6612db8ceb05542b794b64439107df39aae391ad24da1d8194",
+          "size": 100605
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574751_R055_AAT1_count.txt.gz",
+          "sha256": "ff8f3818bfb6e284b901e185c33c66a3f2f66efa56d3e4d4206622a6d47c4ad8",
+          "size": 100442
+        },
+        {
+          "bucket": "counts",
+          "path": "extracted/GSE183948_RAW/GSM5574752_R056_AAT2_count.txt.gz",
+          "sha256": "a22a48fd8b01dd558454de7f67837bc91adb4296759d001e78dfba489eb6e09b",
+          "size": 99957
+        }
+      ],
+      "connector_data_type": "bulk_RNA",
+      "data_audit_modalities": {
+        "bulk_RNA": 9
+      },
+      "expected_modality": "bulk_RNA",
+      "manifest_file_count": 13,
+      "manifest_status": "valid",
+      "retrieval_status": "complete",
+      "source_accessions": [
+        "GSE183948"
+      ]
+    },
+    {
+      "accession": "GSE202494",
+      "analyzable_payload_count": 2,
+      "analyzable_payloads": [
+        {
+          "bucket": "h5ad",
+          "path": "downloads/GSE202494_final_cluster.h5ad",
+          "sha256": "65ae0fed25fc3412591b8bcd328e274d88bd6003daea4700d21457709335df4e",
+          "size": 70264359
+        },
+        {
+          "bucket": "h5ad",
+          "path": "downloads/GSE202494_raw.h5ad",
+          "sha256": "7e64a4468923f80a9d22d814ecd0839572e024e78005449f98baf09e1583dbae",
+          "size": 52601730
+        }
+      ],
+      "connector_data_type": "scRNA",
+      "data_audit_modalities": {
+        "scRNA": 2
+      },
+      "expected_modality": "scRNA",
+      "manifest_file_count": 7,
+      "manifest_status": "valid",
+      "retrieval_status": "complete",
+      "source_accessions": [
+        "GSE202494"
+      ]
+    },
+    {
+      "accession": "GSE96769",
+      "analyzable_payload_count": 2,
+      "analyzable_payloads": [
+        {
+          "bucket": "counts",
+          "path": "downloads/GSE96769_scATACseq_counts.txt.gz",
+          "sha256": "978fde62fc46c0c19faa65e4e81d5e01ac62883e205555ab49a313e2eb7f59a4",
+          "size": 59436556
+        },
+        {
+          "bucket": "peaks",
+          "path": "downloads/GSE96769_PeakFile_20160207.bed.gz",
+          "sha256": "87ec443b1d729b2344836c6bf7b7d1b3904937fb3f646983ae809ebd241e9ed0",
+          "size": 8786178
+        }
+      ],
+      "connector_data_type": "scATAC",
+      "data_audit_modalities": {
+        "scATAC": 2
+      },
+      "expected_modality": "scATAC",
+      "manifest_file_count": 5,
+      "manifest_status": "valid",
+      "retrieval_status": "complete",
+      "source_accessions": [
+        "GSE96769"
+      ]
+    },
+    {
+      "accession": "GSE142660",
+      "analyzable_payload_count": 6,
+      "analyzable_payloads": [
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237391_Control_1.narrowPeak.gz",
+          "sha256": "9c141ea1e526e96159e88650d2011a34b92012596e543f37be4ddd02d1689167",
+          "size": 1602
+        },
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237392_Control_2.narrowPeak.gz",
+          "sha256": "e9f8429e8c4e605bc06d666813e5eb467c4b710f85487c60e3a270ff8ac4e6d3",
+          "size": 823
+        },
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237393_Control_3.narrowPeak.gz",
+          "sha256": "4a5c9f084900170516967abfc6f76ca49c30346e093ab7fd889e616fa35a1975",
+          "size": 534
+        },
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237394_dNSPs_1.narrowPeak.gz",
+          "sha256": "f874dbf2b328a02784d9e6b5be8140a636bf15cc8c48e9653bb7817b4efbf32d",
+          "size": 464341
+        },
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237395_dNSPs_2.narrowPeak.gz",
+          "sha256": "0e6a116452b2e759de2cc70c95379830f42f3a5e2e55a57813ef9d473cb1297d",
+          "size": 658768
+        },
+        {
+          "bucket": "peaks",
+          "path": "extracted/GSE142660_RAW/GSM4237396_dNSPs_3.narrowPeak.gz",
+          "sha256": "d8ace0ab2ff058dddd9a177ecc775554796bb74224f26aaf9c650a5a30eb0f9d",
+          "size": 63934
+        }
+      ],
+      "connector_data_type": "bulk_ATAC",
+      "data_audit_modalities": {
+        "bulk_ATAC": 6
+      },
+      "expected_modality": "bulk_ATAC",
+      "manifest_file_count": 10,
+      "manifest_status": "valid",
+      "retrieval_status": "complete",
+      "source_accessions": [
+        "GSE142660"
+      ]
+    }
+  ],
+  "summary": {
+    "all_data_audit_transitions_valid": true,
+    "all_manifests_valid": true,
+    "modalities": [
+      "bulk_ATAC",
+      "bulk_RNA",
+      "scATAC",
+      "scRNA"
+    ],
+    "study_count": 4
+  }
+}
