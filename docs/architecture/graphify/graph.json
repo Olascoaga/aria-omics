@@ -2777,147 +2777,147 @@
       "label": "ClaimClassification",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L90"
+      "source_location": "L91"
     },
     {
       "id": "narrative_claim_compiler_claimclassification_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98"
+      "source_location": "L99"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98"
+      "source_location": "L99"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98"
+      "source_location": "L99"
     },
     {
       "id": "narrative_claim_compiler_design_is_interventional",
       "label": "design_is_interventional()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L109"
+      "source_location": "L110"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L109"
+      "source_location": "L110"
     },
     {
       "id": "narrative_claim_compiler_block_evidence_category",
       "label": "_block_evidence_category()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L125"
+      "source_location": "L126"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L125"
+      "source_location": "L126"
     },
     {
       "id": "narrative_claim_compiler_block_subject",
       "label": "_block_subject()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L137"
+      "source_location": "L138"
     },
     {
       "id": "narrative_claim_compiler_numeric_metric",
       "label": "_numeric_metric()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148"
+      "source_location": "L149"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148"
+      "source_location": "L149"
     },
     {
       "id": "narrative_claim_compiler_flag_metric",
       "label": "_flag_metric()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L160"
+      "source_location": "L161"
     },
     {
       "id": "narrative_claim_compiler_quantitative_stats_gate",
       "label": "_quantitative_stats_gate()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L171"
+      "source_location": "L172"
     },
     {
       "id": "narrative_claim_compiler_classify_claim",
       "label": "classify_claim()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196"
+      "source_location": "L197"
     },
     {
       "id": "narrative_claim_compiler_finalize",
       "label": "_finalize()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L272"
+      "source_location": "L273"
     },
     {
       "id": "narrative_claim_compiler_annotate_claim_tiers",
       "label": "annotate_claim_tiers()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L310"
+      "source_location": "L311"
     },
     {
       "id": "narrative_claim_compiler_compile_claim_manifest",
       "label": "compile_claim_manifest()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L336"
+      "source_location": "L337"
     },
     {
       "id": "narrative_claim_compiler_compile_claims",
       "label": "compile_claims()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L377"
+      "source_location": "L378"
     },
     {
       "id": "narrative_claim_compiler_publicclaimcompilation",
       "label": "PublicClaimCompilation",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L386"
+      "source_location": "L387"
     },
     {
       "id": "narrative_claim_compiler_publicclaimcompilation_summary",
       "label": ".summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L393"
+      "source_location": "L394"
     },
     {
       "id": "narrative_claim_compiler_compile_public_claims",
       "label": "compile_public_claims()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L402"
+      "source_location": "L403"
     },
     {
       "id": "narrative_compose_prose",
@@ -3176,203 +3176,203 @@
       "label": "VerificationIssue",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L100"
+      "source_location": "L101"
     },
     {
       "id": "narrative_evidence_verifier_verificationissue_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L105"
+      "source_location": "L106"
     },
     {
       "id": "aria_agents_narrative_evidence_verifier_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L105"
+      "source_location": "L106"
     },
     {
       "id": "narrative_evidence_verifier_evidencecard",
       "label": "EvidenceCard",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L114"
+      "source_location": "L115"
     },
     {
       "id": "narrative_evidence_verifier_evidencecard_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L121"
+      "source_location": "L124"
     },
     {
       "id": "aria_agents_narrative_evidence_verifier_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L121"
+      "source_location": "L124"
     },
     {
       "id": "narrative_evidence_verifier_verify_block_claim_support",
       "label": "verify_block_claim_support()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130"
+      "source_location": "L135"
     },
     {
       "id": "aria_agents_narrative_evidence_verifier_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130"
+      "source_location": "L135"
     },
     {
       "id": "aria_agents_narrative_evidence_verifier_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130"
+      "source_location": "L135"
     },
     {
       "id": "narrative_evidence_verifier_build_evidence_card",
       "label": "build_evidence_card()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L194"
+      "source_location": "L199"
     },
     {
       "id": "narrative_evidence_verifier_issues_for_sentence",
       "label": "_issues_for_sentence()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280"
+      "source_location": "L295"
     },
     {
       "id": "narrative_evidence_verifier_mentions_any",
       "label": "_mentions_any()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L360"
+      "source_location": "L375"
     },
     {
       "id": "narrative_evidence_verifier_required_family",
       "label": "_required_family()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L374"
+      "source_location": "L389"
     },
     {
       "id": "narrative_evidence_verifier_sentences",
       "label": "_sentences()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L390"
+      "source_location": "L405"
     },
     {
       "id": "narrative_evidence_verifier_claim_numbers",
       "label": "_claim_numbers()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L428"
+      "source_location": "L443"
     },
     {
       "id": "narrative_evidence_verifier_numbers_in",
       "label": "_numbers_in()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L453"
+      "source_location": "L468"
     },
     {
       "id": "narrative_evidence_verifier_normalize_number",
       "label": "_normalize_number()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L459"
+      "source_location": "L474"
     },
     {
       "id": "narrative_evidence_verifier_claim_entities",
       "label": "_claim_entities()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L475"
+      "source_location": "L490"
     },
     {
       "id": "narrative_evidence_verifier_claim_semantic_facts",
       "label": "_claim_semantic_facts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488"
+      "source_location": "L503"
     },
     {
       "id": "semanticfact",
       "label": "SemanticFact",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488"
+      "source_location": "L503"
     },
     {
       "id": "narrative_evidence_verifier_evidence_item_facts",
       "label": "_evidence_item_facts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526"
+      "source_location": "L541"
     },
     {
       "id": "narrative_evidence_verifier_metric_facts",
       "label": "_metric_facts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L575"
+      "source_location": "L590"
     },
     {
       "id": "narrative_evidence_verifier_semantic_support_issue",
       "label": "_semantic_support_issue()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L594"
+      "source_location": "L609"
     },
     {
       "id": "narrative_evidence_verifier_fact_names",
       "label": "_fact_names()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L648"
+      "source_location": "L663"
     },
     {
       "id": "narrative_evidence_verifier_normalize_entity",
       "label": "_normalize_entity()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L656"
+      "source_location": "L671"
     },
     {
       "id": "narrative_evidence_verifier_as_nonnegative_number",
       "label": "_as_nonnegative_number()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L660"
+      "source_location": "L675"
     },
     {
       "id": "aria_agents_narrative_evidence_verifier_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L660"
+      "source_location": "L675"
     },
     {
       "id": "narrative_evidence_verifier_dedupe_facts",
       "label": "_dedupe_facts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L668"
+      "source_location": "L683"
     },
     {
       "id": "narrative_evidence_verifier_flatten_mapping",
       "label": "_flatten_mapping()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L683"
+      "source_location": "L698"
     },
     {
       "id": "hypothesis_init",
@@ -5269,56 +5269,56 @@
       "label": "._peak_ora_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L750"
+      "source_location": "L752"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_regulatory_block",
       "label": "._regulatory_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L800"
+      "source_location": "L803"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_footprint_block",
       "label": "._footprint_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L882"
+      "source_location": "L885"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_bulk_atac_methods",
       "label": "._bulk_atac_methods()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1004"
+      "source_location": "L1007"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_methods",
       "label": ".methods()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1141"
+      "source_location": "L1144"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_figures",
       "label": ".figures()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1186"
+      "source_location": "L1189"
     },
     {
       "id": "aria_agents_narrative_narrators_chromatin_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1186"
+      "source_location": "L1189"
     },
     {
       "id": "narrators_chromatin_chromatinnarrator_tables",
       "label": ".tables()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1203"
+      "source_location": "L1206"
     },
     {
       "id": "narrators_scrna",
@@ -5871,126 +5871,119 @@
       "label": "._govern_executive_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L822"
+      "source_location": "L812"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_unsupported_executive_summary_numbers",
       "label": "._unsupported_executive_summary_numbers()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L869"
+      "source_location": "L859"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_executive_summary_block",
       "label": "._build_executive_summary_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882"
+      "source_location": "L872"
     },
     {
       "id": "aria_agents_narrative_report_builder_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882"
+      "source_location": "L872"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_make_executive_summary_block",
       "label": "._make_executive_summary_block()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L948"
-    },
-    {
-      "id": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
-      "label": "._ensure_executive_summary_ledger_node()",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1010"
+      "source_location": "L938"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_write_memory_snapshot",
       "label": "._write_memory_snapshot()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1040"
+      "source_location": "L999"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_methodology_json",
       "label": "._build_methodology_json()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1070"
+      "source_location": "L1029"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_provenance_section",
       "label": "._build_provenance_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1216"
+      "source_location": "L1171"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_qc_section",
       "label": "._build_qc_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1352"
+      "source_location": "L1307"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_findings_section",
       "label": "._build_findings_section()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1484"
+      "source_location": "L1439"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_public_conflict_notice",
       "label": "._public_conflict_notice()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1541"
+      "source_location": "L1496"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_methodology_table",
       "label": "._build_methodology_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1562"
+      "source_location": "L1517"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_bulk_rna_plots",
       "label": "._build_bulk_rna_plots()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1619"
+      "source_location": "L1574"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_stage_artifacts",
       "label": "._stage_artifacts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1798"
+      "source_location": "L1753"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_findings_table",
       "label": "._build_findings_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1917"
+      "source_location": "L1872"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_public_claims_table",
       "label": "._build_public_claims_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1938"
+      "source_location": "L1893"
     },
     {
       "id": "narrative_report_builder_reportbuildermixin_build_decisions_table",
       "label": "._build_decisions_table()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1965"
+      "source_location": "L1920"
     },
     {
       "id": "narrative_report_sections",
@@ -6179,112 +6172,119 @@
       "label": "_plan_phrases()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L109"
+      "source_location": "L125"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L109"
+      "source_location": "L125"
     },
     {
       "id": "narrative_run_ledger_is_planned",
       "label": "_is_planned()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L118"
+      "source_location": "L134"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L118"
+      "source_location": "L134"
     },
     {
       "id": "narrative_run_ledger_status_from_finding",
       "label": "_status_from_finding()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122"
+      "source_location": "L138"
     },
     {
       "id": "aria_agents_narrative_run_ledger_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122"
+      "source_location": "L138"
     },
     {
       "id": "narrative_run_ledger_scrna_findings",
       "label": "_scrna_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L141"
+      "source_location": "L161"
     },
     {
       "id": "narrative_run_ledger_chromatin_findings",
       "label": "_chromatin_findings()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L152"
+      "source_location": "L172"
     },
     {
       "id": "narrative_run_ledger_bulk_findings_normalized",
       "label": "_bulk_findings_normalized()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L165"
+      "source_location": "L185"
     },
     {
       "id": "narrative_run_ledger_entries_for",
       "label": "_entries_for()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L204"
+      "source_location": "L228"
     },
     {
       "id": "narrative_run_ledger_build_run_ledger",
       "label": "build_run_ledger()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L230"
+      "source_location": "L260"
     },
     {
       "id": "narrative_run_ledger_ledger_modality_group",
       "label": "_ledger_modality_group()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L291"
+      "source_location": "L341"
     },
     {
       "id": "narrative_run_ledger_node_id_for",
       "label": "node_id_for()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L303"
+      "source_location": "L353"
     },
     {
       "id": "narrative_run_ledger_node_index",
       "label": "_node_index()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L310"
+      "source_location": "L360"
+    },
+    {
+      "id": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "label": "ensure_report_ledger_nodes()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L368"
     },
     {
       "id": "narrative_run_ledger_link_claims_to_ledger",
       "label": "link_claims_to_ledger()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L318"
+      "source_location": "L422"
     },
     {
       "id": "narrative_run_ledger_verify_blocks_against_ledger",
       "label": "verify_blocks_against_ledger()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L364"
+      "source_location": "L487"
     },
     {
       "id": "synthesis_init",
@@ -32114,7 +32114,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32359,7 +32359,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32381,7 +32381,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -42845,105 +42845,105 @@
       "label": "_ran_results()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L25"
+      "source_location": "L26"
     },
     {
       "id": "tests_test_ledger_claim_linkage_skipped_de_results",
       "label": "_skipped_de_results()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L32"
+      "source_location": "L33"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_ledger_entries_carry_stable_node_ids",
       "label": "test_ledger_entries_carry_stable_node_ids()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L47"
+      "source_location": "L48"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_claim_links_to_ran_node",
       "label": "test_claim_links_to_ran_node()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L59"
+      "source_location": "L60"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_claim_citing_not_run_analysis_is_a_violation",
       "label": "test_claim_citing_not_run_analysis_is_a_violation()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L71"
+      "source_location": "L73"
     },
     {
-      "id": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_honest_not_a_violation",
-      "label": "test_no_ledger_node_is_honest_not_a_violation()",
+      "id": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_a_publication_violation",
+      "label": "test_no_ledger_node_is_a_publication_violation()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L82"
+      "source_location": "L85"
     },
     {
-      "id": "tests_test_ledger_claim_linkage_test_descriptive_claim_to_not_run_node_is_not_a_violation",
-      "label": "test_descriptive_claim_to_not_run_node_is_not_a_violation()",
+      "id": "tests_test_ledger_claim_linkage_test_descriptive_result_claim_to_not_run_node_is_a_violation",
+      "label": "test_descriptive_result_claim_to_not_run_node_is_a_violation()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L95"
+      "source_location": "L99"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_bulk_claims_link_to_bulk_nodes",
       "label": "test_bulk_claims_link_to_bulk_nodes()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L106"
+      "source_location": "L111"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_bulk_pathway_node_ran_for_gsea_only_running_sums",
       "label": "test_bulk_pathway_node_ran_for_gsea_only_running_sums()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L126"
+      "source_location": "L131"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_bulk_pathway_claim_links_when_pathways_present",
       "label": "test_bulk_pathway_claim_links_when_pathways_present()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L148"
+      "source_location": "L154"
     },
     {
       "id": "tests_test_ledger_claim_linkage_pb_block",
       "label": "_pb_block()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L167"
+      "source_location": "L174"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_active_verification_raises_on_block_claiming_not_run",
       "label": "test_active_verification_raises_on_block_claiming_not_run()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L178"
+      "source_location": "L189"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_active_verification_passes_when_node_ran",
       "label": "test_active_verification_passes_when_node_ran()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L184"
+      "source_location": "L195"
     },
     {
       "id": "tests_test_ledger_claim_linkage_test_active_verification_non_strict_collects_without_raising",
       "label": "test_active_verification_non_strict_collects_without_raising()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L191"
+      "source_location": "L202"
     },
     {
-      "id": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
-      "label": "test_descriptive_block_never_raises_even_for_not_run_node()",
+      "id": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
+      "label": "test_descriptive_result_block_raises_for_not_run_node()",
       "file_type": "code",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L198"
+      "source_location": "L209"
     },
     {
       "id": "tests_test_ledger_export",
@@ -45550,67 +45550,74 @@
       "source_location": "L104"
     },
     {
+      "id": "tests_test_preprint_audit_c1_claim_boundary_custom_ledger",
+      "label": "_custom_ledger()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
+      "source_location": "L118"
+    },
+    {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_public_claim_compiler_withholds_unsupported_blocks",
       "label": "test_public_claim_compiler_withholds_unsupported_blocks()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L118"
+      "source_location": "L132"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_reportharness",
       "label": "_ReportHarness",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L146"
+      "source_location": "L161"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_reportharness_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L149"
+      "source_location": "L164"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L149"
+      "source_location": "L164"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_raw_bus_and_legacy_sections_cannot_reach_public_findings_html",
       "label": "test_raw_bus_and_legacy_sections_cannot_reach_public_findings_html()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L153"
+      "source_location": "L168"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_full_report_keeps_poisoned_bus_text_out_of_html_and_claim_manifest",
       "label": "test_full_report_keeps_poisoned_bus_text_out_of_html_and_claim_manifest()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L180"
+      "source_location": "L196"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_executive_prompt_puts_bus_and_pipeline_text_inside_boundary",
       "label": "test_executive_prompt_puts_bus_and_pipeline_text_inside_boundary()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L217"
+      "source_location": "L233"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_untrusted_question_cannot_become_executive_claim_evidence",
       "label": "test_untrusted_question_cannot_become_executive_claim_evidence()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L251"
+      "source_location": "L267"
     },
     {
       "id": "tests_test_preprint_audit_c1_claim_boundary_test_remaining_llm_data_routes_use_shared_boundary",
       "label": "test_remaining_llm_data_routes_use_shared_boundary()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L281"
+      "source_location": "L297"
     },
     {
       "id": "tests_test_preprint_audit_c2_semantic_facts",
@@ -45751,6 +45758,83 @@
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c2_semantic_facts.py",
       "source_location": "L202"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage",
+      "label": "test_preprint_audit_c3_publication_linkage.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "label": "_result_block()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_py_narrativeblock",
+      "label": "NarrativeBlock",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_supported_claim_without_ledger_node",
+      "label": "test_public_compiler_withholds_supported_claim_without_ledger_node()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L38"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_public_claim_resolves_to_typed_ledger_and_evidence_nodes",
+      "label": "test_public_claim_resolves_to_typed_ledger_and_evidence_nodes()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_untyped_or_unprovenanced_ledger_node",
+      "label": "test_public_compiler_withholds_untyped_or_unprovenanced_ledger_node()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L71"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_active_verifier_rejects_a_result_claim_with_no_ledger_node",
+      "label": "test_active_verifier_rejects_a_result_claim_with_no_ledger_node()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L90"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_active_chromatin_findings",
+      "label": "_active_chromatin_findings()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L106"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "label": "test_every_active_chromatin_result_claim_has_typed_provenance_nodes()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L178"
+    },
+    {
+      "id": "tests_test_preprint_audit_c3_publication_linkage_test_rendered_results_resolve_to_existing_typed_nodes",
+      "label": "test_rendered_results_resolve_to_existing_typed_nodes()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L206"
     },
     {
       "id": "tests_test_preprint_audit_e1_sequencer_boundary",
@@ -47846,8 +47930,8 @@
       "source_location": "L53"
     },
     {
-      "id": "tests_test_render_ledger_e2e_test_render_is_failsafe_when_ledger_check_finds_a_violation",
-      "label": "test_render_is_failsafe_when_ledger_check_finds_a_violation()",
+      "id": "tests_test_render_ledger_e2e_test_render_fails_closed_when_ledger_check_finds_a_violation",
+      "label": "test_render_fails_closed_when_ledger_check_finds_a_violation()",
       "file_type": "code",
       "source_file": "tests/test_render_ledger_e2e.py",
       "source_location": "L79"
@@ -48789,10 +48873,10 @@
       "contributor": null
     },
     {
-      "id": "audit_agent",
-      "label": "AuditAgent",
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
+      "source_file": "aria/agents/bulk_rna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -48804,17 +48888,6 @@
       "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -48855,10 +48928,21 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -48888,43 +48972,10 @@
       "contributor": null
     },
     {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_scatac_align",
-      "label": "chromatin_scatac_align.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_scatac_align.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60036,7 +60087,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L90",
+      "source_location": "L91",
       "weight": 1.0
     },
     {
@@ -60045,7 +60096,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -60055,7 +60106,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -60065,7 +60116,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -60074,7 +60125,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -60084,7 +60135,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0
     },
     {
@@ -60093,7 +60144,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -60103,7 +60154,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -60113,7 +60164,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -60122,7 +60173,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L137",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60132,7 +60183,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L137",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60142,7 +60193,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L137",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -60151,7 +60202,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -60161,7 +60212,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -60171,7 +60222,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -60181,7 +60232,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L148",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -60190,7 +60241,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -60200,7 +60251,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -60210,7 +60261,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -60220,7 +60271,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -60229,7 +60280,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L171",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -60239,7 +60290,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L171",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -60249,7 +60300,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L171",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -60259,7 +60310,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L171",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -60268,7 +60319,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -60278,7 +60329,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -60288,7 +60339,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -60298,7 +60349,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -60308,7 +60359,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L196",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -60317,7 +60368,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L272",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -60327,7 +60378,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L272",
+      "source_location": "L273",
       "weight": 1.0
     },
     {
@@ -60336,7 +60387,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -60346,7 +60397,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -60356,7 +60407,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L310",
+      "source_location": "L311",
       "weight": 1.0
     },
     {
@@ -60365,7 +60416,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L336",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -60375,7 +60426,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L336",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -60385,7 +60436,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L336",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -60395,7 +60446,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L336",
+      "source_location": "L337",
       "weight": 1.0
     },
     {
@@ -60404,7 +60455,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L377",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -60414,7 +60465,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L377",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -60424,7 +60475,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L377",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -60434,7 +60485,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L377",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -60443,7 +60494,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L386",
+      "source_location": "L387",
       "weight": 1.0
     },
     {
@@ -60452,7 +60503,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L393",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -60462,7 +60513,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L393",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -60472,7 +60523,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L393",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -60481,7 +60532,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L402",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -60491,7 +60542,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L402",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -60501,7 +60552,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L402",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -60511,7 +60562,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -60521,7 +60572,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L189",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -60531,7 +60582,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L206",
+      "source_location": "L207",
       "weight": 1.0
     },
     {
@@ -60541,7 +60592,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L220",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -60551,7 +60602,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L256",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -60561,7 +60612,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L300",
+      "source_location": "L301",
       "weight": 1.0
     },
     {
@@ -60571,7 +60622,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L314",
+      "source_location": "L315",
       "weight": 1.0
     },
     {
@@ -60581,7 +60632,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L319",
+      "source_location": "L320",
       "weight": 1.0
     },
     {
@@ -60591,7 +60642,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L321",
+      "source_location": "L322",
       "weight": 1.0
     },
     {
@@ -60601,7 +60652,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L329",
+      "source_location": "L330",
       "weight": 1.0
     },
     {
@@ -60611,7 +60662,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L332",
+      "source_location": "L333",
       "weight": 1.0
     },
     {
@@ -60621,7 +60672,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L381",
+      "source_location": "L382",
       "weight": 1.0
     },
     {
@@ -60631,7 +60682,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L382",
+      "source_location": "L383",
       "weight": 1.0
     },
     {
@@ -60641,7 +60692,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L418",
+      "source_location": "L424",
       "weight": 1.0
     },
     {
@@ -60651,7 +60702,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L419",
+      "source_location": "L425",
       "weight": 1.0
     },
     {
@@ -60661,7 +60712,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L428",
+      "source_location": "L434",
       "weight": 1.0
     },
     {
@@ -61684,7 +61735,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L100",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -61693,7 +61744,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L105",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -61703,7 +61754,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L105",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -61713,7 +61764,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L105",
+      "source_location": "L106",
       "weight": 1.0
     },
     {
@@ -61722,7 +61773,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L114",
+      "source_location": "L115",
       "weight": 1.0
     },
     {
@@ -61731,7 +61782,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L121",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -61741,7 +61792,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L121",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -61751,7 +61802,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L121",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -61760,7 +61811,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61770,7 +61821,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61780,7 +61831,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61790,7 +61841,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61800,7 +61851,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61810,7 +61861,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L130",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -61819,7 +61870,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L194",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -61829,7 +61880,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L194",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -61839,7 +61890,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L194",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -61848,7 +61899,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61858,7 +61909,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61868,7 +61919,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61878,7 +61929,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61888,7 +61939,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61898,7 +61949,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L280",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -61907,7 +61958,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L360",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -61917,7 +61968,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L360",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -61927,7 +61978,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L360",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -61937,7 +61988,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L360",
+      "source_location": "L375",
       "weight": 1.0
     },
     {
@@ -61946,7 +61997,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L374",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -61956,7 +62007,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L374",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -61966,7 +62017,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L374",
+      "source_location": "L389",
       "weight": 1.0
     },
     {
@@ -61975,7 +62026,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L390",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -61985,7 +62036,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L390",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -61995,7 +62046,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L390",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -62004,7 +62055,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L428",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -62014,7 +62065,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L428",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -62024,7 +62075,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L428",
+      "source_location": "L443",
       "weight": 1.0
     },
     {
@@ -62033,7 +62084,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L453",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -62043,7 +62094,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L453",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -62053,7 +62104,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L453",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -62062,7 +62113,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L459",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -62072,7 +62123,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L459",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -62082,7 +62133,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L459",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -62091,7 +62142,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L475",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -62101,7 +62152,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L475",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -62111,7 +62162,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L475",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -62120,7 +62171,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -62130,7 +62181,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -62140,7 +62191,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -62150,7 +62201,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L488",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -62159,7 +62210,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -62169,7 +62220,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -62179,7 +62230,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -62189,7 +62240,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -62199,7 +62250,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L526",
+      "source_location": "L541",
       "weight": 1.0
     },
     {
@@ -62208,7 +62259,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L575",
+      "source_location": "L590",
       "weight": 1.0
     },
     {
@@ -62218,7 +62269,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L575",
+      "source_location": "L590",
       "weight": 1.0
     },
     {
@@ -62228,7 +62279,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L575",
+      "source_location": "L590",
       "weight": 1.0
     },
     {
@@ -62237,7 +62288,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L594",
+      "source_location": "L609",
       "weight": 1.0
     },
     {
@@ -62247,7 +62298,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L594",
+      "source_location": "L609",
       "weight": 1.0
     },
     {
@@ -62257,7 +62308,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L594",
+      "source_location": "L609",
       "weight": 1.0
     },
     {
@@ -62267,7 +62318,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L594",
+      "source_location": "L609",
       "weight": 1.0
     },
     {
@@ -62276,7 +62327,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L648",
+      "source_location": "L663",
       "weight": 1.0
     },
     {
@@ -62286,7 +62337,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L648",
+      "source_location": "L663",
       "weight": 1.0
     },
     {
@@ -62296,7 +62347,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L648",
+      "source_location": "L663",
       "weight": 1.0
     },
     {
@@ -62305,7 +62356,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L656",
+      "source_location": "L671",
       "weight": 1.0
     },
     {
@@ -62315,7 +62366,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L656",
+      "source_location": "L671",
       "weight": 1.0
     },
     {
@@ -62325,7 +62376,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L656",
+      "source_location": "L671",
       "weight": 1.0
     },
     {
@@ -62334,7 +62385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L660",
+      "source_location": "L675",
       "weight": 1.0
     },
     {
@@ -62344,7 +62395,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L660",
+      "source_location": "L675",
       "weight": 1.0
     },
     {
@@ -62354,7 +62405,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L660",
+      "source_location": "L675",
       "weight": 1.0
     },
     {
@@ -62363,7 +62414,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L668",
+      "source_location": "L683",
       "weight": 1.0
     },
     {
@@ -62373,7 +62424,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L668",
+      "source_location": "L683",
       "weight": 1.0
     },
     {
@@ -62383,7 +62434,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L668",
+      "source_location": "L683",
       "weight": 1.0
     },
     {
@@ -62392,7 +62443,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L683",
+      "source_location": "L698",
       "weight": 1.0
     },
     {
@@ -62402,7 +62453,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L683",
+      "source_location": "L698",
       "weight": 1.0
     },
     {
@@ -62412,7 +62463,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L683",
+      "source_location": "L698",
       "weight": 1.0
     },
     {
@@ -62422,7 +62473,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L683",
+      "source_location": "L698",
       "weight": 1.0
     },
     {
@@ -62432,7 +62483,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L142",
+      "source_location": "L147",
       "weight": 1.0
     },
     {
@@ -62442,7 +62493,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L154",
+      "source_location": "L159",
       "weight": 1.0
     },
     {
@@ -62452,7 +62503,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L170",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -62462,7 +62513,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L172",
+      "source_location": "L177",
       "weight": 1.0
     },
     {
@@ -62472,7 +62523,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L187",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -62482,7 +62533,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L232",
+      "source_location": "L237",
       "weight": 1.0
     },
     {
@@ -62492,7 +62543,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L236",
+      "source_location": "L241",
       "weight": 1.0
     },
     {
@@ -62502,7 +62553,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L244",
+      "source_location": "L249",
       "weight": 1.0
     },
     {
@@ -62512,7 +62563,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L246",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -62522,7 +62573,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L247",
+      "source_location": "L252",
       "weight": 1.0
     },
     {
@@ -62532,7 +62583,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L271",
+      "source_location": "L276",
       "weight": 1.0
     },
     {
@@ -62542,7 +62593,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L290",
+      "source_location": "L305",
       "weight": 1.0
     },
     {
@@ -62552,7 +62603,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L292",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -62562,7 +62613,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L298",
+      "source_location": "L313",
       "weight": 1.0
     },
     {
@@ -62572,7 +62623,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L306",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -62582,7 +62633,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L307",
+      "source_location": "L322",
       "weight": 1.0
     },
     {
@@ -62592,7 +62643,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L324",
+      "source_location": "L339",
       "weight": 1.0
     },
     {
@@ -62602,7 +62653,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L331",
+      "source_location": "L346",
       "weight": 1.0
     },
     {
@@ -62612,7 +62663,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L385",
+      "source_location": "L400",
       "weight": 1.0
     },
     {
@@ -62622,7 +62673,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L449",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -62632,7 +62683,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L456",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -62642,7 +62693,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L503",
+      "source_location": "L518",
       "weight": 1.0
     },
     {
@@ -62652,7 +62703,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L523",
+      "source_location": "L538",
       "weight": 1.0
     },
     {
@@ -62662,7 +62713,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L532",
+      "source_location": "L547",
       "weight": 1.0
     },
     {
@@ -62672,7 +62723,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L565",
+      "source_location": "L580",
       "weight": 1.0
     },
     {
@@ -62682,7 +62733,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L583",
+      "source_location": "L598",
       "weight": 1.0
     },
     {
@@ -62692,7 +62743,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L586",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -62702,7 +62753,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L607",
+      "source_location": "L622",
       "weight": 1.0
     },
     {
@@ -62712,7 +62763,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L607",
+      "source_location": "L622",
       "weight": 1.0
     },
     {
@@ -62722,7 +62773,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L650",
+      "source_location": "L665",
       "weight": 1.0
     },
     {
@@ -62732,7 +62783,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L673",
+      "source_location": "L688",
       "weight": 1.0
     },
     {
@@ -69454,7 +69505,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L750",
+      "source_location": "L752",
       "weight": 1.0
     },
     {
@@ -69464,7 +69515,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L750",
+      "source_location": "L752",
       "weight": 1.0
     },
     {
@@ -69473,7 +69524,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L800",
+      "source_location": "L803",
       "weight": 1.0
     },
     {
@@ -69483,7 +69534,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L800",
+      "source_location": "L803",
       "weight": 1.0
     },
     {
@@ -69492,7 +69543,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L882",
+      "source_location": "L885",
       "weight": 1.0
     },
     {
@@ -69502,7 +69553,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L882",
+      "source_location": "L885",
       "weight": 1.0
     },
     {
@@ -69511,7 +69562,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1004",
+      "source_location": "L1007",
       "weight": 1.0
     },
     {
@@ -69521,7 +69572,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1004",
+      "source_location": "L1007",
       "weight": 1.0
     },
     {
@@ -69530,7 +69581,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1141",
+      "source_location": "L1144",
       "weight": 1.0
     },
     {
@@ -69540,7 +69591,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1141",
+      "source_location": "L1144",
       "weight": 1.0
     },
     {
@@ -69550,7 +69601,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1141",
+      "source_location": "L1144",
       "weight": 1.0
     },
     {
@@ -69559,7 +69610,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1186",
+      "source_location": "L1189",
       "weight": 1.0
     },
     {
@@ -69569,7 +69620,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1186",
+      "source_location": "L1189",
       "weight": 1.0
     },
     {
@@ -69579,7 +69630,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1186",
+      "source_location": "L1189",
       "weight": 1.0
     },
     {
@@ -69588,7 +69639,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1203",
+      "source_location": "L1206",
       "weight": 1.0
     },
     {
@@ -69598,7 +69649,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1203",
+      "source_location": "L1206",
       "weight": 1.0
     },
     {
@@ -69608,7 +69659,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1203",
+      "source_location": "L1206",
       "weight": 1.0
     },
     {
@@ -69988,7 +70039,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L734",
+      "source_location": "L736",
       "weight": 1.0
     },
     {
@@ -69998,7 +70049,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L761",
+      "source_location": "L763",
       "weight": 1.0
     },
     {
@@ -70008,7 +70059,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L789",
+      "source_location": "L792",
       "weight": 1.0
     },
     {
@@ -70018,7 +70069,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L812",
+      "source_location": "L815",
       "weight": 1.0
     },
     {
@@ -70028,7 +70079,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L872",
+      "source_location": "L875",
       "weight": 1.0
     },
     {
@@ -70038,7 +70089,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L909",
+      "source_location": "L912",
       "weight": 1.0
     },
     {
@@ -70048,7 +70099,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L991",
+      "source_location": "L994",
       "weight": 1.0
     },
     {
@@ -70058,7 +70109,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1027",
+      "source_location": "L1030",
       "weight": 1.0
     },
     {
@@ -70068,7 +70119,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1143",
+      "source_location": "L1146",
       "weight": 1.0
     },
     {
@@ -70078,7 +70129,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1144",
+      "source_location": "L1147",
       "weight": 1.0
     },
     {
@@ -70088,7 +70139,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1145",
+      "source_location": "L1148",
       "weight": 1.0
     },
     {
@@ -70098,7 +70149,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1147",
+      "source_location": "L1150",
       "weight": 1.0
     },
     {
@@ -70108,7 +70159,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1191",
+      "source_location": "L1194",
       "weight": 1.0
     },
     {
@@ -70118,7 +70169,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L1205",
+      "source_location": "L1208",
       "weight": 1.0
     },
     {
@@ -72041,7 +72092,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L822",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -72051,7 +72102,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L822",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -72061,7 +72112,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L822",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -72071,7 +72122,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L822",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -72080,7 +72131,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L869",
+      "source_location": "L859",
       "weight": 1.0
     },
     {
@@ -72090,7 +72141,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L869",
+      "source_location": "L859",
       "weight": 1.0
     },
     {
@@ -72100,7 +72151,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L869",
+      "source_location": "L859",
       "weight": 1.0
     },
     {
@@ -72109,7 +72160,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72119,7 +72170,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72129,7 +72180,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72139,7 +72190,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72149,7 +72200,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72159,7 +72210,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L882",
+      "source_location": "L872",
       "weight": 1.0
     },
     {
@@ -72168,7 +72219,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L948",
+      "source_location": "L938",
       "weight": 1.0
     },
     {
@@ -72178,7 +72229,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L948",
+      "source_location": "L938",
       "weight": 1.0
     },
     {
@@ -72188,7 +72239,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L948",
+      "source_location": "L938",
       "weight": 1.0
     },
     {
@@ -72198,26 +72249,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L948",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin",
-      "target": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1010",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
-      "target": "aria_agents_narrative_report_builder_py_narrativeblock",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1010",
+      "source_location": "L938",
       "weight": 1.0
     },
     {
@@ -72226,7 +72258,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1040",
+      "source_location": "L999",
       "weight": 1.0
     },
     {
@@ -72236,7 +72268,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1040",
+      "source_location": "L999",
       "weight": 1.0
     },
     {
@@ -72246,7 +72278,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1040",
+      "source_location": "L999",
       "weight": 1.0
     },
     {
@@ -72255,7 +72287,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1070",
+      "source_location": "L1029",
       "weight": 1.0
     },
     {
@@ -72264,7 +72296,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1216",
+      "source_location": "L1171",
       "weight": 1.0
     },
     {
@@ -72274,7 +72306,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1216",
+      "source_location": "L1171",
       "weight": 1.0
     },
     {
@@ -72283,7 +72315,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1352",
+      "source_location": "L1307",
       "weight": 1.0
     },
     {
@@ -72293,7 +72325,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1352",
+      "source_location": "L1307",
       "weight": 1.0
     },
     {
@@ -72302,7 +72334,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1484",
+      "source_location": "L1439",
       "weight": 1.0
     },
     {
@@ -72312,7 +72344,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1484",
+      "source_location": "L1439",
       "weight": 1.0
     },
     {
@@ -72322,7 +72354,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1484",
+      "source_location": "L1439",
       "weight": 1.0
     },
     {
@@ -72331,7 +72363,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1541",
+      "source_location": "L1496",
       "weight": 1.0
     },
     {
@@ -72341,7 +72373,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1541",
+      "source_location": "L1496",
       "weight": 1.0
     },
     {
@@ -72350,7 +72382,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1562",
+      "source_location": "L1517",
       "weight": 1.0
     },
     {
@@ -72360,7 +72392,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1562",
+      "source_location": "L1517",
       "weight": 1.0
     },
     {
@@ -72369,7 +72401,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1619",
+      "source_location": "L1574",
       "weight": 1.0
     },
     {
@@ -72379,7 +72411,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1619",
+      "source_location": "L1574",
       "weight": 1.0
     },
     {
@@ -72388,7 +72420,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1798",
+      "source_location": "L1753",
       "weight": 1.0
     },
     {
@@ -72398,7 +72430,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1798",
+      "source_location": "L1753",
       "weight": 1.0
     },
     {
@@ -72407,7 +72439,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1917",
+      "source_location": "L1872",
       "weight": 1.0
     },
     {
@@ -72417,7 +72449,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1917",
+      "source_location": "L1872",
       "weight": 1.0
     },
     {
@@ -72426,7 +72458,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1938",
+      "source_location": "L1893",
       "weight": 1.0
     },
     {
@@ -72436,7 +72468,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1938",
+      "source_location": "L1893",
       "weight": 1.0
     },
     {
@@ -72445,7 +72477,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1965",
+      "source_location": "L1920",
       "weight": 1.0
     },
     {
@@ -72455,7 +72487,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1965",
+      "source_location": "L1920",
       "weight": 1.0
     },
     {
@@ -72530,22 +72562,12 @@
     },
     {
       "source": "narrative_report_builder_reportbuildermixin_render_html_report",
-      "target": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L401",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_render_html_report",
       "target": "narrative_report_builder_reportbuildermixin_build_public_claims_table",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L468",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -72555,7 +72577,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L471",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -72565,7 +72587,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L475",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -72575,7 +72597,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L482",
+      "source_location": "L472",
       "weight": 1.0
     },
     {
@@ -72585,7 +72607,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L493",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -72595,7 +72617,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L500",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -72605,7 +72627,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L510",
+      "source_location": "L500",
       "weight": 1.0
     },
     {
@@ -72615,7 +72637,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L716",
+      "source_location": "L706",
       "weight": 1.0
     },
     {
@@ -72625,7 +72647,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L789",
+      "source_location": "L779",
       "weight": 1.0
     },
     {
@@ -72635,7 +72657,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L810",
+      "source_location": "L800",
       "weight": 1.0
     },
     {
@@ -72645,7 +72667,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L849",
+      "source_location": "L839",
       "weight": 1.0
     },
     {
@@ -72655,7 +72677,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L871",
+      "source_location": "L861",
       "weight": 1.0
     },
     {
@@ -72665,7 +72687,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L893",
+      "source_location": "L883",
       "weight": 1.0
     },
     {
@@ -72675,17 +72697,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L988",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
-      "target": "narrative_report_builder_reportbuildermixin_ensure_executive_summary_ledger_node",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1165",
+      "source_location": "L978",
       "weight": 1.0
     },
     {
@@ -72695,7 +72707,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1207",
+      "source_location": "L1162",
       "weight": 1.0
     },
     {
@@ -72705,7 +72717,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1700",
+      "source_location": "L1655",
       "weight": 1.0
     },
     {
@@ -72715,7 +72727,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1777",
+      "source_location": "L1732",
       "weight": 1.0
     },
     {
@@ -72725,7 +72737,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1826",
+      "source_location": "L1781",
       "weight": 1.0
     },
     {
@@ -73187,7 +73199,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L109",
+      "source_location": "L125",
       "weight": 1.0
     },
     {
@@ -73197,7 +73209,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L109",
+      "source_location": "L125",
       "weight": 1.0
     },
     {
@@ -73206,7 +73218,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L118",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -73216,7 +73228,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L118",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -73226,7 +73238,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L118",
+      "source_location": "L134",
       "weight": 1.0
     },
     {
@@ -73235,7 +73247,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -73245,7 +73257,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -73255,7 +73267,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -73265,7 +73277,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L122",
+      "source_location": "L138",
       "weight": 1.0
     },
     {
@@ -73274,7 +73286,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L141",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -73283,7 +73295,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L152",
+      "source_location": "L172",
       "weight": 1.0
     },
     {
@@ -73292,7 +73304,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L165",
+      "source_location": "L185",
       "weight": 1.0
     },
     {
@@ -73301,7 +73313,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L204",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -73311,7 +73323,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L204",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -73321,7 +73333,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L204",
+      "source_location": "L228",
       "weight": 1.0
     },
     {
@@ -73330,7 +73342,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L230",
+      "source_location": "L260",
       "weight": 1.0
     },
     {
@@ -73339,7 +73351,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L291",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -73349,7 +73361,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L291",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -73359,7 +73371,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L291",
+      "source_location": "L341",
       "weight": 1.0
     },
     {
@@ -73368,7 +73380,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L303",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -73378,7 +73390,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L303",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -73388,7 +73400,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L303",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -73398,7 +73410,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L303",
+      "source_location": "L353",
       "weight": 1.0
     },
     {
@@ -73407,7 +73419,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L310",
+      "source_location": "L360",
       "weight": 1.0
     },
     {
@@ -73417,7 +73429,16 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L310",
+      "source_location": "L360",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L368",
       "weight": 1.0
     },
     {
@@ -73426,7 +73447,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L318",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -73436,7 +73457,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L318",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -73446,7 +73467,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L318",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -73455,7 +73476,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L364",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -73465,7 +73486,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L364",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -73475,7 +73496,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L364",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -73485,7 +73506,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L364",
+      "source_location": "L487",
       "weight": 1.0
     },
     {
@@ -73495,7 +73516,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L209",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -73505,7 +73526,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L215",
+      "source_location": "L239",
       "weight": 1.0
     },
     {
@@ -73515,7 +73536,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L238",
+      "source_location": "L268",
       "weight": 1.0
     },
     {
@@ -73525,7 +73546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L242",
+      "source_location": "L272",
       "weight": 1.0
     },
     {
@@ -73535,7 +73556,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L244",
+      "source_location": "L274",
       "weight": 1.0
     },
     {
@@ -73545,7 +73566,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L247",
+      "source_location": "L277",
       "weight": 1.0
     },
     {
@@ -73555,7 +73576,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L253",
+      "source_location": "L283",
       "weight": 1.0
     },
     {
@@ -73565,7 +73586,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L305",
+      "source_location": "L355",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "target": "narrative_run_ledger_node_index",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L379",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "target": "narrative_run_ledger_node_id_for",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_location": "L385",
       "weight": 1.0
     },
     {
@@ -73575,7 +73616,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L328",
+      "source_location": "L431",
       "weight": 1.0
     },
     {
@@ -73585,7 +73626,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L335",
+      "source_location": "L438",
       "weight": 1.0
     },
     {
@@ -73595,7 +73636,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L375",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -73605,7 +73646,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L382",
+      "source_location": "L504",
       "weight": 1.0
     },
     {
@@ -73615,7 +73656,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L404",
+      "source_location": "L549",
       "weight": 1.0
     },
     {
@@ -145342,7 +145383,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -145395,7 +145436,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145405,7 +145446,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145415,7 +145456,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145425,7 +145466,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145435,7 +145476,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145757,7 +145798,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -145766,7 +145807,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -145801,7 +145842,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145811,7 +145852,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zn9fp9_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -165402,7 +165443,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0
     },
     {
@@ -165411,7 +165452,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L32",
+      "source_location": "L33",
       "weight": 1.0
     },
     {
@@ -165420,7 +165461,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0
     },
     {
@@ -165429,7 +165470,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L59",
+      "source_location": "L60",
       "weight": 1.0
     },
     {
@@ -165438,25 +165479,25 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L71",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
       "source": "tests_test_ledger_claim_linkage",
-      "target": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_honest_not_a_violation",
+      "target": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_a_publication_violation",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L82",
+      "source_location": "L85",
       "weight": 1.0
     },
     {
       "source": "tests_test_ledger_claim_linkage",
-      "target": "tests_test_ledger_claim_linkage_test_descriptive_claim_to_not_run_node_is_not_a_violation",
+      "target": "tests_test_ledger_claim_linkage_test_descriptive_result_claim_to_not_run_node_is_a_violation",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L95",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -165465,7 +165506,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L106",
+      "source_location": "L111",
       "weight": 1.0
     },
     {
@@ -165474,7 +165515,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L126",
+      "source_location": "L131",
       "weight": 1.0
     },
     {
@@ -165483,7 +165524,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L148",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -165492,7 +165533,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L167",
+      "source_location": "L174",
       "weight": 1.0
     },
     {
@@ -165501,7 +165542,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L178",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -165510,7 +165551,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L184",
+      "source_location": "L195",
       "weight": 1.0
     },
     {
@@ -165519,16 +165560,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L191",
+      "source_location": "L202",
       "weight": 1.0
     },
     {
       "source": "tests_test_ledger_claim_linkage",
-      "target": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
+      "target": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L198",
+      "source_location": "L209",
       "weight": 1.0
     },
     {
@@ -165538,7 +165579,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -165548,7 +165589,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L60",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -165558,17 +165599,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L72",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_claim_to_not_run_node_is_not_a_violation",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_claim_to_not_run_node_is_a_violation",
       "target": "tests_test_ledger_claim_linkage_skipped_de_results",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L96",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
@@ -165578,7 +165619,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L179",
+      "source_location": "L190",
       "weight": 1.0
     },
     {
@@ -165588,7 +165629,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L181",
+      "source_location": "L192",
       "weight": 1.0
     },
     {
@@ -165598,7 +165639,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L185",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -165608,7 +165649,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L186",
+      "source_location": "L197",
       "weight": 1.0
     },
     {
@@ -165618,7 +165659,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L192",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -165628,27 +165669,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L193",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
       "target": "tests_test_ledger_claim_linkage_skipped_de_results",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L199",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
       "target": "tests_test_ledger_claim_linkage_pb_block",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L200",
+      "source_location": "L211",
       "weight": 1.0
     },
     {
@@ -171338,7 +171379,7 @@
     },
     {
       "source": "tests_test_preprint_audit_c1_claim_boundary",
-      "target": "tests_test_preprint_audit_c1_claim_boundary_test_public_claim_compiler_withholds_unsupported_blocks",
+      "target": "tests_test_preprint_audit_c1_claim_boundary_custom_ledger",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
@@ -171347,11 +171388,20 @@
     },
     {
       "source": "tests_test_preprint_audit_c1_claim_boundary",
+      "target": "tests_test_preprint_audit_c1_claim_boundary_test_public_claim_compiler_withholds_unsupported_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
+      "source_location": "L132",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c1_claim_boundary",
       "target": "tests_test_preprint_audit_c1_claim_boundary_reportharness",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L146",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -171360,7 +171410,7 @@
       "relation": "inherits",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L146",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -171369,7 +171419,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L149",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -171379,7 +171429,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L149",
+      "source_location": "L164",
       "weight": 1.0
     },
     {
@@ -171388,7 +171438,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L153",
+      "source_location": "L168",
       "weight": 1.0
     },
     {
@@ -171397,7 +171447,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L180",
+      "source_location": "L196",
       "weight": 1.0
     },
     {
@@ -171406,7 +171456,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L217",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -171415,7 +171465,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L251",
+      "source_location": "L267",
       "weight": 1.0
     },
     {
@@ -171424,7 +171474,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L281",
+      "source_location": "L297",
       "weight": 1.0
     },
     {
@@ -171464,7 +171514,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L121",
+      "source_location": "L135",
       "weight": 1.0
     },
     {
@@ -171474,7 +171524,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L122",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c1_claim_boundary_test_public_claim_compiler_withholds_unsupported_blocks",
+      "target": "tests_test_preprint_audit_c1_claim_boundary_custom_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -171484,7 +171544,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L154",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -171494,7 +171554,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L165",
+      "source_location": "L180",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c1_claim_boundary_test_raw_bus_and_legacy_sections_cannot_reach_public_findings_html",
+      "target": "tests_test_preprint_audit_c1_claim_boundary_custom_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -171504,7 +171574,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L173",
+      "source_location": "L189",
       "weight": 1.0
     },
     {
@@ -171514,7 +171584,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L259",
+      "source_location": "L275",
       "weight": 1.0
     },
     {
@@ -171524,7 +171594,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L282",
+      "source_location": "L298",
       "weight": 1.0
     },
     {
@@ -171959,6 +172029,168 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c2_semantic_facts.py",
       "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_py_narrativeblock",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L20",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_supported_claim_without_ledger_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L38",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_public_claim_resolves_to_typed_ledger_and_evidence_nodes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_untyped_or_unprovenanced_ledger_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_active_verifier_rejects_a_result_claim_with_no_ledger_node",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_active_chromatin_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L178",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_test_rendered_results_resolve_to_existing_typed_nodes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_py_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_supported_claim_without_ledger_node",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_claim_resolves_to_typed_ledger_and_evidence_nodes",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_untyped_or_unprovenanced_ledger_node",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_active_verifier_rejects_a_result_claim_with_no_ledger_node",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_active_chromatin_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_rendered_results_resolve_to_existing_typed_nodes",
+      "target": "tests_test_preprint_audit_c3_publication_linkage_active_chromatin_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L225",
       "weight": 1.0
     },
     {
@@ -175503,7 +175735,7 @@
     },
     {
       "source": "tests_test_render_ledger_e2e",
-      "target": "tests_test_render_ledger_e2e_test_render_is_failsafe_when_ledger_check_finds_a_violation",
+      "target": "tests_test_render_ledger_e2e_test_render_fails_closed_when_ledger_check_finds_a_violation",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_render_ledger_e2e.py",
@@ -175541,33 +175773,33 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_render_ledger_e2e_test_render_is_failsafe_when_ledger_check_finds_a_violation",
+      "source": "tests_test_render_ledger_e2e_test_render_fails_closed_when_ledger_check_finds_a_violation",
       "target": "tests_test_render_ledger_e2e_gsea_plots",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_render_ledger_e2e.py",
-      "source_location": "L104",
+      "source_location": "L95",
       "weight": 1.0
     },
     {
-      "source": "tests_test_render_ledger_e2e_test_render_is_failsafe_when_ledger_check_finds_a_violation",
+      "source": "tests_test_render_ledger_e2e_test_render_fails_closed_when_ledger_check_finds_a_violation",
       "target": "tests_test_render_ledger_e2e_render",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_render_ledger_e2e.py",
-      "source_location": "L107",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
-      "source": "tests_test_render_ledger_e2e_test_render_is_failsafe_when_ledger_check_finds_a_violation",
+      "source": "tests_test_render_ledger_e2e_test_render_fails_closed_when_ledger_check_finds_a_violation",
       "target": "tests_test_render_ledger_e2e_agent",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_render_ledger_e2e.py",
-      "source_location": "L107",
+      "source_location": "L99",
       "weight": 1.0
     },
     {
@@ -178748,7 +178980,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L414",
+      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -178758,7 +178990,17 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L415",
+      "source_location": "L421",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler",
+      "target": "narrative_run_ledger_link_claims_to_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L440",
       "weight": 1.0
     },
     {
@@ -180103,12 +180345,22 @@
     },
     {
       "source": "narrative_report_builder",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L401",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder",
       "target": "narrative_claim_compiler_compile_public_claims",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L415",
+      "source_location": "L417",
       "weight": 1.0
     },
     {
@@ -180118,7 +180370,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L436",
+      "source_location": "L440",
       "weight": 1.0
     },
     {
@@ -180128,7 +180380,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L452",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -180138,7 +180390,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L815",
+      "source_location": "L805",
       "weight": 1.0
     },
     {
@@ -180148,7 +180400,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L898",
+      "source_location": "L888",
       "weight": 1.0
     },
     {
@@ -180158,7 +180410,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1134",
+      "source_location": "L1106",
       "weight": 1.0
     },
     {
@@ -180168,7 +180420,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1176",
+      "source_location": "L1131",
       "weight": 1.0
     },
     {
@@ -180178,7 +180430,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1498",
+      "source_location": "L1453",
       "weight": 1.0
     },
     {
@@ -180188,7 +180440,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1498",
+      "source_location": "L1453",
       "weight": 1.0
     },
     {
@@ -180198,7 +180450,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L159",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -189233,12 +189485,22 @@
     },
     {
       "source": "tests_test_ledger_claim_linkage",
-      "target": "narrative_run_ledger_build_run_ledger",
+      "target": "narrative_evidence_verifier_build_evidence_card",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
       "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_claim_linkage",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -189248,7 +189510,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -189258,7 +189520,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -189268,7 +189530,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -189278,7 +189540,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0
     },
     {
@@ -190729,6 +190991,96 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c2_semantic_facts.py",
       "source_location": "L203",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_run_ledger_ledgerlinkageerror",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_run_ledger_verify_blocks_against_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_types_evidenceitem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "narrative_types_narrativeblock",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage",
+      "target": "agents_narrative_agent_narrativeagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L208",
       "weight": 1.0
     },
     {
@@ -192268,7 +192620,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L290",
+      "source_location": "L291",
       "weight": 1.0
     },
     {
@@ -192278,7 +192630,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L341",
+      "source_location": "L342",
       "weight": 1.0
     },
     {
@@ -192288,7 +192640,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L422",
+      "source_location": "L428",
       "weight": 1.0
     },
     {
@@ -192298,7 +192650,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L423",
+      "source_location": "L429",
       "weight": 1.0
     },
     {
@@ -192308,7 +192660,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L424",
+      "source_location": "L430",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_compile_public_claims",
+      "target": "narrative_run_ledger_link_claims_to_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -192328,7 +192690,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L348",
+      "source_location": "L363",
       "weight": 1.0
     },
     {
@@ -192338,7 +192700,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L503",
+      "source_location": "L518",
       "weight": 1.0
     },
     {
@@ -192348,7 +192710,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L532",
+      "source_location": "L547",
       "weight": 1.0
     },
     {
@@ -192358,7 +192720,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/evidence_verifier.py",
-      "source_location": "L586",
+      "source_location": "L601",
       "weight": 1.0
     },
     {
@@ -192828,7 +193190,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
-      "source_location": "L162",
+      "source_location": "L182",
       "weight": 1.0
     },
     {
@@ -204468,7 +204830,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L48",
+      "source_location": "L49",
       "weight": 1.0
     },
     {
@@ -204478,7 +204840,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L53",
+      "source_location": "L54",
       "weight": 1.0
     },
     {
@@ -204488,7 +204850,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L60",
+      "source_location": "L61",
       "weight": 1.0
     },
     {
@@ -204498,7 +204860,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L63",
+      "source_location": "L65",
       "weight": 1.0
     },
     {
@@ -204508,7 +204870,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L72",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -204518,47 +204880,47 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L75",
+      "source_location": "L78",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_honest_not_a_violation",
+      "source": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_a_publication_violation",
       "target": "narrative_run_ledger_build_run_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L84",
+      "source_location": "L87",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_honest_not_a_violation",
+      "source": "tests_test_ledger_claim_linkage_test_no_ledger_node_is_a_publication_violation",
       "target": "narrative_run_ledger_link_claims_to_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L88",
+      "source_location": "L92",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_claim_to_not_run_node_is_not_a_violation",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_claim_to_not_run_node_is_a_violation",
       "target": "narrative_run_ledger_build_run_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L96",
+      "source_location": "L100",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_claim_to_not_run_node_is_not_a_violation",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_claim_to_not_run_node_is_a_violation",
       "target": "narrative_run_ledger_link_claims_to_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L99",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -204568,7 +204930,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L115",
+      "source_location": "L120",
       "weight": 1.0
     },
     {
@@ -204578,7 +204940,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L121",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -204588,7 +204950,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L136",
+      "source_location": "L141",
       "weight": 1.0
     },
     {
@@ -204598,7 +204960,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L143",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
@@ -204608,7 +204970,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L156",
+      "source_location": "L162",
       "weight": 1.0
     },
     {
@@ -204618,7 +204980,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L159",
+      "source_location": "L166",
       "weight": 1.0
     },
     {
@@ -204628,7 +204990,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L168",
+      "source_location": "L175",
       "weight": 1.0
     },
     {
@@ -204638,52 +205000,32 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L172",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_ledger_claim_linkage_test_active_verification_raises_on_block_claiming_not_run",
-      "target": "narrative_run_ledger_build_run_ledger",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_ledger_claim_linkage.py",
       "source_location": "L179",
       "weight": 1.0
     },
     {
+      "source": "tests_test_ledger_claim_linkage_pb_block",
+      "target": "narrative_evidence_verifier_build_evidence_card",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_claim_linkage_test_active_verification_raises_on_block_claiming_not_run",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L190",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_ledger_claim_linkage_test_active_verification_raises_on_block_claiming_not_run",
       "target": "narrative_run_ledger_verify_blocks_against_ledger",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L181",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_ledger_claim_linkage_test_active_verification_passes_when_node_ran",
-      "target": "narrative_run_ledger_build_run_ledger",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L185",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_ledger_claim_linkage_test_active_verification_passes_when_node_ran",
-      "target": "narrative_run_ledger_verify_blocks_against_ledger",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L186",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_ledger_claim_linkage_test_active_verification_non_strict_collects_without_raising",
-      "target": "narrative_run_ledger_build_run_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -204692,33 +205034,63 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_ledger_claim_linkage_test_active_verification_passes_when_node_ran",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L196",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_claim_linkage_test_active_verification_passes_when_node_ran",
+      "target": "narrative_run_ledger_verify_blocks_against_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ledger_claim_linkage_test_active_verification_non_strict_collects_without_raising",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_ledger_claim_linkage.py",
+      "source_location": "L203",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_ledger_claim_linkage_test_active_verification_non_strict_collects_without_raising",
       "target": "narrative_run_ledger_verify_blocks_against_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L193",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
       "target": "narrative_run_ledger_build_run_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L199",
+      "source_location": "L210",
       "weight": 1.0
     },
     {
-      "source": "tests_test_ledger_claim_linkage_test_descriptive_block_never_raises_even_for_not_run_node",
+      "source": "tests_test_ledger_claim_linkage_test_descriptive_result_block_raises_for_not_run_node",
       "target": "narrative_run_ledger_verify_blocks_against_ledger",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_ledger_claim_linkage.py",
-      "source_location": "L201",
+      "source_location": "L213",
       "weight": 1.0
     },
     {
@@ -206718,7 +207090,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L119",
+      "source_location": "L133",
       "weight": 1.0
     },
     {
@@ -206728,7 +207100,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L122",
+      "source_location": "L136",
       "weight": 1.0
     },
     {
@@ -206738,7 +207110,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L132",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -206748,7 +207120,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_claim_boundary.py",
-      "source_location": "L164",
+      "source_location": "L179",
       "weight": 1.0
     },
     {
@@ -207009,6 +207381,106 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c2_semantic_facts.py",
       "source_location": "L224",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "target": "narrative_types_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_result_block",
+      "target": "narrative_types_evidenceitem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_supported_claim_without_ledger_node",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_claim_resolves_to_typed_ledger_and_evidence_nodes",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_claim_resolves_to_typed_ledger_and_evidence_nodes",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L56",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_active_verifier_rejects_a_result_claim_with_no_ledger_node",
+      "target": "narrative_run_ledger_verify_blocks_against_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L103",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "target": "narrators_chromatin_chromatinnarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L181",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_every_active_chromatin_result_claim_has_typed_provenance_nodes",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L188",
       "weight": 1.0
     },
     {
@@ -209305,7 +209777,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L739",
+      "source_location": "L741",
       "weight": 1.0
     },
     {
@@ -209316,7 +209788,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L773",
+      "source_location": "L776",
       "weight": 1.0
     },
     {
@@ -209327,7 +209799,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L838",
+      "source_location": "L841",
       "weight": 1.0
     },
     {
@@ -209338,7 +209810,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/chromatin.py",
-      "source_location": "L998",
+      "source_location": "L1001",
       "weight": 1.0
     },
     {
@@ -209530,13 +210002,24 @@
     },
     {
       "source": "narrative_report_builder_reportbuildermixin_render_html_report",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L404",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_render_html_report",
       "target": "narrative_claim_compiler_compile_public_claims",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L416",
+      "source_location": "L418",
       "weight": 1.0
     },
     {
@@ -209547,7 +210030,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L437",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -209558,7 +210041,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L453",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -209569,7 +210052,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L478",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -209580,7 +210063,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L816",
+      "source_location": "L806",
       "weight": 1.0
     },
     {
@@ -209591,7 +210074,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L840",
+      "source_location": "L830",
       "weight": 1.0
     },
     {
@@ -209602,7 +210085,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L845",
+      "source_location": "L835",
       "weight": 1.0
     },
     {
@@ -209613,7 +210096,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L901",
+      "source_location": "L891",
       "weight": 1.0
     },
     {
@@ -209624,40 +210107,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L987",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
-      "target": "narrative_claim_compiler_compile_public_claims",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1111",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
-      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1135",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
-      "target": "narrative_devils_advocate_build_devils_advocate",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1143",
+      "source_location": "L977",
       "weight": 1.0
     },
     {
@@ -209668,7 +210118,51 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1153",
+      "source_location": "L1067",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L1073",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L1082",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
+      "target": "hypothesis_quarantine_assert_no_speculative_promotion",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L1107",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_report_builder_reportbuildermixin_build_methodology_json",
+      "target": "narrative_devils_advocate_build_devils_advocate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/agents/narrative/report_builder.py",
+      "source_location": "L1115",
       "weight": 1.0
     },
     {
@@ -209679,7 +210173,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1172",
+      "source_location": "L1127",
       "weight": 1.0
     },
     {
@@ -209690,7 +210184,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1177",
+      "source_location": "L1132",
       "weight": 1.0
     },
     {
@@ -209701,7 +210195,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1502",
+      "source_location": "L1457",
       "weight": 1.0
     },
     {
@@ -209712,7 +210206,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/report_builder.py",
-      "source_location": "L1527",
+      "source_location": "L1482",
       "weight": 1.0
     },
     {
@@ -210805,6 +211299,17 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_c3_publication_linkage_test_public_compiler_withholds_untyped_or_unprovenanced_ledger_node",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_c3_publication_linkage.py",
+      "source_location": "L82",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e6_geo_sra_atomic_test_e6_archive_extraction_rejects_path_traversal",
       "target": "utils_atomic_retrieval_safe_extract_archive",
       "relation": "calls",
@@ -210881,16 +211386,6 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -210925,7 +211420,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/workflows/bulk_rna.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -210935,27 +211430,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_scatac_align",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/workflows/scrna.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -210980,18 +211455,8 @@
       "weight": 1.0
     },
     {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -211002,16 +211467,6 @@
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
