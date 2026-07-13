@@ -93,6 +93,8 @@ def test_raw_ingestion_agent_dispatches_kb_count_through_rna_stack(
             "chemistry": "10xv3",
             "output_dir": str(tmp_path / "kb"),
             "timeout_seconds": 123,
+            "sample_id": "sample1",
+            "library": "sample1",
         },
         "timeout": 123,
     }]

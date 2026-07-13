@@ -283,8 +283,13 @@ def scan_fastq_plan(
             blockers.append(
                 f"FASTQ sample '{sample}' is missing an R1/R2 pair."
             )
+        elif len(files["R1"]) != len(files["R2"]):
+            blockers.append(
+                f"FASTQ sample '{sample}' has unequal R1/R2 file counts."
+            )
         normalized_groups.append({
             "sample_id": sample,
+            "library_id": sample,
             "files": {k: sorted(v) for k, v in sorted(files.items())},
             "lanes": sorted(rec.get("lanes", set())),
         })
@@ -487,6 +492,8 @@ def execute_kb_count(params: dict[str, Any]) -> dict[str, Any]:
     return {
         "status": "success",
         "mode": "fastq_kb_count",
+        "sample_id": sample_id,
+        "library": str(params.get("library") or sample_id),
         "command": command,
         "stdout_path": str(stdout_path),
         "stderr_path": str(stderr_path),

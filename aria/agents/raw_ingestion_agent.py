@@ -68,6 +68,7 @@ class RawIngestionAgent(BaseAgent):
 
         records = []
         generated_h5ads = []
+        per_sample_h5ads = []
         errors = []
         requested_scrna_fastqs = self._scrna_fastq_inputs(exp_ctx)
 
@@ -158,12 +159,42 @@ class RawIngestionAgent(BaseAgent):
                     })
                 kb_params = checkpoint.get("raw_ingestion_kb", {})
             if kb_params.get("execute"):
-                kb_result = self._run_kb_count(kb_params)
-                records.append(kb_result)
-                if kb_result.get("status") == "success":
-                    generated_h5ads.append(kb_result["output_h5ad"])
+                sample_params, preparation_error = self._prepare_sample_kb_params(
+                    fastq_plan,
+                    kb_params,
+                )
+                if preparation_error is not None:
+                    records.append(preparation_error)
+                    errors.append(self._kb_error_record(preparation_error))
                 else:
-                    errors.append(self._kb_error_record(kb_result))
+                    sample_results = []
+                    for sample_param in sample_params:
+                        kb_result = self._run_kb_count(sample_param)
+                        sample_id = sample_param.get("sample_id")
+                        library = sample_param.get("library") or sample_id
+                        if sample_id:
+                            kb_result.setdefault("sample_id", sample_id)
+                        if library:
+                            kb_result.setdefault("library", library)
+                        records.append(kb_result)
+                        if kb_result.get("status") == "success":
+                            sample_results.append(kb_result)
+                            per_sample_h5ads.append(kb_result["output_h5ad"])
+                        else:
+                            errors.append(self._kb_error_record(kb_result))
+
+                    if not errors and len(sample_results) > 1:
+                        union_result = self._run_kb_union(
+                            sample_results,
+                            kb_params,
+                        )
+                        records.append(union_result)
+                        if union_result.get("status") == "success":
+                            generated_h5ads.append(union_result["output_h5ad"])
+                        else:
+                            errors.append(self._kb_error_record(union_result))
+                    elif not errors and len(sample_results) == 1:
+                        generated_h5ads.append(sample_results[0]["output_h5ad"])
 
         if (requested_scrna_fastqs and not generated_h5ads
                 and not self._scrna_canonical_inputs(exp_ctx)):
@@ -187,6 +218,7 @@ class RawIngestionAgent(BaseAgent):
                 "records": records,
                 "errors": errors,
                 "output_h5ads": generated_h5ads,
+                "per_sample_h5ads": per_sample_h5ads,
             }
 
         if not records:
@@ -232,6 +264,7 @@ class RawIngestionAgent(BaseAgent):
             "status": "done",
             "records": records,
             "output_h5ads": generated_h5ads,
+            "per_sample_h5ads": per_sample_h5ads,
             "exp_context_updates": {
                 "modalities": modalities,
                 "input_files": input_files,
@@ -251,6 +284,201 @@ class RawIngestionAgent(BaseAgent):
             params=params,
             timeout=int(params.get("timeout_seconds") or 86400),
         )
+
+    def _run_kb_union(self, sample_results: list[dict], kb_params: dict) -> dict:
+        """Explicitly join per-sample kb outputs while retaining identity."""
+        env = getattr(self, "env", None)
+        if env is None:
+            from aria.utils.environment_manager import env_manager
+            env = env_manager
+            self.env = env
+        sample_manifest = [
+            {
+                "path": result["output_h5ad"],
+                "sample_id": result["sample_id"],
+                "library": result.get("library") or result["sample_id"],
+            }
+            for result in sample_results
+        ]
+        union_dir = Path(str(kb_params["output_dir"])) / "union"
+        result = env.run_in_stack(
+            stack="ingestion",
+            script_path="aria/scripts/rna_concat.py",
+            params={
+                "samples": sample_manifest,
+                "output_dir": str(union_dir),
+                "join": "inner",
+            },
+            timeout=int(kb_params.get("timeout_seconds") or 86400),
+        )
+        if result.get("status") != "success":
+            return {
+                **result,
+                "mode": "fastq_kb_union",
+                "error_type": result.get("error_type", "KbUnionFailed"),
+                "details": result.get("details") or (
+                    "Per-sample kb outputs were produced, but their explicit "
+                    "sample-preserving union failed."
+                ),
+                "sample_manifest": sample_manifest,
+            }
+        output_h5ad = result.get("output_path")
+        if not output_h5ad or not Path(output_h5ad).exists():
+            return {
+                **result,
+                "status": "error",
+                "mode": "fastq_kb_union",
+                "error_type": "KbUnionOutputMissing",
+                "details": (
+                    "The explicit kb union reported success without a readable "
+                    "output_path."
+                ),
+                "sample_manifest": sample_manifest,
+            }
+        return {
+            **result,
+            "mode": "fastq_kb_union",
+            "output_h5ad": str(output_h5ad),
+            "output_sha256": hash_file(output_h5ad),
+            "source_h5ads": [r["output_h5ad"] for r in sample_results],
+            "sample_manifest": sample_manifest,
+        }
+
+    @classmethod
+    def _prepare_sample_kb_params(
+        cls,
+        fastq_plan: dict,
+        kb_params: dict,
+    ) -> tuple[list[dict], dict | None]:
+        """Split one explicit FASTQ selection into fail-closed sample runs."""
+        samples = list(fastq_plan.get("samples") or [])
+        if len(samples) <= 1:
+            prepared = dict(kb_params)
+            if samples:
+                sample_id = str(samples[0].get("sample_id") or "").strip()
+                if sample_id:
+                    prepared.setdefault("sample_id", sample_id)
+                    prepared.setdefault(
+                        "library",
+                        str(samples[0].get("library_id") or sample_id),
+                    )
+            return [prepared], None
+
+        selected = {
+            cls._path_key(path): str(path)
+            for path in (kb_params.get("fastq_files") or [])
+        }
+        if not selected:
+            return [], cls._sample_plan_error(
+                "multi_sample_fastq_selection_empty",
+                "Multi-sample kb execution requires explicit FASTQ files.",
+            )
+
+        seen_sample_ids = set()
+        mapped_keys = set()
+        key_owners = {}
+        sample_params = []
+        base_output_dir = Path(str(kb_params.get("output_dir") or ""))
+        for sample in samples:
+            sample_id = str(sample.get("sample_id") or "").strip()
+            if not sample_id or sample_id in seen_sample_ids:
+                return [], cls._sample_plan_error(
+                    "invalid_fastq_sample_identity",
+                    "FASTQ plan sample IDs must be non-empty and unique.",
+                )
+            seen_sample_ids.add(sample_id)
+            files_by_role = sample.get("files") or {}
+            selected_by_role = {}
+            for role, paths in files_by_role.items():
+                kept = []
+                for path in paths or []:
+                    key = cls._path_key(path)
+                    if key in selected:
+                        owner = key_owners.setdefault(key, sample_id)
+                        if owner != sample_id:
+                            return [], cls._sample_plan_error(
+                                "ambiguous_fastq_sample_mapping",
+                                "One selected FASTQ belongs to more than one "
+                                "detected sample; refusing a mixed quantification.",
+                                fastq_file=selected[key],
+                                sample_ids=sorted({owner, sample_id}),
+                            )
+                        kept.append(str(path))
+                        mapped_keys.add(key)
+                if kept:
+                    selected_by_role[str(role)] = kept
+
+            if not selected_by_role.get("R1") or not selected_by_role.get("R2"):
+                return [], cls._sample_plan_error(
+                    "incomplete_fastq_sample_selection",
+                    f"FASTQ sample '{sample_id}' does not have an explicit "
+                    "R1/R2 selection for its own kb execution.",
+                    sample_id=sample_id,
+                )
+            if len(selected_by_role["R1"]) != len(selected_by_role["R2"]):
+                return [], cls._sample_plan_error(
+                    "unbalanced_fastq_sample_selection",
+                    f"FASTQ sample '{sample_id}' has unequal R1/R2 file "
+                    "counts; refusing a partial lane quantification.",
+                    sample_id=sample_id,
+                    n_r1=len(selected_by_role["R1"]),
+                    n_r2=len(selected_by_role["R2"]),
+                )
+            ordered_fastqs = cls._interleave_fastq_roles(selected_by_role)
+            per_sample = dict(kb_params)
+            per_sample.update({
+                "fastq_files": ordered_fastqs,
+                "output_dir": str(base_output_dir / sample_id),
+                "sample_id": sample_id,
+                "library": str(sample.get("library_id") or sample_id),
+            })
+            sample_params.append(per_sample)
+
+        unmatched = sorted(
+            selected[key] for key in set(selected).difference(mapped_keys)
+        )
+        if unmatched:
+            return [], cls._sample_plan_error(
+                "unmapped_fastq_selection",
+                "Explicit FASTQ files could not be mapped to exactly one "
+                "detected sample; refusing a partial or mixed quantification.",
+                unmatched_fastq_files=unmatched,
+            )
+        return sample_params, None
+
+    @staticmethod
+    def _interleave_fastq_roles(files_by_role: dict) -> list[str]:
+        """Keep lane mates adjacent instead of emitting every R1 before every R2."""
+        role_order = [
+            role for role in ("R1", "R2", "I1", "I2")
+            if role in files_by_role
+        ]
+        role_order.extend(sorted(set(files_by_role).difference(role_order)))
+        ordered_roles = {
+            role: sorted(str(path) for path in files_by_role[role])
+            for role in role_order
+        }
+        return [
+            paths[index]
+            for index in range(max(len(paths) for paths in ordered_roles.values()))
+            for paths in ordered_roles.values()
+            if index < len(paths)
+        ]
+
+    @staticmethod
+    def _path_key(path) -> str:
+        return str(Path(str(path)).expanduser().resolve(strict=False))
+
+    @staticmethod
+    def _sample_plan_error(reason: str, details: str, **extra) -> dict:
+        return {
+            "status": "error",
+            "mode": "fastq_kb_per_sample",
+            "error_type": "KbSamplePlanInvalid",
+            "reason": reason,
+            "details": details,
+            **extra,
+        }
 
     @staticmethod
     def _discover_10x_mtx_triplets(data_dir: Path, progress_callback):
