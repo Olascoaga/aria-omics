@@ -1489,182 +1489,203 @@
       "label": "._collect_sensitivity_fields()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L598"
+      "source_location": "L604"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_supported_input_file",
       "label": "._supported_input_file()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L618"
+      "source_location": "L624"
     },
     {
       "id": "aria_agents_data_audit_agent_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L618"
+      "source_location": "L624"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_scan_directory",
       "label": "._scan_directory()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L633"
+      "source_location": "L639"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_scan_report_warnings",
       "label": "._scan_report_warnings()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L740"
+      "source_location": "L746"
+    },
+    {
+      "id": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "label": "._fastq_modality_hint()",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788"
+    },
+    {
+      "id": "agents_data_audit_agent_dataauditagent_declared_library_type",
+      "label": "._declared_library_type()",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L812"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_classify_files",
       "label": "._classify_files()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L779"
+      "source_location": "L827"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_demote_non_tenx_mtx_sidecars",
       "label": "._demote_non_tenx_mtx_sidecars()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824"
+      "source_location": "L893"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_record_assay_detection",
       "label": "._record_assay_detection()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L853"
+      "source_location": "L922"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_assay_detection_warnings",
       "label": "._assay_detection_warnings()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L868"
+      "source_location": "L937"
+    },
+    {
+      "id": "agents_data_audit_agent_dataauditagent_ambiguous_library_type_warnings",
+      "label": "._ambiguous_library_type_warnings()",
+      "file_type": "code",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L956"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_is_aria_generated_output",
       "label": "._is_aria_generated_output()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L888"
+      "source_location": "L973"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_is_aria_intermediate_h5ad",
       "label": "._is_aria_intermediate_h5ad()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L921"
+      "source_location": "L1006"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_filter_aria_intermediate_outputs",
       "label": "._filter_aria_intermediate_outputs()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924"
+      "source_location": "L1009"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_genome_organism",
       "label": "._infer_genome_organism()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947"
+      "source_location": "L1032"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_h5ad_genome_organism",
       "label": "._infer_h5ad_genome_organism()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L985"
+      "source_location": "L1070"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_validate_design",
       "label": "._validate_design()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1030"
+      "source_location": "L1115"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_infer_h5ad_design",
       "label": "._infer_h5ad_design()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1056"
+      "source_location": "L1141"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_condition_col",
       "label": "._pick_h5ad_condition_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1186"
+      "source_location": "L1271"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_replicate_col",
       "label": "._pick_h5ad_replicate_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1235"
+      "source_location": "L1320"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_groupby_col",
       "label": "._pick_h5ad_groupby_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1261"
+      "source_location": "L1346"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_pick_h5ad_covariates",
       "label": "._pick_h5ad_covariates()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1275"
+      "source_location": "L1360"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_default_comparisons_from_groups",
       "label": "._default_comparisons_from_groups()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1285"
+      "source_location": "L1370"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_build_context",
       "label": "._build_context()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294"
+      "source_location": "L1379"
     },
     {
       "id": "agents_data_audit_agent_dataauditagent_build_checkpoint_summary",
       "label": "._build_checkpoint_summary()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1338"
+      "source_location": "L1423"
     },
     {
       "id": "agents_data_audit_agent_usable_design_col",
       "label": "_usable_design_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1396"
+      "source_location": "L1481"
     },
     {
       "id": "agents_data_audit_agent_usable_replicate_col",
       "label": "_usable_replicate_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1407"
+      "source_location": "L1492"
     },
     {
       "id": "agents_data_audit_agent_usable_groupby_col",
       "label": "_usable_groupby_col()",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1421"
+      "source_location": "L1506"
     },
     {
       "id": "agents_debate_council",
@@ -30329,7 +30350,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -30574,7 +30595,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_zyldss_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -30596,7 +30617,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_zyldss_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -43576,6 +43597,69 @@
       "source_location": "L90"
     },
     {
+      "id": "tests_test_preprint_audit_e2_library_type",
+      "label": "test_preprint_audit_e2_library_type.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_agent",
+      "label": "_agent()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L21"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_classify",
+      "label": "_classify()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L28"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_modality_keyword_beats_generic_bulk_rna",
+      "label": "test_modality_keyword_beats_generic_bulk_rna()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_generic_paired_end_is_flagged_ambiguous_not_silently_bound",
+      "label": "test_generic_paired_end_is_flagged_ambiguous_not_silently_bound()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L49"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_global_declared_library_type_overrides_filename",
+      "label": "test_global_declared_library_type_overrides_filename()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_per_file_declared_library_type_overrides_filename",
+      "label": "test_per_file_declared_library_type_overrides_filename()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L74"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_processed_counts_matrix_still_bulk_rna",
+      "label": "test_processed_counts_matrix_still_bulk_rna()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L89"
+    },
+    {
+      "id": "tests_test_preprint_audit_e2_library_type_test_declared_atac_fastq_is_not_flagged_ambiguous",
+      "label": "test_declared_atac_fastq_is_not_flagged_ambiguous()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L96"
+    },
+    {
       "id": "tests_test_preprint_audit_e7_design_contract",
       "label": "test_preprint_audit_e7_design_contract.py",
       "file_type": "code",
@@ -46019,180 +46103,94 @@
       "source_location": "L49"
     },
     {
-      "id": "aria_orchestrator_agent",
+      "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
-      "id": "aria_data_audit_agent",
+      "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/data_audit_agent.py"
     },
     {
-      "id": "aria_design_agent",
+      "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/design_agent.py"
     },
     {
-      "id": "aria_audit_agent",
+      "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/audit_agent.py"
     },
     {
-      "id": "aria_setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_scrna_agent",
+      "id": "scrna_agent",
       "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/scrna_agent.py"
     },
     {
-      "id": "aria_chromatin_agent",
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/bulk_rna_agent.py"
+    },
+    {
+      "id": "chromatin_agent",
       "label": "ChromatinAgent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/chromatin_agent.py"
     },
     {
-      "id": "aria_narrative_agent",
+      "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative_agent.py"
     },
     {
-      "id": "aria_biological_synthesis_agent",
+      "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
-      "id": "aria_environment_manager",
+      "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "aria_message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/utils/environment_manager.py"
     },
     {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_rna_bulk_de",
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py"
+    },
+    {
+      "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
-      "id": "aria_rna_pseudobulk_de",
+      "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
-      "id": "aria_chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
+      "id": "chromatin_footprint_tobias",
+      "label": "chromatin_footprint_tobias.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
     },
     {
       "id": "python_aria_memory_memory_py",
@@ -51915,7 +51913,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L598",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
@@ -51925,7 +51923,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L598",
+      "source_location": "L604",
       "weight": 1.0
     },
     {
@@ -51934,7 +51932,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L618",
+      "source_location": "L624",
       "weight": 1.0
     },
     {
@@ -51944,7 +51942,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L618",
+      "source_location": "L624",
       "weight": 1.0
     },
     {
@@ -51954,7 +51952,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L618",
+      "source_location": "L624",
       "weight": 1.0
     },
     {
@@ -51963,7 +51961,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L633",
+      "source_location": "L639",
       "weight": 1.0
     },
     {
@@ -51973,7 +51971,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L633",
+      "source_location": "L639",
       "weight": 1.0
     },
     {
@@ -51983,7 +51981,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L633",
+      "source_location": "L639",
       "weight": 1.0
     },
     {
@@ -51993,7 +51991,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L633",
+      "source_location": "L639",
       "weight": 1.0
     },
     {
@@ -52002,7 +52000,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L740",
+      "source_location": "L746",
       "weight": 1.0
     },
     {
@@ -52012,7 +52010,85 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L740",
+      "source_location": "L746",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent",
+      "target": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "target": "aria_agents_data_audit_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "target": "aria_agents_data_audit_agent_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "target": "aria_agents_data_audit_agent_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "target": "aria_agents_data_audit_agent_py_bool",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L788",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent",
+      "target": "agents_data_audit_agent_dataauditagent_declared_library_type",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L812",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_declared_library_type",
+      "target": "aria_agents_data_audit_agent_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L812",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_declared_library_type",
+      "target": "aria_agents_data_audit_agent_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L812",
       "weight": 1.0
     },
     {
@@ -52021,7 +52097,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L779",
+      "source_location": "L827",
       "weight": 1.0
     },
     {
@@ -52031,7 +52107,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L779",
+      "source_location": "L827",
       "weight": 1.0
     },
     {
@@ -52041,7 +52117,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L779",
+      "source_location": "L827",
       "weight": 1.0
     },
     {
@@ -52051,7 +52127,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L779",
+      "source_location": "L827",
       "weight": 1.0
     },
     {
@@ -52060,7 +52136,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824",
+      "source_location": "L893",
       "weight": 1.0
     },
     {
@@ -52070,7 +52146,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824",
+      "source_location": "L893",
       "weight": 1.0
     },
     {
@@ -52080,7 +52156,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824",
+      "source_location": "L893",
       "weight": 1.0
     },
     {
@@ -52090,7 +52166,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824",
+      "source_location": "L893",
       "weight": 1.0
     },
     {
@@ -52100,7 +52176,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L824",
+      "source_location": "L893",
       "weight": 1.0
     },
     {
@@ -52109,7 +52185,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L853",
+      "source_location": "L922",
       "weight": 1.0
     },
     {
@@ -52119,7 +52195,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L853",
+      "source_location": "L922",
       "weight": 1.0
     },
     {
@@ -52128,7 +52204,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L868",
+      "source_location": "L937",
       "weight": 1.0
     },
     {
@@ -52138,7 +52214,26 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L868",
+      "source_location": "L937",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent",
+      "target": "agents_data_audit_agent_dataauditagent_ambiguous_library_type_warnings",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L956",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_ambiguous_library_type_warnings",
+      "target": "aria_agents_data_audit_agent_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L956",
       "weight": 1.0
     },
     {
@@ -52147,7 +52242,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L888",
+      "source_location": "L973",
       "weight": 1.0
     },
     {
@@ -52157,7 +52252,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L888",
+      "source_location": "L973",
       "weight": 1.0
     },
     {
@@ -52167,7 +52262,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L888",
+      "source_location": "L973",
       "weight": 1.0
     },
     {
@@ -52176,7 +52271,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L921",
+      "source_location": "L1006",
       "weight": 1.0
     },
     {
@@ -52186,7 +52281,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L921",
+      "source_location": "L1006",
       "weight": 1.0
     },
     {
@@ -52196,7 +52291,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L921",
+      "source_location": "L1006",
       "weight": 1.0
     },
     {
@@ -52205,7 +52300,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52215,7 +52310,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52225,7 +52320,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52235,7 +52330,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52245,7 +52340,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52255,7 +52350,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L924",
+      "source_location": "L1009",
       "weight": 1.0
     },
     {
@@ -52264,7 +52359,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52274,7 +52369,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52284,7 +52379,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52294,7 +52389,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52304,7 +52399,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52314,7 +52409,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L947",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -52323,7 +52418,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L985",
+      "source_location": "L1070",
       "weight": 1.0
     },
     {
@@ -52333,7 +52428,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L985",
+      "source_location": "L1070",
       "weight": 1.0
     },
     {
@@ -52343,7 +52438,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L985",
+      "source_location": "L1070",
       "weight": 1.0
     },
     {
@@ -52353,7 +52448,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L985",
+      "source_location": "L1070",
       "weight": 1.0
     },
     {
@@ -52362,7 +52457,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1030",
+      "source_location": "L1115",
       "weight": 1.0
     },
     {
@@ -52372,7 +52467,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1030",
+      "source_location": "L1115",
       "weight": 1.0
     },
     {
@@ -52382,7 +52477,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1030",
+      "source_location": "L1115",
       "weight": 1.0
     },
     {
@@ -52391,7 +52486,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1056",
+      "source_location": "L1141",
       "weight": 1.0
     },
     {
@@ -52401,7 +52496,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1056",
+      "source_location": "L1141",
       "weight": 1.0
     },
     {
@@ -52411,7 +52506,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1056",
+      "source_location": "L1141",
       "weight": 1.0
     },
     {
@@ -52420,7 +52515,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1186",
+      "source_location": "L1271",
       "weight": 1.0
     },
     {
@@ -52430,7 +52525,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1186",
+      "source_location": "L1271",
       "weight": 1.0
     },
     {
@@ -52440,7 +52535,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1186",
+      "source_location": "L1271",
       "weight": 1.0
     },
     {
@@ -52449,7 +52544,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1235",
+      "source_location": "L1320",
       "weight": 1.0
     },
     {
@@ -52459,7 +52554,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1235",
+      "source_location": "L1320",
       "weight": 1.0
     },
     {
@@ -52469,7 +52564,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1235",
+      "source_location": "L1320",
       "weight": 1.0
     },
     {
@@ -52478,7 +52573,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1261",
+      "source_location": "L1346",
       "weight": 1.0
     },
     {
@@ -52488,7 +52583,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1261",
+      "source_location": "L1346",
       "weight": 1.0
     },
     {
@@ -52497,7 +52592,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1275",
+      "source_location": "L1360",
       "weight": 1.0
     },
     {
@@ -52507,7 +52602,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1275",
+      "source_location": "L1360",
       "weight": 1.0
     },
     {
@@ -52517,7 +52612,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1275",
+      "source_location": "L1360",
       "weight": 1.0
     },
     {
@@ -52527,7 +52622,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1275",
+      "source_location": "L1360",
       "weight": 1.0
     },
     {
@@ -52536,7 +52631,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1285",
+      "source_location": "L1370",
       "weight": 1.0
     },
     {
@@ -52546,7 +52641,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1285",
+      "source_location": "L1370",
       "weight": 1.0
     },
     {
@@ -52555,7 +52650,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52565,7 +52660,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52575,7 +52670,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52585,7 +52680,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52595,7 +52690,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52605,7 +52700,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1294",
+      "source_location": "L1379",
       "weight": 1.0
     },
     {
@@ -52614,7 +52709,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1338",
+      "source_location": "L1423",
       "weight": 1.0
     },
     {
@@ -52624,7 +52719,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1338",
+      "source_location": "L1423",
       "weight": 1.0
     },
     {
@@ -52634,7 +52729,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1338",
+      "source_location": "L1423",
       "weight": 1.0
     },
     {
@@ -52644,7 +52739,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1338",
+      "source_location": "L1423",
       "weight": 1.0
     },
     {
@@ -52653,7 +52748,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1396",
+      "source_location": "L1481",
       "weight": 1.0
     },
     {
@@ -52663,7 +52758,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1396",
+      "source_location": "L1481",
       "weight": 1.0
     },
     {
@@ -52673,7 +52768,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1396",
+      "source_location": "L1481",
       "weight": 1.0
     },
     {
@@ -52683,7 +52778,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1396",
+      "source_location": "L1481",
       "weight": 1.0
     },
     {
@@ -52692,7 +52787,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1407",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -52702,7 +52797,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1407",
+      "source_location": "L1492",
       "weight": 1.0
     },
     {
@@ -52711,7 +52806,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1421",
+      "source_location": "L1506",
       "weight": 1.0
     },
     {
@@ -52721,7 +52816,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1421",
+      "source_location": "L1506",
       "weight": 1.0
     },
     {
@@ -52831,7 +52926,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L441",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -52841,7 +52936,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L452",
+      "source_location": "L457",
       "weight": 1.0
     },
     {
@@ -52851,7 +52946,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L462",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -52861,7 +52956,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L469",
+      "source_location": "L474",
       "weight": 1.0
     },
     {
@@ -52871,7 +52966,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L479",
+      "source_location": "L484",
       "weight": 1.0
     },
     {
@@ -52881,7 +52976,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L483",
+      "source_location": "L488",
       "weight": 1.0
     },
     {
@@ -52891,7 +52986,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L492",
+      "source_location": "L497",
       "weight": 1.0
     },
     {
@@ -52901,7 +52996,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L493",
+      "source_location": "L498",
       "weight": 1.0
     },
     {
@@ -52911,7 +53006,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L494",
+      "source_location": "L499",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_run",
+      "target": "agents_data_audit_agent_dataauditagent_ambiguous_library_type_warnings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L500",
       "weight": 1.0
     },
     {
@@ -52921,7 +53026,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L505",
+      "source_location": "L511",
       "weight": 1.0
     },
     {
@@ -52931,7 +53036,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L546",
+      "source_location": "L552",
       "weight": 1.0
     },
     {
@@ -52941,7 +53046,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L561",
+      "source_location": "L567",
       "weight": 1.0
     },
     {
@@ -52951,7 +53056,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L641",
+      "source_location": "L647",
       "weight": 1.0
     },
     {
@@ -52961,7 +53066,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L645",
+      "source_location": "L651",
       "weight": 1.0
     },
     {
@@ -52971,7 +53076,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L694",
+      "source_location": "L700",
       "weight": 1.0
     },
     {
@@ -52981,7 +53086,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L725",
+      "source_location": "L731",
       "weight": 1.0
     },
     {
@@ -52991,7 +53096,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L792",
+      "source_location": "L845",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_classify_files",
+      "target": "agents_data_audit_agent_dataauditagent_declared_library_type",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L849",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_classify_files",
+      "target": "agents_data_audit_agent_dataauditagent_fastq_modality_hint",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L858",
       "weight": 1.0
     },
     {
@@ -53001,7 +53126,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L813",
+      "source_location": "L882",
       "weight": 1.0
     },
     {
@@ -53011,7 +53136,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L815",
+      "source_location": "L884",
       "weight": 1.0
     },
     {
@@ -53021,7 +53146,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L816",
+      "source_location": "L885",
       "weight": 1.0
     },
     {
@@ -53031,7 +53156,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L829",
+      "source_location": "L898",
       "weight": 1.0
     },
     {
@@ -53041,7 +53166,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L877",
+      "source_location": "L946",
+      "weight": 1.0
+    },
+    {
+      "source": "agents_data_audit_agent_dataauditagent_ambiguous_library_type_warnings",
+      "target": "aria_agents_data_audit_agent_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": "L962",
       "weight": 1.0
     },
     {
@@ -53051,7 +53186,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L889",
+      "source_location": "L974",
       "weight": 1.0
     },
     {
@@ -53061,7 +53196,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L922",
+      "source_location": "L1007",
       "weight": 1.0
     },
     {
@@ -53071,7 +53206,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L938",
+      "source_location": "L1023",
       "weight": 1.0
     },
     {
@@ -53081,7 +53216,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1092",
+      "source_location": "L1177",
       "weight": 1.0
     },
     {
@@ -53091,7 +53226,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1105",
+      "source_location": "L1190",
       "weight": 1.0
     },
     {
@@ -53101,7 +53236,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1112",
+      "source_location": "L1197",
       "weight": 1.0
     },
     {
@@ -53111,7 +53246,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1115",
+      "source_location": "L1200",
       "weight": 1.0
     },
     {
@@ -53121,7 +53256,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1116",
+      "source_location": "L1201",
       "weight": 1.0
     },
     {
@@ -53131,7 +53266,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1157",
+      "source_location": "L1242",
       "weight": 1.0
     },
     {
@@ -53141,7 +53276,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1223",
+      "source_location": "L1308",
       "weight": 1.0
     },
     {
@@ -53151,7 +53286,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1248",
+      "source_location": "L1333",
       "weight": 1.0
     },
     {
@@ -53161,7 +53296,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1270",
+      "source_location": "L1355",
       "weight": 1.0
     },
     {
@@ -53171,7 +53306,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1280",
+      "source_location": "L1365",
       "weight": 1.0
     },
     {
@@ -53181,7 +53316,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1307",
+      "source_location": "L1392",
       "weight": 1.0
     },
     {
@@ -136216,7 +136351,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -136269,7 +136404,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136279,7 +136414,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136289,7 +136424,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136299,7 +136434,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136309,7 +136444,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136631,7 +136766,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_zyldss_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -136640,7 +136775,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_zyldss_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -136675,7 +136810,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -136685,7 +136820,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fdv8a1_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_zyldss_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -161889,6 +162024,198 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L21",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L28",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_modality_keyword_beats_generic_bulk_rna",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_generic_paired_end_is_flagged_ambiguous_not_silently_bound",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L49",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_global_declared_library_type_overrides_filename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_per_file_declared_library_type_overrides_filename",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_processed_counts_matrix_still_bulk_rna",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L89",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "tests_test_preprint_audit_e2_library_type_test_declared_atac_fastq_is_not_flagged_ambiguous",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_modality_keyword_beats_generic_bulk_rna",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_modality_keyword_beats_generic_bulk_rna",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_generic_paired_end_is_flagged_ambiguous_not_silently_bound",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L50",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_generic_paired_end_is_flagged_ambiguous_not_silently_bound",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_global_declared_library_type_overrides_filename",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L64",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_global_declared_library_type_overrides_filename",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L66",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_per_file_declared_library_type_overrides_filename",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L75",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_per_file_declared_library_type_overrides_filename",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_processed_counts_matrix_still_bulk_rna",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_processed_counts_matrix_still_bulk_rna",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_declared_atac_fastq_is_not_flagged_ambiguous",
+      "target": "tests_test_preprint_audit_e2_library_type_agent",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type_test_declared_atac_fastq_is_not_flagged_ambiguous",
+      "target": "tests_test_preprint_audit_e2_library_type_classify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e7_design_contract",
       "target": "tests_test_preprint_audit_e7_design_contract_resolve",
       "relation": "contains",
@@ -166923,7 +167250,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L554",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -166933,7 +167260,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L554",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -166943,7 +167270,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L554",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -178814,6 +179141,16 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_e1_sequencer_boundary.py",
       "source_location": "L62",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_e2_library_type",
+      "target": "agents_data_audit_agent_dataauditagent",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_e2_library_type.py",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -195474,7 +195811,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L559",
+      "source_location": "L565",
       "weight": 1.0
     },
     {
@@ -195485,7 +195822,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L570",
+      "source_location": "L576",
       "weight": 1.0
     },
     {
@@ -195496,7 +195833,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L571",
+      "source_location": "L577",
       "weight": 1.0
     },
     {
@@ -195507,7 +195844,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L630",
+      "source_location": "L636",
       "weight": 1.0
     },
     {
@@ -195518,7 +195855,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L782",
+      "source_location": "L834",
       "weight": 1.0
     },
     {
@@ -195529,7 +195866,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1312",
+      "source_location": "L1397",
       "weight": 1.0
     },
     {
@@ -195540,7 +195877,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": "L1335",
+      "source_location": "L1420",
       "weight": 1.0
     },
     {
@@ -197007,144 +197344,100 @@
       "weight": 1.0
     },
     {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_data_audit_agent",
+      "source": "orchestrator_agent",
+      "target": "data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_design_agent",
+      "source": "orchestrator_agent",
+      "target": "design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_bulk_rna_agent",
+      "source": "orchestrator_agent",
+      "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_scrna_agent",
+      "source": "orchestrator_agent",
+      "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_chromatin_agent",
+      "source": "orchestrator_agent",
+      "target": "chromatin_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
-      "source": "aria_bulk_rna_agent",
-      "target": "aria_environment_manager",
+      "source": "bulk_rna_agent",
+      "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "aria_scrna_agent",
-      "target": "aria_environment_manager",
+      "source": "scrna_agent",
+      "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "aria_chromatin_agent",
-      "target": "aria_environment_manager",
+      "source": "chromatin_agent",
+      "target": "chromatin_footprint_tobias",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "aria_environment_manager",
-      "target": "aria_rna_bulk_de",
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
-      "source": "aria_environment_manager",
-      "target": "aria_rna_pseudobulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_chromatin_bulk_diffacc",
-      "target": "aria_rna_bulk_de",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_narrative_agent",
-      "target": "aria_biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "aria_orchestrator_agent",
-      "target": "aria_message_bus",
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "aria_orchestrator_agent",
+      "source": "orchestrator_agent",
       "target": "aria_memory",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "python_aria_memory_memory_py",
