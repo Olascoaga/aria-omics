@@ -13,6 +13,7 @@ bookkeeping; no LLM, no biology.
 import pytest
 
 from aria.agents.narrative.types import NarrativeBlock, EvidenceItem
+from aria.agents.narrative.evidence_verifier import build_evidence_card
 from aria.agents.narrative.run_ledger import (
     build_run_ledger,
     node_id_for,
@@ -59,7 +60,8 @@ def test_ledger_entries_carry_stable_node_ids():
 def test_claim_links_to_ran_node():
     ledger = build_run_ledger(_PB_PLAN, _ran_results())
     claims = [{"claim_id": "scrna.pb.A", "modality": "scRNA-seq",
-               "analysis": "pseudobulk_de", "tier": "associative"}]
+               "analysis": "pseudobulk_de", "tier": "associative",
+               "evidence_card_id": "scrna.pb.A#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_node_id"] == "ledger://scRNA/pseudobulk_de"
     assert claims[0]["ledger_status"] == "ran"
@@ -71,7 +73,8 @@ def test_claim_links_to_ran_node():
 def test_claim_citing_not_run_analysis_is_a_violation():
     ledger = build_run_ledger(_PB_PLAN, _skipped_de_results())
     claims = [{"claim_id": "scrna.pb.A", "modality": "scRNA-seq",
-               "analysis": "pseudobulk_de", "tier": "associative"}]
+               "analysis": "pseudobulk_de", "tier": "associative",
+               "evidence_card_id": "scrna.pb.A#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_status"] == "skipped"
     assert summary["n_violations"] == 1
@@ -79,26 +82,28 @@ def test_claim_citing_not_run_analysis_is_a_violation():
     assert summary["violations"][0]["ledger_status"] == "skipped"
 
 
-def test_no_ledger_node_is_honest_not_a_violation():
-    # scRNA marker DE has no ledger node; record it honestly, do not fabricate.
+def test_no_ledger_node_is_a_publication_violation():
+    # C3: an absent node is recorded honestly and fails public eligibility.
     ledger = build_run_ledger(
         {}, {"scrna_agent": {"findings": {"qc": {"status": "success"}}}})
     claims = [{"claim_id": "scrna.markers", "modality": "scRNA-seq",
-               "analysis": "differential_expression", "tier": "associative"}]
+               "analysis": "differential_expression", "tier": "associative",
+               "evidence_card_id": "scrna.markers#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_linked"] is False
     assert claims[0]["ledger_status"] == "no_ledger_node"
     assert claims[0]["ledger_node_id"] is None
-    assert summary["n_violations"] == 0
+    assert summary["n_violations"] == 1
 
 
-def test_descriptive_claim_to_not_run_node_is_not_a_violation():
+def test_descriptive_result_claim_to_not_run_node_is_a_violation():
     ledger = build_run_ledger(_PB_PLAN, _skipped_de_results())
     claims = [{"claim_id": "scrna.pb.A", "modality": "scRNA-seq",
-               "analysis": "pseudobulk_de", "tier": "descriptive"}]
+               "analysis": "pseudobulk_de", "tier": "descriptive",
+               "evidence_card_id": "scrna.pb.A#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_status"] == "skipped"
-    assert summary["n_violations"] == 0
+    assert summary["n_violations"] == 1
 
 
 # ── bulk coverage ────────────────────────────────────────────────────────────
@@ -139,7 +144,8 @@ def test_bulk_pathway_node_ran_for_gsea_only_running_sums():
     assert node["status"] == "ran"
     # And a GSEA-only claim links to that ran node without a violation.
     claims = [{"claim_id": "bulk.gsea.t_vs_c", "modality": "bulk RNA-seq",
-               "analysis": "gsea_preranked", "tier": "associative"}]
+               "analysis": "gsea_preranked", "tier": "associative",
+               "evidence_card_id": "bulk.gsea.t_vs_c#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_status"] == "ran"
     assert summary["n_violations"] == 0
@@ -155,7 +161,8 @@ def test_bulk_pathway_claim_links_when_pathways_present():
     }}}
     ledger = build_run_ledger(exp_ctx, agent_results)
     claims = [{"claim_id": "bulk.pathway.t_vs_c", "modality": "bulk RNA-seq",
-               "analysis": "pathway_enrichment", "tier": "associative"}]
+               "analysis": "pathway_enrichment", "tier": "associative",
+               "evidence_card_id": "bulk.pathway.t_vs_c#evidence"}]
     summary = link_claims_to_ledger(claims, ledger)
     assert claims[0]["ledger_node_id"] == "ledger://bulk/pathway_enrichment"
     assert claims[0]["ledger_status"] == "ran"
@@ -172,6 +179,10 @@ def _pb_block(tier="associative", analysis="pseudobulk_de"):
         evidence=[EvidenceItem(label="n_sig", value=42)],
     )
     b.metadata["claim"] = {"tier": tier}
+    b.metadata["claim_verification"] = {
+        "status": "supported",
+        "evidence_card": build_evidence_card(b).as_dict(),
+    }
     return b
 
 
@@ -195,7 +206,8 @@ def test_active_verification_non_strict_collects_without_raising():
     assert manifest["n_violations"] == 1
 
 
-def test_descriptive_block_never_raises_even_for_not_run_node():
+def test_descriptive_result_block_raises_for_not_run_node():
     ledger = build_run_ledger(_PB_PLAN, _skipped_de_results())
     block = _pb_block(tier="descriptive")
-    assert verify_blocks_against_ledger([block], ledger, strict=True)["status"] == "ok"
+    with pytest.raises(LedgerLinkageError):
+        verify_blocks_against_ledger([block], ledger, strict=True)

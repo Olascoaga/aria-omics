@@ -8,9 +8,9 @@ but silently skipped by a free-text keyword gate.
 
 W-LEDGER (pre-4.6 Tier-A) closes the loop: every ledger entry gets a stable
 ``node_id`` and every report claim is linked to its node, so a claim is traceable
-to both an evidence card (W-CLAIM) and a run-ledger node. The linkage is actively
-verified — a claim of associative-or-stronger tier may not cite a node the run
-marked not-run/skipped/error (the thin-report contradiction).
+to both an evidence card (W-CLAIM) and a run-ledger node. C3 additionally requires
+both nodes to be typed and provenance-bearing and fails public eligibility when a
+node is absent or its analysis did not run.
 
 This is pure bookkeeping over the structured plan (DesignIntelligence) and the
 structured agent results; it asserts no biology and runs no LLM.
@@ -36,6 +36,9 @@ _SCRNA_ANALYSES: list[dict[str, Any]] = [
     {"key": "annotation", "label": "Cell-type annotation",
      "plan_kw": ["celltypist", "annotat", "cell type", "cell-type", "marker"],
      "finding_keys": ["cell_types"]},
+    {"key": "marker_discovery", "label": "Per-cluster marker discovery",
+     "plan_kw": ["marker", "wilcoxon", "cluster-vs-rest"],
+     "finding_keys": ["differential_expression"]},
     {"key": "pseudobulk_de", "label": "Pseudobulk differential expression",
      "plan_kw": ["pseudobulk", "deseq", "donor-level", "donor level"],
      "finding_keys": ["pseudobulk_de"]},
@@ -68,7 +71,7 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
      "label": "Dimensionality reduction (LSI/TF-IDF)",
      "plan_kw": ["lsi", "latent semantic", "tf-idf", "tfidf",
                  "dimensionality", "svd"],
-     "finding_keys": ["lsi_params", "lsi"]},
+     "finding_keys": ["lsi_params", "lsi", "lsi_clustering"]},
     {"key": "peak_calling", "label": "Peak calling",
      "plan_kw": ["peak", "macs"], "finding_keys": ["peaks"]},
     {"key": "peak_count_matrix", "label": "Peak-count matrix",
@@ -87,6 +90,19 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
      "plan_kw": ["chromvar", "footprint", "peak-to-gene", "peak to gene",
                  "gene activity", "gene score", "label transfer"],
      "finding_keys": ["regulatory"]},
+    {"key": "matrix_pipeline", "label": "scATAC matrix pipeline",
+     "plan_kw": ["matrix pipeline", "fragment matrix", "peak matrix"],
+     "finding_keys": ["matrix_pipeline"]},
+    {"key": "peak_annotation", "label": "Genomic peak annotation",
+     "plan_kw": ["peak annotation", "nearest tss", "genomic annotation"],
+     "finding_keys": ["peak_annotation"]},
+    {"key": "peak_ora", "label": "DA-peak functional enrichment",
+     "plan_kw": ["peak ora", "peak pathway", "functional enrichment"],
+     "finding_keys": ["peak_ora"]},
+    {"key": "differential_tf_footprinting",
+     "label": "Differential TF footprinting",
+     "plan_kw": ["footprint", "tobias", "bindetect"],
+     "finding_keys": ["footprinting"]},
 ]
 
 
@@ -130,6 +146,10 @@ def _status_from_finding(val: Any) -> tuple[str, str | None]:
         if st == "error":
             return "error", (val.get("error_type") or val.get("details"))
         if st in ("success", "ok"):
+            return "ran", None
+        if val.get("ran") is False:
+            return "skipped", val.get("reason")
+        if val.get("ran") is True:
             return "ran", None
         # Structured dict with content but no explicit status -> it ran.
         return ("ran", None) if val else ("not_run", None)
@@ -175,6 +195,10 @@ def _bulk_findings_normalized(agent_results: dict) -> dict:
     if not isinstance(findings, dict):
         return {}
     out = dict(findings)
+    if not out.get("sample_qc"):
+        preprocessing = findings.get("preprocessing") or {}
+        if isinstance(preprocessing, dict) and preprocessing.get("qc"):
+            out["sample_qc"] = preprocessing["qc"]
     contrasts = findings.get("contrasts") or []
     pathway_ran = False
     for c in contrasts:
@@ -219,6 +243,12 @@ def _entries_for(modality: str, specs: list[dict], findings: dict,
             "analysis": spec["key"],
             "label": spec["label"],
             "node_id": f"ledger://{modality}/{spec['key']}",
+            "node_type": "analysis_run",
+            "provenance": {
+                "kind": "structured_agent_result",
+                "modality": modality,
+                "finding_keys": list(spec["finding_keys"]),
+            },
             "planned": planned,
             "status": status,
             "reason": reason,
@@ -266,13 +296,13 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
 
 # ── W-LEDGER: claim ↔ ledger-node linkage + active verification ──────────────
 
-# Claim tiers (Claim Compiler) at or above "associative" assert a real result;
-# a descriptive claim only restates a measured quantity and is never a linkage
-# violation even if its analysis did not run.
+# Audited claim tiers retained as the ADR-057 quarantine boundary. C3 linkage
+# now applies to every non-empty result claim, not only to this tier subset.
 _NON_DESCRIPTIVE_TIERS = {
     "associative", "weak_mechanistic", "strong_mechanistic",
     "causal_experimental",
 }
+
 # Statuses that mean the analysis did not actually produce results.
 _NOT_RUN_STATUSES = {"not_run", "skipped", "error"}
 
@@ -285,13 +315,33 @@ _LEDGER_KEY_ALIASES = {
     "pseudobulk_pathways": "pathway_enrichment",
     "gsea_preranked": "pathway_enrichment",
     "contrast": "differential_expression",
+    "power": "differential_expression",
+    "peak2gene": "regulatory_layers",
+    "integrated_signal": "biological_synthesis",
+    "convergent_evidence": "biological_synthesis",
+    "divergent_evidence": "biological_synthesis",
+    "integration_limitations": "biological_synthesis",
+    "scrna_integrated_signal": "biological_synthesis",
+    "scrna_context_layers": "biological_synthesis",
+    "scrna_integration_limitations": "biological_synthesis",
+}
+
+_REPORT_DERIVED_ANALYSES = {
+    "executive_summary",
+    "integrated_signal",
+    "convergent_evidence",
+    "divergent_evidence",
+    "integration_limitations",
+    "scrna_integrated_signal",
+    "scrna_context_layers",
+    "scrna_integration_limitations",
 }
 
 
 def _ledger_modality_group(modality: str) -> str:
     """Map a block/claim modality label to a ledger modality group."""
     m = str(modality or "").lower()
-    if "report" in m:
+    if "report" in m or "integrated" in m:
         return "report"
     if "bulk" in m:
         return "bulk"
@@ -315,15 +365,68 @@ def _node_index(run_ledger: dict | None) -> dict[str, dict]:
     }
 
 
+def ensure_report_ledger_nodes(run_ledger: dict, blocks: list) -> None:
+    """Add canonical nodes for report-derived analyses that actually ran.
+
+    Primary assay nodes must come from :func:`build_run_ledger`; this allowlist
+    only covers deterministic report products whose execution is represented by
+    a typed ``NarrativeBlock`` rather than an agent finding. Unknown analyses are
+    deliberately not synthesized so public compilation can fail closed.
+    """
+    if not isinstance(run_ledger, dict):
+        return
+    entries = run_ledger.setdefault("entries", [])
+    index = _node_index(run_ledger)
+    by_node: dict[str, list] = {}
+    for block in blocks or []:
+        analysis = str(getattr(block, "analysis", "") or "")
+        if analysis not in _REPORT_DERIVED_ANALYSES:
+            continue
+        nid = node_id_for(getattr(block, "modality", None), analysis)
+        by_node.setdefault(nid, []).append(block)
+    for nid, node_blocks in by_node.items():
+        if nid in index:
+            continue
+        canonical_analysis = nid.rsplit("/", 1)[-1]
+        entries.append({
+            "modality": "report",
+            "analysis": canonical_analysis,
+            "label": (
+                "Executive summary" if canonical_analysis == "executive_summary"
+                else "Integrated biological synthesis"
+            ),
+            "node_id": nid,
+            "node_type": "derived_report_analysis",
+            "provenance": {
+                "kind": "compiled_narrative_block",
+                "block_ids": sorted({
+                    str(getattr(block, "id", "")) for block in node_blocks
+                }),
+            },
+            "planned": True,
+            "status": "ran",
+            "reason": "compiled from governed narrative blocks",
+            "divergence": False,
+        })
+    if by_node:
+        modalities = run_ledger.setdefault("modalities", [])
+        if "report" not in modalities:
+            modalities.append("report")
+    run_ledger["divergences"] = [
+        entry for entry in entries
+        if isinstance(entry, dict) and entry.get("divergence")
+    ]
+    run_ledger["n_divergences"] = len(run_ledger["divergences"])
+
+
 def link_claims_to_ledger(claims: list[dict],
                           run_ledger: dict | None) -> dict[str, Any]:
     """Link each claim manifest to its ledger node, in place.
 
     Adds ``ledger_node_id``, ``ledger_status``, and ``ledger_linked`` to every
-    claim dict. A claim whose analysis has no matching node records
-    ``ledger_status="no_ledger_node"`` honestly (coverage gap, not fabrication).
-    A non-descriptive claim linked to a not-run/skipped/error node is a
-    violation. Returns a serializable linkage summary for methodology.json.
+    claim dict. C3 makes missing, untyped or provenance-free nodes violations,
+    as well as claims linked to analyses that did not run. The caller can then
+    withhold those manifests before they reach a public surface.
     """
     index = _node_index(run_ledger)
     linked = 0
@@ -336,21 +439,41 @@ def link_claims_to_ledger(claims: list[dict],
         node = index.get(nid)
         if node is None:
             claim["ledger_node_id"] = None
+            claim["ledger_node_type"] = None
+            claim["ledger_provenance"] = None
             claim["ledger_status"] = "no_ledger_node"
             claim["ledger_linked"] = False
             unlinked += 1
+            violations.append({
+                "claim_id": claim.get("claim_id"),
+                "node_id": nid,
+                "ledger_status": "no_ledger_node",
+                "reason": "no ledger node exists for the public claim",
+                "tier": claim.get("tier"),
+            })
             continue
         status = node.get("status")
         claim["ledger_node_id"] = nid
+        claim["ledger_node_type"] = node.get("node_type")
+        claim["ledger_provenance"] = node.get("provenance")
         claim["ledger_status"] = status
         claim["ledger_linked"] = True
         linked += 1
-        if claim.get("tier") in _NON_DESCRIPTIVE_TIERS and status in _NOT_RUN_STATUSES:
+        reason = None
+        if not claim.get("evidence_card_id"):
+            reason = "public claim has no evidence-card id"
+        elif not node.get("node_type"):
+            reason = "ledger node has no node_type"
+        elif not node.get("provenance"):
+            reason = "ledger node has no provenance"
+        elif status in _NOT_RUN_STATUSES:
+            reason = "public claim cites an analysis that did not run"
+        if reason:
             violations.append({
                 "claim_id": claim.get("claim_id"),
                 "node_id": nid,
                 "ledger_status": status,
-                "reason": node.get("reason"),
+                "reason": reason,
                 "tier": claim.get("tier"),
             })
     return {
@@ -366,31 +489,52 @@ def verify_blocks_against_ledger(blocks: list,
                                  *, strict: bool = True) -> dict[str, Any]:
     """Actively verify rendered blocks against the run ledger.
 
-    A block whose claim tier is associative-or-stronger may not cite a ledger
-    node the run marked not-run/skipped/error. When ``strict`` is true the first
-    such contradiction raises :class:`LedgerLinkageError` so the report cannot be
-    rendered with a claim about an analysis that did not run. Blocks without a
-    matching node (coverage gap) and descriptive claims are never violations.
+    Every non-empty public result claim must resolve to a typed, provenance-bearing
+    ledger node and an evidence-card id. It may not cite an analysis marked
+    not-run/skipped/error. Diagnostic blocks with no claim remain visible and are
+    outside this result-claim invariant.
     """
     index = _node_index(run_ledger)
     violations: list[dict] = []
     for block in blocks or []:
-        tier = (getattr(block, "metadata", {}) or {}).get("claim", {}) or {}
-        tier = tier.get("tier")
-        if tier not in _NON_DESCRIPTIVE_TIERS:
+        if not str(getattr(block, "claim", "") or "").strip():
             continue
+        metadata = getattr(block, "metadata", {}) or {}
+        tier = (metadata.get("claim", {}) or {}).get("tier")
         nid = node_id_for(getattr(block, "modality", None),
                           getattr(block, "analysis", None))
         node = index.get(nid)
         if node is None:
+            violations.append({
+                "claim_id": getattr(block, "id", None),
+                "node_id": nid,
+                "ledger_status": "no_ledger_node",
+                "reason": "no ledger node exists for the public claim",
+                "tier": tier,
+            })
             continue
         status = node.get("status")
-        if status in _NOT_RUN_STATUSES:
+        verification = metadata.get("claim_verification") or {}
+        card = verification.get("evidence_card") or {}
+        reason = None
+        if not card.get("evidence_card_id"):
+            reason = "public claim has no evidence-card id"
+        elif not card.get("node_type"):
+            reason = "evidence node has no node_type"
+        elif not card.get("provenance"):
+            reason = "evidence node has no provenance"
+        elif not node.get("node_type"):
+            reason = "ledger node has no node_type"
+        elif not node.get("provenance"):
+            reason = "ledger node has no provenance"
+        elif status in _NOT_RUN_STATUSES:
+            reason = "public claim cites an analysis that did not run"
+        if reason:
             violations.append({
                 "claim_id": getattr(block, "id", None),
                 "node_id": nid,
                 "ledger_status": status,
-                "reason": node.get("reason"),
+                "reason": reason,
                 "tier": tier,
             })
     manifest = {
@@ -401,6 +545,11 @@ def verify_blocks_against_ledger(blocks: list,
     if strict and violations:
         v = violations[0]
         detail = f" ({v['reason']})" if v.get("reason") else ""
+        if v["ledger_status"] == "no_ledger_node":
+            raise LedgerLinkageError(
+                f"{v['claim_id']}: no ledger node exists for public claim "
+                f"{v['node_id']}{detail}"
+            )
         raise LedgerLinkageError(
             f"{v['claim_id']}: claim of tier {v['tier']!r} cites ledger node "
             f"{v['node_id']} whose run status is {v['ledger_status']!r}{detail}"

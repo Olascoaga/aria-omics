@@ -115,6 +115,20 @@ def _block(claim: str, value: int) -> NarrativeBlock:
     )
 
 
+def _custom_ledger() -> dict:
+    return {"entries": [{
+        "node_id": "ledger://bulk/custom_result",
+        "node_type": "analysis_run",
+        "provenance": {
+            "kind": "structured_agent_result",
+            "finding_keys": ["custom_result"],
+        },
+        "modality": "bulk",
+        "analysis": "custom_result",
+        "status": "ran",
+    }]}
+
+
 def test_public_claim_compiler_withholds_unsupported_blocks():
     compilation = compile_public_claims(
         [
@@ -134,6 +148,7 @@ def test_public_claim_compiler_withholds_unsupported_blocks():
             ),
         ],
         exp_ctx={},
+        run_ledger=_custom_ledger(),
     )
 
     assert [block.id for block in compilation.blocks] == ["bulk.custom"]
@@ -164,6 +179,7 @@ def test_raw_bus_and_legacy_sections_cannot_reach_public_findings_html(tmp_path)
     compilation = compile_public_claims(
         [_block("The analysis identified 3 significant features.", 3)],
         exp_ctx={},
+        run_ledger=_custom_ledger(),
     )
     table = harness._build_public_claims_table(compilation.claims)
     assert "bulk.custom" in table

@@ -398,22 +398,26 @@ class ReportBuilderMixin:
         try:
             from aria.agents.narrative.run_ledger import build_run_ledger
             run_ledger = build_run_ledger(exp_ctx, agent_results)
-            self._ensure_executive_summary_ledger_node(
-                run_ledger, executive_summary_block
+            from aria.agents.narrative.run_ledger import (
+                ensure_report_ledger_nodes,
             )
+            ensure_report_ledger_nodes(run_ledger, narrative_blocks)
         except Exception as exc:
             log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
             run_ledger = {"entries": [], "divergences": [], "n_divergences": 0}
-            self._ensure_executive_summary_ledger_node(
-                run_ledger, executive_summary_block
+            from aria.agents.narrative.run_ledger import (
+                ensure_report_ledger_nodes,
             )
+            ensure_report_ledger_nodes(run_ledger, narrative_blocks)
 
         # C1: the single claim-compilation boundary for every public surface.
         # Raw MessageBus findings and legacy prose are not inputs: only typed,
         # evidence-bearing NarrativeBlocks can enter. Unsupported blocks are
         # withheld without exposing their text.
         from aria.agents.narrative.claim_compiler import compile_public_claims
-        public_compilation = compile_public_claims(narrative_blocks, exp_ctx)
+        public_compilation = compile_public_claims(
+            narrative_blocks, exp_ctx, run_ledger=run_ledger
+        )
         narrative_blocks = public_compilation.blocks
         public_claims = public_compilation.claims
         executive_summary_block = next(
@@ -440,30 +444,16 @@ class ReportBuilderMixin:
         except Exception as exc:
             log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
 
-        # W-LEDGER: verify that no associative-or-stronger claim cites a ledger
-        # node the run marked not-run/skipped/error. This cross-references TWO
-        # structures whose "ran" semantics can legitimately differ (the ledger's
-        # finding-based detection vs a narrator's block-creation condition), so it
-        # is RECORD-ONLY (fail-safe): a mismatch is recorded in methodology.json
-        # and surfaced as a loud caveat in the report, but it never aborts a real
-        # report. (Contrast W-CLAIM, which checks a block against its OWN evidence
-        # card and is safe to hard-fail in render_blocks.)
-        try:
-            from aria.agents.narrative.run_ledger import verify_blocks_against_ledger
-            ledger_verification = verify_blocks_against_ledger(
-                narrative_blocks, run_ledger, strict=False
-            )
-            if isinstance(run_ledger, dict):
-                run_ledger["claim_ledger_verification"] = ledger_verification
-            if ledger_verification.get("n_violations"):
-                log.warning(
-                    "W-LEDGER: %d claim(s) cite a ledger node the run did not "
-                    "execute: %s",
-                    ledger_verification["n_violations"],
-                    [v.get("claim_id") for v in ledger_verification["violations"]],
-                )
-        except Exception as exc:
-            log.warning(f"Ledger claim verification failed: {exc}", exc_info=True)
+        # C3: the compiler already withheld any result claim without typed
+        # evidence/ledger nodes. Re-verify the accepted set as a hard invariant;
+        # an unexpected mismatch must stop publication, never degrade to a loud
+        # but still-public caveat.
+        from aria.agents.narrative.run_ledger import verify_blocks_against_ledger
+        ledger_verification = verify_blocks_against_ledger(
+            narrative_blocks, run_ledger, strict=True
+        )
+        if isinstance(run_ledger, dict):
+            run_ledger["claim_ledger_verification"] = ledger_verification
 
         public_claim_rows = self._build_public_claims_table(public_claims)
 
@@ -1006,37 +996,6 @@ class ReportBuilderMixin:
             metadata={"render_surface": "executive_summary"},
         )
 
-    @staticmethod
-    def _ensure_executive_summary_ledger_node(run_ledger: dict,
-                                              block: NarrativeBlock | None
-                                              ) -> None:
-        if not isinstance(run_ledger, dict) or block is None:
-            return
-        entries = run_ledger.setdefault("entries", [])
-        node_id = "ledger://report/executive_summary"
-        if not any(
-            isinstance(e, dict) and e.get("node_id") == node_id
-            for e in entries
-        ):
-            entries.append({
-                "modality": "report",
-                "analysis": "executive_summary",
-                "label": "Executive summary",
-                "node_id": node_id,
-                "planned": True,
-                "status": "ran",
-                "reason": "rendered",
-                "divergence": False,
-            })
-        modalities = run_ledger.setdefault("modalities", [])
-        if "report" not in modalities:
-            modalities.append("report")
-        run_ledger["divergences"] = [
-            e for e in entries
-            if isinstance(e, dict) and e.get("divergence")
-        ]
-        run_ledger["n_divergences"] = len(run_ledger["divergences"])
-
     def _write_memory_snapshot(self, report_dir: Path,
                                experiment_id: str | None = None) -> None:
         """Write a MINIMIZED, experiment-scoped memory snapshot next to the report.
@@ -1100,6 +1059,18 @@ class ReportBuilderMixin:
         )
         if narrative_blocks is None:
             narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
+        # C3: public compilation depends on an existing typed run ledger, so the
+        # standalone methodology path must build it before compiling claims.
+        if run_ledger is None:
+            try:
+                from aria.agents.narrative.run_ledger import build_run_ledger
+                run_ledger = build_run_ledger(exp_ctx, agent_results)
+            except Exception as exc:
+                log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
+                run_ledger = {"entries": [], "divergences": [],
+                              "n_divergences": 0}
+        from aria.agents.narrative.run_ledger import ensure_report_ledger_nodes
+        ensure_report_ledger_nodes(run_ledger, list(narrative_blocks or []))
         # C1: the HTML and methodology consume the SAME pre-render compilation.
         # Standalone callers still use the public compiler, never the older
         # manifest-only path.
@@ -1109,7 +1080,8 @@ class ReportBuilderMixin:
                     compile_public_claims,
                 )
                 compilation = compile_public_claims(
-                    list(narrative_blocks or []), exp_ctx
+                    list(narrative_blocks or []), exp_ctx,
+                    run_ledger=run_ledger,
                 )
                 claims = compilation.claims
                 claim_compilation = compilation.summary()
@@ -1146,23 +1118,6 @@ class ReportBuilderMixin:
             except Exception as exc:
                 log.warning(f"Devil's-advocate pass failed: {exc}", exc_info=True)
                 devils_advocate = []
-        # P-LEDGER: deterministic planned-vs-run manifest.
-        if run_ledger is None:
-            try:
-                from aria.agents.narrative.run_ledger import build_run_ledger
-                run_ledger = build_run_ledger(exp_ctx, agent_results)
-            except Exception as exc:
-                log.warning(f"Run-ledger build failed: {exc}", exc_info=True)
-                run_ledger = {"entries": [], "divergences": [],
-                              "n_divergences": 0}
-        exec_block = next(
-            (
-                block for block in (narrative_blocks or [])
-                if getattr(block, "analysis", None) == "executive_summary"
-            ),
-            None,
-        )
-        self._ensure_executive_summary_ledger_node(run_ledger, exec_block)
         # W-LEDGER: link every compiled claim to its ledger node so each claim is
         # traceable to both an evidence card (W-CLAIM) and a run-ledger node. The
         # per-claim ledger_node_id/ledger_status are written in place; the summary

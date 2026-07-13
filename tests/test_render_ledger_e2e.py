@@ -1,11 +1,11 @@
 """End-to-end coverage for the W-LEDGER claim/ledger check on the REAL render
 path (`NarrativeAgent._render_html_report`).
 
-Two things were never exercised before: (1) the bulk GSEA-only case that used to
-make the ledger read pathway_enrichment as not-run while the narrator still built
-an associative GSEA block, and (2) the gate's fail-safe behavior — a claim/ledger
-mismatch must be RECORDED, never abort a real report. Both are checked here by
-driving the actual narrators through `_render_html_report` (not synthetic blocks).
+Two things are exercised: (1) the bulk GSEA-only case that used to make the
+ledger read pathway_enrichment as not-run while the narrator still built an
+associative GSEA block, and (2) C3 fail-closed publication — an unexpected
+post-compilation linkage mismatch aborts before report publication. Both drive
+the actual narrators through `_render_html_report` (not synthetic blocks).
 """
 
 import json
@@ -76,23 +76,14 @@ def test_bulk_gsea_only_report_renders_and_pathway_node_is_ran(tmp_path):
     assert verification.get("n_violations", 0) == 0
 
 
-def test_render_is_failsafe_when_ledger_check_finds_a_violation(tmp_path, monkeypatch):
-    # Even if the claim/ledger check reports a violation, the render must NOT
-    # abort — it records the violation in methodology.json instead. (Forced via
-    # monkeypatch because, after the detection fix, the real narrators no longer
-    # produce a violation on the happy paths.)
+def test_render_fails_closed_when_ledger_check_finds_a_violation(tmp_path, monkeypatch):
+    # Force a post-compilation invariant failure: C3 must abort before writing a
+    # public report, rather than publishing the invalid claim with a caveat.
     import aria.agents.narrative.run_ledger as rl
 
     def _fake_verify(blocks, run_ledger, strict=False):
-        return {
-            "status": "violated",
-            "n_violations": 1,
-            "violations": [{
-                "claim_id": "bulk.gsea.treat_vs_ctrl",
-                "node_id": "ledger://bulk/pathway_enrichment",
-                "ledger_status": "skipped", "tier": "associative",
-            }],
-        }
+        assert strict is True
+        raise rl.LedgerLinkageError("forced C3 mismatch")
 
     monkeypatch.setattr(rl, "verify_blocks_against_ledger", _fake_verify)
 
@@ -104,12 +95,6 @@ def test_render_is_failsafe_when_ledger_check_finds_a_violation(tmp_path, monkey
             "plots": {"gsea_running_sums": _gsea_plots(tmp_path, 1)},
         }],
     }}}
-    report = _render(_agent(tmp_path), tmp_path, agent_results, name="r2")
-    assert report.exists()                      # fail-safe: rendered despite violation
-
-    methodology = json.loads((report.parent / "methodology.json").read_text())
-    verification = methodology["run_ledger"].get("claim_ledger_verification", {})
-    assert verification.get("n_violations") == 1
-    # The violation is surfaced as a loud caveat in the HTML, not hidden.
-    html = report.read_text()
-    assert "Claim/ledger integrity" in html
+    with pytest.raises(rl.LedgerLinkageError, match="forced C3 mismatch"):
+        _render(_agent(tmp_path), tmp_path, agent_results, name="r2")
+    assert not (tmp_path / "r2" / "report.html").exists()

@@ -66,6 +66,7 @@ _ANALYSIS_EVIDENCE = {
     "pathway_enrichment": "functional_annotation",
     "pseudobulk_pathways": "functional_annotation",
     "gsea_preranked": "functional_annotation",
+    "peak_ora": "functional_annotation",
     "cell_communication": "communication",
     "trajectory": "trajectory",
     # forward-looking (chromatin / multiome, v4.6+):
@@ -402,14 +403,19 @@ class PublicClaimCompilation:
 def compile_public_claims(
     blocks: list[NarrativeBlock],
     exp_ctx: dict | None = None,
+    *,
+    run_ledger: dict | None = None,
 ) -> PublicClaimCompilation:
     """Compile the exclusive public claim set, withholding unsupported blocks.
 
     MessageBus payloads and legacy prose are deliberately not accepted by this
     API: callers must provide typed ``NarrativeBlock`` instances with structured
     evidence. Each block is validated, tiered and checked against the exact prose
-    the renderer will show. A failed block contributes only an opaque withheld
-    record; its unverified text never reaches HTML or the claim manifest.
+    the renderer will show. Every non-empty result claim must also resolve to a
+    typed, provenance-bearing run-ledger node and evidence card. A failed block
+    contributes only an opaque withheld record; its unverified text never reaches
+    HTML or the claim manifest. Diagnostic/limitation blocks with no claim remain
+    renderable but do not create blank public-claim rows.
     """
     from aria.agents.narrative.compose_prose import compose_block_prose
     from aria.agents.narrative.validators import validate_block
@@ -428,6 +434,16 @@ def compile_public_claims(
             manifest = compile_claim_manifest(block)
             if manifest.get("verification", {}).get("status") != "supported":
                 raise ValueError("claim verification did not return supported")
+            if not str(manifest.get("text") or "").strip():
+                compiled.blocks.append(block)
+                continue
+            from aria.agents.narrative.run_ledger import link_claims_to_ledger
+            linkage = link_claims_to_ledger([manifest], run_ledger)
+            if linkage.get("n_violations"):
+                raise ValueError("claim did not resolve to governed evidence nodes")
+            card = (manifest.get("verification") or {}).get("evidence_card") or {}
+            if not card.get("node_type") or not card.get("provenance"):
+                raise ValueError("evidence node is untyped or lacks provenance")
             compiled.blocks.append(block)
             compiled.claims.append(manifest)
         except Exception:

@@ -713,6 +713,8 @@ class ChromatinNarrator:
                 f"{ann.get('promoter_upstream')}/{ann.get('promoter_downstream')}",
                 "chromatin_peak_annotation"),
             _ev("Peaks annotated", total, "chromatin_peak_annotation"),
+            _ev("Promoter peaks (percent)", f"{promoter_pct:.0f}%",
+                "chromatin_peak_annotation"),
         ]
         for feat in ("Promoter", "Exonic", "Intronic", "Distal Intergenic"):
             if feat in dist:
@@ -765,6 +767,7 @@ class ChromatinNarrator:
             _ev("Gene annotation (GTF)", ora.get("gtf"), "chromatin_peak_ora"),
             _ev("ORA engine", method, "chromatin_peak_ora"),
             _ev("Enriched terms (total)", n_terms, "chromatin_peak_ora"),
+            _ev("Databases tested", len(per_db), "chromatin_peak_ora"),
         ]
         for db, n in per_db.items():
             evidence.append(_ev(f"{db} enriched terms", n, "chromatin_peak_ora"))

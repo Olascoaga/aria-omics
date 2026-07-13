@@ -45,6 +45,7 @@ _ANALYSIS_FAMILY = {
     "pathway_enrichment": "pathway",
     "pseudobulk_pathways": "pathway",
     "gsea_preranked": "pathway",
+    "peak_ora": "pathway",
     "differential_abundance": "abundance",
     "cell_communication": "communication",
     "trajectory": "trajectory",
@@ -113,6 +114,8 @@ class VerificationIssue:
 @dataclass
 class EvidenceCard:
     evidence_card_id: str
+    node_type: str = "evidence_card"
+    provenance: dict[str, Any] = field(default_factory=dict)
     refs: list[dict[str, Any]] = field(default_factory=list)
     support_text: str = ""
     numbers: set[str] = field(default_factory=set)
@@ -121,6 +124,8 @@ class EvidenceCard:
     def as_dict(self) -> dict[str, Any]:
         return {
             "evidence_card_id": self.evidence_card_id,
+            "node_type": self.node_type,
+            "provenance": self.provenance,
             "refs": self.refs,
             "n_refs": len(self.refs),
             "semantic_facts": [fact.to_dict() for fact in self.semantic_facts],
@@ -270,6 +275,16 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
 
     return EvidenceCard(
         evidence_card_id=f"{block.id}#evidence",
+        provenance={
+            "block_id": str(block.id),
+            "modality": str(block.modality),
+            "analysis": str(block.analysis),
+            "sources": sorted({
+                str(ref.get("source"))
+                for ref in refs
+                if ref.get("source")
+            }),
+        },
         refs=refs,
         support_text=" ".join(support_parts).lower(),
         numbers=numbers,
