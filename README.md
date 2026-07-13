@@ -30,8 +30,8 @@ decisions, and writes a report grounded in real output files.
   before publication.
 - **Validated / beta:** bulk RNA-seq FASTQ preprocessing, trajectory
   summaries (PAGA plus DPT only when a defensible root is available), LIANA
-  cell-cell communication, processed `.h5ad` recovery, and GEO/SRA connector
-  paths.
+  cell-cell communication, processed `.h5ad` recovery, and atomic,
+  manifest-verified GEO/SRA connector paths.
 - **Beta (requires acknowledgement):** scATAC-seq is now a complete beta workflow.
   QC/clustering, motif enrichment, and the replicate-gated pseudobulk condition-DA
   lane are beta-grade (de-alpha in v4.7.0 / ADR-048, externally concordant with
@@ -155,7 +155,7 @@ NarrativeAgent (HTML report)       done  ✓ paper theme
   Devil's advocate (deterministic)  done — confounder check per claim
 IntegrationAgent (WNN + MOFA+)     scaffolded — dispatch-gated, emits no
                                    fabricated output (explicit NotImplemented)
-GEO/SRA connectors                 done   ✓ GSE183948 validated
+GEO/SRA connectors                 done   ✓ atomic archive/SRA retrieval
 ```
 
 The current release baseline is `v4.7.0` (post-`v4.7.0` development on `main`).

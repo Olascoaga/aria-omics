@@ -104,7 +104,9 @@ def test_bam_bucket():
 
 
 def test_rna_buckets_unchanged():
+    assert _classify_suppl_file("SRR000001_1.fastq.gz") == "fastq"
     assert _classify_suppl_file("counts.h5ad") == "h5ad"
+    assert _classify_suppl_file("counts.h5ad.gz") == "h5ad"
     assert _classify_suppl_file("filtered_feature_bc_matrix.h5") == "h5"
     assert _classify_suppl_file("matrix.mtx.gz") == "mtx"
     assert _classify_suppl_file("GSE_counts.tsv.gz") == "counts"

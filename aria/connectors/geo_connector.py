@@ -1,18 +1,20 @@
 """
-ARIA GEO/SRA Connector (v4.3)
-------------------------------
-Downloads and preprocesses public omics datasets from NCBI GEO and SRA.
+ARIA GEO/SRA Connector
+----------------------
+Atomically retrieves and validates public omics datasets from NCBI GEO/SRA.
 
 Supported accession formats:
   GSExxxxxx  — GEO Series (most common: processed count matrices)
-  SRPxxxxxx  — SRA Study (raw FASTQs via pysradb)
+  SRP/ERP/DRPxxxxxx — SRA/ENA/DRA Study (raw FASTQs via SRA Toolkit)
   PRJNAxxxxxx — BioProject (mapped to SRA)
 
 Strategy:
   1. Fetch SOFT file for sample metadata (organism, groups, characteristics)
   2. Download supplementary processed files if available (count matrices, h5ad, etc.)
-  3. Fall back to SRA raw FASTQs if no processed data found (requires pysradb)
-  4. Infer experimental design from sample characteristics
+  3. Safely extract tar/tgz/zip payloads and validate their content
+  4. Fall back to official SRA RunInfo + prefetch/vdb-validate/fasterq-dump
+  5. Publish only a complete, hash-manifested accession generation
+  6. Infer experimental design from sample characteristics
 
 Usage:
     from aria.connectors.geo_connector import GEOConnector
@@ -24,19 +26,41 @@ Usage:
 
 from __future__ import annotations
 
+import csv
 import gzip
 import io
+import json
 import logging
+import os
 import re
+import signal
 import shutil
+import subprocess
+import tempfile
 import urllib.request
 from pathlib import Path
 from typing import Callable, Optional
+from urllib.parse import quote, unquote, urlencode
+
+from aria.utils.atomic_retrieval import (
+    MANIFEST_NAME,
+    RetrievalError,
+    decompress_gzip_atomic,
+    download_atomic,
+    open_url_with_retry,
+    publish_directory_atomic,
+    safe_extract_archive,
+    validate_payload,
+    validate_retrieval_manifest,
+    write_retrieval_manifest,
+)
 
 log = logging.getLogger("aria.geo")
 
 # GEO FTP base URL
 _GEO_FTP = "https://ftp.ncbi.nlm.nih.gov/geo/series"
+_NCBI_EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+_RESULT_NAME = "retrieval_result.json"
 
 # Organism → (canonical name, genome assembly)
 _GENOME_MAP: dict[str, tuple[str, str]] = {
@@ -100,73 +124,129 @@ class GEOConnector:
               "geo_metadata":    dict,
             }
         """
-        # W-PRIV (P1-7/P1-8): fetching a public accession is network egress to
-        # NCBI; refuse it under air-gapped mode instead of leaking the request.
+        acc = accession.strip().upper()
+        if not re.fullmatch(
+            r"(?:GSE|SRP|ERP|DRP|PRJNA|PRJEB|PRJDB)\d+", acc
+        ):
+            raise ValueError(
+                f"Unrecognised accession '{accession}'. "
+                "Expected GSExxxxxx, SRP/ERP/DRPxxxxxx, or PRJN/EB/DBxxxxxx."
+            )
+
+        # A fully hash-validated local generation performs no egress and is safe
+        # to reuse even after the experiment switches to air-gapped mode.
+        cached = self._load_cached_result(acc)
+        if cached is not None:
+            _cb(status_callback, f"[GEO/SRA] Reusing validated cache for {acc}.")
+            return cached
+
+        # W-PRIV (P1-7/P1-8): an uncached accession requires network egress.
         from aria.utils.privacy import assert_egress_allowed
         assert_egress_allowed("GEO/SRA")
 
-        acc = accession.strip().upper()
         if acc.startswith("GSE"):
             return self._fetch_gse(acc, status_callback)
-        elif acc.startswith(("SRP", "PRJNA", "ERP", "DRP")):
+        if acc.startswith(("SRP", "PRJ", "ERP", "DRP")):
             return self._fetch_sra(acc, status_callback)
-        else:
-            raise ValueError(
-                f"Unrecognised accession '{accession}'. "
-                "Expected GSExxxxxx, SRPxxxxxx, or PRJNAxxxxxx."
-            )
+        raise AssertionError(f"validated accession was not routed: {acc}")
 
     # ── GEO path ──────────────────────────────────────────────────────────
 
     def _fetch_gse(self, gse_id: str,
                    status_cb: Optional[Callable]) -> dict:
-        local_dir = self.cache_dir / gse_id
-        local_dir.mkdir(parents=True, exist_ok=True)
+        target = self.cache_dir / gse_id
+        staging = self._new_staging_dir(gse_id)
+        try:
+            _cb(status_cb, f"[GEO] Fetching metadata for {gse_id}...")
+            metadata = self._parse_soft(gse_id, staging, status_cb)
 
-        _cb(status_cb, f"[GEO] Fetching metadata for {gse_id}...")
-        metadata = self._parse_soft(gse_id, local_dir, status_cb)
+            _cb(status_cb, "[GEO] Downloading supplementary files...")
+            files = self._download_supplementary(gse_id, staging, status_cb)
+            file_modalities: dict[str, str] = {}
+            source_accessions = [gse_id]
+            fallback_bundle = None
+            if not _has_payload(files):
+                related = _preferred_sra_accessions(
+                    metadata.get("sra_accessions") or []
+                )
+                if not related:
+                    raise RetrievalError(
+                        f"{gse_id} has no validated analyzable supplementary "
+                        "payload and no related SRA/BioProject accession"
+                    )
+                _cb(
+                    status_cb,
+                    "[GEO] Falling back to SRA accession(s) "
+                    + ", ".join(related)
+                    + "...",
+                )
+                fallback_bundle = self._retrieve_sra_bundle(
+                    related, staging, status_cb
+                )
+                files = fallback_bundle["files"]
+                file_modalities = fallback_bundle["file_modalities"]
+                source_accessions.extend(fallback_bundle["source_accessions"])
 
-        _cb(status_cb, f"[GEO] Downloading supplementary files...")
-        files = self._download_supplementary(gse_id, local_dir, status_cb)
+            organism, genome = _resolve_organism(metadata.get("organism", ""))
+            sample_organisms = {
+                s.get("organism", "").lower()
+                for s in metadata.get("samples", []) if s.get("organism")
+            }
+            if len(sample_organisms) > 1:
+                count_files = files.get("counts", []) or files.get("h5ad", [])
+                if count_files:
+                    sym_org = _organism_from_gene_symbols(count_files[0])
+                    if sym_org:
+                        sym_resolved, sym_genome = _resolve_organism(sym_org)
+                        if sym_resolved.lower() != organism.lower():
+                            _cb(
+                                status_cb,
+                                f"[GEO] Multiple organisms in metadata "
+                                f"({', '.join(sample_organisms)}); gene symbols "
+                                f"suggest {sym_resolved} — using that.",
+                            )
+                            organism, genome = sym_resolved, sym_genome
 
-        organism, genome = _resolve_organism(metadata.get("organism", ""))
-
-        # When multiple organisms appear in the SOFT (e.g. spike-in experiments),
-        # use gene symbol style in the count matrix to identify the experimental organism.
-        sample_organisms = {
-            s.get("organism", "").lower()
-            for s in metadata.get("samples", [])
-            if s.get("organism")
-        }
-        if len(sample_organisms) > 1:
-            count_files = files.get("counts", []) or files.get("h5ad", [])
-            if count_files:
-                sym_org = _organism_from_gene_symbols(count_files[0])
-                if sym_org:
-                    sym_resolved, sym_genome = _resolve_organism(sym_org)
-                    if sym_resolved.lower() != organism.lower():
-                        _cb(status_cb,
-                            f"[GEO] Multiple organisms in metadata ({', '.join(sample_organisms)}); "
-                            f"gene symbols in matrix suggest {sym_resolved} — using that.")
-                        organism, genome = sym_resolved, sym_genome
-
-        design = _infer_design(metadata)
-        design["organism"] = organism
-        design["genome"]   = genome
-        data_type = _infer_data_type(metadata, files)
-
-        return {
-            "accession":       gse_id,
-            "title":           metadata.get("title", ""),
-            "organism":        organism,
-            "genome":          genome,
-            "data_type":       data_type,
-            "n_samples":       len(metadata.get("samples", [])),
-            "local_dir":       str(local_dir),
-            "files":           files,
-            "inferred_design": design,
-            "geo_metadata":    metadata,
-        }
+            if fallback_bundle and organism == "Unknown":
+                organism = fallback_bundle["organism"]
+                genome = fallback_bundle["genome"]
+            design = _infer_design(metadata)
+            if fallback_bundle and not design.get("sample_sheet"):
+                design = fallback_bundle["inferred_design"]
+            design.update({"organism": organism, "genome": genome})
+            data_type = (
+                fallback_bundle["data_type"] if fallback_bundle
+                else _infer_data_type(metadata, files)
+            )
+            result = {
+                "accession": gse_id,
+                "source_accessions": source_accessions,
+                "title": metadata.get("title", ""),
+                "organism": organism,
+                "genome": genome,
+                "data_type": data_type,
+                "data_types": (
+                    fallback_bundle.get("data_types", []) if fallback_bundle
+                    else [data_type]
+                ),
+                "n_samples": (
+                    len(metadata.get("samples", []))
+                    or (fallback_bundle.get("n_samples", 0) if fallback_bundle else 0)
+                ),
+                "local_dir": str(target),
+                "files": _relocate_paths(files, staging, target),
+                "file_modalities": _relocate_paths(file_modalities, staging, target),
+                "inferred_design": design,
+                "geo_metadata": metadata,
+                "retrieval_status": "complete",
+                "retrieval_manifest": str(target / MANIFEST_NAME),
+            }
+            return self._publish_result(
+                staging, target, result, source_accessions=source_accessions
+            )
+        except Exception:
+            shutil.rmtree(staging, ignore_errors=True)
+            raise
 
     def _parse_soft(self, gse_id: str, local_dir: Path,
                     status_cb: Optional[Callable]) -> dict:
@@ -195,11 +275,11 @@ class GEOConnector:
         if not soft_path.exists():
             _cb(status_cb, f"[GEO] Downloading SOFT file...")
             try:
-                urllib.request.urlretrieve(soft_url, str(soft_path))
+                download_atomic(soft_url, soft_path)
             except Exception as e:
                 log.warning(f"SOFT download failed: {e}")
                 return {"title": gse_id, "organism": "", "samples": [],
-                        "suppl_files": []}
+                        "suppl_files": [], "sra_accessions": []}
 
         try:
             with gzip.open(str(soft_path), "rt", encoding="utf-8",
@@ -208,7 +288,7 @@ class GEOConnector:
         except Exception as e:
             log.warning(f"SOFT read failed: {e}")
             return {"title": gse_id, "organism": "", "samples": [],
-                    "suppl_files": []}
+                    "suppl_files": [], "sra_accessions": []}
 
         return _parse_soft_text(text)
 
@@ -219,13 +299,12 @@ class GEOConnector:
         Classifies files into counts, h5ad, h5, mtx (RNA) and fragments, peaks,
         bam (ATAC) buckets.
         """
-        files: dict = {"counts": [], "h5ad": [], "h5": [], "mtx": [],
-                       "fragments": [], "peaks": [], "bam": []}
+        files = _empty_file_buckets()
         prefix  = _gse_prefix(gse_id)
         ftp_url = f"{_GEO_FTP}/{prefix}/{gse_id}/suppl/"
 
         try:
-            with urllib.request.urlopen(ftp_url, timeout=30) as r:
+            with open_url_with_retry(ftp_url, timeout=30) as r:
                 html = r.read().decode("utf-8", errors="replace")
         except Exception as e:
             log.warning(f"Could not list supplementary files: {e}")
@@ -237,29 +316,47 @@ class GEOConnector:
         # looks like a relative path, absolute URL, or navigation link.
         fnames = re.findall(r'href="([^"]+)"', html)
         fnames = [
-            f for f in fnames
+            unquote(f) for f in fnames
             if "." in f
             and "/" not in f
             and "://" not in f
             and not f.startswith(("?", ".."))
         ]
 
-        for fname in fnames:
+        download_records = []
+        for fname in sorted(set(fnames)):
             if _SKIP_PATTERNS.search(fname):
                 continue
-
-            fpath = local_dir / fname
-            if not fpath.exists():
-                _cb(status_cb, f"[GEO] Downloading {fname}...")
-                try:
-                    urllib.request.urlretrieve(ftp_url + fname, str(fpath))
-                except Exception as e:
-                    log.warning(f"Download failed for {fname}: {e}")
-                    continue
-
             bucket = _classify_suppl_file(fname)
-            if bucket is not None:
-                files[bucket].append(str(fpath))
+            archive = _is_archive_name(fname)
+            if bucket is None and not archive:
+                continue
+
+            fpath = local_dir / "downloads" / fname
+            _cb(status_cb, f"[GEO] Downloading {fname}...")
+            download_records.append(
+                download_atomic(ftp_url + quote(fname), fpath)
+            )
+            if archive:
+                extract_dir = local_dir / "extracted" / _archive_label(fname)
+                extracted = safe_extract_archive(fpath, extract_dir)
+                for extracted_path in extracted:
+                    extracted_bucket = _classify_suppl_file(extracted_path.name)
+                    if extracted_bucket is None:
+                        continue
+                    analyzable = _validated_analyzable_payload(
+                        extracted_path, extracted_bucket
+                    )
+                    files[extracted_bucket].append(str(analyzable))
+            elif bucket is not None:
+                analyzable = _validated_analyzable_payload(fpath, bucket)
+                files[bucket].append(str(analyzable))
+
+        if download_records:
+            (local_dir / "geo_downloads.json").write_text(
+                json.dumps(download_records, indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
 
         if not any(files.values()):
             log.warning(f"No processable supplementary files found for {gse_id}.")
@@ -270,85 +367,479 @@ class GEOConnector:
 
     def _fetch_sra(self, sra_id: str,
                    status_cb: Optional[Callable]) -> dict:
-        """
-        Fetch metadata and optionally download FASTQs via pysradb.
-        """
+        """Fetch RunInfo and materialize every run through the SRA Toolkit."""
+        target = self.cache_dir / sra_id
+        staging = self._new_staging_dir(sra_id)
         try:
-            from pysradb.sraweb import SRAweb
-        except ImportError:
-            raise ImportError(
-                "pysradb is required for SRA downloads. "
-                "Install with: pip install pysradb"
+            bundle = self._retrieve_sra_bundle(sra_id, staging, status_cb)
+            result = {
+                "accession": sra_id,
+                "source_accessions": [sra_id],
+                "title": bundle["title"],
+                "organism": bundle["organism"],
+                "genome": bundle["genome"],
+                "data_type": bundle["data_type"],
+                "data_types": bundle["data_types"],
+                "n_samples": bundle["n_samples"],
+                "local_dir": str(target),
+                "files": _relocate_paths(bundle["files"], staging, target),
+                "file_modalities": _relocate_paths(
+                    bundle["file_modalities"], staging, target
+                ),
+                "inferred_design": bundle["inferred_design"],
+                "geo_metadata": bundle["geo_metadata"],
+                "sra_metadata_csv": str(
+                    target / Path(bundle["sra_metadata_csv"]).relative_to(staging)
+                ),
+                "retrieval_status": "complete",
+                "retrieval_manifest": str(target / MANIFEST_NAME),
+            }
+            return self._publish_result(
+                staging, target, result, source_accessions=[sra_id]
             )
+        except Exception:
+            shutil.rmtree(staging, ignore_errors=True)
+            raise
 
-        _cb(status_cb, f"[SRA] Fetching metadata for {sra_id}...")
-        db = SRAweb()
-
+    def _fetch_sra_runinfo(self, accession: str) -> list[dict[str, str]]:
+        """Resolve an accession with ESearch history, then fetch official RunInfo."""
         try:
-            df = db.sra_metadata(sra_id, detailed=True)
-        except Exception as e:
-            raise RuntimeError(f"SRA metadata fetch failed: {e}") from e
-
-        if df is None or df.empty:
-            raise RuntimeError(f"No metadata found for {sra_id}")
-
-        local_dir = self.cache_dir / sra_id
-        local_dir.mkdir(parents=True, exist_ok=True)
-
-        organism = df["organism_name"].iloc[0] if "organism_name" in df.columns else ""
-        org_canonical, genome = _resolve_organism(organism)
-
-        # Build metadata dict compatible with the rest of the pipeline
-        samples = []
-        for _, row in df.iterrows():
-            samples.append({
-                "id":    str(row.get("run_accession", row.get("experiment_accession", ""))),
-                "title": str(row.get("sample_title", row.get("experiment_title", ""))),
-                "organism": organism,
-                "characteristics": {
-                    "source": str(row.get("source_name", "")),
-                    "treatment": str(row.get("treatment", row.get("condition", ""))),
-                },
-                "library_strategy": str(row.get("library_strategy", "")),
+            search_url = f"{_NCBI_EUTILS}/esearch.fcgi?" + urlencode({
+                "db": "sra",
+                "term": accession,
+                "retmax": "0",
+                "usehistory": "y",
+                "retmode": "json",
             })
+            with open_url_with_retry(search_url, timeout=120) as response:
+                search = json.loads(response.read().decode("utf-8"))["esearchresult"]
+            count = int(search.get("count") or 0)
+            if count <= 0:
+                raise RetrievalError(f"No public SRA records found for {accession}")
+            max_runs = int(os.environ.get("ARIA_SRA_MAX_RUNS", "10000"))
+            if count > max_runs:
+                raise RetrievalError(
+                    f"{accession} resolves to {count} SRA records; configured limit "
+                    f"ARIA_SRA_MAX_RUNS={max_runs}"
+                )
+            fetch_url = f"{_NCBI_EUTILS}/efetch.fcgi?" + urlencode({
+                "db": "sra",
+                "query_key": search["querykey"],
+                "WebEnv": search["webenv"],
+                "rettype": "runinfo",
+                "retmode": "text",
+                "retmax": str(count),
+            })
+            with open_url_with_retry(fetch_url, timeout=120) as response:
+                text = response.read().decode("utf-8-sig", errors="strict")
+        except RetrievalError:
+            raise
+        except Exception as exc:
+            raise RetrievalError(
+                f"SRA RunInfo fetch failed for {accession}: {exc}"
+            ) from exc
+        rows = [
+            {str(key): str(value or "") for key, value in row.items() if key}
+            for row in csv.DictReader(io.StringIO(text))
+        ]
+        rows = [row for row in rows if _sra_run_accession(row)]
+        if re.fullmatch(r"[SED]RR\d+", accession.upper()):
+            rows = [
+                row for row in rows
+                if _sra_run_accession(row) == accession.upper()
+            ]
+        if not rows:
+            raise RetrievalError(f"No public SRA runs found for {accession}")
+        return rows
 
+    def _retrieve_sra_bundle(
+        self,
+        accession: str | list[str],
+        staging: Path,
+        status_cb: Optional[Callable],
+    ) -> dict:
+        accessions = list(dict.fromkeys(
+            [accession] if isinstance(accession, str) else accession
+        ))
+        rows_by_run: dict[str, dict[str, str]] = {}
+        for source_accession in accessions:
+            _cb(status_cb, f"[SRA] Fetching RunInfo for {source_accession}...")
+            for row in self._fetch_sra_runinfo(source_accession):
+                run = _sra_run_accession(row)
+                if run:
+                    rows_by_run.setdefault(run, row)
+        rows = list(rows_by_run.values())
+        if not rows:
+            raise RetrievalError(
+                "No public SRA runs found for " + ", ".join(accessions)
+            )
+        files = _empty_file_buckets()
+        file_modalities: dict[str, str] = {}
+        samples = []
+        observed_types: list[str] = []
+
+        for row in rows:
+            run = _sra_run_accession(row)
+            _cb(status_cb, f"[SRA] Retrieving {run} ({len(samples) + 1}/{len(rows)})...")
+            outputs = self._retrieve_sra_run(
+                row, staging / "sra_runs" / run, status_cb
+            )
+            if not outputs:
+                raise RetrievalError(f"SRA Toolkit produced no FASTQ for {run}")
+            modality = _sra_row_modality(row)
+            observed_types.append(_sra_row_data_type(row))
+            for output in outputs:
+                validate_payload(output, "fastq")
+                files["fastq"].append(str(output))
+                file_modalities[str(output)] = modality
+            samples.append(_sra_sample_metadata(row))
+
+        organism_raw = _row_value(rows[0], "ScientificName", "organism_name")
+        organism, genome = _resolve_organism(organism_raw)
+        library_strategies = [
+            _row_value(row, "LibraryStrategy", "library_strategy") for row in rows
+        ]
         metadata = {
-            "title":    sra_id,
-            "organism": organism,
-            "samples":  samples,
+            "title": accessions[0],
+            "organism": organism_raw,
+            "samples": samples,
             "suppl_files": [],
-            "library_strategy": df["library_strategy"].iloc[0]
-                                 if "library_strategy" in df.columns else "",
+            "library_strategy": (
+                library_strategies[0]
+                if len(set(library_strategies)) == 1 else "mixed"
+            ),
+            "sra_accessions": accessions,
         }
+        design = _infer_design(metadata)
+        design.update({"organism": organism, "genome": genome})
+        data_types = sorted(set(observed_types))
+        data_type = data_types[0] if len(data_types) == 1 else "mixed"
 
-        design    = _infer_design(metadata)
-        design.update({"organism": org_canonical, "genome": genome})
-        data_type = _infer_data_type(metadata, {})
-
-        # Save metadata CSV
-        df.to_csv(str(local_dir / f"{sra_id}_metadata.csv"), index=False)
-
-        _cb(status_cb,
-            f"[SRA] Found {len(samples)} runs. "
-            f"To download FASTQs, run: pysradb download --srp {sra_id}")
-
+        metadata_path = staging / f"{accessions[0]}_runinfo.csv"
+        fieldnames = sorted({key for row in rows for key in row})
+        with open(metadata_path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
         return {
-            "accession":       sra_id,
-            "title":           metadata["title"],
-            "organism":        org_canonical,
-            "genome":          genome,
-            "data_type":       data_type,
-            "n_samples":       len(samples),
-            "local_dir":       str(local_dir),
-            "files":           {"counts": [], "h5ad": [], "h5": [], "mtx": [],
-                                "fastq_pending": True},
+            "title": accessions[0],
+            "source_accessions": accessions,
+            "organism": organism,
+            "genome": genome,
+            "data_type": data_type,
+            "data_types": data_types,
+            "n_samples": len(samples),
+            "files": files,
+            "file_modalities": file_modalities,
             "inferred_design": design,
-            "geo_metadata":    metadata,
-            "sra_metadata_csv": str(local_dir / f"{sra_id}_metadata.csv"),
+            "geo_metadata": metadata,
+            "sra_metadata_csv": str(metadata_path),
         }
+
+    def _retrieve_sra_run(
+        self,
+        row: dict,
+        destination: Path,
+        status_cb: Optional[Callable] = None,
+    ) -> list[Path]:
+        """Prefetch, validate, and convert one Run; any failure aborts the batch."""
+        run = _sra_run_accession(row)
+        tools = {
+            name: shutil.which(name)
+            for name in ("prefetch", "vdb-validate", "fasterq-dump")
+        }
+        missing = [name for name, path in tools.items() if not path]
+        if missing:
+            raise RetrievalError(
+                "SRA Toolkit is required for raw retrieval; missing: "
+                + ", ".join(missing)
+            )
+        destination.mkdir(parents=True, exist_ok=True)
+        sra_cache = destination / "sra"
+        fastq_dir = destination / "fastq"
+        sra_cache.mkdir()
+        fastq_dir.mkdir()
+        timeout = float(os.environ.get("ARIA_SRA_RUN_TIMEOUT", "86400"))
+        threads = max(1, int(os.environ.get("ARIA_SRA_THREADS", "8")))
+
+        commands = []
+        commands.append(self._run_sra_command(
+            [tools["prefetch"], "--output-directory", str(sra_cache), run],
+            timeout=timeout,
+        ))
+        candidates = sorted(sra_cache.rglob(f"{run}.sra"))
+        validation_target = candidates[0] if candidates else sra_cache / run
+        if not validation_target.exists():
+            raise RetrievalError(f"prefetch did not materialize {run}")
+        commands.append(self._run_sra_command(
+            [tools["vdb-validate"], str(validation_target)], timeout=timeout
+        ))
+        commands.append(self._run_sra_command(
+            [
+                tools["fasterq-dump"], "--split-files", "--threads", str(threads),
+                "--outdir", str(fastq_dir), str(validation_target),
+            ],
+            timeout=timeout,
+        ))
+        outputs = sorted(fastq_dir.glob(f"{run}*.fastq"))
+        layout = _row_value(row, "LibraryLayout", "library_layout").upper()
+        if layout == "PAIRED":
+            names = {path.name for path in outputs}
+            if f"{run}_1.fastq" not in names or f"{run}_2.fastq" not in names:
+                raise RetrievalError(
+                    f"paired SRA run {run} did not produce both mate FASTQs"
+                )
+        provenance = {
+            "run_accession": run,
+            "library_layout": layout or "unknown",
+            "tools": {
+                name: {"path": path, "version": _tool_version(path)}
+                for name, path in tools.items()
+            },
+            "commands": commands,
+        }
+        (destination / "sra_retrieval.json").write_text(
+            json.dumps(provenance, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        return outputs
+
+    @staticmethod
+    def _run_sra_command(command: list[str], *, timeout: float) -> dict:
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            start_new_session=True,
+        )
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired as exc:
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+                process.communicate(timeout=5)
+            except (ProcessLookupError, subprocess.TimeoutExpired):
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.communicate()
+            raise RetrievalError(
+                f"SRA command timed out: {Path(command[0]).name}"
+            ) from exc
+        if process.returncode != 0:
+            detail = (stderr or stdout or "unknown failure").strip()[-1000:]
+            raise RetrievalError(
+                f"SRA command failed ({Path(command[0]).name}): {detail}"
+            )
+        return {
+            "argv": command,
+            "returncode": process.returncode,
+            "stdout_tail": (stdout or "")[-1000:],
+            "stderr_tail": (stderr or "")[-1000:],
+        }
+
+    def _new_staging_dir(self, accession: str) -> Path:
+        return Path(tempfile.mkdtemp(
+            prefix=f".{accession}.", suffix=".staging", dir=str(self.cache_dir)
+        ))
+
+    def _publish_result(
+        self,
+        staging: Path,
+        target: Path,
+        result: dict,
+        *,
+        source_accessions: list[str],
+    ) -> dict:
+        result_path = staging / _RESULT_NAME
+        result_path.write_text(
+            json.dumps(result, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        payloads = [
+            path for path in staging.rglob("*")
+            if path.is_file() and path.name != MANIFEST_NAME
+        ]
+        write_retrieval_manifest(
+            staging,
+            accession=result["accession"],
+            source_accessions=source_accessions,
+            payloads=payloads,
+        )
+        staged_validation = validate_retrieval_manifest(staging)
+        if staged_validation.get("status") != "valid":
+            raise RetrievalError(
+                "staged retrieval failed manifest validation: "
+                + "; ".join(staged_validation.get("errors") or [])
+            )
+        publish_directory_atomic(staging, target)
+        published = self._load_cached_result(result["accession"])
+        if published is None:
+            raise RetrievalError(
+                f"published retrieval cannot be revalidated: {result['accession']}"
+            )
+        return published
+
+    def _load_cached_result(self, accession: str) -> dict | None:
+        target = self.cache_dir / accession
+        if not target.is_dir():
+            return None
+        validation = validate_retrieval_manifest(
+            target, expected_accession=accession
+        )
+        if validation.get("status") != "valid":
+            return None
+        result_path = target / _RESULT_NAME
+        try:
+            result = json.loads(result_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        if result.get("retrieval_status") != "complete":
+            return None
+        if str(result.get("accession") or "").upper() != accession.upper():
+            return None
+        return result
 
 
 # ── Module-level helpers ──────────────────────────────────────────────────────
+
+def _empty_file_buckets() -> dict[str, list[str]]:
+    return {
+        "counts": [], "h5ad": [], "h5": [], "mtx": [], "fragments": [],
+        "peaks": [], "bam": [], "fastq": [],
+    }
+
+
+def _has_payload(files: dict) -> bool:
+    return any(bool(value) for value in (files or {}).values() if isinstance(value, list))
+
+
+def _relocate_paths(value, old_root: Path, new_root: Path):
+    """Replace staging-root paths recursively, including mapping keys."""
+    old_prefix = str(old_root) + os.sep
+
+    def relocate(item):
+        if isinstance(item, str) and item.startswith(old_prefix):
+            return str(new_root / Path(item).relative_to(old_root))
+        return item
+
+    if isinstance(value, dict):
+        return {
+            relocate(key): _relocate_paths(item, old_root, new_root)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        return [_relocate_paths(item, old_root, new_root) for item in value]
+    return relocate(value)
+
+
+def _is_archive_name(name: str) -> bool:
+    lower = name.lower()
+    return lower.endswith((".tar", ".tar.gz", ".tgz", ".zip"))
+
+
+def _archive_label(name: str) -> str:
+    label = re.sub(r"(?i)(\.tar\.gz|\.tgz|\.tar|\.zip)$", "", Path(name).name)
+    return re.sub(r"[^A-Za-z0-9_.-]", "_", label) or "archive"
+
+
+def _validated_analyzable_payload(path: Path, bucket: str) -> Path:
+    """Validate a supplement and materialize containers downstream cannot read."""
+    validate_payload(path, bucket)
+    if bucket in {"h5", "h5ad"} and path.name.lower().endswith(".gz"):
+        destination = path.with_suffix("")
+        decompress_gzip_atomic(path, destination)
+        validate_payload(destination, bucket)
+        return destination
+    return path
+
+
+def _row_value(row: dict, *keys: str) -> str:
+    lowered = {str(key).lower(): value for key, value in row.items()}
+    for key in keys:
+        value = row.get(key)
+        if value in (None, ""):
+            value = lowered.get(key.lower())
+        if value not in (None, "", "nan"):
+            return str(value).strip()
+    return ""
+
+
+def _sra_run_accession(row: dict) -> str:
+    run = _row_value(row, "Run", "run_accession")
+    return run if re.fullmatch(r"[SED]RR\d+", run) else ""
+
+
+def _sra_row_modality(row: dict) -> str:
+    inferred = _sra_row_data_type(row)
+    if inferred == "bulk_RNA":
+        return "bulk_RNA_raw"
+    return inferred
+
+
+def _sra_row_data_type(row: dict) -> str:
+    strategy = _row_value(row, "LibraryStrategy", "library_strategy")
+    title = _row_value(
+        row, "SampleName", "sample_title", "LibraryName", "experiment_title"
+    )
+    metadata = {
+        "title": title,
+        "samples": [{"title": title}],
+        "library_strategy": strategy,
+    }
+    return _infer_data_type(metadata, {})
+
+
+def _tool_version(path: str) -> str:
+    try:
+        result = subprocess.run(
+            [path, "--version"], capture_output=True, text=True, timeout=10
+        )
+        text = (result.stdout or result.stderr or "").strip()
+        return text.splitlines()[0][:300] if text else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _sra_sample_metadata(row: dict) -> dict:
+    run = _sra_run_accession(row)
+    title = _row_value(
+        row, "SampleName", "sample_title", "LibraryName", "experiment_title"
+    ) or run
+    characteristics = {
+        "source": _row_value(row, "source", "source_name"),
+        "treatment": _row_value(row, "treatment", "condition"),
+        "biosample": _row_value(row, "BioSample", "biosample"),
+    }
+    return {
+        "id": run,
+        "title": title,
+        "organism": _row_value(row, "ScientificName", "organism_name"),
+        "characteristics": {
+            key: value for key, value in characteristics.items() if value
+        },
+        "library_strategy": _row_value(
+            row, "LibraryStrategy", "library_strategy"
+        ),
+    }
+
+
+def _extract_public_sequence_accessions(text: str) -> list[str]:
+    return re.findall(
+        r"\b(?:SRP|ERP|DRP|PRJNA|PRJEB|PRJDB|SRX|ERX|DRX|SRR|ERR|DRR)\d+\b",
+        str(text or "").upper(),
+    )
+
+
+def _preferred_sra_accessions(accessions) -> list[str]:
+    """Prefer study/project relations; otherwise union sample/run relations."""
+    unique = list(dict.fromkeys(str(value).upper() for value in accessions if value))
+    broad = [
+        value for value in unique
+        if re.fullmatch(r"(?:SRP|ERP|DRP|PRJNA|PRJEB|PRJDB)\d+", value)
+    ]
+    return broad or unique
+
 
 def _cb(fn: Optional[Callable], msg: str):
     if fn:
@@ -374,7 +865,7 @@ def _parse_soft_text(text: str) -> dict:
     metadata: dict = {
         "title": "", "organism": "",
         "samples": [], "suppl_files": [],
-        "library_strategy": "",
+        "library_strategy": "", "sra_accessions": [],
     }
     current: Optional[dict] = None
 
@@ -392,6 +883,10 @@ def _parse_soft_text(text: str) -> dict:
             metadata["title"] = val
         elif line.startswith("!Series_supplementary_file") and val not in ("", "NONE"):
             metadata["suppl_files"].append(val)
+        elif line.startswith("!Series_relation"):
+            metadata["sra_accessions"].extend(
+                _extract_public_sequence_accessions(val)
+            )
 
         elif current is not None:
             if line.startswith("!Sample_title"):
@@ -407,10 +902,15 @@ def _parse_soft_text(text: str) -> dict:
                 current["library_strategy"] = val
                 if not metadata["library_strategy"]:
                     metadata["library_strategy"] = val
+            elif line.startswith("!Sample_relation"):
+                metadata["sra_accessions"].extend(
+                    _extract_public_sequence_accessions(val)
+                )
 
     if current:
         metadata["samples"].append(current)
 
+    metadata["sra_accessions"] = list(dict.fromkeys(metadata["sra_accessions"]))
     return metadata
 
 
@@ -423,6 +923,13 @@ def _soft_from_geoparse(gse) -> dict:
     suppl = (meta.get("supplementary_file", [])
              if isinstance(meta.get("supplementary_file"), list)
              else [])
+
+    sra_accessions = []
+    relations = meta.get("relation", [])
+    if not isinstance(relations, list):
+        relations = [relations]
+    for relation in relations:
+        sra_accessions.extend(_extract_public_sequence_accessions(relation))
 
     samples = []
     for gsm_id, gsm in gse.gsms.items():
@@ -441,6 +948,11 @@ def _soft_from_geoparse(gse) -> dict:
         title_s = (gm.get("title", [""])[0]
                    if isinstance(gm.get("title"), list)
                    else gm.get("title", gsm_id))
+        sample_relations = gm.get("relation", [])
+        if not isinstance(sample_relations, list):
+            sample_relations = [sample_relations]
+        for relation in sample_relations:
+            sra_accessions.extend(_extract_public_sequence_accessions(relation))
         samples.append({
             "id": gsm_id, "title": title_s,
             "organism": organism,
@@ -457,6 +969,7 @@ def _soft_from_geoparse(gse) -> dict:
         "library_strategy": lib_strat,
         "samples": samples,
         "suppl_files": suppl,
+        "sra_accessions": list(dict.fromkeys(sra_accessions)),
     }
 
 
@@ -682,9 +1195,11 @@ def _classify_suppl_file(fname: str) -> str | None:
     would otherwise be mis-bucketed as a count table.
     """
     fl = fname.lower()
-    if fl.endswith(".h5ad"):
+    if fl.endswith((".fastq", ".fq", ".fastq.gz", ".fq.gz")):
+        return "fastq"
+    if fl.endswith((".h5ad", ".h5ad.gz")):
         return "h5ad"
-    if fl.endswith(".h5"):
+    if fl.endswith((".h5", ".h5.gz")):
         return "h5"
     if "fragments" in fl and re.search(r"\.(tsv|bed)(\.gz)?$", fl):
         return "fragments"

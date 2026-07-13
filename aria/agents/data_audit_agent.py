@@ -270,11 +270,15 @@ def _geo_bucket_map(geo_data_type: str) -> dict[str, str]:
     """
     if geo_data_type == "scATAC":
         return {"fragments": "scATAC", "peaks": "scATAC", "bam": "scATAC",
-                "h5": "scATAC", "h5ad": "scATAC", "mtx": "scATAC"}
+                "h5": "scATAC", "h5ad": "scATAC", "mtx": "scATAC",
+                "fastq": "scATAC"}
     if geo_data_type == "bulk_ATAC":
-        return {"bam": "bulk_ATAC", "peaks": "bulk_ATAC"}
+        return {"bam": "bulk_ATAC", "peaks": "bulk_ATAC",
+                "fastq": "bulk_ATAC"}
     rna_mod = "scRNA" if geo_data_type == "scRNA" else "bulk_RNA"
-    return {"counts": rna_mod, "h5ad": "scRNA", "h5": "scRNA", "mtx": "scRNA"}
+    mapping = {"counts": rna_mod, "h5ad": "scRNA", "h5": "scRNA", "mtx": "scRNA"}
+    mapping["fastq"] = "scRNA" if geo_data_type == "scRNA" else "bulk_RNA_raw"
+    return mapping
 
 
 def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> dict:
@@ -453,6 +457,88 @@ class DataAuditAgent(BaseAgent):
         user_question = context.get("user_question", "")
         geo_metadata  = context.get("geo_metadata")
         reproducible_mode = bool(context.get("reproducible_mode"))
+        e6_analyzable_paths: set[str] | None = None
+
+        # E6 connector results explicitly declare whether the accession was
+        # fully validated and atomically published. Never audit a known partial
+        # generation. Legacy GEO metadata without this field remains readable.
+        retrieval_status = (
+            geo_metadata.get("retrieval_status") if geo_metadata else None
+        )
+        if retrieval_status and retrieval_status != "complete":
+            return {
+                "status": "failed",
+                "error": (
+                    "GEO/SRA retrieval is incomplete and cannot enter data audit "
+                    f"(status={retrieval_status!r})"
+                ),
+            }
+        if retrieval_status == "complete":
+            from aria.utils.atomic_retrieval import validate_retrieval_manifest
+
+            manifest_path = Path(geo_metadata.get("retrieval_manifest") or "")
+            manifest_root = manifest_path.parent.resolve()
+            validation = (
+                validate_retrieval_manifest(
+                    manifest_root,
+                    expected_accession=geo_metadata.get("accession"),
+                )
+                if manifest_path.name == "retrieval_manifest.json"
+                else {"status": "invalid", "errors": ["retrieval manifest missing"]}
+            )
+            if validation.get("status") != "valid":
+                return {
+                    "status": "failed",
+                    "error": (
+                        "GEO/SRA retrieval manifest is invalid and cannot enter "
+                        "data audit: "
+                        + "; ".join(validation.get("errors") or ["unknown error"])
+                    ),
+                }
+            if data_dir.resolve() != manifest_root:
+                return {
+                    "status": "failed",
+                    "error": (
+                        "GEO/SRA data directory is outside the validated retrieval "
+                        f"manifest root: {data_dir}"
+                    ),
+                }
+            manifested = {
+                str(row.get("path") or "")
+                for row in validation["manifest"].get("files", [])
+            }
+            declared_paths = [
+                path
+                for paths in (geo_metadata.get("files") or {}).values()
+                if isinstance(paths, list)
+                for path in paths
+            ]
+            declared_paths.extend(
+                (geo_metadata.get("file_modalities") or {}).keys()
+            )
+            e6_analyzable_paths = {
+                str(Path(raw_path).resolve()) for raw_path in declared_paths
+            }
+            for raw_path in declared_paths:
+                path = Path(raw_path).resolve()
+                try:
+                    relative = path.relative_to(manifest_root).as_posix()
+                except ValueError:
+                    return {
+                        "status": "failed",
+                        "error": (
+                            "GEO/SRA payload is outside the validated retrieval "
+                            f"manifest: {path}"
+                        ),
+                    }
+                if relative not in manifested:
+                    return {
+                        "status": "failed",
+                        "error": (
+                            "GEO/SRA payload is absent from the validated retrieval "
+                            f"manifest: {relative}"
+                        ),
+                    }
 
         # E5: an explicit 10x/scATAC manifest is the authoritative source for
         # library identity and R1/R2/R3 roles. It may be inline, referenced by
@@ -494,6 +580,11 @@ class DataAuditAgent(BaseAgent):
         modality_files = [
             path for path in all_files if str(path) not in assay_metadata_paths
         ]
+        if e6_analyzable_paths is not None:
+            modality_files = [
+                path for path in modality_files
+                if str(path.resolve()) in e6_analyzable_paths
+            ]
 
         # 2. Classify files by modality. E2: an explicit declared library type
         # (assay manifest / library_type) is authoritative; filenames are a hint.
@@ -540,10 +631,26 @@ class DataAuditAgent(BaseAgent):
             for ftype, bucket in bucket_map.items():
                 for fpath in geo_files.get(ftype, []):
                     if Path(fpath).exists():
-                        classified.setdefault(bucket, []).append(fpath)
+                        bucket_paths = classified.setdefault(bucket, [])
+                        if fpath not in bucket_paths:
+                            bucket_paths.append(fpath)
                         unknown = classified.get("unknown", [])
                         if fpath in unknown:
                             unknown.remove(fpath)
+
+            # Mixed SRA studies carry a per-FASTQ authoritative modality map.
+            # Remove each declared path from every filename-derived bucket before
+            # assigning it, otherwise generic R1/R2 hints collapse ATAC into RNA.
+            for fpath, bucket in (geo_metadata.get("file_modalities") or {}).items():
+                if not Path(fpath).exists():
+                    continue
+                for existing_bucket, paths in list(classified.items()):
+                    classified[existing_bucket] = [
+                        path for path in paths if str(path) != str(fpath)
+                    ]
+                    if not classified[existing_bucket]:
+                        classified.pop(existing_bucket, None)
+                classified.setdefault(bucket, []).append(str(fpath))
 
         classified, ignored_intermediates = self._filter_aria_intermediate_outputs(
             classified

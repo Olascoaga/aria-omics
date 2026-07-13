@@ -453,8 +453,6 @@ def _resolve_geo_accession(accession: str) -> dict | None:
     group_str = "  ".join(
         f"[{C['green']}]{g}[/] ({len(s)})" for g, s in list(groups.items())[:5]
     )
-    has_raw = files.get("fastq_pending")
-
     file_summary = []
     if files.get("counts"):
         file_summary.append(f"{len(files['counts'])} count matrix file(s)")
@@ -464,8 +462,8 @@ def _resolve_geo_accession(accession: str) -> dict | None:
         file_summary.append(f"{len(files['h5'])} 10x h5 file(s)")
     if files.get("mtx"):
         file_summary.append(f"{len(files['mtx'])} MEX matrix file(s)")
-    if has_raw:
-        file_summary.append("FASTQs available via SRA (not auto-downloaded)")
+    if files.get("fastq"):
+        file_summary.append(f"{len(files['fastq'])} validated FASTQ file(s)")
     if not file_summary:
         file_summary.append("no processed files found")
 
@@ -486,7 +484,7 @@ def _resolve_geo_accession(accession: str) -> dict | None:
     ))
     console.print()
 
-    if n_files == 0 and not has_raw:
+    if n_files == 0:
         console.print(
             f"  [{C['amber']}]Warning: no downloadable processed files found "
             f"for {accession}. You may need to provide local files.[/]\n"

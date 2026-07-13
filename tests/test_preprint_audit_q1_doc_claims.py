@@ -3,7 +3,7 @@
 Codex A8 flagged four overclaims in the public docs that runtime does not back:
   1. "every LLM call ... fixed seed"      -> seed only on backends that accept one
   2. air-gap "governs **all** egress/Done" -> Partial; pre-CP1 parse pending (A1b)
-  3. GEO "all four modalities"             -> classification/routing, not general fetch (E6)
+  3. GEO "all four modalities"             -> E6 atomic retrieval boundary disclosed
   4. ATAC "full publishable workflow"      -> footprinting is descriptive-only (B7)
 
 This fence keeps the corrected, honest phrasing from silently regressing. It parses
@@ -40,11 +40,12 @@ def test_air_gap_claim_is_not_overstated():
     assert "biological-question LLM parse still occurs before CP1" in _VALIDATION
 
 
-def test_geo_connector_does_not_claim_general_four_modality_fetch():
-    # GEO routing is classification, not general reproducible retrieval.
-    assert "fastq_pending" in _VALIDATION
-    assert "not" in _VALIDATION.lower()  # sanity: the caveat clause exists
-    assert "not general reproducible retrieval" in _ROADMAP
+def test_geo_connector_discloses_e6_atomic_retrieval_boundary():
+    assert "fastq_pending" not in _VALIDATION
+    assert "E6 atomic retrieval" in _VALIDATION
+    assert "SRA Toolkit" in _VALIDATION
+    assert "downstream assay contracts still apply" in _VALIDATION
+    assert "publishes only a complete generation" in _ROADMAP
 
 
 def test_atac_is_not_claimed_publication_grade_end_to_end():

@@ -41,9 +41,10 @@ This module should not yet be described as production-ready.
 - MACS3 parameter profiles for assay types;
 - chromatin narrative blocks + publication figures (dual PNG+SVG);
 - GEO/SRA connector recognizes and routes all four ARIA modalities
-  (scRNA/bulk_RNA/scATAC/bulk_ATAC) — classification/routing of supplementary files,
-  not general reproducible retrieval (raw FASTQ from SRA stays `fastq_pending`;
-  preprint audit E6).
+  (scRNA/bulk_RNA/scATAC/bulk_ATAC); E6 retrieves supplementary archives or all
+  SRA runs into private staging, validates content + hashes, preserves mixed-library
+  per-file modality, and publishes only a complete generation. Raw SRA requires the
+  external SRA Toolkit; downstream assay-specific readiness contracts remain binding.
 
 ## Current scATAC Beta Path
 
