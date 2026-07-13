@@ -51,7 +51,7 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
-from aria.utils.count_classifier import classify_matrix
+from aria.utils.count_classifier import classify_matrix, validate_raw_count_matrix
 from aria.utils.stats import (
     contrast_family_significance,
     fdr_advanced_methods_disclosure,
@@ -965,6 +965,38 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
                 f"at low confidence."
             ),
         }
+
+    # B6: full vectorized validation before rounding the WHOLE matrix. classify_matrix
+    # decided from a <=200-row sample; a fractional/negative/NaN/inf value in an
+    # unsampled row would otherwise be silently rounded (or crash `.astype(int)` on
+    # NaN). A matrix accepted as raw MUST be all finite non-negative integers
+    # everywhere; a coerced (allow_nonraw) matrix may carry fractional/negative
+    # values the user opted to round, but NaN/inf still cannot be coerced.
+    full_check = validate_raw_count_matrix(counts)
+    if not full_check["valid"]:
+        block = count_source == "raw_counts" or full_check["n_nonfinite"] > 0
+        if block:
+            examples = full_check.get("examples") or []
+            example_txt = (f" e.g. {examples}" if examples else "")
+            return None, warnings, {
+                "refused":    True,
+                "error_type": "InvalidRawCounts",
+                "kind":       info["kind"],
+                "raw_count_score": info.get("raw_count_score"),
+                "confidence": info.get("confidence"),
+                "sub_scores": info.get("sub_scores", {}),
+                "score_basis": info.get("score_basis", {}),
+                "full_validation": {k: full_check[k] for k in (
+                    "n_nonfinite", "n_negative", "n_noninteger", "n_offending")},
+                "details": (
+                    f"Count matrix failed full raw-count validation: "
+                    f"{full_check['reason']}{example_txt}. classify_matrix scores a "
+                    f"200-row sample, but DESeq2 needs every value to be a finite "
+                    f"non-negative integer; a raw matrix cannot contain a "
+                    f"non-integer/negative value and no matrix can carry NaN/inf "
+                    f"into integer rounding. Supply a clean raw-count matrix."
+                ),
+            }
 
     # Round to integers (required by DESeq2)
     counts = counts.round().astype(int)

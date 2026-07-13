@@ -162,6 +162,70 @@ def _confidence(score: float, sub_scores: dict[str, float]) -> str:
     return "insufficient"
 
 
+def _matrix_values(mat) -> np.ndarray:
+    """Flat float view of every value to inspect, without densifying a sparse
+    input. Sparse matrices are validated on their stored entries (implicit zeros
+    are valid non-negative integers); pandas/numpy densify as they already sit in
+    memory."""
+    # scipy sparse: stored nonzeros live in ``.data``; avoid a dense copy.
+    if hasattr(mat, "tocoo") and hasattr(mat, "data") and not hasattr(mat, "iloc"):
+        return np.asarray(mat.data, dtype=float).ravel()
+    if hasattr(mat, "to_numpy"):          # pandas DataFrame/Series
+        return np.asarray(mat.to_numpy(), dtype=float).ravel()
+    return np.asarray(mat, dtype=float).ravel()
+
+
+def validate_raw_count_matrix(mat, max_examples: int = 5) -> dict:
+    """Full vectorized check that EVERY value is a finite, non-negative integer.
+
+    Unlike :func:`classify_matrix` — a fast heuristic that scores a <=200-row
+    random sample — this scans the entire matrix, so a single fractional,
+    negative, NaN, or inf value ANYWHERE fails the check. It is the deterministic
+    gate the DE entry points run before rounding a matrix for DESeq2, so a matrix
+    cannot be accepted as raw counts on the strength of a sampled slice.
+
+    Returns ``{"valid", "reason", "n_nonfinite", "n_negative", "n_noninteger",
+    "n_offending", "examples"}``. An empty matrix has no violations (``valid`` is
+    True); callers handle emptiness separately.
+    """
+    values = _matrix_values(mat)
+    if values.size == 0:
+        return {"valid": True, "reason": None, "n_nonfinite": 0,
+                "n_negative": 0, "n_noninteger": 0, "n_offending": 0,
+                "examples": []}
+
+    finite = np.isfinite(values)
+    n_nonfinite = int((~finite).sum())
+    fin = values[finite]
+    negative_mask = fin < 0
+    noninteger_mask = fin != np.round(fin)
+    n_negative = int(negative_mask.sum())
+    n_noninteger = int(noninteger_mask.sum())
+    n_offending = n_nonfinite + n_negative + n_noninteger
+    valid = n_offending == 0
+
+    reasons = []
+    examples: list[float] = []
+    if n_nonfinite:
+        reasons.append(f"{n_nonfinite} non-finite (NaN/inf)")
+    if n_negative:
+        reasons.append(f"{n_negative} negative")
+        examples.extend(float(v) for v in fin[negative_mask][:max_examples])
+    if n_noninteger:
+        reasons.append(f"{n_noninteger} non-integer")
+        examples.extend(float(v) for v in fin[noninteger_mask][:max_examples])
+
+    return {
+        "valid": valid,
+        "reason": None if valid else "; ".join(reasons),
+        "n_nonfinite": n_nonfinite,
+        "n_negative": n_negative,
+        "n_noninteger": n_noninteger,
+        "n_offending": n_offending,
+        "examples": examples[:max_examples],
+    }
+
+
 def classify_matrix(mat, seed: int = DEFAULT_SEED, gene_ids=None,
                     source_hint: str | None = None) -> dict:
     """Classify a counts-like matrix from a random sampled slice.
