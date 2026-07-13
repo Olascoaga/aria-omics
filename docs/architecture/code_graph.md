@@ -107,6 +107,13 @@ flowchart TD
 
     DISPATCH --> BULK_AGENT[aria/agents/bulk_rna_agent.py]
     BULK_AGENT --> ENV[aria/utils/environment_manager.py injects active run policy]
+    BULK_AGENT --> FASTQ_MANIFEST[aria/scripts/rna_fastq_qc.py explicit sample/read_layout/lane manifest + fastp per lane]
+    FASTQ_MANIFEST -->|all lanes and samples must succeed| STAR_ALIGN[aria/scripts/rna_align.py STAR consumes every R1/R2 lane + propagates read_layout]
+    STAR_ALIGN -->|all samples must succeed| RNA_QUANT[aria/scripts/rna_quantify.py featureCounts layout-derived paired flags + complete BAM set]
+    RNA_QUANT --> BULK_SCRIPT
+    ENV --> FASTQ_MANIFEST
+    ENV --> STAR_ALIGN
+    ENV --> RNA_QUANT
     ENV --> BULK_SCRIPT[aria/scripts/rna_bulk_de.py]
     BULK_SCRIPT --> CLASSIFIER[aria/utils/count_classifier.py raw-count guard]
     BULK_SCRIPT --> PATHWAY_VIZ[aria/scripts/rna_pathway_viz.py]
