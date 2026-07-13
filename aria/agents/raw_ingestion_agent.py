@@ -13,6 +13,10 @@ from aria.utils.raw_ingestion import (
     ingest_10x_mtx_triplet,
     scan_fastq_plan,
 )
+from aria.utils.sequencer_formats import (
+    SUPPORTED_ENTRY_BOUNDARY,
+    detect_unsupported_inputs,
+)
 
 
 FASTQ_SUFFIXES = (".fastq", ".fq", ".fastq.gz", ".fq.gz")
@@ -50,6 +54,17 @@ class RawIngestionAgent(BaseAgent):
             "RawIngestionAgent: scanning raw inputs...",
             0.0,
         )
+
+        # E1: FASTQ is the supported entry boundary — reject sequencer-native
+        # inputs (BCL/POD5/FAST5) with guidance instead of a silent skip.
+        rejection = self._unsupported_input_rejection(exp_ctx, data_dir)
+        if rejection is not None:
+            self.publish_status(
+                experiment_id,
+                "RawIngestionAgent: unsupported sequencer-native input rejected.",
+                1.0,
+            )
+            return rejection
 
         records = []
         generated_h5ads = []
@@ -355,6 +370,59 @@ class RawIngestionAgent(BaseAgent):
         prepared = dict(params or {})
         prepared["execute"] = True
         return prepared
+
+    @staticmethod
+    def _unsupported_input_rejection(exp_ctx: dict, data_dir) -> dict | None:
+        """E1: reject sequencer-native inputs outside ARIA's supported boundary.
+
+        ARIA ingests FASTQ (and downstream 10x MEX / ``.h5ad``); it does NOT
+        demultiplex BCL or basecall POD5/FAST5. A sequencer-native input must fail
+        closed with a boundary message instead of falling through to a generic
+        "no supported inputs" skip. Returns an error record, or ``None`` when the
+        inputs are within the supported boundary.
+        """
+        candidates: list[str] = []
+        modalities = exp_ctx.get("modalities", {}) or {}
+        for files in modalities.values():
+            candidates.extend(str(f) for f in (files or []))
+        candidates.extend(
+            str(f) for f in (exp_ctx.get("input_files", []) or [])
+            if isinstance(f, (str, Path))
+        )
+        # Shallow run-folder markers under data_dir (an Illumina BCL run folder is
+        # a directory, not a declared file).
+        try:
+            dd = Path(data_dir)
+            for marker in ("RunInfo.xml", "RunParameters.xml", "RTAComplete.txt"):
+                if (dd / marker).exists():
+                    candidates.append(str(dd / marker))
+            basecalls = dd / "Data" / "Intensities" / "BaseCalls"
+            if basecalls.exists():
+                candidates.append(str(basecalls))
+        except Exception:
+            pass
+
+        unsupported = detect_unsupported_inputs(candidates)
+        if not unsupported:
+            return None
+
+        formats = sorted({u["format"] for u in unsupported})
+        stages = sorted({u["upstream_stage"] for u in unsupported})
+        return {
+            "status": "error",
+            "error_type": "UnsupportedSequencerFormat",
+            "reason": "unsupported_sequencer_native_format",
+            "supported_boundary": SUPPORTED_ENTRY_BOUNDARY,
+            "unsupported_inputs": unsupported,
+            "details": (
+                f"ARIA's supported raw-ingestion entry boundary is "
+                f"{SUPPORTED_ENTRY_BOUNDARY}. Detected sequencer-native input(s) "
+                f"[{', '.join(formats)}] that require a separate upstream stage "
+                f"ARIA does not perform ({'; '.join(stages)}). Run that stage "
+                f"first and provide demultiplexed {SUPPORTED_ENTRY_BOUNDARY} "
+                f"(or a canonical .h5ad / 10x MEX matrix)."
+            ),
+        }
 
     @staticmethod
     def _is_fastq_path(path: str | Path) -> bool:
