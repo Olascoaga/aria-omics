@@ -6,6 +6,87 @@ from dataclasses import dataclass
 from typing import Any
 
 
+def resolve_design_contract(
+    design: dict | None,
+    exp_ctx: dict | None = None,
+) -> dict[str, Any]:
+    """Normalize the confirmed design into the fields the differential lanes need.
+
+    This is the single RNA/ATAC design contract (E7). The confirmed design dict
+    from ``DesignAgent._build_design`` (``main_factor`` / ``batch_covariate`` /
+    ``pseudobulk.{condition_col,replicate_col}`` / ``covariates``) is the source of
+    truth; ``exp_ctx`` supplies explicit run-level overrides. Both bulk and
+    single-cell, RNA and ATAC, resolve condition/replicate/covariates through here
+    instead of re-deriving them from scattered keys with divergent fallbacks and
+    hard-coded literal defaults.
+
+    Returns ``condition_col`` / ``replicate_col`` / ``covariates`` (the confirmed
+    batch covariate plus any extra covariates, deduped and order-preserving, never
+    the condition or replicate columns) / ``batch_covariate`` / ``comparisons`` /
+    ``pseudobulk``. Any field with no confirmed value is ``None`` (or ``[]`` for
+    covariates), never a fabricated literal such as ``"condition"``.
+    """
+    design = design or {}
+    exp_ctx = exp_ctx or {}
+    pseudobulk = design.get("pseudobulk") or {}
+
+    def _first(*values):
+        for value in values:
+            if value is not None and str(value).strip():
+                return str(value)
+        return None
+
+    condition_col = _first(
+        exp_ctx.get("condition_col"),
+        pseudobulk.get("condition_col"),
+        design.get("condition_col"),
+        design.get("main_factor"),
+    )
+    replicate_col = _first(
+        exp_ctx.get("replicate_col"),
+        exp_ctx.get("replicate_column"),
+        pseudobulk.get("replicate_col"),
+        design.get("replicate_col"),
+    )
+    batch_covariate = _first(
+        exp_ctx.get("batch_covariate"),
+        exp_ctx.get("batch_col"),
+        exp_ctx.get("batch_factor"),
+        design.get("batch_covariate"),
+        design.get("batch_col"),
+        design.get("batch_factor"),
+    )
+
+    covariates: list[str] = []
+    if batch_covariate:
+        covariates.append(batch_covariate)
+    for source in (design.get("covariates"), exp_ctx.get("covariates")):
+        for cov in (source or []):
+            if cov and str(cov).strip():
+                covariates.append(str(cov))
+    # Dedupe, order-preserving, and never fold the condition or replicate columns
+    # into the covariate set (they are modelled as the factor / donor block).
+    seen: set[str] = set()
+    clean_covariates: list[str] = []
+    for cov in covariates:
+        if cov in (condition_col, replicate_col) or cov in seen:
+            continue
+        seen.add(cov)
+        clean_covariates.append(cov)
+
+    return {
+        "condition_col": condition_col,
+        "replicate_col": replicate_col,
+        "covariates": clean_covariates,
+        "batch_covariate": batch_covariate,
+        "comparisons": exp_ctx.get("comparisons"),
+        "pseudobulk": {
+            "condition_col": condition_col,
+            "replicate_col": replicate_col,
+        },
+    }
+
+
 @dataclass(frozen=True)
 class DesignIssue:
     severity: str

@@ -398,15 +398,12 @@ class BulkRNAAgent(BaseAgent):
     def _design_covariates(design: dict) -> list[str]:
         """Covariates confirmed at DesignAgent CHECKPOINT 2.4, forwarded to the
         DESeq2 design (P0-4). The confirmed batch covariate plus any explicit
-        covariates list, deduped and order-preserving."""
-        covariates: list[str] = []
-        batch = (design or {}).get("batch_covariate")
-        if batch:
-            covariates.append(batch)
-        for cov in (design or {}).get("covariates", []) or []:
-            if cov:
-                covariates.append(cov)
-        return list(dict.fromkeys(covariates))
+        covariates list, deduped and order-preserving. E7: this delegates to the
+        single shared RNA/ATAC design contract so RNA and both ATAC lanes extract
+        covariates identically."""
+        from aria.utils.design_matrix import resolve_design_contract
+
+        return resolve_design_contract(design, {})["covariates"]
 
     @staticmethod
     def _normalise_explicit_contrasts(raw, available_groups) -> list[dict]:

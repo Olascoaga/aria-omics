@@ -213,7 +213,7 @@ def _gate_da_by_convergence(results_df, padj_max):
 
 def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
                    padj_max, lfc_min, top_n, min_cells, min_reps,
-                   allow_mock, warnings, n_cpus=None):
+                   allow_mock, warnings, n_cpus=None, covariates=None):
     """Per-condition pseudobulk DA on peaks via the shared validated DESeq2 core.
 
     Returns a structured result. The lane is gated: it requires the condition +
@@ -247,9 +247,27 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     from aria.scripts.rna_bulk_de import _run_deseq2
     from aria.utils.design_matrix import classify_pairing
 
-    obs = adata.obs[[condition_col, replicate_col]].copy()
+    # E7: confirmed covariates (e.g. batch) modelled alongside the donor block.
+    # Only keep covariates that exist in obs and are not the condition/replicate
+    # columns; a requested-but-absent covariate is an honest skip, never invented.
+    confirmed_covariates = []
+    for cov in (covariates or []):
+        cov = str(cov)
+        if cov in (condition_col, replicate_col):
+            continue
+        if cov in adata.obs.columns:
+            confirmed_covariates.append(cov)
+        else:
+            warnings.append(
+                f"Confirmed covariate {cov!r} is absent from the cell metadata; "
+                f"it is not modelled in the pseudobulk DA."
+            )
+
+    obs = adata.obs[[condition_col, replicate_col, *confirmed_covariates]].copy()
     obs[condition_col] = obs[condition_col].astype(str)
     obs[replicate_col] = obs[replicate_col].astype(str)
+    for cov in confirmed_covariates:
+        obs[cov] = obs[cov].astype(str)
 
     # Pseudosample = biological replicate. One replicate can only map to one
     # condition; if a replicate spans conditions, key by replicate × condition.
@@ -268,6 +286,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
     # too few cells (unstable aggregates).
     ps_rows = []
     ps_meta = []
+    noninvariant_covariates: set = set()
     for ps, idx in obs.groupby("_ps").groups.items():
         positions = obs.index.get_indexer(idx)
         if len(positions) < min_cells:
@@ -281,9 +300,29 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
         cond = obs[condition_col].iloc[positions[0]]
         rep = obs[replicate_col].iloc[positions[0]]
         # B3: carry the biological replicate so DA can model the donor block.
-        ps_meta.append({"pseudosample": str(ps),
-                        condition_col: str(cond),
-                        replicate_col: str(rep)})
+        row = {"pseudosample": str(ps),
+               condition_col: str(cond),
+               replicate_col: str(rep)}
+        # E7: carry each confirmed covariate's per-pseudosample value. A covariate
+        # that varies across cells within one pseudosample cannot be a pseudosample
+        # covariate (it is a within-replicate effect), so drop it honestly.
+        for cov in confirmed_covariates:
+            if obs[cov].iloc[positions].nunique() > 1:
+                noninvariant_covariates.add(cov)
+            row[cov] = str(obs[cov].iloc[positions[0]])
+        ps_meta.append(row)
+
+    if noninvariant_covariates:
+        dropped = sorted(noninvariant_covariates)
+        warnings.append(
+            f"Confirmed covariate(s) {dropped} vary within a biological replicate "
+            f"and cannot be modelled at the pseudosample level; excluded from DA."
+        )
+        confirmed_covariates = [c for c in confirmed_covariates
+                                if c not in noninvariant_covariates]
+        for row in ps_meta:
+            for cov in dropped:
+                row.pop(cov, None)
 
     if len(ps_rows) < 2:
         return {"ran": False,
@@ -333,7 +372,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
         # complete-paired subset (option B) with the nested pseudosamples disclosed;
         # independent -> unpaired. scATAC DA is donor-aware, never silently ~condition.
         sub_counts, sub_meta = counts_df, meta_df
-        da_covariates = None
+        block_covariates: list = []
         pairing_status = None
         excluded_unpaired: list = []
         if replicate_col in meta_df.columns:
@@ -348,20 +387,35 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             )
             pairing_status = prec["status"]
             if pairing_status == "complete":
-                da_covariates = [replicate_col]
+                block_covariates = [replicate_col]
             elif pairing_status == "partial":
                 keep = {str(s) for s in prec["paired_samples"]}
                 excluded_unpaired = sorted(str(s) for s in prec["unpaired_samples"])
                 keep_idx = [i for i in meta_df.index if str(i) in keep]
                 sub_meta = meta_df.loc[keep_idx].copy()
                 sub_counts = counts_df.loc[:, keep_idx].copy()
-                da_covariates = [replicate_col]
+                block_covariates = [replicate_col]
                 if excluded_unpaired:
                     warnings.append(
                         f"[{test}_vs_{ref}] partial pairing: modeled the donor "
                         f"block on {len(keep_idx)} paired pseudosample(s); excluded "
                         f"unpaired {excluded_unpaired} from the contrast (B3)."
                     )
+
+        # E7: the donor block plus the confirmed covariates (e.g. batch), keeping
+        # only covariates estimable in THIS contrast's fitting set — a covariate
+        # constant across the (possibly pairing-subset) pseudosamples is dropped so
+        # it never breaks the DESeq2 fit. Order: covariates + donor + condition.
+        contrast_covariates = []
+        for cov in confirmed_covariates:
+            if cov in sub_meta.columns and sub_meta[cov].nunique() > 1:
+                contrast_covariates.append(cov)
+            elif cov in sub_meta.columns:
+                warnings.append(
+                    f"[{test}_vs_{ref}] covariate {cov!r} is constant across the "
+                    f"fitted pseudosamples; excluded from this contrast."
+                )
+        da_covariates = (contrast_covariates + block_covariates) or None
 
         de, de_warn = _run_deseq2(
             sub_counts, sub_meta, condition_col, test, ref,
@@ -373,7 +427,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
         )
         warnings.extend(de_warn)
         fitted_formula = de.get("fitted_design_formula") or ""
-        paired_block_modeled = bool(da_covariates) and (replicate_col in fitted_formula)
+        paired_block_modeled = bool(block_covariates) and (replicate_col in fitted_formula)
         if de.get("status") != "success":
             comp_results.append({
                 "test": test, "reference": ref, "status": "error",
@@ -443,6 +497,7 @@ def _pseudobulk_da(adata, condition_col, replicate_col, comparisons,
             "pairing_status": pairing_status,
             "paired_block_modeled": paired_block_modeled,
             "excluded_unpaired_samples": excluded_unpaired,
+            "modeled_covariates": contrast_covariates,
             "top_peaks": top_peaks,
         })
 
@@ -465,6 +520,9 @@ def chromatin_diffacc(params: dict) -> dict:
     groupby = params.get("groupby", "leiden")
     condition_col = params.get("condition_col")
     replicate_col = params.get("replicate_col")
+    # E7: confirmed covariates (e.g. batch) from the shared design contract, so the
+    # pseudobulk fit models `~ batch + donor + condition`, not a bare `~ condition`.
+    da_covariates_confirmed = params.get("covariates") or []
     comparisons = params.get("comparisons") or []
     top_n = int(params.get("top_n", 20))
     output_dir = params.get("output_dir")
@@ -551,7 +609,7 @@ def chromatin_diffacc(params: dict) -> dict:
     pseudobulk = _pseudobulk_da(
         adata, condition_col, replicate_col, comparisons,
         padj_max, lfc_min, top_n, min_cells, min_reps, allow_mock, warnings,
-        n_cpus=n_cpus)
+        n_cpus=n_cpus, covariates=da_covariates_confirmed)
     pb_rows = pseudobulk.pop("_rows", [])
     pb_csv = None
     if pb_rows:

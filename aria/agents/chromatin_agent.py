@@ -444,6 +444,21 @@ class ChromatinAgent(BaseAgent):
             },
         )
 
+    def _resolve_da_design(self, exp_ctx: dict) -> dict:
+        """Resolve the differential-accessibility design through the single shared
+        RNA/ATAC design contract (E7).
+
+        Both ATAC lanes (scATAC and bulk) derive condition/replicate/covariates
+        from the confirmed ``exp_ctx["design"]`` here, instead of re-deriving them
+        from scattered exp_ctx/design/pseudobulk keys with divergent fallbacks and
+        hard-coded ``"condition"``/``"replicate"`` literal defaults. The confirmed
+        batch covariate is carried through as a modelled covariate exactly as the
+        bulk RNA lane does.
+        """
+        from aria.utils.design_matrix import resolve_design_contract
+
+        return resolve_design_contract(exp_ctx.get("design"), exp_ctx)
+
     def _run_scatac_matrix(self, experiment_id: str, exp_ctx: dict,
                            intent: dict, h5mu_path: str,
                            precomputed_qc: Optional[dict] = None) -> dict:
@@ -488,26 +503,12 @@ class ChromatinAgent(BaseAgent):
 
         # 2. LSI + Leiden clustering on the peak matrix
         self.publish_status(experiment_id, "scATAC LSI clustering...", 0.35)
+        # E7: one shared RNA/ATAC design contract (condition/replicate/covariates).
+        contract = self._resolve_da_design(exp_ctx)
+        condition_col = contract["condition_col"]
+        replicate_col = contract["replicate_col"]
+        batch_col = contract["batch_covariate"]
         design = exp_ctx.get("design") or {}
-        pseudobulk = design.get("pseudobulk") or {}
-        condition_col = (
-            exp_ctx.get("condition_col")
-            or pseudobulk.get("condition_col")
-            or design.get("condition_col")
-            or design.get("main_factor")
-        )
-        replicate_col = (
-            exp_ctx.get("replicate_col")
-            or pseudobulk.get("replicate_col")
-            or design.get("replicate_col")
-        )
-        batch_col = (
-            exp_ctx.get("batch_col")
-            or exp_ctx.get("batch_covariate")
-            or design.get("batch_col")
-            or design.get("batch_factor")
-            or design.get("batch_covariate")
-        )
         peak_provenance = (
             exp_ctx.get("peak_provenance")
             or exp_ctx.get("consensus_peak_provenance")
@@ -540,11 +541,20 @@ class ChromatinAgent(BaseAgent):
                 "output_dir": out_dir,
                 "exp_context": exp_ctx,  # confirmed thresholds (P0-7)
             }
-            # Forward confirmed cross-condition design only when present; absent
-            # metadata makes the pseudobulk lane honestly skip (P0-5).
-            for k in ("condition_col", "replicate_col", "comparisons"):
-                if exp_ctx.get(k) is not None:
-                    da_params[k] = exp_ctx[k]
+            # Forward the confirmed cross-condition design via the shared contract
+            # (E7): condition/replicate/covariates/comparisons resolved once so the
+            # confirmed batch reaches the pseudobulk DESeq2 fit, never silently
+            # dropped. Absent metadata makes the pseudobulk lane honestly skip
+            # (P0-5), so only forward fields that actually resolved.
+            comparisons = contract["comparisons"] or exp_ctx.get("comparisons")
+            for key, value in (
+                ("condition_col", condition_col),
+                ("replicate_col", replicate_col),
+                ("comparisons", comparisons),
+                ("covariates", contract["covariates"] or None),
+            ):
+                if value is not None:
+                    da_params[key] = value
             # DA runs in the rna stack: pydeseq2 0.5.4 requires numpy>=2 and the
             # chromatin env is pinned numpy<2 (snapatac2/episcanpy/muon). aria-rna-env
             # already ships scanpy + anndata + pydeseq2 on numpy 2, so chromatin_diffacc
@@ -839,22 +849,26 @@ class ChromatinAgent(BaseAgent):
                 self.publish_status(
                     experiment_id, "bulk ATAC differential accessibility...",
                     0.82)
+                # E7: derive condition/replicate/covariates from the shared design
+                # contract, not flat exp_ctx keys with hard-coded "condition"/
+                # "replicate" literals. A confirmed design whose factor is named
+                # otherwise now reaches DA correctly, and the confirmed batch is
+                # modelled instead of dropped. Fall back to the historical literals
+                # only when no design confirmed a column at all.
+                contract = self._resolve_da_design(exp_ctx)
                 da_params = {
                     "data_type": "bulk_ATAC",
                     "counts_matrix_path": count_result.get("counts_matrix_path"),
                     "sample_metadata_path": count_result.get(
                         "sample_metadata_path"),
-                    "condition_col": exp_ctx.get("condition_col", "condition"),
-                    "replicate_col": exp_ctx.get(
-                        "replicate_col",
-                        exp_ctx.get("replicate_column", "replicate"),
-                    ),
+                    "condition_col": contract["condition_col"] or "condition",
+                    "replicate_col": contract["replicate_col"] or "replicate",
                     "comparisons": (
-                        exp_ctx.get("comparisons")
+                        contract["comparisons"]
                         or intent.get("comparisons")
                         or intent.get("comparison")
                     ),
-                    "covariates": exp_ctx.get("covariates", []),
+                    "covariates": contract["covariates"],
                     "exp_context": exp_ctx,
                     "output_dir": str(Path(files[0]).parent / "bulk_atac_da"),
                 }
