@@ -1020,6 +1020,18 @@ class ChromatinAgent(BaseAgent):
                 or 8,
                 8,
             ),
+            "min_replicates_per_condition": _positive_int(
+                exp_ctx.get("footprint_min_replicates_per_condition")
+                or exp_ctx.get("min_replicates_per_condition")
+                or 3,
+                3,
+            ),
+            "footprint_fdr": float(exp_ctx.get("footprint_fdr", 0.05)),
+            "max_label_permutations": _positive_int(
+                exp_ctx.get("footprint_max_label_permutations") or 100, 100),
+            "permutation_seed": int(exp_ctx.get("footprint_permutation_seed", 0)),
+            "make_aggregate_plots": bool(
+                exp_ctx.get("footprint_make_aggregate_plots", True)),
         }
 
     def _run_scatac_footprinting(self, experiment_id: str, exp_ctx: dict,
@@ -1083,6 +1095,31 @@ class ChromatinAgent(BaseAgent):
                 out.setdefault(str(condition), []).append(str(bam))
         return out
 
+    def _bulk_replicate_bams(self, exp_ctx: dict, files: list,
+                             condition_col: str = "condition") -> dict:
+        """Build an explicit biological-replicate design without filename guesses."""
+        provided = exp_ctx.get("replicate_bams")
+        if isinstance(provided, dict):
+            return provided
+        sample_metadata = exp_ctx.get("sample_metadata") or {}
+        sample_ids = exp_ctx.get("sample_ids")
+        if (not isinstance(sample_metadata, dict) or not sample_ids
+                or len(sample_ids) != len(files)):
+            return {}
+        replicate_col = exp_ctx.get("replicate_col", "replicate")
+        out: dict[str, dict[str, list[str]]] = {}
+        for sample_id, bam in zip(sample_ids, files):
+            meta = sample_metadata.get(sample_id) or {}
+            if not isinstance(meta, dict):
+                continue
+            condition = meta.get(condition_col) or meta.get("condition")
+            replicate = meta.get(replicate_col)
+            if condition is None or replicate is None:
+                continue
+            out.setdefault(str(condition), {}).setdefault(
+                str(replicate), []).append(str(bam))
+        return out
+
     def _run_bulk_atac_footprinting(self, experiment_id: str, exp_ctx: dict,
                                     da_result: dict, peaks_result: dict,
                                     files: list) -> Optional[dict]:
@@ -1099,6 +1136,8 @@ class ChromatinAgent(BaseAgent):
             "mode": "bulk",
             "data_type": "bulk_ATAC",
             "condition_bams": self._bulk_condition_bams(
+                exp_ctx, files, condition_col=condition_col),
+            "replicate_bams": self._bulk_replicate_bams(
                 exp_ctx, files, condition_col=condition_col),
             "group_a": (
                 exp_ctx.get("footprint_group_a")

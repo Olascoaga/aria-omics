@@ -892,11 +892,17 @@ class ChromatinNarrator:
         # scATAC contrasts cell-type groups; bulk ATAC contrasts conditions.
         group_label = footprinting.get("group_label", "Cell-type groups")
         group_kind = footprinting.get("group_kind", "cell-type groups")
-        # INTERIM (preprint audit B7): TOBIAS pseudobulk p-values are NOT
-        # FDR-controlled significance, so present a descriptive candidate count.
+        inference = summary.get("inference") or {}
+        inferential = inference.get("status") == "success"
+        inferential_method = (
+            "paired t-test on within-donor mean-score differences; "
+            if str(inference.get("test", "")).startswith("paired")
+            else "Welch t-test on biological-replicate mean scores; "
+        ) + "Benjamini–Hochberg across motifs"
         n_ranked = summary.get("n_ranked_candidates")
         if n_ranked is None:  # legacy artifacts written before the B7 interim
             n_ranked = summary.get("n_significant")
+        n_significant = summary.get("n_significant") if inferential else None
         n_tested = summary.get("n_motifs_tested")
 
         evidence = [
@@ -905,9 +911,25 @@ class ChromatinNarrator:
                 "chromatin_footprint_tobias"),
             _ev(group_label, f"{ga} vs {gb}", "chromatin_footprint_tobias"),
             _ev("Motifs tested", n_tested, "chromatin_footprint_tobias"),
-            _ev("Top-ranked differential-binding candidates (descriptive, not FDR)",
-                n_ranked, "chromatin_footprint_tobias"),
         ]
+        if inferential:
+            evidence.extend([
+                _ev("Inferential method",
+                    inferential_method,
+                    "chromatin_footprint_tobias"),
+                _ev("Biological replicates per condition",
+                    inference.get("replicates_per_condition"),
+                    "chromatin_footprint_tobias"),
+                _ev("BH-significant differential footprints", n_significant,
+                    "chromatin_footprint_tobias"),
+                _ev("Null label-permutation controls",
+                    (inference.get("null_label_controls") or {}).get("n_permutations"),
+                    "chromatin_footprint_tobias"),
+            ])
+        else:
+            evidence.append(_ev(
+                "Top-ranked differential-binding candidates (descriptive, not FDR)",
+                n_ranked, "chromatin_footprint_tobias"))
         n_checked = cross.get("n_checked")
         n_conc = cross.get("n_concordant")
         if n_checked:
@@ -922,11 +944,42 @@ class ChromatinNarrator:
             cross_txt = (f" Of {n_checked} top differential factors cross-checked, "
                          f"{n_conc} have the TF gene's RNA concordantly higher in the "
                          f"same group (associative cross-modal support).")
-        claim = (
-            f"Tn5-bias-corrected footprinting descriptively ranked {n_ranked} of "
-            f"{n_tested} TF motifs by differential binding occupancy between {ga} and "
-            f"{gb} (uncorrected p over a pseudobulk-per-{group_kind.rstrip('s')} "
-            f"contrast; not FDR-controlled significance).{cross_txt}")
+        if inferential:
+            claim = (
+                f"Tn5-bias-corrected biological replicate footprint inference "
+                f"identified {n_significant} of {n_tested} TF motifs with differential "
+                f"binding occupancy between {ga} and {gb} after Benjamini–Hochberg "
+                f"correction across motifs.{cross_txt}")
+            null = inference.get("null_label_controls") or {}
+            low_power = inference.get("low_power_warning")
+            caveat_text = (
+                "Differential footprint inference uses biological-replicate/donor "
+                "mean scores rather than motif sites as observations. Condition-label "
+                f"permutations ({null.get('n_permutations', 0)}) are calibration "
+                "diagnostics, not a post-hoc significance gate. "
+                + ("The design has fewer than three replicates per condition and is "
+                   "low power. " if low_power else "")
+                + "A footprint-occupancy difference is associative: it is not evidence "
+                  "that the factor regulates a gene or drives the state. Concordant RNA "
+                  "is supporting association, not causation."
+            )
+        else:
+            claim = (
+                f"Tn5-bias-corrected footprinting descriptively ranked {n_ranked} of "
+                f"{n_tested} TF motifs by differential binding occupancy between {ga} "
+                f"and {gb} (uncorrected p over a pseudobulk-per-"
+                f"{group_kind.rstrip('s')} contrast; not FDR-controlled significance)."
+                f"{cross_txt}")
+            caveat_text = (
+                "Differential TF footprinting here is DESCRIPTIVE, not inferential: "
+                f"TOBIAS pools every cell/sample of each of the {group_kind} into one "
+                "pseudobulk, so the per-site p-values ignore biological replication and "
+                "are NOT FDR-controlled — the motifs are ranked candidates, not "
+                "significant hits. A footprint-occupancy difference between "
+                f"{group_kind} is also associative: it is not evidence that the factor "
+                "regulates a gene or drives the state. Footprints are Tn5-bias-corrected; "
+                "concordant RNA is supporting association, not causation."
+            )
 
         figures = []
         for tf, paths in (footprinting.get("aggregate_plots") or {}).items():
@@ -939,17 +992,10 @@ class ChromatinNarrator:
             id="chromatin.differential_tf_footprinting", modality="chromatin",
             analysis="differential_tf_footprinting", block_type="result",
             title="Differential TF footprinting", status="success",
-            confidence="medium", claim=claim, evidence=evidence, figures=figures,
-            caveats=[Caveat(
-                "Differential TF footprinting here is DESCRIPTIVE, not inferential: "
-                f"TOBIAS pools every cell/sample of each of the {group_kind} into one "
-                "pseudobulk, so the per-site p-values ignore biological replication and "
-                "are NOT FDR-controlled — the motifs are ranked candidates, not "
-                "significant hits. A footprint-occupancy difference between "
-                f"{group_kind} is also associative: it is not evidence that the factor "
-                "regulates a gene or drives the state. Footprints are Tn5-bias-corrected; "
-                "concordant RNA is supporting association, not causation.",
-                severity="warning")],
+            confidence=("low" if inferential and inference.get("low_power_warning")
+                        else "medium"),
+            claim=claim, evidence=evidence, figures=figures,
+            caveats=[Caveat(caveat_text, severity="warning")],
             metrics={"differential_summary": summary,
                      "rna_cross_evidence": cross or None},
         )

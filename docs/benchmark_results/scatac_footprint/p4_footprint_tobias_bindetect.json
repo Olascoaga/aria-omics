@@ -3,16 +3,22 @@
   "benchmark": "P4.3_footprint_tobias_bindetect",
   "caveats": [
     "Differential TF binding is an associative footprint-signal difference between cell-type groups, not causal regulation.",
-    "Footprints are Tn5-bias-corrected (ATACorrect); single-cell footprinting is noisy so groups are pseudobulk.",
+    "This single-sample comparison has no donor replication. It is descriptive only: site-level BINDetect p-values are not biological-replicate inference and are not BH-controlled across motifs.",
     "Cell-type groups are marker-derived from the paired RNA (benchmark prep); the driver itself is dataset-agnostic (consumes any barcode->group TSV)."
   ],
   "dataset": "pbmc_multiome_10k",
+  "interpretation_reclassification": {
+    "audit_item": "B7",
+    "date": "2026-07-13",
+    "measured_values_recomputed": false,
+    "reason": "This single-sample cell-group contrast has no donor replication; its site-level p-values do not constitute BH-controlled biological-replicate inference."
+  },
   "design": {
     "contrast": "Monocyte_vs_T_cell",
     "feature_space": "called peaks (ATACorrect restricted to peaks)",
     "group_a": "Monocyte",
     "group_b": "T_cell",
-    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (Tn5-bias-corrected footprinting, pseudobulk per cell type)",
+    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (single-sample cell-group pseudobulks; descriptive ranking only)",
     "motifs": "JASPAR2024 CORE vertebrates (MEME)",
     "n_fragments_per_group": {
       "Monocyte": 84045345,
@@ -21,7 +27,24 @@
   },
   "differential_summary": {
     "n_motifs_tested": 879,
-    "n_significant": 873,
+    "inference": {
+      "inferential_unit": "biological_replicate_or_donor",
+      "minimum_replicates_per_condition": 3,
+      "reason": "single_sample_without_donor_replication",
+      "replicates_per_condition": {
+        "Monocyte": 1,
+        "T_cell": 1
+      },
+      "status": "descriptive_only"
+    },
+    "n_ranked_candidates": 873,
+    "ranking_basis": {
+      "fdr_controlled": false,
+      "filter": "historical uncorrected site-level p<0.05 and n_sites>=20",
+      "note": "Descriptive candidate ranking only; not biological-replicate significance.",
+      "pseudobulk": true,
+      "replicate_inference": false
+    },
     "parsed": true,
     "top_toward_Monocyte": [
       {

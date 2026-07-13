@@ -40,22 +40,28 @@
     "honest_nuances": [
       "GATA1 footprint change is near-zero (-0.027); the GATA axis is captured by GATA2 (strongly K562). GATA1's motif is family-shared/degenerate.",
       "PAX5/EBF1 footprint occupancy is mildly toward K562 here, whereas V47 peak-level DA placed them in GM12878. Footprint occupancy != peak accessibility; these AT-rich motifs are footprint-noisy. Reported honestly, not corrected.",
-      "p-values are extreme (1e-150..1e-227) because n_sites is very large (tens of thousands of motif sites); effect size (change) is the meaningful ranking, not p alone."
+      "The historical site-level p-values are extreme (1e-150..1e-227) because n_sites is very large. They are retained only as measured provenance for descriptive ranking and are not replicate-level significance."
     ],
     "interpretation_caveat": "Differential TF footprinting is associative (an occupancy difference between conditions), not evidence of causal regulation.",
     "verdict": "PASS \u2014 dominant differential footprints recover textbook lineage TF programs in both directions"
   },
   "caveats": [
     "Differential TF binding is an associative footprint-signal difference between conditions, not causal regulation.",
-    "Footprints are Tn5-bias-corrected (ATACorrect) over per-condition merged replicate BAMs."
+    "This historical run merged BAMs per condition. It is descriptive only: site-level BINDetect p-values are not biological-replicate inference and are not BH-controlled across motifs."
   ],
   "dataset": "ENCODE_K562_vs_GM12878",
+  "interpretation_reclassification": {
+    "audit_item": "B7",
+    "date": "2026-07-13",
+    "measured_values_recomputed": false,
+    "reason": "Historical condition-pooled site-level p-values do not constitute biological-replicate inference or BH control across motifs."
+  },
   "design": {
     "contrast": "K562_vs_GM12878",
     "feature_space": "called peaks (ATACorrect restricted to peaks)",
     "group_a": "K562",
     "group_b": "GM12878",
-    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (Tn5-bias-corrected footprinting, per-condition merged replicate BAMs)",
+    "method": "TOBIAS ATACorrect -> ScoreBigwig -> BINDetect (historical per-condition pools; descriptive ranking only)",
     "motifs": "JASPAR2024 CORE vertebrates (MEME)",
     "n_reads_per_condition": {
       "GM12878": 363497238,
@@ -64,7 +70,24 @@
   },
   "differential_summary": {
     "n_motifs_tested": 879,
-    "n_significant": 877,
+    "inference": {
+      "inferential_unit": "biological_replicate_or_donor",
+      "minimum_replicates_per_condition": 3,
+      "reason": "historical_run_pooled_bams_per_condition",
+      "replicates_per_condition": {
+        "GM12878": 2,
+        "K562": 2
+      },
+      "status": "descriptive_only"
+    },
+    "n_ranked_candidates": 877,
+    "ranking_basis": {
+      "fdr_controlled": false,
+      "filter": "historical uncorrected site-level p<0.05 and n_sites>=20",
+      "note": "Descriptive candidate ranking only; not biological-replicate significance.",
+      "pseudobulk": true,
+      "replicate_inference": false
+    },
     "parsed": true,
     "top_toward_GM12878": [
       {
