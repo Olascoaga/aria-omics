@@ -121,6 +121,9 @@ def bulk_rna_de(params: dict) -> dict:
     padj_thr       = float(params.get("padj_threshold", 0.05))
     lfc_thr        = float(params.get("lfc_threshold", 1.0))
     min_reps       = int(params.get("min_replicates_per_condition", 3))
+    # B5: explicit, audited exclusion of count columns that lack metadata. Only
+    # genuine orphan columns may be named here; everything else needs metadata.
+    excluded_samples = params.get("excluded_samples", []) or []
     allow_mock     = mocks_allowed(params)
     warnings       = []
 
@@ -193,6 +196,26 @@ def bulk_rna_de(params: dict) -> dict:
                 f"Available columns: {list(metadata.columns)}"
             ),
         }
+
+    # ── 2a. Total metadata correspondence (B5) ────────────────────────────
+    # Partial metadata must not silently reduce n. Every count column needs a
+    # metadata row; genuine orphans may only be dropped via an explicit, audited
+    # excluded_samples list. This runs before QC/aggregation/DE.
+    try:
+        counts, metadata_correspondence = _enforce_metadata_correspondence(
+            counts, metadata, excluded_samples,
+        )
+    except ValueError as exc:
+        return {
+            "status":     "error",
+            "error_type": "MetadataCorrespondenceError",
+            "details":    str(exc),
+        }
+    if metadata_correspondence["n_excluded"]:
+        warnings.append(
+            "Explicit audited exclusion (B5): dropped count columns without "
+            f"metadata before QC/DE: {metadata_correspondence['excluded_samples']}."
+        )
 
     technical_replicate_aggregation = {
         "ran": False,
@@ -662,6 +685,7 @@ def bulk_rna_de(params: dict) -> dict:
         "n_genes_dr":         sample_qc.get("n_genes_dr", 0),
         "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
         "technical_replicate_aggregation": technical_replicate_aggregation,
+        "metadata_correspondence": metadata_correspondence,
     }
 
     return {
@@ -685,6 +709,7 @@ def bulk_rna_de(params: dict) -> dict:
         "methodology":      methodology,
         "count_source":     count_source,
         "technical_replicate_aggregation": technical_replicate_aggregation,
+        "metadata_correspondence": metadata_correspondence,
         "warnings":         warnings,
     }
 
@@ -952,6 +977,67 @@ def _load_counts(files: list, allow_nonraw: bool = False) -> tuple:
         "sub_scores": info.get("sub_scores", {}),
         "score_basis": info.get("score_basis", {}),
     }
+
+
+def _enforce_metadata_correspondence(counts, metadata, excluded_samples=None):
+    """B5: every count-matrix column must have an aligned metadata row.
+
+    Partial metadata must never silently reduce the analysis. When an explicit
+    metadata TSV covers only a subset of the columns, ``_load_or_infer_metadata``
+    returns ``meta.loc[common]`` and ``_run_deseq2`` later subsets
+    ``counts[meta_sub.index]`` — dropping the unmatched columns from the fit with
+    no error and no disclosure. This gate closes that path.
+
+    Count columns without a metadata row fail closed with the exact list, UNLESS
+    they are named in ``excluded_samples`` — an explicit, audited exclusion. Only
+    genuine orphan columns may be excluded; naming a sample that has metadata, or
+    a name that is not a count column, is a misuse and also fails closed.
+
+    Returns ``(counts_kept, disclosure)``. Raises ``ValueError`` on any
+    unauthorized or invalid correspondence gap.
+    """
+    count_cols = [str(c) for c in counts.columns]
+    have_meta = {str(i) for i in metadata.index}
+    orphans = [c for c in count_cols if c not in have_meta]
+
+    # De-duplicate the requested exclusions while preserving order.
+    seen: set[str] = set()
+    excluded: list[str] = []
+    for sample in (excluded_samples or []):
+        name = str(sample)
+        if name not in seen:
+            seen.add(name)
+            excluded.append(name)
+
+    orphan_set = set(orphans)
+    invalid = [name for name in excluded if name not in orphan_set]
+    if invalid:
+        raise ValueError(
+            "excluded_samples may only name count-matrix columns that lack "
+            f"metadata; these are not unmatched count columns: {invalid}. "
+            f"Unmatched columns are: {orphans if orphans else 'none'}."
+        )
+
+    unauthorized = [c for c in orphans if c not in seen]
+    if unauthorized:
+        raise ValueError(
+            "count-matrix columns have no aligned metadata row: "
+            f"{unauthorized}. Provide metadata for every sample (total "
+            "correspondence), or list them explicitly in excluded_samples to "
+            "drop them from the analysis with an audit record. DE will not run "
+            "on a silently reduced sample set."
+        )
+
+    disclosure = {
+        "excluded_samples": list(excluded),
+        "n_excluded":       len(excluded),
+        "n_count_columns":  len(count_cols),
+        "n_analyzed":       len(count_cols) - len(excluded),
+    }
+    if excluded:
+        kept = [c for c in counts.columns if str(c) not in seen]
+        counts = counts[kept]
+    return counts, disclosure
 
 
 def _metadata_inference_allowed(params: dict) -> bool:
