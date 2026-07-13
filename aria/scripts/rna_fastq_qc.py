@@ -12,6 +12,7 @@ Naming patterns supported:
 
 Input params:
   fastq_dir:      str   — directory containing FASTQ files
+  fastq_files:    list  — optional explicit selection within/alongside fastq_dir
   output_dir:     str   — where to write trimmed FASTQs + QC reports
   threads:        int   — threads per sample (default: 4)
   min_length:     int   — minimum read length after trimming (default: 36)
@@ -20,8 +21,9 @@ Input params:
 Output:
   {
     "status":        "success",
-    "samples":       [{"name", "r1_trimmed", "r2_trimmed", "r1_raw", "r2_raw",
-                       "paired", "n_reads_raw", "n_reads_trimmed", "pct_passed"}],
+    "samples":       [{"name", "read_layout", "lanes", "r1_trimmed_files",
+                       "r2_trimmed_files", "paired", "n_reads_raw",
+                       "n_reads_trimmed", "pct_passed"}],
     "multiqc_report": str,   — path to MultiQC HTML
     "output_dir":    str,
     "warnings":      [str]
@@ -67,12 +69,19 @@ def rna_fastq_qc(params: dict) -> dict:
         d.mkdir(parents=True, exist_ok=True)
 
     # ── Detect samples ────────────────────────────────────────────────────
-    samples = _detect_samples(fastq_dir, warnings)
+    samples = _detect_samples(
+        fastq_dir,
+        warnings,
+        fastq_files=params.get("fastq_files"),
+    )
     if not samples:
         return {
             "status":     "error",
-            "error_type": "NoFASTQFound",
-            "details":    f"No FASTQ files found in {fastq_dir}",
+            "error_type": ("FastqManifestInvalid" if warnings
+                           else "NoFASTQFound"),
+            "details":    ("; ".join(warnings) if warnings else
+                           f"No FASTQ files found in {fastq_dir}"),
+            "warnings":   warnings,
         }
 
     # ── Run fastp per sample ──────────────────────────────────────────────
@@ -93,6 +102,28 @@ def rna_fastq_qc(params: dict) -> dict:
     # ── MultiQC summary ───────────────────────────────────────────────────
     multiqc_report = _run_multiqc(fastp_dir, output_dir, warnings)
 
+    failed_samples = [
+        sample.get("name", "unknown")
+        for sample in processed
+        if sample.get("status") != "success"
+    ]
+    if failed_samples:
+        return {
+            "status":         "error",
+            "error_type":     "PartialFastqQCFailure",
+            "details":        (
+                "FASTQ QC is all-or-fail; one or more samples or lanes did "
+                "not complete successfully."
+            ),
+            "failed_samples": failed_samples,
+            "samples":        processed,
+            "n_samples":      len(processed),
+            "multiqc_report": str(multiqc_report) if multiqc_report else None,
+            "output_dir":     str(output_dir),
+            "trimmed_dir":    str(trimmed_dir),
+            "warnings":       warnings,
+        }
+
     return {
         "status":         "success",
         "samples":        processed,
@@ -104,72 +135,96 @@ def rna_fastq_qc(params: dict) -> dict:
     }
 
 
-def _detect_samples(fastq_dir: Path, warnings: list) -> list[dict]:
+def _detect_samples(fastq_dir: Path, warnings: list,
+                    fastq_files: list[str] | None = None) -> list[dict]:
     """
-    Detect samples and pair R1/R2 files.
-    Returns list of dicts: {name, r1, r2, paired}
+    Build an explicit sample/lane/read-layout manifest.
+
+    Illumina lane names such as ``sample_S1_L001_R1_001.fastq.gz`` are
+    grouped under one biological sample instead of becoming separate samples.
+    ``fastq_files`` limits detection to the caller's explicit selection.
     """
     # Find all FASTQ files
-    fq_files = sorted([
-        f for f in fastq_dir.iterdir()
-        if f.suffix in (".gz", ".fastq", ".fq")
-        or f.name.endswith((".fastq.gz", ".fq.gz"))
-    ])
+    if fastq_files is None:
+        candidates = list(fastq_dir.iterdir())
+    else:
+        candidates = [Path(path) for path in fastq_files]
+    fq_files = sorted(
+        f for f in candidates
+        if f.name.endswith((".fastq.gz", ".fq.gz", ".fastq", ".fq"))
+    )
 
     if not fq_files:
         return []
 
-    # Pair R1/R2 using common naming patterns
-    r1_patterns = [r"_R1_\d+", r"_R1\b", r"_1\b"]
-    r2_patterns = [r"_R2_\d+", r"_R2\b", r"_2\b"]
-
-    r1_files = {}  # sample_name → path
-    r2_files = {}
-
-    for f in fq_files:
-        stem = f.name
-        # Remove all FASTQ extensions
-        for ext in [".fastq.gz", ".fq.gz", ".fastq", ".fq"]:
-            stem = stem.replace(ext, "")
-
-        # Try to identify R1
-        for pat in r1_patterns:
-            if re.search(pat, stem):
-                sample = re.sub(pat, "", stem)
-                r1_files[sample] = f
-                break
+    grouped: dict[str, dict[str, dict[str, Path]]] = {}
+    duplicate_slots: list[str] = []
+    unmatched: list[str] = []
+    for path in fq_files:
+        parsed = _parse_fastq_name(path.name)
+        if parsed is None:
+            unmatched.append(path.name)
+            continue
+        sample_name, lane, read = parsed
+        slot = grouped.setdefault(sample_name, {}).setdefault(lane, {})
+        if read in slot:
+            duplicate_slots.append(f"{sample_name}/{lane}/{read}")
         else:
-            # Try R2
-            for pat in r2_patterns:
-                if re.search(pat, stem):
-                    sample = re.sub(pat, "", stem)
-                    r2_files[sample] = f
-                    break
+            slot[read] = path
+
+    if unmatched:
+        warnings.append(
+            "Unrecognized FASTQ names (expected an R1/R2 or _1/_2 suffix): "
+            + ", ".join(unmatched)
+        )
+    if duplicate_slots:
+        warnings.append(
+            "Duplicate FASTQ read slots detected: " + ", ".join(duplicate_slots)
+        )
+        return []
+
+    manifest_invalid = bool(unmatched)
 
     samples = []
-    all_sample_names = set(r1_files) | set(r2_files)
+    for name in sorted(grouped):
+        lane_records = []
+        invalid = False
+        for lane, reads in sorted(grouped[name].items()):
+            if "R1" not in reads:
+                warnings.append(f"Sample '{name}' lane {lane}: R2 has no R1.")
+                invalid = True
+                manifest_invalid = True
+                continue
+            lane_records.append({
+                "lane": lane,
+                "r1": str(reads["R1"]),
+                "r2": str(reads["R2"]) if "R2" in reads else None,
+            })
+        if invalid or not lane_records:
+            continue
 
-    for name in sorted(all_sample_names):
-        r1 = r1_files.get(name)
-        r2 = r2_files.get(name)
-        paired = r1 is not None and r2 is not None
-
-        if r1 is None and r2 is not None:
-            # Only R2 found — treat as single-end with warning
+        paired_lanes = [lane["r2"] is not None for lane in lane_records]
+        if any(paired_lanes) and not all(paired_lanes):
             warnings.append(
-                f"Sample '{name}': only R2 found, no R1. Skipping."
+                f"Sample '{name}' mixes paired and single-end lanes; refusing "
+                "an ambiguous read layout."
             )
+            manifest_invalid = True
             continue
 
-        if r1 is None:
-            continue
-
+        paired = all(paired_lanes)
         samples.append({
-            "name":   name,
-            "r1":     str(r1),
-            "r2":     str(r2) if r2 else None,
+            "name": name,
+            "read_layout": "paired-end" if paired else "single-end",
             "paired": paired,
+            "lanes": lane_records,
+            # Backward-compatible aliases for single-lane consumers.
+            "r1": lane_records[0]["r1"],
+            "r2": lane_records[0]["r2"],
         })
+
+    if manifest_invalid:
+        return []
 
     if not samples:
         warnings.append(
@@ -179,6 +234,34 @@ def _detect_samples(fastq_dir: Path, warnings: list) -> list[dict]:
         )
 
     return samples
+
+
+def _parse_fastq_name(filename: str) -> tuple[str, str, str] | None:
+    """Return ``(sample, lane, R1|R2)`` for supported FASTQ names."""
+    stem = filename
+    for extension in (".fastq.gz", ".fq.gz", ".fastq", ".fq"):
+        if stem.endswith(extension):
+            stem = stem[:-len(extension)]
+            break
+
+    patterns = (
+        # Standard bcl2fastq / DRAGEN naming. The optional sample-number token
+        # is technical metadata and is not part of the biological sample ID.
+        r"^(?P<sample>.+?)(?:_S\d+)?_(?P<lane>L\d{3})_"
+        r"(?P<read>R[12])(?:_\d+)?$",
+        r"^(?P<sample>.+?)_(?P<read>R[12])(?:_\d+)?$",
+        r"^(?P<sample>.+?)_(?P<read>[12])$",
+    )
+    for pattern in patterns:
+        match = re.match(pattern, stem)
+        if not match:
+            continue
+        read = match.group("read")
+        if read in {"1", "2"}:
+            read = f"R{read}"
+        lane = match.groupdict().get("lane") or "L001"
+        return match.group("sample"), lane, read
+    return None
 
 
 def _fastp_outputs_valid(r1_out: str, r2_out: str, json_out: str,
@@ -214,7 +297,87 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
                threads: int, min_len: int, quality: int,
                warnings: list,
                allow_mock: bool = False) -> dict:
-    """Run fastp on one sample. Idempotent: skips if outputs already valid."""
+    """Run fastp for every lane and aggregate one sample-level result."""
+    name = sample["name"]
+    read_layout = sample.get(
+        "read_layout",
+        "paired-end" if sample.get("paired") else "single-end",
+    )
+    lanes = sample.get("lanes") or [{
+        "lane": "L001",
+        "r1": sample["r1"],
+        "r2": sample.get("r2"),
+    }]
+
+    lane_results = []
+    multiple_lanes = len(lanes) > 1
+    for lane in lanes:
+        lane_name = f"{name}_{lane['lane']}" if multiple_lanes else name
+        lane_result = _run_fastp_lane(
+            sample={
+                "name": lane_name,
+                "r1": lane["r1"],
+                "r2": lane.get("r2"),
+                "paired": read_layout == "paired-end",
+            },
+            trimmed_dir=trimmed_dir,
+            fastp_dir=fastp_dir,
+            threads=threads,
+            min_len=min_len,
+            quality=quality,
+            warnings=warnings,
+            allow_mock=allow_mock,
+        )
+        lane_result["lane"] = lane["lane"]
+        lane_results.append(lane_result)
+
+    failed_lanes = [
+        lane["lane"] for lane in lane_results
+        if lane.get("status") != "success"
+    ]
+    r1_trimmed_files = [lane["r1_trimmed"] for lane in lane_results]
+    r2_trimmed_files = [
+        lane["r2_trimmed"] for lane in lane_results
+        if lane.get("r2_trimmed")
+    ]
+    n_raw = sum(int(lane.get("n_reads_raw", 0)) for lane in lane_results)
+    n_trimmed = sum(
+        int(lane.get("n_reads_trimmed", 0)) for lane in lane_results
+    )
+    q30_numerator = sum(
+        float(lane.get("q30_rate", 0)) * int(lane.get("n_reads_trimmed", 0))
+        for lane in lane_results
+    )
+
+    return {
+        "name": name,
+        "status": "failed" if failed_lanes else "success",
+        "read_layout": read_layout,
+        "paired": read_layout == "paired-end",
+        "lanes": lane_results,
+        "failed_lanes": failed_lanes,
+        "r1_raw": lanes[0]["r1"],
+        "r2_raw": lanes[0].get("r2"),
+        "r1_trimmed": ",".join(r1_trimmed_files),
+        "r2_trimmed": (",".join(r2_trimmed_files)
+                       if r2_trimmed_files else None),
+        "r1_trimmed_files": r1_trimmed_files,
+        "r2_trimmed_files": r2_trimmed_files,
+        "n_reads_raw": n_raw,
+        "n_reads_trimmed": n_trimmed,
+        "pct_passed": round(n_trimmed / max(n_raw, 1) * 100, 1),
+        "q30_rate": round(q30_numerator / max(n_trimmed, 1), 1),
+        "resumed": bool(lane_results) and all(
+            lane.get("resumed") is True for lane in lane_results
+        ),
+    }
+
+
+def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
+                    threads: int, min_len: int, quality: int,
+                    warnings: list,
+                    allow_mock: bool = False) -> dict:
+    """Run fastp on one lane. Idempotent when its stage manifest is current."""
     name   = sample["name"]
     r1_in  = sample["r1"]
     r2_in  = sample.get("r2")

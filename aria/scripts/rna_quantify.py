@@ -12,7 +12,8 @@ Input params:
                        (default: 0, auto-detect if "auto")
   threads:     int   (default: 8)
   feature:     str   (default: "gene") — exon/gene
-  paired:      bool  (default: True)
+  paired:      bool  — legacy fallback when BAM records lack read_layout;
+                       normally inferred from the alignment manifest
 
 Output:
   {
@@ -22,6 +23,7 @@ Output:
     "n_genes":       int,
     "n_samples":     int,
     "strand_used":   int,
+    "read_layout":   "paired-end" | "single-end",
     "warnings":      [str]
   }
 """
@@ -42,7 +44,7 @@ def rna_quantify(params: dict) -> dict:
                                       / "aria_counts")))
     threads    = int(params.get("threads", 8))
     strand     = params.get("strand", 0)     # 0/1/2 or "auto"
-    paired     = bool(params.get("paired", True))
+    paired_param = params.get("paired")
     # Default to "exon" — standard for RNA-seq.
     # Reads overlapping any exon of a gene contribute to that gene's count.
     # Using -t gene would also include intronic reads (DNA contamination noise).
@@ -52,21 +54,84 @@ def rna_quantify(params: dict) -> dict:
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    failed_bams = [
+        b.get("name", "unknown")
+        for b in bam_files
+        if b.get("status") != "success"
+    ]
+    if failed_bams:
+        return {
+            "status": "error",
+            "error_type": "PartialAlignmentInput",
+            "details": (
+                "Quantification is all-or-fail and received unsuccessful "
+                "alignment records."
+            ),
+            "failed_samples": failed_bams,
+        }
+
     # Filter successful BAMs
     valid_bams = [b for b in bam_files
                   if b.get("status") == "success" and b.get("bam")
                   and Path(b["bam"]).exists()]
 
+    missing_bams = [
+        b.get("name", "unknown")
+        for b in bam_files
+        if b.get("status") == "success"
+        and not (b.get("bam") and Path(b["bam"]).exists())
+        and "mock" not in str(b.get("note", ""))
+    ]
+    if missing_bams:
+        return {
+            "status": "error",
+            "error_type": "MissingBamInputs",
+            "details": (
+                "Quantification is all-or-fail and aligned BAMs are missing "
+                f"for: {', '.join(missing_bams)}."
+            ),
+            "failed_samples": missing_bams,
+        }
+
     if not valid_bams:
         # Check for mock BAMs (bam path doesn't exist but has "note": "mock")
         mock_bams = [b for b in bam_files if "mock" in str(b.get("note", ""))]
         if mock_bams and allow_mock:
-            return _mock_counts_matrix(mock_bams, output_dir, warnings)
+            mock_layout = _read_layout_for_bams(mock_bams, paired_param)
+            if mock_layout == "mixed":
+                return {
+                    "status": "error",
+                    "error_type": "MixedReadLayouts",
+                    "details": "Mock BAM records contain mixed read layouts.",
+                }
+            return _mock_counts_matrix(
+                mock_bams, output_dir, warnings, read_layout=mock_layout
+            )
         return {
             "status":     "error",
             "error_type": "NoBamsFound",
             "details":    "No valid BAM files found from alignment step.",
         }
+
+    layouts = {
+        b.get(
+            "read_layout",
+            "paired-end" if b.get("paired", paired_param is not False)
+            else "single-end",
+        )
+        for b in valid_bams
+    }
+    if not layouts <= {"paired-end", "single-end"} or len(layouts) != 1:
+        return {
+            "status": "error",
+            "error_type": "MixedReadLayouts",
+            "details": (
+                "featureCounts requires one explicit read layout per run; "
+                f"received {sorted(layouts)}."
+            ),
+        }
+    read_layout = next(iter(layouts))
+    paired = read_layout == "paired-end"
 
     # ── Auto-detect strandedness if requested ─────────────────────────────
     if strand == "auto":
@@ -103,6 +168,7 @@ def rna_quantify(params: dict) -> dict:
                 "n_genes":       n_genes_resumed,
                 "n_samples":     len(valid_bams),
                 "strand_used":   strand,
+                "read_layout":   read_layout,
                 "sample_names":  sample_names,
                 "warnings":      warnings,
                 "resumed":       True,
@@ -159,6 +225,7 @@ def rna_quantify(params: dict) -> dict:
             "n_genes":       n_genes,
             "n_samples":     len(valid_bams),
             "strand_used":   strand,
+            "read_layout":   read_layout,
             "sample_names":  sample_names,
             "warnings":      warnings,
         }
@@ -169,7 +236,9 @@ def rna_quantify(params: dict) -> dict:
                 "featureCounts not found — using mock counts matrix "
                 "(explicit mock mode)"
             )
-            return _mock_counts_matrix(valid_bams, output_dir, warnings)
+            return _mock_counts_matrix(
+                valid_bams, output_dir, warnings, read_layout=read_layout
+            )
         return {
             "status":     "error",
             "error_type": "MissingDependency",
@@ -516,8 +585,22 @@ def _detect_strandedness(bam: str, gtf: str,
         return inferred, []
 
 
+def _read_layout_for_bams(bam_files: list, paired_param=None) -> str:
+    """Resolve one homogeneous read layout, preserving the legacy default."""
+    layouts = {
+        b.get(
+            "read_layout",
+            "paired-end" if b.get("paired", paired_param is not False)
+            else "single-end",
+        )
+        for b in bam_files
+    }
+    return next(iter(layouts)) if len(layouts) == 1 else "mixed"
+
+
 def _mock_counts_matrix(bam_files: list, output_dir: Path,
-                         warnings: list) -> dict:
+                         warnings: list,
+                         read_layout: str = "paired-end") -> dict:
     """Generate mock counts matrix when featureCounts not available."""
     import numpy as np
     import pandas as pd
@@ -553,6 +636,7 @@ def _mock_counts_matrix(bam_files: list, output_dir: Path,
         "n_genes":       n_genes,
         "n_samples":     len(samples),
         "strand_used":   0,
+        "read_layout":   read_layout,
         "sample_names":  samples,
         "warnings":      warnings,
         "note":          "mock",

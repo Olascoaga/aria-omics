@@ -11,7 +11,7 @@ Handles:
   - Alignment QC metrics (% mapped, multimappers)
 
 Input params:
-  samples:        list  — from rna_fastq_qc output
+  samples:        list  — sample/lane/read-layout manifest from rna_fastq_qc
   genome_dir:     str   — STAR genome index directory
   genome_fasta:   str   — (optional) FASTA for building index if missing
   gtf_file:       str   — GTF annotation file
@@ -22,7 +22,7 @@ Input params:
 Output:
   {
     "status":   "success",
-    "bam_files": [{"sample", "bam", "pct_mapped", "pct_unique", "n_reads"}],
+    "bam_files": [{"name", "bam", "read_layout", "pct_unique", "n_reads"}],
     "output_dir": str,
     "warnings":  [str]
   }
@@ -65,6 +65,28 @@ def rna_align(params: dict) -> dict:
     warnings   = []
 
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    if not samples:
+        return {
+            "status": "error",
+            "error_type": "NoSamples",
+            "details": "No QC sample manifest was provided for alignment.",
+            "warnings": warnings,
+        }
+
+    upstream_failed = [
+        sample.get("name", "unknown")
+        for sample in samples
+        if sample.get("status") not in (None, "success")
+    ]
+    if upstream_failed:
+        return {
+            "status": "error",
+            "error_type": "UpstreamFastqQCFailure",
+            "details": "STAR alignment requires every QC sample to succeed.",
+            "failed_samples": upstream_failed,
+            "warnings": warnings,
+        }
 
     # ── Build genome index if needed ──────────────────────────────────────
     index_manifest = str(genome_dir / _INDEX_MANIFEST)
@@ -117,12 +139,6 @@ def rna_align(params: dict) -> dict:
     # ── Align each sample ─────────────────────────────────────────────────
     bam_files = []
     for sample in samples:
-        if sample.get("status") == "failed":
-            warnings.append(
-                f"Skipping {sample['name']} — QC failed upstream"
-            )
-            continue
-
         result = _align_sample(
             sample=sample,
             genome_dir=genome_dir,
@@ -138,11 +154,21 @@ def rna_align(params: dict) -> dict:
         bam_files.append(result)
 
     n_ok = sum(1 for b in bam_files if b.get("status") == "success")
-    if n_ok == 0:
+    failed_samples = [
+        result.get("name", "unknown")
+        for result in bam_files
+        if result.get("status") != "success"
+    ]
+    if failed_samples:
         return {
             "status":     "error",
-            "error_type": "AllAlignmentsFailed",
-            "details":    "No samples aligned successfully.",
+            "error_type": "PartialAlignmentFailure",
+            "details":    (
+                "STAR alignment is all-or-fail; one or more samples did not "
+                "complete successfully."
+            ),
+            "failed_samples": failed_samples,
+            "bam_files": bam_files,
             "warnings":   warnings,
         }
 
@@ -222,26 +248,44 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
                   star_version: str = "") -> dict:
     """Align one sample with STAR. Idempotent: skips if BAM already valid."""
     name   = sample["name"]
-    r1     = sample.get("r1_trimmed") or sample.get("r1")
-    r2     = sample.get("r2_trimmed") or sample.get("r2")
-    paired = sample.get("paired", r2 is not None)
+    r1_files = sample.get("r1_trimmed_files") or [
+        sample.get("r1_trimmed") or sample.get("r1")
+    ]
+    r2_files = sample.get("r2_trimmed_files") or [
+        path for path in [sample.get("r2_trimmed") or sample.get("r2")]
+        if path
+    ]
+    read_layout = sample.get(
+        "read_layout",
+        "paired-end" if sample.get("paired", bool(r2_files)) else "single-end",
+    )
+    paired = read_layout == "paired-end"
+    r1 = ",".join(r1_files)
+    r2 = ",".join(r2_files) if r2_files else None
 
     sample_dir = output_dir / name
     sample_dir.mkdir(exist_ok=True)
     prefix = str(sample_dir / f"{name}_")
 
     result = {
-        "name":   name,
-        "status": "pending",
+        "name":        name,
+        "status":      "pending",
+        "read_layout": read_layout,
+        "paired":      paired,
     }
 
     # A4: content-addressed resume manifest for this alignment stage. Inputs are
     # the trimmed reads plus the genome-index reference (its own manifest when
     # present, so a rebuilt index invalidates alignment through the DAG).
     manifest_path = str(sample_dir / f"{name}.align.stage.json")
-    stage_inputs = [("r1", r1), ("r2", r2 if paired else None),
-                    ("index", index_ref)]
-    stage_params = {"two_pass": two_pass}
+    stage_inputs = [
+        *[(f"r1_lane_{index}", path)
+          for index, path in enumerate(r1_files, start=1)],
+        *[(f"r2_lane_{index}", path)
+          for index, path in enumerate(r2_files, start=1)],
+        ("index", index_ref),
+    ]
+    stage_params = {"two_pass": two_pass, "read_layout": read_layout}
 
     # ── Resume check: valid BAM AND the stage manifest still matches? ─────
     bam_path = Path(f"{prefix}Aligned.sortedByCoord.out.bam")

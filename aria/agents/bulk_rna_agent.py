@@ -720,21 +720,52 @@ class BulkRNAAgent(BaseAgent):
         fastq_dir, output_dir, genome_cfg = str(Path(fastq_files[0]).parent), str(Path(fastq_files[0]).parent.parent / "aria_processing"), exp_ctx.get("genome_config", {})
 
         self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
-        qc_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_fastq_qc.py", {"fastq_dir": fastq_dir, "output_dir": str(Path(output_dir) / "qc"), "threads": 8})
+        qc_result = self.env.run_in_stack(
+            "rnaseq",
+            "aria/scripts/rna_fastq_qc.py",
+            {
+                "fastq_dir": fastq_dir,
+                "fastq_files": fastq_files,
+                "output_dir": str(Path(output_dir) / "qc"),
+                "threads": 8,
+            },
+        )
         if qc_result.get("status") == "error": return None, qc_result
 
         self._publish_fastq_qc_findings(experiment_id, qc_result)
         self.publish_status(experiment_id, f"QC complete: {qc_result.get('n_samples',0)} samples trimmed", 0.20)
 
         self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
-        align_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_align.py", {"samples": qc_result.get("samples", []), "genome_dir": genome_cfg.get("star_index", ""), "genome_fasta": genome_cfg.get("fasta", ""), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "aligned"), "threads": 8, "two_pass": True})
+        align_result = self.env.run_in_stack(
+            "rnaseq",
+            "aria/scripts/rna_align.py",
+            {
+                "samples": qc_result.get("samples", []),
+                "genome_dir": genome_cfg.get("star_index", ""),
+                "genome_fasta": genome_cfg.get("fasta", ""),
+                "gtf_file": genome_cfg.get("gtf", ""),
+                "output_dir": str(Path(output_dir) / "aligned"),
+                "threads": 8,
+                "two_pass": True,
+            },
+        )
         if align_result.get("status") == "error": return None, align_result
 
         self._publish_alignment_findings(experiment_id, align_result)
         self.publish_status(experiment_id, f"Alignment complete: {align_result.get('n_aligned', 0)} samples mapped", 0.55)
 
         self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
-        quant_result = self.env.run_in_stack("rnaseq", "aria/scripts/rna_quantify.py", {"bam_files": align_result.get("bam_files", []), "gtf_file": genome_cfg.get("gtf", ""), "output_dir": str(Path(output_dir) / "counts"), "threads": 8, "paired": True, "strand": genome_cfg.get("strand", "auto")})
+        quant_result = self.env.run_in_stack(
+            "rnaseq",
+            "aria/scripts/rna_quantify.py",
+            {
+                "bam_files": align_result.get("bam_files", []),
+                "gtf_file": genome_cfg.get("gtf", ""),
+                "output_dir": str(Path(output_dir) / "counts"),
+                "threads": 8,
+                "strand": genome_cfg.get("strand", "auto"),
+            },
+        )
         if quant_result.get("status") == "error": return None, quant_result
 
         self.publish_finding(experiment_id, {"summary": f"Quantification complete: {quant_result.get('n_genes',0):,} genes × {quant_result.get('n_samples',0)} samples"}, Confidence.HIGH)

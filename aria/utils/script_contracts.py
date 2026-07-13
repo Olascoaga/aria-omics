@@ -668,9 +668,11 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         validation_level="beta",
         inputs=(
             _f("fastq_dir", "str", allow_empty=False),
+            _f("fastq_files", "list", required=False, allow_empty=False),
         ),
         success_outputs=(
-            _f("n_reads_raw", "int", required=False),
+            _f("samples", "list", allow_empty=False),
+            _f("n_samples", "int"),
         ),
     ),
     "aria/scripts/rna_align.py": ScriptContract(
@@ -681,7 +683,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("genome_dir", "str", allow_empty=False),
         ),
         success_outputs=(
-            _f("bam_files", "list", required=False),
+            _f("bam_files", "list", allow_empty=False),
+            _f("n_aligned", "int"),
         ),
     ),
     "aria/scripts/rna_quantify.py": ScriptContract(
@@ -692,7 +695,8 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("gtf_file", "str", allow_empty=False),
         ),
         success_outputs=(
-            _f("counts_matrix", "any", required=False),
+            _f("counts_matrix", "any"),
+            _f("read_layout", "str"),
         ),
     ),
     "aria/scripts/atac_align.py": ScriptContract(
