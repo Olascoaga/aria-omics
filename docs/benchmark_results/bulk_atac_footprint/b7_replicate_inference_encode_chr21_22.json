@@ -1,0 +1,417 @@
+{
+  "aria_version": "4.7.0",
+  "benchmark": "B4_bulk_footprint_tobias_bindetect",
+  "caveats": [
+    "Differential TF binding is an associative footprint-signal difference between conditions, not causal regulation.",
+    "Inferential calls require explicit biological-replicate identity; legacy per-condition pools remain descriptive."
+  ],
+  "dataset": "ENCODE_K562_vs_GM12878_chr21_chr22",
+  "design": {
+    "contrast": "K562_vs_GM12878",
+    "feature_space": "called peaks (ATACorrect restricted to peaks)",
+    "group_a": "K562",
+    "group_b": "GM12878",
+    "inference": {
+      "excluded_unpaired_replicates": [],
+      "inferential_unit": "biological_replicate_or_donor",
+      "low_power_warning": true,
+      "minimum_replicates_per_condition": 2,
+      "multiple_testing": "benjamini_hochberg_across_motifs",
+      "null_label_controls": {
+        "fraction_with_any_discoveries": 0.0,
+        "max_discovery_fraction": 0.0,
+        "mean_discovery_fraction": 0.0,
+        "method": "condition_label_permutation_with_bh",
+        "n_permutations": 4,
+        "observed_labels_excluded": true,
+        "role": "diagnostic_only_not_a_post_hoc_significance_gate"
+      },
+      "pairing_status": "independent",
+      "replicates_per_condition": {
+        "GM12878": 2,
+        "K562": 2
+      },
+      "status": "success",
+      "test": "welch_t_test_on_replicate_mean_scores"
+    },
+    "method": "tobias_replicate_atacorrect_scorebigwig_bindetect_welch_bh",
+    "motifs": "JASPAR2024 CORE vertebrates (MEME)",
+    "n_reads_per_analysis_bam": {
+      "GM12878_rep1_GM12878_bio1": 5369868,
+      "GM12878_rep2_GM12878_bio2": 4501900,
+      "K562_rep1_K562_bio1": 2020038,
+      "K562_rep2_K562_bio2": 1773766
+    },
+    "region_scope": "chr21_chr22"
+  },
+  "differential_summary": {
+    "alpha": 0.05,
+    "full_results_table_emitted": true,
+    "inference": {
+      "excluded_unpaired_replicates": [],
+      "inferential_unit": "biological_replicate_or_donor",
+      "low_power_warning": true,
+      "minimum_replicates_per_condition": 2,
+      "multiple_testing": "benjamini_hochberg_across_motifs",
+      "null_label_controls": {
+        "fraction_with_any_discoveries": 0.0,
+        "max_discovery_fraction": 0.0,
+        "mean_discovery_fraction": 0.0,
+        "method": "condition_label_permutation_with_bh",
+        "n_permutations": 4,
+        "observed_labels_excluded": true,
+        "role": "diagnostic_only_not_a_post_hoc_significance_gate"
+      },
+      "pairing_status": "independent",
+      "replicates_per_condition": {
+        "GM12878": 2,
+        "K562": 2
+      },
+      "status": "success",
+      "test": "welch_t_test_on_replicate_mean_scores"
+    },
+    "n_motifs_tested": 879,
+    "n_significant": 209,
+    "parsed": true,
+    "top_toward_GM12878": [
+      {
+        "change": -1.9218,
+        "mean_score_a": 2.00487,
+        "mean_score_b": 3.926635,
+        "motif_id": "MA0652.2",
+        "n_sites": 1665,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.00027799482744163403,
+        "tf": "IRF8"
+      },
+      {
+        "change": -1.8751,
+        "mean_score_a": 1.9490349999999999,
+        "mean_score_b": 3.8241199999999997,
+        "motif_id": "MA1419.2",
+        "n_sites": 1449,
+        "padj": 0.045974423672647174,
+        "pvalue": 0.009948454610447589,
+        "tf": "IRF4"
+      },
+      {
+        "change": -1.6677,
+        "mean_score_a": 1.77189,
+        "mean_score_b": 3.439595,
+        "motif_id": "MA0653.1",
+        "n_sites": 2121,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.000432399854914096,
+        "tf": "IRF9"
+      },
+      {
+        "change": -1.4179,
+        "mean_score_a": 3.97391,
+        "mean_score_b": 5.39183,
+        "motif_id": "MA0762.2",
+        "n_sites": 1230,
+        "padj": 0.039997955038366395,
+        "pvalue": 0.007341388734404359,
+        "tf": "ETV2"
+      },
+      {
+        "change": -1.3653,
+        "mean_score_a": 3.23791,
+        "mean_score_b": 4.6032,
+        "motif_id": "MA0101.1",
+        "n_sites": 1739,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.006574987409562839,
+        "tf": "REL"
+      },
+      {
+        "change": -1.3225,
+        "mean_score_a": 2.267465,
+        "mean_score_b": 3.58996,
+        "motif_id": "MA1420.1",
+        "n_sites": 1136,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0011629666999441411,
+        "tf": "IRF5"
+      },
+      {
+        "change": -1.2428,
+        "mean_score_a": 1.7168100000000002,
+        "mean_score_b": 2.9595849999999997,
+        "motif_id": "MA0051.2",
+        "n_sites": 2319,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.004160910884411192,
+        "tf": "IRF2"
+      },
+      {
+        "change": -1.1414,
+        "mean_score_a": 2.90027,
+        "mean_score_b": 4.041675,
+        "motif_id": "MA0107.1",
+        "n_sites": 2215,
+        "padj": 0.04590314820859347,
+        "pvalue": 0.009716819901239305,
+        "tf": "RELA"
+      },
+      {
+        "change": -1.0768,
+        "mean_score_a": 1.4617650000000002,
+        "mean_score_b": 2.538595,
+        "motif_id": "MA0050.4",
+        "n_sites": 5405,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.004449748114107057,
+        "tf": "Irf1"
+      },
+      {
+        "change": -1.0036,
+        "mean_score_a": 3.286735,
+        "mean_score_b": 4.29037,
+        "motif_id": "MA1130.2",
+        "n_sites": 1602,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0058512418456648525,
+        "tf": "FOSL2::JUN"
+      },
+      {
+        "change": -1.0032,
+        "mean_score_a": 3.12278,
+        "mean_score_b": 4.125985,
+        "motif_id": "MA1134.2",
+        "n_sites": 1582,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0056077286279751426,
+        "tf": "FOS::JUNB"
+      },
+      {
+        "change": -0.9939,
+        "mean_score_a": 3.16337,
+        "mean_score_b": 4.157275,
+        "motif_id": "MA1144.2",
+        "n_sites": 1547,
+        "padj": 0.04260664457207316,
+        "pvalue": 0.008143249474525929,
+        "tf": "FOSL2::JUND"
+      },
+      {
+        "change": -0.9886,
+        "mean_score_a": 1.4896699999999998,
+        "mean_score_b": 2.4782349999999997,
+        "motif_id": "MA0772.2",
+        "n_sites": 3001,
+        "padj": 0.04273613527806435,
+        "pvalue": 0.008216617590435581,
+        "tf": "IRF7"
+      },
+      {
+        "change": -0.9852,
+        "mean_score_a": 3.0783300000000002,
+        "mean_score_b": 4.06349,
+        "motif_id": "MA1141.2",
+        "n_sites": 1807,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.006307559501605947,
+        "tf": "FOS::JUND"
+      },
+      {
+        "change": -0.985,
+        "mean_score_a": 1.8000699999999998,
+        "mean_score_b": 2.7851,
+        "motif_id": "MA1418.2",
+        "n_sites": 3411,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0010920515866832698,
+        "tf": "IRF3"
+      }
+    ],
+    "top_toward_K562": [
+      {
+        "change": 2.5447,
+        "mean_score_a": 8.68325,
+        "mean_score_b": 6.138540000000001,
+        "motif_id": "MA0014.4",
+        "n_sites": 693,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.002268816334320501,
+        "tf": "PAX5"
+      },
+      {
+        "change": 1.7444,
+        "mean_score_a": 7.327595,
+        "mean_score_b": 5.5832250000000005,
+        "motif_id": "MA1584.2",
+        "n_sites": 2352,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.004412105534646828,
+        "tf": "ZIC5"
+      },
+      {
+        "change": 1.5289,
+        "mean_score_a": 7.129255000000001,
+        "mean_score_b": 5.600334999999999,
+        "motif_id": "MA2094.1",
+        "n_sites": 661,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0028573886532121144,
+        "tf": "PAX8"
+      },
+      {
+        "change": 1.5156,
+        "mean_score_a": 5.415570000000001,
+        "mean_score_b": 3.900015,
+        "motif_id": "MA1552.2",
+        "n_sites": 985,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0017067466612012963,
+        "tf": "RARB"
+      },
+      {
+        "change": 1.4296,
+        "mean_score_a": 7.27453,
+        "mean_score_b": 5.84498,
+        "motif_id": "MA2325.1",
+        "n_sites": 419,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.004837505344753023,
+        "tf": "EPAS1"
+      },
+      {
+        "change": 1.2188,
+        "mean_score_a": 6.119165,
+        "mean_score_b": 4.90041,
+        "motif_id": "MA0006.2",
+        "n_sites": 7931,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0022887322831170614,
+        "tf": "Ahr::Arnt"
+      },
+      {
+        "change": 1.0305,
+        "mean_score_a": 4.03498,
+        "mean_score_b": 3.00447,
+        "motif_id": "MA1538.1",
+        "n_sites": 1078,
+        "padj": 0.047134745403442486,
+        "pvalue": 0.01074668342815933,
+        "tf": "NR2F1"
+      },
+      {
+        "change": 0.9987,
+        "mean_score_a": 4.722275,
+        "mean_score_b": 3.7235750000000003,
+        "motif_id": "MA1556.1",
+        "n_sites": 1421,
+        "padj": 0.04614276762217738,
+        "pvalue": 0.010183955538910595,
+        "tf": "RXRG"
+      },
+      {
+        "change": 0.9873,
+        "mean_score_a": 6.111219999999999,
+        "mean_score_b": 5.12387,
+        "motif_id": "MA0872.1",
+        "n_sites": 2197,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0006762779261285333,
+        "tf": "TFAP2A"
+      },
+      {
+        "change": 0.9824,
+        "mean_score_a": 6.0685,
+        "mean_score_b": 5.086065,
+        "motif_id": "MA0815.1",
+        "n_sites": 2019,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0015916040369394844,
+        "tf": "TFAP2C"
+      },
+      {
+        "change": 0.958,
+        "mean_score_a": 4.597045,
+        "mean_score_b": 3.639075,
+        "motif_id": "MA1596.1",
+        "n_sites": 11803,
+        "padj": 0.04923060747117069,
+        "pvalue": 0.011649563542666101,
+        "tf": "ZNF460"
+      },
+      {
+        "change": 0.9499,
+        "mean_score_a": 5.4809,
+        "mean_score_b": 4.53104,
+        "motif_id": "MA0524.3",
+        "n_sites": 3162,
+        "padj": 0.04282459226708392,
+        "pvalue": 0.008333700268121374,
+        "tf": "TFAP2C"
+      },
+      {
+        "change": 0.8952,
+        "mean_score_a": 4.79936,
+        "mean_score_b": 3.904135,
+        "motif_id": "MA1514.2",
+        "n_sites": 3979,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.005175099287071271,
+        "tf": "KLF17"
+      },
+      {
+        "change": 0.8904,
+        "mean_score_a": 5.2443550000000005,
+        "mean_score_b": 4.35399,
+        "motif_id": "MA1976.2",
+        "n_sites": 6848,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.0040250157650029445,
+        "tf": "ZNF320"
+      },
+      {
+        "change": 0.8829,
+        "mean_score_a": 4.125945,
+        "mean_score_b": 3.2430849999999998,
+        "motif_id": "MA1600.2",
+        "n_sites": 2875,
+        "padj": 0.03819451309115191,
+        "pvalue": 0.006099705901869145,
+        "tf": "ZNF684"
+      }
+    ]
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "aria-env",
+      "source": "no_lock"
+    },
+    "git_commit": "215d21a8fa6b80f006613c6819be07bc0322ebd3",
+    "git_describe": "v4.7.0-239-g215d21a",
+    "git_dirty": false,
+    "git_sha": "215d21a8fa6b80f006613c6819be07bc0322ebd3",
+    "git_tree_sha": "82307690b1ee048fbac4ee323376d14635ebb297",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "3abba7b52ea483c68f978fbfc993561beb65117b479a4080ebc28506bb017a26",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "ran": true,
+  "reason": null,
+  "scope": "differential_tf_binding_between_conditions_via_tobias",
+  "validation_scope": {
+    "genome_wide_sensitivity": false,
+    "note": "A restricted region scope validates replicate inference, null controls, and real-data plumbing; it does not estimate genome-wide sensitivity.",
+    "replicate_inference": true
+  }
+}
