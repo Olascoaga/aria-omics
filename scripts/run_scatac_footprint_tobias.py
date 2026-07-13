@@ -93,11 +93,14 @@ def main(argv: list[str] | None = None) -> int:
             summary, rna_means, args.group_a, args.group_b)
 
     from aria.version import __version__, collect_version_metadata
+    provenance = collect_version_metadata()
+    if isinstance(provenance.get("environment"), dict):
+        provenance["environment"]["conda_prefix"] = None
     manifest = {
         "benchmark": "P4.3_footprint_tobias_bindetect",
         "scope": "differential_tf_binding_between_cell_types_via_tobias",
         "aria_version": __version__,
-        "provenance": collect_version_metadata(),
+        "provenance": provenance,
         "dataset": args.dataset or Path(args.fragments_file).stem,
         "design": {
             "method": driver.get("method"),

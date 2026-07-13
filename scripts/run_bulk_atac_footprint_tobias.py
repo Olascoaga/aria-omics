@@ -99,11 +99,14 @@ def main(argv: list[str] | None = None) -> int:
     inference = summary.get("inference") or {}
 
     from aria.version import __version__, collect_version_metadata
+    provenance = collect_version_metadata()
+    if isinstance(provenance.get("environment"), dict):
+        provenance["environment"]["conda_prefix"] = None
     manifest = {
         "benchmark": "B4_bulk_footprint_tobias_bindetect",
         "scope": "differential_tf_binding_between_conditions_via_tobias",
         "aria_version": __version__,
-        "provenance": collect_version_metadata(),
+        "provenance": provenance,
         "dataset": args.dataset or Path(args.replicate_bams or args.condition_bams).stem,
         "design": {
             "method": driver.get("method"),

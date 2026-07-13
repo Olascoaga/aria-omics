@@ -335,3 +335,6 @@ def test_standalone_bulk_wrapper_propagates_repo_pythonpath(tmp_path, monkeypatc
     child = next(call for call in captured
                  if "aria-tobias-env" in call["command"])
     assert str(wrapper.ROOT) in child["env"]["PYTHONPATH"].split(":")
+    manifest = json.loads((tmp_path / "out" /
+                           "b4_bulk_footprint_tobias_bindetect.json").read_text())
+    assert manifest["provenance"]["environment"]["conda_prefix"] is None
