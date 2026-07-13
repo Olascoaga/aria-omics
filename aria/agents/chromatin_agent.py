@@ -224,6 +224,11 @@ class ChromatinAgent(BaseAgent):
                     and frag_attempt.get("status") == "success"
                     and frag_attempt.get("fragments_file")):
                 files = [frag_attempt["fragments_file"]]
+                if frag_attempt.get("library_manifest"):
+                    exp_ctx["scatac_fastq_manifest"] = {
+                        "schema_version": "1",
+                        "libraries": frag_attempt["library_manifest"],
+                    }
             else:
                 return {"status": "done", "findings": findings,
                         "reason": frag_attempt.get("reason")
@@ -376,29 +381,56 @@ class ChromatinAgent(BaseAgent):
         if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
             peak_file = (peaks_result.get("consensus_peaks_path")
                          or peaks_result.get("peaks_path"))
+        params = {
+            "fragments_file": frag,
+            "genome": exp_ctx.get("genome", "hg38"),
+            "peak_file": peak_file,
+            "output_dir": str(Path(frag).parent / "aria_chromatin"),
+            "min_fragments": int(exp_ctx.get("min_fragments", 1000)),
+            "resolution": exp_ctx.get("leiden_resolution", 1.0),
+        }
+        library_manifest = (
+            (exp_ctx.get("scatac_fastq_manifest") or {}).get("libraries")
+        )
+        if library_manifest:
+            params["library_manifest"] = library_manifest
         return self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_fragments_to_matrix.py",
-            params={
-                "fragments_file": frag,
-                "genome": exp_ctx.get("genome", "hg38"),
-                "peak_file": peak_file,
-                "output_dir": str(Path(frag).parent / "aria_chromatin"),
-                "min_fragments": int(exp_ctx.get("min_fragments", 1000)),
-                "resolution": exp_ctx.get("leiden_resolution", 1.0),
-            },
+            params=params,
         )
 
     def _run_scatac_fastq_to_fragments(self, experiment_id: str, exp_ctx: dict,
                                        files: list) -> dict:
         """Dispatch the chromap scATAC FASTQ->fragments front-end (atacseq stack).
 
-        The barcode read cannot be inferred from the genomic FASTQs, so the
-        barcode read + whitelist must be explicit (exp_context); otherwise this
-        honestly skips and the raw FASTQ goes no further. The genomic mates fall
-        back to positional R1/R3 detection among the inputs.
+        E5: a typed manifest is authoritative and may carry multiple libraries.
+        The legacy single-library keys remain accepted for compatibility, but
+        filenames never decide library/sample/donor identity.
         """
         fastqs = [f for f in files if _is_fastq([f])]
+        from aria.utils.scatac_fastq_manifest import (
+            resolve_scatac_fastq_manifest,
+        )
+        manifest_result = exp_ctx.get("scatac_fastq_manifest_validation")
+        if not isinstance(manifest_result, dict) or manifest_result.get("status") == "missing":
+            manifest_result = resolve_scatac_fastq_manifest(
+                exp_ctx, require_paths=True
+            )
+
+        libraries = None
+        if manifest_result.get("status") == "invalid":
+            return {
+                "status": "skipped",
+                "ran": False,
+                "analysis": "scatac_fastq_to_fragments",
+                "reason": "invalid_scatac_fastq_manifest",
+                "errors": list(manifest_result.get("errors") or []),
+                "message": "The typed scATAC FASTQ manifest is invalid.",
+            }
+        if manifest_result.get("status") == "valid":
+            libraries = manifest_result["manifest"]["libraries"]
+
         r1 = exp_ctx.get("r1_fastq") or _pick_read(fastqs, ("_r1", "_R1"))
         r3 = (exp_ctx.get("r3_fastq") or exp_ctx.get("r2_fastq")
               or _pick_read(fastqs, ("_r3", "_R3")))
@@ -406,7 +438,7 @@ class ChromatinAgent(BaseAgent):
         whitelist = (exp_ctx.get("barcode_whitelist")
                      or exp_ctx.get("cell_barcode_whitelist"))
 
-        if not barcode or not whitelist:
+        if libraries is None and (not barcode or not whitelist):
             return {"status": "skipped", "ran": False,
                     "analysis": "scatac_fastq_to_fragments",
                     "reason": "missing_barcode_inputs",
@@ -430,18 +462,31 @@ class ChromatinAgent(BaseAgent):
 
         self.publish_status(
             experiment_id, "scATAC FASTQ alignment (chromap)...", 0.05)
-        return self.env.run_in_stack(
-            stack="atacseq",
-            script_path="aria/scripts/chromatin_scatac_align.py",
-            params={
-                "r1_fastq": r1, "r3_fastq": r3, "barcode_fastq": barcode,
-                "genome_fasta": genome_fasta,
-                "chromap_index": exp_ctx.get("chromap_index"),
+        params = {
+            "genome_fasta": genome_fasta,
+            "chromap_index": exp_ctx.get("chromap_index"),
+            "threads": int(exp_ctx.get("threads", 8)),
+        }
+        if libraries is not None:
+            first_r1 = libraries[0]["fastqs"]["R1"]
+            params.update({
+                "libraries": libraries,
+                "output_dir": str(Path(first_r1).parent
+                                  / "aria_scatac_aligned"),
+            })
+        else:
+            params.update({
+                "r1_fastq": r1,
+                "r3_fastq": r3,
+                "barcode_fastq": barcode,
                 "barcode_whitelist": whitelist,
                 "output_dir": str(Path((r1 or barcode)).parent
                                   / "aria_scatac_aligned"),
-                "threads": int(exp_ctx.get("threads", 8)),
-            },
+            })
+        return self.env.run_in_stack(
+            stack="atacseq",
+            script_path="aria/scripts/chromatin_scatac_align.py",
+            params=params,
         )
 
     def _resolve_da_design(self, exp_ctx: dict) -> dict:

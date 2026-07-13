@@ -14,6 +14,9 @@ chromap is the open-source single-cell ATAC aligner (it handles the cell barcode
 single-cell analogue of atac_align.py (bulk, bwa-mem2).
 
 Input params:
+  libraries:       list — E5 typed multi-library manifest rows; when present,
+                          each row supplies R1/R2/R3 + whitelist + identities
+                          and the single-library keys below are ignored
   r1_fastq:        str  — genomic read 1 (10x ATAC R1)
   r3_fastq:        str  — genomic read 2 (10x ATAC R3; "r2_fastq" also accepted
                           for the genomic mate when no separate barcode key)
@@ -30,6 +33,8 @@ Output:
     "fragments_file": str,    — bgzipped, tabix-indexed fragments.tsv.gz
     "aligner": "chromap",
     "n_fragments": int,
+    "n_libraries": int,
+    "library_manifest": list, — barcode prefix → library/sample/donor metadata
     "warnings": [str]
   }
   Missing chromap/samtools or required inputs -> structured not-run (never a
@@ -37,6 +42,8 @@ Output:
 """
 
 from __future__ import annotations
+import gzip
+import json
 import os
 import subprocess
 import sys
@@ -47,6 +54,9 @@ from aria.scripts._base import run_script
 
 
 def chromatin_scatac_align(params: dict) -> dict:
+    if params.get("libraries") is not None:
+        return _align_libraries(params)
+
     r1 = params.get("r1_fastq")
     r3 = params.get("r3_fastq") or params.get("r2_fastq")
     barcode = params.get("barcode_fastq")
@@ -137,6 +147,178 @@ def chromatin_scatac_align(params: dict) -> dict:
         "validation_level": "beta",
         "warnings": warnings,
     }
+
+
+def _align_libraries(params: dict) -> dict:
+    """Align every typed library, then build one identity-preserving union."""
+    from aria.utils.scatac_fastq_manifest import resolve_scatac_fastq_manifest
+
+    validation = resolve_scatac_fastq_manifest(
+        {
+            "data_dir": params.get("output_dir") or ".",
+            "scatac_fastq_manifest": {
+                "schema_version": "1",
+                "libraries": params.get("libraries"),
+            },
+        },
+        require_paths=True,
+    )
+    if validation.get("status") != "valid":
+        return {
+            "status": "skipped",
+            "ran": False,
+            "analysis": "scatac_fastq_to_fragments",
+            "reason": "invalid_scatac_fastq_manifest",
+            "errors": list(validation.get("errors") or []),
+            "warnings": [],
+        }
+
+    libraries = validation["manifest"]["libraries"]
+    genome_fasta = params.get("genome_fasta")
+    output_dir = Path(params.get("output_dir") or "aria_scatac_aligned")
+    output_dir.mkdir(parents=True, exist_ok=True)
+    results = []
+    for row in libraries:
+        roles = row["fastqs"]
+        result = chromatin_scatac_align({
+            "r1_fastq": roles["R1"],
+            "barcode_fastq": roles["R2"],
+            "r3_fastq": roles["R3"],
+            "genome_fasta": genome_fasta,
+            "chromap_index": params.get("chromap_index"),
+            "barcode_whitelist": row["barcode_whitelist"],
+            "output_dir": str(output_dir / row["library_id"]),
+            "threads": params.get("threads", 8),
+        })
+        results.append({
+            **row,
+            "status": result.get("status"),
+            "fragments_file": result.get("fragments_file"),
+            "alignment": result,
+        })
+
+    failed = [
+        row["library_id"] for row in results
+        if row.get("status") != "success" or not row.get("fragments_file")
+    ]
+    if failed:
+        return {
+            "status": "skipped",
+            "ran": False,
+            "analysis": "scatac_fastq_to_fragments",
+            "reason": "partial_library_alignment_failure",
+            "failed_libraries": failed,
+            "library_results": results,
+            "warnings": [],
+        }
+
+    combined_plain = output_dir / "combined.fragments.tsv"
+    merged = _merge_library_fragments(results, combined_plain)
+    if merged.get("status") != "success":
+        return {
+            "status": "skipped",
+            "ran": False,
+            "analysis": "scatac_fastq_to_fragments",
+            "reason": "fragment_union_failed",
+            "message": merged.get("message"),
+            "library_results": results,
+            "warnings": [],
+        }
+
+    library_manifest = [
+        {
+            "library_id": row["library_id"],
+            "sample_id": row["sample_id"],
+            "donor_id": row["donor_id"],
+            "fastqs": row["fastqs"],
+            "barcode_whitelist": row["barcode_whitelist"],
+            "metadata": row["metadata"],
+            "barcode_prefix": merged["barcode_prefixes"][row["library_id"]],
+            "fragments_file": row["fragments_file"],
+        }
+        for row in results
+    ]
+    manifest_path = output_dir / "library_manifest.json"
+    manifest_path.write_text(json.dumps({
+        "schema_version": "1",
+        "libraries": library_manifest,
+    }, indent=2, sort_keys=True), encoding="utf-8")
+
+    combined_gz = output_dir / "combined.fragments.tsv.gz"
+    warnings = []
+    compressed = _bgzip_tabix(combined_plain, combined_gz, warnings)
+    if compressed == "ok":
+        fragments_file = combined_gz
+        n_fragments = _count_gz_lines(combined_gz)
+    else:
+        warnings.append(
+            f"bgzip/tabix unavailable ({compressed}); leaving plain TSV"
+        )
+        fragments_file = combined_plain
+        n_fragments = _count_lines(combined_plain)
+
+    return {
+        "status": "success",
+        "ran": True,
+        "analysis": "scatac_fastq_to_fragments",
+        "fragments_file": str(fragments_file),
+        "aligner": "chromap",
+        "n_fragments": n_fragments,
+        "n_libraries": len(library_manifest),
+        "library_manifest": library_manifest,
+        "library_manifest_path": str(manifest_path),
+        "library_results": results,
+        "compressed": compressed == "ok",
+        "warnings": warnings,
+        "validation_level": "beta",
+    }
+
+
+def _merge_library_fragments(records: list[dict], output_path: Path) -> dict:
+    """Union fragments and prefix barcodes so library identity cannot collide."""
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    unsorted = output_path.with_suffix(output_path.suffix + ".unsorted")
+    prefixes = {
+        str(row["library_id"]): f"{row['library_id']}#" for row in records
+    }
+    try:
+        with open(unsorted, "w", encoding="utf-8") as destination:
+            for row in records:
+                source = Path(row["fragments_file"])
+                opener = gzip.open if source.suffix == ".gz" else open
+                with opener(source, "rt", encoding="utf-8") as handle:
+                    for line in handle:
+                        if not line.strip() or line.startswith("#"):
+                            continue
+                        fields = line.rstrip("\n").split("\t")
+                        if len(fields) < 4:
+                            return {
+                                "status": "error",
+                                "message": f"invalid fragments row in {source}",
+                            }
+                        fields[3] = prefixes[str(row["library_id"])] + fields[3]
+                        destination.write("\t".join(fields) + "\n")
+        proc = subprocess.run(
+            ["sort", "-k1,1", "-k2,2n", "-k3,3n", "-o",
+             str(output_path), str(unsorted)],
+            capture_output=True,
+            text=True,
+            timeout=86400,
+        )
+        if proc.returncode != 0:
+            return {"status": "error", "message": proc.stderr[-300:]}
+        return {
+            "status": "success",
+            "output_path": str(output_path),
+            "barcode_prefixes": prefixes,
+        }
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"status": "error", "message": str(exc)}
+    finally:
+        try:
+            unsorted.unlink()
+        except OSError:
+            pass
 
 
 def _bgzip_tabix(plain: Path, gz: Path, warnings: list) -> str:

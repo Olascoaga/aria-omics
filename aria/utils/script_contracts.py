@@ -446,6 +446,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         inputs=(
             _f("fragments_file", "str", allow_empty=False),
             _f("genome", "str", required=False),
+            _f("library_manifest", "list", required=False, allow_empty=False),
         ),
         success_outputs=(
             _f("output_path", "str", required=False),
@@ -455,11 +456,15 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
         script_path="aria/scripts/chromatin_scatac_align.py",
         validation_level="beta",
         inputs=(
-            _f("r1_fastq", "str", allow_empty=False),
+            _f("r1_fastq", "str", required=False, allow_empty=False),
+            _f("r3_fastq", "str", required=False, allow_empty=False),
+            _f("barcode_fastq", "str", required=False, allow_empty=False),
+            _f("barcode_whitelist", "str", required=False, allow_empty=False),
+            _f("libraries", "list", required=False, allow_empty=False),
             _f("genome_fasta", "str", allow_empty=False),
         ),
         success_outputs=(
-            _f("fragments_file", "str", required=False),
+            _f("fragments_file", "str", allow_empty=False),
         ),
     ),
     "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(

@@ -70,18 +70,21 @@ def validate_assay_contract(
 
     barcode = checks["barcode_namespace"]
     if barcode["status"] == "blocked":
+        errors = barcode.get("errors") or []
         findings.append(_finding(
             "blocking",
             "assay_contract_scatac_fastq_barcode_missing",
             (
-                "scATAC FASTQ input needs an explicit cell-barcode FASTQ and "
-                "barcode whitelist; the barcode read cannot be inferred from "
-                "genomic reads."
+                "scATAC FASTQ input needs a valid typed library manifest with "
+                "explicit R1/R2/R3 roles, barcode whitelist, and donor/sample "
+                "identity. " + ("; ".join(errors) if errors else
+                "The barcode read cannot be inferred from genomic reads.")
             ),
             (
-                "Provide `barcode_fastq`/`cell_barcode_fastq` and "
-                "`barcode_whitelist`/`cell_barcode_whitelist`, or start from a "
-                "fragments file / peak matrix."
+                "Provide/edit `scatac_fastq_manifest` (schema_version 1), or "
+                "for one legacy library provide `barcode_fastq` and "
+                "`barcode_whitelist`; alternatively start from fragments or a "
+                "peak matrix."
             ),
             modality,
         ))
@@ -195,6 +198,40 @@ def _barcode_check(
     fastq = any(_is_fastq(p) for p in files)
     if modality != "scATAC" or not fastq:
         return {"status": "pass", "required": False, "fastq_input": fastq}
+    from aria.utils.scatac_fastq_manifest import resolve_scatac_fastq_manifest
+
+    manifest_result = exp_context.get("scatac_fastq_manifest_validation")
+    if not isinstance(manifest_result, dict) or manifest_result.get("status") == "missing":
+        manifest_result = resolve_scatac_fastq_manifest(
+            exp_context, require_paths=False
+        )
+    if manifest_result.get("status") == "valid":
+        manifest = manifest_result["manifest"]
+        return {
+            "status": "pass",
+            "required": True,
+            "fastq_input": True,
+            "contract": "scatac_fastq_manifest/v1",
+            "n_libraries": len(manifest["libraries"]),
+            "libraries": [
+                {
+                    "library_id": row["library_id"],
+                    "sample_id": row["sample_id"],
+                    "donor_id": row["donor_id"],
+                    "roles": list(row["fastqs"]),
+                }
+                for row in manifest["libraries"]
+            ],
+        }
+    if manifest_result.get("status") == "invalid":
+        return {
+            "status": "blocked",
+            "required": True,
+            "fastq_input": True,
+            "contract": "scatac_fastq_manifest/v1",
+            "errors": list(manifest_result.get("errors") or []),
+        }
+
     barcode = exp_context.get("barcode_fastq") or exp_context.get("cell_barcode_fastq")
     whitelist = (
         exp_context.get("barcode_whitelist")

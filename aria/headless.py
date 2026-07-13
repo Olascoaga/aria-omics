@@ -152,17 +152,40 @@ def drain_pending_checkpoints(orchestrator, experiment_id: str,
     return ("ok" if resolved_any else "none"), decisions
 
 
+def _build_headless_context(
+    data_dir: str,
+    question: str,
+    reproducible_mode: bool,
+    enable_hypotheses: bool,
+    *,
+    context_overrides: dict | None = None,
+) -> dict:
+    """Build the explicit headless context, including typed assay manifests."""
+    ctx = dict(context_overrides or {})
+    ctx.update({
+        "data_dir": str(data_dir),
+        "user_question": question,
+        "reproducible_mode": reproducible_mode,
+        "enable_hypotheses": enable_hypotheses,
+    })
+    return ctx
+
+
 def run_headless(data_dir: str, question: str,
                  policy: AnswerPolicy = default_answer_policy,
                  reproducible_mode: bool = False,
                  enable_hypotheses: bool = False,
                  timeout: float = 3600.0,
-                 log: Callable[[str], None] = print) -> HeadlessResult:
+                 log: Callable[[str], None] = print,
+                 *,
+                 context_overrides: dict | None = None) -> HeadlessResult:
     """Run a full ARIA analysis without a TTY.
 
     Drives the orchestrator through audit, the design checkpoint state machine,
     and the live dispatch loop, resolving checkpoints via ``policy``. Returns a
-    :class:`HeadlessResult` with the report path on success.
+    :class:`HeadlessResult` with the report path on success. Typed assay inputs,
+    including ``scatac_fastq_manifest``, may be supplied through
+    ``context_overrides``; core run identity fields cannot be overridden.
     """
     from aria.memory.memory import ARIAMemory
     from aria.agents.orchestrator_agent import OrchestratorAgent
@@ -171,12 +194,13 @@ def run_headless(data_dir: str, question: str,
     memory = ARIAMemory()
     orch = OrchestratorAgent(memory)
 
-    ctx = {
-        "data_dir": str(data_dir),
-        "user_question": question,
-        "reproducible_mode": reproducible_mode,
-        "enable_hypotheses": enable_hypotheses,
-    }
+    ctx = _build_headless_context(
+        data_dir,
+        question,
+        reproducible_mode,
+        enable_hypotheses,
+        context_overrides=context_overrides,
+    )
 
     started = orch.run(experiment_id, ctx)
     if started.get("status") != "started":

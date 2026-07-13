@@ -64,6 +64,7 @@ class AriaCockpit(App):
         Binding("l", "show_ledger", "Ledger"),
         Binding("r", "show_readiness", "Readiness"),
         Binding("e", "edit_design", "Edit groups"),
+        Binding("m", "edit_scatac_manifest", "Edit scATAC manifest"),
         Binding("1", "choose(1)", "Opt 1", show=False),
         Binding("2", "choose(2)", "Opt 2", show=False),
         Binding("3", "choose(3)", "Opt 3", show=False),
@@ -300,6 +301,38 @@ class AriaCockpit(App):
 
         from aria.ui.design_editor import DesignEditorScreen
         self.push_screen(DesignEditorScreen(proposed, _on_submit))
+
+    def action_edit_scatac_manifest(self) -> None:
+        """Open the typed E5 scATAC manifest editor at data-audit CP1."""
+        snap = self._snap
+        if snap is None or snap.pending_checkpoint is None:
+            return
+        cp = snap.pending_checkpoint
+        exp_ctx = (cp.context or {}).get("exp_context") or {}
+        modalities = exp_ctx.get("modalities") or {}
+        input_paths = [path for paths in modalities.values() for path in paths or []]
+        has_fastq = any(
+            str(path).lower().endswith((".fastq", ".fastq.gz", ".fq", ".fq.gz"))
+            for path in input_paths
+        )
+        if cp.number != 1 or not has_fastq:
+            return
+
+        def _on_submit(manifest: dict) -> None:
+            self._resolver(
+                message_id=cp.message_id,
+                user_decision="Correct metadata",
+                experiment_id=self.experiment_id,
+                corrections={"scatac_fastq_manifest": manifest},
+            )
+            self.refresh_snapshot()
+
+        from aria.ui.scatac_manifest_editor import ScatacManifestEditorScreen
+        self.push_screen(ScatacManifestEditorScreen(
+            exp_ctx.get("scatac_fastq_manifest"),
+            str(exp_ctx.get("data_dir") or "."),
+            _on_submit,
+        ))
 
     def action_choose(self, idx: int) -> None:
         snap = self._snap

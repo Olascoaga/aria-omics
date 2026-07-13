@@ -282,8 +282,8 @@ def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> d
 
     ``corrections`` may carry ``modality`` (re-assign ALL audited files to that
     single modality — the user is asserting "this data is actually X"),
-    ``organism``, and ``genome``. Returns the same ``exp_context``. A falsy
-    ``corrections`` is a no-op (e.g. headless runs that cannot prompt).
+    ``organism``, ``genome``, and an edited ``scatac_fastq_manifest`` (inline or
+    path). Returns the same ``exp_context``. A falsy ``corrections`` is a no-op.
     """
     if not corrections:
         return exp_context
@@ -299,6 +299,37 @@ def apply_metadata_corrections(exp_context: dict, corrections: dict | None) -> d
         exp_context["organism"] = corrections["organism"]
     if corrections.get("genome"):
         exp_context["genome"] = corrections["genome"]
+    manifest_edit = (
+        corrections.get("scatac_fastq_manifest")
+        or corrections.get("scatac_fastq_manifest_path")
+    )
+    if manifest_edit:
+        from aria.utils.scatac_fastq_manifest import (
+            manifest_fastq_files,
+            resolve_scatac_fastq_manifest,
+        )
+        candidate_context = {
+            "data_dir": exp_context.get("data_dir"),
+            "scatac_fastq_manifest": manifest_edit,
+        }
+        validation = resolve_scatac_fastq_manifest(
+            candidate_context, require_paths=True
+        )
+        exp_context["scatac_fastq_manifest_validation"] = validation
+        if validation.get("status") == "valid":
+            manifest = validation["manifest"]
+            exp_context["scatac_fastq_manifest"] = manifest
+            manifest_files = set(manifest_fastq_files(manifest))
+            modalities = exp_context.get("modalities") or {}
+            updated = {}
+            for key, paths in modalities.items():
+                if key == "scATAC":
+                    continue
+                kept = [path for path in paths or [] if path not in manifest_files]
+                if kept:
+                    updated[key] = kept
+            updated["scATAC"] = sorted(manifest_files)
+            exp_context["modalities"] = updated
     return exp_context
 
 
@@ -423,6 +454,18 @@ class DataAuditAgent(BaseAgent):
         geo_metadata  = context.get("geo_metadata")
         reproducible_mode = bool(context.get("reproducible_mode"))
 
+        # E5: an explicit 10x/scATAC manifest is the authoritative source for
+        # library identity and R1/R2/R3 roles. It may be inline, referenced by
+        # path, or discovered as scatac_fastq_manifest.json in data_dir, so the
+        # same contract works from TUI and headless entrypoints.
+        from aria.utils.scatac_fastq_manifest import (
+            manifest_library_types,
+            resolve_scatac_fastq_manifest,
+        )
+        scatac_manifest = resolve_scatac_fastq_manifest(
+            context, require_paths=True
+        )
+
         self.publish_status(experiment_id,
             f"Scanning {data_dir}...", progress=0.0)
 
@@ -437,13 +480,51 @@ class DataAuditAgent(BaseAgent):
                 "error": f"No files found in {data_dir}"
             }
 
+        # The manifest JSON and barcode whitelists are assay metadata, not
+        # modality payloads. Keep them in the audit scan/provenance but do not
+        # create a spurious ``unknown`` modality hall for them.
+        assay_metadata_paths: set[str] = set()
+        if scatac_manifest.get("status") == "valid":
+            assay_metadata_paths.update(
+                str(row["barcode_whitelist"])
+                for row in scatac_manifest["manifest"]["libraries"]
+            )
+        if scatac_manifest.get("source") not in (None, "inline"):
+            assay_metadata_paths.add(str(scatac_manifest["source"]))
+        modality_files = [
+            path for path in all_files if str(path) not in assay_metadata_paths
+        ]
+
         # 2. Classify files by modality. E2: an explicit declared library type
         # (assay manifest / library_type) is authoritative; filenames are a hint.
+        per_file_types = dict(context.get("library_types") or {})
+        if scatac_manifest.get("status") == "valid":
+            per_file_types.update(
+                manifest_library_types(scatac_manifest["manifest"])
+            )
         declared_library_types = {
             "global": context.get("library_type"),
-            "per_file": context.get("library_types") or {},
+            "per_file": per_file_types,
         }
-        classified = self._classify_files(all_files, declared_library_types)
+        classified = self._classify_files(modality_files, declared_library_types)
+        if scatac_manifest.get("status") == "invalid":
+            # An explicit-but-invalid scATAC manifest signals assay intent but
+            # must never let generic R1/R2 names fall through to bulk RNA. Route
+            # all scanned FASTQs to the scATAC readiness card, which then blocks
+            # with the manifest errors and remains editable at CP1.
+            fastq_paths = {
+                str(path) for path in modality_files
+                if path.name.lower().endswith(
+                    (".fastq", ".fastq.gz", ".fq", ".fq.gz")
+                )
+            }
+            for modality, paths in list(classified.items()):
+                kept = [path for path in paths if path not in fastq_paths]
+                if kept:
+                    classified[modality] = kept
+                else:
+                    classified.pop(modality, None)
+            classified["scATAC"] = sorted(fastq_paths)
 
         # 2b. When GEO metadata is present, enrich classification with
         #     already-typed files and remove them from "unknown".
@@ -513,6 +594,11 @@ class DataAuditAgent(BaseAgent):
             genome, organism, warnings, user_question
         )
         exp_context["reproducible_mode"] = reproducible_mode
+        exp_context["scatac_fastq_manifest_validation"] = scatac_manifest
+        if scatac_manifest.get("status") == "valid":
+            exp_context["scatac_fastq_manifest"] = scatac_manifest["manifest"]
+            if scatac_manifest.get("source") != "inline":
+                exp_context["scatac_fastq_manifest_path"] = scatac_manifest["source"]
         # ADR-057: opt-in SPECULATIVE hypotheses section. Mirrors the
         # reproducible_mode plumbing — surfaced explicitly via the entrypoints
         # (run_headless param / TUI --hypotheses) with an

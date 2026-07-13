@@ -25,6 +25,8 @@ Input params:
   genome:         str   — assembly (hg38/mm10/...); resolves chrom sizes + (de
                           novo) the MACS3 effective genome size
   peak_file:      str   — (optional) BED/narrowPeak peak set -> "provided" mode
+  library_manifest: list — optional E5 library/sample/donor metadata keyed by
+                           barcode prefixes in a merged fragments file
   output_dir:     str
   min_fragments:  int   (default 1000) — per-cell fragment floor
   resolution:     float (default 1.0)  — preliminary leiden resolution (de novo)
@@ -58,6 +60,7 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
     fragments_file = params.get("fragments_file")
     genome = params.get("genome", "hg38")
     peak_file = params.get("peak_file")
+    library_manifest = params.get("library_manifest") or []
     output_dir = Path(params.get("output_dir")
                       or (Path(fragments_file).parent / "aria_chromatin"
                           if fragments_file else "aria_chromatin"))
@@ -105,7 +108,9 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
     out_path = output_dir / "fragments_peak_matrix.h5ad"
 
     # Resume-by-file-validity: a prior valid matrix with matching peak intent.
-    if _matrix_valid(out_path):
+    required_obs = ({"library_id", "sample_id", "donor_id"}
+                    if library_manifest else set())
+    if _matrix_valid(out_path, required_obs=required_obs):
         warnings.append("[resume] reused existing fragments_peak_matrix.h5ad")
         meta = _matrix_meta(out_path)
         return {"status": "success", "output_path": str(out_path),
@@ -130,6 +135,18 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
     if n_cells == 0:
         return not_run("no_cells_pass_fragment_floor",
                        message=(f"no barcodes had >= {min_fragments} fragments"))
+
+    n_library_annotated = _annotate_library_metadata(
+        adata, library_manifest
+    ) if library_manifest else 0
+    if library_manifest and n_library_annotated != n_cells:
+        return not_run(
+            "library_metadata_correspondence_failed",
+            message=(
+                f"typed library manifest annotated {n_library_annotated}/{n_cells} "
+                "fragment barcodes"
+            ),
+        )
 
     peak_mode = "provided" if peak_file and Path(peak_file).exists() else "de_novo"
     try:
@@ -164,6 +181,8 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
         "min_fragments": min_fragments,
         "genome": genome,
         "validation_level": "beta",
+        "n_libraries": len(library_manifest) if library_manifest else None,
+        "n_library_annotated": n_library_annotated,
         "warnings": warnings,
     }
 
@@ -190,13 +209,50 @@ def _de_novo_peaks(snap, adata, gobj, resolution, qvalue, warnings):
     return f"de_novo_macs3 (q<{qvalue}, {n_groups} groups)", peak_matrix
 
 
-def _matrix_valid(path: Path) -> bool:
+def _annotate_library_metadata(adata, libraries: list[dict]) -> int:
+    """Map prefixed fragment barcodes back to typed library metadata."""
+    if not libraries:
+        return 0
+    rows = {}
+    for library in libraries:
+        library_id = str(library.get("library_id") or "")
+        prefix = str(library.get("barcode_prefix") or f"{library_id}#")
+        metadata = dict(library.get("metadata") or {})
+        metadata.update({
+            "library_id": library_id,
+            "sample_id": str(library.get("sample_id") or ""),
+            "donor_id": str(
+                library.get("donor_id") or metadata.get("donor_id") or ""
+            ),
+        })
+        rows[prefix] = metadata
+
+    annotations = []
+    matched = 0
+    for barcode in map(str, adata.obs.index):
+        record = next(
+            (metadata for prefix, metadata in rows.items()
+             if barcode.startswith(prefix)),
+            None,
+        )
+        annotations.append(record or {})
+        matched += int(record is not None)
+
+    columns = sorted({key for row in annotations for key in row})
+    for column in columns:
+        adata.obs[column] = [row.get(column) for row in annotations]
+    return matched
+
+
+def _matrix_valid(path: Path, required_obs: set[str] | None = None) -> bool:
     try:
         if not path.exists() or path.stat().st_size < 1024:
             return False
         import anndata as ad
         a = ad.read_h5ad(path, backed="r")
         ok = a.n_obs > 0 and a.n_vars > 0
+        if required_obs:
+            ok = ok and required_obs <= set(a.obs.columns)
         a.file.close()
         return ok
     except Exception:

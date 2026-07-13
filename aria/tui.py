@@ -261,6 +261,19 @@ def _collect_metadata_corrections(exp_context: dict) -> dict:
                 f"for {organism}.[/]"
             )
 
+    selected_modality = corrections.get("modality") or (
+        current_mods[0] if len(current_mods) == 1 else None
+    )
+    if selected_modality == "scATAC":
+        current_manifest = exp_context.get("scatac_fastq_manifest_path") or ""
+        manifest_path = Prompt.ask(
+            f"  [bold {C['cyan']}]10x/scATAC manifest JSON path[/]",
+            default=str(current_manifest),
+            console=console,
+        ).strip()
+        if manifest_path:
+            corrections["scatac_fastq_manifest_path"] = manifest_path
+
     if corrections:
         console.print(
             f"\n  [{C['green']}]Corrections applied:[/] "
