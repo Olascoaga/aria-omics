@@ -437,8 +437,13 @@ class DataAuditAgent(BaseAgent):
                 "error": f"No files found in {data_dir}"
             }
 
-        # 2. Classify files by modality
-        classified = self._classify_files(all_files)
+        # 2. Classify files by modality. E2: an explicit declared library type
+        # (assay manifest / library_type) is authoritative; filenames are a hint.
+        declared_library_types = {
+            "global": context.get("library_type"),
+            "per_file": context.get("library_types") or {},
+        }
+        classified = self._classify_files(all_files, declared_library_types)
 
         # 2b. When GEO metadata is present, enrich classification with
         #     already-typed files and remove them from "unknown".
@@ -492,6 +497,7 @@ class DataAuditAgent(BaseAgent):
         warnings = self._validate_design(classified)
         warnings.extend(self._scan_report_warnings())
         warnings.extend(self._assay_detection_warnings())
+        warnings.extend(self._ambiguous_library_type_warnings())
         warnings.extend(getattr(self, "_mex_warnings", []))
         if ignored_intermediates:
             warnings.append(
@@ -776,12 +782,59 @@ class DataAuditAgent(BaseAgent):
             )
         return warnings
 
-    def _classify_files(self, files: list[Path]) -> dict[str, list[str]]:
+    _FASTQ_NAME_RE = re.compile(r"\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
+
+    @classmethod
+    def _fastq_modality_hint(cls, fname: str, fpath: str) -> tuple[str | None, bool]:
+        """E2: filename modality HINT for a FASTQ (never binding).
+
+        A modality-keyword signature (atac/scatac/hic/chip/cut&run/cut&tag, histone
+        marks) beats the generic paired-end ``bulk_RNA_raw`` rule — fixing the
+        order-dependent misroute. Returns ``(modality, ambiguous)``: a keyword hit
+        is a confident hint (``ambiguous=False``); a plain ``_R[12]`` FASTQ with no
+        modality signal falls to ``bulk_RNA_raw`` as an ambiguous hint
+        (``ambiguous=True``); no FASTQ signature match → ``(None, False)``.
+        """
+        for modality, patterns in SIGNATURES.items():
+            if modality == "bulk_RNA_raw":
+                continue  # generic paired-end rule is the last resort for FASTQ
+            for pat in patterns:
+                if re.search(pat, fname, re.IGNORECASE) or \
+                   re.search(pat, fpath, re.IGNORECASE):
+                    return modality, False
+        for pat in SIGNATURES["bulk_RNA_raw"]:
+            if re.search(pat, fname, re.IGNORECASE) or \
+               re.search(pat, fpath, re.IGNORECASE):
+                return "bulk_RNA_raw", True
+        return None, False
+
+    @staticmethod
+    def _declared_library_type(path: Path, declared: dict | None) -> str | None:
+        """E2: an explicit declared library type is authoritative over filenames.
+
+        ``declared`` may carry ``per_file`` (basename or full-path → modality) and a
+        ``global`` modality applied to every otherwise-undetected file.
+        """
+        if not declared:
+            return None
+        per_file = declared.get("per_file") or {}
+        for key in (str(path), path.name):
+            if key in per_file and per_file[key]:
+                return str(per_file[key])
+        global_type = declared.get("global")
+        return str(global_type) if global_type else None
+
+    def _classify_files(
+        self,
+        files: list[Path],
+        declared_library_types: dict | None = None,
+    ) -> dict[str, list[str]]:
         """Map files to their omics modality."""
         classified: dict[str, list[str]] = {}
         detector = AssayDetector()
         self._last_assay_detections = []
-        
+        self._ambiguous_library_types = []
+
         for f in files:
             fname = f.name.lower()
             fpath = str(f).lower()
@@ -791,18 +844,34 @@ class DataAuditAgent(BaseAgent):
                 classified.setdefault(detection.modality, []).append(str(f))
                 self._record_assay_detection(f, detection)
                 continue
-            
+
+            # E2: an explicit declared library type is authoritative.
+            declared = self._declared_library_type(f, declared_library_types)
+            if declared:
+                classified.setdefault(declared, []).append(str(f))
+                continue
+
             matched = False
-            for modality, patterns in SIGNATURES.items():
-                for pat in patterns:
-                    if re.search(pat, fname, re.IGNORECASE) or \
-                       re.search(pat, fpath, re.IGNORECASE):
-                        classified.setdefault(modality, []).append(str(f))
-                        matched = True
+            if self._FASTQ_NAME_RE.search(fname):
+                # FASTQ: filenames are only a hint; keyword modality beats the
+                # generic paired-end rule, and a signalless R1/R2 is ambiguous.
+                modality, ambiguous = self._fastq_modality_hint(fname, fpath)
+                if modality is not None:
+                    classified.setdefault(modality, []).append(str(f))
+                    if ambiguous:
+                        self._ambiguous_library_types.append(str(f))
+                    matched = True
+            else:
+                for modality, patterns in SIGNATURES.items():
+                    for pat in patterns:
+                        if re.search(pat, fname, re.IGNORECASE) or \
+                           re.search(pat, fpath, re.IGNORECASE):
+                            classified.setdefault(modality, []).append(str(f))
+                            matched = True
+                            break
+                    if matched:
                         break
-                if matched:
-                    break
-            
+
             if not matched:
                 classified.setdefault("unknown", []).append(str(f))
 
@@ -883,6 +952,22 @@ class DataAuditAgent(BaseAgent):
                 parts.append("issues: " + ", ".join(map(str, issues)))
             warnings.append("; ".join(parts) + ".")
         return warnings
+
+    def _ambiguous_library_type_warnings(self) -> list[str]:
+        """E2: surface generic R1/R2 FASTQ whose library type is only a hint, so
+        CHECKPOINT 1 confirms the modality instead of a silent bulk-RNA dispatch."""
+        ambiguous = getattr(self, "_ambiguous_library_types", []) or []
+        if not ambiguous:
+            return []
+        names = ", ".join(Path(p).name for p in ambiguous[:5])
+        if len(ambiguous) > 5:
+            names += ", ..."
+        return [
+            "Ambiguous library type: generic paired-end FASTQ with no modality "
+            f"signal ({names}) — hinted as bulk_RNA_raw but NOT bound. Declare the "
+            "library type (assay manifest / library_type) or confirm the modality "
+            "at CHECKPOINT 1; filenames are only a hint."
+        ]
 
     @staticmethod
     def _is_aria_generated_output(path: str) -> bool:
