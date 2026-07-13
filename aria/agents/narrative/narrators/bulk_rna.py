@@ -7,7 +7,12 @@ import math
 import re
 from pathlib import Path
 
-from aria.agents.narrative.types import Caveat, EvidenceItem, NarrativeBlock
+from aria.agents.narrative.types import (
+    Caveat,
+    EvidenceItem,
+    NarrativeBlock,
+    SemanticFact,
+)
 
 
 def _safe_id(value) -> str:
@@ -234,11 +239,21 @@ class BulkRnaNarrator:
                 ),
             ]
             for gene in (contrast.get("top_genes") or [])[:6]:
+                symbol = gene.get("symbol") or gene.get("gene", "?")
                 evidence.append(_evidence(
-                    f"top gene {gene.get('symbol') or gene.get('gene', '?')}",
+                    f"top gene {symbol}",
                     gene.get("log2fc"),
                     "bulk_de",
                 ))
+                if symbol and symbol != "?":
+                    evidence[-1].facts.append(SemanticFact(
+                        subject=str(symbol),
+                        subject_type="gene",
+                        predicate="differential_expression",
+                        polarity="affirmed",
+                        value=gene.get("log2fc"),
+                        source="bulk_de",
+                    ))
             caveats = []
             if contrast.get("low_power_warning"):
                 caveats.append(Caveat(

@@ -6,7 +6,12 @@ import re
 from pathlib import Path
 
 from aria.agents import _narrative_scrna
-from aria.agents.narrative.types import Caveat, EvidenceItem, NarrativeBlock
+from aria.agents.narrative.types import (
+    Caveat,
+    EvidenceItem,
+    NarrativeBlock,
+    SemanticFact,
+)
 
 
 def _safe_id(value) -> str:
@@ -492,11 +497,21 @@ class ScrnaNarrator:
                     ),
                 ]
                 for gene in (comp.get("top_genes") or [])[:6]:
+                    symbol = gene.get("gene", "?")
                     evidence.append(_evidence(
-                        f"top gene {gene.get('gene', '?')}",
+                        f"top gene {symbol}",
                         gene.get("log2fc"),
                         "pseudobulk_de",
                     ))
+                    if symbol and symbol != "?":
+                        evidence[-1].facts.append(SemanticFact(
+                            subject=str(symbol),
+                            subject_type="gene",
+                            predicate="differential_expression",
+                            polarity="affirmed",
+                            value=gene.get("log2fc"),
+                            source="pseudobulk_de",
+                        ))
                 caveats = []
                 # F-SCI-LOGNORM (audit 2026-05-28): counts recovered from
                 # log-normalized values are quantitatively unreliable for the NB

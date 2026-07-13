@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 import re
 from typing import Any
 
-from aria.agents.narrative.types import NarrativeBlock
+from aria.agents.narrative.types import NarrativeBlock, SemanticFact
 from aria.agents.narrative.validators import find_causal_language
 
 
@@ -69,10 +69,31 @@ _GENE_LIKE_RE = re.compile(r"\b[A-Z][A-Z0-9_-]{2,}\b")
 # fabricated mixed-case gene in LLM prose was never verified against the evidence
 # card. Catch mixed-case symbols that CONTAIN A DIGIT: these are unambiguously
 # gene/identifier-shaped, so ordinary Title-case English words are not flagged (no
-# report-aborting false positives). Pure-alpha Title-case symbols (e.g. Gfap) stay
-# out of scope on purpose — they are lexically indistinguishable from prose without
-# a gene dictionary, and flagging them would abort reports on words like "Both".
+# report-aborting false positives). Pure-alpha Title-case symbols are handled by
+# the controlled semantic predicate grammar below, where the sentence
+# itself identifies the token as a gene subject without guessing from capitalization.
 _MIXED_CASE_GENE_RE = re.compile(r"\b[A-Z][A-Za-z]*\d[A-Za-z0-9]*\b")
+
+_DE_PREDICATE = "differential_expression"
+_DE_ANALYSES = {"differential_expression", "contrast", "pseudobulk_de"}
+_DE_COUNT_LABELS = {
+    "de genes", "global-fdr de genes", "local-fdr de genes",
+    "n_significant", "n_significant_global", "n_significant_local",
+    "replicate-aware de genes", "shared de genes",
+}
+_NULL_DE_RE = re.compile(
+    r"\b(?:no|zero|0)\s+(?:statistically\s+)?(?:significant\s+|"
+    r"differentially\s+expressed\s+|de\s+)?genes?\b",
+    re.IGNORECASE,
+)
+_ENTITY_DE_RE = re.compile(
+    r"\b(?P<subject>[A-Za-z][A-Za-z0-9_.-]*)\s+"
+    r"(?:was|were|is|are)\s+(?P<negated>not\s+)?"
+    r"differentially\s+expressed\b",
+    re.IGNORECASE,
+)
+_TOP_GENE_RE = re.compile(r"^top\s+(?:shared\s+)?gene\s+(.+)$", re.IGNORECASE)
+_GENERIC_DE_SUBJECTS = {"gene", "genes", "feature", "features", "none"}
 
 
 @dataclass
@@ -95,12 +116,14 @@ class EvidenceCard:
     refs: list[dict[str, Any]] = field(default_factory=list)
     support_text: str = ""
     numbers: set[str] = field(default_factory=set)
+    semantic_facts: list[SemanticFact] = field(default_factory=list)
 
     def as_dict(self) -> dict[str, Any]:
         return {
             "evidence_card_id": self.evidence_card_id,
             "refs": self.refs,
             "n_refs": len(self.refs),
+            "semantic_facts": [fact.to_dict() for fact in self.semantic_facts],
         }
 
 
@@ -190,6 +213,7 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
         block.modality,
     ]
     numbers: set[str] = set()
+    semantic_facts: list[SemanticFact] = []
 
     for idx, ev in enumerate(block.evidence or []):
         ref = {
@@ -205,6 +229,9 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
             str(x) for x in (ev.label, ev.value, ev.source, ev.path) if x is not None
         )
         numbers.update(harvest_value(" ".join(str(x) for x in (ev.label, ev.value))))
+        for fact in _evidence_item_facts(block, ev, ref["ref_id"]):
+            semantic_facts.append(fact)
+            support_parts.extend([fact.subject, *fact.aliases, fact.predicate])
 
     for key, value in _flatten_mapping(block.metrics or {}):
         refs.append({
@@ -215,6 +242,9 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
         })
         support_parts.extend((str(key), str(value)))
         numbers.update(_numbers_in(f"{key} {value}"))
+
+    semantic_facts.extend(_metric_facts(block))
+    semantic_facts = _dedupe_facts(semantic_facts)
 
     for idx, table in enumerate(block.tables or []):
         if not isinstance(table, dict):
@@ -243,6 +273,7 @@ def build_evidence_card(block: NarrativeBlock) -> EvidenceCard:
         refs=refs,
         support_text=" ".join(support_parts).lower(),
         numbers=numbers,
+        semantic_facts=semantic_facts,
     )
 
 
@@ -271,6 +302,11 @@ def _issues_for_sentence(
                 sentence,
                 f"named entity {token!r} is absent from the evidence card",
             ))
+
+    for assertion in _claim_semantic_facts(block, sentence):
+        issue = _semantic_support_issue(assertion, card)
+        if issue:
+            issues.append(VerificationIssue(location, sentence, issue))
 
     # Integration/synthesis blocks deliberately span multiple analysis families
     # (they integrate DE + pathway + abundance ...), so the single-family
@@ -447,6 +483,201 @@ def _claim_entities(sentence: str) -> set[str]:
                 continue
             entities.add(token)
     return entities
+
+
+def _claim_semantic_facts(
+    block: NarrativeBlock,
+    sentence: str,
+) -> list[SemanticFact]:
+    """Extract supported predicate shapes from one ARIA-authored sentence.
+
+    This is deliberately a small controlled grammar, not open-ended NLU. C2
+    models differential-expression affirmation/negation first; other predicates
+    must gain their own typed grammar rather than borrowing token overlap.
+    """
+    if str(block.analysis or "") not in _DE_ANALYSES:
+        return []
+
+    facts: list[SemanticFact] = []
+    if _NULL_DE_RE.search(sentence):
+        facts.append(SemanticFact(
+            subject="*",
+            subject_type="gene_set",
+            predicate=_DE_PREDICATE,
+            polarity="negated",
+            value=0,
+            source="claim",
+        ))
+
+    for match in _ENTITY_DE_RE.finditer(sentence):
+        subject = match.group("subject")
+        if subject.casefold() in _GENERIC_DE_SUBJECTS:
+            continue
+        facts.append(SemanticFact(
+            subject=subject,
+            subject_type="gene",
+            predicate=_DE_PREDICATE,
+            polarity="negated" if match.group("negated") else "affirmed",
+            source="claim",
+        ))
+    return _dedupe_facts(facts)
+
+
+def _evidence_item_facts(
+    block: NarrativeBlock,
+    evidence: Any,
+    ref_id: str,
+) -> list[SemanticFact]:
+    facts = [
+        SemanticFact(
+            subject=fact.subject,
+            subject_type=fact.subject_type,
+            predicate=fact.predicate,
+            polarity=fact.polarity,
+            aliases=list(fact.aliases),
+            value=fact.value,
+            source=fact.source or ref_id,
+        )
+        for fact in (getattr(evidence, "facts", None) or [])
+    ]
+    if str(block.analysis or "") not in _DE_ANALYSES:
+        return facts
+
+    label = str(getattr(evidence, "label", "") or "").strip()
+    value = getattr(evidence, "value", None)
+    combined = f"{label} {value}"
+    if _NULL_DE_RE.search(combined):
+        facts.append(SemanticFact(
+            subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+            polarity="negated", value=0, source=ref_id,
+        ))
+
+    top_gene = _TOP_GENE_RE.match(label)
+    if top_gene:
+        subject = top_gene.group(1).strip()
+        if subject and subject != "?":
+            facts.append(SemanticFact(
+                subject=subject, subject_type="gene", predicate=_DE_PREDICATE,
+                polarity="affirmed", value=value, source=ref_id,
+            ))
+
+    if label.casefold() in _DE_COUNT_LABELS:
+        count = _as_nonnegative_number(value)
+        if count is not None:
+            facts.append(SemanticFact(
+                subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+                polarity="negated" if count == 0 else "affirmed",
+                value=value, source=ref_id,
+            ))
+    return facts
+
+
+def _metric_facts(block: NarrativeBlock) -> list[SemanticFact]:
+    if str(block.analysis or "") not in _DE_ANALYSES:
+        return []
+    facts: list[SemanticFact] = []
+    for key in ("n_significant", "n_significant_global", "n_significant_local"):
+        if key not in (block.metrics or {}):
+            continue
+        value = block.metrics.get(key)
+        count = _as_nonnegative_number(value)
+        if count is None:
+            continue
+        facts.append(SemanticFact(
+            subject="*", subject_type="gene_set", predicate=_DE_PREDICATE,
+            polarity="negated" if count == 0 else "affirmed",
+            value=value, source=f"{block.id}:metric:{key}",
+        ))
+    return facts
+
+
+def _semantic_support_issue(
+    assertion: SemanticFact,
+    card: EvidenceCard,
+) -> str | None:
+    candidates = [
+        fact for fact in card.semantic_facts
+        if fact.predicate == assertion.predicate
+    ]
+    if assertion.subject == "*":
+        matching = [fact for fact in candidates if fact.subject == "*"]
+    else:
+        matching = [
+            fact for fact in candidates
+            if _fact_names(fact) & {_normalize_entity(assertion.subject)}
+        ]
+
+    same = [fact for fact in matching if fact.polarity == assertion.polarity]
+    opposite = [fact for fact in matching if fact.polarity != assertion.polarity]
+    global_null = any(
+        fact.subject == "*" and fact.polarity == "negated"
+        for fact in candidates
+    )
+
+    if opposite:
+        return (
+            f"semantic fact {assertion.predicate!r} for {assertion.subject!r} "
+            f"contradicts the evidence polarity"
+        )
+    if assertion.subject == "*" and assertion.polarity == "negated" and any(
+        fact.polarity == "affirmed" for fact in candidates
+    ):
+        return (
+            f"negated {assertion.predicate!r} claim contradicts affirmative "
+            "structured evidence"
+        )
+    if (
+        assertion.polarity == "affirmed"
+        and assertion.subject != "*"
+        and global_null
+    ):
+        return (
+            f"affirmed {assertion.predicate!r} for {assertion.subject!r} "
+            "contradicts explicit null evidence"
+        )
+    if same:
+        return None
+    if assertion.polarity == "negated" and assertion.subject != "*" and global_null:
+        return None
+    return (
+        f"semantic fact {assertion.predicate!r} ({assertion.polarity}) for "
+        f"{assertion.subject!r} is absent from the evidence card"
+    )
+
+
+def _fact_names(fact: SemanticFact) -> set[str]:
+    return {
+        _normalize_entity(name)
+        for name in (fact.subject, *fact.aliases)
+        if str(name or "").strip()
+    }
+
+
+def _normalize_entity(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value or "").strip()).casefold()
+
+
+def _as_nonnegative_number(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if number >= 0 else None
+
+
+def _dedupe_facts(facts: list[SemanticFact]) -> list[SemanticFact]:
+    seen: set[tuple[Any, ...]] = set()
+    out: list[SemanticFact] = []
+    for fact in facts:
+        key = (
+            _normalize_entity(fact.subject), fact.subject_type, fact.predicate,
+            fact.polarity, tuple(sorted(_normalize_entity(x) for x in fact.aliases)),
+            str(fact.value),
+        )
+        if key not in seen:
+            seen.add(key)
+            out.append(fact)
+    return out
 
 
 def _flatten_mapping(data: dict[str, Any], prefix: str = ""):

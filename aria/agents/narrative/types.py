@@ -8,6 +8,51 @@ from typing import Any, Literal
 
 Confidence = Literal["high", "medium", "low", "insufficient"]
 CaveatSeverity = Literal["info", "warning", "blocking"]
+FactPolarity = Literal["affirmed", "negated"]
+
+
+@dataclass
+class SemanticFact:
+    """Typed proposition carried by structured narrative evidence.
+
+    ``predicate`` and ``subject_type`` are controlled, dataset-agnostic
+    vocabulary owned by the verifier. ``aliases`` are explicit equivalences;
+    the verifier never invents aliases from biological names.
+    """
+
+    subject: str
+    predicate: str
+    polarity: FactPolarity
+    subject_type: str = "entity"
+    aliases: list[str] = field(default_factory=list)
+    value: str | int | float | bool | None = None
+    source: str | None = None
+
+    def __post_init__(self) -> None:
+        if not str(self.subject or "").strip():
+            raise ValueError("SemanticFact requires a subject")
+        if not str(self.predicate or "").strip():
+            raise ValueError("SemanticFact requires a predicate")
+        if self.polarity not in {"affirmed", "negated"}:
+            raise ValueError("SemanticFact polarity must be affirmed or negated")
+        if not str(self.subject_type or "").strip():
+            raise ValueError("SemanticFact requires a subject_type")
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "SemanticFact":
+        polarity = str(data.get("polarity", "affirmed"))
+        return cls(
+            subject=str(data.get("subject", "")),
+            predicate=str(data.get("predicate", "")),
+            polarity=polarity,
+            subject_type=str(data.get("subject_type", "entity")),
+            aliases=[str(x) for x in (data.get("aliases") or []) if str(x)],
+            value=data.get("value"),
+            source=data.get("source"),
+        )
 
 
 @dataclass
@@ -16,9 +61,12 @@ class EvidenceItem:
     value: str | int | float | None = None
     source: str | None = None
     path: str | None = None
+    facts: list[SemanticFact] = field(default_factory=list)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        data = asdict(self)
+        data["facts"] = [fact.to_dict() for fact in self.facts]
+        return data
 
     @classmethod
     def from_dict(cls, data: dict) -> "EvidenceItem":
@@ -27,6 +75,11 @@ class EvidenceItem:
             value=data.get("value"),
             source=data.get("source"),
             path=data.get("path"),
+            facts=[
+                SemanticFact.from_dict(item)
+                for item in (data.get("facts") or [])
+                if isinstance(item, dict)
+            ],
         )
 
 

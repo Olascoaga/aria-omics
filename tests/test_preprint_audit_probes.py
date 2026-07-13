@@ -44,12 +44,9 @@ def test_probe_b6_fractional_row_outside_sample_is_caught():
     assert res["is_raw_counts"] is False
 
 
-# ── C2 · evidence verification is lexical + negation-blind ───────────────────
-# aria/agents/narrative/evidence_verifier.py:65 — Title-case pure-alpha symbols
-# (Gfap) fall outside the gene regex, and "No significant genes" is not read as
-# negating the claim, so a fabricated positive claim is marked supported.
-@pytest.mark.xfail(strict=True, reason="C2 open: verifier is lexical/negation-blind; "
-                   "Gfap claim vs a no-hits evidence card passes (FASE 6)")
+# ── C2 · semantic facts + explicit negation (FIXED FASE 6) ───────────────────
+# Title-case pure-alpha symbols are resolved from the typed DE predicate frame,
+# and explicit null evidence contradicts an affirmed entity-level DE claim.
 def test_probe_c2_gfap_claim_against_null_evidence_is_unsupported():
     from aria.agents.narrative.types import NarrativeBlock, EvidenceItem
     from aria.agents.narrative.evidence_verifier import verify_block_claim_support
