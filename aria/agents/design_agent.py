@@ -28,6 +28,11 @@ from typing import Optional
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence, bus
 from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 from aria.memory.memory import ARIAMemory
 
 log = logging.getLogger("aria.design")
@@ -744,22 +749,11 @@ class DesignAgent(BaseAgent):
         # the LLM — without it the model can only pattern-match on
         # filenames, which fails when sample IDs are opaque (donor barcodes,
         # internal accession IDs, or single-file h5ad inputs).
-        intent_block = ""
         question = (intent or {}).get("question") or (intent or {}).get("text")
         comparison = (intent or {}).get("comparison")
-        if question or comparison:
-            intent_block = (
-                "\n\nUser's biological question (use it to name the groups, "
-                "but only assign a sample to a group when the filename or "
-                "external metadata supports it — do NOT guess):\n"
-                f"  {question or comparison}\n"
-            )
-        prompt = (
-            "You are analyzing RNA‑seq sample names.\n\n"
-            "Samples:\n" +
-            "\n".join(f"- {s}" for s in stems) +
-            intent_block +
-            "\n\nTask:\n"
+        prompt = build_untrusted_prompt(
+            task=(
+            "You are analyzing RNA-seq sample names.\n"
             "1. Infer biological groups (NOT technical replicates).\n"
             "2. Assign each sample to a group.\n"
             "3. If the filenames carry no signal that maps samples to the\n"
@@ -767,14 +761,30 @@ class DesignAgent(BaseAgent):
             "   age/condition encoding), return a SINGLE group named 'all'\n"
             "   containing every sample and set confidence='low' — the user\n"
             "   will be offered a manual-assignment option downstream.\n"
-            "4. Return ONLY valid JSON.\n\n"
-            'Output format:\n'
+            "Use the biological question only to name groups; assign a sample "
+            "only when its filename or external metadata supports the mapping."
+            ),
+            fields=[
+                PromptDataField("sample_stems", stems, "identifier_list",
+                                "input_filenames"),
+                PromptDataField("biological_question", question or comparison or "",
+                                "user_text", "user"),
+                PromptDataField("comparison", comparison or "", "metadata",
+                                "parsed_intent"),
+            ],
+            response_contract=(
+            'Return only valid JSON in this format:\n'
             '{\n  "groups": {\n    "group_name": ["sample1", "sample2"]\n  },\n'
             '  "confidence": "high|medium|low",\n'
             '  "reasoning": "short explanation"\n}'
+            ),
         )
         try:
-            result = self.think_structured(prompt, system=DESIGN_SYSTEM,
+            result = self.think_structured(
+                                           prompt,
+                                           system=system_with_untrusted_boundary(
+                                               DESIGN_SYSTEM
+                                           ),
                                            schema_hint="JSON with groups, confidence, reasoning.",
                                            tier=TaskTier.MEDIUM)
             if isinstance(result, dict) and "groups" in result:

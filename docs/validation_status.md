@@ -88,6 +88,7 @@ These cross-cutting guarantees back every validated path and are enforced in CI:
 | No fabricated science | Done | repo-wide anti-fabrication guard (no placeholder matrices, ungated mock "successes", or hash-derived metrics) |
 | No hardcoded biology in runtime fallbacks | Done | biological marker panels, ligand-receptor fallback tables, tissue keyword maps, and mechanism labels from feature names/signs are not used as production evidence |
 | Evidence-linked claims | Done | report claims pass strict evidence verification, causal-language guards, run-ledger linkage, and deterministic devil's-advocate review before rendering |
+| Untrusted prompt data + exclusive public claim path (C1) | Done | User questions, filenames, labels, genes, database terms and generated results enter LLM calls through one typed JSON `<untrusted_data>` boundary whose delimiters cannot be closed by payload text. Public HTML and `methodology.json` consume the same `compile_public_claims` output; unsupported blocks are withheld, and raw MessageBus/legacy prose is never promoted through an “All Findings” bypass |
 | Typed IPC contracts | Done | every dispatchable script validates inputs/outputs before and after the subprocess |
 | Blocking CI (3 tiers) | Done | PR (guards + unit + contracts) / main (real pyDESeq2 recovery benchmark) / release (Docker env solve + in-image benchmark) |
 | Air-gapped mode | Partial | Each execution now owns a live egress policy used by its LLM provider, pathway/connector gates, setup download guards, and child-process environment; two concurrent runs do not share that decision. `ARIA_AIR_GAPPED=1` remains the legacy launch-time default. Remaining gap (A1b): the initial biological-question LLM parse still occurs before CP1 sensitivity classification, so whole-run zero-egress cannot yet be claimed |
@@ -177,6 +178,10 @@ closeout and extended since):
 - every rendered scientific claim must be backed by local evidence cards or be
   withheld; diagnostic blocks can report structured skip/error counts without
   masquerading as measured biology;
+- the submitted question is visibly labeled untrusted input and is not evidence
+  for an executive-summary claim; raw MessageBus text remains an operational audit
+  record, while the public claim ledger is generated only from compiled
+  `NarrativeBlock` manifests;
 - `rna_de_per_cluster.py` is treated as optional on atlas-scale inputs. If it times
   out, the pipeline may still be scientifically valid when donor-level pseudobulk,
   pathway, communication, and trajectory outputs complete. DPT pseudotime may be

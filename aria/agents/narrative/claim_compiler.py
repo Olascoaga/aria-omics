@@ -380,3 +380,60 @@ def compile_claims(blocks: list[NarrativeBlock],
     contentful (non-descriptive) blocks plus successful descriptive ones."""
     annotate_claim_tiers(blocks, exp_ctx)
     return [compile_claim_manifest(b) for b in blocks]
+
+
+@dataclass
+class PublicClaimCompilation:
+    """The only block/claim set eligible for public report rendering."""
+
+    blocks: list[NarrativeBlock] = field(default_factory=list)
+    claims: list[dict[str, Any]] = field(default_factory=list)
+    withheld: list[dict[str, str]] = field(default_factory=list)
+
+    def summary(self) -> dict[str, Any]:
+        return {
+            "compiler": "compile_public_claims",
+            "n_published": len(self.claims),
+            "n_withheld": len(self.withheld),
+            "withheld": list(self.withheld),
+        }
+
+
+def compile_public_claims(
+    blocks: list[NarrativeBlock],
+    exp_ctx: dict | None = None,
+) -> PublicClaimCompilation:
+    """Compile the exclusive public claim set, withholding unsupported blocks.
+
+    MessageBus payloads and legacy prose are deliberately not accepted by this
+    API: callers must provide typed ``NarrativeBlock`` instances with structured
+    evidence. Each block is validated, tiered and checked against the exact prose
+    the renderer will show. A failed block contributes only an opaque withheld
+    record; its unverified text never reaches HTML or the claim manifest.
+    """
+    from aria.agents.narrative.compose_prose import compose_block_prose
+    from aria.agents.narrative.validators import validate_block
+
+    candidates = list(blocks or [])
+    annotate_claim_tiers(candidates, exp_ctx or {})
+    compiled = PublicClaimCompilation()
+    for block in candidates:
+        try:
+            validate_block(block)
+            prose = compose_block_prose(block) or block.claim or ""
+            verification = verify_block_claim_support(
+                block, prose, strict=True
+            )
+            block.metadata["claim_verification"] = verification
+            manifest = compile_claim_manifest(block)
+            if manifest.get("verification", {}).get("status") != "supported":
+                raise ValueError("claim verification did not return supported")
+            compiled.blocks.append(block)
+            compiled.claims.append(manifest)
+        except Exception:
+            compiled.withheld.append({
+                "claim_id": str(getattr(block, "id", "unknown")),
+                "status": "withheld",
+                "reason": "unsupported claim or invalid narrative block",
+            })
+    return compiled

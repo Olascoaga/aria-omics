@@ -20,6 +20,11 @@ from pathlib import Path
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence
 from aria.llm.provider import LLMProvider
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 from aria.memory.memory import ARIAMemory
 
 log = logging.getLogger("aria.bulk_rna")
@@ -648,14 +653,32 @@ class BulkRNAAgent(BaseAgent):
         except Exception: return mapping
 
     def _llm_match_labels(self, entities: list, group_names: list, intent: dict) -> dict:
-        prompt = (
-            f"Entities: {entities}\n"
-            f"Question: {intent.get('summary', '')}\n"
-            f"Labels: {group_names}\n"
-            "Match biological names to data labels. Return only JSON, "
-            "for example: {\"entity_name\": \"label_name\"}."
+        prompt = build_untrusted_prompt(
+            task=(
+                "Match biological entity names to the available data labels. "
+                "Use only labels present in the data."
+            ),
+            fields=[
+                PromptDataField("entities", entities, "identifier_list",
+                                "parsed_intent"),
+                PromptDataField("biological_question", intent.get(
+                    "summary", ""
+                ), "user_text", "user"),
+                PromptDataField("labels", group_names, "identifier_list",
+                                "sample_metadata"),
+            ],
+            response_contract=(
+                "Return only JSON mapping entity to label, for example: "
+                '{"entity_name": "label_name"}.'
+            ),
         )
-        result = self.think_structured(prompt, "Match biological names to data labels.", "Return JSON mapping entity to label.")
+        result = self.think_structured(
+            prompt,
+            system=system_with_untrusted_boundary(
+                "Match biological names to data labels."
+            ),
+            schema_hint="Return JSON mapping entity to label.",
+        )
         return {k: v for k, v in result.items() if v in group_names and isinstance(v, str)} if isinstance(result, dict) else {}
 
     @staticmethod

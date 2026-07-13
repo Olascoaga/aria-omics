@@ -38,6 +38,11 @@ from enum import Enum
 from typing import Optional
 
 from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 from aria.bus.message_bus import CavemanMode
 
 log = logging.getLogger("aria.debate")
@@ -258,42 +263,56 @@ class DebateCouncil:
 
     def _proposer_turn(self, claim: str, evidence: str, context: str,
                        round_number: int, previous_rounds: list) -> str:
-        history = ""
+        history = None
         if previous_rounds:
             last = previous_rounds[-1]
-            history = (
-                f"\nPrevious critic challenge:\n{last.critic_response}\n"
-                f"Address this in your response."
-            )
+            history = last.critic_response
 
-        prompt = f"""
-Topic: {claim}
-Evidence available: {evidence}
-Biological context: {context}
-Round: {round_number}{history}
-
-Present or defend your biological interpretation.
-"""
+        prompt = build_untrusted_prompt(
+            task=(
+                "Present or defend the biological interpretation using only the "
+                "available evidence. Address the previous critic challenge when present."
+            ),
+            fields=[
+                PromptDataField("topic", claim, "generated_text", "proposer"),
+                PromptDataField("evidence", evidence, "structured_result",
+                                "agent_results"),
+                PromptDataField("biological_context", context, "metadata",
+                                "experiment_context"),
+                PromptDataField("round", round_number, "metadata", "debate"),
+                PromptDataField("previous_critic_challenge", history,
+                                "generated_text", "critic"),
+            ],
+            response_contract="Return concise scientific prose.",
+        )
         return self.llm.complete(
             prompt=prompt,
-            system=PROPOSER_SYSTEM,
+            system=system_with_untrusted_boundary(PROPOSER_SYSTEM),
             tier=TaskTier.MEDIUM,
             max_tokens=600,
         )
 
     def _critic_turn(self, proposer_claim: str, evidence: str,
                      context: str, topic: str) -> str:
-        prompt = f"""
-Topic being debated: {topic}
-Proposer's claim: {proposer_claim}
-Available evidence: {evidence}
-Biological context: {context}
-
-Challenge this interpretation. Remember: state the alternative hypothesis FIRST.
-"""
+        prompt = build_untrusted_prompt(
+            task=(
+                "Challenge the interpretation. State the most plausible alternative "
+                "hypothesis first and require evidence for acceptance."
+            ),
+            fields=[
+                PromptDataField("topic", topic, "generated_text", "debate"),
+                PromptDataField("proposer_claim", proposer_claim,
+                                "generated_text", "proposer"),
+                PromptDataField("evidence", evidence, "structured_result",
+                                "agent_results"),
+                PromptDataField("biological_context", context, "metadata",
+                                "experiment_context"),
+            ],
+            response_contract="Return the challenge as scientific prose.",
+        )
         return self.llm.complete(
             prompt=prompt,
-            system=CRITIC_SYSTEM,
+            system=system_with_untrusted_boundary(CRITIC_SYSTEM),
             tier=TaskTier.MEDIUM,
             max_tokens=600,
         )
@@ -302,28 +321,31 @@ Challenge this interpretation. Remember: state the alternative hypothesis FIRST.
                           rounds: list, verdict: DebateVerdict
                           ) -> tuple[str, list[str]]:
         """Write the final user-facing consensus in normal prose."""
-        rounds_summary = "\n".join([
-            f"Round {r.round_number}: {r.verdict.value if r.verdict else 'ongoing'} — "
-            f"Alternative: {r.alternative_hypothesis[:100]}"
-            for r in rounds
-        ])
+        rounds_summary = [{
+            "round": r.round_number,
+            "verdict": r.verdict.value if r.verdict else "ongoing",
+            "alternative_hypothesis": r.alternative_hypothesis,
+        } for r in rounds]
 
-        prompt = f"""
-Topic: {topic}
-Final claim after debate: {final_claim}
-Verdict: {verdict.value}
-Debate summary:
-{rounds_summary}
-
-Write:
-1. A concise scientific summary of the final accepted interpretation (2-3 sentences)
-2. A "Limitations" list (bullet points) of what reviewers should know
-
-Be honest. If the verdict is REJECT or INSUFFICIENT, say so clearly.
-"""
+        prompt = build_untrusted_prompt(
+            task=(
+                "Write a concise scientific summary of the final accepted "
+                "interpretation (2-3 sentences), followed by a Limitations list. "
+                "If the code-owned verdict is reject or insufficient, say so clearly."
+            ),
+            fields=[
+                PromptDataField("topic", topic, "generated_text", "debate"),
+                PromptDataField("final_claim", final_claim, "generated_text",
+                                "debate"),
+                PromptDataField("verdict", verdict.value, "metadata", "code"),
+                PromptDataField("rounds", rounds_summary, "structured_result",
+                                "debate"),
+            ],
+            response_contract="Return prose followed by bullet-point limitations.",
+        )
         response = self.llm.complete(
             prompt=prompt,
-            system=CONSENSUS_SYSTEM,
+            system=system_with_untrusted_boundary(CONSENSUS_SYSTEM),
             tier=TaskTier.HEAVY,    # Normal prose for user — use best model
             max_tokens=400,
         )

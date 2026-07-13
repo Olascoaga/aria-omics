@@ -31,6 +31,11 @@ from pathlib import Path
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence
 from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 from aria.llm.parameter_advisor import ParameterAdvisor
 from aria.memory.memory import ARIAMemory
 
@@ -1135,78 +1140,82 @@ class scRNAAgent(BaseAgent):
         #            context — does NOT invent labels from markers alone ──
         if celltypist_result.get("status") == "success":
             per_cluster = celltypist_result.get("per_cluster", {})
-            celltypist_evidence = json.dumps(per_cluster, indent=2)
-            prompt = f"""
-You are reinterpreting database-backed cell type calls in their biological
-context. CellTypist (model: {celltypist_result.get("model_used")}) produced
-these per-cluster labels for {exp_ctx.get("organism", "?")} data.
-
-Biological question: {intent.get("summary", exp_ctx.get("user_question", "?"))}
-Tissue hint: {tissue_hint}
-
-CellTypist per-cluster results. `frequency` = fraction of cells whose RAW
-per-cell call (before majority voting) matches the cluster label — genuine
-within-cluster agreement, NOT a collapsed 1.0. `mean_confidence` = the model's
-mean per-cell probability for the assigned label (null when unavailable).
-`alt_labels` = competing raw calls in the cluster:
-{celltypist_evidence}
-
-Top marker genes per cluster (for cross-validation):
-{json.dumps(markers_for_prompt, indent=2)}
-
-Return JSON ONLY (no markdown fences):
-{{
-  "cluster_id": {{
-    "cell_type":         "<chosen final label>",
-    "celltypist_label":  "<what celltypist said>",
-    "agrees_with_celltypist": true | false,
-    "confidence":        "high" | "medium" | "low",
-    "rationale":         "<one sentence: why this label, in this tissue>",
-    "key_markers":       ["gene1", "gene2"]
-  }},
-  ...
-}}
+            celltypist_evidence = per_cluster
+            prompt = build_untrusted_prompt(
+                task="""Reinterpret database-backed CellTypist calls in biological
+context. `frequency` is the fraction of raw per-cell calls matching the cluster
+label; `mean_confidence` is the model's mean per-cell probability;
+`alt_labels` are competing raw calls.
 
 Rules:
-- Default to the CellTypist label. Only override if the markers contradict
-  it AND you can justify the override with a specific marker mismatch.
-- HIGH confidence: frequency >= 0.85 AND (mean_confidence is null or >= 0.7)
-  AND markers consistent.
-- MEDIUM: frequency 0.5-0.85, OR mean_confidence 0.5-0.7, OR markers partially
-  support.
-- LOW: frequency < 0.5, OR mean_confidence < 0.5, OR markers contradict — say so
-  explicitly. Do NOT report HIGH confidence on a low-probability annotation.
-- If you override, set agrees_with_celltypist=false and explain in rationale.
-- Do NOT invent labels not supported by either source.
-"""
+- Default to the CellTypist label. Override only if markers contradict it and
+  the rationale names the specific mismatch.
+- HIGH: frequency >=0.85 and confidence null/>=0.7 with consistent markers.
+- MEDIUM: frequency 0.5-0.85, confidence 0.5-0.7, or partial marker support.
+- LOW: frequency <0.5, confidence <0.5, or marker contradiction.
+- Never invent a label unsupported by CellTypist or the supplied markers.""",
+                fields=[
+                    PromptDataField("celltypist_model", celltypist_result.get(
+                        "model_used"
+                    ), "identifier", "celltypist"),
+                    PromptDataField("organism", exp_ctx.get("organism", "?"),
+                                    "metadata", "data_audit"),
+                    PromptDataField("biological_question", intent.get(
+                        "summary", exp_ctx.get("user_question", "?")
+                    ), "user_text", "user"),
+                    PromptDataField("tissue_hint", tissue_hint, "metadata",
+                                    "user_or_data_audit"),
+                    PromptDataField("celltypist_per_cluster", per_cluster,
+                                    "structured_result", "celltypist"),
+                    PromptDataField("marker_genes_by_cluster", markers_for_prompt,
+                                    "structured_result", "rna_markers"),
+                ],
+                response_contract='''Return JSON only:
+{
+  "cluster_id": {
+    "cell_type": "chosen final label",
+    "celltypist_label": "database label",
+    "agrees_with_celltypist": true,
+    "confidence": "high|medium|low",
+    "rationale": "one sentence",
+    "key_markers": ["gene1", "gene2"]
+  }
+}''',
+            )
         else:
             log.warning(
                 f"CellTypist failed ({celltypist_result.get('error_type', '?')}); "
                 f"falling back to LLM-only annotation."
             )
             celltypist_evidence = None
-            prompt = f"""
-CellTypist annotation was not available for this run. Annotate clusters
-from marker genes alone — be conservative about confidence.
-
-Organism: {exp_ctx.get("organism", "unknown")}
-Biological question: {intent.get("summary", "unknown")}
-Cluster marker genes (top per cluster):
-{json.dumps(markers_for_prompt, indent=2)}
-
-Return JSON ONLY:
-{{"cluster_id": {{"cell_type": "name", "confidence": "high|medium|low",
-  "key_markers": ["gene1", "gene2"], "rationale": "<one sentence>"}}}}
-
-Rules:
-- If markers are ambiguous, say "ambiguous — possible types: X, Y"
-- Without CellTypist evidence, max confidence is MEDIUM.
-"""
+            prompt = build_untrusted_prompt(
+                task=(
+                    "CellTypist was unavailable. Annotate clusters from marker "
+                    "genes alone, conservatively. If markers are ambiguous, say "
+                    "so and list possible types. Maximum confidence is MEDIUM."
+                ),
+                fields=[
+                    PromptDataField("organism", exp_ctx.get(
+                        "organism", "unknown"
+                    ), "metadata", "data_audit"),
+                    PromptDataField("biological_question", intent.get(
+                        "summary", "unknown"
+                    ), "user_text", "user"),
+                    PromptDataField("marker_genes_by_cluster", markers_for_prompt,
+                                    "structured_result", "rna_markers"),
+                ],
+                response_contract=(
+                    'Return JSON only: {"cluster_id": {"cell_type": "name", '
+                    '"confidence": "medium|low", "key_markers": ["gene1"], '
+                    '"rationale": "one sentence"}}'
+                ),
+            )
 
         cell_types: dict = {}
         try:
             raw = self.llm.complete(
-                prompt=prompt, system=SCRNA_SYSTEM,
+                prompt=prompt,
+                system=system_with_untrusted_boundary(SCRNA_SYSTEM),
                 tier=TaskTier.HEAVY, max_tokens=1500,
             )
             cell_types = self._parse_annotation_json(raw)
@@ -1387,16 +1396,30 @@ Rules:
         }
         try:
             interpretation = self.llm.complete(
-                prompt=(
-                    f'Biological question: {intent.get("summary", "")}\n'
-                    f'Organism: {exp_ctx.get("organism", "")}\n'
-                    f'Per-cluster DE (top hits, padj<{padj_max}, '
-                    f'|log2FC|>{lfc_min}):\n'
-                    f'{json.dumps(de_for_llm, indent=2)}\n'
-                    f'Total significant genes: {n_sig}\n\n'
-                    f'Interpret in 3-4 sentences. Focus on biology, not stats.'
+                prompt=build_untrusted_prompt(
+                    task=(
+                        "Interpret the supplied per-cluster differential-expression "
+                        "results in 3-4 sentences. Focus on biology, not statistics, "
+                        "and do not introduce entities absent from the results."
+                    ),
+                    fields=[
+                        PromptDataField("biological_question", intent.get(
+                            "summary", ""
+                        ), "user_text", "user"),
+                        PromptDataField("organism", exp_ctx.get("organism", ""),
+                                        "metadata", "data_audit"),
+                        PromptDataField("top_de_by_cluster", de_for_llm,
+                                        "structured_result", "rna_de_per_cluster"),
+                        PromptDataField("padj_max", padj_max, "metadata",
+                                        "analysis_thresholds"),
+                        PromptDataField("lfc_min", lfc_min, "metadata",
+                                        "analysis_thresholds"),
+                        PromptDataField("n_significant_genes", n_sig, "metadata",
+                                        "rna_de_per_cluster"),
+                    ],
+                    response_contract="Return plain scientific prose only.",
                 ),
-                system=SCRNA_SYSTEM,
+                system=system_with_untrusted_boundary(SCRNA_SYSTEM),
                 tier=TaskTier.HEAVY, max_tokens=400,
             )
         except Exception:

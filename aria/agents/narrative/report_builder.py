@@ -335,10 +335,9 @@ class ReportBuilderMixin:
         Render the full HTML report.
         Self-contained: CSS embedded, no external dependencies.
         """
-        organism = exp_ctx.get("organism", "Unknown organism")
-        genome   = exp_ctx.get("genome", "Unknown assembly")
-        question = intent.get("summary",
-                               exp_ctx.get("user_question", ""))
+        organism = _html.escape(str(exp_ctx.get("organism", "Unknown organism")))
+        genome = _html.escape(str(exp_ctx.get("genome", "Unknown assembly")))
+        question = exp_ctx.get("user_question") or "Submitted question unavailable"
         agent_results = agent_results or {}
         reproducible = bool(exp_ctx.get("reproducible_mode"))
         date_str = (
@@ -378,6 +377,12 @@ class ReportBuilderMixin:
         )
         narrative_blocks = [executive_summary_block, *list(narrative_blocks or [])]
 
+        # Devil's advocate consumes deterministic evidence tiers. This is tier
+        # annotation only; the single public compilation happens after its
+        # caveats are attached so HTML and methodology see identical manifests.
+        from aria.agents.narrative.claim_compiler import annotate_claim_tiers
+        annotate_claim_tiers(narrative_blocks, exp_ctx)
+
         # P-DEVIL: run the deterministic devil's advocate before rendering so its
         # info caveats appear in the HTML blocks (claim tiers were annotated when
         # the blocks were collected). P-LEDGER: build the planned-vs-run manifest
@@ -402,6 +407,38 @@ class ReportBuilderMixin:
             self._ensure_executive_summary_ledger_node(
                 run_ledger, executive_summary_block
             )
+
+        # C1: the single claim-compilation boundary for every public surface.
+        # Raw MessageBus findings and legacy prose are not inputs: only typed,
+        # evidence-bearing NarrativeBlocks can enter. Unsupported blocks are
+        # withheld without exposing their text.
+        from aria.agents.narrative.claim_compiler import compile_public_claims
+        public_compilation = compile_public_claims(narrative_blocks, exp_ctx)
+        narrative_blocks = public_compilation.blocks
+        public_claims = public_compilation.claims
+        executive_summary_block = next(
+            (
+                block for block in narrative_blocks
+                if block.id == "executive_summary"
+            ),
+            None,
+        )
+        if executive_summary_block is not None:
+            executive_summary = executive_summary_block.claim
+        else:
+            executive_summary = (
+                "The executive summary was withheld because it could not be "
+                "verified against structured evidence."
+            )
+        self._last_governed_executive_summary = executive_summary
+
+        try:
+            from aria.agents.narrative.run_ledger import link_claims_to_ledger
+            run_ledger["claim_linkage"] = link_claims_to_ledger(
+                public_claims, run_ledger
+            )
+        except Exception as exc:
+            log.warning(f"Claim-ledger linkage failed: {exc}", exc_info=True)
 
         # W-LEDGER: verify that no associative-or-stronger claim cites a ledger
         # node the run marked not-run/skipped/error. This cross-references TWO
@@ -428,15 +465,14 @@ class ReportBuilderMixin:
         except Exception as exc:
             log.warning(f"Ledger claim verification failed: {exc}", exc_info=True)
 
-        # Findings table rows
-        findings_rows = self._build_findings_table(grouped_findings)
+        public_claim_rows = self._build_public_claims_table(public_claims)
 
         # Decisions log rows
         decisions_rows = self._build_decisions_table(decisions)
 
         version = _html.escape(str(ARIA_VERSION))
         conflicts_html = self._plain_text_to_html(
-            findings_sections.get("conflicts", "No conflicts detected.")
+            self._public_conflict_notice(agent_results)
         )
         methods_html = self._plain_text_to_html(methods)
         provenance = collect_provenance()
@@ -663,7 +699,7 @@ class ReportBuilderMixin:
 </p>
 
 <div class="card">
-  <h3>Biological Question</h3>
+  <h3>Submitted Biological Question (untrusted input)</h3>
   <p><em>{_html.escape(str(question))}</em></p>
 </div>
 
@@ -683,14 +719,19 @@ class ReportBuilderMixin:
 {findings_html}
 {speculative_html}
 
-<h2>All Findings ({sum(len(v) for v in grouped_findings.values())} total)</h2>
+<h2>Governed Claim Ledger ({len(public_claims)} published)</h2>
+<p style="color: var(--muted); font-size: 0.875rem;">
+  Every row below was compiled from an evidence-bearing NarrativeBlock and
+  verified before rendering. MessageBus events are operational records, not
+  public claims.
+</p>
 <table>
   <tr>
-    <th>Confidence</th>
-    <th>Finding</th>
-    <th>Agent</th>
+    <th>Claim ID</th>
+    <th>Claim</th>
+    <th>Evidence scope</th>
   </tr>
-  {findings_rows}
+  {public_claim_rows}
 </table>
 
 <h2>Cross-modal Conflicts &amp; Limitations</h2>
@@ -754,6 +795,8 @@ class ReportBuilderMixin:
                     narrative_blocks=narrative_blocks,
                     run_ledger=run_ledger,
                     devils_advocate=devils_advocate,
+                    compiled_claims=public_claims,
+                    claim_compilation=public_compilation.summary(),
                 ),
                 indent=2,
                 sort_keys=True,
@@ -914,19 +957,11 @@ class ReportBuilderMixin:
         except Exception:
             concrete = "(concrete result summary unavailable)"
         total_findings = sum(len(v) for v in (grouped_findings or {}).values())
-        question = intent.get(
-            "summary", (exp_ctx or {}).get("user_question", "")
-        )
         evidence = [
             EvidenceItem(
                 label="concrete pipeline results",
                 value=concrete,
                 source="agent_results",
-            ),
-            EvidenceItem(
-                label="biological question",
-                value=question,
-                source="intent",
             ),
             EvidenceItem(
                 label="findings recorded",
@@ -1037,7 +1072,9 @@ class ReportBuilderMixin:
                                 llm_usage: dict | None = None,
                                 narrative_blocks: list | None = None,
                                 run_ledger: dict | None = None,
-                                devils_advocate: list | None = None) -> dict:
+                                devils_advocate: list | None = None,
+                                compiled_claims: list | None = None,
+                                claim_compilation: dict | None = None) -> dict:
         thresholds = {}
         bulk = (agent_results or {}).get("bulk_rna_agent", {})
         bulk_findings = bulk.get("findings", bulk) if isinstance(bulk, dict) else {}
@@ -1063,14 +1100,33 @@ class ReportBuilderMixin:
         )
         if narrative_blocks is None:
             narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
-        # X14: per-claim evidence-tier manifests (claim_id -> tier, evidence,
-        # limitations, confidence). Best-effort; never block methodology output.
-        try:
-            from aria.agents.narrative.claim_compiler import compile_claims
-            claims = compile_claims(list(narrative_blocks or []), exp_ctx)
-        except Exception as exc:
-            log.warning(f"Claim manifest compilation failed: {exc}", exc_info=True)
-            claims = []
+        # C1: the HTML and methodology consume the SAME pre-render compilation.
+        # Standalone callers still use the public compiler, never the older
+        # manifest-only path.
+        if compiled_claims is None:
+            try:
+                from aria.agents.narrative.claim_compiler import (
+                    compile_public_claims,
+                )
+                compilation = compile_public_claims(
+                    list(narrative_blocks or []), exp_ctx
+                )
+                claims = compilation.claims
+                claim_compilation = compilation.summary()
+                narrative_blocks = compilation.blocks
+            except Exception as exc:
+                log.warning(
+                    f"Public claim compilation failed: {exc}", exc_info=True
+                )
+                claims = []
+                claim_compilation = {
+                    "compiler": "compile_public_claims",
+                    "n_published": 0,
+                    "n_withheld": len(narrative_blocks or []),
+                    "withheld": [],
+                }
+        else:
+            claims = compiled_claims
         # ADR-057 rail #6: the active non-promotion wall. A machine hypothesis
         # (SPECULATIVE tier / hypothesis:// node) must never enter the audited
         # claim manifest; this raises loudly if one ever leaks here. It is a
@@ -1130,6 +1186,12 @@ class ReportBuilderMixin:
                 block.to_dict() for block in narrative_blocks or []
             ],
             "claims": claims,
+            "claim_compilation": claim_compilation or {
+                "compiler": "compile_public_claims",
+                "n_published": len(claims),
+                "n_withheld": 0,
+                "withheld": [],
+            },
             "devils_advocate": devils_advocate,
             "run_ledger": run_ledger,
             "robustness_multiverse": robustness_multiverse,
@@ -1423,7 +1485,13 @@ class ReportBuilderMixin:
                                   agent_results: dict = None,
                                   narrative_blocks: list | None = None,
                                   report_dir: Path | None = None) -> str:
-        """Build the findings cards. When agent_results provided, embed plots."""
+        """Build findings exclusively from precompiled narrative blocks."""
+        if not narrative_blocks:
+            return (
+                '<div class="card"><p>No governed narrative claims were '
+                'published. Raw MessageBus and legacy section text remain '
+                'operational audit data.</p></div>'
+            )
         parts = []
         block_groups = {}
         if narrative_blocks:
@@ -1448,52 +1516,47 @@ class ReportBuilderMixin:
             "integration": "integration",
         }
         for key, (label, color) in section_labels.items():
-            text = sections.get(key, "")
             # Most sections share their key with the block-id prefix
             # (chromatin/hic/synthesis/rna); only bulk_rna/scrna/integration
             # remap. Defaulting to the key itself lets chromatin blocks
             # ("chromatin.*") render in the Chromatin section (v4.6 step 6).
             blocks = block_groups.get(section_prefix.get(key, key), [])
-            if not text and not blocks:
+            if not blocks:
                 continue
 
-            # Build plot embeds if we have bulk RNA results
-            plot_html = ""
-            if blocks:
-                # strict=False: a single unverifiable block is withheld, never
-                # aborts the whole report (W-CLAIM stays strict for the block, but
-                # report generation is resilient).
-                plot_html = render_blocks(blocks, report_dir=report_dir,
-                                          strict=False)
-                body_html = ""
-            elif key == "bulk_rna" and agent_results:
-                plot_html = self._build_bulk_rna_plots(
-                    agent_results.get("bulk_rna_agent", {})
-                )
-                body_html = self._plain_text_to_html(text)
-            elif key == "scrna" and agent_results:
-                from aria.agents import _narrative_scrna
-                sc_envelope = agent_results.get("scrna_agent") or \
-                              agent_results.get("rna_agent", {})
-                sc_findings = _narrative_scrna.unwrap_scrna_findings(
-                    sc_envelope
-                )
-                plot_html = _narrative_scrna.build_scrna_html_section(
-                    sc_findings
-                )
-                body_html = self._plain_text_to_html(text)
-            else:
-                body_html = self._plain_text_to_html(text)
+            plot_html = render_blocks(
+                blocks, report_dir=report_dir, strict=False
+            )
 
-            # Escape HTML-breaking newlines into <br> for readability
             parts.append(f"""
 <div class="card">
   <h3 style="color:{color}">{label}</h3>
-  {f'<p>{body_html}</p>' if body_html else ''}
   {plot_html}
 </div>""")
         return "\n".join(parts) if parts else \
-               '<div class="card"><p>No modality findings available.</p></div>'
+               ('<div class="card"><p>No governed narrative claims were '
+                'published.</p></div>')
+
+    @staticmethod
+    def _public_conflict_notice(agent_results: dict) -> str:
+        """Code-authored conflict notice; never republishes bus/result prose."""
+        active = [
+            name for name in (
+                "bulk_rna_agent", "scrna_agent", "chromatin_agent",
+                "genome_arch_agent", "integration_agent",
+            )
+            if ((agent_results or {}).get(name) or {}).get("status") == "done"
+        ]
+        if "integration_agent" not in active and len(active) <= 1:
+            return (
+                "Cross-modal conflict analysis: not applicable; "
+                "single-modality report."
+            )
+        return (
+            "Cross-modal conflicts and limitations are published only inside "
+            "governed narrative blocks above. Raw MessageBus text remains an "
+            "operational audit record and is not promoted to a report claim."
+        )
 
 
     def _build_methodology_table(self, bulk_result: dict) -> str:
@@ -1871,6 +1934,31 @@ class ReportBuilderMixin:
                 )
         return "\n".join(rows) if rows else \
                '<tr><td colspan="3">No findings recorded.</td></tr>'
+
+    def _build_public_claims_table(self, claims: list[dict]) -> str:
+        """Render only manifests emitted by ``compile_public_claims``."""
+        rows = []
+        for claim in claims or []:
+            verification = claim.get("verification") or {}
+            if verification.get("status") != "supported":
+                continue
+            claim_id = _html.escape(str(claim.get("claim_id", "")))
+            text = _html.escape(str(claim.get("text", "")))
+            tier = _html.escape(str(claim.get("tier") or "descriptive"))
+            evidence_card = _html.escape(str(
+                claim.get("evidence_card_id") or "evidence unavailable"
+            ))
+            rows.append(
+                "<tr>"
+                f"<td><code>{claim_id}</code></td>"
+                f"<td>{text}</td>"
+                f"<td><span class='badge medium'>{tier}</span><br>"
+                f"<code>{evidence_card}</code></td>"
+                "</tr>"
+            )
+        return "\n".join(rows) if rows else (
+            '<tr><td colspan="3">No governed claims were published.</td></tr>'
+        )
 
 
 

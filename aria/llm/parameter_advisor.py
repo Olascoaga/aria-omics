@@ -28,6 +28,11 @@ from typing import Any, Callable, Optional
 
 from aria.memory.memory import ARIAMemory
 from aria.llm.provider import LLMProvider, TaskTier
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 
 log = logging.getLogger("aria.params")
 
@@ -806,29 +811,30 @@ class ParameterAdvisor:
             for h in historical[:3]
         ]
 
-        # numpy types are not JSON serializable — convert before dumping
-        def _json_safe(obj):
-            if hasattr(obj, "item"):          # numpy scalar → Python scalar
-                return obj.item()
-            if hasattr(obj, "tolist"):         # numpy array → list
-                return obj.tolist()
-            raise TypeError(f"Not serializable: {type(obj)}")
-
-        prompt = f"""
-Biological context: {json.dumps(biological_context, indent=2, default=_json_safe)}
-Parameter: {parameter_name}
-Chosen value: {chosen.value}
-All candidates evaluated: {json.dumps(candidates_summary, indent=2, default=_json_safe)}
-Lab historical decisions: {json.dumps(hist_summary, indent=2, default=_json_safe)}
-
-Write a 1-2 sentence scientific justification for choosing {parameter_name}={chosen.value}.
-Be specific: cite the metrics, the biological intent, and historical precedent if relevant.
-Do NOT hedge. Be direct. Use scientific language appropriate for a methods section.
-"""
+        prompt = build_untrusted_prompt(
+            task=(
+                "Write a 1-2 sentence scientific methods justification for the "
+                "code-selected parameter value. Cite measured metrics and historical "
+                "precedent when present. Be direct and do not invent measurements."
+            ),
+            fields=[
+                PromptDataField("biological_context", biological_context,
+                                "metadata", "experiment_context"),
+                PromptDataField("parameter_name", parameter_name, "identifier",
+                                "parameter_advisor"),
+                PromptDataField("chosen_value", chosen.value, "metadata",
+                                "parameter_advisor"),
+                PromptDataField("candidates", candidates_summary,
+                                "structured_result", "parameter_advisor"),
+                PromptDataField("historical_decisions", hist_summary,
+                                "structured_result", "aria_memory"),
+            ],
+            response_contract="Return methods prose only, maximum two sentences.",
+        )
         try:
             return self.llm.complete_medium(
                 prompt=prompt,
-                system=(
+                system=system_with_untrusted_boundary(
                     "You are a bioinformatics expert writing a methods justification. "
                     "Be precise, cite specific metrics, max 2 sentences."
                 ),

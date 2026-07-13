@@ -21,6 +21,8 @@ import json
 import logging
 from typing import Any, Callable
 
+from aria.llm.prompt_boundary import escape_untrusted_text
+
 from .caveats import caveat_gloss
 from .types import Hypothesis
 
@@ -103,7 +105,7 @@ def build_proposer_prompt(
     )
     lines.append("<untrusted_data>")
     if question:
-        lines.append(f"Biological question: {question}")
+        lines.append(f"Biological question: {escape_untrusted_text(question)}")
     lines.append("Audited evidence:")
     for sig in signals:
         d = sig.to_dict() if hasattr(sig, "to_dict") else dict(sig)
@@ -111,23 +113,36 @@ def build_proposer_prompt(
         # model can acknowledge it by its exact code in devils_advocate.confounds.
         codes = d.get("caveats_inherited") or []
         caveats = (
-            "; ".join(f"[{c}] {caveat_gloss(c)}" for c in codes) or "none"
+            "; ".join(
+                f"[{escape_untrusted_text(c)}] "
+                f"{escape_untrusted_text(caveat_gloss(c))}"
+                for c in codes
+            ) or "none"
         )
         value = d.get("value")
-        value_str = f" value={value}" if value is not None else ""
+        value_str = (
+            f" value={escape_untrusted_text(value)}"
+            if value is not None else ""
+        )
         # H12 (F4): print the analysis context so the model can distinguish the
         # SAME entity measured in different contrasts/groups. Without it, GATA1 up
         # in one contrast and GATA1 down in another collapse into one ambiguous
         # line and the model cannot reason about which contrast it is connecting.
         context = str(d.get("context") or "").strip()
-        context_str = f" (context: {context})" if context else ""
+        context_str = (
+            f" (context: {escape_untrusted_text(context)})" if context else ""
+        )
         # H15: print the signal_id so the model can cite the EXACT measurement it
         # reads in observed_claims; the grounding verifier checks the stated
         # direction against this signal's audited direction.
         lines.append(
-            f"- ({d.get('signal_id')}) {d.get('entity')} [{d.get('entity_kind')}] "
-            f"{d.get('measure')} {d.get('direction')}{value_str}{context_str} "
-            f"from {d.get('audited_node_ref')}; confounds: {caveats}"
+            f"- ({escape_untrusted_text(d.get('signal_id'))}) "
+            f"{escape_untrusted_text(d.get('entity'))} "
+            f"[{escape_untrusted_text(d.get('entity_kind'))}] "
+            f"{escape_untrusted_text(d.get('measure'))} "
+            f"{escape_untrusted_text(d.get('direction'))}{value_str}{context_str} "
+            f"from {escape_untrusted_text(d.get('audited_node_ref'))}; "
+            f"confounds: {caveats}"
         )
     lines.append("</untrusted_data>")
     lines.append("")

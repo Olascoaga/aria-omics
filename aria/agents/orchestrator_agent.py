@@ -30,6 +30,11 @@ from typing import Optional
 from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Message, MessageType, Confidence
 from aria.llm.provider import LLMProvider
+from aria.llm.prompt_boundary import (
+    PromptDataField,
+    build_untrusted_prompt,
+    system_with_untrusted_boundary,
+)
 from aria.memory.memory import ARIAMemory
 from aria.runtime.experiment_session import ExperimentSession
 from aria.utils.privacy import use_egress_policy
@@ -1161,49 +1166,68 @@ class OrchestratorAgent(BaseAgent):
                 pass
 
     def _parse_question(self, user_question: str, llm=None) -> dict:
-        prompt = f"""
-User question: "{user_question}"
-Extract the biological analysis intent. Return JSON:
-{{
+        prompt = build_untrusted_prompt(
+            task="Extract the biological analysis intent from the submitted question.",
+            fields=[PromptDataField(
+                name="user_question",
+                value=user_question,
+                kind="user_text",
+                source="user",
+            )],
+            response_contract='''Return JSON with this schema:
+{
   "analysis_type": "differential|regulatory|structural|temporal|cell_type|integration",
   "biological_entities": ["genes, TFs, cell types, conditions mentioned"],
   "comparison": "what vs what (if applicable)",
   "key_modalities_needed": ["RNA", "ATAC", "HiC", "ChIP"],
   "complexity": "simple|moderate|complex",
   "summary": "one sentence biological question summary"
-}}
-"""
+}''',
+        )
         return self.think_structured(
             prompt,
-            system=ORCHESTRATOR_SYSTEM,
+            system=system_with_untrusted_boundary(ORCHESTRATOR_SYSTEM),
             schema_hint="Return analysis intent as JSON.",
             llm=llm,
         )
 
     def _design_analysis_plan(self, experiment_id: str, exp_context: dict) -> dict:
-        prompt = f"""
-Available modalities: {list(exp_context.get("modalities", {}).keys())}
-User question: "{exp_context.get("user_question", "")}"
-Organism: {exp_context.get("organism")}
-Genome: {exp_context.get("genome")}
-Is multimodal: {exp_context.get("is_multimodal")}
-
-Design the analysis pipeline. Return JSON:
-{{
-  "steps": [{{"order": 1, "agent": "rna_agent", "analysis": "description", "depends_on": [], "can_parallel": false}}],
-  "contrasts": [{{"numerator": "groupA", "denominator": "groupB"}}],
+        prompt = build_untrusted_prompt(
+            task="Design the analysis pipeline using the submitted context.",
+            fields=[
+                PromptDataField(
+                    "available_modalities",
+                    list(exp_context.get("modalities", {}).keys()),
+                    "identifier_list",
+                    "data_audit",
+                ),
+                PromptDataField("user_question", exp_context.get(
+                    "user_question", ""
+                ), "user_text", "user"),
+                PromptDataField("organism", exp_context.get("organism"),
+                                "metadata", "data_audit"),
+                PromptDataField("genome", exp_context.get("genome"),
+                                "metadata", "data_audit"),
+                PromptDataField("is_multimodal", exp_context.get(
+                    "is_multimodal"
+                ), "metadata", "data_audit"),
+            ],
+            response_contract='''Return JSON with this schema:
+{
+  "steps": [{"order": 1, "agent": "rna_agent", "analysis": "description", "depends_on": [], "can_parallel": false}],
+  "contrasts": [{"numerator": "groupA", "denominator": "groupB"}],
   "integration_needed": true,
   "integration_type": "WNN|MOFA|none",
   "estimated_complexity": "low|medium|high",
   "rationale": "brief explanation"
-}}
-"""
+}''',
+        )
         try:
             session = self._get_session(experiment_id)
             with use_egress_policy(session.egress_policy):
                 plan = self.think_structured(
                     prompt,
-                    system=ORCHESTRATOR_SYSTEM,
+                    system=system_with_untrusted_boundary(ORCHESTRATOR_SYSTEM),
                     schema_hint="Return analysis plan as JSON.",
                     llm=session.llm_provider,
                 )

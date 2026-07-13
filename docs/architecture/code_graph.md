@@ -218,11 +218,21 @@ flowchart TD
     BULK_NARR --> BLOCKS[NarrativeBlock list]
     SCRNA_NARR --> BLOCKS
     CHROM_NARR --> BLOCKS
-    BLOCKS --> VALIDATORS[aria/agents/narrative/validators.py]
+    BLOCKS --> PUBLIC_CLAIMS[claim_compiler.compile_public_claims exclusive public set]
+    PUBLIC_CLAIMS --> VALIDATORS[aria/agents/narrative/validators.py + strict evidence verification]
     VALIDATORS --> PROSE[aria/agents/narrative/compose_prose.py]
     PROSE --> RENDER[aria/agents/narrative/render_blocks.py]
     RENDER --> REPORT[report.html]
     NARR --> LLM[aria/llm/provider.py]
+    ORCH --> PROMPT_BOUNDARY[aria/llm/prompt_boundary.py typed JSON untrusted-data envelope + delimiter escaping]
+    DESIGN --> PROMPT_BOUNDARY
+    BULK_AGENT --> PROMPT_BOUNDARY
+    SCRNA_AGENT --> PROMPT_BOUNDARY
+    NARR --> PROMPT_BOUNDARY
+    PROMPT_BOUNDARY --> LLM
+    PUBLIC_CLAIMS --> CLAIM_TABLE[Governed Claim Ledger; raw MessageBus text excluded]
+    CLAIM_TABLE --> REPORT
+    PUBLIC_CLAIMS --> METHODOLOGY
     RUNLLM --> LLM
     RUNLLM --> LLM_USAGE[workspace/experiment_id/llm_usage.jsonl]
     LLM_USAGE --> METHODOLOGY
@@ -265,6 +275,7 @@ flowchart TD
 
 | If you change | Check these dependents | Why it is risky |
 |---|---|---|
+| `llm/prompt_boundary.py` / `claim_compiler.compile_public_claims` / `report_builder` public surfaces | Orchestrator question parsing and planning; Design filename grouping; bulk label matching; scRNA annotation/DE prose; DebateCouncil; ParameterAdvisor; hypothesis proposer; report HTML; `methodology.json`; run-ledger linkage | **C1 preprint-readiness (2026-07-13):** every dynamic LLM value is a typed/provenanced JSON field inside exactly one `<untrusted_data>` envelope; `<`, `>` and `&` are escaped so a poisoned question, filename, label, gene or database term cannot terminate the boundary. The trusted task/schema stays outside and the system message forbids obeying embedded policies, claim/evidence IDs, role changes or section requests. The submitted question is display-only untrusted metadata and is not executive-claim evidence. At report build, `compile_public_claims` is the exclusive pre-render set for both HTML and `methodology.json`: only evidence-bearing `NarrativeBlock`s enter, unsupported blocks are withheld opaquely, raw MessageBus rows and legacy prose are not rendered, and the old “All Findings” route is replaced by the governed claim ledger. This does not change C2 semantic negation, C3 missing-ledger fail-closed policy or C4 estimand-level causal licensing. Guard: `tests/test_preprint_audit_c1_claim_boundary.py`. |
 | `geo_connector.py` inferred design schema | `data_audit_agent.py`, `design_agent.py`, `bulk_rna_agent.py`, TUI GEO flow | GEO groups, organism, aliases, and sample IDs seed the entire design path. **B2 preprint-readiness (2026-07-12):** `_infer_design` no longer collapses a multifactorial study to a single "best" characteristic. It emits an explicit `sample_sheet` (every sample keeps all characteristics), a `covariates` list of secondary multi-level factors (donor/subject/replicate ids preserved even when unique per sample), a best-effort `donor_col`, and `confounded_covariates`/`unresolved_confounding` computed via `design_matrix.factors_confounded_with_condition`. Donor/batch/covariates are never silently discarded. Guard: `tests/test_preprint_audit_b2_confounding.py`. |
 | `geo_connector.py` + `utils/atomic_retrieval.py` E6 retrieval boundary | TUI GEO flow, local GEO cache, `data_audit_agent.py`, raw RNA/chromatin readiness | **E6 preprint-readiness (2026-07-13):** an accession is assembled under a private sibling staging directory; downloads use private part files, bounded retry and full-stream hashes; tar/tgz/zip extraction rejects traversal, links/devices and configured expansion limits; compressed H5AD is materialized for downstream readers; SRA fallback resolves official RunInfo and runs every deduplicated run through `prefetch` → `vdb-validate` → `fasterq-dump` all-or-fail. `retrieval_manifest.json` is closed-world (schema, accession, relative paths, size and SHA-256); publication is one directory rename, a valid prior cache is never replaced by a partial/corrupt generation, and cached reuse precedes the egress gate. Mixed SRA libraries retain authoritative per-FASTQ modality. DataAudit revalidates the manifest/accession/root, accepts only connector-declared analyzable paths (not transport archives), and rejects any incomplete, corrupt, outside or unmanifested payload. Public evidence: `docs/benchmark_results/geo_connector/e6_atomic_retrieval.json` (GSE183948 bulk RNA, GSE202494 scRNA, GSE96769 scATAC, GSE142660 bulk ATAC); live raw-SRA conversion remains toolkit-dependent and is not claimed by that artifact. Guards: `tests/test_preprint_audit_e6_geo_sra_atomic.py`, `tests/test_geo_atac_inference.py`. |
 | `data_audit_agent.py` h5ad/GEO design inference or raw MEX classification | `design_agent.py`, `raw_ingestion_agent.py`, `scrna_agent.py`, `design_intelligence.py`, CP1 text | A wrong condition/replicate/groupby guess can run valid code on the wrong biological design. Raw MatrixMarket triplets are another high-risk front door: generic `matrix.mtx` + `barcodes.tsv` + `features.tsv` must not be promoted to scRNA unless barcodes look like 10X cell barcodes (or the directory is an explicit Cell Ranger matrix directory). Ambiguous MEX sidecars are demoted from scRNA so bulk raw exports do not trigger `RawIngestionAgent`. Guards: `tests/test_assay_detector.py::test_data_audit_does_not_promote_bulk_like_mtx_triplet_to_scrna`, `::test_data_audit_classifies_10x_like_mtx_triplet_as_scrna`. **E2 preprint-readiness (2026-07-12): library type declared, filenames a hint.** `_classify_files` fell back to filename regex over `SIGNATURES` in dict order, and the generic `bulk_RNA_raw` paired-end rule (`.*_R[12]_.*fastq`) came first — so an ATAC/scATAC/ChIP/HiC FASTQ (which also has R1/R2/R3) was silently bound to bulk RNA, even with a modality keyword in its name (`AssayDetector.detect_file` returns `None` for plain FASTQ, so the regex decided). Now: an explicit declared library type (`_declared_library_type`, from `context["library_type"]` global or `context["library_types"]` per-file) is AUTHORITATIVE; for a FASTQ, `_fastq_modality_hint` makes a modality-keyword signature beat the generic paired-end rule (a non-binding hint), and a signalless `_R[12]` FASTQ falls to `bulk_RNA_raw` only as a NON-BINDING hint recorded in `_ambiguous_library_types` and surfaced by `_ambiguous_library_type_warnings` for CP1 confirmation — never silently bound. Non-FASTQ classification is unchanged. Guard: `tests/test_preprint_audit_e2_library_type.py`. |
@@ -425,8 +436,10 @@ For modalities backed by `NarrativeBlock`, prose is the primary report
 presentation. Structured evidence tables, figures, and file links are audit
 support. P1-9 adds a render-time evidence gate: every ARIA-authored claim/prose
 sentence must be backed by a structured evidence card, and unsupported prose
-blocks HTML generation. A report that only exposes claim rows and evidence tables
-is not considered sufficiently narrative.
+is withheld. C1 makes `compile_public_claims` the exclusive pre-render source for
+both HTML and `methodology.json`; MessageBus payloads and legacy section strings
+remain operational audit data and cannot become report claims. A report that only
+exposes claim rows and evidence tables is not considered sufficiently narrative.
 
 ## Benchmarking Protocol
 
