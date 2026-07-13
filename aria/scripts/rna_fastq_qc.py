@@ -34,6 +34,20 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.stage_manifest import (
+    build_stage_manifest, write_stage_manifest, stage_is_current,
+)
+
+
+def _fastp_version() -> str:
+    """Best-effort fastp version string for the A4 stage manifest (empty when
+    the tool is unavailable)."""
+    try:
+        proc = subprocess.run(["fastp", "--version"],
+                              capture_output=True, text=True, timeout=30)
+        return (proc.stderr or proc.stdout or "").strip()
+    except Exception:
+        return ""
 
 
 def rna_fastq_qc(params: dict) -> dict:
@@ -211,6 +225,12 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     json_out = str(fastp_dir / f"{name}_fastp.json")
     html_out = str(fastp_dir / f"{name}_fastp.html")
 
+    # A4: content-addressed resume manifest for this fastp stage.
+    manifest_path = str(fastp_dir / f"{name}.fastp.stage.json")
+    stage_inputs = [("r1", r1_in), ("r2", r2_in)]
+    stage_params = {"min_len": min_len, "quality": quality, "paired": paired}
+    tool_version = _fastp_version()
+
     result = {
         "name":       name,
         "r1_raw":     r1_in,
@@ -220,8 +240,15 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
         "paired":     paired,
     }
 
-    # ── Resume check: do all outputs exist and parse cleanly? ────────────
-    if _fastp_outputs_valid(r1_out, r2_out, json_out, paired):
+    # ── Resume check: outputs valid AND the stage manifest still matches? ──
+    # A4: a valid-looking output is not enough — the input FASTQ, params, or
+    # tool version must be unchanged since the output was produced, else the
+    # stale output is silently reused.
+    manifest_current, manifest_reason = stage_is_current(
+        manifest_path, inputs=stage_inputs, params=stage_params,
+        tool_version=tool_version,
+    )
+    if _fastp_outputs_valid(r1_out, r2_out, json_out, paired) and manifest_current:
         try:
             with open(json_out) as f:
                 fastp_data = json.load(f)
@@ -322,6 +349,18 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
             result["status"] = "failed"
             result["error_type"] = "MissingDependency"
             result["details"] = "fastp is required for raw FASTQ preprocessing."
+
+    # A4: record the content-addressed manifest for a genuine successful run so a
+    # later resume can tell whether the inputs/params/version still match.
+    if result.get("status") == "success":
+        try:
+            write_stage_manifest(manifest_path, build_stage_manifest(
+                stage="fastp", inputs=stage_inputs, params=stage_params,
+                tool_version=tool_version,
+            ))
+        except Exception as exc:
+            warnings.append(f"[A4] could not write fastp stage manifest for "
+                            f"{name}: {exc}")
 
     return result
 

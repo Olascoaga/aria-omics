@@ -34,6 +34,21 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
+from aria.utils.stage_manifest import (
+    build_stage_manifest, write_stage_manifest, stage_is_current,
+)
+
+_INDEX_MANIFEST = "aria_index.stage.json"
+
+
+def _star_version() -> str:
+    """Best-effort STAR version string for the A4 stage manifests."""
+    try:
+        proc = subprocess.run(["STAR", "--version"],
+                              capture_output=True, text=True, timeout=30)
+        return (proc.stdout or proc.stderr or "").strip()
+    except Exception:
+        return ""
 
 
 def rna_align(params: dict) -> dict:
@@ -52,7 +67,24 @@ def rna_align(params: dict) -> dict:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # ── Build genome index if needed ──────────────────────────────────────
-    if not _index_exists(genome_dir):
+    index_manifest = str(genome_dir / _INDEX_MANIFEST)
+    index_inputs = [("fasta", genome_fasta or None), ("gtf", gtf_file or None)]
+    index_params = {"sa_index_nbases": 14}
+    star_version = _star_version()
+    need_build = not _index_exists(genome_dir)
+    # A4: when we have the source (FASTA + GTF), a changed reference/GTF/STAR
+    # version must rebuild the index instead of silently reusing a stale one. An
+    # external index provided WITHOUT its source keeps the existence check (no
+    # source to rebuild or hash the reference from).
+    if not need_build and genome_fasta and gtf_file:
+        index_current, index_reason = stage_is_current(
+            index_manifest, inputs=index_inputs, params=index_params,
+            tool_version=star_version,
+        )
+        if not index_current:
+            warnings.append(f"[A4] rebuilding STAR index (stale: {index_reason})")
+            need_build = True
+    if need_build:
         if genome_fasta and gtf_file:
             build_result = _build_star_index(
                 genome_dir, genome_fasta, gtf_file, threads, warnings
@@ -63,6 +95,13 @@ def rna_align(params: dict) -> dict:
                     "error_type": "IndexBuildFailed",
                     "details":    build_result,
                 }
+            try:
+                write_stage_manifest(index_manifest, build_stage_manifest(
+                    stage="star_index", inputs=index_inputs,
+                    params=index_params, tool_version=star_version,
+                ))
+            except Exception as exc:
+                warnings.append(f"[A4] could not write STAR index manifest: {exc}")
         else:
             return {
                 "status":     "error",
@@ -92,6 +131,9 @@ def rna_align(params: dict) -> dict:
             two_pass=two_pass,
             warnings=warnings,
             allow_mock=allow_mock,
+            index_ref=(index_manifest if os.path.exists(index_manifest)
+                       else str(genome_dir / "SAindex")),
+            star_version=star_version,
         )
         bam_files.append(result)
 
@@ -175,7 +217,9 @@ def _star_output_valid(bam_path: Path, log_file: Path) -> bool:
 def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
                   threads: int, two_pass: bool,
                   warnings: list,
-                  allow_mock: bool = False) -> dict:
+                  allow_mock: bool = False,
+                  index_ref: str | None = None,
+                  star_version: str = "") -> dict:
     """Align one sample with STAR. Idempotent: skips if BAM already valid."""
     name   = sample["name"]
     r1     = sample.get("r1_trimmed") or sample.get("r1")
@@ -191,10 +235,22 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
         "status": "pending",
     }
 
-    # ── Resume check: valid BAM already present? ─────────────────────────
+    # A4: content-addressed resume manifest for this alignment stage. Inputs are
+    # the trimmed reads plus the genome-index reference (its own manifest when
+    # present, so a rebuilt index invalidates alignment through the DAG).
+    manifest_path = str(sample_dir / f"{name}.align.stage.json")
+    stage_inputs = [("r1", r1), ("r2", r2 if paired else None),
+                    ("index", index_ref)]
+    stage_params = {"two_pass": two_pass}
+
+    # ── Resume check: valid BAM AND the stage manifest still matches? ─────
     bam_path = Path(f"{prefix}Aligned.sortedByCoord.out.bam")
     log_file = Path(f"{prefix}Log.final.out")
-    if _star_output_valid(bam_path, log_file):
+    manifest_current, manifest_reason = stage_is_current(
+        manifest_path, inputs=stage_inputs, params=stage_params,
+        tool_version=star_version,
+    )
+    if _star_output_valid(bam_path, log_file) and manifest_current:
         stats = _parse_star_log(log_file)
         warnings.append(
             f"[resume] STAR skipped for {name} "
@@ -276,6 +332,16 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
             "counts_tab":  str(Path(f"{prefix}ReadsPerGene.out.tab")),
             **stats,
         })
+        # A4: record the content-addressed manifest for this genuine run so a
+        # later resume can tell whether reads/index/params/version still match.
+        try:
+            write_stage_manifest(manifest_path, build_stage_manifest(
+                stage="star_align", inputs=stage_inputs, params=stage_params,
+                tool_version=star_version,
+            ))
+        except Exception as exc:
+            warnings.append(f"[A4] could not write STAR align manifest for "
+                            f"{name}: {exc}")
 
     except FileNotFoundError:
         if allow_mock:
