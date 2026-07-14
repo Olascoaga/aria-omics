@@ -225,8 +225,15 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c4_report_e2e_false_narrative", ("claim_4",),
         "E2E benchmark through bus, compiler, report and independent human scoring.",
-        None, "aria-env + human review", ("env:aria-env", "human:b2_annotators"),
-        implementation="missing", evidence_kind="e2e_human_gold",
+        "conda run -n aria-env python "
+        "scripts/run_c4_report_e2e_false_narrative.py score "
+        "docs/benchmark_results/preprint_v1/human/report_faithfulness.csv "
+        "--out docs/benchmark_results/preprint_v1/claim_4/report_e2e/"
+        "report_e2e_human_gold.json",
+        "aria-env + aria-rna-env + human review",
+        ("env:aria-env", "env:aria-rna-env", "human:b2_annotators"),
+        ("claim_4/report_e2e/report_e2e_human_gold.json",),
+        evidence_kind="e2e_human_gold",
     ),
     _lane(
         "c5_b4_null_narrative", ("claim_5",),

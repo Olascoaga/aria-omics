@@ -1,0 +1,4 @@
+block_id,rendered_claim,human_verdict
+bulk.contrast.COND_B_vs_COND_A,"Bulk contrast COND_B_vs_COND_A identified 12 differentially expressed genes (6 higher and 6 lower in the numerator group). The strongest reported genes include GENE008 (log2FC -2.289570710594616), GENE010 (log2FC -2.130566983476798), GENE004 (log2FC 2.0702898384582555), GENE007 (log2FC -2.0096558516653587), GENE000 (log2FC 1.98639617154222), GENE005 (log2FC 1.97485254328564).",
+b2.bulk_de.hype,Result identified None differentially expressed genes.,
+b2.bulk_de.nocaveat,Result identified None differentially expressed genes.,
