@@ -111,6 +111,7 @@ jobs:
             tests/test_run_ledger_and_devils.py \
             tests/test_ledger_claim_linkage.py \
             tests/test_ledger_export.py \
+            tests/test_preprint_audit_b3_multi_provider.py \
             tests/test_render_ledger_e2e.py \
             tests/test_stage4_closeout.py \
             tests/test_calibration_badge.py \
