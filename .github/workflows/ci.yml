@@ -101,6 +101,7 @@ jobs:
         run: |
           python -m pytest -q \
             tests/test_narrative_types.py \
+            tests/test_narrative_scrna_contract.py \
             tests/test_narrative_validators.py \
             tests/test_narrator_scrna.py \
             tests/test_narrator_bulk.py \
