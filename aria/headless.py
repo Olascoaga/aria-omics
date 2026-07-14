@@ -178,7 +178,8 @@ def run_headless(data_dir: str, question: str,
                  timeout: float = 3600.0,
                  log: Callable[[str], None] = print,
                  *,
-                 context_overrides: dict | None = None) -> HeadlessResult:
+                 context_overrides: dict | None = None,
+                 llm_provider=None) -> HeadlessResult:
     """Run a full ARIA analysis without a TTY.
 
     Drives the orchestrator through audit, the design checkpoint state machine,
@@ -186,13 +187,20 @@ def run_headless(data_dir: str, question: str,
     :class:`HeadlessResult` with the report path on success. Typed assay inputs,
     including ``scatac_fastq_manifest``, may be supplied through
     ``context_overrides``; core run identity fields cannot be overridden.
+
+    ``llm_provider`` optionally injects a specific :class:`LLMProvider` (or a
+    scripted double) for the run; the orchestrator still isolates it per
+    experiment via ``for_execution``. When ``None`` (default) the orchestrator
+    builds the configured provider from ``config.yaml`` as before. This is the
+    seam the B3-multi reproducibility harness uses to drive one analysis under
+    different providers without touching scientific computations.
     """
     from aria.memory.memory import ARIAMemory
     from aria.agents.orchestrator_agent import OrchestratorAgent
 
     experiment_id = str(uuid.uuid4())[:12]
     memory = ARIAMemory()
-    orch = OrchestratorAgent(memory)
+    orch = OrchestratorAgent(memory, llm=llm_provider)
 
     ctx = _build_headless_context(
         data_dir,
