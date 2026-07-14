@@ -32492,7 +32492,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32737,7 +32737,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32759,7 +32759,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -44115,6 +44115,118 @@
       "source_location": "L303"
     },
     {
+      "id": "tests_test_narrative_scrna_contract",
+      "label": "test_narrative_scrna_contract.py",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_findings",
+      "label": "_findings()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_unwrap_accepts_multimodal_wrapped_shape",
+      "label": "test_unwrap_accepts_multimodal_wrapped_shape()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L87"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_unwrap_accepts_direct_run_shape",
+      "label": "test_unwrap_accepts_direct_run_shape()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L93"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_unwrap_empty_envelope_returns_empty_dict",
+      "label": "test_unwrap_empty_envelope_returns_empty_dict()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L98"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_group_label_mapping",
+      "label": "test_group_label_mapping()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L119"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_top_de_blocks_filters_sorts_and_limits",
+      "label": "test_top_de_blocks_filters_sorts_and_limits()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L125"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_annotation_state_filters_invalid_and_reports_source",
+      "label": "test_annotation_state_filters_invalid_and_reports_source()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L141"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_annotation_state_flags_marker_fallback",
+      "label": "test_annotation_state_flags_marker_fallback()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L151"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_summarize_reports_qc_clustering_and_celltypes",
+      "label": "test_summarize_reports_qc_clustering_and_celltypes()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L166"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_summarize_empty_findings_returns_generic_completion_no_fabrication",
+      "label": "test_summarize_empty_findings_returns_generic_completion_no_fabrication()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L177"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_methods_describe_scanpy_pipeline",
+      "label": "test_methods_describe_scanpy_pipeline()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L186"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_methods_empty_findings_is_empty",
+      "label": "test_methods_empty_findings_is_empty()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L193"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_integrated_interpretation_is_string_and_null_safe",
+      "label": "test_integrated_interpretation_is_string_and_null_safe()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L199"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_pseudobulk_de_table_rows_and_null",
+      "label": "test_pseudobulk_de_table_rows_and_null()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L213"
+    },
+    {
+      "id": "tests_test_narrative_scrna_contract_test_cellcomm_table_rows_and_null",
+      "label": "test_cellcomm_table_rows_and_null()",
+      "file_type": "code",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L220"
+    },
+    {
       "id": "tests_test_narrative_types",
       "label": "test_narrative_types.py",
       "file_type": "code",
@@ -49529,121 +49641,177 @@
       "id": "orchestrator_agent",
       "label": "OrchestratorAgent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py"
+      "source_file": "aria/agents/orchestrator_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "data_audit_agent",
       "label": "DataAuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py"
+      "source_file": "aria/agents/data_audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py"
+      "source_file": "aria/agents/design_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "audit_agent",
       "label": "AuditAgent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py"
-    },
-    {
-      "id": "setup_agent",
-      "label": "SetupAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/setup_agent.py"
-    },
-    {
-      "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py"
-    },
-    {
-      "id": "scrna_agent",
-      "label": "scRNAAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py"
-    },
-    {
-      "id": "chromatin_agent",
-      "label": "ChromatinAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py"
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "narrative_agent",
       "label": "NarrativeAgent",
       "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py"
+      "source_file": "aria/agents/narrative_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "biological_synthesis_agent",
       "label": "BiologicalSynthesisAgent",
       "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py"
+      "source_file": "aria/agents/biological_synthesis_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "aria_memory",
-      "label": "ARIAMemory",
+      "id": "bulk_rna_agent",
+      "label": "BulkRNAAgent",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py"
+      "source_file": "aria/agents/bulk_rna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "message_bus",
-      "label": "MessageBus",
+      "id": "scrna_agent",
+      "label": "scRNAAgent",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py"
+      "source_file": "aria/agents/scrna_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_agent",
+      "label": "ChromatinAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/chromatin_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "environment_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
+      "source_file": "aria/utils/environment_manager.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "aria_memory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "message_bus",
+      "label": "MessageBus",
+      "file_type": "code",
+      "source_file": "aria/bus/message_bus.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py"
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py"
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "chromatin_diffacc",
-      "label": "chromatin_diffacc.py",
+      "id": "chromatin_bulk_diffacc",
+      "label": "chromatin_bulk_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_diffacc.py"
+      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
+      "id": "chromatin_footprint_tobias",
+      "label": "chromatin_footprint_tobias.py",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py"
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py"
-    },
-    {
-      "id": "run_ledger",
-      "label": "Run Ledger",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/run_ledger.py"
-    },
-    {
-      "id": "geo_connector",
-      "label": "GEO/SRA Connector",
-      "file_type": "code",
-      "source_file": "aria/connectors/geo_connector.py"
+      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
     },
     {
       "id": "python_aria_memory_memory_py",
@@ -147688,7 +147856,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -147741,7 +147909,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147751,7 +147919,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147761,7 +147929,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147771,7 +147939,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147781,7 +147949,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148103,7 +148271,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -148112,7 +148280,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -148147,7 +148315,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148157,7 +148325,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -169286,6 +169454,211 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_narrative_render_blocks.py",
       "source_location": "L303",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_unwrap_accepts_multimodal_wrapped_shape",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_unwrap_accepts_direct_run_shape",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_unwrap_empty_envelope_returns_empty_dict",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_group_label_mapping",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_top_de_blocks_filters_sorts_and_limits",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_annotation_state_filters_invalid_and_reports_source",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_annotation_state_flags_marker_fallback",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_summarize_reports_qc_clustering_and_celltypes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L166",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_summarize_empty_findings_returns_generic_completion_no_fabrication",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L177",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_methods_describe_scanpy_pipeline",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_methods_empty_findings_is_empty",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L193",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_integrated_interpretation_is_string_and_null_safe",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L199",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_pseudobulk_de_table_rows_and_null",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L213",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract",
+      "target": "tests_test_narrative_scrna_contract_test_cellcomm_table_rows_and_null",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_top_de_blocks_filters_sorts_and_limits",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_annotation_state_filters_invalid_and_reports_source",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L142",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_summarize_reports_qc_clustering_and_celltypes",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L167",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_methods_describe_scanpy_pipeline",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_integrated_interpretation_is_string_and_null_safe",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_pseudobulk_de_table_rows_and_null",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L215",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_narrative_scrna_contract_test_cellcomm_table_rows_and_null",
+      "target": "tests_test_narrative_scrna_contract_findings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_narrative_scrna_contract.py",
+      "source_location": "L222",
       "weight": 1.0
     },
     {
@@ -215225,135 +215598,170 @@
       "target": "data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "chromatin_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "narrative_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "chromatin_agent",
-      "target": "chromatin_diffacc",
+      "target": "chromatin_bulk_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
+      "source": "chromatin_agent",
+      "target": "chromatin_footprint_tobias",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "run_ledger",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "data_audit_agent",
-      "target": "geo_connector",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "rna_pseudobulk_de",
-      "target": "rna_bulk_de",
-      "relation": "references",
-      "comment": "Shares _run_deseq2 core",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
-    },
-    {
-      "source": "chromatin_diffacc",
-      "target": "rna_bulk_de",
-      "relation": "references",
-      "comment": "Shares _run_deseq2 core",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
     },
     {
       "source": "python_aria_memory_memory_py",
