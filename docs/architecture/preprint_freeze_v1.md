@@ -29,6 +29,11 @@ tree apart from the dedicated output root, rejects zero-exit artifact runs that
 failed to emit their declared files, and writes no pass receipt until all emitted
 artifacts have SHA-256 hashes.
 
+Before hashing a declared JSON artifact, the lane runner clears only the
+machine-local `conda_prefix`. The environment name and lock hash remain as
+portable provenance; any other absolute path remains visible to the public
+artifact guard and fails publication validation.
+
 Source cleanliness explicitly excludes only `preprint_v1/`: emitted artifacts
 must not make later lanes look source-dirty, while any modification elsewhere
 still blocks execution. The freeze workflow hash is derived from package version,

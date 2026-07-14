@@ -329,6 +329,36 @@ def _safe_test_summary(stdout: str) -> str | None:
     return None
 
 
+def _sanitize_public_json_artifact(path: Path) -> None:
+    """Remove machine-local Conda prefixes from a public JSON artifact.
+
+    The environment name and lock hash remain in provenance. Other absolute
+    paths are intentionally untouched so the repository-wide public-artifact
+    guard can still expose unexpected leaks instead of hiding them.
+    """
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    changed = False
+
+    def visit(value: Any) -> None:
+        nonlocal changed
+        if isinstance(value, dict):
+            if value.get("conda_prefix") is not None:
+                value["conda_prefix"] = None
+                changed = True
+            for nested in value.values():
+                visit(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                visit(nested)
+
+    visit(payload)
+    if changed:
+        path.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+
 def execute_lane(
     repo_root: str | Path,
     output_root: str | Path,
@@ -394,6 +424,8 @@ def execute_lane(
             raise RuntimeError(
                 f"lane {lane_id} returned zero but did not produce {relative}"
             )
+        if path.suffix.lower() == ".json":
+            _sanitize_public_json_artifact(path)
         artifacts.append({
             "path": relative,
             "size_bytes": path.stat().st_size,

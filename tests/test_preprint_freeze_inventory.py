@@ -8,6 +8,7 @@ from pathlib import Path
 from aria.benchmarks.preprint_freeze import (
     CLAIM_IDS,
     LANES,
+    _sanitize_public_json_artifact,
     build_inventory,
     execute_lane,
     write_inventory,
@@ -90,3 +91,23 @@ def test_executor_refuses_unimplemented_lane(tmp_path):
         assert "no executable implementation" in str(exc)
     else:
         raise AssertionError("unimplemented lane was executed")
+
+
+def test_public_json_sanitizer_removes_only_conda_prefix(tmp_path):
+    artifact = tmp_path / "artifact.json"
+    artifact.write_text(json.dumps({
+        "provenance": {
+            "environment": {
+                "conda_prefix": "/machine/local/envs/aria-env",
+                "env_name": "aria-env",
+            },
+            "unexpected_path": "/machine/local/input.tsv",
+        },
+    }), encoding="utf-8")
+
+    _sanitize_public_json_artifact(artifact)
+
+    payload = json.loads(artifact.read_text(encoding="utf-8"))
+    assert payload["provenance"]["environment"]["conda_prefix"] is None
+    assert payload["provenance"]["environment"]["env_name"] == "aria-env"
+    assert payload["provenance"]["unexpected_path"] == "/machine/local/input.tsv"
