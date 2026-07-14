@@ -152,3 +152,14 @@ def test_receipt_revalidates_artifact_hash(tmp_path):
     assert _receipt_status(lane, tmp_path, provenance) == "verified"
     (tmp_path / artifact_paths[0]).write_text("tampered", encoding="utf-8")
     assert _receipt_status(lane, tmp_path, provenance) == "artifact_mismatch"
+
+
+def test_external_comparator_receipt_covers_supporting_files():
+    lane = next(item for item in LANES if item["lane_id"] == "c1_a1_external_comparators")
+    expected = set(lane["expected_artifacts"])
+
+    assert "claim_1/a1_external/a1_external_comparators.json" in expected
+    assert "claim_1/a1_external/inputs/a1_counts.tsv" in expected
+    assert "claim_1/a1_external/r_outputs/deseq2.tsv" in expected
+    assert "claim_1/a1_external/r_outputs/edgeR_QLF.tsv" in expected
+    assert "claim_1/a1_external/r_outputs/limma_voom.tsv" in expected

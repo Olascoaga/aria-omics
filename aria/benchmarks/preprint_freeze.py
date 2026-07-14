@@ -69,7 +69,16 @@ LANES: tuple[dict[str, Any], ...] = (
         "docs/benchmark_results/preprint_v1/claim_1/a1_external "
         "--manifest-name a1_external_comparators.json",
         "aria-env -> aria-bench-env", ("env:aria-env", "env:aria-bench-env"),
-        ("claim_1/a1_external/a1_external_comparators.json",),
+        (
+            "claim_1/a1_external/a1_external_comparators.json",
+            "claim_1/a1_external/inputs/a1_counts.tsv",
+            "claim_1/a1_external/inputs/a1_metadata.tsv",
+            "claim_1/a1_external/inputs/a1_truth.tsv",
+            "claim_1/a1_external/r_outputs/r_comparators.json",
+            "claim_1/a1_external/r_outputs/deseq2.tsv",
+            "claim_1/a1_external/r_outputs/edgeR_QLF.tsv",
+            "claim_1/a1_external/r_outputs/limma_voom.tsv",
+        ),
     ),
     _lane(
         "c1_seqc_maqc_taqman", ("claim_1",),
@@ -78,7 +87,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "--bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir "
         "docs/benchmark_results/preprint_v1/claim_1/seqc",
         "aria-rna-env", ("env:aria-rna-env", "data:seqc_bgi"),
-        ("claim_1/seqc/a1_seqc_maqc_v4.5.5.json",),
+        (
+            "claim_1/seqc/a1_seqc_maqc_v4.5.5.json",
+            "claim_1/seqc/fig1_a1_seqc_maqc_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c1_seqc_multisite", ("claim_1",),
@@ -86,7 +98,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "conda run -n aria-rna-env python scripts/run_a1_seqc_multisite_benchmark.py "
         "--output-dir docs/benchmark_results/preprint_v1/claim_1/seqc_multisite",
         "aria-rna-env", ("env:aria-rna-env", "data:seqc_multisite"),
-        ("claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",),
+        (
+            "claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",
+            "claim_1/seqc_multisite/fig1_a1_seqc_multisite_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c1_ercc_dose_response", ("claim_1",),
@@ -95,7 +110,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "--bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir "
         "docs/benchmark_results/preprint_v1/claim_1/ercc",
         "aria-rna-env", ("env:aria-rna-env", "data:seqc_ercc"),
-        ("claim_1/ercc/a1_ercc_dose_response_v4.5.5.json",),
+        (
+            "claim_1/ercc/a1_ercc_dose_response_v4.5.5.json",
+            "claim_1/ercc/fig1_a1_ercc_dose_response_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c1_h9_fastq_e2e", ("claim_1",),
@@ -122,7 +140,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "--export-dir ~/.aria/benchmarks/kang_muscat --output-dir "
         "docs/benchmark_results/preprint_v1/claim_2/kang_muscat",
         "aria-rna-env", ("env:aria-rna-env", "data:kang_muscat"),
-        ("claim_2/kang_muscat/a2_kang_muscat_v4.5.5.json",),
+        (
+            "claim_2/kang_muscat/a2_kang_muscat_v4.5.5.json",
+            "claim_2/kang_muscat/fig2_a2_kang_muscat_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c2_pairing_and_technical_replicates", ("claim_2",),
@@ -145,7 +166,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "conda run -n aria-env python scripts/run_b1_design_governance.py "
         "--output-dir docs/benchmark_results/preprint_v1/claim_3/b1_design",
         "aria-env", ("env:aria-env",),
-        ("claim_3/b1_design/b1_design_governance_v4.5.5.json",),
+        (
+            "claim_3/b1_design/b1_design_governance_v4.5.5.json",
+            "claim_3/b1_design/fig3_b1_design_governance_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c3_blind_multifactorial_corpus", ("claim_3",),
@@ -159,7 +183,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "conda run -n aria-env python scripts/run_b2_claim_narrative.py "
         "--output-dir docs/benchmark_results/preprint_v1/claim_4/b2_claim",
         "aria-env", ("env:aria-env",),
-        ("claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",),
+        (
+            "claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",
+            "claim_4/b2_claim/fig4_b2_claim_narrative_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c4_b2_multi_annotator_gold", ("claim_4",),
@@ -184,7 +211,10 @@ LANES: tuple[dict[str, Any], ...] = (
         "conda run -n aria-env python scripts/run_b4_null_narrative.py "
         "--output-dir docs/benchmark_results/preprint_v1/claim_5/b4_null",
         "aria-env", ("env:aria-env",),
-        ("claim_5/b4_null/b4_null_narrative_v4.5.5.json",),
+        (
+            "claim_5/b4_null/b4_null_narrative_v4.5.5.json",
+            "claim_5/b4_null/fig5_b4_null_narrative_v4.5.5.svg",
+        ),
     ),
     _lane(
         "c5_semantic_negation", ("claim_5",),
