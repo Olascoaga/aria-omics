@@ -256,9 +256,14 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c5_multimodal_null_permutations", ("claim_5",),
         "Fresh RNA and ATAC label-permutation null reports through the public compiler.",
-        None, "aria-rna-env + aria-chromatin-env",
-        ("env:aria-rna-env", "env:aria-chromatin-env"),
-        implementation="missing", evidence_kind="multimodal_e2e",
+        "conda run -n aria-env python "
+        "scripts/run_c5_multimodal_null_permutations.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_5/multimodal_null "
+        "--manifest-name multimodal_null.json",
+        "aria-env -> aria-rna-env + aria-chromatin-env",
+        ("env:aria-env", "env:aria-rna-env", "env:aria-chromatin-env"),
+        ("claim_5/multimodal_null/multimodal_null.json",),
+        evidence_kind="multimodal_e2e",
     ),
     _lane(
         "c6_b3_in_process_matrix", ("claim_6",),

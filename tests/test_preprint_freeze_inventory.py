@@ -56,7 +56,12 @@ def test_missing_implementation_and_human_inputs_are_explicit(tmp_path):
     assert by_id["c3_blind_multifactorial_corpus"]["status"] == "ready_to_run"
     assert by_id["c4_b2_multi_annotator_gold"]["status"] == "ready_to_run"
     assert by_id["c4_report_e2e_false_narrative"]["status"] == "ready_to_run"
-    assert by_id["c5_multimodal_null_permutations"]["status"] == "blocked_missing_implementation"
+    assert by_id["c5_multimodal_null_permutations"]["status"] == "ready_to_run"
+    # FASE 8 completion invariant: every required lane now has an executable
+    # implementation; nothing remains blocked for want of code.
+    assert all(lane["implementation"] == "available" for lane in payload["lanes"])
+    assert not any(lane["status"] == "blocked_missing_implementation"
+                   for lane in payload["lanes"])
 
 
 def test_inventory_is_path_portable_and_atomic(tmp_path):
@@ -90,13 +95,12 @@ def test_receipt_must_match_current_commit_to_verify(tmp_path):
     assert refreshed["freeze_gate"]["ready"] is False
 
 
-def test_executor_refuses_unimplemented_lane(tmp_path):
-    try:
-        execute_lane(Path.cwd(), tmp_path, "c5_multimodal_null_permutations")
-    except RuntimeError as exc:
-        assert "no executable implementation" in str(exc)
-    else:
-        raise AssertionError("unimplemented lane was executed")
+def test_executor_rejects_unknown_lane(tmp_path):
+    # With every registered lane now implemented, the durable executor guard is
+    # the unknown-lane rejection.
+    import pytest
+    with pytest.raises(KeyError):
+        execute_lane(Path.cwd(), tmp_path, "not_a_registered_lane")
 
 
 def test_public_json_sanitizer_removes_only_conda_prefix(tmp_path):
