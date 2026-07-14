@@ -29,6 +29,11 @@ tree apart from the dedicated output root, rejects zero-exit artifact runs that
 failed to emit their declared files, and writes no pass receipt until all emitted
 artifacts have SHA-256 hashes.
 
+Source cleanliness explicitly excludes only `preprint_v1/`: emitted artifacts
+must not make later lanes look source-dirty, while any modification elsewhere
+still blocks execution. The freeze workflow hash is derived from package version,
+commit and Git tree, so it remains stable as receipts accumulate.
+
 ## Gate
 
 The freeze is fail-closed:

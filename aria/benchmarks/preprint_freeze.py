@@ -433,13 +433,26 @@ def build_inventory(
     repo_root = Path(repo_root).resolve()
     output_root = Path(output_root)
     version = collect_version_metadata(repo_root)
+    source_clean = _source_tree_clean(repo_root, output_root)
+    git_describe = str(version.get("git_describe") or "")
+    if source_clean and git_describe.endswith("-dirty"):
+        git_describe = git_describe[:-6]
+    freeze_workflow_payload = "\0".join((
+        str(version.get("aria_version") or ""),
+        str(version.get("git_commit") or ""),
+        str(version.get("git_tree_sha") or ""),
+    ))
     provenance = {
-        key: version.get(key)
-        for key in (
-            "aria_version", "version_source", "git_commit", "git_tree_sha",
-            "git_describe", "git_dirty", "workflow_hash",
-            "workflow_hash_algorithm",
-        )
+        "aria_version": version.get("aria_version"),
+        "version_source": version.get("version_source"),
+        "git_commit": version.get("git_commit"),
+        "git_tree_sha": version.get("git_tree_sha"),
+        "git_describe": git_describe,
+        "git_dirty": not source_clean,
+        "workflow_hash": hashlib.sha256(
+            freeze_workflow_payload.encode("utf-8")
+        ).hexdigest(),
+        "workflow_hash_algorithm": "sha256(version+git_commit+git_tree_sha)",
     }
     resources = probe_resources(output_root, overrides=resource_overrides)
     lanes: list[dict[str, Any]] = []
