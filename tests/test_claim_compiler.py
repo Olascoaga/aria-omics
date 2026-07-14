@@ -6,6 +6,7 @@ from aria.agents.narrative.claim_compiler import (
     annotate_claim_tiers,
     compile_claims,
     design_is_interventional,
+    resolve_causal_estimand_license,
 )
 
 
@@ -38,9 +39,22 @@ def test_pseudobulk_de_is_associative_and_observational():
     assert any("observational" in lim.lower() for lim in c.limitations)
 
 
-def test_interventional_design_licenses_causal():
+def test_verified_estimand_contract_licenses_causal():
     b = _block("pseudobulk_de", "GroupA condA_vs_condB had 120 DE genes.")
-    c = classify_claim(b, interventional=True)
+    b.metadata["estimand"] = {
+        "id": "condition_effect",
+        "contrast": "condA_vs_condB",
+    }
+    exp_ctx = {"design": {"causal_estimands": [{
+        "id": "condition_effect",
+        "contrast": "condA_vs_condB",
+        "interventional": True,
+        "randomized": True,
+        "confounding_verified": True,
+    }]}}
+    c = classify_claim(
+        b, causal_license=resolve_causal_estimand_license(b, exp_ctx)
+    )
     assert c.tier == "causal_experimental"
     assert c.licensed_language == "causal"
 

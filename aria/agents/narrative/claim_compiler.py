@@ -14,14 +14,14 @@ Tiers (ascending strength):
                        (regulatory motif / accessibility / regulon).
   strong_mechanistic   associative + multiple converging mechanistic lines,
                        still observational.
-  causal_experimental  the design is interventional (perturbation / KO / KD /
-                       controlled treatment) and the contrast tests it.
+  causal_experimental  this exact estimand/contrast has a verified intervention,
+                       randomization and confounding-control contract.
 
 Licensed language per tier:
 
   descriptive / associative / weak_mechanistic / strong_mechanistic  -> at most
       ASSOCIATIVE language (a mechanism may be proposed as a hypothesis, never
-      asserted as causation) unless the design is interventional.
+      asserted as causation) unless the exact effect estimand is licensed.
   causal_experimental -> CAUSAL language is licensed.
 
 This is deterministic and dependency-light. It builds on the existing
@@ -85,6 +85,38 @@ _ASSOCIATIVE = {
 _MECHANISTIC = {"regulatory"}
 _STATS_GATE_ANALYSES = {"pseudobulk_de", "differential_expression"}
 _POWER_MIN = 0.5
+_CAUSAL_EFFECT_ANALYSES = {
+    "differential_expression",
+    "pseudobulk_de",
+    "differential_abundance",
+    "differential_accessibility",
+    "contrast",
+}
+
+
+@dataclass(frozen=True)
+class CausalEstimandLicense:
+    """Auditable decision for one block's exact effect estimand.
+
+    A study-wide ``interventional`` flag is descriptive metadata only. Causal
+    authority requires one unambiguous entry in
+    ``design.causal_estimands`` matching ``block.metadata.estimand`` and three
+    explicit true booleans: ``interventional``, ``randomized`` and
+    ``confounding_verified``. Missing or contradictory state fails closed.
+    """
+
+    licensed: bool
+    estimand_id: str | None
+    contrast: str | None
+    reason: str
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "licensed": self.licensed,
+            "estimand_id": self.estimand_id,
+            "contrast": self.contrast,
+            "reason": self.reason,
+        }
 
 
 @dataclass
@@ -95,6 +127,7 @@ class ClaimClassification:
     rationale: str
     limitations: list[str] = field(default_factory=list)
     language_violation: str | None = None   # causal phrase found above the tier
+    causal_license: CausalEstimandLicense | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -104,15 +137,18 @@ class ClaimClassification:
             "rationale": self.rationale,
             "limitations": self.limitations,
             "language_violation": self.language_violation,
+            "causal_license": (
+                self.causal_license.as_dict() if self.causal_license else None
+            ),
         }
 
 
 def design_is_interventional(exp_ctx: dict | None) -> bool:
-    """Conservative: observational unless the design is EXPLICITLY interventional.
+    """Report whether study metadata explicitly marks an intervention.
 
-    ARIA cannot tell a controlled perturbation from an observational label by
-    name alone, so causal licensing requires an explicit marker. This keeps the
-    default honest (associative) and lets interventional designs opt in.
+    C4: this study-level descriptor is never causal authority. Callers that
+    classify public claims must use ``resolve_causal_estimand_license`` for the
+    exact block instead.
     """
     design = (exp_ctx or {}).get("design", {}) or {}
     if design.get("interventional") is True:
@@ -121,6 +157,101 @@ def design_is_interventional(exp_ctx: dict | None) -> bool:
     if di.get("interventional") is True:
         return True
     return False
+
+
+def _text_or_none(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def resolve_causal_estimand_license(
+    block: NarrativeBlock,
+    exp_ctx: dict | None,
+) -> CausalEstimandLicense:
+    """Resolve causal authority for one exact estimand/contrast, fail-closed."""
+    estimand = (block.metadata or {}).get("estimand")
+    if not isinstance(estimand, dict):
+        return CausalEstimandLicense(False, None, None, "missing_block_estimand")
+
+    estimand_id = _text_or_none(estimand.get("id"))
+    contrast = _text_or_none(estimand.get("contrast"))
+    if contrast is None:
+        return CausalEstimandLicense(
+            False, estimand_id, None, "invalid_block_estimand"
+        )
+    if block.analysis not in _CAUSAL_EFFECT_ANALYSES:
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "analysis_not_effect_estimand"
+        )
+
+    design = (exp_ctx or {}).get("design", {}) or {}
+    if not isinstance(design, dict):
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "missing_design_contract"
+        )
+    if (
+        design.get("unresolved_confounding") is True
+        or bool(design.get("confounded_covariates"))
+    ):
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "design_confounding_unresolved"
+        )
+
+    contracts = design.get("causal_estimands")
+    if not isinstance(contracts, list):
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "missing_design_contract"
+        )
+
+    matches = []
+    for contract in contracts:
+        if not isinstance(contract, dict):
+            continue
+        contract_id = _text_or_none(contract.get("id"))
+        contract_contrast = _text_or_none(contract.get("contrast"))
+        if estimand_id is not None and contract_id != estimand_id:
+            continue
+        if contrast is not None and contract_contrast != contrast:
+            continue
+        # A contrast-only block may match a uniquely named contract. Neither
+        # field is ever inferred from the block id, analysis label or prose.
+        matches.append(contract)
+
+    if not matches:
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "no_matching_estimand_contract"
+        )
+    if len(matches) != 1:
+        return CausalEstimandLicense(
+            False, estimand_id, contrast, "ambiguous_estimand_contract"
+        )
+
+    contract = matches[0]
+    resolved_id = _text_or_none(contract.get("id")) or estimand_id
+    resolved_contrast = _text_or_none(contract.get("contrast")) or contrast
+    prerequisites = (
+        contract.get("interventional") is True,
+        contract.get("randomized") is True,
+        contract.get("confounding_verified") is True,
+    )
+    if not all(prerequisites):
+        return CausalEstimandLicense(
+            False, resolved_id, resolved_contrast,
+            "causal_prerequisites_not_verified",
+        )
+    if (
+        contract.get("unresolved_confounding") is True
+        or bool(contract.get("confounded_covariates"))
+    ):
+        return CausalEstimandLicense(
+            False, resolved_id, resolved_contrast,
+            "estimand_confounding_unresolved",
+        )
+    return CausalEstimandLicense(
+        True, resolved_id, resolved_contrast, "verified_estimand_contract"
+    )
 
 
 def _block_evidence_category(block: NarrativeBlock) -> str | None:
@@ -196,7 +327,7 @@ def _quantitative_stats_gate(block: NarrativeBlock) -> tuple[bool, list[str]]:
 
 def classify_claim(block: NarrativeBlock,
                    *,
-                   interventional: bool = False,
+                   causal_license: CausalEstimandLicense | None = None,
                    converging_categories: set[str] | None = None) -> ClaimClassification:
     """Classify one block's claim into an evidence tier.
 
@@ -211,6 +342,9 @@ def classify_claim(block: NarrativeBlock,
     categories |= (converging_categories or set())
 
     limitations: list[str] = []
+    causal_license = causal_license or CausalEstimandLicense(
+        False, None, None, "not_evaluated"
+    )
 
     # Pure descriptive (QC / counts / power): no contrast claim.
     contentful = categories - {"descriptive"}
@@ -219,16 +353,19 @@ def classify_claim(block: NarrativeBlock,
         licensed = "descriptive"
         rationale = "Descriptive summary (QC/counts); no between-condition claim."
         return _finalize(block, tier, licensed, sorted(categories), rationale,
-                         limitations, interventional)
+                         limitations, causal_license)
 
     has_assoc = bool(categories & _ASSOCIATIVE)
     n_mech = len(categories & _MECHANISTIC)
 
-    if interventional and has_assoc:
+    if causal_license.licensed and has_assoc:
         tier = "causal_experimental"
         licensed = "causal"
-        rationale = ("Interventional design: the contrast tests a perturbation, "
-                     "so the effect of the intervention is causally licensed.")
+        rationale = (
+            "Verified estimand contract: this exact contrast has explicit "
+            "intervention, randomization and confounding-control checks, so "
+            "the intervention effect is causally licensed."
+        )
     elif n_mech >= 2 and has_assoc:
         tier = "strong_mechanistic"
         licensed = "associative"
@@ -267,11 +404,11 @@ def classify_claim(block: NarrativeBlock,
         )
 
     return _finalize(block, tier, licensed, sorted(categories), rationale,
-                     limitations, interventional)
+                     limitations, causal_license)
 
 
 def _finalize(block, tier, licensed, categories, rationale, limitations,
-              interventional) -> ClaimClassification:
+              causal_license) -> ClaimClassification:
     # Inherit block-level limitations already known to the kernel.
     for cav in block.caveats or []:
         if cav.text and cav.text not in limitations:
@@ -305,6 +442,7 @@ def _finalize(block, tier, licensed, categories, rationale, limitations,
         rationale=rationale,
         limitations=deduped,
         language_violation=violation,
+        causal_license=causal_license,
     )
 
 
@@ -312,8 +450,6 @@ def annotate_claim_tiers(blocks: list[NarrativeBlock],
                          exp_ctx: dict | None = None) -> list[NarrativeBlock]:
     """Classify every block in place, storing the result under
     ``block.metadata['claim']``. Returns the same list for chaining."""
-    interventional = design_is_interventional(exp_ctx)
-
     # Converging evidence: union of categories per subject.
     by_subject: dict[str, set[str]] = {}
     for b in blocks:
@@ -328,7 +464,9 @@ def annotate_claim_tiers(blocks: list[NarrativeBlock],
         if own:
             converging.discard(own)  # the rest are the converging lines
         classification = classify_claim(
-            b, interventional=interventional, converging_categories=converging,
+            b,
+            causal_license=resolve_causal_estimand_license(b, exp_ctx),
+            converging_categories=converging,
         )
         b.metadata["claim"] = classification.as_dict()
     return blocks
@@ -364,6 +502,7 @@ def compile_claim_manifest(block: NarrativeBlock) -> dict[str, Any]:
         "rationale": claim_meta.get("rationale"),
         "limitations": claim_meta.get("limitations", []),
         "language_violation": claim_meta.get("language_violation"),
+        "causal_license": claim_meta.get("causal_license"),
         "verification": verification,
         "evidence_card_id": (
             verification.get("evidence_card", {}).get("evidence_card_id")

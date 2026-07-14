@@ -293,6 +293,12 @@ class BulkRnaNarrator:
                         "power_estimate_at_lfc_min"
                     ),
                 },
+                metadata={
+                    "estimand": {
+                        "id": contrast.get("estimand_id"),
+                        "contrast": str(name),
+                    }
+                },
             ))
             blocks.extend(self._pathway_blocks_for_contrast(contrast))
             blocks.extend(self._gsea_blocks_for_contrast(contrast))

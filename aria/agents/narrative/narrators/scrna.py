@@ -434,6 +434,12 @@ class ScrnaNarrator:
                 evidence=evidence,
                 metrics={"n_significant": n_sig},
                 caveats=[Caveat(text) for text in caveat_texts],
+                metadata={
+                    "estimand": {
+                        "id": comp.get("estimand_id"),
+                        "contrast": str(comp_key),
+                    }
+                },
             ))
         return blocks
 
@@ -624,6 +630,12 @@ class ScrnaNarrator:
                             if annotation_conf else None
                         ),
                         "confidence_extraction_failed": annotation_conf_degraded,
+                    },
+                    metadata={
+                        "estimand": {
+                            "id": comp.get("estimand_id"),
+                            "contrast": str(comp_key),
+                        }
                     },
                 ))
         return blocks

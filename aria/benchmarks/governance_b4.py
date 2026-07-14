@@ -120,7 +120,7 @@ def govern_block(block) -> dict[str, Any]:
     except NarrativeValidationError:
         causal_blocked = True
 
-    classification = classify_claim(block, interventional=False)
+    classification = classify_claim(block)
     tier = getattr(classification, "tier", None) or getattr(
         classification, "licensed", "descriptive")
     # A claim survives as a LICENSED biological conclusion only if it passes the
