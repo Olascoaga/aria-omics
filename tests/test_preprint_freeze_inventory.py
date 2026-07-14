@@ -9,6 +9,7 @@ from aria.benchmarks.preprint_freeze import (
     CLAIM_IDS,
     LANES,
     build_inventory,
+    execute_lane,
     write_inventory,
 )
 
@@ -61,3 +62,31 @@ def test_inventory_is_path_portable_and_atomic(tmp_path):
     assert '"/home/' not in text
     assert '"/tmp/' not in text
     assert not (tmp_path / "inventory.json.tmp").exists()
+
+
+def test_receipt_must_match_current_commit_to_verify(tmp_path):
+    payload = build_inventory(Path.cwd(), tmp_path, resource_overrides=_all_available())
+    write_inventory(payload, tmp_path / "inventory.json")
+    receipts = tmp_path / "receipts"
+    receipts.mkdir()
+    lane_id = "c5_semantic_negation"
+    write_inventory({
+        "status": "pass",
+        "git_commit": "stale-commit",
+    }, receipts / f"{lane_id}.json")
+
+    refreshed = build_inventory(
+        Path.cwd(), tmp_path, resource_overrides=_all_available()
+    )
+    by_id = {lane["lane_id"]: lane for lane in refreshed["lanes"]}
+    assert by_id[lane_id]["status"] == "stale_receipt"
+    assert refreshed["freeze_gate"]["ready"] is False
+
+
+def test_executor_refuses_unimplemented_lane(tmp_path):
+    try:
+        execute_lane(Path.cwd(), tmp_path, "c1_h9_fastq_e2e")
+    except RuntimeError as exc:
+        assert "no executable implementation" in str(exc)
+    else:
+        raise AssertionError("unimplemented lane was executed")

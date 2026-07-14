@@ -9,10 +9,13 @@ the hashes of that lane's emitted artifacts.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shlex
+import subprocess
 from typing import Any, Mapping
 
 from aria.version import collect_version_metadata
@@ -291,6 +294,136 @@ def _receipt_status(
     return "verified"
 
 
+def _sha256(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(chunk_size), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _source_tree_clean(repo_root: Path, output_root: Path) -> bool:
+    """Check tracked/source cleanliness while allowing the dedicated output root."""
+    try:
+        rel = output_root.resolve().relative_to(repo_root.resolve()).as_posix()
+    except ValueError:
+        rel = ""
+    cmd = ["git", "status", "--porcelain", "--", "."]
+    if rel:
+        cmd.append(f":(exclude){rel}")
+    proc = subprocess.run(
+        cmd, cwd=repo_root, capture_output=True, text=True, check=False,
+    )
+    return proc.returncode == 0 and not proc.stdout.strip()
+
+
+def _safe_test_summary(stdout: str) -> str | None:
+    for line in reversed(str(stdout or "").splitlines()):
+        line = line.strip()
+        if re.fullmatch(
+            r"[.A-Za-z0-9 ,%()_-]*(?:passed|failed|skipped)"
+            r"[.A-Za-z0-9 ,%()_-]*",
+            line,
+        ):
+            return line[-300:]
+    return None
+
+
+def execute_lane(
+    repo_root: str | Path,
+    output_root: str | Path,
+    lane_id: str,
+    *,
+    timeout: int = 14_400,
+) -> dict[str, Any]:
+    """Execute one inventory lane and atomically publish a current-commit receipt.
+
+    Only statically registered, implemented lanes may run. A zero exit is not
+    enough for artifact lanes: every declared output must exist and be hashed.
+    The source tree must be clean aside from the dedicated freeze output root.
+    """
+    repo_root = Path(repo_root).resolve()
+    output_root = Path(output_root)
+    lane = next((dict(item) for item in LANES if item["lane_id"] == lane_id), None)
+    if lane is None:
+        raise KeyError(f"unknown preprint-freeze lane: {lane_id}")
+    if lane["implementation"] != "available" or not lane.get("command"):
+        raise RuntimeError(f"lane {lane_id} has no executable implementation")
+    if not _source_tree_clean(repo_root, output_root):
+        raise RuntimeError(
+            "source tree is dirty outside docs/benchmark_results/preprint_v1"
+        )
+
+    version = collect_version_metadata(repo_root)
+    inventory_path = output_root / "inventory.json"
+    if not inventory_path.is_file():
+        raise RuntimeError("generate inventory.json from a clean checkout first")
+    inventory = json.loads(inventory_path.read_text(encoding="utf-8"))
+    baseline = inventory.get("provenance") or {}
+    if baseline.get("git_dirty") is not False:
+        raise RuntimeError("inventory was not generated from a clean checkout")
+    if baseline.get("git_commit") != version.get("git_commit"):
+        raise RuntimeError("inventory commit does not match current HEAD")
+
+    tokens = shlex.split(str(lane["command"]))
+    env = os.environ.copy()
+    while tokens and re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", tokens[0]):
+        key, value = tokens.pop(0).split("=", 1)
+        env[key] = os.path.expanduser(value)
+    tokens = [os.path.expanduser(token) for token in tokens]
+    started = datetime.now(timezone.utc).isoformat()
+    proc = subprocess.run(
+        tokens,
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+        check=False,
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"lane {lane_id} failed with exit {proc.returncode}: "
+            f"{proc.stderr[-2000:]}"
+        )
+
+    artifacts = []
+    for relative in lane.get("expected_artifacts") or []:
+        path = output_root / relative
+        if not path.is_file():
+            raise RuntimeError(
+                f"lane {lane_id} returned zero but did not produce {relative}"
+            )
+        artifacts.append({
+            "path": relative,
+            "size_bytes": path.stat().st_size,
+            "sha256": _sha256(path),
+        })
+    receipt = {
+        "schema_version": "aria.preprint_freeze.receipt.v1",
+        "lane_id": lane_id,
+        "claims": lane["claims"],
+        "status": "pass",
+        "git_commit": baseline.get("git_commit"),
+        "git_tree_sha": baseline.get("git_tree_sha"),
+        "workflow_hash": baseline.get("workflow_hash"),
+        "aria_version": baseline.get("aria_version"),
+        "environment": lane["environment"],
+        "command": lane["command"],
+        "started_utc": started,
+        "completed_utc": datetime.now(timezone.utc).isoformat(),
+        "returncode": proc.returncode,
+        "stdout_sha256": hashlib.sha256(proc.stdout.encode("utf-8")).hexdigest(),
+        "stderr_sha256": hashlib.sha256(proc.stderr.encode("utf-8")).hexdigest(),
+        "test_summary": _safe_test_summary(proc.stdout),
+        "artifacts": artifacts,
+    }
+    receipts = output_root / "receipts"
+    receipts.mkdir(parents=True, exist_ok=True)
+    write_inventory(receipt, receipts / f"{lane_id}.json")
+    return receipt
+
+
 def build_inventory(
     repo_root: str | Path,
     output_root: str | Path,
@@ -389,5 +522,5 @@ def write_inventory(payload: Mapping[str, Any], path: str | Path) -> Path:
 
 __all__ = [
     "CLAIM_IDS", "LANES", "SCHEMA_VERSION", "build_inventory",
-    "probe_resources", "write_inventory",
+    "execute_lane", "probe_resources", "write_inventory",
 ]

@@ -18,6 +18,17 @@ verified only by a receipt bound to the current clean commit and the hashes of
 that lane's artifacts. Files elsewhere under `docs/benchmark_results/` are
 historical context and never satisfy the gate.
 
+Execute one ready lane through the receipt boundary with:
+
+```bash
+python scripts/run_preprint_freeze_lane.py <lane_id>
+```
+
+The runner accepts only statically registered commands, requires a clean source
+tree apart from the dedicated output root, rejects zero-exit artifact runs that
+failed to emit their declared files, and writes no pass receipt until all emitted
+artifacts have SHA-256 hashes.
+
 ## Gate
 
 The freeze is fail-closed:
