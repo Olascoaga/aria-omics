@@ -357,6 +357,10 @@ def _patch_light_bulk_de(monkeypatch, primary_sig, sensitivity_sig):
 
     monkeypatch.setattr(rbd, "_sample_qc", fake_sample_qc)
     monkeypatch.setattr(rbd, "_run_deseq2", fake_run_deseq2)
+    # A7: _run_outlier_sensitivity moved to aria.scripts.rna_bulk.qc, which binds
+    # _run_deseq2 in its own namespace — patch that seam too so the sensitivity
+    # re-fit uses the fake (bulk_rna_de's primary call still goes through rbd).
+    monkeypatch.setattr("aria.scripts.rna_bulk.qc._run_deseq2", fake_run_deseq2)
     monkeypatch.setattr(rbd, "_generate_plots", lambda **kwargs: {})
     monkeypatch.setattr(rbd, "_load_symbol_map", lambda files, warnings: {})
     monkeypatch.setattr(rbd, "_load_gene_annotation", lambda files, warnings: {})

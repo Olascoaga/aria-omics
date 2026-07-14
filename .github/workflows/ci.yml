@@ -96,6 +96,7 @@ jobs:
             tests/test_benchmark_b2_claim_narrative.py \
             tests/test_benchmark_b4_null_narrative.py \
             tests/test_benchmark_scatac_da.py \
+            tests/test_rna_bulk_de_contract.py \
             tests/test_bulk_rna.py
 
       - name: Narrative kernel + claim/causal + closeout
