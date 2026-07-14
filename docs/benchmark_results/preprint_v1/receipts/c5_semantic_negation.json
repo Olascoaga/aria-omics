@@ -5,18 +5,18 @@
     "claim_5"
   ],
   "command": "conda run -n aria-env python -m pytest tests/test_preprint_audit_c2_semantic_facts.py -q",
-  "completed_utc": "2026-07-14T05:44:49.450414+00:00",
+  "completed_utc": "2026-07-14T05:50:02.876202+00:00",
   "environment": "aria-env",
-  "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
-  "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+  "git_commit": "909c3c3775c309f4c338ef38aaf1e783b5612610",
+  "git_tree_sha": "1006d7cc6c5c4f3ced90f0bbdb075e978421a172",
   "lane_id": "c5_semantic_negation",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
-  "started_utc": "2026-07-14T05:44:45.252782+00:00",
+  "source_snapshot_hash": "144dfa901138f780cbb6368090eaec210dc84c6d190b2e2af89b0f1ea05c2673",
+  "started_utc": "2026-07-14T05:49:58.601144+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "f58d500303da9470e768f6dcef2a3e844a3a7f1ddc03aa3d6e84811874bf97a0",
-  "test_summary": "16 passed in 1.63s",
-  "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6"
+  "stdout_sha256": "cec1dc4b19a81a4f2fc055938b52ae5b4a8083eac68a9a78a445edc3e21f3b2d",
+  "test_summary": "16 passed in 1.65s",
+  "workflow_hash": "92e21a3e011aa2c14fa36ee8506bcb64bee47389d8f03d4ae07bc75b26a58b88"
 }
