@@ -9150,6 +9150,132 @@
       "source_location": "L396"
     },
     {
+      "id": "benchmarks_multi_provider_repro",
+      "label": "multi_provider_repro.py",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_identity",
+      "label": "_identity()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "aria_benchmarks_multi_provider_repro_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L39"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_prosevariant",
+      "label": "ProseVariant",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L44"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_cellresult",
+      "label": "CellResult",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L61"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_matrixresult",
+      "label": "MatrixResult",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L73"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_matrixresult_baseline",
+      "label": ".baseline()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L79"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "label": ".pairwise_diffs()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "aria_benchmarks_multi_provider_repro_py_any",
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_matrixresult_invariant",
+      "label": ".invariant()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "aria_benchmarks_multi_provider_repro_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L92"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_matrixresult_summary",
+      "label": ".summary()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "label": "build_cell_methodology()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111"
+    },
+    {
+      "id": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "label": "NarrativeBlock",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_apply_variant",
+      "label": "_apply_variant()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L141"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_cell",
+      "label": "_cell()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153"
+    },
+    {
+      "id": "aria_benchmarks_multi_provider_repro_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153"
+    },
+    {
+      "id": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "label": "run_provider_matrix()",
+      "file_type": "code",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183"
+    },
+    {
       "id": "benchmarks_reference_kang",
       "label": "reference_kang.py",
       "file_type": "code",
@@ -10526,7 +10652,7 @@
       "label": "_find_report_on_disk()",
       "file_type": "code",
       "source_file": "aria/headless.py",
-      "source_location": "L240"
+      "source_location": "L248"
     },
     {
       "id": "llm_init",
@@ -32366,7 +32492,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32611,7 +32737,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32633,7 +32759,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -45389,6 +45515,146 @@
       "source_location": "L167"
     },
     {
+      "id": "tests_test_preprint_audit_b3_multi_provider",
+      "label": "test_preprint_audit_b3_multi_provider.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "label": "_canonical_blocks()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_py_narrativeblock",
+      "label": "NarrativeBlock",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_identity",
+      "label": "_identity()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L109"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L109"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_terse",
+      "label": "_terse()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L113"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_verbose",
+      "label": "_verbose()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L117"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_causal_overreach",
+      "label": "_causal_overreach()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L124"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_run",
+      "label": "_run()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L144"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_baseline_publishes_the_supported_claim",
+      "label": "test_baseline_publishes_the_supported_claim()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L157"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_public_claims_invariant_across_providers_and_repetitions",
+      "label": "test_public_claims_invariant_across_providers_and_repetitions()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L168"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_rendered_public_prose_is_deterministic_regardless_of_claim_wording",
+      "label": "test_rendered_public_prose_is_deterministic_regardless_of_claim_wording()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L187"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_repetitions_are_byte_identical",
+      "label": "test_repetitions_are_byte_identical()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L198"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_adversarial_prose_is_fail_closed_monotone_never_adds_or_elevates",
+      "label": "test_adversarial_prose_is_fail_closed_monotone_never_adds_or_elevates()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L212"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_test_matrix_detects_a_real_structural_divergence",
+      "label": "test_matrix_detects_a_real_structural_divergence()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L243"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "label": "test_preprint_audit_b3_multi_provider_e2e.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_e2e_capture_orch_llm",
+      "label": "_capture_orch_llm()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_forwards_injected_provider",
+      "label": "test_run_headless_forwards_injected_provider()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L72"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_defaults_to_no_injected_provider",
+      "label": "test_run_headless_defaults_to_no_injected_provider()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L78"
+    },
+    {
+      "id": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "label": "test_repeated_real_runs_yield_equivalent_public_output()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L92"
+    },
+    {
       "id": "tests_test_preprint_audit_b3_pairing",
       "label": "test_preprint_audit_b3_pairing.py",
       "file_type": "code",
@@ -49261,105 +49527,123 @@
     },
     {
       "id": "orchestrator_agent",
-      "label": "Orchestrator Agent",
+      "label": "OrchestratorAgent",
       "file_type": "code",
       "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
       "id": "data_audit_agent",
-      "label": "Data Audit Agent",
+      "label": "DataAuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/data_audit_agent.py"
     },
     {
       "id": "design_agent",
-      "label": "Design Agent",
+      "label": "DesignAgent",
       "file_type": "code",
       "source_file": "aria/agents/design_agent.py"
     },
     {
       "id": "audit_agent",
-      "label": "Audit Agent",
+      "label": "AuditAgent",
       "file_type": "code",
       "source_file": "aria/agents/audit_agent.py"
     },
     {
       "id": "setup_agent",
-      "label": "Setup Agent",
+      "label": "SetupAgent",
       "file_type": "code",
       "source_file": "aria/agents/setup_agent.py"
     },
     {
       "id": "bulk_rna_agent",
-      "label": "Bulk RNA Agent",
+      "label": "BulkRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/bulk_rna_agent.py"
     },
     {
       "id": "scrna_agent",
-      "label": "scRNA Agent",
+      "label": "scRNAAgent",
       "file_type": "code",
       "source_file": "aria/agents/scrna_agent.py"
     },
     {
       "id": "chromatin_agent",
-      "label": "Chromatin Agent",
+      "label": "ChromatinAgent",
       "file_type": "code",
       "source_file": "aria/agents/chromatin_agent.py"
     },
     {
       "id": "narrative_agent",
-      "label": "Narrative Agent",
+      "label": "NarrativeAgent",
       "file_type": "code",
       "source_file": "aria/agents/narrative_agent.py"
     },
     {
       "id": "biological_synthesis_agent",
-      "label": "Biological Synthesis Agent",
+      "label": "BiologicalSynthesisAgent",
       "file_type": "code",
       "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
-      "id": "environment_manager",
-      "label": "Environment Manager",
-      "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py"
-    },
-    {
       "id": "aria_memory",
-      "label": "ARIA Memory (SQLite)",
+      "label": "ARIAMemory",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
       "id": "message_bus",
-      "label": "Message Bus",
+      "label": "MessageBus",
       "file_type": "code",
       "source_file": "aria/bus/message_bus.py"
     },
     {
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py"
+    },
+    {
       "id": "rna_bulk_de",
-      "label": "RNA Bulk DE Script",
+      "label": "rna_bulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
       "id": "rna_pseudobulk_de",
-      "label": "RNA Pseudobulk DE Script",
+      "label": "rna_pseudobulk_de.py",
       "file_type": "code",
       "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
-      "id": "chromatin_scatac_align",
-      "label": "scATAC Alignment Script",
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_scatac_align.py"
+      "source_file": "aria/scripts/chromatin_diffacc.py"
     },
     {
-      "id": "chromatin_footprint_tobias",
-      "label": "TOBIAS Footprinting Script",
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py"
+      "source_file": "aria/agents/narrative/claim_compiler.py"
+    },
+    {
+      "id": "devils_advocate",
+      "label": "Devil's Advocate",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/devils_advocate.py"
+    },
+    {
+      "id": "run_ledger",
+      "label": "Run Ledger",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/run_ledger.py"
+    },
+    {
+      "id": "geo_connector",
+      "label": "GEO/SRA Connector",
+      "file_type": "code",
+      "source_file": "aria/connectors/geo_connector.py"
     },
     {
       "id": "python_aria_memory_memory_py",
@@ -49368,151 +49652,145 @@
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory",
-      "label": "ARIAMemory",
-      "file_type": "code",
-      "source_file": "aria/memory/memory.py"
-    },
-    {
-      "id": "python_aria_memory_memory_py_ariamemory_init",
+      "id": "aria_memory_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_migrate_decisions_checkpoint_to_text",
+      "id": "aria_memory_migrate_decisions_checkpoint_to_text",
       "label": "._migrate_decisions_checkpoint_to_text()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_write",
+      "id": "aria_memory_write",
       "label": "._write()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_fetchone",
+      "id": "aria_memory_fetchone",
       "label": "._fetchone()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_fetchall",
+      "id": "aria_memory_fetchall",
       "label": "._fetchall()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_copy_scoped_rows",
+      "id": "aria_memory_copy_scoped_rows",
       "label": "._copy_scoped_rows()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_export_experiment_snapshot",
+      "id": "aria_memory_export_experiment_snapshot",
       "label": ".export_experiment_snapshot()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_create_wing",
+      "id": "aria_memory_create_wing",
       "label": ".create_wing()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_update_wing_summary",
+      "id": "aria_memory_update_wing_summary",
       "label": ".update_wing_summary()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_get_wing",
+      "id": "aria_memory_get_wing",
       "label": ".get_wing()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_list_wings",
+      "id": "aria_memory_list_wings",
       "label": ".list_wings()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_create_hall",
+      "id": "aria_memory_create_hall",
       "label": ".create_hall()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_update_hall_status",
+      "id": "aria_memory_update_hall_status",
       "label": ".update_hall_status()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_get_halls",
+      "id": "aria_memory_get_halls",
       "label": ".get_halls()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_create_room",
+      "id": "aria_memory_create_room",
       "label": ".create_room()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_store_finding",
+      "id": "aria_memory_store_finding",
       "label": ".store_finding()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_invalidate_finding",
+      "id": "aria_memory_invalidate_finding",
       "label": ".invalidate_finding()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_get_active_findings",
+      "id": "aria_memory_get_active_findings",
       "label": ".get_active_findings()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_create_tunnel",
+      "id": "aria_memory_create_tunnel",
       "label": ".create_tunnel()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_get_tunnels",
+      "id": "aria_memory_get_tunnels",
       "label": ".get_tunnels()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_store_decision",
+      "id": "aria_memory_store_decision",
       "label": ".store_decision()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_get_decisions",
+      "id": "aria_memory_get_decisions",
       "label": ".get_decisions()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_startup_context",
+      "id": "aria_memory_startup_context",
       "label": ".startup_context()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "python_aria_memory_memory_py_ariamemory_close",
+      "id": "aria_memory_close",
       "label": ".close()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
@@ -85224,6 +85502,624 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_identity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_identity",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_identity",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L39",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L44",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_cellresult",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L61",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_matrixresult",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L73",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult",
+      "target": "benchmarks_multi_provider_repro_matrixresult_baseline",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_baseline",
+      "target": "benchmarks_multi_provider_repro_cellresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult",
+      "target": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult",
+      "target": "benchmarks_multi_provider_repro_matrixresult_invariant",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_invariant",
+      "target": "aria_benchmarks_multi_provider_repro_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult",
+      "target": "benchmarks_multi_provider_repro_matrixresult_summary",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_summary",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_summary",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L111",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_apply_variant",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_apply_variant",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_apply_variant",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_apply_variant",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_cell",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "benchmarks_multi_provider_repro_cellresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L153",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "aria_benchmarks_multi_provider_repro_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "benchmarks_multi_provider_repro_matrixresult",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L183",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_invariant",
+      "target": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_matrixresult_summary",
+      "target": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L97",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L163",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_cell",
+      "target": "benchmarks_multi_provider_repro_cellresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "benchmarks_multi_provider_repro_cell",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L211",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "benchmarks_multi_provider_repro_apply_variant",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L214",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "target": "benchmarks_multi_provider_repro_matrixresult",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L234",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_reference_kang",
       "target": "benchmarks_reference_kang_finite",
       "relation": "contains",
@@ -92688,7 +93584,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L240",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -92698,7 +93594,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L240",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -92708,7 +93604,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L240",
+      "source_location": "L248",
       "weight": 1.0
     },
     {
@@ -92718,7 +93614,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L197",
+      "source_location": "L205",
       "weight": 1.0
     },
     {
@@ -92728,7 +93624,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L208",
+      "source_location": "L216",
       "weight": 1.0
     },
     {
@@ -92738,7 +93634,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L212",
+      "source_location": "L220",
       "weight": 1.0
     },
     {
@@ -92748,7 +93644,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L230",
+      "source_location": "L238",
       "weight": 1.0
     },
     {
@@ -146792,7 +147688,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -146845,7 +147741,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -146855,7 +147751,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -146865,7 +147761,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -146875,7 +147771,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -146885,7 +147781,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147207,7 +148103,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -147216,7 +148112,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -147251,7 +148147,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147261,7 +148157,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_zmtq0q_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_dtem4k_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -171805,6 +172701,320 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_narrativeblock",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_identity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_identity",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_identity",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L109",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_terse",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_terse",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_terse",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_verbose",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_verbose",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_verbose",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L117",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_causal_overreach",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_causal_overreach",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_causal_overreach",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_run",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_baseline_publishes_the_supported_claim",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_public_claims_invariant_across_providers_and_repetitions",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L168",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_rendered_public_prose_is_deterministic_regardless_of_claim_wording",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_repetitions_are_byte_identical",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_adversarial_prose_is_fail_closed_monotone_never_adds_or_elevates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L212",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_test_matrix_detects_a_real_structural_divergence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L243",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "target": "tests_test_preprint_audit_b3_multi_provider_py_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_baseline_publishes_the_supported_claim",
+      "target": "tests_test_preprint_audit_b3_multi_provider_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_public_claims_invariant_across_providers_and_repetitions",
+      "target": "tests_test_preprint_audit_b3_multi_provider_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_rendered_public_prose_is_deterministic_regardless_of_claim_wording",
+      "target": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L192",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_repetitions_are_byte_identical",
+      "target": "tests_test_preprint_audit_b3_multi_provider_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L201",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_adversarial_prose_is_fail_closed_monotone_never_adds_or_elevates",
+      "target": "tests_test_preprint_audit_b3_multi_provider_run",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L223",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_capture_orch_llm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_forwards_injected_provider",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_defaults_to_no_injected_provider",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L78",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_forwards_injected_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_capture_orch_llm",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_run_headless_defaults_to_no_injected_provider",
+      "target": "tests_test_preprint_audit_b3_multi_provider_e2e_capture_orch_llm",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_b3_pairing",
       "target": "tests_test_preprint_audit_b3_pairing_rows",
       "relation": "contains",
@@ -183663,6 +184873,66 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L29",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_ledger_export_diff_methodologies",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_run_ledger_link_claims_to_ledger",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro",
+      "target": "narrative_types_narrativeblock",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_reference_kang",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "imports",
@@ -184009,7 +185279,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L191",
+      "source_location": "L199",
       "weight": 1.0
     },
     {
@@ -192663,6 +193933,126 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "narrative_compose_prose_compose_block_prose",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "narrative_types_evidenceitem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "narrative_types_narrativeblock",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "narrative_types_semanticfact",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L33",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider",
+      "target": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L34",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "aria_headless_run_headless",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "llm_provider_llmprovider",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "narrative_ledger_export_diff_methodologies",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "narrative_ledger_export_load_methodology",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e",
+      "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_b3_pairing",
       "target": "utils_design_matrix_classify_pairing",
       "relation": "imports",
@@ -195613,6 +197003,46 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "narrative_run_ledger_build_run_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "narrative_run_ledger_ensure_report_ledger_nodes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L126",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "narrative_claim_compiler_compile_public_claims",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L127",
+      "weight": 1.0
+    },
+    {
+      "source": "benchmarks_multi_provider_repro_build_cell_methodology",
+      "target": "narrative_run_ledger_link_claims_to_ledger",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
       "source": "benchmarks_reference_kang_score_cluster",
       "target": "scripts_rna_bulk_de_run_deseq2",
       "relation": "calls",
@@ -195969,7 +197399,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L195",
+      "source_location": "L203",
       "weight": 1.0
     },
     {
@@ -195979,7 +197409,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/headless.py",
-      "source_location": "L226",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -209013,6 +210443,96 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "target": "narrative_types_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "target": "narrative_types_evidenceitem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_canonical_blocks",
+      "target": "narrative_types_semanticfact",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_run",
+      "target": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L145",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_rendered_public_prose_is_deterministic_regardless_of_claim_wording",
+      "target": "narrative_compose_prose_compose_block_prose",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_repetitions_are_byte_identical",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L202",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_adversarial_prose_is_fail_closed_monotone_never_adds_or_elevates",
+      "target": "benchmarks_multi_provider_repro_prosevariant",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L222",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_matrix_detects_a_real_structural_divergence",
+      "target": "narrative_types_evidenceitem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L252",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_test_matrix_detects_a_real_structural_divergence",
+      "target": "benchmarks_multi_provider_repro_run_provider_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_b3_multi_provider.py",
+      "source_location": "L256",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_b3_pairing_test_classify_pairing_complete",
       "target": "utils_design_matrix_classify_pairing",
       "relation": "calls",
@@ -213096,6 +214616,17 @@
       "weight": 1.0
     },
     {
+      "source": "benchmarks_multi_provider_repro_matrixresult_pairwise_diffs",
+      "target": "narrative_ledger_export_diff_methodologies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "aria/benchmarks/multi_provider_repro.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
       "source": "connectors_geo_connector_geoconnector_fetch",
       "target": "utils_privacy_assert_egress_allowed",
       "relation": "calls",
@@ -213558,6 +215089,50 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "target": "narrative_ledger_export_load_methodology",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L118",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "target": "narrative_ledger_export_diff_methodologies",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L121",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "target": "narrative_ledger_export_write_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_b3_multi_provider_e2e_test_repeated_real_runs_yield_equivalent_public_output",
+      "target": "narrative_ledger_export_verify_reproducible_capsule",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "source_location": "L136",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_c2_semantic_facts_test_typed_affirmed_fact_supports_mixed_symbol_styles",
       "target": "narrative_evidence_verifier_verify_block_claim_support",
       "relation": "calls",
@@ -213650,148 +215225,139 @@
       "target": "data_audit_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "setup_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "scrna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "chromatin_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md"
+      "confidence_score": 1.0
     },
     {
       "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
       "source": "scrna_agent",
       "target": "rna_pseudobulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
       "source": "chromatin_agent",
-      "target": "chromatin_scatac_align",
+      "target": "chromatin_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
       "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
+      "target": "claim_compiler",
       "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md"
+      "confidence_score": 1.0
     },
     {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "references",
+      "source": "narrative_agent",
+      "target": "devils_advocate",
+      "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "references",
+      "source": "narrative_agent",
+      "target": "run_ledger",
+      "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
+    },
+    {
+      "source": "data_audit_agent",
+      "target": "geo_connector",
       "relation": "references",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md"
+      "confidence_score": 1.0
+    },
+    {
+      "source": "rna_pseudobulk_de",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "comment": "Shares _run_deseq2 core",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
+    },
+    {
+      "source": "chromatin_diffacc",
+      "target": "rna_bulk_de",
+      "relation": "references",
+      "comment": "Shares _run_deseq2 core",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0
     },
     {
       "source": "python_aria_memory_memory_py",
-      "target": "python_aria_memory_memory_py_ariamemory",
+      "target": "aria_memory",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213799,8 +215365,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_init",
+      "source": "aria_memory",
+      "target": "aria_memory_init",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213808,8 +215374,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_migrate_decisions_checkpoint_to_text",
+      "source": "aria_memory",
+      "target": "aria_memory_migrate_decisions_checkpoint_to_text",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213817,8 +215383,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_write",
+      "source": "aria_memory",
+      "target": "aria_memory_write",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213826,8 +215392,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_fetchone",
+      "source": "aria_memory",
+      "target": "aria_memory_fetchone",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213835,8 +215401,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_fetchall",
+      "source": "aria_memory",
+      "target": "aria_memory_fetchall",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213844,8 +215410,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_copy_scoped_rows",
+      "source": "aria_memory",
+      "target": "aria_memory_copy_scoped_rows",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213853,8 +215419,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_export_experiment_snapshot",
+      "source": "aria_memory",
+      "target": "aria_memory_export_experiment_snapshot",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213862,8 +215428,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_create_wing",
+      "source": "aria_memory",
+      "target": "aria_memory_create_wing",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213871,8 +215437,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_update_wing_summary",
+      "source": "aria_memory",
+      "target": "aria_memory_update_wing_summary",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213880,8 +215446,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_get_wing",
+      "source": "aria_memory",
+      "target": "aria_memory_get_wing",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213889,8 +215455,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_list_wings",
+      "source": "aria_memory",
+      "target": "aria_memory_list_wings",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213898,8 +215464,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_create_hall",
+      "source": "aria_memory",
+      "target": "aria_memory_create_hall",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213907,8 +215473,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_update_hall_status",
+      "source": "aria_memory",
+      "target": "aria_memory_update_hall_status",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213916,8 +215482,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_get_halls",
+      "source": "aria_memory",
+      "target": "aria_memory_get_halls",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213925,8 +215491,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_create_room",
+      "source": "aria_memory",
+      "target": "aria_memory_create_room",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213934,8 +215500,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_store_finding",
+      "source": "aria_memory",
+      "target": "aria_memory_store_finding",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213943,8 +215509,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_invalidate_finding",
+      "source": "aria_memory",
+      "target": "aria_memory_invalidate_finding",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213952,8 +215518,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_get_active_findings",
+      "source": "aria_memory",
+      "target": "aria_memory_get_active_findings",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213961,8 +215527,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_create_tunnel",
+      "source": "aria_memory",
+      "target": "aria_memory_create_tunnel",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213970,8 +215536,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_get_tunnels",
+      "source": "aria_memory",
+      "target": "aria_memory_get_tunnels",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213979,8 +215545,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_store_decision",
+      "source": "aria_memory",
+      "target": "aria_memory_store_decision",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213988,8 +215554,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_get_decisions",
+      "source": "aria_memory",
+      "target": "aria_memory_get_decisions",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -213997,8 +215563,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_startup_context",
+      "source": "aria_memory",
+      "target": "aria_memory_startup_context",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -214006,8 +215572,8 @@
       "weight": 1.0
     },
     {
-      "source": "python_aria_memory_memory_py_ariamemory",
-      "target": "python_aria_memory_memory_py_ariamemory_close",
+      "source": "aria_memory",
+      "target": "aria_memory_close",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
