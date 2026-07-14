@@ -2773,151 +2773,179 @@
       "source_location": "L1"
     },
     {
-      "id": "narrative_claim_compiler_claimclassification",
-      "label": "ClaimClassification",
+      "id": "narrative_claim_compiler_causalestimandlicense",
+      "label": "CausalEstimandLicense",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L91"
+      "source_location": "L98"
     },
     {
-      "id": "narrative_claim_compiler_claimclassification_as_dict",
+      "id": "narrative_claim_compiler_causalestimandlicense_as_dict",
       "label": ".as_dict()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99"
+      "source_location": "L113"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99"
+      "source_location": "L113"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_any",
       "label": "Any",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99"
+      "source_location": "L113"
+    },
+    {
+      "id": "narrative_claim_compiler_claimclassification",
+      "label": "ClaimClassification",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L123"
+    },
+    {
+      "id": "narrative_claim_compiler_claimclassification_as_dict",
+      "label": ".as_dict()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L132"
     },
     {
       "id": "narrative_claim_compiler_design_is_interventional",
       "label": "design_is_interventional()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L110"
+      "source_location": "L146"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_bool",
       "label": "bool",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L110"
+      "source_location": "L146"
     },
     {
-      "id": "narrative_claim_compiler_block_evidence_category",
-      "label": "_block_evidence_category()",
+      "id": "narrative_claim_compiler_text_or_none",
+      "label": "_text_or_none()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L126"
+      "source_location": "L162"
+    },
+    {
+      "id": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "label": "resolve_causal_estimand_license()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L169"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_narrativeblock",
       "label": "NarrativeBlock",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L126"
+      "source_location": "L169"
+    },
+    {
+      "id": "narrative_claim_compiler_block_evidence_category",
+      "label": "_block_evidence_category()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L257"
     },
     {
       "id": "narrative_claim_compiler_block_subject",
       "label": "_block_subject()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L138"
+      "source_location": "L269"
     },
     {
       "id": "narrative_claim_compiler_numeric_metric",
       "label": "_numeric_metric()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149"
+      "source_location": "L280"
     },
     {
       "id": "aria_agents_narrative_claim_compiler_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149"
+      "source_location": "L280"
     },
     {
       "id": "narrative_claim_compiler_flag_metric",
       "label": "_flag_metric()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L161"
+      "source_location": "L292"
     },
     {
       "id": "narrative_claim_compiler_quantitative_stats_gate",
       "label": "_quantitative_stats_gate()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L172"
+      "source_location": "L303"
     },
     {
       "id": "narrative_claim_compiler_classify_claim",
       "label": "classify_claim()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197"
+      "source_location": "L328"
     },
     {
       "id": "narrative_claim_compiler_finalize",
       "label": "_finalize()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L273"
+      "source_location": "L410"
     },
     {
       "id": "narrative_claim_compiler_annotate_claim_tiers",
       "label": "annotate_claim_tiers()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L311"
+      "source_location": "L449"
     },
     {
       "id": "narrative_claim_compiler_compile_claim_manifest",
       "label": "compile_claim_manifest()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L337"
+      "source_location": "L475"
     },
     {
       "id": "narrative_claim_compiler_compile_claims",
       "label": "compile_claims()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L378"
+      "source_location": "L517"
     },
     {
       "id": "narrative_claim_compiler_publicclaimcompilation",
       "label": "PublicClaimCompilation",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L387"
+      "source_location": "L526"
     },
     {
       "id": "narrative_claim_compiler_publicclaimcompilation_summary",
       "label": ".summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L394"
+      "source_location": "L533"
     },
     {
       "id": "narrative_claim_compiler_compile_public_claims",
       "label": "compile_public_claims()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L403"
+      "source_location": "L542"
     },
     {
       "id": "narrative_compose_prose",
@@ -5059,56 +5087,56 @@
       "label": "._pathway_blocks_for_contrast()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L301"
+      "source_location": "L307"
     },
     {
       "id": "narrators_bulk_rna_bulkrnanarrator_gsea_blocks_for_contrast",
       "label": "._gsea_blocks_for_contrast()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L360"
+      "source_location": "L366"
     },
     {
       "id": "narrators_bulk_rna_bulkrnanarrator_power_blocks",
       "label": "._power_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L440"
+      "source_location": "L446"
     },
     {
       "id": "narrators_bulk_rna_bulkrnanarrator_attach_artifacts",
       "label": "._attach_artifacts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L485"
+      "source_location": "L491"
     },
     {
       "id": "narrators_bulk_rna_read_gsea_summary",
       "label": "_read_gsea_summary()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L540"
+      "source_location": "L546"
     },
     {
       "id": "narrators_bulk_rna_parse_gsea_row",
       "label": "_parse_gsea_row()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L577"
+      "source_location": "L583"
     },
     {
       "id": "narrators_bulk_rna_to_float",
       "label": "_to_float()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L605"
+      "source_location": "L611"
     },
     {
       "id": "narrators_bulk_rna_to_float_checked",
       "label": "_to_float_checked()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L610"
+      "source_location": "L616"
     },
     {
       "id": "narrators_chromatin",
@@ -5486,35 +5514,35 @@
       "label": "._pseudobulk_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L440"
+      "source_location": "L446"
     },
     {
       "id": "narrators_scrna_scrnanarrator_pathway_blocks",
       "label": "._pathway_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L631"
+      "source_location": "L643"
     },
     {
       "id": "narrators_scrna_scrnanarrator_cellcomm_blocks",
       "label": "._cellcomm_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L699"
+      "source_location": "L711"
     },
     {
       "id": "narrators_scrna_scrnanarrator_trajectory_blocks",
       "label": "._trajectory_blocks()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L739"
+      "source_location": "L751"
     },
     {
       "id": "narrators_scrna_scrnanarrator_attach_artifacts",
       "label": "._attach_artifacts()",
       "file_type": "code",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L776"
+      "source_location": "L788"
     },
     {
       "id": "narrative_protocols",
@@ -32114,7 +32142,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32359,7 +32387,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_uofvey_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32381,7 +32409,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_uofvey_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -37665,70 +37693,70 @@
       "label": "_block()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L12"
+      "source_location": "L13"
     },
     {
       "id": "tests_test_claim_compiler_test_qc_block_is_descriptive",
       "label": "test_qc_block_is_descriptive()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L26"
+      "source_location": "L27"
     },
     {
       "id": "tests_test_claim_compiler_test_pseudobulk_de_is_associative_and_observational",
       "label": "test_pseudobulk_de_is_associative_and_observational()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L33"
+      "source_location": "L34"
     },
     {
-      "id": "tests_test_claim_compiler_test_interventional_design_licenses_causal",
-      "label": "test_interventional_design_licenses_causal()",
+      "id": "tests_test_claim_compiler_test_verified_estimand_contract_licenses_causal",
+      "label": "test_verified_estimand_contract_licenses_causal()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L41"
+      "source_location": "L42"
     },
     {
       "id": "tests_test_claim_compiler_test_one_mechanistic_line_is_weak_mechanistic",
       "label": "test_one_mechanistic_line_is_weak_mechanistic()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L48"
+      "source_location": "L62"
     },
     {
       "id": "tests_test_claim_compiler_test_two_mechanistic_lines_are_strong_mechanistic",
       "label": "test_two_mechanistic_lines_are_strong_mechanistic()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L55"
+      "source_location": "L69"
     },
     {
       "id": "tests_test_claim_compiler_test_causal_language_above_tier_is_flagged",
       "label": "test_causal_language_above_tier_is_flagged()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L65"
+      "source_location": "L79"
     },
     {
       "id": "tests_test_claim_compiler_test_annotate_and_compile_claims_roundtrip",
       "label": "test_annotate_and_compile_claims_roundtrip()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L74"
+      "source_location": "L88"
     },
     {
       "id": "tests_test_claim_compiler_test_claim_manifest_marks_unsupported_claim_text_without_throwing",
       "label": "test_claim_manifest_marks_unsupported_claim_text_without_throwing()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L98"
+      "source_location": "L112"
     },
     {
       "id": "tests_test_claim_compiler_test_design_is_interventional_is_conservative",
       "label": "test_design_is_interventional_is_conservative()",
       "file_type": "code",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L109"
+      "source_location": "L123"
     },
     {
       "id": "tests_test_clipboard",
@@ -45837,6 +45865,97 @@
       "source_location": "L206"
     },
     {
+      "id": "tests_test_preprint_audit_c4_causal_estimands",
+      "label": "test_preprint_audit_c4_causal_estimands.py",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "label": "_block()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_py_narrativeblock",
+      "label": "NarrativeBlock",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "label": "_context()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L42"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "label": "_verified()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L55"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "label": "test_study_contract_without_block_estimand_does_not_license_causality()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "label": "test_mixed_experiment_licenses_only_the_exact_verified_estimand()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_each_causal_prerequisite_is_explicit_and_fail_closed",
+      "label": "test_each_causal_prerequisite_is_explicit_and_fail_closed()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L143"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "label": "test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L156"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "label": "test_manifest_persists_estimand_license_decision()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L185"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "label": "test_bulk_narrator_carries_structured_contrast_to_the_license_resolver()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L207"
+    },
+    {
+      "id": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "label": "test_scrna_narrator_keeps_mixed_abundance_contrasts_separate()",
+      "file_type": "code",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L231"
+    },
+    {
       "id": "tests_test_preprint_audit_e1_sequencer_boundary",
       "label": "test_preprint_audit_e1_sequencer_boundary.py",
       "file_type": "code",
@@ -48873,6 +48992,17 @@
       "contributor": null
     },
     {
+      "id": "audit_agent",
+      "label": "AuditAgent",
+      "file_type": "code",
+      "source_file": "aria/agents/audit_agent.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "bulk_rna_agent",
       "label": "BulkRNAAgent",
       "file_type": "code",
@@ -48928,21 +49058,10 @@
       "contributor": null
     },
     {
-      "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
+      "id": "environment_manager",
+      "label": "EnvironmentManager",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_file": "aria/utils/environment_manager.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -48972,10 +49091,32 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "rna_bulk_de",
+      "label": "rna_bulk_de.py",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "rna_pseudobulk_de",
+      "label": "rna_pseudobulk_de.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_pseudobulk_de.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60083,11 +60224,49 @@
     },
     {
       "source": "narrative_claim_compiler",
+      "target": "narrative_claim_compiler_causalestimandlicense",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L98",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_causalestimandlicense",
+      "target": "narrative_claim_compiler_causalestimandlicense_as_dict",
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_causalestimandlicense_as_dict",
+      "target": "aria_agents_narrative_claim_compiler_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_causalestimandlicense_as_dict",
+      "target": "aria_agents_narrative_claim_compiler_py_any",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler",
       "target": "narrative_claim_compiler_claimclassification",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L91",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -60096,7 +60275,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -60106,7 +60285,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -60116,7 +60295,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L99",
+      "source_location": "L132",
       "weight": 1.0
     },
     {
@@ -60125,7 +60304,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L110",
+      "source_location": "L146",
       "weight": 1.0
     },
     {
@@ -60135,7 +60314,65 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L110",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler",
+      "target": "narrative_claim_compiler_text_or_none",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_text_or_none",
+      "target": "aria_agents_narrative_claim_compiler_py_any",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_text_or_none",
+      "target": "aria_agents_narrative_claim_compiler_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler",
+      "target": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "target": "aria_agents_narrative_claim_compiler_py_narrativeblock",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "target": "narrative_claim_compiler_causalestimandlicense",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L169",
       "weight": 1.0
     },
     {
@@ -60144,7 +60381,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L126",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -60154,7 +60391,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L126",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -60164,7 +60401,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L126",
+      "source_location": "L257",
       "weight": 1.0
     },
     {
@@ -60173,7 +60410,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L138",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -60183,7 +60420,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L138",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -60193,7 +60430,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L138",
+      "source_location": "L269",
       "weight": 1.0
     },
     {
@@ -60202,7 +60439,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -60212,7 +60449,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -60222,7 +60459,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -60232,7 +60469,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L149",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -60241,7 +60478,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L161",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -60251,7 +60488,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L161",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -60261,7 +60498,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L161",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -60271,7 +60508,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L161",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -60280,7 +60517,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L172",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -60290,7 +60527,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L172",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -60300,7 +60537,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L172",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -60310,7 +60547,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L172",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -60319,7 +60556,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -60329,17 +60566,17 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
       "source": "narrative_claim_compiler_classify_claim",
-      "target": "aria_agents_narrative_claim_compiler_py_bool",
+      "target": "narrative_claim_compiler_causalestimandlicense",
       "relation": "references",
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -60349,7 +60586,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -60359,7 +60596,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L197",
+      "source_location": "L328",
       "weight": 1.0
     },
     {
@@ -60368,7 +60605,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L273",
+      "source_location": "L410",
       "weight": 1.0
     },
     {
@@ -60378,7 +60615,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L273",
+      "source_location": "L410",
       "weight": 1.0
     },
     {
@@ -60387,7 +60624,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L311",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -60397,7 +60634,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L311",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -60407,7 +60644,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L311",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -60416,7 +60653,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L337",
+      "source_location": "L475",
       "weight": 1.0
     },
     {
@@ -60426,7 +60663,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L337",
+      "source_location": "L475",
       "weight": 1.0
     },
     {
@@ -60436,7 +60673,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L337",
+      "source_location": "L475",
       "weight": 1.0
     },
     {
@@ -60446,7 +60683,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L337",
+      "source_location": "L475",
       "weight": 1.0
     },
     {
@@ -60455,7 +60692,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L378",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -60465,7 +60702,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L378",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -60475,7 +60712,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L378",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -60485,7 +60722,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L378",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -60494,7 +60731,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L387",
+      "source_location": "L526",
       "weight": 1.0
     },
     {
@@ -60503,7 +60740,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L394",
+      "source_location": "L533",
       "weight": 1.0
     },
     {
@@ -60513,7 +60750,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L394",
+      "source_location": "L533",
       "weight": 1.0
     },
     {
@@ -60523,7 +60760,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L394",
+      "source_location": "L533",
       "weight": 1.0
     },
     {
@@ -60532,7 +60769,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L403",
+      "source_location": "L542",
       "weight": 1.0
     },
     {
@@ -60542,7 +60779,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L403",
+      "source_location": "L542",
       "weight": 1.0
     },
     {
@@ -60552,7 +60789,27 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L403",
+      "source_location": "L542",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "target": "narrative_claim_compiler_causalestimandlicense",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "target": "narrative_claim_compiler_text_or_none",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L178",
       "weight": 1.0
     },
     {
@@ -60562,7 +60819,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L177",
+      "source_location": "L308",
       "weight": 1.0
     },
     {
@@ -60572,7 +60829,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L190",
+      "source_location": "L321",
       "weight": 1.0
     },
     {
@@ -60582,7 +60839,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L207",
+      "source_location": "L338",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_classify_claim",
+      "target": "narrative_claim_compiler_causalestimandlicense",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L345",
       "weight": 1.0
     },
     {
@@ -60592,7 +60859,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L221",
+      "source_location": "L355",
       "weight": 1.0
     },
     {
@@ -60602,7 +60869,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L257",
+      "source_location": "L394",
       "weight": 1.0
     },
     {
@@ -60612,17 +60879,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L301",
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_claim_compiler_annotate_claim_tiers",
-      "target": "narrative_claim_compiler_design_is_interventional",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L315",
+      "source_location": "L438",
       "weight": 1.0
     },
     {
@@ -60632,7 +60889,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L320",
+      "source_location": "L456",
       "weight": 1.0
     },
     {
@@ -60642,7 +60899,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L322",
+      "source_location": "L458",
       "weight": 1.0
     },
     {
@@ -60652,7 +60909,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L330",
+      "source_location": "L466",
+      "weight": 1.0
+    },
+    {
+      "source": "narrative_claim_compiler_annotate_claim_tiers",
+      "target": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/claim_compiler.py",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -60662,7 +60929,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L333",
+      "source_location": "L471",
       "weight": 1.0
     },
     {
@@ -60672,7 +60939,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L382",
+      "source_location": "L521",
       "weight": 1.0
     },
     {
@@ -60682,7 +60949,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L383",
+      "source_location": "L522",
       "weight": 1.0
     },
     {
@@ -60692,7 +60959,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L424",
+      "source_location": "L563",
       "weight": 1.0
     },
     {
@@ -60702,7 +60969,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L425",
+      "source_location": "L564",
       "weight": 1.0
     },
     {
@@ -60712,7 +60979,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L434",
+      "source_location": "L573",
       "weight": 1.0
     },
     {
@@ -68781,7 +69048,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L301",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -68791,7 +69058,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L301",
+      "source_location": "L307",
       "weight": 1.0
     },
     {
@@ -68800,7 +69067,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L360",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -68810,7 +69077,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L360",
+      "source_location": "L366",
       "weight": 1.0
     },
     {
@@ -68819,7 +69086,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L440",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -68829,7 +69096,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L440",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -68838,7 +69105,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L485",
+      "source_location": "L491",
       "weight": 1.0
     },
     {
@@ -68848,7 +69115,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L485",
+      "source_location": "L491",
       "weight": 1.0
     },
     {
@@ -68857,7 +69124,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L540",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -68867,7 +69134,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L540",
+      "source_location": "L546",
       "weight": 1.0
     },
     {
@@ -68876,7 +69143,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L577",
+      "source_location": "L583",
       "weight": 1.0
     },
     {
@@ -68885,7 +69152,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L605",
+      "source_location": "L611",
       "weight": 1.0
     },
     {
@@ -68894,7 +69161,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L610",
+      "source_location": "L616",
       "weight": 1.0
     },
     {
@@ -69004,7 +69271,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L297",
+      "source_location": "L303",
       "weight": 1.0
     },
     {
@@ -69014,7 +69281,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L298",
+      "source_location": "L304",
       "weight": 1.0
     },
     {
@@ -69024,7 +69291,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L313",
+      "source_location": "L319",
       "weight": 1.0
     },
     {
@@ -69034,7 +69301,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L341",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -69044,7 +69311,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L342",
+      "source_location": "L348",
       "weight": 1.0
     },
     {
@@ -69054,7 +69321,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L368",
+      "source_location": "L374",
       "weight": 1.0
     },
     {
@@ -69064,7 +69331,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L373",
+      "source_location": "L379",
       "weight": 1.0
     },
     {
@@ -69074,7 +69341,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L411",
+      "source_location": "L417",
       "weight": 1.0
     },
     {
@@ -69084,7 +69351,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L412",
+      "source_location": "L418",
       "weight": 1.0
     },
     {
@@ -69094,7 +69361,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L451",
+      "source_location": "L457",
       "weight": 1.0
     },
     {
@@ -69104,7 +69371,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L464",
+      "source_location": "L470",
       "weight": 1.0
     },
     {
@@ -69114,7 +69381,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L499",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -69124,7 +69391,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L543",
+      "source_location": "L549",
       "weight": 1.0
     },
     {
@@ -69134,7 +69401,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L556",
+      "source_location": "L562",
       "weight": 1.0
     },
     {
@@ -69144,7 +69411,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L591",
+      "source_location": "L597",
       "weight": 1.0
     },
     {
@@ -69154,7 +69421,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L606",
+      "source_location": "L612",
       "weight": 1.0
     },
     {
@@ -70561,7 +70828,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L440",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -70571,7 +70838,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L440",
+      "source_location": "L446",
       "weight": 1.0
     },
     {
@@ -70580,7 +70847,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L631",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -70590,7 +70857,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L631",
+      "source_location": "L643",
       "weight": 1.0
     },
     {
@@ -70599,7 +70866,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L699",
+      "source_location": "L711",
       "weight": 1.0
     },
     {
@@ -70609,7 +70876,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L699",
+      "source_location": "L711",
       "weight": 1.0
     },
     {
@@ -70618,7 +70885,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L739",
+      "source_location": "L751",
       "weight": 1.0
     },
     {
@@ -70628,7 +70895,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L739",
+      "source_location": "L751",
       "weight": 1.0
     },
     {
@@ -70637,7 +70904,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L776",
+      "source_location": "L788",
       "weight": 1.0
     },
     {
@@ -70647,7 +70914,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L776",
+      "source_location": "L788",
       "weight": 1.0
     },
     {
@@ -70877,7 +71144,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L442",
+      "source_location": "L448",
       "weight": 1.0
     },
     {
@@ -70887,7 +71154,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L447",
+      "source_location": "L453",
       "weight": 1.0
     },
     {
@@ -70897,7 +71164,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L456",
+      "source_location": "L462",
       "weight": 1.0
     },
     {
@@ -70907,7 +71174,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L459",
+      "source_location": "L465",
       "weight": 1.0
     },
     {
@@ -70917,7 +71184,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L460",
+      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -70927,7 +71194,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L484",
+      "source_location": "L490",
       "weight": 1.0
     },
     {
@@ -70937,7 +71204,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L532",
+      "source_location": "L538",
       "weight": 1.0
     },
     {
@@ -70947,7 +71214,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L653",
+      "source_location": "L665",
       "weight": 1.0
     },
     {
@@ -70957,7 +71224,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L668",
+      "source_location": "L680",
       "weight": 1.0
     },
     {
@@ -70967,7 +71234,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L669",
+      "source_location": "L681",
       "weight": 1.0
     },
     {
@@ -70977,7 +71244,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L704",
+      "source_location": "L716",
       "weight": 1.0
     },
     {
@@ -70987,7 +71254,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L718",
+      "source_location": "L730",
       "weight": 1.0
     },
     {
@@ -70997,7 +71264,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L747",
+      "source_location": "L759",
       "weight": 1.0
     },
     {
@@ -71007,7 +71274,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L760",
+      "source_location": "L772",
       "weight": 1.0
     },
     {
@@ -71017,7 +71284,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L802",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -145383,7 +145650,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -145436,7 +145703,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145446,7 +145713,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145456,7 +145723,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145466,7 +145733,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145476,7 +145743,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145798,7 +146065,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_uofvey_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -145807,7 +146074,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_uofvey_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -145842,7 +146109,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -145852,7 +146119,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_fq8hpk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_uofvey_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -154118,7 +154385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0
     },
     {
@@ -154127,7 +154394,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L26",
+      "source_location": "L27",
       "weight": 1.0
     },
     {
@@ -154136,16 +154403,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0
     },
     {
       "source": "tests_test_claim_compiler",
-      "target": "tests_test_claim_compiler_test_interventional_design_licenses_causal",
+      "target": "tests_test_claim_compiler_test_verified_estimand_contract_licenses_causal",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L41",
+      "source_location": "L42",
       "weight": 1.0
     },
     {
@@ -154154,7 +154421,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L48",
+      "source_location": "L62",
       "weight": 1.0
     },
     {
@@ -154163,7 +154430,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L55",
+      "source_location": "L69",
       "weight": 1.0
     },
     {
@@ -154172,7 +154439,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L65",
+      "source_location": "L79",
       "weight": 1.0
     },
     {
@@ -154181,7 +154448,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L74",
+      "source_location": "L88",
       "weight": 1.0
     },
     {
@@ -154190,7 +154457,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L98",
+      "source_location": "L112",
       "weight": 1.0
     },
     {
@@ -154199,7 +154466,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L109",
+      "source_location": "L123",
       "weight": 1.0
     },
     {
@@ -154209,7 +154476,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0
     },
     {
@@ -154219,17 +154486,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L34",
+      "source_location": "L35",
       "weight": 1.0
     },
     {
-      "source": "tests_test_claim_compiler_test_interventional_design_licenses_causal",
+      "source": "tests_test_claim_compiler_test_verified_estimand_contract_licenses_causal",
       "target": "tests_test_claim_compiler_block",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L42",
+      "source_location": "L43",
       "weight": 1.0
     },
     {
@@ -154239,7 +154506,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L49",
+      "source_location": "L63",
       "weight": 1.0
     },
     {
@@ -154249,7 +154516,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L56",
+      "source_location": "L70",
       "weight": 1.0
     },
     {
@@ -154259,7 +154526,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L66",
+      "source_location": "L80",
       "weight": 1.0
     },
     {
@@ -154269,7 +154536,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L76",
+      "source_location": "L90",
       "weight": 1.0
     },
     {
@@ -154279,7 +154546,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L99",
+      "source_location": "L113",
       "weight": 1.0
     },
     {
@@ -172194,6 +172461,356 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_narrativeblock",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L42",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_each_causal_prerequisite_is_explicit_and_fail_closed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L143",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L156",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L207",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L231",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_py_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L67",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L74",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L86",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L108",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_each_causal_prerequisite_is_explicit_and_fail_closed",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L144",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_each_causal_prerequisite_is_explicit_and_fail_closed",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L158",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L186",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L220",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L251",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "target": "tests_test_preprint_audit_c4_causal_estimands_verified",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L251",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e1_sequencer_boundary",
       "target": "tests_test_preprint_audit_e1_sequencer_boundary_detect",
       "relation": "contains",
@@ -178980,7 +179597,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L420",
+      "source_location": "L559",
       "weight": 1.0
     },
     {
@@ -178990,7 +179607,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L421",
+      "source_location": "L560",
       "weight": 1.0
     },
     {
@@ -179000,7 +179617,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L440",
+      "source_location": "L579",
       "weight": 1.0
     },
     {
@@ -187354,6 +187971,16 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_claim_compiler",
+      "target": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_claim_compiler.py",
+      "source_location": "L4",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_cockpit_app",
       "target": "runtime_experiment_view_artifactview",
       "relation": "imports",
@@ -191084,6 +191711,66 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrative_claim_compiler_compile_claim_manifest",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L5",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrators_bulk_rna_bulkrnanarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrators_scrna_scrnanarrator",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrative_types_evidenceitem",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands",
+      "target": "narrative_types_narrativeblock",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e1_sequencer_boundary",
       "target": "utils_sequencer_formats_detect_unsupported_inputs",
       "relation": "imports",
@@ -192620,7 +193307,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L291",
+      "source_location": "L428",
       "weight": 1.0
     },
     {
@@ -192630,7 +193317,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L342",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -192640,7 +193327,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L428",
+      "source_location": "L567",
       "weight": 1.0
     },
     {
@@ -192650,7 +193337,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L429",
+      "source_location": "L568",
       "weight": 1.0
     },
     {
@@ -192660,7 +193347,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L430",
+      "source_location": "L569",
       "weight": 1.0
     },
     {
@@ -192670,7 +193357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": "L441",
+      "source_location": "L580",
       "weight": 1.0
     },
     {
@@ -199560,7 +200247,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L13",
+      "source_location": "L14",
       "weight": 1.0
     },
     {
@@ -199570,7 +200257,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L22",
+      "source_location": "L23",
       "weight": 1.0
     },
     {
@@ -199580,7 +200267,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L28",
+      "source_location": "L29",
       "weight": 1.0
     },
     {
@@ -199590,17 +200277,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L35",
+      "source_location": "L36",
       "weight": 1.0
     },
     {
-      "source": "tests_test_claim_compiler_test_interventional_design_licenses_causal",
+      "source": "tests_test_claim_compiler_test_verified_estimand_contract_licenses_causal",
       "target": "narrative_claim_compiler_classify_claim",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L43",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_claim_compiler_test_verified_estimand_contract_licenses_causal",
+      "target": "narrative_claim_compiler_resolve_causal_estimand_license",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_claim_compiler.py",
+      "source_location": "L56",
       "weight": 1.0
     },
     {
@@ -199610,7 +200307,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L50",
+      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -199620,7 +200317,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L59",
+      "source_location": "L73",
       "weight": 1.0
     },
     {
@@ -199630,7 +200327,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L68",
+      "source_location": "L82",
       "weight": 1.0
     },
     {
@@ -199640,7 +200337,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L80",
+      "source_location": "L94",
       "weight": 1.0
     },
     {
@@ -199650,7 +200347,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L87",
+      "source_location": "L101",
       "weight": 1.0
     },
     {
@@ -199660,7 +200357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L104",
+      "source_location": "L118",
       "weight": 1.0
     },
     {
@@ -199670,7 +200367,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_claim_compiler.py",
-      "source_location": "L110",
+      "source_location": "L124",
       "weight": 1.0
     },
     {
@@ -207484,6 +208181,116 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "narrative_types_narrativeblock",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_block",
+      "target": "narrative_types_evidenceitem",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_study_contract_without_block_estimand_does_not_license_causality",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L72",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_mixed_experiment_licenses_only_the_exact_verified_estimand",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L106",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_ambiguous_duplicate_contracts_and_global_confounding_fail_closed",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L171",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L192",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_manifest_persists_estimand_license_decision",
+      "target": "narrative_claim_compiler_compile_claim_manifest",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L197",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "target": "narrators_bulk_rna_bulkrnanarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L208",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_bulk_narrator_carries_structured_contrast_to_the_license_resolver",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "target": "narrators_scrna_scrnanarrator",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_scrna_narrator_keeps_mixed_abundance_contrasts_separate",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L249",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e3_scrna_per_sample_test_e3_explicit_union_preserves_per_sample_counts",
       "target": "scripts_rna_concat_rna_concat",
       "relation": "calls",
@@ -209656,7 +210463,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L329",
+      "source_location": "L335",
       "weight": 1.0
     },
     {
@@ -209667,7 +210474,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L391",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -209678,7 +210485,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/bulk_rna.py",
-      "source_location": "L477",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -209876,7 +210683,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L472",
+      "source_location": "L478",
       "weight": 1.0
     },
     {
@@ -209887,7 +210694,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L681",
+      "source_location": "L693",
       "weight": 1.0
     },
     {
@@ -209898,7 +210705,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "aria/agents/narrative/narrators/scrna.py",
-      "source_location": "L731",
+      "source_location": "L743",
       "weight": 1.0
     },
     {
@@ -211310,6 +212117,17 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_preprint_audit_c4_causal_estimands_test_each_causal_prerequisite_is_explicit_and_fail_closed",
+      "target": "narrative_claim_compiler_annotate_claim_tiers",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_preprint_audit_c4_causal_estimands.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_preprint_audit_e6_geo_sra_atomic_test_e6_archive_extraction_rejects_path_traversal",
       "target": "utils_atomic_retrieval_safe_extract_archive",
       "relation": "calls",
@@ -211386,6 +212204,16 @@
     },
     {
       "source": "orchestrator_agent",
+      "target": "audit_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
       "target": "bulk_rna_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -211415,6 +212243,16 @@
       "weight": 1.0
     },
     {
+      "source": "orchestrator_agent",
+      "target": "narrative_agent",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/overview.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
       "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
@@ -211435,6 +212273,16 @@
       "weight": 1.0
     },
     {
+      "source": "chromatin_agent",
+      "target": "chromatin_diffacc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
       "source": "narrative_agent",
       "target": "biological_synthesis_agent",
       "relation": "calls",
@@ -211447,7 +212295,27 @@
     {
       "source": "bulk_rna_agent",
       "target": "environment_manager",
-      "relation": "references",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "environment_manager",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/code_graph.md",
@@ -211457,20 +212325,20 @@
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "references",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
+      "source_file": "docs/architecture/overview.md",
       "source_location": null,
       "weight": 1.0
     },
