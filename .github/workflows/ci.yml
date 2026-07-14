@@ -75,6 +75,7 @@ jobs:
             tests/test_analysis_thresholds.py \
             tests/test_explicit_contrast_gate.py \
             tests/test_pseudobulk_gate.py \
+            tests/test_scrna_agent_contract.py \
             tests/test_bulk_covariates.py \
             tests/test_geo_design.py \
             tests/test_geo_spikein_inference.py \

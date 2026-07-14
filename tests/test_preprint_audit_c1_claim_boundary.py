@@ -289,7 +289,10 @@ def test_untrusted_question_cannot_become_executive_claim_evidence(tmp_path):
 @pytest.mark.parametrize(
     "path",
     [
-        "aria/agents/scrna_agent.py",
+        # A7: the scRNA LLM-data routes moved from the scrna_agent monolith into
+        # the concern mixins; the shared-boundary guard follows them there.
+        "aria/agents/scrna/annotation.py",
+        "aria/agents/scrna/de.py",
         "aria/agents/debate_council.py",
         "aria/llm/parameter_advisor.py",
     ],
