@@ -26,7 +26,7 @@ tracked Python AST; no inferred/semantic layer is introduced. In particular,
 
 ## Snapshot
 
-- Commit: `df6488f` (HEAD the graph was built from)
+- Commit: `1f2d4ca` (HEAD the graph was built from)
 - Generated: 2026-07-13
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
