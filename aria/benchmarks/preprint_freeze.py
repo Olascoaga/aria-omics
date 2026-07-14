@@ -278,7 +278,7 @@ def probe_resources(
 
 
 def _receipt_status(
-    lane: Mapping[str, Any], output_root: Path, git_commit: str
+    lane: Mapping[str, Any], output_root: Path, provenance: Mapping[str, Any]
 ) -> str | None:
     receipt = output_root / "receipts" / f"{lane['lane_id']}.json"
     if not receipt.is_file():
@@ -289,8 +289,43 @@ def _receipt_status(
         return "invalid_receipt"
     if payload.get("status") != "pass":
         return "failed_receipt"
-    if payload.get("git_commit") != git_commit:
+    if any(
+        payload.get(key) != provenance.get(key)
+        for key in ("git_commit", "git_tree_sha", "workflow_hash", "aria_version")
+    ):
         return "stale_receipt"
+    if (
+        payload.get("schema_version") != "aria.preprint_freeze.receipt.v1"
+        or payload.get("lane_id") != lane["lane_id"]
+        or tuple(payload.get("claims") or ()) != tuple(lane["claims"])
+        or payload.get("command") != lane.get("command")
+        or payload.get("environment") != lane.get("environment")
+        or payload.get("returncode") != 0
+    ):
+        return "invalid_receipt"
+
+    artifact_entries = payload.get("artifacts")
+    if not isinstance(artifact_entries, list):
+        return "invalid_receipt"
+    expected = tuple(lane.get("expected_artifacts") or ())
+    if tuple(item.get("path") for item in artifact_entries) != expected:
+        return "artifact_mismatch"
+    resolved_root = output_root.resolve()
+    for item in artifact_entries:
+        relative = item.get("path")
+        if not isinstance(relative, str):
+            return "invalid_receipt"
+        path = output_root / relative
+        try:
+            path.resolve().relative_to(resolved_root)
+        except ValueError:
+            return "invalid_receipt"
+        if (
+            not path.is_file()
+            or item.get("size_bytes") != path.stat().st_size
+            or item.get("sha256") != _sha256(path)
+        ):
+            return "artifact_mismatch"
     return "verified"
 
 
@@ -490,9 +525,7 @@ def build_inventory(
     lanes: list[dict[str, Any]] = []
     for spec in LANES:
         lane = dict(spec)
-        receipt_state = _receipt_status(
-            lane, output_root, str(provenance.get("git_commit") or "")
-        )
+        receipt_state = _receipt_status(lane, output_root, provenance)
         resource_states = [resources[r]["available"] for r in lane["resources"]]
         if receipt_state is not None:
             status = receipt_state

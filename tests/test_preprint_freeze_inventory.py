@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from aria.benchmarks.preprint_freeze import (
     CLAIM_IDS,
     LANES,
+    _receipt_status,
     _sanitize_public_json_artifact,
     build_inventory,
     execute_lane,
@@ -111,3 +113,42 @@ def test_public_json_sanitizer_removes_only_conda_prefix(tmp_path):
     assert payload["provenance"]["environment"]["conda_prefix"] is None
     assert payload["provenance"]["environment"]["env_name"] == "aria-env"
     assert payload["provenance"]["unexpected_path"] == "/machine/local/input.tsv"
+
+
+def test_receipt_revalidates_artifact_hash(tmp_path):
+    lane = next(item for item in LANES if item["lane_id"] == "c1_a1_synthetic_bulk_de")
+    artifact_paths = lane["expected_artifacts"]
+    artifacts = []
+    for relative in artifact_paths:
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(relative, encoding="utf-8")
+        artifacts.append({
+            "path": relative,
+            "size_bytes": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        })
+    provenance = {
+        "git_commit": "commit",
+        "git_tree_sha": "tree",
+        "workflow_hash": "workflow",
+        "aria_version": "4.7.0",
+    }
+    receipt = {
+        "schema_version": "aria.preprint_freeze.receipt.v1",
+        "lane_id": lane["lane_id"],
+        "claims": lane["claims"],
+        "status": "pass",
+        **provenance,
+        "environment": lane["environment"],
+        "command": lane["command"],
+        "returncode": 0,
+        "artifacts": artifacts,
+    }
+    receipts = tmp_path / "receipts"
+    receipts.mkdir()
+    write_inventory(receipt, receipts / f"{lane['lane_id']}.json")
+
+    assert _receipt_status(lane, tmp_path, provenance) == "verified"
+    (tmp_path / artifact_paths[0]).write_text("tampered", encoding="utf-8")
+    assert _receipt_status(lane, tmp_path, provenance) == "artifact_mismatch"

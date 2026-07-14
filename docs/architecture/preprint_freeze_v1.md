@@ -34,6 +34,12 @@ machine-local `conda_prefix`. The environment name and lock hash remain as
 portable provenance; any other absolute path remains visible to the public
 artifact guard and fails publication validation.
 
+Inventory refresh does not trust a receipt by filename alone. It revalidates
+the receipt schema, lane identity, command, environment, version, commit, Git
+tree and workflow hash, then requires the exact declared artifact set and
+recomputes every recorded size and SHA-256. Missing or modified evidence closes
+the gate as `artifact_mismatch`.
+
 Source cleanliness explicitly excludes only `preprint_v1/`: emitted artifacts
 must not make later lanes look source-dirty, while any modification elsewhere
 still blocks execution. The freeze workflow hash is derived from package version,
