@@ -118,9 +118,18 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c1_h9_fastq_e2e", ("claim_1",),
         "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
-        None, "aria-rnaseq-env + aria-rna-env",
-        ("env:aria-rnaseq-env", "env:aria-rna-env", "data:h9_fastq"),
-        implementation="missing", evidence_kind="e2e_capsule",
+        "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
+        "aria-env -> aria-rnaseq-env + aria-rna-env",
+        ("env:aria-env", "env:aria-rnaseq-env", "env:aria-rna-env", "data:h9_fastq"),
+        (
+            "claim_1/h9_e2e/capsule.json",
+            "claim_1/h9_e2e/report.html",
+            "claim_1/h9_e2e/methodology.json",
+            "claim_1/h9_e2e/de_results.tsv",
+            "claim_1/h9_e2e/fig1_h9_bulk_de.svg",
+        ),
+        evidence_kind="e2e_capsule",
     ),
     _lane(
         "c2_a2_synthetic_pseudobulk", ("claim_2",),
