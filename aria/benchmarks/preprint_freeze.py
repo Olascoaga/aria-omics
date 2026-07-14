@@ -165,9 +165,19 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c2_scatac_donor_aware", ("claim_2",),
         "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
-        None, "aria-rna-env + aria-bench-env",
+        "conda run -n aria-rna-env python "
+        "scripts/run_scatac_multisample_da_concordance.py "
+        "--data-dir ~/Samael/Single/prueba/muon_processed "
+        "--young hc937,hc5579,hc13344,hc935,hc5614 "
+        "--old hc26,hc98,hc35,hc40,hc73 "
+        "--rna-env aria-rna-env --bench-env aria-bench-env "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor "
+        "--manifest-name scatac_donor_da_concordance.json "
+        "--work-dir /tmp/c2_scatac_donor",
+        "aria-rna-env + aria-bench-env",
         ("env:aria-rna-env", "env:aria-bench-env", "data:gse278576"),
-        implementation="missing", evidence_kind="external_concordance",
+        ("claim_2/scatac_donor/scatac_donor_da_concordance.json",),
+        evidence_kind="external_concordance",
     ),
     _lane(
         "c3_b1_design_governance", ("claim_3",),
@@ -280,7 +290,7 @@ def _resource_defaults(output_root: Path) -> dict[str, tuple[str, Path | None]]:
         "data:kang_muscat": ("benchmark-data://kang_muscat/clusters.json", home / ".aria/benchmarks/kang_muscat/clusters.json"),
         "data:h9_fastq": ("validation-data://h9_bulk_fastq", home / "Samael/H9-RNA/raw_fastq"),
         "data:pbmc3k": ("validation-data://pbmc3k_test", home / "aria-data/pbmc3k_test"),
-        "data:gse278576": ("validation-data://gse278576", home / "Samael/Single/Samael_Final_Pipeline/data_inputs/reference/GSE278576_hippocampus_RNA.h5ad"),
+        "data:gse278576": ("validation-data://gse278576_scatac_donor_h5mu", home / "Samael/Single/prueba/muon_processed/hc937_paired.h5mu"),
         "human:b2_annotators": ("freeze-input://human/b2_annotator_{1,2}.csv+adjudicator", output_root / "human/b2_adjudicator.csv"),
         "human:design_gold": ("freeze-input://human/design_gold.csv", output_root / "human/design_gold.csv"),
         "manual:configured_provider": ("manual-confirmation://configured-llm-provider", None),
