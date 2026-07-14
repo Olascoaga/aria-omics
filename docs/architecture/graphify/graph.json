@@ -148,286 +148,6 @@
       "source_location": "L1"
     },
     {
-      "id": "agents_narrative_scrna_unwrap_scrna_findings",
-      "label": "unwrap_scrna_findings()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L44"
-    },
-    {
-      "id": "agents_narrative_scrna_fmt_int",
-      "label": "_fmt_int()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L62"
-    },
-    {
-      "id": "aria_agents_narrative_scrna_py_str",
-      "label": "str",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L62"
-    },
-    {
-      "id": "agents_narrative_scrna_fdr_primary_clause",
-      "label": "_fdr_primary_clause()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L69"
-    },
-    {
-      "id": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "label": "_lfc_shrinkage_clause()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L80"
-    },
-    {
-      "id": "agents_narrative_scrna_fmt_stat",
-      "label": "_fmt_stat()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L93"
-    },
-    {
-      "id": "agents_narrative_scrna_group_label",
-      "label": "_group_label()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105"
-    },
-    {
-      "id": "aria_agents_narrative_scrna_py_int",
-      "label": "int",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105"
-    },
-    {
-      "id": "agents_narrative_scrna_label_cell_type",
-      "label": "_label_cell_type()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L118"
-    },
-    {
-      "id": "agents_narrative_scrna_annotation_state",
-      "label": "_annotation_state()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L127"
-    },
-    {
-      "id": "agents_narrative_scrna_top_de_blocks",
-      "label": "_top_de_blocks()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L158"
-    },
-    {
-      "id": "agents_narrative_scrna_top_pathway_blocks",
-      "label": "_top_pathway_blocks()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L168"
-    },
-    {
-      "id": "agents_narrative_scrna_gene_name",
-      "label": "_gene_name()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L174"
-    },
-    {
-      "id": "agents_narrative_scrna_gene_brief",
-      "label": "_gene_brief()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L178"
-    },
-    {
-      "id": "agents_narrative_scrna_top_directional_genes",
-      "label": "_top_directional_genes()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L190"
-    },
-    {
-      "id": "agents_narrative_scrna_find_pathway_block",
-      "label": "_find_pathway_block()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L204"
-    },
-    {
-      "id": "agents_narrative_scrna_top_pathway_terms",
-      "label": "_top_pathway_terms()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L226"
-    },
-    {
-      "id": "agents_narrative_scrna_describe_top_de_blocks",
-      "label": "_describe_top_de_blocks()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L248"
-    },
-    {
-      "id": "agents_narrative_scrna_describe_pathway_support",
-      "label": "_describe_pathway_support()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L329"
-    },
-    {
-      "id": "agents_narrative_scrna_describe_abundance_de_relationship",
-      "label": "_describe_abundance_de_relationship()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L354"
-    },
-    {
-      "id": "agents_narrative_scrna_describe_cellcomm_context",
-      "label": "_describe_cellcomm_context()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L395"
-    },
-    {
-      "id": "agents_narrative_scrna_describe_trajectory_context",
-      "label": "_describe_trajectory_context()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L427"
-    },
-    {
-      "id": "agents_narrative_scrna_summarize_scrna_text",
-      "label": "summarize_scrna_text()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L467"
-    },
-    {
-      "id": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "label": "build_scrna_integrated_interpretation()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L807"
-    },
-    {
-      "id": "agents_narrative_scrna_concise_question",
-      "label": "_concise_question()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L920"
-    },
-    {
-      "id": "agents_narrative_scrna_build_scrna_methods",
-      "label": "build_scrna_methods()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L941"
-    },
-    {
-      "id": "agents_narrative_scrna_extract_pseudobulk_de_table",
-      "label": "extract_pseudobulk_de_table()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1184"
-    },
-    {
-      "id": "agents_narrative_scrna_render_pathway_dotplots",
-      "label": "render_pathway_dotplots()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259"
-    },
-    {
-      "id": "aria_agents_narrative_scrna_py_path",
-      "label": "Path",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259"
-    },
-    {
-      "id": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "label": "render_cellcomm_heatmap()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1316"
-    },
-    {
-      "id": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "label": "render_cellcomm_top_pairs_bar()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1381"
-    },
-    {
-      "id": "agents_narrative_scrna_extract_cellcomm_table",
-      "label": "extract_cellcomm_table()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1441"
-    },
-    {
-      "id": "agents_narrative_scrna_extract_trajectory_tables",
-      "label": "extract_trajectory_tables()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1475"
-    },
-    {
-      "id": "agents_narrative_scrna_write_tsv",
-      "label": "_write_tsv()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1541"
-    },
-    {
-      "id": "agents_narrative_scrna_term_value",
-      "label": "_term_value()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1560"
-    },
-    {
-      "id": "agents_narrative_scrna_export_supplementary_tables",
-      "label": "export_supplementary_tables()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1567"
-    },
-    {
-      "id": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "label": "render_per_celltype_de_bar()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1767"
-    },
-    {
-      "id": "agents_narrative_scrna_embed_png",
-      "label": "_embed_png()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1824"
-    },
-    {
-      "id": "agents_narrative_scrna_build_scrna_html_section",
-      "label": "build_scrna_html_section()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1838"
-    },
-    {
-      "id": "agents_narrative_scrna_generate_figures",
-      "label": "generate_figures()",
-      "file_type": "code",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2136"
-    },
-    {
       "id": "agents_audit_agent",
       "label": "audit_agent.py",
       "file_type": "code",
@@ -6313,6 +6033,370 @@
       "file_type": "code",
       "source_file": "aria/agents/narrative/run_ledger.py",
       "source_location": "L487"
+    },
+    {
+      "id": "scrna_init",
+      "label": "__init__.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scrna_common",
+      "label": "_common.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scrna_common_term_value",
+      "label": "_term_value()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L18"
+    },
+    {
+      "id": "scrna_common_unwrap_scrna_findings",
+      "label": "unwrap_scrna_findings()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L27"
+    },
+    {
+      "id": "scrna_common_fmt_int",
+      "label": "_fmt_int()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_common_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L45"
+    },
+    {
+      "id": "scrna_common_fdr_primary_clause",
+      "label": "_fdr_primary_clause()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L52"
+    },
+    {
+      "id": "scrna_common_lfc_shrinkage_clause",
+      "label": "_lfc_shrinkage_clause()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L63"
+    },
+    {
+      "id": "scrna_common_fmt_stat",
+      "label": "_fmt_stat()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L76"
+    },
+    {
+      "id": "scrna_common_group_label",
+      "label": "_group_label()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_common_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88"
+    },
+    {
+      "id": "scrna_common_label_cell_type",
+      "label": "_label_cell_type()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L101"
+    },
+    {
+      "id": "scrna_common_annotation_state",
+      "label": "_annotation_state()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L110"
+    },
+    {
+      "id": "scrna_common_top_de_blocks",
+      "label": "_top_de_blocks()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L141"
+    },
+    {
+      "id": "scrna_common_top_pathway_blocks",
+      "label": "_top_pathway_blocks()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L151"
+    },
+    {
+      "id": "scrna_common_gene_name",
+      "label": "_gene_name()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L157"
+    },
+    {
+      "id": "scrna_common_gene_brief",
+      "label": "_gene_brief()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L161"
+    },
+    {
+      "id": "scrna_common_top_directional_genes",
+      "label": "_top_directional_genes()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L173"
+    },
+    {
+      "id": "scrna_common_find_pathway_block",
+      "label": "_find_pathway_block()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L187"
+    },
+    {
+      "id": "scrna_common_top_pathway_terms",
+      "label": "_top_pathway_terms()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L209"
+    },
+    {
+      "id": "scrna_figures",
+      "label": "figures.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scrna_figures_render_pathway_dotplots",
+      "label": "render_pathway_dotplots()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_figures_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_figures_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24"
+    },
+    {
+      "id": "scrna_figures_render_cellcomm_heatmap",
+      "label": "render_cellcomm_heatmap()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_figures_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L81"
+    },
+    {
+      "id": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "label": "render_cellcomm_top_pairs_bar()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L146"
+    },
+    {
+      "id": "scrna_figures_render_per_celltype_de_bar",
+      "label": "render_per_celltype_de_bar()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L206"
+    },
+    {
+      "id": "scrna_figures_embed_png",
+      "label": "_embed_png()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L263"
+    },
+    {
+      "id": "scrna_figures_build_scrna_html_section",
+      "label": "build_scrna_html_section()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L277"
+    },
+    {
+      "id": "scrna_figures_generate_figures",
+      "label": "generate_figures()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L575"
+    },
+    {
+      "id": "scrna_tables",
+      "label": "tables.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scrna_tables_extract_pseudobulk_de_table",
+      "label": "extract_pseudobulk_de_table()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_tables_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_tables_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "scrna_tables_extract_cellcomm_table",
+      "label": "extract_cellcomm_table()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L91"
+    },
+    {
+      "id": "scrna_tables_extract_trajectory_tables",
+      "label": "extract_trajectory_tables()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L125"
+    },
+    {
+      "id": "scrna_tables_write_tsv",
+      "label": "_write_tsv()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L191"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_tables_py_path",
+      "label": "Path",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L191"
+    },
+    {
+      "id": "scrna_tables_export_supplementary_tables",
+      "label": "export_supplementary_tables()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L210"
+    },
+    {
+      "id": "scrna_text",
+      "label": "text.py",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "scrna_text_describe_top_de_blocks",
+      "label": "_describe_top_de_blocks()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_text_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "aria_agents_narrative_scrna_text_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13"
+    },
+    {
+      "id": "scrna_text_describe_pathway_support",
+      "label": "_describe_pathway_support()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L94"
+    },
+    {
+      "id": "scrna_text_describe_abundance_de_relationship",
+      "label": "_describe_abundance_de_relationship()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L119"
+    },
+    {
+      "id": "scrna_text_describe_cellcomm_context",
+      "label": "_describe_cellcomm_context()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L160"
+    },
+    {
+      "id": "scrna_text_describe_trajectory_context",
+      "label": "_describe_trajectory_context()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L192"
+    },
+    {
+      "id": "scrna_text_summarize_scrna_text",
+      "label": "summarize_scrna_text()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L232"
+    },
+    {
+      "id": "scrna_text_build_scrna_integrated_interpretation",
+      "label": "build_scrna_integrated_interpretation()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L572"
+    },
+    {
+      "id": "scrna_text_concise_question",
+      "label": "_concise_question()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L685"
+    },
+    {
+      "id": "scrna_text_build_scrna_methods",
+      "label": "build_scrna_methods()",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L706"
     },
     {
       "id": "synthesis_init",
@@ -32492,7 +32576,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32737,7 +32821,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32759,7 +32843,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -49639,179 +49723,117 @@
     },
     {
       "id": "orchestrator_agent",
-      "label": "OrchestratorAgent",
+      "label": "Orchestrator Agent",
       "file_type": "code",
-      "source_file": "aria/agents/orchestrator_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/orchestrator_agent.py"
     },
     {
       "id": "data_audit_agent",
-      "label": "DataAuditAgent",
+      "label": "Data Audit Agent",
       "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/data_audit_agent.py"
     },
     {
       "id": "design_agent",
-      "label": "DesignAgent",
+      "label": "Design Agent",
       "file_type": "code",
-      "source_file": "aria/agents/design_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/design_agent.py"
     },
     {
       "id": "audit_agent",
-      "label": "AuditAgent",
+      "label": "Audit Agent",
       "file_type": "code",
-      "source_file": "aria/agents/audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "narrative_agent",
-      "label": "NarrativeAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "biological_synthesis_agent",
-      "label": "BiologicalSynthesisAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/biological_synthesis_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/audit_agent.py"
     },
     {
       "id": "bulk_rna_agent",
-      "label": "BulkRNAAgent",
+      "label": "Bulk RNA Agent",
       "file_type": "code",
-      "source_file": "aria/agents/bulk_rna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/bulk_rna_agent.py"
     },
     {
       "id": "scrna_agent",
-      "label": "scRNAAgent",
+      "label": "scRNA Agent",
       "file_type": "code",
-      "source_file": "aria/agents/scrna_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/scrna_agent.py"
     },
     {
       "id": "chromatin_agent",
-      "label": "ChromatinAgent",
+      "label": "Chromatin Agent",
       "file_type": "code",
-      "source_file": "aria/agents/chromatin_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/chromatin_agent.py"
     },
     {
-      "id": "environment_manager",
-      "label": "EnvironmentManager",
+      "id": "narrative_agent",
+      "label": "Narrative Agent",
       "file_type": "code",
-      "source_file": "aria/utils/environment_manager.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/agents/narrative_agent.py"
+    },
+    {
+      "id": "biological_synthesis_agent",
+      "label": "Biological Synthesis Agent",
+      "file_type": "code",
+      "source_file": "aria/agents/biological_synthesis_agent.py"
     },
     {
       "id": "aria_memory",
-      "label": "ARIAMemory",
+      "label": "ARIA Memory (SQLite)",
       "file_type": "code",
-      "source_file": "aria/memory/memory.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/memory/memory.py"
     },
     {
       "id": "message_bus",
-      "label": "MessageBus",
+      "label": "Message Bus",
       "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/bus/message_bus.py"
+    },
+    {
+      "id": "environment_manager",
+      "label": "Environment Manager",
+      "file_type": "code",
+      "source_file": "aria/utils/environment_manager.py"
     },
     {
       "id": "rna_bulk_de",
-      "label": "rna_bulk_de.py",
+      "label": "RNA Bulk Differential Expression",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_bulk_de.py"
     },
     {
       "id": "rna_pseudobulk_de",
-      "label": "rna_pseudobulk_de.py",
+      "label": "RNA Pseudobulk DE",
       "file_type": "code",
-      "source_file": "aria/scripts/rna_pseudobulk_de.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/rna_pseudobulk_de.py"
     },
     {
-      "id": "chromatin_bulk_diffacc",
-      "label": "chromatin_bulk_diffacc.py",
+      "id": "chromatin_diffacc",
+      "label": "Chromatin Differential Accessibility",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/scripts/chromatin_diffacc.py"
     },
     {
-      "id": "chromatin_footprint_tobias",
-      "label": "chromatin_footprint_tobias.py",
+      "id": "geo_connector",
+      "label": "GEO/SRA Connector",
       "file_type": "code",
-      "source_file": "aria/scripts/chromatin_footprint_tobias.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
+      "source_file": "aria/connectors/geo_connector.py"
+    },
+    {
+      "id": "claim_compiler",
+      "label": "Claim Compiler",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/claim_compiler.py"
+    },
+    {
+      "id": "devils_advocate",
+      "label": "Devil's Advocate",
+      "file_type": "code",
+      "source_file": "aria/agents/narrative/devils_advocate.py"
+    },
+    {
+      "id": "aria_rna_env",
+      "label": "ARIA RNA Conda Environment",
+      "file_type": "code",
+      "source_file": "envs/aria-rna-env.yml"
     },
     {
       "id": "python_aria_memory_memory_py",
@@ -49820,145 +49842,151 @@
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_init",
+      "id": "python_aria_memory_memory_py_ariamemory",
+      "label": "ARIAMemory",
+      "file_type": "code",
+      "source_file": "aria/memory/memory.py"
+    },
+    {
+      "id": "python_aria_memory_memory_py_ariamemory_init",
       "label": ".__init__()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_migrate_decisions_checkpoint_to_text",
+      "id": "python_aria_memory_memory_py_ariamemory_migrate_decisions_checkpoint_to_text",
       "label": "._migrate_decisions_checkpoint_to_text()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_write",
+      "id": "python_aria_memory_memory_py_ariamemory_write",
       "label": "._write()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_fetchone",
+      "id": "python_aria_memory_memory_py_ariamemory_fetchone",
       "label": "._fetchone()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_fetchall",
+      "id": "python_aria_memory_memory_py_ariamemory_fetchall",
       "label": "._fetchall()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_copy_scoped_rows",
+      "id": "python_aria_memory_memory_py_ariamemory_copy_scoped_rows",
       "label": "._copy_scoped_rows()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_export_experiment_snapshot",
+      "id": "python_aria_memory_memory_py_ariamemory_export_experiment_snapshot",
       "label": ".export_experiment_snapshot()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_create_wing",
+      "id": "python_aria_memory_memory_py_ariamemory_create_wing",
       "label": ".create_wing()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_update_wing_summary",
+      "id": "python_aria_memory_memory_py_ariamemory_update_wing_summary",
       "label": ".update_wing_summary()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_get_wing",
+      "id": "python_aria_memory_memory_py_ariamemory_get_wing",
       "label": ".get_wing()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_list_wings",
+      "id": "python_aria_memory_memory_py_ariamemory_list_wings",
       "label": ".list_wings()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_create_hall",
+      "id": "python_aria_memory_memory_py_ariamemory_create_hall",
       "label": ".create_hall()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_update_hall_status",
+      "id": "python_aria_memory_memory_py_ariamemory_update_hall_status",
       "label": ".update_hall_status()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_get_halls",
+      "id": "python_aria_memory_memory_py_ariamemory_get_halls",
       "label": ".get_halls()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_create_room",
+      "id": "python_aria_memory_memory_py_ariamemory_create_room",
       "label": ".create_room()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_store_finding",
+      "id": "python_aria_memory_memory_py_ariamemory_store_finding",
       "label": ".store_finding()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_invalidate_finding",
+      "id": "python_aria_memory_memory_py_ariamemory_invalidate_finding",
       "label": ".invalidate_finding()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_get_active_findings",
+      "id": "python_aria_memory_memory_py_ariamemory_get_active_findings",
       "label": ".get_active_findings()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_create_tunnel",
+      "id": "python_aria_memory_memory_py_ariamemory_create_tunnel",
       "label": ".create_tunnel()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_get_tunnels",
+      "id": "python_aria_memory_memory_py_ariamemory_get_tunnels",
       "label": ".get_tunnels()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_store_decision",
+      "id": "python_aria_memory_memory_py_ariamemory_store_decision",
       "label": ".store_decision()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_get_decisions",
+      "id": "python_aria_memory_memory_py_ariamemory_get_decisions",
       "label": ".get_decisions()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_startup_context",
+      "id": "python_aria_memory_memory_py_ariamemory_startup_context",
       "label": ".startup_context()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
     },
     {
-      "id": "aria_memory_close",
+      "id": "python_aria_memory_memory_py_ariamemory_close",
       "label": ".close()",
       "file_type": "code",
       "source_file": "aria/memory/memory.py"
@@ -50520,1509 +50548,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/_narrative_chromatin.py",
       "source_location": "L576",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_unwrap_scrna_findings",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L44",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L62",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_fmt_int",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L62",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_fdr_primary_clause",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L69",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_fdr_primary_clause",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L69",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L80",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L80",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_fmt_stat",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L93",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_fmt_stat",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L93",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_group_label",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_group_label",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_group_label",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_group_label",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L105",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_label_cell_type",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L118",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_label_cell_type",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L118",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_annotation_state",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L127",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_top_de_blocks",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L158",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_de_blocks",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L158",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_de_blocks",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L158",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_de_blocks",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L158",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_top_pathway_blocks",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L168",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_blocks",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L168",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_blocks",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L168",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_gene_name",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L174",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_gene_name",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L174",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_gene_brief",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L178",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_gene_brief",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L178",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_top_directional_genes",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L190",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_directional_genes",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L190",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_directional_genes",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L190",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_directional_genes",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L190",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_find_pathway_block",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L204",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_find_pathway_block",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L204",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_find_pathway_block",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L204",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_find_pathway_block",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L204",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_top_pathway_terms",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L226",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_terms",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L226",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_terms",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L226",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_describe_top_de_blocks",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L248",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L248",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L248",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_describe_pathway_support",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L329",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_pathway_support",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L329",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_pathway_support",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L329",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_describe_abundance_de_relationship",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L354",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_abundance_de_relationship",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L354",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_describe_cellcomm_context",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L395",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_cellcomm_context",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L395",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_cellcomm_context",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L395",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_describe_trajectory_context",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L427",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_trajectory_context",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L427",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_summarize_scrna_text",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L467",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L467",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L807",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L807",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_concise_question",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L920",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_concise_question",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L920",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_build_scrna_methods",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L941",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_methods",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L941",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_extract_pseudobulk_de_table",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1184",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_extract_pseudobulk_de_table",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1184",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_extract_pseudobulk_de_table",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1184",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_render_pathway_dotplots",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_pathway_dotplots",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_pathway_dotplots",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_pathway_dotplots",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1259",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1316",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1316",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1316",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1381",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1381",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1381",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1381",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_extract_cellcomm_table",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1441",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_extract_cellcomm_table",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1441",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_extract_cellcomm_table",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1441",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_extract_trajectory_tables",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1475",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_write_tsv",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1541",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_write_tsv",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1541",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_write_tsv",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1541",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_term_value",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1560",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_export_supplementary_tables",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1567",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_export_supplementary_tables",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1567",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1767",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1767",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1767",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_embed_png",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1824",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_embed_png",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1824",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_embed_png",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1824",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_build_scrna_html_section",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1838",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "aria_agents_narrative_scrna_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1838",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1838",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna",
-      "target": "agents_narrative_scrna_generate_figures",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2136",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "aria_agents_narrative_scrna_py_str",
-      "relation": "references",
-      "context": "generic_arg",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2136",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2136",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_annotation_state",
-      "target": "agents_narrative_scrna_label_cell_type",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L130",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_gene_brief",
-      "target": "agents_narrative_scrna_gene_name",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L179",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_gene_brief",
-      "target": "agents_narrative_scrna_fmt_stat",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L186",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_directional_genes",
-      "target": "agents_narrative_scrna_gene_brief",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L201",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_terms",
-      "target": "agents_narrative_scrna_term_value",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L235",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_top_pathway_terms",
-      "target": "agents_narrative_scrna_fmt_stat",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L241",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "agents_narrative_scrna_top_de_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L254",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L273",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "agents_narrative_scrna_top_directional_genes",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L277",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "agents_narrative_scrna_find_pathway_block",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L285",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_top_de_blocks",
-      "target": "agents_narrative_scrna_top_pathway_terms",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L286",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_pathway_support",
-      "target": "agents_narrative_scrna_top_pathway_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L334",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_pathway_support",
-      "target": "agents_narrative_scrna_top_pathway_terms",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L335",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_pathway_support",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L343",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_describe_trajectory_context",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L447",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_group_label",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L516",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_annotation_state",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L528",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L675",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_top_de_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L693",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_describe_abundance_de_relationship",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L707",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_describe_top_de_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L708",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_top_pathway_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L732",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_describe_pathway_support",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L744",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_describe_cellcomm_context",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L762",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_summarize_scrna_text",
-      "target": "agents_narrative_scrna_describe_trajectory_context",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L800",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_annotation_state",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L821",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_concise_question",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L824",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_fmt_int",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L828",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_top_de_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L839",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_describe_abundance_de_relationship",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L854",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_describe_top_de_blocks",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L855",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_describe_pathway_support",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L868",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_describe_cellcomm_context",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L889",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_integrated_interpretation",
-      "target": "agents_narrative_scrna_describe_trajectory_context",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L913",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_methods",
-      "target": "agents_narrative_scrna_group_label",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1001",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_methods",
-      "target": "agents_narrative_scrna_fdr_primary_clause",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1084",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_methods",
-      "target": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1086",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_pathway_dotplots",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1280",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1373",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1433",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_extract_cellcomm_table",
-      "target": "agents_narrative_scrna_fmt_stat",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1460",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_write_tsv",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1545",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_export_supplementary_tables",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1575",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_export_supplementary_tables",
-      "target": "agents_narrative_scrna_write_tsv",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1584",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_export_supplementary_tables",
-      "target": "agents_narrative_scrna_label_cell_type",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1591",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1814",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_embed_png",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1827",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "agents_narrative_scrna_annotation_state",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1847",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "agents_narrative_scrna_embed_png",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1880",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "agents_narrative_scrna_extract_pseudobulk_de_table",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1912",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "agents_narrative_scrna_extract_trajectory_tables",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L1969",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "agents_narrative_scrna_extract_cellcomm_table",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2043",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_build_scrna_html_section",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2088",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "aria_agents_narrative_scrna_py_path",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2159",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "agents_narrative_scrna_annotation_state",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2167",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "agents_narrative_scrna_render_per_celltype_de_bar",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2229",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "agents_narrative_scrna_render_pathway_dotplots",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2236",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "agents_narrative_scrna_render_cellcomm_heatmap",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2241",
-      "weight": 1.0
-    },
-    {
-      "source": "agents_narrative_scrna_generate_figures",
-      "target": "agents_narrative_scrna_render_cellcomm_top_pairs_bar",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/agents/_narrative_scrna.py",
-      "source_location": "L2246",
       "weight": 1.0
     },
     {
@@ -74614,6 +73139,1239 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
       "source_location": "L549",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_term_value",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_unwrap_scrna_findings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L27",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_fmt_int",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_fmt_int",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_fdr_primary_clause",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_fdr_primary_clause",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L52",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_lfc_shrinkage_clause",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_lfc_shrinkage_clause",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L63",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_fmt_stat",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_fmt_stat",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L76",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_group_label",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_group_label",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_group_label",
+      "target": "aria_agents_narrative_scrna_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_group_label",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_label_cell_type",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_label_cell_type",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L101",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_annotation_state",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_top_de_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_de_blocks",
+      "target": "aria_agents_narrative_scrna_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_de_blocks",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_de_blocks",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L141",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_top_pathway_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_blocks",
+      "target": "aria_agents_narrative_scrna_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_blocks",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L151",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_gene_name",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_gene_name",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L157",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_gene_brief",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_gene_brief",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L161",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_top_directional_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_directional_genes",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_directional_genes",
+      "target": "aria_agents_narrative_scrna_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_directional_genes",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L173",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_find_pathway_block",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_find_pathway_block",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_find_pathway_block",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_find_pathway_block",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L187",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common",
+      "target": "scrna_common_top_pathway_terms",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L209",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_terms",
+      "target": "aria_agents_narrative_scrna_common_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L209",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_terms",
+      "target": "aria_agents_narrative_scrna_common_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L209",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_annotation_state",
+      "target": "scrna_common_label_cell_type",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_gene_brief",
+      "target": "scrna_common_gene_name",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_gene_brief",
+      "target": "scrna_common_fmt_stat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L169",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_directional_genes",
+      "target": "scrna_common_gene_brief",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L184",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_terms",
+      "target": "scrna_common_term_value",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_common_top_pathway_terms",
+      "target": "scrna_common_fmt_stat",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/_common.py",
+      "source_location": "L224",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_render_pathway_dotplots",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_pathway_dotplots",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_pathway_dotplots",
+      "target": "aria_agents_narrative_scrna_figures_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_pathway_dotplots",
+      "target": "aria_agents_narrative_scrna_figures_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_render_cellcomm_heatmap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_heatmap",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_heatmap",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L81",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L146",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_render_per_celltype_de_bar",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_per_celltype_de_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_per_celltype_de_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L206",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_embed_png",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_embed_png",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_embed_png",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_build_scrna_html_section",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L277",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "aria_agents_narrative_scrna_figures_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L277",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L277",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_figures_generate_figures",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L575",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "aria_agents_narrative_scrna_figures_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L575",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L575",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_pathway_dotplots",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_heatmap",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L198",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_render_per_celltype_de_bar",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L253",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_embed_png",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L266",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "scrna_figures_embed_png",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L319",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L527",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "aria_agents_narrative_scrna_figures_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L598",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "scrna_figures_render_per_celltype_de_bar",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L668",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "scrna_figures_render_pathway_dotplots",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L675",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "scrna_figures_render_cellcomm_heatmap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L680",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_generate_figures",
+      "target": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L685",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables",
+      "target": "scrna_tables_extract_pseudobulk_de_table",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_extract_pseudobulk_de_table",
+      "target": "aria_agents_narrative_scrna_tables_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_extract_pseudobulk_de_table",
+      "target": "aria_agents_narrative_scrna_tables_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables",
+      "target": "scrna_tables_extract_cellcomm_table",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_extract_cellcomm_table",
+      "target": "aria_agents_narrative_scrna_tables_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_extract_cellcomm_table",
+      "target": "aria_agents_narrative_scrna_tables_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L91",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables",
+      "target": "scrna_tables_extract_trajectory_tables",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L125",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables",
+      "target": "scrna_tables_write_tsv",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L191",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_write_tsv",
+      "target": "aria_agents_narrative_scrna_tables_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L191",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_write_tsv",
+      "target": "aria_agents_narrative_scrna_tables_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L191",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables",
+      "target": "scrna_tables_export_supplementary_tables",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_export_supplementary_tables",
+      "target": "aria_agents_narrative_scrna_tables_py_path",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L210",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_write_tsv",
+      "target": "aria_agents_narrative_scrna_tables_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L195",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_export_supplementary_tables",
+      "target": "aria_agents_narrative_scrna_tables_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L218",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_tables_export_supplementary_tables",
+      "target": "scrna_tables_write_tsv",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/tables.py",
+      "source_location": "L227",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_describe_top_de_blocks",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_top_de_blocks",
+      "target": "aria_agents_narrative_scrna_text_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_top_de_blocks",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_describe_pathway_support",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_pathway_support",
+      "target": "aria_agents_narrative_scrna_text_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_pathway_support",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L94",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_describe_abundance_de_relationship",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_abundance_de_relationship",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L119",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_describe_cellcomm_context",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_cellcomm_context",
+      "target": "aria_agents_narrative_scrna_text_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_cellcomm_context",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L160",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_describe_trajectory_context",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L192",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_describe_trajectory_context",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L192",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_summarize_scrna_text",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L232",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_build_scrna_integrated_interpretation",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L572",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L572",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_concise_question",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L685",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_concise_question",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L685",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text",
+      "target": "scrna_text_build_scrna_methods",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L706",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_methods",
+      "target": "aria_agents_narrative_scrna_text_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L706",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "scrna_text_describe_abundance_de_relationship",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L472",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "scrna_text_describe_top_de_blocks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L473",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "scrna_text_describe_pathway_support",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L509",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "scrna_text_describe_cellcomm_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L527",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_summarize_scrna_text",
+      "target": "scrna_text_describe_trajectory_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L565",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_concise_question",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L589",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_describe_abundance_de_relationship",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L619",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_describe_top_de_blocks",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L620",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_describe_pathway_support",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L633",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_describe_cellcomm_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L654",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_text_build_scrna_integrated_interpretation",
+      "target": "scrna_text_describe_trajectory_context",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/text.py",
+      "source_location": "L678",
       "weight": 1.0
     },
     {
@@ -147856,7 +147614,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -147909,7 +147667,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147919,7 +147677,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147929,7 +147687,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147939,7 +147697,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147949,7 +147707,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148271,7 +148029,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -148280,7 +148038,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -148315,7 +148073,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148325,7 +148083,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_ewtpnk_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_pj48gv_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -181316,6 +181074,46 @@
       "weight": 1.0
     },
     {
+      "source": "scrna_init",
+      "target": "scrna_common",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures",
+      "relation": "re_exports",
+      "context": "export",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
       "source": "synthesis_init",
       "target": "synthesis_pattern_detector",
       "relation": "re_exports",
@@ -183883,6 +183681,406 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
       "source_location": "L179",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_annotation_state",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_fdr_primary_clause",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_fmt_int",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_fmt_stat",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_find_pathway_block",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_gene_brief",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_gene_name",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_group_label",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_label_cell_type",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_lfc_shrinkage_clause",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_term_value",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_top_de_blocks",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_top_directional_genes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_top_pathway_blocks",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_top_pathway_terms",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_common_unwrap_scrna_findings",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L19",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_concise_question",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_describe_abundance_de_relationship",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_describe_cellcomm_context",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_describe_pathway_support",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_describe_top_de_blocks",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_describe_trajectory_context",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_build_scrna_integrated_interpretation",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_build_scrna_methods",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_text_summarize_scrna_text",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables_write_tsv",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables_export_supplementary_tables",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables_extract_cellcomm_table",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables_extract_pseudobulk_de_table",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_tables_extract_trajectory_tables",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L48",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_embed_png",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_build_scrna_html_section",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_generate_figures",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_render_cellcomm_heatmap",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_render_cellcomm_top_pairs_bar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_render_pathway_dotplots",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_init",
+      "target": "scrna_figures_render_per_celltype_de_bar",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/__init__.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_tables_extract_cellcomm_table",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_tables_extract_pseudobulk_de_table",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures",
+      "target": "scrna_tables_extract_trajectory_tables",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L15",
       "weight": 1.0
     },
     {
@@ -193196,16 +193394,6 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_lfc_shrinkage",
-      "target": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_lfc_shrinkage.py",
-      "source_location": "L80",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_llm_partial_config",
       "target": "llm_provider_tasktier",
       "relation": "imports",
@@ -197013,6 +197201,36 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/agents/narrative/run_ledger.py",
       "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "scrna_tables_extract_pseudobulk_de_table",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L351",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "scrna_tables_extract_trajectory_tables",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L408",
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_figures_build_scrna_html_section",
+      "target": "scrna_tables_extract_cellcomm_table",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/agents/narrative/scrna/figures.py",
+      "source_location": "L482",
       "weight": 1.0
     },
     {
@@ -209166,16 +209384,6 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_lfc_shrinkage_test_shrinkage_clause_in_narrative",
-      "target": "agents_narrative_scrna_lfc_shrinkage_clause",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_lfc_shrinkage.py",
-      "source_location": "L81",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_llm_partial_config_test_heavy_only_config_does_not_keyerror_on_present_tier",
       "target": "llm_provider_modelconfig",
       "relation": "calls",
@@ -215599,9 +215807,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -215609,19 +215815,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -215629,9 +215823,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -215639,9 +215831,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
@@ -215649,59 +215839,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
-      "target": "narrative_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "biological_synthesis_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "bulk_rna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "bulk_rna_agent",
@@ -215709,9 +215847,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "scrna_agent",
@@ -215719,53 +215855,67 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
       "source": "chromatin_agent",
-      "target": "chromatin_bulk_diffacc",
+      "target": "chromatin_diffacc",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/code_graph.md"
     },
     {
-      "source": "chromatin_agent",
-      "target": "chromatin_footprint_tobias",
+      "source": "narrative_agent",
+      "target": "biological_synthesis_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/biological_synthesis.md"
+    },
+    {
+      "source": "narrative_agent",
+      "target": "claim_compiler",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "narrative_agent",
+      "target": "devils_advocate",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md"
+    },
+    {
+      "source": "biological_synthesis_agent",
+      "target": "claim_compiler",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md"
     },
     {
       "source": "orchestrator_agent",
       "target": "message_bus",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "orchestrator_agent",
       "target": "aria_memory",
-      "relation": "calls",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
+      "source_file": "docs/architecture/overview.md"
     },
     {
       "source": "python_aria_memory_memory_py",
-      "target": "aria_memory",
+      "target": "python_aria_memory_memory_py_ariamemory",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215773,8 +215923,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_init",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_init",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215782,8 +215932,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_migrate_decisions_checkpoint_to_text",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_migrate_decisions_checkpoint_to_text",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215791,8 +215941,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_write",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_write",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215800,8 +215950,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_fetchone",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_fetchone",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215809,8 +215959,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_fetchall",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_fetchall",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215818,8 +215968,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_copy_scoped_rows",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_copy_scoped_rows",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215827,8 +215977,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_export_experiment_snapshot",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_export_experiment_snapshot",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215836,8 +215986,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_create_wing",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_create_wing",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215845,8 +215995,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_update_wing_summary",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_update_wing_summary",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215854,8 +216004,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_get_wing",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_get_wing",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215863,8 +216013,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_list_wings",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_list_wings",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215872,8 +216022,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_create_hall",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_create_hall",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215881,8 +216031,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_update_hall_status",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_update_hall_status",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215890,8 +216040,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_get_halls",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_get_halls",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215899,8 +216049,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_create_room",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_create_room",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215908,8 +216058,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_store_finding",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_store_finding",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215917,8 +216067,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_invalidate_finding",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_invalidate_finding",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215926,8 +216076,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_get_active_findings",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_get_active_findings",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215935,8 +216085,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_create_tunnel",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_create_tunnel",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215944,8 +216094,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_get_tunnels",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_get_tunnels",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215953,8 +216103,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_store_decision",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_store_decision",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215962,8 +216112,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_get_decisions",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_get_decisions",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215971,8 +216121,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_startup_context",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_startup_context",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
@@ -215980,8 +216130,8 @@
       "weight": 1.0
     },
     {
-      "source": "aria_memory",
-      "target": "aria_memory_close",
+      "source": "python_aria_memory_memory_py_ariamemory",
+      "target": "python_aria_memory_memory_py_ariamemory_close",
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "aria/memory/memory.py",
