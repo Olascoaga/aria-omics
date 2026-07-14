@@ -1,0 +1,393 @@
+"""Fail-closed inventory for the ARIA preprint-v1 evidence freeze.
+
+Historical benchmark files are useful context, but they never count as freshly
+regenerated freeze evidence. A lane becomes ``verified`` only through a receipt
+under the dedicated ``preprint_v1`` root, bound to the current clean commit and
+the hashes of that lane's emitted artifacts.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import re
+from typing import Any, Mapping
+
+from aria.version import collect_version_metadata
+
+
+SCHEMA_VERSION = "aria.preprint_freeze.inventory.v1"
+CLAIM_IDS = tuple(f"claim_{i}" for i in range(1, 8))
+
+
+def _lane(
+    lane_id: str,
+    claims: tuple[str, ...],
+    requirement: str,
+    command: str | None,
+    environment: str,
+    resources: tuple[str, ...] = (),
+    artifacts: tuple[str, ...] = (),
+    *,
+    implementation: str = "available",
+    evidence_kind: str = "artifact",
+) -> dict[str, Any]:
+    return {
+        "lane_id": lane_id,
+        "claims": list(claims),
+        "requirement": requirement,
+        "command": command,
+        "environment": environment,
+        "resources": list(resources),
+        "expected_artifacts": list(artifacts),
+        "implementation": implementation,
+        "evidence_kind": evidence_kind,
+        "required_for_freeze": True,
+    }
+
+
+LANES: tuple[dict[str, Any], ...] = (
+    _lane(
+        "c1_a1_synthetic_bulk_de", ("claim_1",),
+        "Fresh A1 synthetic-truth bulk-DE calibration and LFC frontier.",
+        "conda run -n aria-rna-env python scripts/run_a1_bulk_de_benchmark.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_1/a1_synthetic "
+        "--manifest-name a1_bulk_de.json --figure-name fig1_a1_bulk_de.svg",
+        "aria-rna-env", ("env:aria-rna-env",),
+        ("claim_1/a1_synthetic/a1_bulk_de.json",
+         "claim_1/a1_synthetic/fig1_a1_bulk_de.svg"),
+    ),
+    _lane(
+        "c1_a1_external_comparators", ("claim_1",),
+        "Fresh DESeq2/edgeR/limma comparator execution on the identical A1 matrix.",
+        "python scripts/run_a1_external_comparators.py --output-dir "
+        "docs/benchmark_results/preprint_v1/claim_1/a1_external "
+        "--manifest-name a1_external_comparators.json",
+        "aria-env -> aria-bench-env", ("env:aria-env", "env:aria-bench-env"),
+        ("claim_1/a1_external/a1_external_comparators.json",),
+    ),
+    _lane(
+        "c1_seqc_maqc_taqman", ("claim_1",),
+        "Fresh ARIA-vs-TaqMan SEQC/MAQC reference validation.",
+        "conda run -n aria-rna-env python scripts/run_a1_seqc_maqc_benchmark.py "
+        "--bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir "
+        "docs/benchmark_results/preprint_v1/claim_1/seqc",
+        "aria-rna-env", ("env:aria-rna-env", "data:seqc_bgi"),
+        ("claim_1/seqc/a1_seqc_maqc_v4.5.5.json",),
+    ),
+    _lane(
+        "c1_seqc_multisite", ("claim_1",),
+        "Fresh five-site SEQC log2FC reproducibility matrix.",
+        "conda run -n aria-rna-env python scripts/run_a1_seqc_multisite_benchmark.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_1/seqc_multisite",
+        "aria-rna-env", ("env:aria-rna-env", "data:seqc_multisite"),
+        ("claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",),
+    ),
+    _lane(
+        "c1_ercc_dose_response", ("claim_1",),
+        "Fresh ERCC fold-change and dynamic-range recovery.",
+        "conda run -n aria-rna-env python scripts/run_a1_ercc_dose_response.py "
+        "--bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir "
+        "docs/benchmark_results/preprint_v1/claim_1/ercc",
+        "aria-rna-env", ("env:aria-rna-env", "data:seqc_ercc"),
+        ("claim_1/ercc/a1_ercc_dose_response_v4.5.5.json",),
+    ),
+    _lane(
+        "c1_h9_fastq_e2e", ("claim_1",),
+        "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
+        None, "aria-rnaseq-env + aria-rna-env",
+        ("env:aria-rnaseq-env", "env:aria-rna-env", "data:h9_fastq"),
+        implementation="missing", evidence_kind="e2e_capsule",
+    ),
+    _lane(
+        "c2_a2_synthetic_pseudobulk", ("claim_2",),
+        "Fresh donor-aware recovery and donor-heterogeneity null.",
+        "conda run -n aria-rna-env python scripts/run_a2_pseudobulk_benchmark.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_2/a2_synthetic "
+        "--manifest-name a2_pseudobulk.json --figure-name fig2_a2_pseudobulk.svg "
+        "--artifact-version preprint_v1",
+        "aria-rna-env", ("env:aria-rna-env",),
+        ("claim_2/a2_synthetic/a2_pseudobulk.json",
+         "claim_2/a2_synthetic/fig2_a2_pseudobulk.svg"),
+    ),
+    _lane(
+        "c2_kang_muscat", ("claim_2",),
+        "Fresh ARIA-vs-muscat/edgeR comparison on identical Kang pseudobulk matrices.",
+        "conda run -n aria-rna-env python scripts/run_a2_external_comparators.py "
+        "--export-dir ~/.aria/benchmarks/kang_muscat --output-dir "
+        "docs/benchmark_results/preprint_v1/claim_2/kang_muscat",
+        "aria-rna-env", ("env:aria-rna-env", "data:kang_muscat"),
+        ("claim_2/kang_muscat/a2_kang_muscat_v4.5.5.json",),
+    ),
+    _lane(
+        "c2_pairing_and_technical_replicates", ("claim_2",),
+        "Regression proof for partial pairing and explicit technical replicate units.",
+        "conda run -n aria-env python -m pytest "
+        "tests/test_preprint_audit_b1_technical_replicates.py "
+        "tests/test_preprint_audit_b3_pairing.py -q",
+        "aria-env", ("env:aria-env",), evidence_kind="test_receipt",
+    ),
+    _lane(
+        "c2_scatac_donor_aware", ("claim_2",),
+        "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
+        None, "aria-rna-env + aria-bench-env",
+        ("env:aria-rna-env", "env:aria-bench-env", "data:gse278576"),
+        implementation="missing", evidence_kind="external_concordance",
+    ),
+    _lane(
+        "c3_b1_design_governance", ("claim_3",),
+        "Fresh adversarial design inference/block/escalation confusion matrix.",
+        "conda run -n aria-env python scripts/run_b1_design_governance.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_3/b1_design",
+        "aria-env", ("env:aria-env",),
+        ("claim_3/b1_design/b1_design_governance_v4.5.5.json",),
+    ),
+    _lane(
+        "c3_blind_multifactorial_corpus", ("claim_3",),
+        "Independent blind gold for a multifactorial held-out design corpus.",
+        None, "human review", ("human:design_gold",),
+        implementation="missing", evidence_kind="human_gold",
+    ),
+    _lane(
+        "c4_b2_governance_ablation", ("claim_4",),
+        "Fresh four-arm governed/guards-off/naive/template claim benchmark.",
+        "conda run -n aria-env python scripts/run_b2_claim_narrative.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_4/b2_claim",
+        "aria-env", ("env:aria-env",),
+        ("claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",),
+    ),
+    _lane(
+        "c4_b2_multi_annotator_gold", ("claim_4",),
+        "At least two independent annotators plus adjudication and agreement metrics.",
+        "python scripts/run_b2_annotation_kit.py score "
+        "docs/benchmark_results/preprint_v1/human/b2_annotator_1.csv "
+        "docs/benchmark_results/preprint_v1/human/b2_annotator_2.csv "
+        "--adjudicator docs/benchmark_results/preprint_v1/human/b2_adjudicator.csv "
+        "--out docs/benchmark_results/preprint_v1/claim_4/b2_human_gold.json",
+        "aria-env", ("env:aria-env", "human:b2_annotators"),
+        ("claim_4/b2_human_gold.json",), evidence_kind="human_gold",
+    ),
+    _lane(
+        "c4_report_e2e_false_narrative", ("claim_4",),
+        "E2E benchmark through bus, compiler, report and independent human scoring.",
+        None, "aria-env + human review", ("env:aria-env", "human:b2_annotators"),
+        implementation="missing", evidence_kind="e2e_human_gold",
+    ),
+    _lane(
+        "c5_b4_null_narrative", ("claim_5",),
+        "Fresh null-evidence narrative benchmark.",
+        "conda run -n aria-env python scripts/run_b4_null_narrative.py "
+        "--output-dir docs/benchmark_results/preprint_v1/claim_5/b4_null",
+        "aria-env", ("env:aria-env",),
+        ("claim_5/b4_null/b4_null_narrative_v4.5.5.json",),
+    ),
+    _lane(
+        "c5_semantic_negation", ("claim_5",),
+        "Semantic positive/null contradiction and negation regression.",
+        "conda run -n aria-env python -m pytest "
+        "tests/test_preprint_audit_c2_semantic_facts.py -q",
+        "aria-env", ("env:aria-env",), evidence_kind="test_receipt",
+    ),
+    _lane(
+        "c5_multimodal_null_permutations", ("claim_5",),
+        "Fresh RNA and ATAC label-permutation null reports through the public compiler.",
+        None, "aria-rna-env + aria-chromatin-env",
+        ("env:aria-rna-env", "env:aria-chromatin-env"),
+        implementation="missing", evidence_kind="multimodal_e2e",
+    ),
+    _lane(
+        "c6_b3_in_process_matrix", ("claim_6",),
+        "Fresh 3-provider x 3-repetition fail-closed-monotone compiler matrix.",
+        "conda run -n aria-env python -m pytest "
+        "tests/test_preprint_audit_b3_multi_provider.py -q",
+        "aria-env", ("env:aria-env",), evidence_kind="test_receipt",
+    ),
+    _lane(
+        "c6_b3_real_e2e", ("claim_6",),
+        "Repeated real-run ledger/claim/capsule equivalence on a frozen dataset.",
+        "ARIA_B3_E2E_DATA=~/aria-data/pbmc3k_test conda run -n aria-env python "
+        "-m pytest tests/test_preprint_audit_b3_multi_provider_e2e.py -q",
+        "aria-env", ("env:aria-env", "data:pbmc3k", "manual:configured_provider"),
+        evidence_kind="e2e_capsule",
+    ),
+    _lane(
+        "c7_speculative_quarantine", ("claim_7",),
+        "Proof that speculative text cannot enter claims, ledger export or capsules.",
+        "conda run -n aria-env python -m pytest tests/test_hypothesis_quarantine.py "
+        "tests/test_hypothesis_report_section.py tests/test_ledger_export.py "
+        "tests/test_preprint_audit_c1_claim_boundary.py -q",
+        "aria-env", ("env:aria-env",), evidence_kind="test_receipt",
+    ),
+)
+
+
+def _resource_defaults(output_root: Path) -> dict[str, tuple[str, Path | None]]:
+    home = Path.home()
+    env_root = Path(os.environ.get("CONDA_ENVS_PATH", home / "anaconda3" / "envs"))
+    return {
+        "env:aria-env": ("conda-env://aria-env", env_root / "aria-env"),
+        "env:aria-rna-env": ("conda-env://aria-rna-env", env_root / "aria-rna-env"),
+        "env:aria-bench-env": ("conda-env://aria-bench-env", env_root / "aria-bench-env"),
+        "env:aria-rnaseq-env": ("conda-env://aria-rnaseq-env", env_root / "aria-rnaseq-env"),
+        "env:aria-chromatin-env": ("conda-env://aria-chromatin-env", env_root / "aria-chromatin-env"),
+        "data:seqc_bgi": ("benchmark-data://seqc_maqc_BGI", home / ".aria/benchmarks/seqc_maqc_BGI/counts.tsv"),
+        "data:seqc_multisite": ("benchmark-data://seqc_maqc_{BGI,CNL,MAY,AGR,NVS}", home / ".aria/benchmarks/seqc_maqc_NVS/counts.tsv"),
+        "data:seqc_ercc": ("benchmark-data://seqc_maqc_BGI/ercc_truth.tsv", home / ".aria/benchmarks/seqc_maqc_BGI/ercc_truth.tsv"),
+        "data:kang_muscat": ("benchmark-data://kang_muscat/clusters.json", home / ".aria/benchmarks/kang_muscat/clusters.json"),
+        "data:h9_fastq": ("validation-data://h9_bulk_fastq", home / "Samael/H9-RNA/raw_fastq"),
+        "data:pbmc3k": ("validation-data://pbmc3k_test", home / "aria-data/pbmc3k_test"),
+        "data:gse278576": ("validation-data://gse278576", home / "Samael/Single/Samael_Final_Pipeline/data_inputs/reference/GSE278576_hippocampus_RNA.h5ad"),
+        "human:b2_annotators": ("freeze-input://human/b2_annotator_{1,2}.csv+adjudicator", output_root / "human/b2_adjudicator.csv"),
+        "human:design_gold": ("freeze-input://human/design_gold.csv", output_root / "human/design_gold.csv"),
+        "manual:configured_provider": ("manual-confirmation://configured-llm-provider", None),
+    }
+
+
+def probe_resources(
+    output_root: str | Path,
+    *,
+    overrides: Mapping[str, bool | None] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Probe availability without serializing machine-absolute paths or secrets."""
+    output_root = Path(output_root)
+    overrides = dict(overrides or {})
+    result: dict[str, dict[str, Any]] = {}
+    for resource_id, (path_ref, path) in _resource_defaults(output_root).items():
+        if resource_id in overrides:
+            available = overrides[resource_id]
+        elif path is None:
+            available = None
+        else:
+            available = path.exists()
+        state = (
+            "available" if available is True else
+            "missing" if available is False else
+            "manual_confirmation_required"
+        )
+        result[resource_id] = {
+            "available": available,
+            "state": state,
+            "path_ref": path_ref,
+        }
+    return result
+
+
+def _receipt_status(
+    lane: Mapping[str, Any], output_root: Path, git_commit: str
+) -> str | None:
+    receipt = output_root / "receipts" / f"{lane['lane_id']}.json"
+    if not receipt.is_file():
+        return None
+    try:
+        payload = json.loads(receipt.read_text(encoding="utf-8"))
+    except Exception:
+        return "invalid_receipt"
+    if payload.get("status") != "pass":
+        return "failed_receipt"
+    if payload.get("git_commit") != git_commit:
+        return "stale_receipt"
+    return "verified"
+
+
+def build_inventory(
+    repo_root: str | Path,
+    output_root: str | Path,
+    *,
+    resource_overrides: Mapping[str, bool | None] | None = None,
+) -> dict[str, Any]:
+    repo_root = Path(repo_root).resolve()
+    output_root = Path(output_root)
+    version = collect_version_metadata(repo_root)
+    provenance = {
+        key: version.get(key)
+        for key in (
+            "aria_version", "version_source", "git_commit", "git_tree_sha",
+            "git_describe", "git_dirty", "workflow_hash",
+            "workflow_hash_algorithm",
+        )
+    }
+    resources = probe_resources(output_root, overrides=resource_overrides)
+    lanes: list[dict[str, Any]] = []
+    for spec in LANES:
+        lane = dict(spec)
+        receipt_state = _receipt_status(
+            lane, output_root, str(provenance.get("git_commit") or "")
+        )
+        resource_states = [resources[r]["available"] for r in lane["resources"]]
+        if receipt_state is not None:
+            status = receipt_state
+        elif lane["implementation"] != "available":
+            status = "blocked_missing_implementation"
+        elif any(state is False for state in resource_states):
+            status = "blocked_missing_resources"
+        elif any(state is None for state in resource_states):
+            status = "blocked_manual_confirmation"
+        else:
+            status = "ready_to_run"
+        lane["status"] = status
+        lanes.append(lane)
+
+    claims = []
+    for claim_id in CLAIM_IDS:
+        claim_lanes = [lane for lane in lanes if claim_id in lane["claims"]]
+        claims.append({
+            "claim_id": claim_id,
+            "lane_ids": [lane["lane_id"] for lane in claim_lanes],
+            "status": (
+                "verified" if claim_lanes and all(
+                    lane["status"] == "verified" for lane in claim_lanes
+                ) else "blocked"
+            ),
+        })
+
+    blockers = [
+        {"lane_id": lane["lane_id"], "status": lane["status"]}
+        for lane in lanes if lane["required_for_freeze"]
+        and lane["status"] != "verified"
+    ]
+    freeze_ready = (
+        not provenance.get("git_dirty")
+        and not blockers
+        and all(claim["status"] == "verified" for claim in claims)
+    )
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "output_root": "docs/benchmark_results/preprint_v1",
+        "provenance": provenance,
+        "resources": resources,
+        "claims": claims,
+        "lanes": lanes,
+        "freeze_gate": {
+            "ready": freeze_ready,
+            "n_required_lanes": sum(
+                1 for lane in lanes if lane["required_for_freeze"]
+            ),
+            "n_verified_lanes": sum(
+                1 for lane in lanes if lane["status"] == "verified"
+            ),
+            "blockers": blockers,
+            "tag_action_authorized": False,
+        },
+    }
+
+
+def write_inventory(payload: Mapping[str, Any], path: str | Path) -> Path:
+    """Atomically publish a path-portable inventory JSON."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    text = json.dumps(payload, indent=2, sort_keys=True, default=str) + "\n"
+    if re.search(r'"/(?:home|Users|tmp)/', text):
+        raise ValueError("inventory contains a machine-absolute path")
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+    return path
+
+
+__all__ = [
+    "CLAIM_IDS", "LANES", "SCHEMA_VERSION", "build_inventory",
+    "probe_resources", "write_inventory",
+]
