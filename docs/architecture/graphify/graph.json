@@ -14344,6 +14344,202 @@
       "source_location": "L1"
     },
     {
+      "id": "rna_bulk_contrasts",
+      "label": "contrasts.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "rna_bulk_contrasts_slugify",
+      "label": "_slugify()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L9"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_contrasts_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L9"
+    },
+    {
+      "id": "rna_bulk_contrasts_format_top_genes",
+      "label": "_format_top_genes()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L15"
+    },
+    {
+      "id": "rna_bulk_contrasts_suggest_contrasts",
+      "label": "_suggest_contrasts()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L41"
+    },
+    {
+      "id": "rna_bulk_contrasts_auto_contrasts",
+      "label": "_auto_contrasts()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L96"
+    },
+    {
+      "id": "rna_bulk_contrasts_contrast_overlap",
+      "label": "_contrast_overlap()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L110"
+    },
+    {
+      "id": "rna_bulk_counts",
+      "label": "counts.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "rna_bulk_counts_load_counts",
+      "label": "_load_counts()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_counts_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L16"
+    },
+    {
+      "id": "rna_bulk_counts_enforce_metadata_correspondence",
+      "label": "_enforce_metadata_correspondence()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L170"
+    },
+    {
+      "id": "rna_bulk_counts_metadata_inference_allowed",
+      "label": "_metadata_inference_allowed()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L231"
+    },
+    {
+      "id": "rna_bulk_counts_load_or_infer_metadata",
+      "label": "_load_or_infer_metadata()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_counts_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245"
+    },
+    {
+      "id": "rna_bulk_counts_aggregate_technical_replicates",
+      "label": "_aggregate_technical_replicates()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L323"
+    },
+    {
+      "id": "rna_bulk_counts_infer_groups",
+      "label": "_infer_groups()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L413"
+    },
+    {
+      "id": "rna_bulk_counts_resolve_comparison",
+      "label": "_resolve_comparison()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L450"
+    },
+    {
+      "id": "rna_bulk_deseq2",
+      "label": "deseq2.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "rna_bulk_deseq2_build_design_formula",
+      "label": "_build_design_formula()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L9"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_deseq2_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L9"
+    },
+    {
+      "id": "rna_bulk_deseq2_resolve_covariates",
+      "label": "_resolve_covariates()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L18"
+    },
+    {
+      "id": "rna_bulk_deseq2_shrink_coeff",
+      "label": "_shrink_coeff()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L40"
+    },
+    {
+      "id": "rna_bulk_deseq2_serialize_fit_warnings",
+      "label": "_serialize_fit_warnings()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L69"
+    },
+    {
+      "id": "rna_bulk_deseq2_run_deseq2",
+      "label": "_run_deseq2()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_deseq2_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_deseq2_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_deseq2_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84"
+    },
+    {
+      "id": "rna_bulk_deseq2_mock_de_result",
+      "label": "_mock_de_result()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L369"
+    },
+    {
       "id": "rna_bulk_gtf_io",
       "label": "gtf_io.py",
       "file_type": "code",
@@ -14519,6 +14715,97 @@
       "source_location": "L410"
     },
     {
+      "id": "rna_bulk_qc",
+      "label": "qc.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "rna_bulk_qc_sample_qc",
+      "label": "_sample_qc()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_qc_py_str",
+      "label": "str",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L14"
+    },
+    {
+      "id": "rna_bulk_qc_prune_outliers_for_design",
+      "label": "_prune_outliers_for_design()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L182"
+    },
+    {
+      "id": "rna_bulk_qc_run_outlier_sensitivity",
+      "label": "_run_outlier_sensitivity()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_qc_py_float",
+      "label": "float",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_qc_py_bool",
+      "label": "bool",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_qc_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221"
+    },
+    {
+      "id": "rna_bulk_transforms",
+      "label": "transforms.py",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "rna_bulk_transforms_run_vst",
+      "label": "_run_vst()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L9"
+    },
+    {
+      "id": "rna_bulk_transforms_select_variable_genes",
+      "label": "_select_variable_genes()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L80"
+    },
+    {
+      "id": "aria_scripts_rna_bulk_transforms_py_int",
+      "label": "int",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L80"
+    },
+    {
+      "id": "rna_bulk_transforms_compute_tpm",
+      "label": "_compute_tpm()",
+      "file_type": "code",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L133"
+    },
+    {
       "id": "scripts_rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -14530,203 +14817,7 @@
       "label": "bulk_rna_de()",
       "file_type": "code",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L80"
-    },
-    {
-      "id": "scripts_rna_bulk_de_slugify",
-      "label": "_slugify()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L717"
-    },
-    {
-      "id": "aria_scripts_rna_bulk_de_py_str",
-      "label": "str",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L717"
-    },
-    {
-      "id": "scripts_rna_bulk_de_format_top_genes",
-      "label": "_format_top_genes()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L723"
-    },
-    {
-      "id": "scripts_rna_bulk_de_suggest_contrasts",
-      "label": "_suggest_contrasts()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L749"
-    },
-    {
-      "id": "scripts_rna_bulk_de_auto_contrasts",
-      "label": "_auto_contrasts()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L804"
-    },
-    {
-      "id": "scripts_rna_bulk_de_contrast_overlap",
-      "label": "_contrast_overlap()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L818"
-    },
-    {
-      "id": "scripts_rna_bulk_de_load_counts",
-      "label": "_load_counts()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L860"
-    },
-    {
-      "id": "aria_scripts_rna_bulk_de_py_bool",
-      "label": "bool",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L860"
-    },
-    {
-      "id": "scripts_rna_bulk_de_enforce_metadata_correspondence",
-      "label": "_enforce_metadata_correspondence()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1014"
-    },
-    {
-      "id": "scripts_rna_bulk_de_metadata_inference_allowed",
-      "label": "_metadata_inference_allowed()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1075"
-    },
-    {
-      "id": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "label": "_load_or_infer_metadata()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1089"
-    },
-    {
-      "id": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "label": "_aggregate_technical_replicates()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1167"
-    },
-    {
-      "id": "scripts_rna_bulk_de_infer_groups",
-      "label": "_infer_groups()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1257"
-    },
-    {
-      "id": "scripts_rna_bulk_de_resolve_comparison",
-      "label": "_resolve_comparison()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1294"
-    },
-    {
-      "id": "scripts_rna_bulk_de_run_vst",
-      "label": "_run_vst()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1354"
-    },
-    {
-      "id": "scripts_rna_bulk_de_select_variable_genes",
-      "label": "_select_variable_genes()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1425"
-    },
-    {
-      "id": "aria_scripts_rna_bulk_de_py_int",
-      "label": "int",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1425"
-    },
-    {
-      "id": "scripts_rna_bulk_de_compute_tpm",
-      "label": "_compute_tpm()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1478"
-    },
-    {
-      "id": "scripts_rna_bulk_de_sample_qc",
-      "label": "_sample_qc()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1548"
-    },
-    {
-      "id": "scripts_rna_bulk_de_prune_outliers_for_design",
-      "label": "_prune_outliers_for_design()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1716"
-    },
-    {
-      "id": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "label": "_run_outlier_sensitivity()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755"
-    },
-    {
-      "id": "aria_scripts_rna_bulk_de_py_float",
-      "label": "float",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755"
-    },
-    {
-      "id": "scripts_rna_bulk_de_build_design_formula",
-      "label": "_build_design_formula()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1952"
-    },
-    {
-      "id": "scripts_rna_bulk_de_resolve_covariates",
-      "label": "_resolve_covariates()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1961"
-    },
-    {
-      "id": "scripts_rna_bulk_de_shrink_coeff",
-      "label": "_shrink_coeff()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1983"
-    },
-    {
-      "id": "scripts_rna_bulk_de_serialize_fit_warnings",
-      "label": "_serialize_fit_warnings()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2012"
-    },
-    {
-      "id": "scripts_rna_bulk_de_run_deseq2",
-      "label": "_run_deseq2()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027"
-    },
-    {
-      "id": "scripts_rna_bulk_de_mock_de_result",
-      "label": "_mock_de_result()",
-      "file_type": "code",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2312"
+      "source_location": "L102"
     },
     {
       "id": "scripts_rna_cellcomm",
@@ -32723,7 +32814,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -32968,7 +33059,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -32990,7 +33081,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -36034,77 +36125,77 @@
       "label": "test_outlier_sensitivity_keeps_primary_unpruned()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L366"
+      "source_location": "L370"
     },
     {
       "id": "tests_test_bulk_rna_test_outlier_sensitivity_does_not_replace_primary",
       "label": "test_outlier_sensitivity_does_not_replace_primary()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L393"
+      "source_location": "L397"
     },
     {
       "id": "tests_test_bulk_rna_run_bulk",
       "label": "_run_bulk()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L418"
+      "source_location": "L422"
     },
     {
       "id": "tests_test_bulk_rna_test_bulk_de_e2e_pipeline",
       "label": "test_bulk_de_e2e_pipeline()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L445"
+      "source_location": "L449"
     },
     {
       "id": "tests_test_bulk_rna_test_bulk_de_multicontrast",
       "label": "test_bulk_de_multicontrast()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L460"
+      "source_location": "L464"
     },
     {
       "id": "tests_test_bulk_rna_test_replicate_concordance_detects_corruption",
       "label": "test_replicate_concordance_detects_corruption()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L477"
+      "source_location": "L481"
     },
     {
       "id": "tests_test_bulk_rna_test_deseq2_uses_design_factor",
       "label": "test_deseq2_uses_design_factor()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L499"
+      "source_location": "L503"
     },
     {
       "id": "tests_test_bulk_rna_test_insufficient_replicates_is_graceful",
       "label": "test_insufficient_replicates_is_graceful()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L510"
+      "source_location": "L514"
     },
     {
       "id": "tests_test_bulk_rna_test_golden_bulk_de_recovers_planted_genes",
       "label": "test_golden_bulk_de_recovers_planted_genes()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L523"
+      "source_location": "L527"
     },
     {
       "id": "tests_test_bulk_rna_test_serialize_fit_warnings_keeps_numeric_drops_benign",
       "label": "test_serialize_fit_warnings_keeps_numeric_drops_benign()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L575"
+      "source_location": "L579"
     },
     {
       "id": "tests_test_bulk_rna_test_fit_warnings_surface_in_result",
       "label": "test_fit_warnings_surface_in_result()",
       "file_type": "code",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L593"
+      "source_location": "L597"
     },
     {
       "id": "tests_test_bus_durability",
@@ -48966,6 +49057,48 @@
       "source_location": "L79"
     },
     {
+      "id": "tests_test_rna_bulk_de_contract",
+      "label": "test_rna_bulk_de_contract.py",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L1"
+    },
+    {
+      "id": "tests_test_rna_bulk_de_contract_test_public_name_is_importable_from_facade",
+      "label": "test_public_name_is_importable_from_facade()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L54"
+    },
+    {
+      "id": "tests_test_rna_bulk_de_contract_test_external_consumers_still_import_run_deseq2",
+      "label": "test_external_consumers_still_import_run_deseq2()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L58"
+    },
+    {
+      "id": "tests_test_rna_bulk_de_contract_test_slugify_sanitises_and_defaults",
+      "label": "test_slugify_sanitises_and_defaults()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L65"
+    },
+    {
+      "id": "tests_test_rna_bulk_de_contract_test_build_design_formula_puts_factor_last_and_dedupes",
+      "label": "test_build_design_formula_puts_factor_last_and_dedupes()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L71"
+    },
+    {
+      "id": "tests_test_rna_bulk_de_contract_test_infer_groups_detects_condition_replicate_naming",
+      "label": "test_infer_groups_detects_condition_replicate_naming()",
+      "file_type": "code",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L80"
+    },
+    {
       "id": "tests_test_rna_de_per_cluster_pct_filter",
       "label": "test_rna_de_per_cluster_pct_filter.py",
       "file_type": "code",
@@ -49936,17 +50069,6 @@
       "contributor": null
     },
     {
-      "id": "data_audit_agent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "aria/agents/data_audit_agent.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "design_agent",
       "label": "DesignAgent",
       "file_type": "code",
@@ -50035,7 +50157,7 @@
       "contributor": null
     },
     {
-      "id": "environment_manager",
+      "id": "env_manager",
       "label": "EnvironmentManager",
       "file_type": "code",
       "source_file": "aria/utils/environment_manager.py",
@@ -50079,21 +50201,10 @@
       "contributor": null
     },
     {
-      "id": "env_rna",
+      "id": "aria_rna_env",
       "label": "aria-rna-env",
       "file_type": "code",
       "source_file": "envs/aria-rna-env.yml",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "env_chromatin",
-      "label": "aria-chromatin-env",
-      "file_type": "code",
-      "source_file": "envs/aria-chromatin-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -108349,6 +108460,508 @@
       "weight": 1.0
     },
     {
+      "source": "rna_bulk_contrasts",
+      "target": "rna_bulk_contrasts_slugify",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts_slugify",
+      "target": "aria_scripts_rna_bulk_contrasts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts_slugify",
+      "target": "aria_scripts_rna_bulk_contrasts_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts",
+      "target": "rna_bulk_contrasts_format_top_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L15",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts",
+      "target": "rna_bulk_contrasts_suggest_contrasts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts_suggest_contrasts",
+      "target": "aria_scripts_rna_bulk_contrasts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts",
+      "target": "rna_bulk_contrasts_auto_contrasts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts_auto_contrasts",
+      "target": "aria_scripts_rna_bulk_contrasts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts",
+      "target": "rna_bulk_contrasts_contrast_overlap",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_contrasts_auto_contrasts",
+      "target": "rna_bulk_contrasts_suggest_contrasts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/contrasts.py",
+      "source_location": "L102",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_load_counts",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_counts",
+      "target": "aria_scripts_rna_bulk_counts_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L16",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_enforce_metadata_correspondence",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L170",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_metadata_inference_allowed",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L231",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_metadata_inference_allowed",
+      "target": "aria_scripts_rna_bulk_counts_py_bool",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L231",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_load_or_infer_metadata",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_or_infer_metadata",
+      "target": "aria_scripts_rna_bulk_counts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_or_infer_metadata",
+      "target": "aria_scripts_rna_bulk_counts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_or_infer_metadata",
+      "target": "aria_scripts_rna_bulk_counts_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L245",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_aggregate_technical_replicates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L323",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_aggregate_technical_replicates",
+      "target": "aria_scripts_rna_bulk_counts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L323",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_aggregate_technical_replicates",
+      "target": "aria_scripts_rna_bulk_counts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L323",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_infer_groups",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L413",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_counts_resolve_comparison",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L450",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_resolve_comparison",
+      "target": "aria_scripts_rna_bulk_counts_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L450",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_or_infer_metadata",
+      "target": "rna_bulk_counts_infer_groups",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L299",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_build_design_formula",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_build_design_formula",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_build_design_formula",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_resolve_covariates",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_resolve_covariates",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L18",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_shrink_coeff",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_shrink_coeff",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_shrink_coeff",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L40",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_serialize_fit_warnings",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L69",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "aria_scripts_rna_bulk_deseq2_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L84",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "rna_bulk_deseq2_mock_de_result",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L369",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "rna_bulk_deseq2_resolve_covariates",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L128",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "rna_bulk_deseq2_build_design_formula",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L185",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "rna_bulk_deseq2_serialize_fit_warnings",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L254",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "rna_bulk_deseq2_shrink_coeff",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L263",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "rna_bulk_deseq2_mock_de_result",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L350",
+      "weight": 1.0
+    },
+    {
       "source": "rna_bulk_gtf_io",
       "target": "rna_bulk_gtf_io_load_symbol_map",
       "relation": "contains",
@@ -108883,828 +109496,156 @@
       "weight": 1.0
     },
     {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_qc_sample_qc",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_sample_qc",
+      "target": "aria_scripts_rna_bulk_qc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L14",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_qc_prune_outliers_for_design",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_prune_outliers_for_design",
+      "target": "aria_scripts_rna_bulk_qc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L182",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_qc_run_outlier_sensitivity",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_float",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "aria_scripts_rna_bulk_qc_py_bool",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_transforms",
+      "target": "rna_bulk_transforms_run_vst",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_transforms",
+      "target": "rna_bulk_transforms_select_variable_genes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_transforms_select_variable_genes",
+      "target": "aria_scripts_rna_bulk_transforms_py_int",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_transforms",
+      "target": "rna_bulk_transforms_compute_tpm",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/transforms.py",
+      "source_location": "L133",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_rna_bulk_de",
       "target": "scripts_rna_bulk_de_bulk_rna_de",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L80",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_slugify",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L717",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_slugify",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L717",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_slugify",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L717",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_format_top_genes",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L723",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_suggest_contrasts",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L749",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_suggest_contrasts",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L749",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_auto_contrasts",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L804",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_auto_contrasts",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L804",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_contrast_overlap",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L818",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L860",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_counts",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L860",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_enforce_metadata_correspondence",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1014",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_metadata_inference_allowed",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1075",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_metadata_inference_allowed",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1075",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1089",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1089",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1089",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1089",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1167",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1167",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1167",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_infer_groups",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1257",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_resolve_comparison",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1294",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_resolve_comparison",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1294",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_run_vst",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1354",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_select_variable_genes",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1425",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_select_variable_genes",
-      "target": "aria_scripts_rna_bulk_de_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1425",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_compute_tpm",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1478",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_sample_qc",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1548",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_sample_qc",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1548",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_prune_outliers_for_design",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1716",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_prune_outliers_for_design",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1716",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_float",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_float",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1755",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_build_design_formula",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1952",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_build_design_formula",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1952",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_build_design_formula",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "return_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1952",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_resolve_covariates",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1961",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_resolve_covariates",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1961",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_shrink_coeff",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1983",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_shrink_coeff",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1983",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_shrink_coeff",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1983",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_serialize_fit_warnings",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2012",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_str",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_float",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_float",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_int",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "aria_scripts_rna_bulk_de_py_bool",
-      "relation": "references",
-      "context": "parameter_type",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2027",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "scripts_rna_bulk_de_mock_de_result",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2312",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_metadata_inference_allowed",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L104",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L154",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L174",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_enforce_metadata_correspondence",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L205",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L227",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_sample_qc",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L254",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_prune_outliers_for_design",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L257",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_compute_tpm",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L278",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_suggest_contrasts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L302",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L344",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_slugify",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L394",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_format_top_genes",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L486",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L591",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "scripts_rna_bulk_de_contrast_overlap",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L615",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_auto_contrasts",
-      "target": "scripts_rna_bulk_de_suggest_contrasts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L810",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_or_infer_metadata",
-      "target": "scripts_rna_bulk_de_infer_groups",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1143",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_sample_qc",
-      "target": "scripts_rna_bulk_de_run_vst",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1626",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_sample_qc",
-      "target": "scripts_rna_bulk_de_select_variable_genes",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1627",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1832",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "scripts_rna_bulk_de_resolve_covariates",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2071",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "scripts_rna_bulk_de_build_design_formula",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2128",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "scripts_rna_bulk_de_serialize_fit_warnings",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2197",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "scripts_rna_bulk_de_shrink_coeff",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2206",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "scripts_rna_bulk_de_mock_de_result",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2293",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -147653,7 +147594,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -147706,7 +147647,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147716,7 +147657,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147726,7 +147667,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147736,7 +147677,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -147746,7 +147687,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148068,7 +148009,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -148077,7 +148018,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -148112,7 +148053,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -148122,7 +148063,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_i2fucv_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_4cc2ui_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -152860,7 +152801,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L366",
+      "source_location": "L370",
       "weight": 1.0
     },
     {
@@ -152869,7 +152810,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L393",
+      "source_location": "L397",
       "weight": 1.0
     },
     {
@@ -152878,7 +152819,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L418",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -152887,7 +152828,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L445",
+      "source_location": "L449",
       "weight": 1.0
     },
     {
@@ -152896,7 +152837,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L460",
+      "source_location": "L464",
       "weight": 1.0
     },
     {
@@ -152905,7 +152846,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L477",
+      "source_location": "L481",
       "weight": 1.0
     },
     {
@@ -152914,7 +152855,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L499",
+      "source_location": "L503",
       "weight": 1.0
     },
     {
@@ -152923,7 +152864,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L510",
+      "source_location": "L514",
       "weight": 1.0
     },
     {
@@ -152932,7 +152873,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L523",
+      "source_location": "L527",
       "weight": 1.0
     },
     {
@@ -152941,7 +152882,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L575",
+      "source_location": "L579",
       "weight": 1.0
     },
     {
@@ -152950,7 +152891,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L593",
+      "source_location": "L597",
       "weight": 1.0
     },
     {
@@ -152980,7 +152921,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L367",
+      "source_location": "L371",
       "weight": 1.0
     },
     {
@@ -152990,7 +152931,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L373",
+      "source_location": "L377",
       "weight": 1.0
     },
     {
@@ -153000,7 +152941,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L374",
+      "source_location": "L378",
       "weight": 1.0
     },
     {
@@ -153010,7 +152951,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L394",
+      "source_location": "L398",
       "weight": 1.0
     },
     {
@@ -153020,7 +152961,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L400",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -153030,7 +152971,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L401",
+      "source_location": "L405",
       "weight": 1.0
     },
     {
@@ -153040,7 +152981,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L447",
+      "source_location": "L451",
       "weight": 1.0
     },
     {
@@ -153050,7 +152991,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L448",
+      "source_location": "L452",
       "weight": 1.0
     },
     {
@@ -153060,7 +153001,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L463",
+      "source_location": "L467",
       "weight": 1.0
     },
     {
@@ -153070,7 +153011,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L464",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -153080,7 +153021,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L488",
+      "source_location": "L492",
       "weight": 1.0
     },
     {
@@ -153090,7 +153031,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L501",
+      "source_location": "L505",
       "weight": 1.0
     },
     {
@@ -153100,7 +153041,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L502",
+      "source_location": "L506",
       "weight": 1.0
     },
     {
@@ -153110,7 +153051,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L512",
+      "source_location": "L516",
       "weight": 1.0
     },
     {
@@ -153120,7 +153061,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L513",
+      "source_location": "L517",
       "weight": 1.0
     },
     {
@@ -179032,6 +178973,51 @@
       "weight": 1.0
     },
     {
+      "source": "tests_test_rna_bulk_de_contract",
+      "target": "tests_test_rna_bulk_de_contract_test_public_name_is_importable_from_facade",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L54",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_bulk_de_contract",
+      "target": "tests_test_rna_bulk_de_contract_test_external_consumers_still_import_run_deseq2",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L58",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_bulk_de_contract",
+      "target": "tests_test_rna_bulk_de_contract_test_slugify_sanitises_and_defaults",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L65",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_bulk_de_contract",
+      "target": "tests_test_rna_bulk_de_contract_test_build_design_formula_puts_factor_last_and_dedupes",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L71",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_rna_bulk_de_contract",
+      "target": "tests_test_rna_bulk_de_contract_test_infer_groups_detects_condition_replicate_naming",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_rna_bulk_de_contract.py",
+      "source_location": "L80",
+      "weight": 1.0
+    },
+    {
       "source": "tests_test_rna_de_per_cluster_pct_filter",
       "target": "tests_test_rna_de_per_cluster_pct_filter_test_de_per_cluster_filters_low_pct_in_markers",
       "relation": "contains",
@@ -185707,32 +185693,12 @@
     },
     {
       "source": "benchmarks_reference_kang",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/reference_kang.py",
-      "source_location": "L52",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_reference_kang",
       "target": "aria_version_collect_version_metadata",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/reference_kang.py",
       "source_location": "L273",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_reference_seqc",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/reference_seqc.py",
-      "source_location": "L193",
       "weight": 1.0
     },
     {
@@ -185803,16 +185769,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
       "source_location": "L325",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_synthetic_de",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L845",
       "weight": 1.0
     },
     {
@@ -186416,16 +186372,6 @@
       "weight": 1.0
     },
     {
-      "source": "scripts_chromatin_bulk_diffacc",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L342",
-      "weight": 1.0
-    },
-    {
       "source": "scripts_chromatin_diffacc",
       "target": "scripts_base_run_script",
       "relation": "imports",
@@ -186443,16 +186389,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
       "source_location": "L79",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_chromatin_diffacc",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -187076,6 +187012,66 @@
       "weight": 1.0
     },
     {
+      "source": "rna_bulk_counts",
+      "target": "utils_count_classifier_classify_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "utils_count_classifier_validate_raw_count_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L12",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L13",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts",
+      "target": "utils_design_matrix_validate_design_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L338",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "utils_design_matrix_validate_design_matrix",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L137",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2",
+      "target": "utils_power_estimation_bulk_power_estimate",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L162",
+      "weight": 1.0
+    },
+    {
       "source": "rna_bulk_ora",
       "target": "rna_bulk_gtf_io_to_symbols",
       "relation": "imports",
@@ -187093,6 +187089,56 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk/ora.py",
       "source_location": "L113",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "utils_stats_contrast_family_significance",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L8",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_transforms_run_vst",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_transforms_select_variable_genes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L9",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L10",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc",
+      "target": "rna_bulk_plots_plot_pca_mds",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L11",
       "weight": 1.0
     },
     {
@@ -187327,12 +187373,252 @@
     },
     {
       "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_contrasts_slugify",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_contrasts_format_top_genes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_contrasts_suggest_contrasts",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_contrasts_auto_contrasts",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_contrasts_contrast_overlap",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L79",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_build_design_formula",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_resolve_covariates",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_shrink_coeff",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_serialize_fit_warnings",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_deseq2_mock_de_result",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L83",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_transforms_run_vst",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_transforms_select_variable_genes",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_transforms_compute_tpm",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L87",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_load_counts",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_enforce_metadata_correspondence",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_metadata_inference_allowed",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_load_or_infer_metadata",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_aggregate_technical_replicates",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_infer_groups",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_counts_resolve_comparison",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L90",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_qc_sample_qc",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_qc_prune_outliers_for_design",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
+      "target": "rna_bulk_qc_run_outlier_sensitivity",
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L95",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de",
       "target": "scripts_rna_pathway_viz_make_ora_dotplot",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L420",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -187342,7 +187628,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L420",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -187352,7 +187638,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L420",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -187362,27 +187648,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L420",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "utils_design_matrix_validate_design_matrix",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1182",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de",
-      "target": "utils_power_estimation_bulk_power_estimate",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2105",
+      "source_location": "L442",
       "weight": 1.0
     },
     {
@@ -188443,16 +188709,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/stage_manifest.py",
       "source_location": "L30",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_aria_pseudobulk_da_from_tsv",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
-      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -189887,26 +190143,6 @@
     },
     {
       "source": "tests_test_bulk_covariates",
-      "target": "scripts_rna_bulk_de_build_design_formula",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L19",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates",
-      "target": "scripts_rna_bulk_de_resolve_covariates",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L29",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates",
       "target": "agents_bulk_rna_agent_bulkrnaagent",
       "relation": "imports",
       "context": "import",
@@ -189917,42 +190153,12 @@
     },
     {
       "source": "tests_test_bulk_covariates",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L71",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates",
       "target": "narrators_bulk_rna_bulkrnanarrator",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_covariates.py",
       "source_location": "L99",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_lfc_shrinkage",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_lfc_shrinkage.py",
-      "source_location": "L30",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_raw_count_guard",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_raw_count_guard.py",
-      "source_location": "L12",
       "weight": 1.0
     },
     {
@@ -189968,26 +190174,6 @@
     {
       "source": "tests_test_bulk_rna",
       "target": "scripts_rna_bulk_de_bulk_rna_de",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna",
-      "target": "scripts_rna_bulk_de_infer_groups",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L23",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna",
-      "target": "scripts_rna_bulk_de_sample_qc",
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -190023,16 +190209,6 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
       "source_location": "L36",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna",
-      "target": "scripts_rna_bulk_de_serialize_fit_warnings",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L578",
       "weight": 1.0
     },
     {
@@ -190353,16 +190529,6 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
       "source_location": "L25",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_chromatin_da_convergence_and_figures",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_chromatin_da_convergence_and_figures.py",
-      "source_location": "L64",
       "weight": 1.0
     },
     {
@@ -194567,16 +194733,6 @@
     },
     {
       "source": "tests_test_preprint_audit_b1_technical_replicates",
-      "target": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_preprint_audit_b1_technical_replicates.py",
-      "source_location": "L116",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_preprint_audit_b1_technical_replicates",
       "target": "scripts_rna_inject_condition_inject",
       "relation": "imports",
       "context": "import",
@@ -194823,16 +194979,6 @@
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_b4_no_name_fallback.py",
       "source_location": "L21",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_preprint_audit_b5_metadata_correspondence",
-      "target": "scripts_rna_bulk_de_enforce_metadata_correspondence",
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_preprint_audit_b5_metadata_correspondence.py",
-      "source_location": "L36",
       "weight": 1.0
     },
     {
@@ -197766,16 +197912,6 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_reference_kang_score_cluster",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/reference_kang.py",
-      "source_location": "L69",
-      "weight": 1.0
-    },
-    {
       "source": "benchmarks_reference_kang_run_kang_muscat_benchmark",
       "target": "aria_version_collect_version_metadata",
       "relation": "calls",
@@ -197786,16 +197922,6 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_reference_seqc_score_seqc_maqc_a1",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/reference_seqc.py",
-      "source_location": "L214",
-      "weight": 1.0
-    },
-    {
       "source": "benchmarks_reference_seqc_run_seqc_maqc_a1_benchmark",
       "target": "aria_version_collect_version_metadata",
       "relation": "calls",
@@ -197803,16 +197929,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/reference_seqc.py",
       "source_location": "L437",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_reference_seqc_site_de_lfc",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/reference_seqc.py",
-      "source_location": "L466",
       "weight": 1.0
     },
     {
@@ -197906,26 +198022,6 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_synthetic_de_sweep_bulk_de_lfc_threshold",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L854",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L998",
-      "weight": 1.0
-    },
-    {
       "source": "benchmarks_synthetic_de_run_bulk_de_a1_benchmark",
       "target": "aria_version_collect_version_metadata",
       "relation": "calls",
@@ -197933,16 +198029,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
       "source_location": "L1029",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_synthetic_de_run_bulk_de_benchmark",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L1068",
       "weight": 1.0
     },
     {
@@ -197956,16 +198042,6 @@
       "weight": 1.0
     },
     {
-      "source": "benchmarks_synthetic_de_run_bulk_de_negative_control",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L1246",
-      "weight": 1.0
-    },
-    {
       "source": "benchmarks_synthetic_de_run_pseudobulk_de_negative_control",
       "target": "scripts_rna_pseudobulk_de_rna_pseudobulk_de",
       "relation": "calls",
@@ -197973,16 +198049,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/benchmarks/synthetic_de.py",
       "source_location": "L1346",
-      "weight": 1.0
-    },
-    {
-      "source": "benchmarks_synthetic_de_run_bulk_de_spike_in",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/benchmarks/synthetic_de.py",
-      "source_location": "L1556",
       "weight": 1.0
     },
     {
@@ -198257,16 +198323,6 @@
     },
     {
       "source": "scripts_chromatin_bulk_diffacc_chromatin_bulk_diffacc",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/chromatin_bulk_diffacc.py",
-      "source_location": "L365",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_chromatin_bulk_diffacc_chromatin_bulk_diffacc",
       "target": "scripts_chromatin_diffacc_gate_da_by_convergence",
       "relation": "calls",
       "context": "call",
@@ -198283,16 +198339,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/chromatin_diffacc.py",
       "source_location": "L385",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_chromatin_diffacc_pseudobulk_da",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/chromatin_diffacc.py",
-      "source_location": "L420",
       "weight": 1.0
     },
     {
@@ -198766,6 +198812,56 @@
       "weight": 1.0
     },
     {
+      "source": "rna_bulk_counts_load_counts",
+      "target": "utils_count_classifier_classify_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L88",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_load_counts",
+      "target": "utils_count_classifier_validate_raw_count_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L131",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_counts_aggregate_technical_replicates",
+      "target": "utils_design_matrix_validate_design_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/counts.py",
+      "source_location": "L388",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "utils_design_matrix_validate_design_matrix",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_deseq2_run_deseq2",
+      "target": "utils_power_estimation_bulk_power_estimate",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/deseq2.py",
+      "source_location": "L175",
+      "weight": 1.0
+    },
+    {
       "source": "rna_bulk_ora_run_pathway_enrichment",
       "target": "rna_bulk_gtf_io_to_symbols",
       "relation": "calls",
@@ -198786,13 +198882,73 @@
       "weight": 1.0
     },
     {
+      "source": "rna_bulk_qc_sample_qc",
+      "target": "rna_bulk_transforms_run_vst",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_sample_qc",
+      "target": "rna_bulk_transforms_select_variable_genes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L93",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_sample_qc",
+      "target": "rna_bulk_plots_plot_pca_mds",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L110",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L298",
+      "weight": 1.0
+    },
+    {
+      "source": "rna_bulk_qc_run_outlier_sensitivity",
+      "target": "utils_stats_contrast_family_significance",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk/qc.py",
+      "source_location": "L345",
+      "weight": 1.0
+    },
+    {
       "source": "scripts_rna_bulk_de_bulk_rna_de",
       "target": "utils_stats_preregister_contrast_family",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L102",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_counts_metadata_inference_allowed",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L126",
       "weight": 1.0
     },
     {
@@ -198802,12 +198958,42 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L127",
+      "source_location": "L149",
       "weight": 1.0
     },
     {
       "source": "scripts_rna_bulk_de_bulk_rna_de",
-      "target": "rna_bulk_gtf_io_load_gene_annotation",
+      "target": "rna_bulk_counts_load_counts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L176",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_counts_load_or_infer_metadata",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L196",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_counts_enforce_metadata_correspondence",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L227",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_counts_aggregate_technical_replicates",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -198817,12 +199003,72 @@
     },
     {
       "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_gtf_io_load_gene_annotation",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L271",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_qc_sample_qc",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L276",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_qc_prune_outliers_for_design",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L279",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_transforms_compute_tpm",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L300",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_contrasts_suggest_contrasts",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L324",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_deseq2_run_deseq2",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L366",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
       "target": "rna_bulk_gtf_io_load_symbol_map",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L369",
+      "source_location": "L391",
       "weight": 1.0
     },
     {
@@ -198832,7 +199078,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L370",
+      "source_location": "L392",
       "weight": 1.0
     },
     {
@@ -198842,7 +199088,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L381",
+      "source_location": "L403",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_contrasts_slugify",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L416",
       "weight": 1.0
     },
     {
@@ -198852,7 +199108,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L405",
+      "source_location": "L427",
       "weight": 1.0
     },
     {
@@ -198862,7 +199118,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L433",
+      "source_location": "L455",
       "weight": 1.0
     },
     {
@@ -198872,7 +199128,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L446",
+      "source_location": "L468",
       "weight": 1.0
     },
     {
@@ -198882,7 +199138,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L451",
+      "source_location": "L473",
       "weight": 1.0
     },
     {
@@ -198892,7 +199148,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L463",
+      "source_location": "L485",
       "weight": 1.0
     },
     {
@@ -198902,7 +199158,17 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L470",
+      "source_location": "L492",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_contrasts_format_top_genes",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L508",
       "weight": 1.0
     },
     {
@@ -198912,7 +199178,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L566",
+      "source_location": "L588",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_qc_run_outlier_sensitivity",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L613",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_rna_bulk_de_bulk_rna_de",
+      "target": "rna_bulk_contrasts_contrast_overlap",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "aria/scripts/rna_bulk_de.py",
+      "source_location": "L637",
       "weight": 1.0
     },
     {
@@ -198922,77 +199208,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L707",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_counts",
-      "target": "utils_count_classifier_classify_matrix",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L932",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_load_counts",
-      "target": "utils_count_classifier_validate_raw_count_matrix",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L975",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "target": "utils_design_matrix_validate_design_matrix",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1232",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_sample_qc",
-      "target": "rna_bulk_plots_plot_pca_mds",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1644",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_outlier_sensitivity",
-      "target": "utils_stats_contrast_family_significance",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L1879",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "utils_design_matrix_validate_design_matrix",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2081",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_rna_bulk_de_run_deseq2",
-      "target": "utils_power_estimation_bulk_power_estimate",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "aria/scripts/rna_bulk_de.py",
-      "source_location": "L2118",
+      "source_location": "L729",
       "weight": 1.0
     },
     {
@@ -199763,16 +199979,6 @@
       "confidence": "EXTRACTED",
       "source_file": "aria/utils/stage_manifest.py",
       "source_location": "L128",
-      "weight": 1.0
-    },
-    {
-      "source": "scripts_aria_pseudobulk_da_from_tsv_main",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "scripts/aria_pseudobulk_da_from_tsv.py",
-      "source_location": "L46",
       "weight": 1.0
     },
     {
@@ -201846,46 +202052,6 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_bulk_covariates_test_build_design_formula_places_factor_of_interest_last",
-      "target": "scripts_rna_bulk_de_build_design_formula",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L20",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates_test_resolve_covariates_keeps_usable_and_discloses_dropped",
-      "target": "scripts_rna_bulk_de_resolve_covariates",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L36",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates_test_resolve_covariates_never_returns_the_design_factor",
-      "target": "scripts_rna_bulk_de_resolve_covariates",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L47",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_covariates_test_deseq2_fits_and_reports_the_covariate_adjusted_formula",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_covariates.py",
-      "source_location": "L86",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_bulk_covariates_test_bulk_methods_report_the_fitted_covariate_formula",
       "target": "narrators_bulk_rna_bulkrnanarrator",
       "relation": "calls",
@@ -201906,113 +202072,13 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_bulk_lfc_shrinkage_test_bulk_applies_apeglm_and_preserves_raw",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_lfc_shrinkage.py",
-      "source_location": "L33",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_lfc_shrinkage_test_bulk_shrinkage_can_be_disabled",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_lfc_shrinkage.py",
-      "source_location": "L52",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_lfc_shrinkage_test_bulk_lfc_threshold_is_inside_wald_test",
-      "target": "scripts_rna_bulk_de_run_deseq2",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_lfc_shrinkage.py",
-      "source_location": "L67",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_raw_count_guard_test_raw_counts_load_and_are_tagged_raw",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_raw_count_guard.py",
-      "source_location": "L28",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_raw_count_guard_test_lognorm_matrix_is_hard_refused_by_default",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_raw_count_guard.py",
-      "source_location": "L40",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_raw_count_guard_test_nonraw_matrix_coerced_only_when_allowed",
-      "target": "scripts_rna_bulk_de_load_counts",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_raw_count_guard.py",
-      "source_location": "L52",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna_test_infer_groups_ambiguous_is_graceful",
-      "target": "scripts_rna_bulk_de_infer_groups",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L88",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna_test_sample_qc_reports_expected_keys",
-      "target": "scripts_rna_bulk_de_sample_qc",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L270",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna_test_sample_qc_runs_with_injected_outlier",
-      "target": "scripts_rna_bulk_de_sample_qc",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L282",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_bulk_rna_run_bulk",
       "target": "scripts_rna_bulk_de_bulk_rna_de",
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L441",
-      "weight": 1.0
-    },
-    {
-      "source": "tests_test_bulk_rna_test_serialize_fit_warnings_keeps_numeric_drops_benign",
-      "target": "scripts_rna_bulk_de_serialize_fit_warnings",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L585",
+      "source_location": "L445",
       "weight": 1.0
     },
     {
@@ -211016,16 +211082,6 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_preprint_audit_b1_technical_replicates_test_bulk_metadata_and_counts_use_biological_units",
-      "target": "scripts_rna_bulk_de_aggregate_technical_replicates",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/test_preprint_audit_b1_technical_replicates.py",
-      "source_location": "L147",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_preprint_audit_b1_technical_replicates_test_scrna_injection_writes_biological_unit_replicate_column",
       "target": "scripts_rna_inject_condition_inject",
       "relation": "calls",
@@ -215582,17 +215638,6 @@
       "weight": 1.0
     },
     {
-      "source": "tests_test_bulk_rna_test_infer_groups_naming_patterns",
-      "target": "scripts_rna_bulk_de_infer_groups",
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L82",
-      "weight": 1.0
-    },
-    {
       "source": "tests_test_bulk_rna_test_lfc_threshold_is_prompt_independent",
       "target": "agents_bulk_rna_agent_default_lfc_threshold",
       "relation": "calls",
@@ -215644,7 +215689,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "tests/test_bulk_rna.py",
-      "source_location": "L544",
+      "source_location": "L548",
       "weight": 1.0
     },
     {
@@ -215814,16 +215859,6 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "data_audit_agent",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/overview.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "orchestrator_agent",
       "target": "design_agent",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -215868,7 +215903,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/scrna.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -215878,7 +215913,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/bulk_rna.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -215888,7 +215923,7 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/chromatin_roadmap.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -215903,9 +215938,29 @@
       "weight": 1.0
     },
     {
-      "source": "orchestrator_agent",
-      "target": "aria_memory",
+      "source": "biological_synthesis_agent",
+      "target": "bulk_rna_agent",
       "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "biological_synthesis_agent",
+      "target": "scrna_agent",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/biological_synthesis.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
@@ -215914,8 +215969,8 @@
     },
     {
       "source": "orchestrator_agent",
-      "target": "message_bus",
-      "relation": "references",
+      "target": "aria_memory",
+      "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "docs/architecture/overview.md",
@@ -215924,7 +215979,7 @@
     },
     {
       "source": "bulk_rna_agent",
-      "target": "environment_manager",
+      "target": "env_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
@@ -215934,17 +215989,7 @@
     },
     {
       "source": "scrna_agent",
-      "target": "environment_manager",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/code_graph.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "chromatin_agent",
-      "target": "environment_manager",
+      "target": "env_manager",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,

@@ -26,15 +26,15 @@ tracked Python AST; no inferred/semantic layer is introduced. In particular,
 
 ## Snapshot
 
-- Commit: `b72be66` (HEAD the graph was built from)
+- Commit: `85b8a7e` (HEAD the graph was built from)
 - Generated: 2026-07-13
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Structure-only graph: **7165 code nodes / 17170 EXTRACTED structural edges** in
+- Structure-only graph: **7182 code nodes / 17164 EXTRACTED structural edges** in
   `graph.json` (the structure-only filter drops non-code nodes and the
   inferred/rationale layers, then keeps only structural edges)
-- Clustered report: 7155 nodes / 15495 edges / 435 communities in
-  `GRAPH_REPORT.md` (419 shown, 16 thin omitted; community detection ignores a
+- Clustered report: 7172 nodes / 15489 edges / 432 communities in
+  `GRAPH_REPORT.md` (419 shown, 13 thin omitted; community detection ignores a
   few isolated nodes — normal)
 - No LLM layer in the final graph: 0 input/output token counters; community naming
   is skipped (`--no-label` → "Community N" placeholders). The upstream extractor
