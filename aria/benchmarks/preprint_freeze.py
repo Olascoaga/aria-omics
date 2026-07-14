@@ -193,8 +193,12 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c3_blind_multifactorial_corpus", ("claim_3",),
         "Independent blind gold for a multifactorial held-out design corpus.",
-        None, "human review", ("human:design_gold",),
-        implementation="missing", evidence_kind="human_gold",
+        "conda run -n aria-env python scripts/run_c3_design_blind_gold.py score "
+        "docs/benchmark_results/preprint_v1/human/design_gold.csv "
+        "--out docs/benchmark_results/preprint_v1/claim_3/blind_design_gold.json",
+        "aria-env + human review", ("env:aria-env", "human:design_gold"),
+        ("claim_3/blind_design_gold.json",),
+        evidence_kind="human_gold",
     ),
     _lane(
         "c4_b2_governance_ablation", ("claim_4",),

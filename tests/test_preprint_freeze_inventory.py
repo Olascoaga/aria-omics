@@ -53,9 +53,10 @@ def test_missing_implementation_and_human_inputs_are_explicit(tmp_path):
 
     assert by_id["c1_h9_fastq_e2e"]["status"] == "ready_to_run"
     assert by_id["c2_scatac_donor_aware"]["status"] == "ready_to_run"
-    assert by_id["c3_blind_multifactorial_corpus"]["status"] == "blocked_missing_implementation"
+    assert by_id["c3_blind_multifactorial_corpus"]["status"] == "ready_to_run"
     assert by_id["c4_b2_multi_annotator_gold"]["status"] == "ready_to_run"
     assert by_id["c4_report_e2e_false_narrative"]["status"] == "blocked_missing_implementation"
+    assert by_id["c5_multimodal_null_permutations"]["status"] == "blocked_missing_implementation"
 
 
 def test_inventory_is_path_portable_and_atomic(tmp_path):
@@ -91,7 +92,7 @@ def test_receipt_must_match_current_commit_to_verify(tmp_path):
 
 def test_executor_refuses_unimplemented_lane(tmp_path):
     try:
-        execute_lane(Path.cwd(), tmp_path, "c3_blind_multifactorial_corpus")
+        execute_lane(Path.cwd(), tmp_path, "c4_report_e2e_false_narrative")
     except RuntimeError as exc:
         assert "no executable implementation" in str(exc)
     else:

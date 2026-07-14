@@ -1,0 +1,12 @@
+case_id,category,n_conditions,n_samples,factors,batch_structure,description,gold_decision
+mf2x2_balanced_n3,factorial_complete,2,12,genotype;batch,batch,"2x2 condition x genotype, 3 reps/cell, batch balanced across cells",
+mf3x2_balanced_n3,factorial_complete,3,18,timepoint,none,"3x2 condition(A,B,C) x timepoint(t0,t1), 3 reps/cell, no batch",
+mf2x2_two_reps,factorial_low_power,2,8,genotype;batch,batch,2x2 condition x genotype with only 2 reps/cell (low power),
+mf2x2_missing_cell,factorial_incomplete,2,9,genotype,none,"2x2 with the (treated,KO) cell absent (unestimable interaction)",
+mf2x2_singleton_cell,factorial_under_replicated,2,10,genotype,none,"2x2 where the (treated,KO) cell has a single replicate",
+mf2x2_genotype_batch_confounded,factorial_confounded,2,12,genotype;batch,batch,2x2 where genotype is perfectly confounded with processing batch,
+mf_condition_genotype_aliased,factorial_confounded,2,8,genotype,none,"genotype aliased with condition (all treated=KO, all control=WT)",
+mf2x2_condition_batch_confounded,factorial_confounded,2,12,genotype;batch,batch,2x2 where condition is perfectly confounded with batch,
+mf2x1_single_second_level,factorial_degenerate,2,6,genotype,none,declared 2-factor design where the second factor has one level only,
+mf_continuous_dose_second_factor,factorial_continuous,2,8,dose,none,second factor is a continuous dose (each value unique per cell),
+mf_nested_donor_replicates,nested_design,2,12,batch,batch,"donors nested within condition, 2 pseudo-units per donor, 3 donors/arm",
