@@ -1,0 +1,22 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [],
+  "claims": [
+    "claim_7"
+  ],
+  "command": "conda run -n aria-env python -m pytest tests/test_hypothesis_quarantine.py tests/test_hypothesis_report_section.py tests/test_ledger_export.py tests/test_preprint_audit_c1_claim_boundary.py -q",
+  "completed_utc": "2026-07-14T05:44:49.675217+00:00",
+  "environment": "aria-env",
+  "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+  "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+  "lane_id": "c7_speculative_quarantine",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
+  "started_utc": "2026-07-14T05:44:45.252868+00:00",
+  "status": "pass",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "0d4eefedbb5fb72db8bb10f6ee9a6027059457a75241ad75028b8ae449016be6",
+  "test_summary": "63 passed in 1.91s",
+  "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6"
+}

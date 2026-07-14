@@ -1,0 +1,114 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/preprint_v1/claim_1/ercc/fig1_a1_ercc_dose_response_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/preprint_v1/claim_1/ercc/a1_ercc_dose_response_v4.5.5.json"
+  },
+  "axes": {
+    "dynamic_range": {
+      "dynamic_range_orders_of_magnitude": 6.32,
+      "n_points": 826,
+      "pearson_log_cpm_vs_log_conc": 0.976,
+      "slope": 0.981
+    },
+    "fold_change_recovery": {
+      "by_subgroup": {
+        "A": {
+          "expected_log2": 2.0,
+          "measured_log2_mean": 1.379,
+          "measured_log2_sd": 0.427,
+          "n": 22
+        },
+        "B": {
+          "expected_log2": 0.0,
+          "measured_log2_mean": -0.566,
+          "measured_log2_sd": 0.377,
+          "n": 20
+        },
+        "C": {
+          "expected_log2": -0.58,
+          "measured_log2_mean": -1.057,
+          "measured_log2_sd": 0.722,
+          "n": 22
+        },
+        "D": {
+          "expected_log2": -1.0,
+          "measured_log2_mean": -1.331,
+          "measured_log2_sd": 0.422,
+          "n": 23
+        }
+      },
+      "n_ercc_detected": 87,
+      "n_ercc_total": 92,
+      "pearson": 0.9021,
+      "slope_measured_vs_expected": 0.919
+    }
+  },
+  "axis_pass": {
+    "dynamic_range": true,
+    "fold_change_recovery": true
+  },
+  "benchmark": "A1_ercc_dose_response",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "B",
+    "mix_assumption": "A=Mix1, B=Mix2",
+    "numerator": "A"
+  },
+  "messages": [
+    "ERCC dose-response: measured log2(A/B) vs known Mix1/Mix2 ratio (per subgroup) and measured CPM vs known input concentration. ERCC counts + concentration truth come from the staged bundle."
+  ],
+  "method_under_test": "ARIA CPM normalization on the SEQC gene library",
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": "envs/aria-rna-env.linux-64.lock",
+      "env_lock_sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f",
+      "env_name": "aria-rna-env",
+      "source": "conda_lock"
+    },
+    "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_describe": "v4.7.0-271-gf55f106",
+    "git_dirty": true,
+    "git_sha": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "d9d8234993c7f5703210c22ce164c031812058f4dc7d1097300d92b3cd69713a",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "external_reference_ercc",
+  "source": {
+    "count_table": "ILM_refseq_gene_BGI",
+    "env": "aria-bench-env",
+    "fetched_utc": "2026-06-09T21:56:19+00:00",
+    "references": [
+      "SEQC/MAQC-III Consortium, Nature Biotechnology 2014",
+      "MAQC Consortium (TaqMan), Nature Biotechnology 2006"
+    ],
+    "sha256": {
+      "counts.tsv": "7fb9f7937470243047a23c2805253e2195cbfed036ee7d20ba2c4a26ef6063c0",
+      "ercc_counts.tsv": "a5944f6f876bae6fe804e708e2ddcf950c7f693b5a48dfa63a5dee492e176345",
+      "ercc_truth.tsv": "501a6aedeb2a8845cc214a7d5598b4976742f194b9c85c00a8445eeb546be919",
+      "samples.tsv": "a82a403dd709466e2c943a0172e09666eba2ab1aa267fd5e4cd651d16aecf43b",
+      "taqman.tsv": "9299a618252d5ea59ad384eedcd7f09c3d9c0e365c2a80e99eeccb0acd5c3a82"
+    },
+    "source": "seqc Bioconductor data package",
+    "truth": "TaqMan qPCR log2(A/B) by gene Symbol (mean of 4 reps each)"
+  },
+  "status": "pass",
+  "tolerances": {
+    "min_dynamic_range_pearson": 0.9,
+    "min_fc_pearson": 0.5
+  }
+}

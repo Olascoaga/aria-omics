@@ -1,0 +1,129 @@
+{
+  "artifact_version": "preprint_v1",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/preprint_v1/claim_2/a2_synthetic/fig2_a2_pseudobulk.svg",
+    "manifest_json": "docs/benchmark_results/preprint_v1/claim_2/a2_synthetic/a2_pseudobulk.json"
+  },
+  "axes": {
+    "donor_aware_recovery": {
+      "empirical_fdr": 0.0,
+      "messages": [
+        "recall=1.000 (>= 0.5); empirical_fdr=0.000 (<= 0.2); called=120, true_de=120"
+      ],
+      "n_called": 120,
+      "n_false_positive": 0,
+      "n_true_de": 120,
+      "n_true_positive": 120,
+      "recall": 1.0,
+      "status": "pass",
+      "tolerances": {
+        "max_empirical_fdr": 0.2,
+        "min_recall": 0.5
+      }
+    },
+    "pseudoreplication_guard": {
+      "inflation_ratio_vs_pseudobulk_floor": 421.98,
+      "naive_cell_level": {
+        "called_genes_top": [
+          "GENE_0000",
+          "GENE_0001",
+          "GENE_0002",
+          "GENE_0003",
+          "GENE_0004",
+          "GENE_0005",
+          "GENE_0006",
+          "GENE_0007",
+          "GENE_0008",
+          "GENE_0009",
+          "GENE_0011",
+          "GENE_0012",
+          "GENE_0015",
+          "GENE_0018",
+          "GENE_0019",
+          "GENE_0020",
+          "GENE_0021",
+          "GENE_0024",
+          "GENE_0025",
+          "GENE_0026",
+          "GENE_0027",
+          "GENE_0028",
+          "GENE_0030",
+          "GENE_0031",
+          "GENE_0032"
+        ],
+        "false_positive_rate": 0.7033,
+        "method": "naive_cell_level_welch_treats_cells_as_replicates",
+        "min_abs_log2fc": 0.0,
+        "n_called": 422,
+        "n_cells_condition_a": 320,
+        "n_cells_condition_b": 320,
+        "n_tested": 600,
+        "nominal_alpha": 0.05,
+        "status": "success"
+      },
+      "naive_cell_level_false_positive_rate": 0.7033,
+      "pseudobulk": {
+        "called_genes_top": [],
+        "false_positive_rate": 0.0,
+        "lfc_min": 0.0,
+        "method": "aria_donor_aware_pseudobulk",
+        "n_biological_replicates_condition_a": 4,
+        "n_biological_replicates_condition_b": 4,
+        "n_called": 0,
+        "n_tested": 600,
+        "nominal_alpha": 0.05,
+        "status": "success"
+      },
+      "pseudobulk_false_positive_rate": 0.0
+    }
+  },
+  "axis_pass": {
+    "cell_level_antipattern_detected": true,
+    "donor_aware_recovery": true,
+    "pseudobulk_null_control": true
+  },
+  "benchmark": "A2_pseudobulk_scrna",
+  "benchmark_version": "v1",
+  "datasets": {
+    "pseudoreplication_null": {
+      "cells_per_donor": 80,
+      "dispersion": 0.2,
+      "donor_gene_sd": 0.9,
+      "donors_per_condition": 4,
+      "n_de": 0,
+      "n_genes": 600,
+      "null_model": "donor_gene_heterogeneity_no_condition_effect",
+      "seed": 31
+    },
+    "recovery": {
+      "cells_per_donor": 80,
+      "donors_per_condition": 6,
+      "n_de": 120,
+      "n_genes": 1200,
+      "seed": 23
+    }
+  },
+  "external_reference_lane": {
+    "reason": "Kang + muscat requires local benchmark data and aria-bench-env",
+    "status": "pending"
+  },
+  "messages": [
+    "A2 preliminary validates that ARIA keeps donor/sample as the inferential unit and exposes the cell-level pseudoreplication anti-pattern on a controlled donor-null simulation.",
+    "Kang et al. + muscat remains the external A2 lane once local data and aria-bench-env are available."
+  ],
+  "method_under_test": "ARIA donor-aware scRNA pseudobulk DE",
+  "provenance": {
+    "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_dirty": true,
+    "runtime_note": "artifact_version is fixed for the v4.5 benchmark lane; local working tree may contain unrelated v4.6 changes."
+  },
+  "scope": "preliminary_synthetic_donor_aware",
+  "status": "pass",
+  "tolerances": {
+    "max_pseudobulk_null_fpr": 0.1,
+    "max_recovery_empirical_fdr": 0.2,
+    "min_naive_cell_level_null_fpr": 0.2,
+    "min_naive_vs_pseudobulk_inflation": 3.0,
+    "min_recall": 0.5
+  }
+}

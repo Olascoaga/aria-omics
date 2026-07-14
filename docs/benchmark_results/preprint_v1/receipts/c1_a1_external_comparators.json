@@ -1,0 +1,63 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [
+    {
+      "path": "claim_1/a1_external/a1_external_comparators.json",
+      "sha256": "d8a4d28cbf1c37a73e9e58b288a0c592c52431506e63795cec0005ce0a69fc9f",
+      "size_bytes": 4137
+    },
+    {
+      "path": "claim_1/a1_external/inputs/a1_counts.tsv",
+      "sha256": "92aeb63675e20ff5572460aa1d237ae904112d7195d77c438318ac8b4480096f",
+      "size_bytes": 43437
+    },
+    {
+      "path": "claim_1/a1_external/inputs/a1_metadata.tsv",
+      "sha256": "8ed8f73bf9ca31fed654cc25736975297a41fe22061c15611190f7cf9dfe8955",
+      "size_bytes": 221
+    },
+    {
+      "path": "claim_1/a1_external/inputs/a1_truth.tsv",
+      "sha256": "22c23f7511cc106f1fab05c2c6bde8e9cf4d32492bebe6ed96955b0535b31390",
+      "size_bytes": 26613
+    },
+    {
+      "path": "claim_1/a1_external/r_outputs/r_comparators.json",
+      "sha256": "b6d82d7402babe3a5553d42f34c2f0bd15b99c0b726b10bc718db72ab3a442d7",
+      "size_bytes": 894
+    },
+    {
+      "path": "claim_1/a1_external/r_outputs/deseq2.tsv",
+      "sha256": "ab0f06fba2241871936d066aa6244870b45ee4f8c5bcbe2af43e533cf2713f70",
+      "size_bytes": 64992
+    },
+    {
+      "path": "claim_1/a1_external/r_outputs/edgeR_QLF.tsv",
+      "sha256": "dd4cd39500e05b3a0f702f7917543d1faaa1c8e04277025212e7281db908d792",
+      "size_bytes": 64933
+    },
+    {
+      "path": "claim_1/a1_external/r_outputs/limma_voom.tsv",
+      "sha256": "02ef7f7056d7bdb3d3a64795c27c7497fb33f7e7f206358a21cc775478ea56bc",
+      "size_bytes": 64867
+    }
+  ],
+  "claims": [
+    "claim_1"
+  ],
+  "command": "python scripts/run_a1_external_comparators.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_external --manifest-name a1_external_comparators.json",
+  "completed_utc": "2026-07-14T05:45:37.396594+00:00",
+  "environment": "aria-env -> aria-bench-env",
+  "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+  "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+  "lane_id": "c1_a1_external_comparators",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
+  "started_utc": "2026-07-14T05:45:24.318737+00:00",
+  "status": "pass",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "ce36f0036a9ea140520ad44eeabbcdc15d6c83558fe21b1e001b3aaa01fe5104",
+  "test_summary": null,
+  "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6"
+}

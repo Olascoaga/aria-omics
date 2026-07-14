@@ -1,0 +1,33 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [
+    {
+      "path": "claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",
+      "sha256": "e310804abf318155088b10828b5c25db805d489f69e1f3ad72fba36127badeff",
+      "size_bytes": 18841
+    },
+    {
+      "path": "claim_4/b2_claim/fig4_b2_claim_narrative_v4.5.5.svg",
+      "sha256": "dc02089a0e08288d3ac9e5ef2bbded524cee0d2c97a2316344a0736c5995e4d2",
+      "size_bytes": 3937
+    }
+  ],
+  "claims": [
+    "claim_4"
+  ],
+  "command": "conda run -n aria-env python scripts/run_b2_claim_narrative.py --output-dir docs/benchmark_results/preprint_v1/claim_4/b2_claim",
+  "completed_utc": "2026-07-14T05:44:48.581418+00:00",
+  "environment": "aria-env",
+  "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+  "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+  "lane_id": "c4_b2_governance_ablation",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
+  "started_utc": "2026-07-14T05:44:45.253334+00:00",
+  "status": "pass",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "84f6cc74465bb70da69d39e434624ad6c49b6cb4b263064dd60ef1bec23f1336",
+  "test_summary": null,
+  "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6"
+}

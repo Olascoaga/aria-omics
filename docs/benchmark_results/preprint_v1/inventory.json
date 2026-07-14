@@ -1,0 +1,606 @@
+{
+  "claims": [
+    {
+      "claim_id": "claim_1",
+      "lane_ids": [
+        "c1_a1_synthetic_bulk_de",
+        "c1_a1_external_comparators",
+        "c1_seqc_maqc_taqman",
+        "c1_seqc_multisite",
+        "c1_ercc_dose_response",
+        "c1_h9_fastq_e2e"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_2",
+      "lane_ids": [
+        "c2_a2_synthetic_pseudobulk",
+        "c2_kang_muscat",
+        "c2_pairing_and_technical_replicates",
+        "c2_scatac_donor_aware"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_3",
+      "lane_ids": [
+        "c3_b1_design_governance",
+        "c3_blind_multifactorial_corpus"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_4",
+      "lane_ids": [
+        "c4_b2_governance_ablation",
+        "c4_b2_multi_annotator_gold",
+        "c4_report_e2e_false_narrative"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_5",
+      "lane_ids": [
+        "c5_b4_null_narrative",
+        "c5_semantic_negation",
+        "c5_multimodal_null_permutations"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_6",
+      "lane_ids": [
+        "c6_b3_in_process_matrix",
+        "c6_b3_real_e2e"
+      ],
+      "status": "blocked"
+    },
+    {
+      "claim_id": "claim_7",
+      "lane_ids": [
+        "c7_speculative_quarantine"
+      ],
+      "status": "verified"
+    }
+  ],
+  "freeze_gate": {
+    "blockers": [
+      {
+        "lane_id": "c1_h9_fastq_e2e",
+        "status": "blocked_missing_implementation"
+      },
+      {
+        "lane_id": "c2_scatac_donor_aware",
+        "status": "blocked_missing_implementation"
+      },
+      {
+        "lane_id": "c3_blind_multifactorial_corpus",
+        "status": "blocked_missing_implementation"
+      },
+      {
+        "lane_id": "c4_b2_multi_annotator_gold",
+        "status": "blocked_missing_resources"
+      },
+      {
+        "lane_id": "c4_report_e2e_false_narrative",
+        "status": "blocked_missing_implementation"
+      },
+      {
+        "lane_id": "c5_multimodal_null_permutations",
+        "status": "blocked_missing_implementation"
+      },
+      {
+        "lane_id": "c6_b3_real_e2e",
+        "status": "blocked_manual_confirmation"
+      }
+    ],
+    "n_required_lanes": 21,
+    "n_verified_lanes": 14,
+    "ready": false,
+    "tag_action_authorized": false
+  },
+  "generated_utc": "2026-07-14T05:46:19.370139+00:00",
+  "lanes": [
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a1_bulk_de_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_synthetic --manifest-name a1_bulk_de.json --figure-name fig1_a1_bulk_de.svg",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_1/a1_synthetic/a1_bulk_de.json",
+        "claim_1/a1_synthetic/fig1_a1_bulk_de.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c1_a1_synthetic_bulk_de",
+      "required_for_freeze": true,
+      "requirement": "Fresh A1 synthetic-truth bulk-DE calibration and LFC frontier.",
+      "resources": [
+        "env:aria-rna-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": "python scripts/run_a1_external_comparators.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_external --manifest-name a1_external_comparators.json",
+      "environment": "aria-env -> aria-bench-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_1/a1_external/a1_external_comparators.json",
+        "claim_1/a1_external/inputs/a1_counts.tsv",
+        "claim_1/a1_external/inputs/a1_metadata.tsv",
+        "claim_1/a1_external/inputs/a1_truth.tsv",
+        "claim_1/a1_external/r_outputs/r_comparators.json",
+        "claim_1/a1_external/r_outputs/deseq2.tsv",
+        "claim_1/a1_external/r_outputs/edgeR_QLF.tsv",
+        "claim_1/a1_external/r_outputs/limma_voom.tsv"
+      ],
+      "implementation": "available",
+      "lane_id": "c1_a1_external_comparators",
+      "required_for_freeze": true,
+      "requirement": "Fresh DESeq2/edgeR/limma comparator execution on the identical A1 matrix.",
+      "resources": [
+        "env:aria-env",
+        "env:aria-bench-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_maqc_benchmark.py --bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_1/seqc/a1_seqc_maqc_v4.5.5.json",
+        "claim_1/seqc/fig1_a1_seqc_maqc_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c1_seqc_maqc_taqman",
+      "required_for_freeze": true,
+      "requirement": "Fresh ARIA-vs-TaqMan SEQC/MAQC reference validation.",
+      "resources": [
+        "env:aria-rna-env",
+        "data:seqc_bgi"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_multisite_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc_multisite",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json",
+        "claim_1/seqc_multisite/fig1_a1_seqc_multisite_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c1_seqc_multisite",
+      "required_for_freeze": true,
+      "requirement": "Fresh five-site SEQC log2FC reproducibility matrix.",
+      "resources": [
+        "env:aria-rna-env",
+        "data:seqc_multisite"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a1_ercc_dose_response.py --bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir docs/benchmark_results/preprint_v1/claim_1/ercc",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_1/ercc/a1_ercc_dose_response_v4.5.5.json",
+        "claim_1/ercc/fig1_a1_ercc_dose_response_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c1_ercc_dose_response",
+      "required_for_freeze": true,
+      "requirement": "Fresh ERCC fold-change and dynamic-range recovery.",
+      "resources": [
+        "env:aria-rna-env",
+        "data:seqc_ercc"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_1"
+      ],
+      "command": null,
+      "environment": "aria-rnaseq-env + aria-rna-env",
+      "evidence_kind": "e2e_capsule",
+      "expected_artifacts": [],
+      "implementation": "missing",
+      "lane_id": "c1_h9_fastq_e2e",
+      "required_for_freeze": true,
+      "requirement": "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
+      "resources": [
+        "env:aria-rnaseq-env",
+        "env:aria-rna-env",
+        "data:h9_fastq"
+      ],
+      "status": "blocked_missing_implementation"
+    },
+    {
+      "claims": [
+        "claim_2"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a2_pseudobulk_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_2/a2_synthetic --manifest-name a2_pseudobulk.json --figure-name fig2_a2_pseudobulk.svg --artifact-version preprint_v1",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_2/a2_synthetic/a2_pseudobulk.json",
+        "claim_2/a2_synthetic/fig2_a2_pseudobulk.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c2_a2_synthetic_pseudobulk",
+      "required_for_freeze": true,
+      "requirement": "Fresh donor-aware recovery and donor-heterogeneity null.",
+      "resources": [
+        "env:aria-rna-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_2"
+      ],
+      "command": "conda run -n aria-rna-env python scripts/run_a2_external_comparators.py --export-dir ~/.aria/benchmarks/kang_muscat --output-dir docs/benchmark_results/preprint_v1/claim_2/kang_muscat",
+      "environment": "aria-rna-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_2/kang_muscat/a2_kang_muscat_v4.5.5.json",
+        "claim_2/kang_muscat/fig2_a2_kang_muscat_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c2_kang_muscat",
+      "required_for_freeze": true,
+      "requirement": "Fresh ARIA-vs-muscat/edgeR comparison on identical Kang pseudobulk matrices.",
+      "resources": [
+        "env:aria-rna-env",
+        "data:kang_muscat"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_2"
+      ],
+      "command": "conda run -n aria-env python -m pytest tests/test_preprint_audit_b1_technical_replicates.py tests/test_preprint_audit_b3_pairing.py -q",
+      "environment": "aria-env",
+      "evidence_kind": "test_receipt",
+      "expected_artifacts": [],
+      "implementation": "available",
+      "lane_id": "c2_pairing_and_technical_replicates",
+      "required_for_freeze": true,
+      "requirement": "Regression proof for partial pairing and explicit technical replicate units.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_2"
+      ],
+      "command": null,
+      "environment": "aria-rna-env + aria-bench-env",
+      "evidence_kind": "external_concordance",
+      "expected_artifacts": [],
+      "implementation": "missing",
+      "lane_id": "c2_scatac_donor_aware",
+      "required_for_freeze": true,
+      "requirement": "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
+      "resources": [
+        "env:aria-rna-env",
+        "env:aria-bench-env",
+        "data:gse278576"
+      ],
+      "status": "blocked_missing_implementation"
+    },
+    {
+      "claims": [
+        "claim_3"
+      ],
+      "command": "conda run -n aria-env python scripts/run_b1_design_governance.py --output-dir docs/benchmark_results/preprint_v1/claim_3/b1_design",
+      "environment": "aria-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_3/b1_design/b1_design_governance_v4.5.5.json",
+        "claim_3/b1_design/fig3_b1_design_governance_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c3_b1_design_governance",
+      "required_for_freeze": true,
+      "requirement": "Fresh adversarial design inference/block/escalation confusion matrix.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_3"
+      ],
+      "command": null,
+      "environment": "human review",
+      "evidence_kind": "human_gold",
+      "expected_artifacts": [],
+      "implementation": "missing",
+      "lane_id": "c3_blind_multifactorial_corpus",
+      "required_for_freeze": true,
+      "requirement": "Independent blind gold for a multifactorial held-out design corpus.",
+      "resources": [
+        "human:design_gold"
+      ],
+      "status": "blocked_missing_implementation"
+    },
+    {
+      "claims": [
+        "claim_4"
+      ],
+      "command": "conda run -n aria-env python scripts/run_b2_claim_narrative.py --output-dir docs/benchmark_results/preprint_v1/claim_4/b2_claim",
+      "environment": "aria-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_4/b2_claim/b2_claim_narrative_v4.5.5.json",
+        "claim_4/b2_claim/fig4_b2_claim_narrative_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c4_b2_governance_ablation",
+      "required_for_freeze": true,
+      "requirement": "Fresh four-arm governed/guards-off/naive/template claim benchmark.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_4"
+      ],
+      "command": "python scripts/run_b2_annotation_kit.py score docs/benchmark_results/preprint_v1/human/b2_annotator_1.csv docs/benchmark_results/preprint_v1/human/b2_annotator_2.csv --adjudicator docs/benchmark_results/preprint_v1/human/b2_adjudicator.csv --out docs/benchmark_results/preprint_v1/claim_4/b2_human_gold.json",
+      "environment": "aria-env",
+      "evidence_kind": "human_gold",
+      "expected_artifacts": [
+        "claim_4/b2_human_gold.json"
+      ],
+      "implementation": "available",
+      "lane_id": "c4_b2_multi_annotator_gold",
+      "required_for_freeze": true,
+      "requirement": "At least two independent annotators plus adjudication and agreement metrics.",
+      "resources": [
+        "env:aria-env",
+        "human:b2_annotators"
+      ],
+      "status": "blocked_missing_resources"
+    },
+    {
+      "claims": [
+        "claim_4"
+      ],
+      "command": null,
+      "environment": "aria-env + human review",
+      "evidence_kind": "e2e_human_gold",
+      "expected_artifacts": [],
+      "implementation": "missing",
+      "lane_id": "c4_report_e2e_false_narrative",
+      "required_for_freeze": true,
+      "requirement": "E2E benchmark through bus, compiler, report and independent human scoring.",
+      "resources": [
+        "env:aria-env",
+        "human:b2_annotators"
+      ],
+      "status": "blocked_missing_implementation"
+    },
+    {
+      "claims": [
+        "claim_5"
+      ],
+      "command": "conda run -n aria-env python scripts/run_b4_null_narrative.py --output-dir docs/benchmark_results/preprint_v1/claim_5/b4_null",
+      "environment": "aria-env",
+      "evidence_kind": "artifact",
+      "expected_artifacts": [
+        "claim_5/b4_null/b4_null_narrative_v4.5.5.json",
+        "claim_5/b4_null/fig5_b4_null_narrative_v4.5.5.svg"
+      ],
+      "implementation": "available",
+      "lane_id": "c5_b4_null_narrative",
+      "required_for_freeze": true,
+      "requirement": "Fresh null-evidence narrative benchmark.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_5"
+      ],
+      "command": "conda run -n aria-env python -m pytest tests/test_preprint_audit_c2_semantic_facts.py -q",
+      "environment": "aria-env",
+      "evidence_kind": "test_receipt",
+      "expected_artifacts": [],
+      "implementation": "available",
+      "lane_id": "c5_semantic_negation",
+      "required_for_freeze": true,
+      "requirement": "Semantic positive/null contradiction and negation regression.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_5"
+      ],
+      "command": null,
+      "environment": "aria-rna-env + aria-chromatin-env",
+      "evidence_kind": "multimodal_e2e",
+      "expected_artifacts": [],
+      "implementation": "missing",
+      "lane_id": "c5_multimodal_null_permutations",
+      "required_for_freeze": true,
+      "requirement": "Fresh RNA and ATAC label-permutation null reports through the public compiler.",
+      "resources": [
+        "env:aria-rna-env",
+        "env:aria-chromatin-env"
+      ],
+      "status": "blocked_missing_implementation"
+    },
+    {
+      "claims": [
+        "claim_6"
+      ],
+      "command": "conda run -n aria-env python -m pytest tests/test_preprint_audit_b3_multi_provider.py -q",
+      "environment": "aria-env",
+      "evidence_kind": "test_receipt",
+      "expected_artifacts": [],
+      "implementation": "available",
+      "lane_id": "c6_b3_in_process_matrix",
+      "required_for_freeze": true,
+      "requirement": "Fresh 3-provider x 3-repetition fail-closed-monotone compiler matrix.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    },
+    {
+      "claims": [
+        "claim_6"
+      ],
+      "command": "ARIA_B3_E2E_DATA=~/aria-data/pbmc3k_test conda run -n aria-env python -m pytest tests/test_preprint_audit_b3_multi_provider_e2e.py -q",
+      "environment": "aria-env",
+      "evidence_kind": "e2e_capsule",
+      "expected_artifacts": [],
+      "implementation": "available",
+      "lane_id": "c6_b3_real_e2e",
+      "required_for_freeze": true,
+      "requirement": "Repeated real-run ledger/claim/capsule equivalence on a frozen dataset.",
+      "resources": [
+        "env:aria-env",
+        "data:pbmc3k",
+        "manual:configured_provider"
+      ],
+      "status": "blocked_manual_confirmation"
+    },
+    {
+      "claims": [
+        "claim_7"
+      ],
+      "command": "conda run -n aria-env python -m pytest tests/test_hypothesis_quarantine.py tests/test_hypothesis_report_section.py tests/test_ledger_export.py tests/test_preprint_audit_c1_claim_boundary.py -q",
+      "environment": "aria-env",
+      "evidence_kind": "test_receipt",
+      "expected_artifacts": [],
+      "implementation": "available",
+      "lane_id": "c7_speculative_quarantine",
+      "required_for_freeze": true,
+      "requirement": "Proof that speculative text cannot enter claims, ledger export or capsules.",
+      "resources": [
+        "env:aria-env"
+      ],
+      "status": "verified"
+    }
+  ],
+  "output_root": "docs/benchmark_results/preprint_v1",
+  "provenance": {
+    "aria_version": "4.7.0",
+    "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_describe": "v4.7.0-271-gf55f106",
+    "git_dirty": false,
+    "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+    "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
+    "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6",
+    "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
+  },
+  "resources": {
+    "data:gse278576": {
+      "available": true,
+      "path_ref": "validation-data://gse278576",
+      "state": "available"
+    },
+    "data:h9_fastq": {
+      "available": true,
+      "path_ref": "validation-data://h9_bulk_fastq",
+      "state": "available"
+    },
+    "data:kang_muscat": {
+      "available": true,
+      "path_ref": "benchmark-data://kang_muscat/clusters.json",
+      "state": "available"
+    },
+    "data:pbmc3k": {
+      "available": true,
+      "path_ref": "validation-data://pbmc3k_test",
+      "state": "available"
+    },
+    "data:seqc_bgi": {
+      "available": true,
+      "path_ref": "benchmark-data://seqc_maqc_BGI",
+      "state": "available"
+    },
+    "data:seqc_ercc": {
+      "available": true,
+      "path_ref": "benchmark-data://seqc_maqc_BGI/ercc_truth.tsv",
+      "state": "available"
+    },
+    "data:seqc_multisite": {
+      "available": true,
+      "path_ref": "benchmark-data://seqc_maqc_{BGI,CNL,MAY,AGR,NVS}",
+      "state": "available"
+    },
+    "env:aria-bench-env": {
+      "available": true,
+      "path_ref": "conda-env://aria-bench-env",
+      "state": "available"
+    },
+    "env:aria-chromatin-env": {
+      "available": true,
+      "path_ref": "conda-env://aria-chromatin-env",
+      "state": "available"
+    },
+    "env:aria-env": {
+      "available": true,
+      "path_ref": "conda-env://aria-env",
+      "state": "available"
+    },
+    "env:aria-rna-env": {
+      "available": true,
+      "path_ref": "conda-env://aria-rna-env",
+      "state": "available"
+    },
+    "env:aria-rnaseq-env": {
+      "available": true,
+      "path_ref": "conda-env://aria-rnaseq-env",
+      "state": "available"
+    },
+    "human:b2_annotators": {
+      "available": false,
+      "path_ref": "freeze-input://human/b2_annotator_{1,2}.csv+adjudicator",
+      "state": "missing"
+    },
+    "human:design_gold": {
+      "available": false,
+      "path_ref": "freeze-input://human/design_gold.csv",
+      "state": "missing"
+    },
+    "manual:configured_provider": {
+      "available": null,
+      "path_ref": "manual-confirmation://configured-llm-provider",
+      "state": "manual_confirmation_required"
+    }
+  },
+  "schema_version": "aria.preprint_freeze.inventory.v1"
+}

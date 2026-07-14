@@ -1,0 +1,22 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [],
+  "claims": [
+    "claim_2"
+  ],
+  "command": "conda run -n aria-env python -m pytest tests/test_preprint_audit_b1_technical_replicates.py tests/test_preprint_audit_b3_pairing.py -q",
+  "completed_utc": "2026-07-14T05:44:49.951905+00:00",
+  "environment": "aria-env",
+  "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+  "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+  "lane_id": "c2_pairing_and_technical_replicates",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "e00c33fc3cd5fa7116dded18ecf43111995fda45fa117d10ec8fce928b6b9f86",
+  "started_utc": "2026-07-14T05:44:45.255179+00:00",
+  "status": "pass",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "4ad84009bca24352ca8a4490acb172e1386d73f1cb734c980f05226f88e4d2a0",
+  "test_summary": "14 passed, 3 skipped in 2.08s",
+  "workflow_hash": "3ad9e9535a1c3f6f879b73f50d2595574d981c28363d81f64f5ede069fb05ef6"
+}

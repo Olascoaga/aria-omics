@@ -1,0 +1,200 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": {
+    "figure_svg": "docs/benchmark_results/preprint_v1/claim_1/seqc_multisite/fig1_a1_seqc_multisite_v4.5.5.svg",
+    "manifest_json": "docs/benchmark_results/preprint_v1/claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json"
+  },
+  "benchmark": "A1_seqc_multisite_reproducibility",
+  "benchmark_version": "v1",
+  "comparison": {
+    "denominator": "B",
+    "numerator": "A"
+  },
+  "cross_site": {
+    "mean_offdiagonal_pearson": 0.9801,
+    "median_pair_genes": 23022,
+    "min_offdiagonal_pearson": 0.9777,
+    "n_pairs": 10,
+    "n_sites": 5,
+    "pearson_matrix": {
+      "AGR": {
+        "AGR": 1.0,
+        "BGI": 0.9784,
+        "CNL": 0.9813,
+        "MAY": 0.9797,
+        "NVS": 0.9793
+      },
+      "BGI": {
+        "AGR": 0.9784,
+        "BGI": 1.0,
+        "CNL": 0.9813,
+        "MAY": 0.9805,
+        "NVS": 0.9777
+      },
+      "CNL": {
+        "AGR": 0.9813,
+        "BGI": 0.9813,
+        "CNL": 1.0,
+        "MAY": 0.9832,
+        "NVS": 0.981
+      },
+      "MAY": {
+        "AGR": 0.9797,
+        "BGI": 0.9805,
+        "CNL": 0.9832,
+        "MAY": 1.0,
+        "NVS": 0.9783
+      },
+      "NVS": {
+        "AGR": 0.9793,
+        "BGI": 0.9777,
+        "CNL": 0.981,
+        "MAY": 0.9783,
+        "NVS": 1.0
+      }
+    },
+    "sites": [
+      "AGR",
+      "BGI",
+      "CNL",
+      "MAY",
+      "NVS"
+    ],
+    "spearman_matrix": {
+      "AGR": {
+        "AGR": 1.0,
+        "BGI": 0.9706,
+        "CNL": 0.9782,
+        "MAY": 0.9718,
+        "NVS": 0.9704
+      },
+      "BGI": {
+        "AGR": 0.9706,
+        "BGI": 1.0,
+        "CNL": 0.9746,
+        "MAY": 0.9693,
+        "NVS": 0.9684
+      },
+      "CNL": {
+        "AGR": 0.9782,
+        "BGI": 0.9746,
+        "CNL": 1.0,
+        "MAY": 0.9769,
+        "NVS": 0.9768
+      },
+      "MAY": {
+        "AGR": 0.9718,
+        "BGI": 0.9693,
+        "CNL": 0.9769,
+        "MAY": 1.0,
+        "NVS": 0.9691
+      },
+      "NVS": {
+        "AGR": 0.9704,
+        "BGI": 0.9684,
+        "CNL": 0.9768,
+        "MAY": 0.9691,
+        "NVS": 1.0
+      }
+    }
+  },
+  "messages": [
+    "Cross-site SEQC reproducibility: ARIA's A-vs-B log2FC is correlated between sequencing sites; counts + TaqMan truth come from the staged per-site bundles, not from ARIA."
+  ],
+  "method_under_test": "ARIA bulk RNA DESeq2 path (_run_deseq2, apeGLM-enabled)",
+  "per_site": {
+    "AGR": {
+      "n_denominator": 4,
+      "n_genes_tested": 23420,
+      "n_numerator": 4,
+      "status": "success",
+      "taqman": {
+        "auc": 0.893,
+        "n_overlap": 831,
+        "pearson": 0.9401,
+        "spearman_signal": 0.9592
+      }
+    },
+    "BGI": {
+      "n_denominator": 5,
+      "n_genes_tested": 23248,
+      "n_numerator": 5,
+      "status": "success",
+      "taqman": {
+        "auc": 0.8928,
+        "n_overlap": 830,
+        "pearson": 0.9442,
+        "spearman_signal": 0.9609
+      }
+    },
+    "CNL": {
+      "n_denominator": 5,
+      "n_genes_tested": 22399,
+      "n_numerator": 5,
+      "status": "success",
+      "taqman": {
+        "auc": 0.9018,
+        "n_overlap": 821,
+        "pearson": 0.9414,
+        "spearman_signal": 0.9577
+      }
+    },
+    "MAY": {
+      "n_denominator": 5,
+      "n_genes_tested": 23312,
+      "n_numerator": 5,
+      "status": "success",
+      "taqman": {
+        "auc": 0.8779,
+        "n_overlap": 831,
+        "pearson": 0.9437,
+        "spearman_signal": 0.9584
+      }
+    },
+    "NVS": {
+      "n_denominator": 4,
+      "n_genes_tested": 23375,
+      "n_numerator": 4,
+      "status": "success",
+      "taqman": {
+        "auc": 0.8831,
+        "n_overlap": 830,
+        "pearson": 0.9398,
+        "spearman_signal": 0.9588
+      }
+    }
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": "envs/aria-rna-env.linux-64.lock",
+      "env_lock_sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f",
+      "env_name": "aria-rna-env",
+      "source": "conda_lock"
+    },
+    "git_commit": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_describe": "v4.7.0-271-gf55f106",
+    "git_dirty": true,
+    "git_sha": "f55f1069b2a9fc41461fdbd4e1f6d831d5698786",
+    "git_tree_sha": "168466ee923fa0598c6d93e7961a565d4a8002da",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "d9d8234993c7f5703210c22ce164c031812058f4dc7d1097300d92b3cd69713a",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "external_reference_cross_site",
+  "status": "pass",
+  "tolerances": {
+    "min_cross_site_pearson": 0.9
+  }
+}
