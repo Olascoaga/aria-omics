@@ -1,0 +1,20 @@
+name: aria-rnaseq-env
+
+# Raw bulk RNA-seq FASTQ stack. Alignment and counting stay isolated from the
+# validated RNA statistics environment.
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+channel_priority: strict
+
+dependencies:
+  - python=3.11
+  - fastp>=1.0
+  - star>=2.7.11
+  - subread>=2.1
+  - samtools>=1.21
+  - multiqc>=1.25
+  - fastqc>=0.12
+  - pandas>=1.5
+  - numpy<2.0.0

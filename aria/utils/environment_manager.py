@@ -31,10 +31,27 @@ from typing import Any
 from aria.utils.provenance import hash_params
 from aria.utils.privacy import execution_environment, redact_sensitive_params
 from aria.utils.script_contracts import ContractIssue, contract_for_script
+from aria.utils.environment_specs import (
+    ENVIRONMENT_SPECS,
+    environment_names_by_stack,
+    timeouts_by_stack,
+)
 
 shutil_rmtree = shutil.rmtree
 
 log = logging.getLogger("aria.env")
+
+
+class MissingEnvironment(RuntimeError):
+    """The exact scientific environment required by a stack is unavailable."""
+
+    def __init__(self, stack: str, environment: str):
+        self.stack = stack
+        self.environment = environment
+        super().__init__(
+            f"Required environment '{environment}' for stack '{stack}' is not "
+            "installed; scientific execution was not attempted."
+        )
 
 
 # ARIA package root — this file is at /aria/utils/environment_manager.py
@@ -93,35 +110,11 @@ class EnvironmentManager:
     """
 
     # Analytical stack -> Conda environment name
-    STACKS: dict[str, str] = {
-        "rna":         "aria-rna-env",
-        "ingestion":   "aria-ingestion-env",  # scRNA FASTQ -> matrix/.h5ad
-        "rnaseq":      "aria-rnaseq-env",   # bulk FASTQ: fastp/STAR/featureCounts
-        "atacseq":     "aria-atacseq-env",  # bulk ATAC FASTQ: bwa-mem2/samtools
-        "chromatin":   "aria-chromatin-env",
-        "tobias":      "aria-tobias-env",
-        "hic":         "aria-hic-env",
-        "integration": "aria-integration-env",
-        "benchmark":   "aria-bench-env",  # external RNA benchmark comparators
-        "spatial":     "aria-rna-env",   # spatial uses same env as RNA
-    }
+    STACKS: dict[str, str] = environment_names_by_stack()
 
     # Per-stack execution timeouts (seconds)
     # HiC and integration can take hours on large datasets
-    TIMEOUTS: dict[str, int] = {
-        "rna":         3600,    # 1 hour
-        "ingestion":   10800,   # 3h — kb/kallisto-bustools on raw scRNA FASTQs
-        "chromatin":   7200,    # 2 hours
-        "tobias":      14400,   # 4h — TOBIAS ATACorrect/ScoreBigwig/BINDetect
-        "hic":         14400,
-        "rnaseq":      10800,   # 3h — STAR alignment can be slow   # 4 hours
-        "atacseq":     14400,   # 4h — bwa-mem2 align + index build + markdup
-        "integration": 7200,    # 2 hours
-        "benchmark":   14400,   # 4h — R/Bioconductor reference comparators
-        "spatial":     3600,    # 1 hour
-    }
-
-    FALLBACK_ENV = "aria-env"   # Base environment used when stack env is missing
+    TIMEOUTS: dict[str, int] = timeouts_by_stack()
 
     # Number of failed runs to keep on disk for postmortem inspection.
     # Files live in <workspace>/failed/ — older runs are evicted FIFO.
@@ -204,6 +197,19 @@ class EnvironmentManager:
                     )
                     return result
 
+            try:
+                env_name = self._resolve_env(stack)
+            except MissingEnvironment as exc:
+                result = {
+                    "status": "error",
+                    "error_type": "MissingEnvironment",
+                    "stack": exc.stack,
+                    "environment": exc.environment,
+                    "details": str(exc),
+                    "setup_spec": str(ENVIRONMENT_SPECS[stack].yml_path),
+                }
+                return result
+
             # 2. Write parameters to input file after schema validation. The
             # live IPC file needs real paths, but failed-run archives redact it
             # by default below (C6/X10 privacy).
@@ -217,7 +223,6 @@ class EnvironmentManager:
                 params_sha256 + "\n"
             )
 
-            env_name = self._resolve_env(stack)
             cmd = [
                 "conda", "run",
                 "--no-capture-output",   # let heavy C logs go to system stderr
@@ -534,35 +539,25 @@ class EnvironmentManager:
             "environments":    envs,
             "ready_stacks":    ready,
             "missing_stacks":  missing,
-            "fallback_active": bool(missing),
+            "fallback_active": False,
+            "fail_closed": bool(missing),
         }
 
     # ── Private methods ───────────────────────────────────────────────────
 
     def _resolve_env(self, stack: str) -> str:
         """
-        Resolve which conda environment to use for a stack.
-
-        Resolution order:
-          1. Preferred env name (STACKS[stack]) if installed
-          2. FALLBACK_ENV (aria-env / base)
+        Resolve the exact conda environment required for a stack.
 
         SetupAgent owns ARIA's environments by name and does NOT do tool-aware
         detection or aliasing of pre-existing user environments (B12, audit
-        2026-05-29). There is no `env_aliases.json` writer in the codebase, so
-        the former alias-resolution branch was dead; it was removed so this
-        method's behavior matches SetupAgent's documented "no aliases" policy.
+        2026-05-29). Missing scientific dependencies stop before launch.
         """
-        env_name  = self.STACKS.get(stack, self.FALLBACK_ENV)
+        env_name = self.STACKS[stack]
         available = self.check_environments()
 
         if not available.get(stack, False):
-            log.warning(
-                f"Environment '{env_name}' not found. "
-                f"Falling back to '{self.FALLBACK_ENV}'. "
-                f"ARIA will attempt automatic setup on next run."
-            )
-            return self.FALLBACK_ENV
+            raise MissingEnvironment(stack, env_name)
 
         return env_name
 

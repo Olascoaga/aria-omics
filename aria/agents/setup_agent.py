@@ -36,6 +36,10 @@ from aria.agents.base_agent import BaseAgent
 from aria.bus.message_bus import Confidence
 from aria.llm.provider import LLMProvider
 from aria.memory.memory import ARIAMemory
+from aria.utils.environment_specs import (
+    environment_names_by_stack,
+    setup_environment_definitions,
+)
 
 log = logging.getLogger("aria.setup")
 
@@ -107,124 +111,8 @@ GENOME_REGISTRY = {
 }
 
 # ── Conda environment definitions ─────────────────────────────────────────────
-# These are the authoritative env specs ARIA uses.
-# Users never edit these. ARIA installs them on first run.
-
-ARIA_ENVS = {
-    "aria-ingestion-env": {
-        "description": "Raw scRNA ingestion: kb-python, kallisto, bustools",
-        "stack":       "ingestion",
-        "yml": """name: aria-ingestion-env
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-channel_priority: strict
-dependencies:
-  - python=3.11
-  - numpy>=1.24,<2.0.0
-  - scipy>=1.11
-  - pandas>=2.0,<3.0
-  - h5py>=3.9
-  - anndata>=0.10,<0.11
-  - scanpy>=1.9.6,<2.0
-  - kb-python>=0.29,<1.0
-  - kallisto>=0.50
-  - bustools>=0.43
-""",
-    },
-    "aria-rnaseq-env": {
-        "description": "Raw RNA-seq: fastp, STAR, featureCounts, samtools",
-        "stack":       "rnaseq",
-        "yml": """name: aria-rnaseq-env
-channels:
-  - bioconda
-  - conda-forge
-  - defaults
-dependencies:
-  - python=3.11
-  - fastp>=1.0
-  - star>=2.7.11
-  - subread>=2.1
-  - samtools>=1.21
-  - multiqc>=1.25
-  - fastqc>=0.12
-  - pandas>=1.5
-  - numpy<2.0.0
-""",
-    },
-    "aria-rna-env": {
-        "description": "scRNA-seq and bulk DE: scanpy, pydeseq2, gseapy",
-        "stack":       "rna",
-        "yml": """name: aria-rna-env
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - python=3.11
-  - scanpy>=1.10
-  - anndata>=0.10
-  - leidenalg
-  - igraph
-  - umap-learn
-  - numba
-  - llvmlite
-  - pip:
-    - pydeseq2
-    - gseapy
-    - scrublet
-""",
-    },
-    "aria-chromatin-env": {
-        "description": "Chromatin analysis: pysam, MACS3, snapatac2, episcanpy",
-        "stack":       "chromatin",
-        "yml": """name: aria-chromatin-env
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - python=3.11
-  - pip
-  - numpy>=1.24,<2.0.0
-  - pandas>=2.2,<3.0
-  - scipy>=1.12
-  - h5py>=3.9
-  - pysam>=0.21
-  - pybedtools>=0.9
-  - bedtools>=2.31
-  - matplotlib>=3.7
-  - seaborn>=0.12
-  - pip:
-    - MACS3==3.0.4
-    - snapatac2==2.9.0
-    - episcanpy==0.4.0
-    - muon==0.1.7
-    - mudata==0.3.3
-    - pyBigWig==0.3.25
-""",
-    },
-    "aria-hic-env": {
-        "description": "3D genome: cooler, cooltools",
-        "stack":       "hic",
-        "yml": """name: aria-hic-env
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - python=3.11
-  - cooler>=0.9
-  - h5py>=3.8
-  - hdf5=1.14.*
-  - numpy<2.0.0
-  - pandas>=1.5
-  - pip:
-    - cooltools
-""",
-    },
-}
+# Derived from the single registry; dependency content lives only in envs/*.yml.
+ARIA_ENVS = setup_environment_definitions()
 
 
 class SetupAgent(BaseAgent):
@@ -422,19 +310,28 @@ class SetupAgent(BaseAgent):
 
     def _needed_envs(self, modalities: dict, has_fastq: bool) -> list[str]:
         """Which ARIA environments does this experiment need?"""
+        by_stack = environment_names_by_stack()
         envs = []
         modality_set = set(modalities)
         if has_fastq and "scRNA" in modality_set:
-            envs.append("aria-ingestion-env")
+            envs.append(by_stack["ingestion"])
         if has_fastq and ({"bulk_RNA", "bulk_RNA_raw"} & modality_set):
-            envs.append("aria-rnaseq-env")
+            envs.append(by_stack["rnaseq"])
         if {"scRNA", "bulk_RNA"} & modality_set:
-            envs.append("aria-rna-env")
-        if {"scATAC", "bulk_ATAC", "ChIP",
-            "CUT_AND_RUN", "CUT_AND_TAG"} & modality_set:
-            envs.append("aria-chromatin-env")
+            envs.append(by_stack["rna"])
+        chromatin = {
+            "scATAC", "bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"
+        } & modality_set
+        if chromatin:
+            envs.extend([
+                by_stack["chromatin"],
+                by_stack["rna"],
+                by_stack["tobias"],
+            ])
+            if has_fastq:
+                envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         if {"HiC", "Micro-C"} & modality_set:
-            envs.append("aria-hic-env")
+            envs.append(by_stack["hic"])
         return list(dict.fromkeys(envs))
 
     def _ensure_env(self, env_name: str, conda_cmd: str,
@@ -458,17 +355,17 @@ class SetupAgent(BaseAgent):
         )
         log.info(f"Creating conda env: {env_name}")
 
-        import tempfile
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False
-        ) as f:
-            f.write(env_def["yml"])
-            yml_path = f.name
+        yml_path = Path(env_def["yml_path"])
+        if not yml_path.exists():
+            warnings.append(
+                f"Versioned environment spec missing for {env_name}: {yml_path}"
+            )
+            return
 
         try:
             r = subprocess.run(
                 [conda_cmd, "env", "create",
-                 "-f", yml_path, "--name", env_name, "-y"],
+                 "-f", str(yml_path), "--name", env_name, "-y"],
                 capture_output=True, text=True,
                 timeout=1800,   # 30 min
             )
@@ -483,8 +380,6 @@ class SetupAgent(BaseAgent):
             warnings.append(f"Timeout creating {env_name} (>30 min)")
         except Exception as e:
             warnings.append(f"Error creating {env_name}: {e}")
-        finally:
-            Path(yml_path).unlink(missing_ok=True)
 
     # ── Reference genome ─────────────────────────────────────────────────
 

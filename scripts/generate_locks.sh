@@ -7,26 +7,26 @@
 #   pip install -r envs/<env>.pip.lock     # if a pip lockfile exists
 #
 # Strategy:
-#   - For every env in the whitelist that is INSTALLED on this machine,
+#   - Read the active lock targets from aria.utils.environment_specs.
+#   - For every required env that is INSTALLED on this machine,
 #     run `conda list --explicit` against that env and write
 #     envs/<env>.linux-64.lock. This is what `conda-lock --kind explicit`
 #     would write but without invoking the solver, which hangs on
 #     bioconda+pip mixes in our setup.
-#   - Capture pip side as envs/<env>.pip.lock via `pip freeze` from the
-#     same env. Skipped if `pip` reports nothing.
-#   - Envs that are not installed are reported as deferred — the v4.4
-#     report will surface that explicitly. scATAC env is deferred to v4.5
-#     by design.
+#   - Capture only packages whose conda record channel is `pypi`, normalized as
+#     portable exact version pins or immutable VCS/archive references. Never
+#     persist build-host file URLs.
+#   - Envs that are not installed are reported as deferred, never fabricated.
 #
 # Usage:
-#   scripts/generate_locks.sh                 # snapshot the published-env whitelist
+#   scripts/generate_locks.sh                 # snapshot active registry targets
 #   scripts/generate_locks.sh aria-rna-env    # snapshot one env
 #   scripts/generate_locks.sh --all           # snapshot every env in envs/
 #   scripts/generate_locks.sh --requirements  # only refresh the top-level
 #                                             #   requirements.lock (pip core)
 #
-# P2-1: the published runtime envs (RNA / ATAC=chromatin / integration) are
-# conda-managed; their linux-64 explicit locks are SNAPSHOTS of the installed
+# P2-1/A5: active runtime and benchmark envs are conda-managed; their linux-64
+# explicit locks are SNAPSHOTS of the installed
 # env (conda-lock's solver hangs on the bioconda+pip mix here). Multi-platform
 # locks and locks for envs that are not installed on this machine are produced
 # by the hermetic Docker lane (P2-2), not fabricated here. The pip core fallback
@@ -36,25 +36,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENVS_DIR="$ROOT/envs"
 
-# Published runtime envs (P2-1). aria-rna-env is the validated RNA baseline;
-# ingestion owns raw scRNA FASTQ quantification; chromatin (scATAC) and
-# integration are published as part of the 4.6/4.7 contract. Envs not installed
-# locally are skipped with a clear message (their locks come from the Docker
-# lane), never fabricated.
-WHITELIST=(
-  "aria-rna-env"
-  "aria-ingestion-env"
-  "aria-chromatin-env"
-  "aria-integration-env"
-)
-DEFERRED=(
-  "aria-hic-env"   # Hi-C dispatch is OFF (P0-3); env lock is not a release gate
+PYTHON_BIN="${PYTHON_BIN:-python}"
+mapfile -t LOCK_ENVS < <(
+  PYTHONPATH="$ROOT" "$PYTHON_BIN" -m aria.utils.environment_specs lock-envs
 )
 
-# The orchestrator env whose pip freeze backs the top-level requirements.lock.
+# The orchestrator env whose portable package snapshot backs requirements.lock.
 CORE_ENV="aria-env"
 
-mode="whitelist"
+mode="registry"
 explicit_target=""
 
 if [[ $# -ge 1 ]]; then
@@ -92,12 +82,13 @@ snapshot_requirements() {
   echo "==> snapshotting $CORE_ENV pip closure -> requirements.lock"
   local py_ver freeze
   py_ver="$(conda run --name "$CORE_ENV" --no-capture-output python --version 2>/dev/null | awk '{print $2}')"
-  freeze="$(conda run --name "$CORE_ENV" --no-capture-output pip freeze 2>/dev/null \
-            | grep -ivE '^-e |^aria-omics| @ file://' || true)"
+  freeze="$(conda run --name "$CORE_ENV" --no-capture-output \
+            python -m pip list --format=freeze 2>/dev/null \
+            | grep -ivE '^-e |^aria-omics' || true)"
   {
     echo "# ARIA core/orchestrator pip lock (P2-1) — pip fallback for the aria-env."
     echo "# Fully-pinned snapshot of the validated orchestrator environment so a"
-    echo "# pip-only install is reproducible. Provenance: pip freeze of conda env"
+    echo "# pip-only install is reproducible. Provenance: package list of conda env"
     echo "# '$CORE_ENV' on linux-64, Python ${py_ver:-unknown}, $(date +%Y-%m-%d)."
     echo "#"
     echo "# This covers the CORE (LLM/orchestration/IO) stack. The heavy scientific"
@@ -120,6 +111,9 @@ snapshot_one() {
   local env_name="$1"
   local lock_file="$ENVS_DIR/${env_name}.linux-64.lock"
   local pip_file="$ENVS_DIR/${env_name}.pip.lock"
+  local lock_tmp="${lock_file}.tmp"
+  local records_tmp="${pip_file}.records.tmp"
+  local pip_tmp="${pip_file}.tmp"
 
   if ! env_installed "$env_name"; then
     echo "skip $env_name: env not installed locally (snapshot deferred)" >&2
@@ -130,29 +124,28 @@ snapshot_one() {
   # `conda list --explicit` produces the exact same format conda-lock
   # writes with --kind explicit, plus an @EXPLICIT marker. It does not
   # invoke the solver.
-  conda list --name "$env_name" --explicit > "$lock_file"
+  conda list --name "$env_name" --explicit > "$lock_tmp"
+  mv "$lock_tmp" "$lock_file"
 
-  # pip side. If the env has no pip packages, skip the .pip.lock file
-  # rather than emit an empty one — keeps the envs/ dir clean.
-  local pip_path
-  pip_path="$(conda run --name "$env_name" --no-capture-output which pip 2>/dev/null || true)"
-  if [[ -n "$pip_path" ]]; then
-    local pip_dump
-    pip_dump="$(conda run --name "$env_name" --no-capture-output pip freeze 2>/dev/null || true)"
-    if [[ -n "$pip_dump" ]]; then
-      printf "%s\n" "$pip_dump" > "$pip_file"
-      echo "    + pip lock: $pip_file"
-    fi
+  # Pip's traditional environment snapshot can preserve build-host references such as
+  # file:///tmp/... . Conda's JSON marks true PyPI installs explicitly, so use
+  # that authoritative channel and normalize it through the shared registry.
+  conda list --name "$env_name" --json > "$records_tmp"
+  PYTHONPATH="$ROOT" conda run --name "$env_name" --no-capture-output \
+    python -m aria.utils.environment_specs pip-lock < "$records_tmp" > "$pip_tmp"
+  rm -f "$records_tmp"
+  if [[ -s "$pip_tmp" ]]; then
+    mv "$pip_tmp" "$pip_file"
+    echo "    + portable pip lock: $pip_file"
+  else
+    rm -f "$pip_tmp" "$pip_file"
   fi
 }
 
 case "$mode" in
-  whitelist)
-    for env_name in "${WHITELIST[@]}"; do
+  registry)
+    for env_name in "${LOCK_ENVS[@]}"; do
       snapshot_one "$env_name"
-    done
-    for env_name in "${DEFERRED[@]}"; do
-      echo "skip $env_name (deferred; rerun with: scripts/generate_locks.sh $env_name)" >&2
     done
     snapshot_requirements
     ;;

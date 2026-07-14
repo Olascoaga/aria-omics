@@ -131,6 +131,7 @@ def test_environment_manager_validates_script_output_contract(
     from aria.utils import environment_manager as em
 
     mgr = _manager(tmp_path)
+    monkeypatch.setattr(mgr, "_resolve_env", lambda stack: "aria-rna-env")
     data_path = tmp_path / "input.h5ad"
     data_path.write_text("placeholder")
 
@@ -160,6 +161,7 @@ def test_environment_manager_attaches_contract_metadata_on_success(
     from aria.utils import environment_manager as em
 
     mgr = _manager(tmp_path)
+    monkeypatch.setattr(mgr, "_resolve_env", lambda stack: "aria-rna-env")
     data_path = tmp_path / "input.h5ad"
     data_path.write_text("placeholder")
 

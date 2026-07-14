@@ -90,6 +90,18 @@ conflicting compiled dependencies.
 | Stack | Typical tools |
 |---|---|
 | RNA | Scanpy, AnnData, pyDESeq2, gseapy, LIANA, CellTypist |
+| scRNA ingestion | kb-python, kallisto, bustools |
+| Raw bulk RNA | fastp, STAR, featureCounts, samtools, MultiQC, FastQC |
+| Raw ATAC | bwa-mem2, chromap, samtools |
 | Chromatin | MACS3, pysam, pybedtools, muon / episcanpy |
+| Footprinting | TOBIAS, samtools |
+| Benchmark | R/Bioconductor reference comparators |
 | Hi-C | cooler, cooltools, hic-straw, pairtools |
 | Integration | MOFA+, muon, scGLUE / related integration tools |
+
+`aria.utils.environment_specs` is the single routing/setup/lock registry. Active
+scientific and benchmark environments have exact Linux locks and can be checked
+with `python -m aria.utils.environment_audit`. A missing registered environment
+fails before scientific subprocess launch; it is never replaced by the
+orchestrator environment. Hi-C and integration remain explicit scaffolds and are
+not release lock targets.

@@ -248,6 +248,7 @@ def test_resolve_env_ignores_any_alias_file(tmp_path, monkeypatch):
     aria_dir.mkdir(parents=True)
     (aria_dir / "env_aliases.json").write_text('{"aria-rna-env": "hijacked-env"}')
     monkeypatch.setenv("HOME", str(tmp_path))
-    resolved = mgr._resolve_env("rna")
-    assert resolved == mgr.FALLBACK_ENV
-    assert resolved != "hijacked-env"
+    with pytest.raises(em.MissingEnvironment) as exc:
+        mgr._resolve_env("rna")
+    assert exc.value.environment == "aria-rna-env"
+    assert exc.value.environment != "hijacked-env"
