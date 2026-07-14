@@ -35,15 +35,17 @@ portable provenance; any other absolute path remains visible to the public
 artifact guard and fails publication validation.
 
 Inventory refresh does not trust a receipt by filename alone. It revalidates
-the receipt schema, lane identity, command, environment, version, commit, Git
-tree and workflow hash, then requires the exact declared artifact set and
+the receipt schema, lane identity, command, environment, version, source snapshot
+and workflow hash, then requires the exact declared artifact set and
 recomputes every recorded size and SHA-256. Missing or modified evidence closes
 the gate as `artifact_mismatch`.
 
 Source cleanliness explicitly excludes only `preprint_v1/`: emitted artifacts
 must not make later lanes look source-dirty, while any modification elsewhere
-still blocks execution. The freeze workflow hash is derived from package version,
-commit and Git tree, so it remains stable as receipts accumulate.
+still blocks execution. The freeze workflow hash is derived from package version
+and a SHA-256 of the indexed source snapshot excluding that output root. Receipts
+therefore survive the publication commit that adds their own evidence, while any
+indexed source change makes them stale.
 
 ## Gate
 

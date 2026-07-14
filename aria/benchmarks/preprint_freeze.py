@@ -321,7 +321,7 @@ def _receipt_status(
         return "failed_receipt"
     if any(
         payload.get(key) != provenance.get(key)
-        for key in ("git_commit", "git_tree_sha", "workflow_hash", "aria_version")
+        for key in ("source_snapshot_hash", "workflow_hash", "aria_version")
     ):
         return "stale_receipt"
     if (
@@ -380,6 +380,21 @@ def _source_tree_clean(repo_root: Path, output_root: Path) -> bool:
         cmd, cwd=repo_root, capture_output=True, text=True, check=False,
     )
     return proc.returncode == 0 and not proc.stdout.strip()
+
+
+def _source_snapshot_hash(repo_root: Path, output_root: Path) -> str:
+    """Hash the indexed source snapshot while excluding freeze outputs."""
+    try:
+        rel = output_root.resolve().relative_to(repo_root.resolve()).as_posix()
+    except ValueError:
+        rel = ""
+    cmd = ["git", "ls-files", "--stage", "-z", "--", "."]
+    if rel:
+        cmd.append(f":(exclude){rel}")
+    proc = subprocess.run(cmd, cwd=repo_root, capture_output=True, check=False)
+    if proc.returncode != 0:
+        raise RuntimeError("could not hash the indexed source snapshot")
+    return hashlib.sha256(proc.stdout).hexdigest()
 
 
 def _safe_test_summary(stdout: str) -> str | None:
@@ -503,6 +518,7 @@ def execute_lane(
         "status": "pass",
         "git_commit": baseline.get("git_commit"),
         "git_tree_sha": baseline.get("git_tree_sha"),
+        "source_snapshot_hash": baseline.get("source_snapshot_hash"),
         "workflow_hash": baseline.get("workflow_hash"),
         "aria_version": baseline.get("aria_version"),
         "environment": lane["environment"],
@@ -531,25 +547,29 @@ def build_inventory(
     output_root = Path(output_root)
     version = collect_version_metadata(repo_root)
     source_clean = _source_tree_clean(repo_root, output_root)
+    source_snapshot_hash = _source_snapshot_hash(repo_root, output_root)
     git_describe = str(version.get("git_describe") or "")
     if source_clean and git_describe.endswith("-dirty"):
         git_describe = git_describe[:-6]
     freeze_workflow_payload = "\0".join((
         str(version.get("aria_version") or ""),
-        str(version.get("git_commit") or ""),
-        str(version.get("git_tree_sha") or ""),
+        source_snapshot_hash,
     ))
     provenance = {
         "aria_version": version.get("aria_version"),
         "version_source": version.get("version_source"),
         "git_commit": version.get("git_commit"),
         "git_tree_sha": version.get("git_tree_sha"),
+        "source_snapshot_hash": source_snapshot_hash,
+        "source_snapshot_hash_algorithm": (
+            "sha256(git-ls-files-stage-excluding-output)"
+        ),
         "git_describe": git_describe,
         "git_dirty": not source_clean,
         "workflow_hash": hashlib.sha256(
             freeze_workflow_payload.encode("utf-8")
         ).hexdigest(),
-        "workflow_hash_algorithm": "sha256(version+git_commit+git_tree_sha)",
+        "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)",
     }
     resources = probe_resources(output_root, overrides=resource_overrides)
     lanes: list[dict[str, Any]] = []

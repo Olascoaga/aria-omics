@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-import json
 import hashlib
+import json
 from pathlib import Path
+import subprocess
 
 from aria.benchmarks.preprint_freeze import (
     CLAIM_IDS,
     LANES,
     _receipt_status,
     _sanitize_public_json_artifact,
+    _source_snapshot_hash,
     build_inventory,
     execute_lane,
     write_inventory,
@@ -131,6 +133,7 @@ def test_receipt_revalidates_artifact_hash(tmp_path):
     provenance = {
         "git_commit": "commit",
         "git_tree_sha": "tree",
+        "source_snapshot_hash": "source",
         "workflow_hash": "workflow",
         "aria_version": "4.7.0",
     }
@@ -163,3 +166,24 @@ def test_external_comparator_receipt_covers_supporting_files():
     assert "claim_1/a1_external/r_outputs/deseq2.tsv" in expected
     assert "claim_1/a1_external/r_outputs/edgeR_QLF.tsv" in expected
     assert "claim_1/a1_external/r_outputs/limma_voom.tsv" in expected
+
+
+def test_source_snapshot_hash_excludes_only_output_root(tmp_path):
+    repo = tmp_path / "repo"
+    output = repo / "docs/benchmark_results/preprint_v1"
+    output.mkdir(parents=True)
+    source = repo / "aria/source.py"
+    source.parent.mkdir()
+    source.write_text("VALUE = 1\n", encoding="utf-8")
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    baseline = _source_snapshot_hash(repo, output)
+
+    artifact = output / "inventory.json"
+    artifact.write_text("{}\n", encoding="utf-8")
+    subprocess.run(["git", "add", str(artifact)], cwd=repo, check=True)
+    assert _source_snapshot_hash(repo, output) == baseline
+
+    source.write_text("VALUE = 2\n", encoding="utf-8")
+    subprocess.run(["git", "add", str(source)], cwd=repo, check=True)
+    assert _source_snapshot_hash(repo, output) != baseline
