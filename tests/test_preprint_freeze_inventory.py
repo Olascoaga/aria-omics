@@ -167,6 +167,7 @@ def test_external_comparator_receipt_covers_supporting_files():
     lane = next(item for item in LANES if item["lane_id"] == "c1_a1_external_comparators")
     expected = set(lane["expected_artifacts"])
 
+    assert lane["command"].startswith("PYTHONPATH=. ")
     assert "claim_1/a1_external/a1_external_comparators.json" in expected
     assert "claim_1/a1_external/inputs/a1_counts.tsv" in expected
     assert "claim_1/a1_external/r_outputs/deseq2.tsv" in expected

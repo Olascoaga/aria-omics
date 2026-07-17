@@ -65,7 +65,7 @@ LANES: tuple[dict[str, Any], ...] = (
     _lane(
         "c1_a1_external_comparators", ("claim_1",),
         "Fresh DESeq2/edgeR/limma comparator execution on the identical A1 matrix.",
-        "python scripts/run_a1_external_comparators.py --output-dir "
+        "PYTHONPATH=. python scripts/run_a1_external_comparators.py --output-dir "
         "docs/benchmark_results/preprint_v1/claim_1/a1_external "
         "--manifest-name a1_external_comparators.json",
         "aria-env -> aria-bench-env", ("env:aria-env", "env:aria-bench-env"),
