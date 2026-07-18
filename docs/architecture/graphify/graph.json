@@ -42390,7 +42390,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "id": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "label": "install.sh script",
       "file_type": "code",
       "source_file": "install.sh",
@@ -42663,7 +42663,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_graphify_graph_sh__entry",
+      "id": "tmp_aria_graphify_x4hina_corpus_scripts_generate_graphify_graph_sh__entry",
       "label": "generate_graphify_graph.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -42685,7 +42685,7 @@
       }
     },
     {
-      "id": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_locks_sh__entry",
+      "id": "tmp_aria_graphify_x4hina_corpus_scripts_generate_locks_sh__entry",
       "label": "generate_locks.sh script",
       "file_type": "code",
       "source_file": "scripts/generate_locks.sh",
@@ -43230,140 +43230,154 @@
       "label": "FrozenLLMDouble",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L100"
+      "source_location": "L102"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_for_execution",
       "label": ".for_execution()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L135"
+      "source_location": "L137"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_complete",
       "label": ".complete()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L138"
+      "source_location": "L140"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_complete_heavy",
       "label": ".complete_heavy()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L146"
+      "source_location": "L148"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_complete_medium",
       "label": ".complete_medium()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L149"
+      "source_location": "L151"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_complete_light",
       "label": ".complete_light()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L152"
+      "source_location": "L154"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozenllmdouble_get_active_model",
       "label": ".get_active_model()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L155"
+      "source_location": "L157"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_frozen_h9_answer_policy",
       "label": "frozen_h9_answer_policy()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L159"
+      "source_location": "L161"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_py_str",
       "label": "str",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L159"
+      "source_location": "L161"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_sha256",
       "label": "_sha256()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184"
+      "source_location": "L186"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_py_path",
       "label": "Path",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184"
+      "source_location": "L186"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_py_int",
       "label": "int",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184"
+      "source_location": "L186"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_find_first",
       "label": "_find_first()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L192"
+      "source_location": "L194"
+    },
+    {
+      "id": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "label": "_portable_json_paths()",
+      "file_type": "code",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L205"
+    },
+    {
+      "id": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "label": "_portable_report_html()",
+      "file_type": "code",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_inventory",
       "label": "_inventory()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L203"
+      "source_location": "L236"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_env_locks",
       "label": "_env_locks()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L218"
+      "source_location": "L251"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_scan_de_summary",
       "label": "_scan_de_summary()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L233"
+      "source_location": "L266"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_publish",
       "label": "publish()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253"
+      "source_location": "L286"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_run",
       "label": "run()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348"
+      "source_location": "L403"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_py_float",
       "label": "float",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348"
+      "source_location": "L403"
     },
     {
       "id": "scripts_run_c1_h9_fastq_e2e_main",
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L375"
+      "source_location": "L430"
     },
     {
       "id": "scripts_run_c3_design_blind_gold",
@@ -56677,21 +56691,21 @@
       "label": "test_publish_assembles_capsule_and_copies_canonical_artifacts()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L228"
+      "source_location": "L232"
     },
     {
       "id": "tests_test_preprint_audit_c1_h9_fastq_e2e_test_publish_fails_loudly_without_a_de_table",
       "label": "test_publish_fails_loudly_without_a_de_table()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L269"
+      "source_location": "L278"
     },
     {
       "id": "tests_test_preprint_audit_c1_h9_fastq_e2e_test_capsule_carries_no_absolute_machine_paths",
       "label": "test_capsule_carries_no_absolute_machine_paths()",
       "file_type": "code",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L283"
+      "source_location": "L292"
     },
     {
       "id": "tests_test_preprint_audit_c2_scatac_donor_aware",
@@ -60616,39 +60630,6 @@
       "contributor": null
     },
     {
-      "id": "pseudobulk_scrna_dataauditagent",
-      "label": "DataAuditAgent",
-      "file_type": "code",
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "pseudobulk_scrna_designagent",
-      "label": "DesignAgent",
-      "file_type": "code",
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "pseudobulk_scrna_rna_qc",
-      "label": "rna_qc.py",
-      "file_type": "code",
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "pseudobulk_scrna_rna_pseudobulk_de",
       "label": "rna_pseudobulk_de.py",
       "file_type": "code",
@@ -60660,10 +60641,10 @@
       "contributor": null
     },
     {
-      "id": "pseudobulk_scrna_narrativeagent",
-      "label": "NarrativeAgent",
+      "id": "scrna_rna_qc",
+      "label": "rna_qc.py",
       "file_type": "code",
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
+      "source_file": "docs/workflows/scrna.md",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60704,10 +60685,10 @@
       "contributor": null
     },
     {
-      "id": "trajectory_rna_trajectory",
-      "label": "rna_trajectory.py",
+      "id": "aria_atacseq_env",
+      "label": "aria-atacseq-env",
       "file_type": "code",
-      "source_file": "docs/workflows/trajectory.md",
+      "source_file": "envs/aria-atacseq-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60715,10 +60696,10 @@
       "contributor": null
     },
     {
-      "id": "aria_atacseq_env",
-      "label": "aria-atacseq-env",
+      "id": "aria_chromatin_env",
+      "label": "aria-chromatin-env",
       "file_type": "code",
-      "source_file": "envs/aria-atacseq-env.yml",
+      "source_file": "envs/aria-chromatin-env.yml",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60858,17 +60839,6 @@
       "contributor": null
     },
     {
-      "id": "message_bus",
-      "label": "MessageBus",
-      "file_type": "code",
-      "source_file": "aria/bus/message_bus.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
       "id": "aria_memory",
       "label": "ARIAMemory",
       "file_type": "code",
@@ -60880,10 +60850,10 @@
       "contributor": null
     },
     {
-      "id": "llm_provider",
-      "label": "LLMProvider",
+      "id": "message_bus",
+      "label": "MessageBus",
       "file_type": "code",
-      "source_file": "aria/llm/provider.py",
+      "source_file": "aria/bus/message_bus.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -60913,6 +60883,17 @@
       "contributor": null
     },
     {
+      "id": "geo_connector",
+      "label": "GEOConnector",
+      "file_type": "code",
+      "source_file": "aria/connectors/geo_connector.py",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
       "id": "rna_bulk_de",
       "label": "rna_bulk_de.py",
       "file_type": "code",
@@ -60935,32 +60916,10 @@
       "contributor": null
     },
     {
-      "id": "claim_compiler",
-      "label": "Claim Compiler",
+      "id": "chromatin_diffacc",
+      "label": "chromatin_diffacc.py",
       "file_type": "code",
-      "source_file": "aria/agents/narrative/claim_compiler.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "devils_advocate",
-      "label": "Devil's Advocate",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/devils_advocate.py",
-      "source_location": null,
-      "source_url": null,
-      "captured_at": null,
-      "author": null,
-      "contributor": null
-    },
-    {
-      "id": "run_ledger",
-      "label": "Run Ledger",
-      "file_type": "code",
-      "source_file": "aria/agents/narrative/run_ledger.py",
+      "source_file": "aria/scripts/chromatin_diffacc.py",
       "source_location": null,
       "source_url": null,
       "captured_at": null,
@@ -172831,7 +172790,7 @@
     },
     {
       "source": "install",
-      "target": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "target": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "install.sh",
@@ -172884,7 +172843,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "target": "install_step",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -172894,7 +172853,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "target": "install_success",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -172904,7 +172863,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "target": "install_warn",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -172914,7 +172873,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "target": "install_info",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -172924,7 +172883,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_install_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_install_sh__entry",
       "target": "install_error",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -173275,7 +173234,7 @@
     },
     {
       "source": "scripts_generate_graphify_graph",
-      "target": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_graphify_graph_sh__entry",
+      "target": "tmp_aria_graphify_x4hina_corpus_scripts_generate_graphify_graph_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_graphify_graph.sh",
@@ -173284,7 +173243,7 @@
     },
     {
       "source": "scripts_generate_locks",
-      "target": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_locks_sh__entry",
+      "target": "tmp_aria_graphify_x4hina_corpus_scripts_generate_locks_sh__entry",
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/generate_locks.sh",
@@ -173319,7 +173278,7 @@
       "weight": 1.0
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_one",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -173329,7 +173288,7 @@
       "context": "call"
     },
     {
-      "source": "tmp_aria_graphify_pauz0v_corpus_scripts_generate_locks_sh__entry",
+      "source": "tmp_aria_graphify_x4hina_corpus_scripts_generate_locks_sh__entry",
       "target": "scripts_generate_locks_snapshot_requirements",
       "relation": "calls",
       "confidence": "EXTRACTED",
@@ -174072,7 +174031,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L100",
+      "source_location": "L102",
       "weight": 1.0
     },
     {
@@ -174081,7 +174040,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L135",
+      "source_location": "L137",
       "weight": 1.0
     },
     {
@@ -174090,7 +174049,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L138",
+      "source_location": "L140",
       "weight": 1.0
     },
     {
@@ -174099,7 +174058,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L146",
+      "source_location": "L148",
       "weight": 1.0
     },
     {
@@ -174108,7 +174067,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L149",
+      "source_location": "L151",
       "weight": 1.0
     },
     {
@@ -174117,7 +174076,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L152",
+      "source_location": "L154",
       "weight": 1.0
     },
     {
@@ -174126,7 +174085,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L155",
+      "source_location": "L157",
       "weight": 1.0
     },
     {
@@ -174135,7 +174094,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L159",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -174145,7 +174104,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L159",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -174155,7 +174114,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L159",
+      "source_location": "L161",
       "weight": 1.0
     },
     {
@@ -174164,7 +174123,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -174174,7 +174133,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -174184,7 +174143,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -174194,7 +174153,7 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L184",
+      "source_location": "L186",
       "weight": 1.0
     },
     {
@@ -174203,7 +174162,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -174213,7 +174172,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -174223,7 +174182,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L192",
+      "source_location": "L194",
       "weight": 1.0
     },
     {
@@ -174233,7 +174192,85 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L192",
+      "source_location": "L194",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e",
+      "target": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L205",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e",
+      "target": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "generic_arg",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_str",
+      "relation": "references",
+      "context": "return_type",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L221",
       "weight": 1.0
     },
     {
@@ -174242,7 +174279,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L203",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -174252,7 +174289,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L203",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -174262,7 +174299,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L203",
+      "source_location": "L236",
       "weight": 1.0
     },
     {
@@ -174271,7 +174308,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L218",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -174281,7 +174318,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L218",
+      "source_location": "L251",
       "weight": 1.0
     },
     {
@@ -174290,7 +174327,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L233",
+      "source_location": "L266",
       "weight": 1.0
     },
     {
@@ -174299,7 +174336,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -174309,7 +174346,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -174319,7 +174356,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -174329,7 +174366,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -174339,7 +174376,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L253",
+      "source_location": "L286",
       "weight": 1.0
     },
     {
@@ -174348,7 +174385,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -174358,7 +174395,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -174368,7 +174405,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -174378,7 +174415,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -174388,7 +174425,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L348",
+      "source_location": "L403",
       "weight": 1.0
     },
     {
@@ -174397,7 +174434,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L375",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -174407,7 +174444,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L375",
+      "source_location": "L430",
       "weight": 1.0
     },
     {
@@ -174417,7 +174454,17 @@
       "context": "return_type",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L375",
+      "source_location": "L430",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "target": "scripts_run_c1_h9_fastq_e2e_py_path",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L214",
       "weight": 1.0
     },
     {
@@ -174427,7 +174474,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L213",
+      "source_location": "L246",
       "weight": 1.0
     },
     {
@@ -174437,7 +174484,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L227",
+      "source_location": "L260",
       "weight": 1.0
     },
     {
@@ -174447,7 +174494,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L262",
+      "source_location": "L295",
       "weight": 1.0
     },
     {
@@ -174457,7 +174504,27 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L273",
+      "source_location": "L306",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_publish",
+      "target": "scripts_run_c1_h9_fastq_e2e_portable_json_paths",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L321",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_run_c1_h9_fastq_e2e_publish",
+      "target": "scripts_run_c1_h9_fastq_e2e_portable_report_html",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/run_c1_h9_fastq_e2e.py",
+      "source_location": "L324",
       "weight": 1.0
     },
     {
@@ -174467,7 +174534,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L300",
+      "source_location": "L347",
       "weight": 1.0
     },
     {
@@ -174477,7 +174544,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L305",
+      "source_location": "L361",
       "weight": 1.0
     },
     {
@@ -174487,7 +174554,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L335",
+      "source_location": "L390",
       "weight": 1.0
     },
     {
@@ -174497,7 +174564,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L338",
+      "source_location": "L393",
       "weight": 1.0
     },
     {
@@ -174507,7 +174574,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L351",
+      "source_location": "L406",
       "weight": 1.0
     },
     {
@@ -174517,7 +174584,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L360",
+      "source_location": "L415",
       "weight": 1.0
     },
     {
@@ -174527,7 +174594,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L368",
+      "source_location": "L423",
       "weight": 1.0
     },
     {
@@ -174537,7 +174604,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L386",
+      "source_location": "L441",
       "weight": 1.0
     },
     {
@@ -200642,7 +200709,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L228",
+      "source_location": "L232",
       "weight": 1.0
     },
     {
@@ -200651,7 +200718,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L269",
+      "source_location": "L278",
       "weight": 1.0
     },
     {
@@ -200660,7 +200727,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L283",
+      "source_location": "L292",
       "weight": 1.0
     },
     {
@@ -200730,7 +200797,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L229",
+      "source_location": "L233",
       "weight": 1.0
     },
     {
@@ -200740,7 +200807,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L230",
+      "source_location": "L234",
       "weight": 1.0
     },
     {
@@ -200750,7 +200817,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L270",
+      "source_location": "L279",
       "weight": 1.0
     },
     {
@@ -200760,7 +200827,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L271",
+      "source_location": "L280",
       "weight": 1.0
     },
     {
@@ -200770,7 +200837,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L284",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -200780,7 +200847,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "tests/test_preprint_audit_c1_h9_fastq_e2e.py",
-      "source_location": "L285",
+      "source_location": "L294",
       "weight": 1.0
     },
     {
@@ -216464,7 +216531,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L161",
+      "source_location": "L163",
       "weight": 1.0
     },
     {
@@ -216474,7 +216541,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L260",
+      "source_location": "L293",
       "weight": 1.0
     },
     {
@@ -216484,7 +216551,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L349",
+      "source_location": "L404",
       "weight": 1.0
     },
     {
@@ -228104,7 +228171,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L181",
+      "source_location": "L183",
       "weight": 1.0
     },
     {
@@ -228114,7 +228181,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L310",
+      "source_location": "L365",
       "weight": 1.0
     },
     {
@@ -228124,7 +228191,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/run_c1_h9_fastq_e2e.py",
-      "source_location": "L352",
+      "source_location": "L407",
       "weight": 1.0
     },
     {
@@ -244089,22 +244156,22 @@
       "weight": 1.0
     },
     {
-      "source": "pseudobulk_scrna_dataauditagent",
-      "target": "pseudobulk_scrna_designagent",
-      "relation": "calls",
+      "source": "scrna_rna_qc",
+      "target": "scrna_rna_concat",
+      "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
+      "source_file": "docs/workflows/scrna.md",
       "source_location": null,
       "weight": 1.0
     },
     {
-      "source": "pseudobulk_scrna_rna_pseudobulk_de",
-      "target": "pseudobulk_scrna_narrativeagent",
+      "source": "scrna_rna_concat",
+      "target": "scrna_rna_integration",
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "docs/workflows/pseudobulk_scrna.md",
+      "source_file": "docs/workflows/scrna.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -244199,52 +244266,12 @@
       "weight": 1.0
     },
     {
-      "source": "biological_synthesis_agent",
-      "target": "claim_compiler",
-      "relation": "references",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "docs/architecture/biological_synthesis.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "claim_compiler",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "devils_advocate",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
-      "source": "narrative_agent",
-      "target": "run_ledger",
-      "relation": "calls",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "README.md",
-      "source_location": null,
-      "weight": 1.0
-    },
-    {
       "source": "bulk_rna_agent",
       "target": "rna_bulk_de",
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "README.md",
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
@@ -244254,7 +244281,67 @@
       "relation": "calls",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chromatin_agent",
+      "target": "chromatin_diffacc",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "scrna_agent",
+      "target": "parameter_advisor",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "aria_memory",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "message_bus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "bulk_rna_agent",
+      "target": "environment_manager",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "orchestrator_agent",
+      "target": "geo_connector",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/architecture/code_graph.md",
       "source_location": null,
       "weight": 1.0
     },
