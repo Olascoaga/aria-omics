@@ -10,7 +10,7 @@
         "c1_ercc_dose_response",
         "c1_h9_fastq_e2e"
       ],
-      "status": "blocked"
+      "status": "verified"
     },
     {
       "claim_id": "claim_2",
@@ -20,7 +20,7 @@
         "c2_pairing_and_technical_replicates",
         "c2_scatac_donor_aware"
       ],
-      "status": "blocked"
+      "status": "verified"
     },
     {
       "claim_id": "claim_3",
@@ -46,7 +46,7 @@
         "c5_semantic_negation",
         "c5_multimodal_null_permutations"
       ],
-      "status": "blocked"
+      "status": "verified"
     },
     {
       "claim_id": "claim_6",
@@ -67,16 +67,8 @@
   "freeze_gate": {
     "blockers": [
       {
-        "lane_id": "c1_h9_fastq_e2e",
-        "status": "blocked_missing_implementation"
-      },
-      {
-        "lane_id": "c2_scatac_donor_aware",
-        "status": "blocked_missing_implementation"
-      },
-      {
         "lane_id": "c3_blind_multifactorial_corpus",
-        "status": "blocked_missing_implementation"
+        "status": "blocked_missing_resources"
       },
       {
         "lane_id": "c4_b2_multi_annotator_gold",
@@ -84,11 +76,7 @@
       },
       {
         "lane_id": "c4_report_e2e_false_narrative",
-        "status": "blocked_missing_implementation"
-      },
-      {
-        "lane_id": "c5_multimodal_null_permutations",
-        "status": "blocked_missing_implementation"
+        "status": "blocked_missing_resources"
       },
       {
         "lane_id": "c6_b3_real_e2e",
@@ -96,11 +84,11 @@
       }
     ],
     "n_required_lanes": 21,
-    "n_verified_lanes": 14,
+    "n_verified_lanes": 17,
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-07-14T05:51:34.139740+00:00",
+  "generated_utc": "2026-07-18T03:34:36.818716+00:00",
   "lanes": [
     {
       "claims": [
@@ -126,7 +114,7 @@
       "claims": [
         "claim_1"
       ],
-      "command": "python scripts/run_a1_external_comparators.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_external --manifest-name a1_external_comparators.json",
+      "command": "PYTHONPATH=. python scripts/run_a1_external_comparators.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_external --manifest-name a1_external_comparators.json",
       "environment": "aria-env -> aria-bench-env",
       "evidence_kind": "artifact",
       "expected_artifacts": [
@@ -216,20 +204,27 @@
       "claims": [
         "claim_1"
       ],
-      "command": null,
-      "environment": "aria-rnaseq-env + aria-rna-env",
+      "command": "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
+      "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
       "evidence_kind": "e2e_capsule",
-      "expected_artifacts": [],
-      "implementation": "missing",
+      "expected_artifacts": [
+        "claim_1/h9_e2e/capsule.json",
+        "claim_1/h9_e2e/report.html",
+        "claim_1/h9_e2e/methodology.json",
+        "claim_1/h9_e2e/de_results.tsv",
+        "claim_1/h9_e2e/fig1_h9_bulk_de.svg"
+      ],
+      "implementation": "available",
       "lane_id": "c1_h9_fastq_e2e",
       "required_for_freeze": true,
       "requirement": "Clean-checkout FASTQ-to-report bulk-RNA E2E with frozen checkpoint policy.",
       "resources": [
+        "env:aria-env",
         "env:aria-rnaseq-env",
         "env:aria-rna-env",
         "data:h9_fastq"
       ],
-      "status": "blocked_missing_implementation"
+      "status": "verified"
     },
     {
       "claims": [
@@ -293,11 +288,13 @@
       "claims": [
         "claim_2"
       ],
-      "command": null,
+      "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Single/prueba/muon_processed --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
       "environment": "aria-rna-env + aria-bench-env",
       "evidence_kind": "external_concordance",
-      "expected_artifacts": [],
-      "implementation": "missing",
+      "expected_artifacts": [
+        "claim_2/scatac_donor/scatac_donor_da_concordance.json"
+      ],
+      "implementation": "available",
       "lane_id": "c2_scatac_donor_aware",
       "required_for_freeze": true,
       "requirement": "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
@@ -306,7 +303,7 @@
         "env:aria-bench-env",
         "data:gse278576"
       ],
-      "status": "blocked_missing_implementation"
+      "status": "verified"
     },
     {
       "claims": [
@@ -332,18 +329,21 @@
       "claims": [
         "claim_3"
       ],
-      "command": null,
-      "environment": "human review",
+      "command": "conda run -n aria-env python scripts/run_c3_design_blind_gold.py score docs/benchmark_results/preprint_v1/human/design_gold.csv --out docs/benchmark_results/preprint_v1/claim_3/blind_design_gold.json",
+      "environment": "aria-env + human review",
       "evidence_kind": "human_gold",
-      "expected_artifacts": [],
-      "implementation": "missing",
+      "expected_artifacts": [
+        "claim_3/blind_design_gold.json"
+      ],
+      "implementation": "available",
       "lane_id": "c3_blind_multifactorial_corpus",
       "required_for_freeze": true,
       "requirement": "Independent blind gold for a multifactorial held-out design corpus.",
       "resources": [
+        "env:aria-env",
         "human:design_gold"
       ],
-      "status": "blocked_missing_implementation"
+      "status": "blocked_missing_resources"
     },
     {
       "claims": [
@@ -389,19 +389,22 @@
       "claims": [
         "claim_4"
       ],
-      "command": null,
-      "environment": "aria-env + human review",
+      "command": "conda run -n aria-env python scripts/run_c4_report_e2e_false_narrative.py score docs/benchmark_results/preprint_v1/human/report_faithfulness.csv --out docs/benchmark_results/preprint_v1/claim_4/report_e2e/report_e2e_human_gold.json",
+      "environment": "aria-env + aria-rna-env + human review",
       "evidence_kind": "e2e_human_gold",
-      "expected_artifacts": [],
-      "implementation": "missing",
+      "expected_artifacts": [
+        "claim_4/report_e2e/report_e2e_human_gold.json"
+      ],
+      "implementation": "available",
       "lane_id": "c4_report_e2e_false_narrative",
       "required_for_freeze": true,
       "requirement": "E2E benchmark through bus, compiler, report and independent human scoring.",
       "resources": [
         "env:aria-env",
+        "env:aria-rna-env",
         "human:b2_annotators"
       ],
-      "status": "blocked_missing_implementation"
+      "status": "blocked_missing_resources"
     },
     {
       "claims": [
@@ -444,19 +447,22 @@
       "claims": [
         "claim_5"
       ],
-      "command": null,
-      "environment": "aria-rna-env + aria-chromatin-env",
+      "command": "conda run -n aria-env python scripts/run_c5_multimodal_null_permutations.py --output-dir docs/benchmark_results/preprint_v1/claim_5/multimodal_null --manifest-name multimodal_null.json",
+      "environment": "aria-env -> aria-rna-env + aria-chromatin-env",
       "evidence_kind": "multimodal_e2e",
-      "expected_artifacts": [],
-      "implementation": "missing",
+      "expected_artifacts": [
+        "claim_5/multimodal_null/multimodal_null.json"
+      ],
+      "implementation": "available",
       "lane_id": "c5_multimodal_null_permutations",
       "required_for_freeze": true,
       "requirement": "Fresh RNA and ATAC label-permutation null reports through the public compiler.",
       "resources": [
+        "env:aria-env",
         "env:aria-rna-env",
         "env:aria-chromatin-env"
       ],
-      "status": "blocked_missing_implementation"
+      "status": "verified"
     },
     {
       "claims": [
@@ -515,20 +521,20 @@
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
     "aria_version": "4.7.0",
-    "git_commit": "909c3c3775c309f4c338ef38aaf1e783b5612610",
-    "git_describe": "v4.7.0-274-g909c3c3",
+    "git_commit": "4ecd0f9c78df31f06a3a024548b0b5e6b256bfc0",
+    "git_describe": "v4.7.0-290-g4ecd0f9",
     "git_dirty": false,
-    "git_tree_sha": "1006d7cc6c5c4f3ced90f0bbdb075e978421a172",
-    "source_snapshot_hash": "144dfa901138f780cbb6368090eaec210dc84c6d190b2e2af89b0f1ea05c2673",
+    "git_tree_sha": "b7358115cf78e70db01a40b781008be033a5fe8f",
+    "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "92e21a3e011aa2c14fa36ee8506bcb64bee47389d8f03d4ae07bc75b26a58b88",
+    "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f",
     "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
   },
   "resources": {
     "data:gse278576": {
       "available": true,
-      "path_ref": "validation-data://gse278576",
+      "path_ref": "validation-data://gse278576_scatac_donor_h5mu",
       "state": "available"
     },
     "data:h9_fastq": {
