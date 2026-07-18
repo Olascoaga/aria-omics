@@ -9,7 +9,7 @@ flowchart TD
     ALN --> QNT[rna_quantify.py]
     QNT --> COUNTS[Counts matrix]
     T -->|no| COUNTS
-    COUNTS --> DESIGN[Confirmed design or fallback inference]
+    COUNTS --> DESIGN[Confirmed metadata and contrasts]
     DESIGN --> DE[rna_bulk_de.py]
     DE --> QC[Sample QC]
     DE --> PW[ORA + GSEA]

@@ -45,7 +45,7 @@ flowchart TD
     ALN --> QNT[rna_quantify.py featureCounts]
     QNT --> COUNTS[Counts matrix]
     T -->|no| COUNTS
-    COUNTS --> DESIGN[Apply confirmed design or fallback inference]
+    COUNTS --> DESIGN[Apply confirmed metadata and contrasts]
     DESIGN --> DE[rna_bulk_de.py DESeq2 / pyDESeq2]
     DE --> QC[Sample QC and replicate concordance]
     DE --> PW[ORA + GSEA]
@@ -60,7 +60,7 @@ The same diagram is stored as [bulk_rna_flow.mmd](../diagrams/bulk_rna_flow.mmd)
 
 ## Outputs
 
-- all pairwise contrasts;
+- explicitly confirmed contrasts;
 - FASTQ QC, alignment, and quantification summaries when preprocessing runs;
 - DE tables per contrast;
 - pathway enrichment per contrast;
@@ -81,5 +81,11 @@ The same diagram is stored as [bulk_rna_flow.mmd](../diagrams/bulk_rna_flow.mmd)
 ## Current Evidence
 
 - synthetic regression suite: `python tests/test_bulk_rna.py`;
-- H9 three-condition workflow with BMAL1 KO, REV-ERBalpha KO, and WT;
+- H9 three-condition workflow with prespecified knockout-versus-control
+  contrasts;
 - pyDESeq2 API compatibility path for old and new interfaces.
+
+ARIA does not generate every pairwise contrast automatically in production. A
+count matrix run requires explicit sample metadata and requested contrasts; it
+does not recover a failed design from filenames unless a development-only
+fallback is deliberately enabled and visibly caveated.

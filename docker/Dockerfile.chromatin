@@ -1,16 +1,16 @@
 # ARIA scATAC (chromatin) image — SCAFFOLD (P2-2 pattern, not a release image).
 #
-# NOT built in CI: the chromatin env is not yet solved/validated in CI and the
-# scATAC science is a v4.6 deliverable. The structure is here so the modality
-# image lands FROM the common base WITHOUT touching the validated RNA path when
-# chromatin is productionized. It self-stamps ARIA_IMAGE_VALIDATION=scaffold so
-# a report can never present it as a validated/reproducible image.
+# NOT built in release CI: the independent chromatin container solve/build lane
+# has not closed. Runtime scATAC and bulk ATAC are acknowledgement-gated beta,
+# but that does not validate this image. It self-stamps
+# ARIA_IMAGE_VALIDATION=scaffold so a report cannot present the container as a
+# validated/reproducible chromatin image.
 ARG ARIA_BASE_IMAGE=aria-base:local
 FROM ${ARIA_BASE_IMAGE}
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-# v4.6: promote to a release image once envs/aria-chromatin-env.yml solves in CI
-# and the chromatin science is validated.
+# Promote only after envs/aria-chromatin-env.yml solves in a blocking release
+# lane and the image-level smoke/evidence review closes.
 RUN micromamba install -y -n base -f /opt/aria/envs/aria-chromatin-env.yml && \
     micromamba clean --all --yes
 RUN python -m pip install --no-deps -e /opt/aria

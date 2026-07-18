@@ -26,11 +26,12 @@ flowchart TD
     A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
     A -->|no blocking issues| SETUP[SetupAgent environment check]
     CP35 -->|proceed| SETUP
-    SETUP --> DISPATCH[Modality dispatch]
+    SETUP --> GATE{Runtime readiness gate}
+    GATE --> DISPATCH[Enabled modality dispatch]
     DISPATCH --> B[BulkRNAAgent]
     DISPATCH --> S[scRNAAgent]
     DISPATCH --> C[ChromatinAgent beta]
-    DISPATCH --> H[GenomeArchAgent scaffolded]
+    GATE -. blocked by default .-> H[GenomeArchAgent scaffolded]
     B --> MAYBEINT{2+ modalities or integration requested?}
     S --> MAYBEINT
     C --> MAYBEINT
@@ -63,13 +64,24 @@ specification and leaves full benchmark execution as the RNA preprint lane.
 | SetupAgent | Checks computational environment before modality agents run |
 | BulkRNAAgent | Orchestrates bulk RNA count/FASTQ workflows |
 | scRNAAgent | Orchestrates QC, integration, clustering, annotation, DE, pseudobulk, beta trajectory and LIANA |
-| ChromatinAgent | Orchestrates beta scATAC behind acknowledgement and the V47 bulk ATAC beta QC/peak-calling/count-matrix/replicate-gated-DA slice; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
+| ChromatinAgent | Orchestrates acknowledgement-gated beta scATAC and the implemented V47 bulk ATAC workflow; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
 | IntegrationAgent | Runs only for multimodal analyses or when explicitly requested; still scaffolded |
 | NarrativeAgent | Writes reports from structured outputs and warnings |
 | EnvironmentManager | Runs modality scripts in isolated Conda stacks using JSON IPC |
 | ParameterAdvisor | Scores parameter candidates and records decisions |
 | ARIAMemory | Stores decisions/findings in SQLite |
 | MessageBus | Moves internal agent messages and checkpoint events |
+| Experiment read-model | Derives UI-independent progress, checkpoints, ledger, readiness, and artifacts |
+| Control Center | Optional Textual presentation over the shared read-model and checkpoint resolver |
+
+## Execution Surfaces
+
+`aria` selects the Textual Control Center only on an interactive TTY with the
+`tui` extra installed. `--classic-tui`, `--reproducible`, `ARIA_NO_TUI`, a
+missing Textual dependency, or a non-TTY process uses the classic Rich path.
+`aria.headless.run_headless` provides the programmatic non-interactive surface.
+All three use the same orchestrator and checkpoint contract; UI state is not a
+scientific source of truth.
 
 ## Script Boundary
 

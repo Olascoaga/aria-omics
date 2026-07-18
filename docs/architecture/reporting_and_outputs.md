@@ -23,8 +23,8 @@ Examples:
 
 ## Narrative Kernel
 
-As of `v4.5.2`, `NarrativeAgent` composes supported modalities through a
-small kernel under `aria.agents.narrative`.
+`NarrativeAgent` composes supported modalities through a small kernel under
+`aria.agents.narrative`.
 
 - `NarrativeBlock` is the unit of report evidence. A successful block must
   have a claim and at least one evidence item.
@@ -43,12 +43,12 @@ small kernel under `aria.agents.narrative`.
   can audit claims, evidence, caveats, metrics, figures, and tables outside
   the HTML.
 
-As of `v4.5.4`, scRNA pseudobulk blocks name the FDR family used for the
-primary significance call. The default is per-cluster FDR; global FDR remains
-reported as audit context.
+scRNA pseudobulk blocks name the FDR family used for the primary significance
+call. The default is per-cluster FDR; global FDR remains reported as audit
+context.
 
-As of the post-`v4.6` scRNA hardening, pseudobulk blocks also carry annotation
-confidence caveats when the cell-type label is low confidence. This caveat
+pseudobulk blocks also carry annotation confidence caveats when the cell-type
+label is low confidence. This caveat
 changes trust in the label, not the DE p values. Per-cluster marker blocks are
 exploratory/descriptive and must not use significance language for
 between-condition inference.
@@ -62,6 +62,12 @@ between-condition inference.
 | `tables/` | Supplementary TSVs for DE, pathways, annotations, communication, trajectory |
 | parameter decisions | Thresholds and selected analysis parameters |
 | warnings | Missing dependencies, skipped analyses, QC caveats, low confidence claims |
+| planned-vs-run ledger | Status of every planned analysis and claim linkage |
+| provenance | Source, input, parameter, environment, container, and LLM identity |
+
+Completed bundles can be compared or packaged with `aria diff`, `aria export`,
+and `aria reproduce`. The reproduce command verifies a capsule and optionally
+compares a report; it does not silently rerun an analysis from prose alone.
 
 ## scRNA Supplementary Tables
 

@@ -1,422 +1,337 @@
-# ARIA Installation Guide
-## Windows with WSL2 (Ubuntu)
+# Installing ARIA
 
----
+ARIA currently targets **Ubuntu or WSL2**, **Python 3.11**, and Linux `linux-64`
+Conda environments. Other Linux distributions may work, but the committed exact
+locks and automated validation are Linux-specific. Native Windows and macOS are
+not release-validated installation targets.
+
+## Choose the snapshot first
+
+ARIA's package version and source revision are separate reproducibility fields.
+The current package version is `4.7.0`, while `main` contains post-tag work.
+
+```bash
+git clone https://github.com/Olascoaga/aria-omics.git
+cd aria-omics
+
+# Current development snapshot
+git switch main
+
+# Or a release baseline
+git checkout v4.7.0
+
+# Or the exact revision supplied by a collaborator
+git checkout <commit-sha>
+```
+
+Record the resolved revision:
+
+```bash
+git rev-parse HEAD
+git status --short
+```
+
+An archival run should start from an empty `git status --short`. Generated
+reports record the commit and dirty state, but a clean checkout makes that
+provenance easier to review.
 
 ## Requirements
 
-| Requirement | Minimum | Recommended |
-|-------------|---------|-------------|
-| OS | Windows 10/11 with WSL2 | Windows 11 |
-| RAM | 8 GB | 16 GB or more |
-| Disk space | 15 GB free | 30 GB free |
-| Internet | Yes (for installation) | Yes |
-| Anthropic Pro account | Optional | Recommended |
-| Google account (Gemini) | Optional | Recommended |
+| Requirement | Minimum guidance |
+|---|---|
+| OS | Ubuntu 22.04+ or WSL2 Ubuntu |
+| CPU architecture | `linux-64` / x86-64 for committed exact locks |
+| Python | 3.11 |
+| RAM | 8 GB for small examples; 16 GB+ for typical analysis |
+| Disk | 10 GB for core setup; substantially more for raw reads and all science stacks |
+| Environment manager | Conda, Miniforge, or compatible Mamba installation |
+| Network | Needed to clone/install and for optional public-data/provider access |
 
----
+LLM API access is optional when a supported local endpoint is configured.
+Consumer chat subscriptions do not normally include API usage. ARIA does not
+promise provider pricing or free-tier availability; check the provider's current
+terms before configuring a cloud model.
 
-## Part 1 — Set up WSL2 on Windows
+## Option A: guided Ubuntu/WSL2 installer
 
-> **What is WSL2?** It is a way to run Linux inside Windows.
-> ARIA runs on Linux, so this step is required.
-
-### 1.1 Install WSL2
-
-Open **PowerShell as Administrator**:
-- Press `Windows + X`
-- Select **"Windows PowerShell (Administrator)"** or **"Terminal (Administrator)"**
-
-Paste this command:
-
-```powershell
-wsl --install -d Ubuntu
-```
-
-Press Enter. Windows will download and install Ubuntu automatically.
-
-**When it finishes:** You will be asked to create a Linux username and password.
-- Choose a simple username (no spaces, e.g. `carlos`)
-- The password is invisible while you type — that is normal
-- Save this password; you will need it to install software
-
-> **Note:** If WSL2 is already installed, just open "Ubuntu" from the Start menu.
-
-### 1.2 Verify WSL2 works
-
-In the Ubuntu terminal that opened, type:
-
-```bash
-echo "Hello from Linux"
-```
-
-You should see: `Hello from Linux`
-
----
-
-## Part 2 — Get API Keys
-
-> **What is an API key?** It is a special password that tells the AI
-> service that you are authorized to make requests.
-> Without it, ARIA cannot connect to the language model.
-
-### 2.1 Anthropic API Key (Claude)
-
-1. Open your **browser** (Chrome, Firefox, Edge — on the Windows side)
-
-2. Go to: **https://console.anthropic.com**
-
-3. **Sign in** with the same account as your Claude Pro subscription
-
-4. In the left menu, find **"API Keys"**
-
-5. Click **"Create Key"**
-
-6. Give it a descriptive name, for example: `ARIA-lab`
-
-7. Click **"Create Key"**
-
-8. **IMPORTANT:** A code starting with `sk-ant-api03-...` will appear
-   - **Copy it now** — it is shown only ONCE
-   - Paste it somewhere temporary (Notepad) while you finish the installation
-
-> **About costs:** Anthropic API keys are billed by usage, separately from
-> your Pro subscription. For a typical ~5,000 cell dataset, the cost is
-> approximately $0.10–0.50 USD. You can set a spending limit in the
-> Anthropic Console.
-
----
-
-### 2.2 Google API Key (Gemini)
-
-1. Open your **browser** on the Windows side
-
-2. Go to: **https://aistudio.google.com/app/apikey**
-
-3. **Sign in** with your Google account
-
-4. Click **"Create API Key"**
-
-5. If asked for a project, select **"Create API key in new project"**
-
-6. A code starting with `AIzaSy...` will appear
-   - **Copy it** and save it temporarily
-
-> **About Gemini costs:** Google AI Studio has a generous free tier.
-> For most ARIA analyses, the free tier is sufficient.
-
----
-
-## Part 3 — Install ARIA
-
-### 3.1 Open the Ubuntu terminal
-
-- Press `Windows + S`
-- Type "Ubuntu"
-- Open the **Ubuntu** application
-
-You will see a black screen with text — that is your Linux terminal.
-
-### 3.2 Download ARIA
-
-Run these commands one at a time, pressing Enter after each:
-
-```bash
-# Go to your home directory
-cd ~
-
-# Download ARIA
-git clone https://github.com/Olascoaga/aria-omics.git
-
-# Enter the ARIA directory
-cd aria-omics
-```
-
-> If git is not installed, run this first:
-> ```bash
-> sudo apt-get update && sudo apt-get install -y git
-> ```
-> It will ask for your Linux password (the one you created in Step 1.1).
-
-### 3.3 Run the installer
+For a workstation setup:
 
 ```bash
 bash install.sh
 ```
 
-The installer will:
-1. Check your system
-2. Install required tools
-3. **Ask for your API keys** — have them ready from Part 2
-4. Download the test dataset
-5. Verify everything works
+The installer:
 
-**During installation you will see prompts like:**
+1. checks Ubuntu/WSL2 resources and network access;
+2. installs required system packages with `apt`;
+3. installs Miniforge if Conda is absent;
+4. creates `aria-env` with Python 3.11;
+5. installs the committed pinned core requirements, ARIA, and the Textual
+   Control Center;
+6. offers Anthropic/Gemini provider configuration;
+7. downloads an optional PBMC 3k smoke dataset;
+8. runs core doctor and mock integration checks.
 
-```
-Paste your Anthropic API key (or ENTER to skip):
-```
-→ Paste your Anthropic key and press Enter
+It is interactive and needs `sudo` for system packages. Its Python core uses the
+committed lock, but the full workstation setup still depends on the host OS and
+the separately installed science environments. It creates the core orchestrator
+environment, not every modality-specific science environment.
 
-```
-Paste your Google AI Studio API key (or ENTER to skip):
-```
-→ Paste your Google key and press Enter
-
-```
-Which should ARIA use by default?
-[1] Claude (Anthropic)
-[2] Gemini (Google)
-```
-→ Type `1` for Claude or `2` for Gemini and press Enter
-
-Installation takes **10–20 minutes**. It may appear frozen during some
-downloads — it is working in the background.
-
----
-
-## Part 4 — Verify the installation
-
-At the end of the installer you should see:
-
-```
-+----------------------------------------------+
-|                                              |
-|   v  ARIA installed successfully            |
-|                                              |
-+----------------------------------------------+
-```
-
-If you see this message, everything is ready.
-
----
-
-## Part 5 — First analysis: PBMC 3k
-
-Run ARIA with the test dataset to validate the complete pipeline.
-
-### 5.1 Activate ARIA
-
-Every time you open a new terminal, activate the environment first:
+After it finishes:
 
 ```bash
 conda activate aria-env
-```
-
-The prompt will change from `(base)` to `(aria-env)`.
-
-### 5.1.1 Optional: generate publication lockfiles
-
-For publication-grade reproducibility, generate explicit conda lockfiles
-after installation and before sharing or tagging a report:
-
-```bash
-cd ~/aria-omics
-scripts/generate_locks.sh
-```
-
-ARIA reports embed `envs/*.linux-64.lock` files when they are present. If
-they are missing, the report's Provenance section shows a visible warning
-instead of silently omitting dependency lock information.
-
-### 5.2 Run the end-to-end test
-
-```bash
-cd ~/aria-omics
-python tests/test_pbmc_e2e.py
-```
-
-You will see the pipeline running step by step:
-
-```
-  ARIA -- PBMC 3k End-to-End Test
-  ──────────────────────────────────────────────
-  Dataset:  PBMC 3k (10x Genomics, ~2,700 cells)
-  Purpose:  Full pipeline validation
-
-> Checking API keys
-  v Anthropic API key: sk-ant-api0...xxxx
-  v Google API key:    AIzaSy...xxxx
-
-> Test 1 -- DataAuditAgent (automatic detection)
-  v scRNA detected (3 files)
-  v Genome inferred: hg19
-  v Organism: Homo sapiens
-  v Checkpoint 1 resolved: user confirmed data
-
-> Test 2 -- scRNA-seq QC
-  v Data loaded: 2700 cells x 32738 genes
-  v QC: 2700 -> 2638 cells (2.3% removed)
-
-> Test 3 -- ParameterAdvisor (hyperparameter decision)
-  v Layer 1 (intent): search range = (0.2, 0.6)
-  v Layer 2 (metrics): 4 candidates evaluated
-       resolution=0.20 | silhouette=0.681 | clusters=5
-    *  resolution=0.40 | silhouette=0.720 | clusters=8
-       resolution=0.53 | silhouette=0.698 | clusters=11
-       resolution=0.60 | silhouette=0.659 | clusters=13
-  v Recommendation: resolution=0.40
-
-> Test 4 -- Clustering and cell type annotation
-  v 8 clusters found
-  v Cluster 0: CD4+ T cells
-  v Cluster 1: CD14+ Monocytes
-  v Cluster 2: CD8+ T cells
-  ...
-```
-
-### 5.3 What each section means
-
-| Section | What ARIA does |
-|---------|---------------|
-| DataAuditAgent | Scans the directory and automatically detects data types |
-| QC | Removes low-quality cells (too few reads, high mitochondrial %) |
-| ParameterAdvisor | Tests 4 resolution values and selects the best using objective metrics |
-| Clustering | Groups similar cells using the Leiden algorithm |
-| Annotation | Identifies cell types using marker genes and LLM reasoning |
-
----
-
-## Part 6 — Analyze your own data
-
-### 6.1 Prepare your data
-
-Create a folder for your experiment:
-
-```bash
-mkdir ~/aria-data/my_experiment
-```
-
-Copy your raw files to that folder. ARIA automatically detects:
-- **scRNA-seq**: MEX files (`barcodes.tsv.gz`, `features.tsv.gz`, `matrix.mtx.gz`) or `.h5`
-- **scATAC-seq**: `fragments.tsv.gz`
-- **Bulk RNA-seq**: count matrices (`.tsv`, `.csv`)
-- **HiC**: `.hic`, `.cool`, `.mcool` files
-- **ChIP/CUT&RUN/CUT&TAG**: `.bam` files or peak files (`.bed`)
-
-> You do not need to rename files or reorganize them.
-> ARIA scans the directory recursively and classifies everything automatically.
-
-### 6.2 Launch ARIA
-
-```bash
-conda activate aria-env
+aria doctor --smoke
+aria doctor --llm
 aria
 ```
 
-You will see the main menu:
+## Option B: manual source install
 
-```
-  Agentic Research Intelligence for -omics Analysis
+Use this route when system dependencies and Conda already exist.
 
-  Action [new/exit]: new
+### Convenience development install
 
-  --- Data Directory ---
-  Data path: ~/aria-data/my_experiment
-
-  --- Biological Question ---
-  Your question: What cell types are present and which genes are
-                 differentially expressed between conditions?
-```
-
-ARIA will guide you through checkpoints at each critical decision point.
-
----
-
-## Troubleshooting
-
-### "conda: command not found"
 ```bash
-export PATH="$HOME/miniforge3/bin:$PATH"
+conda create -n aria-env python=3.11 -y
 conda activate aria-env
+python -m pip install --upgrade pip
+python -m pip install -e '.[tui]'
+aria doctor --smoke
 ```
 
-### "ANTHROPIC_API_KEY not set"
+This resolves the dependency ranges declared in `pyproject.toml`. Add the
+development extra only on a development machine:
+
 ```bash
+python -m pip install -e '.[dev,tui]'
+```
+
+### Exact core reconstruction
+
+`requirements.lock` is the pinned Linux core/orchestrator fallback, including
+the Control Center dependency:
+
+```bash
+conda create -n aria-env python=3.11 -y
+conda activate aria-env
+python -m pip install --requirement requirements.lock
+python -m pip install --no-deps -e .
+aria doctor --smoke
+```
+
+The last command installs the selected source revision without asking pip to
+re-resolve dependencies.
+
+## Install the scientific environments
+
+ARIA dispatches heavy scripts to isolated environments and fails if the exact
+registered stack is missing. It never falls back to `aria-env` for scientific
+compute.
+
+Install only the stacks required by the intended workflow. Each exact Conda
+lock is an `@EXPLICIT` Linux artifact list; a matching `.pip.lock` adds only the
+PyPI packages that were part of the validated environment.
+
+```bash
+conda create --name aria-rna-env \
+  --file envs/aria-rna-env.linux-64.lock
+conda run --name aria-rna-env python -m pip install --no-deps \
+  --requirement envs/aria-rna-env.pip.lock
+```
+
+Use the same two-command pattern for any registered environment that has both
+lock files:
+
+| Workflow need | Environment |
+|---|---|
+| Bulk count matrices, scRNA, pseudobulk, shared DESeq2 DA | `aria-rna-env` |
+| Raw scRNA FASTQ ingestion | `aria-ingestion-env` |
+| Raw bulk RNA FASTQ preprocessing | `aria-rnaseq-env` |
+| Raw bulk/scATAC alignment | `aria-atacseq-env` |
+| Chromatin QC, peaks, clustering, regulatory layers | `aria-chromatin-env` |
+| TOBIAS footprinting | `aria-tobias-env` |
+| External RNA benchmark comparators | `aria-bench-env` |
+
+Hi-C and integration environments are explicit scaffolds and are not active
+release-lock targets. Installing those YAMLs does not promote their runtime
+readiness or enable normal dispatch.
+
+Audit installed active stacks against the registry and locks:
+
+```bash
+python -m aria.utils.environment_audit --env aria-rna-env
+```
+
+Maintainers can validate a clean reconstruction below an empty temporary root:
+
+```bash
+python -m aria.utils.environment_audit \
+  --clean-root /tmp/aria-clean-envs \
+  --env aria-rna-env
+```
+
+Do **not** run `scripts/generate_locks.sh` as an installation step. That script
+regenerates release artifacts from already validated maintainer environments.
+
+## Configure an LLM provider
+
+ARIA can use Anthropic, OpenAI, Gemini, or a local Ollama-compatible endpoint.
+Credentials are read from the process environment or `~/.aria/.env`; model
+routing can be overridden in `~/.aria/config.yaml`.
+
+Example private environment file:
+
+```bash
+mkdir -p ~/.aria
+chmod 700 ~/.aria
+printf '%s\n' 'ANTHROPIC_API_KEY=replace-me' > ~/.aria/.env
+chmod 600 ~/.aria/.env
+```
+
+Equivalent variables are `OPENAI_API_KEY`, `GEMINI_API_KEY`, and
+`GOOGLE_API_KEY`. Never commit credentials to the repository. Load the file
+when needed:
+
+```bash
+set -a
 source ~/.aria/.env
-# Or manually:
-export ANTHROPIC_API_KEY="your-key-here"
+set +a
+aria doctor --secrets
+aria doctor --llm
 ```
 
-### "No module named scanpy"
-```bash
-conda activate aria-env
-pip install "scanpy[leiden]"
-```
+A minimal local-provider configuration looks like:
 
-### Installation was interrupted
-```bash
-cd ~/aria-omics
-bash install.sh
-```
-The installer detects what is already installed and resumes from where it stopped.
-
-### "Permission denied" when installing system packages
-Use `sudo` before the command. It will ask for your Linux password:
-```bash
-sudo apt-get install -y git
-```
-
----
-
-## Switching LLM providers after installation
-
-Edit the configuration file:
-
-```bash
-nano ~/.aria/config.yaml
-```
-
-To use Gemini as the primary provider:
-```yaml
-llm:
-  heavy:
-    provider: gemini
-    model: gemini/gemini-1.5-pro
-  medium:
-    provider: gemini
-    model: gemini/gemini-1.5-flash
-  light:
-    provider: gemini
-    model: gemini/gemini-1.5-flash
-```
-
-To use local models (no API cost, GPU recommended):
 ```yaml
 llm:
   heavy:
     provider: ollama
     model: ollama/llama3:70b
     api_base: http://localhost:11434
+  medium:
+    provider: ollama
+    model: ollama/llama3:8b
+    api_base: http://localhost:11434
+  light:
+    provider: ollama
+    model: ollama/llama3:8b
+    api_base: http://localhost:11434
 ```
 
-Save with `Ctrl+O`, `Enter`, `Ctrl+X`.
+Model identifiers evolve. Prefer a model confirmed by `aria doctor --llm` and
+your provider account over copying an old release note.
 
----
+## Privacy and air-gapped launch
 
-## Development mode (iterate at zero cost)
-
-Add this to `~/.aria/.env` while developing or debugging:
+Raw omics files are processed locally, but cloud LLM providers can receive the
+question and structured agent context. To prohibit egress from the beginning of
+a run, configure a local model and set:
 
 ```bash
-ARIA_DEV_MODE=true
-ARIA_DEV_PROVIDER=gemini   # or "ollama" if you have a local GPU
+export ARIA_AIR_GAPPED=1
+aria
 ```
 
-In dev mode, ARIA routes all tiers to the free Gemini Flash model.
-Switch to `ARIA_DEV_MODE=false` for final production runs with Claude Sonnet.
+Set the flag **before** launch. The interactive sensitivity checkpoint occurs
+after the initial question parse; enabling air gap there cannot retroactively
+protect that earlier call. Air-gapped mode also blocks governed connector,
+resource-download, enrichment, and child-process egress paths.
 
----
-
-## Update ARIA
+## Launch and verify the interface
 
 ```bash
-cd ~/aria-omics
-git pull
-pip install -e . --quiet
+conda activate aria-env
+python -c 'import aria; print(aria.__version__)'
+python -c 'from aria.ui.cockpit import cockpit_available; print(cockpit_available())'
+aria
 ```
 
----
+`cockpit_available()` should print `True` for the current Control Center. If it
+prints `False`, install the UI extra in the same environment:
 
-*ARIA documentation — May 2026*
-*Found a bug or have a suggestion? Open an issue on GitHub.*
+```bash
+python -m pip install -e '.[tui]'
+```
+
+ARIA automatically falls back to the classic Rich interface when Textual is
+missing, the process is not attached to a TTY, `ARIA_NO_TUI` is set,
+`--classic-tui` is passed, or `--reproducible` is active.
+
+See [Control Center](CONTROL_CENTER.md) for views and shortcuts.
+
+## Data intake boundaries
+
+Stable entry points include bulk count matrices, 10x `.h5`, a complete 10x MEX
+directory, and `.h5ad`. Beta raw-read and chromatin entry points require typed
+metadata or manifests where the assay contract needs them.
+
+Do not rely on filenames to establish the biological design. ARIA intentionally
+refuses silent production inference for groups, references, replicates, and
+contrasts. Prepare explicit sample metadata and review every design checkpoint.
+For scATAC FASTQ, provide the required read roles, whitelist, and genome assets;
+for bulk ATAC DA, provide condition, biological replicate, and comparison
+metadata.
+
+## Updating a checkout
+
+An update changes the analysis source snapshot. Do not update in the middle of
+an archival run.
+
+```bash
+git switch main
+git pull --ff-only
+conda activate aria-env
+python -m pip install --no-deps -e .
+aria doctor --smoke
+git rev-parse HEAD
+```
+
+If dependency or environment locks changed, reconstruct or audit the affected
+environment instead of adding packages ad hoc.
+
+## Troubleshooting
+
+### The old interface appears
+
+```bash
+conda activate aria-env
+python -c 'import aria, aria.tui; print(aria.__version__, aria.__file__)'
+python -c 'from aria.ui.cockpit import cockpit_available; print(cockpit_available())'
+python -m pip install -e '.[tui]'
+```
+
+Also verify that `which aria` points into the expected environment and that the
+checkout is on the intended commit.
+
+### `conda: command not found`
+
+Initialize the Conda installation, then open a new shell. For Miniforge:
+
+```bash
+source "$HOME/miniforge3/etc/profile.d/conda.sh"
+conda activate aria-env
+```
+
+### A scientific environment is missing
+
+Do not install its packages into `aria-env`. Create the registered environment
+from its exact lock, then run `python -m aria.utils.environment_audit --env ...`.
+
+### A provider cannot be reached
+
+```bash
+aria doctor --llm
+aria doctor --secrets
+```
+
+Check that the configured provider has a matching credential or that the local
+endpoint is running. ARIA will not silently replace an unavailable configured
+model with fabricated analysis output.
+
+### Installation was interrupted
+
+The guided installer can reuse an existing `aria-env`, but it is not a fully
+transactional resume system. Run `aria doctor --smoke` first; if the core
+environment is inconsistent, remove only that named environment and recreate it
+after confirming no other project depends on it.

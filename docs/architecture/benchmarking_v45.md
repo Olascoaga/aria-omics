@@ -1,11 +1,11 @@
-# ARIA v4.5 Benchmarking Protocol Freeze
-
 ---
-status: active
+status: frozen
 source_of_truth_for: v45_benchmarking_protocol
-last_updated: 2026-06-08
+last_updated: 2026-07-17
 decision: ADR-030
 ---
+
+# ARIA v4.5 Benchmarking Protocol Freeze
 
 ## Position
 
@@ -179,9 +179,9 @@ signal-Spearman 0.985, 100% direction agreement on shared significant genes,
 4921 shared significant genes (the IFN/ISG response). This is the (former)
 Kang + muscat lane — now done.
 
-Superseded note: Kang + muscat
-remains the external reference lane and requires local benchmark data plus
-`aria-bench-env`.
+The executable Kang + muscat reference lane remains reproducible through its
+registered runner and `aria-bench-env`; the preprint freeze inventory determines
+whether its receipt is valid for the current indexed source snapshot.
 
 ### A5 ORA/GSEA
 
@@ -321,6 +321,11 @@ Supplemental unless it is clean and cheap:
 Compare hashes of statistical outputs, DE tables, claim counts/support, and
 non-scientific wording variation.
 
+The current implementation exercises a no-egress multi-provider compiler/ledger
+matrix and a dataset-gated headless E2E seam. It establishes fail-closed public
+claim invariance: provider wording can cause an unsupported claim to be withheld,
+but cannot add or elevate a public claim.
+
 ### B4 Null Narrative
 
 Use label permutations and null/spike-in controls tied to W-CALIB. Measure
@@ -340,16 +345,19 @@ B4 EXECUTED (ADR-040): `run_b4_null_narrative.py` / `aria/benchmarks/governance_
    ARIA-path synthetic-truth lane.**
 3. `aria-bench-env.yml` for external comparators. Keep R/benchmark packages out
    of production RNA/chromatin environments and call them through JSON IPC.
-   **Env + A1 IPC runner scaffold implemented; live R comparator execution
-   requires local `aria-bench-env`.**
-4. A2 Kang + muscat. **Preliminary ARIA-path donor-aware lane done in v4.5.5;
-   external Kang + muscat remains pending.**
-5. B1 adversarial design corpus, about 30 cases, no heavy downloads.
-6. B2 claim schema and manual scorer CSV/rubric.
-7. B4 null narratives.
+   **Implemented and used by the registered external-comparator lanes.**
+4. A2 Kang + muscat. **Executed against the donor-aware external reference;
+   receipt validity is tracked by the preprint freeze inventory.**
+5. B1 adversarial design corpus. **Machine corpus executed; the independent
+   blind multifactorial human lane remains a freeze blocker.**
+6. B2 claim schema and manual scorer CSV/rubric. **Preliminary machine lane
+   executed; independent multi-annotator gold and report-E2E adjudication remain
+   freeze blockers.**
+7. B4 null narratives. **Executed.**
 8. Figures and tables from the start, not as an afterthought.
 9. Small external BixBench/scBench subset, 2-3 compatible RNA/scRNA tasks.
 10. B3 multi-LLM invariance only if it does not delay the core paper.
+    **Implemented as a compiler/ledger matrix plus a dataset-gated headless E2E.**
 
 B2 and B4 outrank B3.
 
@@ -377,4 +385,4 @@ scATAC", then A1, A2, B1, B2, and B4 become the minimum execution gate.
 |---|---|---|
 | RNA / v4.5 | A1, A2, A3, A5, B1, B2, B3, B4, external subset | Yes, if submitting RNA preprint now |
 | v4.6 ATAC | scATAC DA/QC/LSI/motifs validation | Revised manuscript / next validation lane |
-| v4.7 integration | WNN/MOFA+/peak2gene and multi-omic B tracks | Follow-up |
+| Post-v4.7 integration roadmap | WNN/MOFA+ and cross-modal B tracks | Follow-up |

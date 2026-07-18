@@ -1,16 +1,15 @@
 # ARIA multi-omic integration image — SCAFFOLD (P2-2 pattern, not a release image).
 #
-# NOT built in CI: the integration env (WNN/MOFA+/peak2gene) is a v4.7
-# deliverable and not yet validated. Present so the modality image lands FROM
-# the common base without touching the validated RNA path when integration is
-# productionized. It self-stamps ARIA_IMAGE_VALIDATION=scaffold so a report can
-# never present it as a validated/reproducible image.
+# NOT built in release CI: WNN/MOFA+ cross-modal integration remains
+# dispatch-disabled and unvalidated. Standalone scATAC peak-to-gene beta does
+# not validate this integration image. It self-stamps
+# ARIA_IMAGE_VALIDATION=scaffold so a report cannot present it as validated.
 ARG ARIA_BASE_IMAGE=aria-base:local
 FROM ${ARIA_BASE_IMAGE}
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-# v4.7: promote once envs/aria-integration-env.yml solves in CI and the
-# integration science is validated.
+# Promote only after the integration runtime, environment, and blocking image
+# validation lanes close.
 RUN micromamba install -y -n base -f /opt/aria/envs/aria-integration-env.yml && \
     micromamba clean --all --yes
 RUN python -m pip install --no-deps -e /opt/aria

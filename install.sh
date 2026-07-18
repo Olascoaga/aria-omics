@@ -11,7 +11,7 @@
 #    2. Installs system dependencies (git, curl, build tools)
 #    3. Installs Miniforge (conda) if not present
 #    4. Creates isolated 'aria-env' conda environment
-#    5. Installs Python packages in layers
+#    5. Installs Python packages and the current Textual Control Center
 #    6. Runs the configuration wizard
 #    7. Downloads test dataset (PBMC 3k)
 #    8. Runs installation verification tests
@@ -70,10 +70,10 @@ fi
 
 RAM_GB=$(free -g | awk '/^Mem:/{print $2}')
 info "Available RAM: ${RAM_GB}GB"
-if [ "$RAM_GB" -lt 4 ]; then
-    warn "Less than 4GB RAM. ARIA will work but analysis may be slow."
+if [ "$RAM_GB" -lt 8 ]; then
+    warn "Less than 8GB RAM. Core checks may run, but real analyses can fail or exhaust memory."
 elif [ "$RAM_GB" -ge 16 ]; then
-    success "Sufficient RAM for large dataset analysis"
+    success "RAM meets the general workstation recommendation"
 fi
 
 DISK_GB=$(df -BG "$HOME" | awk 'NR==2{print $4}' | tr -d 'G')
@@ -155,27 +155,12 @@ success "Environment 'aria-env' activated"
 # ── Step 5: Python packages ───────────────────────────────────────────────────
 step "Step 5/8 -- Installing Python packages"
 
-info "Core packages (required)..."
-pip install -q \
-    anthropic>=0.25.0 litellm>=1.30.0 rich>=13.7.0 \
-    tiktoken>=0.6.0 pyyaml>=6.0 requests>=2.31.0 \
-    tqdm>=4.66.0 click>=8.1.0 pydantic>=2.0.0
-success "Core packages installed"
+info "Installing the pinned core/orchestrator environment..."
+pip install -q --requirement "$ARIA_DIR/requirements.lock"
+success "Pinned core requirements installed"
 
-info "Analysis packages..."
-pip install -q \
-    numpy>=1.24.0 pandas>=2.0.0 scipy>=1.11.0 \
-    scikit-learn>=1.3.0 anndata>=0.10.0 h5py>=3.9.0 \
-    matplotlib>=3.7.0 seaborn>=0.12.0
-success "Analysis packages installed"
-
-info "Scanpy (single-cell analysis)..."
-pip install -q "scanpy[leiden]>=1.9.6" || \
-    pip install -q scanpy leidenalg python-igraph
-success "Scanpy installed"
-
-info "Installing ARIA..."
-pip install -q -e "$ARIA_DIR"
+info "Installing this ARIA source revision..."
+pip install -q --no-deps -e "$ARIA_DIR"
 success "ARIA installed from: $ARIA_DIR"
 
 # ── Step 6: API key configuration ────────────────────────────────────────────
@@ -187,6 +172,8 @@ mkdir -p "$ARIA_CONFIG_DIR"
 echo ""
 echo -e "  ARIA supports multiple LLM providers."
 echo -e "  We will configure ${BLD}Claude (Anthropic)${RST} and ${BLD}Gemini (Google)${RST}."
+echo -e "  API usage is billed separately from consumer chat subscriptions."
+echo -e "  Cloud models receive prompts and structured agent context."
 echo ""
 
 # Anthropic
@@ -195,7 +182,7 @@ echo ""
 echo -e "  How to get your Anthropic API key:"
 echo -e "  ${BLD}1.${RST} Open your browser (Windows side)"
 echo -e "  ${BLD}2.${RST} Go to: ${CYN}https://console.anthropic.com${RST}"
-echo -e "  ${BLD}3.${RST} Sign in with your Claude Pro account"
+echo -e "  ${BLD}3.${RST} Sign in to your Anthropic Console account"
 echo -e "  ${BLD}4.${RST} Left menu: ${BLD}API Keys${RST} -> ${BLD}Create Key${RST}"
 echo -e "  ${BLD}5.${RST} Name it (e.g. 'ARIA-lab') and copy the key"
 echo -e "  ${YLW}  NOTE: The key starts with 'sk-ant-...' and is shown ONLY ONCE${RST}"
@@ -240,13 +227,13 @@ else
 fi
 
 if [ "$PRIMARY_PROVIDER" = "1" ]; then
-    HEAVY_PROVIDER="anthropic"; HEAVY_MODEL="claude-sonnet-4-20250514"
-    FALLBACK_PROVIDER="gemini"; FALLBACK_MODEL="gemini/gemini-1.5-flash"
+    HEAVY_PROVIDER="anthropic"; HEAVY_MODEL="claude-sonnet-4-6"
+    FALLBACK_PROVIDER="gemini"; FALLBACK_MODEL="gemini/gemini-2.5-flash"
 elif [ "$PRIMARY_PROVIDER" = "2" ]; then
-    HEAVY_PROVIDER="gemini";    HEAVY_MODEL="gemini/gemini-1.5-pro"
+    HEAVY_PROVIDER="gemini";    HEAVY_MODEL="gemini/gemini-2.5-pro"
     FALLBACK_PROVIDER="anthropic"; FALLBACK_MODEL="claude-haiku-4-5-20251001"
 else
-    HEAVY_PROVIDER="anthropic"; HEAVY_MODEL="claude-sonnet-4-20250514"
+    HEAVY_PROVIDER="anthropic"; HEAVY_MODEL="claude-sonnet-4-6"
     FALLBACK_PROVIDER="anthropic"; FALLBACK_MODEL="claude-haiku-4-5-20251001"
 fi
 
@@ -347,12 +334,12 @@ else
 fi
 
 echo ""
-info "Running legacy mock integration checks..."
+info "Running legacy mock component checks..."
 echo ""
 
 if python "$ARIA_DIR/tests/test_integration.py"; then
     echo ""
-    success "Legacy mock integration checks passed"
+    success "Legacy mock component checks passed"
 else
     warn "Some legacy mock checks failed -- review errors above"
     warn "ARIA may still run, but the installation is not fully verified"
@@ -376,7 +363,7 @@ echo ""
 echo -e "  ${CYN}2. Launch ARIA:${RST}"
 echo -e "     ${BLD}aria${RST}"
 echo ""
-echo -e "  ${CYN}3. Run the PBMC 3k end-to-end test:${RST}"
+echo -e "  ${CYN}3. Optional legacy PBMC 3k developer harness:${RST}"
 echo -e "     ${BLD}python tests/test_pbmc_e2e.py${RST}"
 echo -e "     Data directory: ${BLD}$PBMC_DIR${RST}"
 echo ""

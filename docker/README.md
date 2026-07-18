@@ -9,8 +9,14 @@ common layer cached, mirroring ARIA's conda-per-env design.
 |-------|-----------|--------|
 | `aria-base` | `Dockerfile.base` | common layer (no science env) |
 | `aria-rna` | `Dockerfile.rna` | **validated** — built + benchmarked in release CI |
-| `aria-chromatin` | `Dockerfile.chromatin` | scaffold (v4.6; not built in CI) |
-| `aria-integration` | `Dockerfile.integration` | scaffold (v4.7; not built in CI) |
+| `aria-chromatin` | `Dockerfile.chromatin` | scaffold image; not built in release CI |
+| `aria-integration` | `Dockerfile.integration` | scaffold image; not built in release CI |
+
+Image readiness is separate from runtime modality readiness. The scATAC and
+bulk ATAC runtime lanes are acknowledgement-gated beta, but the chromatin image
+is still stamped `ARIA_IMAGE_VALIDATION=scaffold` because its independent
+release build/solve lane is not closed. Do not cite the scaffold image as a
+validated chromatin container.
 
 ## Hermeticity
 
@@ -29,7 +35,7 @@ docker build -f docker/Dockerfile.base -t aria-base:local \
 docker build -f docker/Dockerfile.rna -t aria-rna:local \
   --build-arg ARIA_IMAGE_ENV_SHA="$ENV_SHA" .
 
-# Run the TUI:
+# Run ARIA (the image uses the classic TUI unless Textual is added explicitly):
 docker run --rm -it -v "$PWD":/work -v "$HOME/.aria":/root/.aria aria-rna:local aria
 ```
 

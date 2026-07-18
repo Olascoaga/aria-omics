@@ -11,11 +11,12 @@ flowchart TD
     A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
     A -->|no blocking issues| SETUP[SetupAgent environment check]
     CP35 -->|proceed| SETUP
-    SETUP --> DISPATCH[Modality dispatch]
+    SETUP --> GATE{Runtime readiness gate}
+    GATE --> DISPATCH[Enabled modality dispatch]
     DISPATCH --> B[BulkRNAAgent]
     DISPATCH --> S[scRNAAgent]
     DISPATCH --> C[ChromatinAgent beta]
-    DISPATCH --> H[GenomeArchAgent scaffolded]
+    GATE -. blocked by default .-> H[GenomeArchAgent scaffolded]
     B --> M{2+ modalities or integration requested?}
     S --> M
     C --> M

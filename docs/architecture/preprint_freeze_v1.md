@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: preprint_v1_freeze_protocol
-last_updated: 2026-07-13
+last_updated: 2026-07-17
 ---
 
 # ARIA preprint-v1 evidence freeze
@@ -55,7 +55,7 @@ The freeze is fail-closed:
 - the generating checkout must be clean;
 - data/tool/network absence remains an explicit blocker;
 - human gold requires real independent annotation and adjudication;
-- missing E2E harnesses remain missing implementations;
+- missing implementations, resources, or human review remain explicit blockers;
 - `freeze_gate.tag_action_authorized` remains false until a separate explicit
   freeze decision after artifact and governance review.
 
@@ -64,14 +64,29 @@ absolute paths or secrets. It separates `ready_to_run`, missing resources,
 manual confirmation, missing implementation, stale/failed receipts and verified
 evidence.
 
-## Execution order
+## Current closure boundary
 
-1. Local deterministic A1/A2/B1/B2/B4 and test-receipt lanes.
-2. Local data-gated SEQC/ERCC/Kang lanes.
-3. Standardized real-data and E2E harnesses that are currently missing.
-4. Independent B2/design annotation and adjudication.
-5. Hash/index/capsule verification from a clean checkout.
-6. Explicit freeze review; only then may a tag action be proposed.
+The last clean snapshot before the July documentation audit verified 18 of 21
+required machine lanes. The remaining three lanes require independent human
+resources or adjudication:
+
+- `c3_blind_multifactorial_corpus`;
+- `c4_b2_multi_annotator_gold`;
+- `c4_report_e2e_false_narrative`.
+
+That count is historical once tracked source changes. Documentation is part of
+the indexed source snapshot, so this audit intentionally makes the prior 18
+receipts stale. The generated inventory, not this paragraph, is authoritative
+for the current checkout.
+
+## Remaining execution order
+
+1. Commit the intended source snapshot and regenerate the inventory honestly.
+2. Refresh machine receipts against that clean commit when the source is frozen.
+3. Complete independent design/claim annotation and adjudication for the three
+   human-resource lanes.
+4. Revalidate the hash/index/capsule boundary from a clean checkout.
+5. Hold an explicit freeze review; only then may a tag action be proposed.
 
 This protocol does not change DE/DA methods, thresholds, readiness tiers,
 package version or existing tags.

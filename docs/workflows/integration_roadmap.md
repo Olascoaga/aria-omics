@@ -2,30 +2,32 @@
 
 Validation level: scaffolded.
 
-Integration should wait until the standalone modalities are reliable. WNN,
-MOFA+, and peak-to-gene are only meaningful when the input RNA and chromatin
-objects are themselves valid.
+Integration requires independently valid standalone modalities. RNA is
+production-tier and scATAC is acknowledgement-gated beta, but that prerequisite
+does not validate the current WNN/MOFA+ scaffold.
 
 ## Existing Pieces
 
 - `IntegrationAgent`;
 - `integration_wnn.py`;
 - `integration_mofa.py`;
-- `integration_peak2gene.py`;
+- `integration_peak2gene.py` scaffold (distinct from the beta standalone
+  scATAC implementation in `chromatin_regulatory.py`);
 - preliminary DebateCouncil hooks.
 
 ## Target Analyses
 
 - WNN for paired scRNA + scATAC;
 - MOFA+ for latent factors across modalities;
-- peak-to-gene links;
+- cross-modal peak-to-gene handoff and synthesis;
 - cross-modal concordance and discordance summaries.
 
 ## Required Before Stable
 
-- stable scATAC workflow;
-- stable RNA + ATAC object contracts;
-- small paired multiome fixture;
+- a promotion decision for the standalone scATAC beta workflow;
+- explicit, validated RNA + ATAC object and feature-identity contracts;
+- paired multiome fixtures that exercise the integration scripts, not only the
+  standalone chromatin lane;
 - explicit missing-modality errors;
 - no implicit mock factors or links in production;
 - report section that distinguishes association from causality.
@@ -38,7 +40,7 @@ flowchart TD
     ATAC[Validated scATAC object] --> CHECK
     CHECK --> WNN[WNN integration]
     CHECK --> MOFA[MOFA+ factors]
-    CHECK --> P2G[Peak-to-gene links]
+    CHECK --> P2G[Cross-modal peak-to-gene handoff]
     WNN --> N[NarrativeAgent integration section]
     MOFA --> N
     P2G --> N
@@ -54,3 +56,7 @@ evidence or request a concrete data lookup, for example:
 - a peak-to-gene correlation;
 - a factor loading;
 - a missing covariate.
+
+Standalone peak-to-gene link recovery is already beta in the scATAC workflow
+(ADR-050). That result is associative and does not make `integration_peak2gene`
+or the WNN/MOFA+ dispatch path validated.

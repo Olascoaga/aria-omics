@@ -1,7 +1,7 @@
 # Chromatin Workflows
 
 Validation level: scATAC and bulk ATAC are both **beta + require explicit
-acknowledgement** (CP3.5). Both expose the full workflow end-to-end (real-validated),
+acknowledgement** (CP3.5). Both expose implemented beta workflows end-to-end,
 but stay beta + `requires_ack` pending the readiness ADR and CI coverage — they are
 NOT autonomous production, and one step is explicitly not publication-grade yet:
 differential TF footprinting (TOBIAS) is a DESCRIPTIVE candidate ranking, not
@@ -64,9 +64,11 @@ not inferred around. chromVAR-style per-cell motif activity remains out of scope
 
 ## Current Bulk ATAC Beta Path
 
-Bulk ATAC exposes the full ATAC workflow behind CP3.5 acknowledgement (publication-
-grade except footprinting, which is descriptive-only pending the B7 fix above),
-real-validated end-to-end on ENCODE replicates (K562 vs GM12878): raw FASTQ→BAM
+Bulk ATAC exposes the implemented ATAC beta workflow behind CP3.5
+acknowledgement. It is not presented as universally publication-grade;
+footprinting is descriptive-only when its replicate-aware inference contract is
+not met. The lane was exercised end-to-end on ENCODE replicates (K562 vs
+GM12878): raw FASTQ→BAM
 (`atac_align.py`, bwa-mem2 + ATAC filtering) or aligned BAM/CRAM input → measured QC
 → MACS3 peak calling with overlap-reproducibility consensus → peak-by-sample count
 matrix (`bedtools coverage -sorted -counts`) → replicate-gated DESeq2 differential
@@ -85,7 +87,8 @@ For scATAC:
   multi-sample validation set;
 - expert review of biological conclusions and thresholds;
 - chromVAR per-cell motif activity if that becomes a product goal;
-- peak-to-gene handoff contract;
+- independent replication and threshold review for peak-to-gene and
+  gene-activity outputs;
 - stable promotion criteria and release review.
 
 For bulk ATAC (QC→peaks→DA→annotation→ORA→motifs→footprinting→figures and raw
