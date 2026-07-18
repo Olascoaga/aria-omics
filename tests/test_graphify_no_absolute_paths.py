@@ -77,6 +77,10 @@ def test_graphify_readme_metrics_match_generated_artifacts():
         "committed Graphify schema must normalize NetworkX links to edges"
     )
     assert "edges" in graph
+    assert graph.get("structure_only") is True
+    assert graph.get("input_tokens") == 0
+    assert graph.get("output_tokens") == 0
+    assert graph.get("hyperedges") == []
     edges = graph.get("edges", graph.get("links", []))
     readme = readme_path.read_text(encoding="utf-8")
     assert (

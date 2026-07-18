@@ -150,6 +150,10 @@ if "links" in graph:
     if "edges" in graph:
         raise SystemExit("Graphify output contains both links and edges")
     graph["edges"] = graph.pop("links")
+graph["hyperedges"] = []
+graph["input_tokens"] = 0
+graph["output_tokens"] = 0
+graph["structure_only"] = True
 graph_path.write_text(
     json.dumps(graph, indent=2), encoding="utf-8"
 )
@@ -203,7 +207,7 @@ report_line = (
     f"({shown} shown, {omitted} thin omitted)."
 )
 text = re.sub(
-    r"(?ms)^- Clustered report:.*?(?=^- No LLM layer)",
+    r"(?ms)^- Clustered report:.*?(?=^- No LLM)",
     report_line + "\n",
     text,
 )
