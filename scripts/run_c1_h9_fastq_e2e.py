@@ -88,7 +88,8 @@ H9_MANUAL_GROUP_ASSIGNMENT = "; ".join(
 # emits both, so a miss is a real failure, not a silent skip.
 _DE_TABLE_PATTERNS = (
     "*deseq2*.tsv", "*deseq*.tsv", "*differential*.tsv", "*_de.tsv",
-    "*de_results*.tsv", "*deseq2*.csv", "*differential*.csv", "*_de.csv",
+    "*_de_genes.tsv", "*de_results*.tsv", "*deseq2*.csv",
+    "*differential*.csv", "*_de.csv", "*_de_genes.csv",
 )
 _DE_FIGURE_PATTERNS = (
     "*volcano*.svg", "*deseq2*.svg", "*differential*.svg", "*_de*.svg",
@@ -193,7 +194,7 @@ def _find_first(report_dir: Path, subdir: str, patterns) -> Path | None:
     if not directory.is_dir():
         directory = report_dir
     for pattern in patterns:
-        hits = sorted(directory.glob(pattern))
+        hits = sorted(directory.rglob(pattern))
         if hits:
             return hits[0]
     return None

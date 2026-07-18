@@ -202,7 +202,7 @@ def test_frozen_h9_design_maps_to_bulk_matrix_and_explicit_contrasts(tmp_path):
 
 def _make_fake_report(tmp_path: Path) -> Path:
     report_dir = tmp_path / "report_exp1234"
-    (report_dir / "figures").mkdir(parents=True)
+    (report_dir / "figures" / "b_vs_wt").mkdir(parents=True)
     (report_dir / "tables").mkdir(parents=True)
     (report_dir / "report.html").write_text("<html>report</html>", encoding="utf-8")
     (report_dir / "methodology.json").write_text(
@@ -216,10 +216,10 @@ def _make_fake_report(tmp_path: Path) -> Path:
         }),
         encoding="utf-8",
     )
-    (report_dir / "tables" / "deseq2_BMAL1_KO_vs_WT.tsv").write_text(
+    (report_dir / "tables" / "b_vs_wt_de_genes.tsv").write_text(
         "gene\tlog2fc\tpadj\nGENE1\t2.0\t0.001\n", encoding="utf-8"
     )
-    (report_dir / "figures" / "volcano_BMAL1_KO_vs_WT.svg").write_text(
+    (report_dir / "figures" / "b_vs_wt" / "volcano.svg").write_text(
         "<svg/>", encoding="utf-8"
     )
     return report_dir
@@ -271,7 +271,7 @@ def test_publish_fails_loudly_without_a_de_table(tmp_path):
     report_dir = _make_fake_report(tmp_path)
     # Remove the only DE table: a completed report without DE evidence must not
     # yield a partial capsule.
-    (report_dir / "tables" / "deseq2_BMAL1_KO_vs_WT.tsv").unlink()
+    (report_dir / "tables" / "b_vs_wt_de_genes.tsv").unlink()
 
     with pytest.raises(RuntimeError, match="differential-expression table"):
         harness.publish(
