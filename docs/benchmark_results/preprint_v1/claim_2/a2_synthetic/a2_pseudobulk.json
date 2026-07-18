@@ -113,7 +113,7 @@
   ],
   "method_under_test": "ARIA donor-aware scRNA pseudobulk DE",
   "provenance": {
-    "git_commit": "909c3c3775c309f4c338ef38aaf1e783b5612610",
+    "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
     "git_dirty": true,
     "runtime_note": "artifact_version is fixed for the v4.5 benchmark lane; local working tree may contain unrelated v4.6 changes."
   },

@@ -1,0 +1,112 @@
+{
+  "aria_n_sig": 2052,
+  "aria_n_tested": 134276,
+  "aria_version": "4.7.0",
+  "benchmark": "P3_multisample_DA_concordance",
+  "caveats": [
+    "Validates the pseudobulk CONDITION-DA path (donor-level, biological replication, min_replicates_per_condition>=3). NOT the per-cluster wilcoxon marker path (single-sample fragile).",
+    "Consensus is a genomic-overlap merge with midpoint-containment count re-mapping (approximation vs fragment-level re-quantification)."
+  ],
+  "design": {
+    "aria_da_core": "rna_bulk_de._run_deseq2 (pydeseq2)",
+    "comparators": "benchmark_a1_external_comparators.R",
+    "consensus_peaks": 255079,
+    "feature_space": "genomic-overlap consensus peaks; pseudobulk re-mapped by peak-midpoint containment (no fragments)",
+    "n_per_group": {
+      "COND_A": 5,
+      "COND_B": 5
+    },
+    "reference_group_COND_A": [
+      "hc937",
+      "hc5579",
+      "hc13344",
+      "hc935",
+      "hc5614"
+    ],
+    "test_group_COND_B": [
+      "hc26",
+      "hc98",
+      "hc35",
+      "hc40",
+      "hc73"
+    ],
+    "tested_after_filter": 134873,
+    "thresholds": {
+      "lfc": 0.5,
+      "padj": 0.05
+    }
+  },
+  "methods": {
+    "deseq2": {
+      "lfc_pearson": 0.19477178838777487,
+      "lfc_sign_agreement": 0.9538338943668265,
+      "lfc_spearman": 0.7560154102070976,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 6646,
+      "n_ref_tested": 134873,
+      "n_shared_tested": 134276,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 0.3087571471561842,
+      "sig_intersection": 2052,
+      "sig_jaccard": 0.3087571471561842
+    },
+    "edgeR_QLF": {
+      "lfc_pearson": 0.20009258517207215,
+      "lfc_sign_agreement": 0.910341386398165,
+      "lfc_spearman": 0.7494100643176329,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 9,
+      "n_ref_tested": 134873,
+      "n_shared_tested": 134276,
+      "recall_aria_in_ref": 0.0043859649122807015,
+      "recall_ref_in_aria": 1.0,
+      "sig_intersection": 9,
+      "sig_jaccard": 0.0043859649122807015
+    },
+    "limma_voom": {
+      "lfc_pearson": 0.14723294535236067,
+      "lfc_sign_agreement": 0.8026006136614138,
+      "lfc_spearman": 0.6097313838220156,
+      "n_aria_sig": 2052,
+      "n_aria_tested": 134276,
+      "n_ref_sig": 249,
+      "n_ref_tested": 134873,
+      "n_shared_tested": 134276,
+      "recall_aria_in_ref": 0.12085769980506822,
+      "recall_ref_in_aria": 0.9959839357429718,
+      "sig_intersection": 248,
+      "sig_jaccard": 0.12079883097905504
+    }
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": null,
+      "env_lock_file": "envs/aria-rna-env.linux-64.lock",
+      "env_lock_sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f",
+      "env_name": "aria-rna-env",
+      "source": "conda_lock"
+    },
+    "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
+    "git_describe": "v4.7.0-289-g040f28e-dirty",
+    "git_dirty": true,
+    "git_sha": "040f28e707df72b6d7c5608528500c5729ee8457",
+    "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "c359923da0c1fce3127999496ad13443a6a21c632bb97085e3d8eac5faa73534",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "external_DE_framework_concordance_on_multireplicate_pseudobulk"
+}

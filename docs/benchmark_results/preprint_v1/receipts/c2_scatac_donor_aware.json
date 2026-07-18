@@ -1,0 +1,28 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [
+    {
+      "path": "claim_2/scatac_donor/scatac_donor_da_concordance.json",
+      "sha256": "328687366e64de77670dff3ce6b10720279b2c9c6fb27a6fd6f0e51790d9d14a",
+      "size_bytes": 3662
+    }
+  ],
+  "claims": [
+    "claim_2"
+  ],
+  "command": "conda run -n aria-rna-env python scripts/run_scatac_multisample_da_concordance.py --data-dir ~/Samael/Single/prueba/muon_processed --young hc937,hc5579,hc13344,hc935,hc5614 --old hc26,hc98,hc35,hc40,hc73 --rna-env aria-rna-env --bench-env aria-bench-env --output-dir docs/benchmark_results/preprint_v1/claim_2/scatac_donor --manifest-name scatac_donor_da_concordance.json --work-dir /tmp/c2_scatac_donor",
+  "completed_utc": "2026-07-18T03:29:32.440366+00:00",
+  "environment": "aria-rna-env + aria-bench-env",
+  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
+  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "lane_id": "c2_scatac_donor_aware",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
+  "started_utc": "2026-07-18T03:24:11.289742+00:00",
+  "status": "pass",
+  "stderr_sha256": "49ca4ca0fa4b1638139ac7f19174b5d91c7acb78d481ace60a79c3eb222c6fb3",
+  "stdout_sha256": "8a9351a9059b374bfa933292526f250d6e6cb5eb389f2527552ada26cd7eabff",
+  "test_summary": null,
+  "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f"
+}

@@ -250,11 +250,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "909c3c3775c309f4c338ef38aaf1e783b5612610",
-    "git_describe": "v4.7.0-274-g909c3c3-dirty",
+    "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
+    "git_describe": "v4.7.0-289-g040f28e-dirty",
     "git_dirty": true,
-    "git_sha": "909c3c3775c309f4c338ef38aaf1e783b5612610",
-    "git_tree_sha": "1006d7cc6c5c4f3ced90f0bbdb075e978421a172",
+    "git_sha": "040f28e707df72b6d7c5608528500c5729ee8457",
+    "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
     "image": {
       "containerized": false,
       "digest": null,
@@ -266,7 +266,7 @@
     },
     "version": "4.7.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "0e62edda4019115df22e078fd16d43bf3d8d8d75c0ff361afcf1fccad6d9e45b",
+    "workflow_hash": "0af794e979fa1f809c1f836154a0d9e031229d45cd48f6753a4482bb0d1b597c",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "governance_adversarial_design_corpus",

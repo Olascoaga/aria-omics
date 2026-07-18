@@ -1,0 +1,317 @@
+{
+  "aria_version": "4.7.0",
+  "canonical_artifacts": [
+    {
+      "name": "report.html",
+      "sha256": "ea49d1c5e168edb8f0bb58a440a1f69108c5638638e41b65a0c3828060a9f03e",
+      "size_bytes": 9397135,
+      "source_name": "report.html"
+    },
+    {
+      "name": "methodology.json",
+      "sha256": "e0b1149a820d6c59ecba7ed88e369846f5109bf17aa640551ddb40373faab9ed",
+      "size_bytes": 246738,
+      "source_name": "methodology.json"
+    },
+    {
+      "name": "de_results.tsv",
+      "sha256": "85567b1224d4daa7ef14582c5d37c30cfa618918718609432ba1ea3d5b7978ff",
+      "size_bytes": 29160,
+      "source_name": "b_vs_wt_de_genes.tsv"
+    },
+    {
+      "name": "fig1_h9_bulk_de.svg",
+      "sha256": "d0bad003b0de235cb570d6ce52ab792e2e40d288b7fd2e3c8111cf8f56010a63",
+      "size_bytes": 2105247,
+      "source_name": "volcano.svg"
+    }
+  ],
+  "checkpoint_decisions": [
+    {
+      "checkpoint": 1,
+      "choice": "Confirm and continue"
+    },
+    {
+      "checkpoint": 2.1,
+      "choice": "B=B1,B2,B3; R=R1,R2,R3; WT=WT1,WT2,WT3"
+    },
+    {
+      "checkpoint": 2.2,
+      "choice": "Homo sapiens (hg38)"
+    },
+    {
+      "checkpoint": 2.3,
+      "choice": "condition"
+    },
+    {
+      "checkpoint": 2.6,
+      "choice": "Yes \u2014 proceed"
+    },
+    {
+      "checkpoint": 2,
+      "choice": "Run recommended plan only"
+    },
+    {
+      "checkpoint": 3.5,
+      "choice": "Proceed anyway"
+    },
+    {
+      "checkpoint": 5,
+      "choice": "Accept report"
+    }
+  ],
+  "checkpoint_policy": "c1_h9_fastq_e2e.frozen_h9_answer_policy",
+  "claim": "claim_1",
+  "data_source": "validation-data://h9_bulk_fastq",
+  "de_summary": [
+    {
+      "n_downregulated": 82,
+      "n_significant": 204,
+      "n_upregulated": 122
+    },
+    {
+      "n_downregulated": 120,
+      "n_significant": 153,
+      "n_upregulated": 33
+    }
+  ],
+  "design_contract": {
+    "contrasts": [
+      {
+        "denominator": "WT",
+        "numerator": "B"
+      },
+      {
+        "denominator": "WT",
+        "numerator": "R"
+      }
+    ],
+    "factor": "condition",
+    "groups": {
+      "B": [
+        "B1",
+        "B2",
+        "B3"
+      ],
+      "R": [
+        "R1",
+        "R2",
+        "R3"
+      ],
+      "WT": [
+        "WT1",
+        "WT2",
+        "WT3"
+      ]
+    }
+  },
+  "environments": [
+    {
+      "env_name": "aria-env",
+      "lock_file": null,
+      "sha256": null
+    },
+    {
+      "env_name": "aria-rnaseq-env",
+      "lock_file": "envs/aria-rnaseq-env.linux-64.lock",
+      "sha256": "524602916ae78c3bb2eed6fb7b899a946128f88d45681b09c4ef54f87d4da09d"
+    },
+    {
+      "env_name": "aria-rna-env",
+      "lock_file": "envs/aria-rna-env.linux-64.lock",
+      "sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f"
+    }
+  ],
+  "experiment_id": "469bfd82-f70",
+  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
+  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "lane_id": "c1_h9_fastq_e2e",
+  "llm": "frozen-deterministic-double (hermetic, no network)",
+  "pipeline": "raw FASTQ -> fastp/STAR -> featureCounts -> pyDESeq2 -> F3-governed report",
+  "report_figures": [
+    {
+      "name": "b_vs_wt/gsea_results.csv",
+      "sha256": "ffe6b8fc078f1074db96373dac39d2946a480817897138ca01e06786da8ad77d",
+      "size_bytes": 921027
+    },
+    {
+      "name": "b_vs_wt/gsea_running_sum_1.png",
+      "sha256": "51e12877384b1c767aa372700b3351ab91164fbdbc1a34f8d43456dca96a9bf9",
+      "size_bytes": 132447
+    },
+    {
+      "name": "b_vs_wt/gsea_running_sum_2.png",
+      "sha256": "b4620b73101c11fd2e60428cdf0f5083b17a465b474e615216f814cbf41667ed",
+      "size_bytes": 130419
+    },
+    {
+      "name": "b_vs_wt/gsea_running_sum_3.png",
+      "sha256": "633eeb84df81c9752643e6c5929071c680cf34cf5173e4452dfe50b92a002150",
+      "size_bytes": 131128
+    },
+    {
+      "name": "b_vs_wt/gsea_top_table.png",
+      "sha256": "6355f08efed16aa75e54e04dbc8f2015e9063d10ff2c2cab4b8874764189e2f6",
+      "size_bytes": 256989
+    },
+    {
+      "name": "b_vs_wt/heatmap_lfc.svg",
+      "sha256": "4d410a2a1a9b3b514def185ea87c84e9137bf751ec745f30bfff0bb8e49ad928",
+      "size_bytes": 87106
+    },
+    {
+      "name": "b_vs_wt/heatmap_padj.svg",
+      "sha256": "3fd063d7ce0ab514464ac0c8734ca2d3d0cb78d2fda0c24394c5e03ca2cedf4a",
+      "size_bytes": 85462
+    },
+    {
+      "name": "b_vs_wt/pathway_dotplot_go_bp.png",
+      "sha256": "e0b6058196361c4852b1c3ef876efc79ce03b077c8f7296b05efbc296ab49b74",
+      "size_bytes": 196578
+    },
+    {
+      "name": "b_vs_wt/pathway_dotplot_kegg.png",
+      "sha256": "cc5a5c90098c32ce844d61d2fc55de771367fa527d6b3b241e6fbb43d6e8bba0",
+      "size_bytes": 110083
+    },
+    {
+      "name": "b_vs_wt/pathway_dotplot_kegg_down.png",
+      "sha256": "b23f729d9bf28732ae1ed23dbaa67b49a3a39886cce17220f0ea10e1b98e9dd0",
+      "size_bytes": 88206
+    },
+    {
+      "name": "b_vs_wt/pathway_dotplot_kegg_up.png",
+      "sha256": "aca974835e13c7e317f5deb385e74ce29fac1442934563f6e90fd9f951aede9e",
+      "size_bytes": 86188
+    },
+    {
+      "name": "b_vs_wt/pathway_dotplot_reactome.png",
+      "sha256": "42466329ee47e83c77a0095bc3197c61ef6b49ba4dc4acd3286549f7d7fd293b",
+      "size_bytes": 85904
+    },
+    {
+      "name": "b_vs_wt/volcano.svg",
+      "sha256": "d0bad003b0de235cb570d6ce52ab792e2e40d288b7fd2e3c8111cf8f56010a63",
+      "size_bytes": 2105247
+    },
+    {
+      "name": "mds.svg",
+      "sha256": "ecc03b6d9c57041b16e25a01ce5b4b10e8c7ffc1b88f282b9a3159dee486ecb6",
+      "size_bytes": 33124
+    },
+    {
+      "name": "mds_all_samples.svg",
+      "sha256": "ecc03b6d9c57041b16e25a01ce5b4b10e8c7ffc1b88f282b9a3159dee486ecb6",
+      "size_bytes": 33124
+    },
+    {
+      "name": "pca.svg",
+      "sha256": "9ad1c0aaad59d1974661491617dd851b25d5f7a0e84e1aa7e72a6f69d4004234",
+      "size_bytes": 37069
+    },
+    {
+      "name": "pca_all_samples.svg",
+      "sha256": "9ad1c0aaad59d1974661491617dd851b25d5f7a0e84e1aa7e72a6f69d4004234",
+      "size_bytes": 37069
+    },
+    {
+      "name": "pca_mds.svg",
+      "sha256": "bb673a0e79552dc250db8c4b0d0552d17df3f2e94b4bb8ba0dd0ac9abf3c6eec",
+      "size_bytes": 58560
+    },
+    {
+      "name": "r_vs_wt/gsea_results.csv",
+      "sha256": "cd7b8ef65f18b14fea458e8cbddb9d35e13a65a33ed9b23978ac4c86f223486d",
+      "size_bytes": 938315
+    },
+    {
+      "name": "r_vs_wt/gsea_running_sum_1.png",
+      "sha256": "4f25c4aa6f5a7591eb11b30b2e61ea0a463e2d13b6ea01a41c96b47484a7a0bc",
+      "size_bytes": 138148
+    },
+    {
+      "name": "r_vs_wt/gsea_running_sum_2.png",
+      "sha256": "27359d0217843aacd65d49ed70195b3b69047c53c8fce26f0a1ab704dd64fb7c",
+      "size_bytes": 137821
+    },
+    {
+      "name": "r_vs_wt/gsea_running_sum_3.png",
+      "sha256": "13341b2540dbbd4fa7aa21861639c861830f5f571a7b054235be43be19126e4b",
+      "size_bytes": 137113
+    },
+    {
+      "name": "r_vs_wt/gsea_top_table.png",
+      "sha256": "82ceab4f3b16d3b9ea4e5105c4266fdadbf90b3d737fb054e050048ac4b5789f",
+      "size_bytes": 250875
+    },
+    {
+      "name": "r_vs_wt/heatmap_lfc.svg",
+      "sha256": "6b7e8b918b54ef0e7d39d4293220d9d15470dda415534f167f2296190e3ba8ae",
+      "size_bytes": 91966
+    },
+    {
+      "name": "r_vs_wt/heatmap_padj.svg",
+      "sha256": "9b46b49f38981a8843875d4b33c91b66dae6a2dfc7c7a45f86137c8d195020d9",
+      "size_bytes": 87762
+    },
+    {
+      "name": "r_vs_wt/pathway_dotplot_go_bp.png",
+      "sha256": "ed92c8fb458cba06fb44b41062f3866a23a39524d907b59263f4a053edc709b8",
+      "size_bytes": 107691
+    },
+    {
+      "name": "r_vs_wt/pathway_dotplot_kegg.png",
+      "sha256": "68db78c38550595a67fc5087278a22ca3dd4a9e3a978304784209d52b9fda799",
+      "size_bytes": 82507
+    },
+    {
+      "name": "r_vs_wt/pathway_dotplot_kegg_down.png",
+      "sha256": "38154ad764df676349486be5ad1f6a75b5b63a120c83405eca133bb1faf61e02",
+      "size_bytes": 84394
+    },
+    {
+      "name": "r_vs_wt/pathway_dotplot_kegg_up.png",
+      "sha256": "046b2b2b288c6456a71811b73413d4765443fca65191c7db0b94a750f9423b5a",
+      "size_bytes": 128483
+    },
+    {
+      "name": "r_vs_wt/pathway_dotplot_reactome.png",
+      "sha256": "906cf55a6d2b0922c29c615a05fe0b63d4261656b88024b113a2803b077f0965",
+      "size_bytes": 107160
+    },
+    {
+      "name": "r_vs_wt/volcano.svg",
+      "sha256": "9e492440edfac15ee0f6608bb1f0e409c916dd5b09a6cf68e03a0491dd8f73f8",
+      "size_bytes": 1945728
+    }
+  ],
+  "report_tables": [
+    {
+      "name": "b_vs_wt_de_genes.tsv",
+      "sha256": "85567b1224d4daa7ef14582c5d37c30cfa618918718609432ba1ea3d5b7978ff",
+      "size_bytes": 29160
+    },
+    {
+      "name": "b_vs_wt_pathways.tsv",
+      "sha256": "c1cd7315194ef2cd272345c410807a04e9b412dc87f31a9588137de27c977e01",
+      "size_bytes": 4572
+    },
+    {
+      "name": "counts_tpm.tsv",
+      "sha256": "d5ef8cbca8cbf9bf07d9b424986e465f69dd7fe5fc679ffb7d88fe2fa5c2cab0",
+      "size_bytes": 38
+    },
+    {
+      "name": "r_vs_wt_de_genes.tsv",
+      "sha256": "399e4c7f11ef2df808f48555b4674d9427e864b18a0619a03252999f26045edf",
+      "size_bytes": 22083
+    },
+    {
+      "name": "r_vs_wt_pathways.tsv",
+      "sha256": "121da7866113911075682cf93dc27ee8b08ce20f31e05d2974ed5f4615aa84e7",
+      "size_bytes": 2034
+    }
+  ],
+  "requested_cpus": 30,
+  "schema_version": "aria.preprint_freeze.c1_h9_capsule.v1"
+}

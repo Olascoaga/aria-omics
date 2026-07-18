@@ -1,0 +1,48 @@
+{
+  "aria_version": "4.7.0",
+  "artifacts": [
+    {
+      "path": "claim_1/h9_e2e/capsule.json",
+      "sha256": "2508c7428fc1cb16cbd31e1b83f0ad1dda2260fd69f5ec94defb6c305aa622d1",
+      "size_bytes": 9250
+    },
+    {
+      "path": "claim_1/h9_e2e/report.html",
+      "sha256": "ea49d1c5e168edb8f0bb58a440a1f69108c5638638e41b65a0c3828060a9f03e",
+      "size_bytes": 9397135
+    },
+    {
+      "path": "claim_1/h9_e2e/methodology.json",
+      "sha256": "aaec45dd57c8853cc0b73c408791d5044e87037a2fa086603e13c603b812dadc",
+      "size_bytes": 246732
+    },
+    {
+      "path": "claim_1/h9_e2e/de_results.tsv",
+      "sha256": "85567b1224d4daa7ef14582c5d37c30cfa618918718609432ba1ea3d5b7978ff",
+      "size_bytes": 29160
+    },
+    {
+      "path": "claim_1/h9_e2e/fig1_h9_bulk_de.svg",
+      "sha256": "d0bad003b0de235cb570d6ce52ab792e2e40d288b7fd2e3c8111cf8f56010a63",
+      "size_bytes": 2105247
+    }
+  ],
+  "claims": [
+    "claim_1"
+  ],
+  "command": "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
+  "completed_utc": "2026-07-18T03:21:30.600048+00:00",
+  "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
+  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
+  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "lane_id": "c1_h9_fastq_e2e",
+  "returncode": 0,
+  "schema_version": "aria.preprint_freeze.receipt.v1",
+  "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
+  "started_utc": "2026-07-18T03:20:27.899484+00:00",
+  "status": "pass",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdout_sha256": "88a61b5712c462ecb9400240b4c61d9e2d45d809de87cac8b92c5a3b7c71580c",
+  "test_summary": null,
+  "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f"
+}
