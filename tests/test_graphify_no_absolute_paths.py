@@ -73,6 +73,10 @@ def test_graphify_readme_metrics_match_generated_artifacts():
         return
 
     graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    assert "links" not in graph, (
+        "committed Graphify schema must normalize NetworkX links to edges"
+    )
+    assert "edges" in graph
     edges = graph.get("edges", graph.get("links", []))
     readme = readme_path.read_text(encoding="utf-8")
     assert (

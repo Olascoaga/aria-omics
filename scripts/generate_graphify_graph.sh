@@ -96,11 +96,19 @@ mv "$RUN_OUT/graphify-out/graph.json" "$CLUSTER_INPUT"
 # the script BEFORE the path-scrub + README stamp below (this is why the absolute-path
 # leak survived earlier regens). A skipped graph.html keeps its previous committed copy,
 # which the scrub step still cleans.
-for _f in graph.json graph.html GRAPH_REPORT.md manifest.json; do
+for _f in graph.json GRAPH_REPORT.md manifest.json; do
   if [[ -f "$RUN_OUT/graphify-out/$_f" ]]; then
     cp "$RUN_OUT/graphify-out/$_f" "$OUT_DIR/$_f"
   fi
 done
+
+# Large ARIA graphs exceed Graphify's force-graph HTML limit. Never retain a
+# visualization from an older snapshot when the current run did not produce it.
+if [[ -f "$RUN_OUT/graphify-out/graph.html" ]]; then
+  cp "$RUN_OUT/graphify-out/graph.html" "$OUT_DIR/graph.html"
+elif [[ -f "$OUT_DIR/graph.html" ]]; then
+  rm "$OUT_DIR/graph.html"
+fi
 
 "$GRAPHIFY_BIN" tree \
   --graph "$OUT_DIR/graph.json" \
@@ -109,6 +117,7 @@ done
   --label ARIA
 
 python - "$OUT_DIR" "$CORPUS" "$RUN_OUT" "$ROOT" <<'PY'
+import json
 from pathlib import Path
 import sys
 
@@ -131,6 +140,19 @@ for path in out_dir.iterdir():
         for ar in abs_roots:
             text = text.replace(ar, "ARIA")
         path.write_text(text, encoding="utf-8")
+
+# Graphify's exporter uses NetworkX's `links` key after clustering, while ARIA's
+# committed structure-only contract uses `edges`. Normalize the final artifact
+# so repository consumers and guards see one stable schema across every regen.
+graph_path = out_dir / "graph.json"
+graph = json.loads(graph_path.read_text(encoding="utf-8"))
+if "links" in graph:
+    if "edges" in graph:
+        raise SystemExit("Graphify output contains both links and edges")
+    graph["edges"] = graph.pop("links")
+graph_path.write_text(
+    json.dumps(graph, indent=2), encoding="utf-8"
+)
 PY
 
 # F11: keep the README snapshot pointer and artifact metrics fresh. Stamping the

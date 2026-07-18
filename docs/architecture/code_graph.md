@@ -10,8 +10,8 @@ or checkpoint/design logic.
 
 For repository-wide exploration, use the generated Graphify map in
 [`docs/architecture/graphify/`](graphify/README.md). That artifact is built from
-a clean tracked snapshot and provides `graph.json`, `graph.html`,
-`GRAPH_TREE.html`, and `GRAPH_REPORT.md`. It is **structure-only**: only real
+a clean tracked snapshot and provides `graph.json`, `GRAPH_TREE.html`, and
+`GRAPH_REPORT.md`. It is **structure-only**: only real
 code nodes and EXTRACTED structural edges (imports/calls/contains/method/
 inherits/references/…), with the inferred (`confidence=INFERRED`) and
 rationale/concept layers filtered out by `scripts/graphify_structure_filter.py`
@@ -44,8 +44,11 @@ the same path triggered Graphify's shrink-safety refusal, which left the old
 `graph.json` beside a newly generated report. The generator now moves the filtered
 graph to an immutable temporary input and lets clustering create a fresh output;
 it then derives the README node/edge/community counts from the actual JSON and
-report. `test_graphify_readme_metrics_match_generated_artifacts` prevents a mixed
-snapshot from being committed again.
+report, normalizes NetworkX `links` back to ARIA's stable `edges` schema, and
+removes `graph.html` when the current graph exceeds Graphify's visualization
+limit rather than retaining a stale copy. `GRAPH_TREE.html` remains the current
+interactive map. `test_graphify_readme_metrics_match_generated_artifacts`
+prevents a mixed snapshot from being committed again.
 
 ## RNA And Reporting Flow
 
