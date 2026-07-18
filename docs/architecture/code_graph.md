@@ -18,6 +18,11 @@ rationale/concept layers filtered out by `scripts/graphify_structure_filter.py`
 (deterministic, no LLM). This document remains the curated impact map; Graphify
 is the broader navigational index.
 
+The generator uses Graphify's local AST-only `update --force --no-cluster`
+path. Do not replace it with semantic `extract`: even after inferred edges are
+filtered, semantic extraction can introduce model-derived code nodes and make a
+supposedly structural snapshot vary between runs.
+
 The structure filter also has one explicit deterministic AST completeness guard:
 `aria/memory/memory.py:ARIAMemory`. Graphify sometimes emits only the aggregate
 class node for that shared infrastructure module, so the filter restores its real

@@ -30,13 +30,13 @@ git -C "$ROOT" archive --format=tar --output="$TMP_ROOT/repo.tar" HEAD -- \
   ':(exclude)docs/architecture/graphify/manifest.json'
 tar -xf "$TMP_ROOT/repo.tar" -C "$CORPUS"
 
-if ! "$GRAPHIFY_BIN" extract "$CORPUS" --out "$RUN_OUT" --no-cluster; then
-  echo "[graphify extract] failed; falling back to code-only graphify update" >&2
-  "$GRAPHIFY_BIN" update "$CORPUS" --no-cluster
-  rm -rf "$RUN_OUT/graphify-out"
-  mkdir -p "$RUN_OUT"
-  cp -R "$CORPUS/graphify-out" "$RUN_OUT/graphify-out"
-fi
+# This is deliberately the local AST-only update path. `graphify extract` also
+# invokes semantic extraction and can add non-deterministic LLM-derived code
+# nodes before the structure filter runs, even if all inferred edges are later
+# removed. A clean archived corpus has no prior graph, so update performs a full
+# deterministic code extraction without network access or model cost.
+"$GRAPHIFY_BIN" update "$CORPUS" --force --no-cluster
+cp -R "$CORPUS/graphify-out" "$RUN_OUT/graphify-out"
 
 # Structure-only: drop the inferred/semantic (confidence=INFERRED) and the
 # rationale/concept/document layers so the map reflects ARIA's REAL code
