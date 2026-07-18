@@ -77,9 +77,127 @@ def test_frozen_llm_double_satisfies_provider_seam():
     # A run-scoped view must still answer completion calls deterministically and
     # without contacting any provider.
     assert scoped.complete("anything") == double.marker
+    parsed = json.loads(scoped.complete(
+        'Return JSON containing "analysis_type" and "key_modalities_needed".'
+    ))
+    assert parsed["analysis_type"] == "differential"
+    assert parsed["key_modalities_needed"] == ["RNA"]
+    plan = json.loads(scoped.complete(
+        'Return JSON containing "steps" and "contrasts".'
+    ))
+    assert plan["contrasts"] == [
+        {"numerator": "B", "denominator": "WT"},
+        {"numerator": "R", "denominator": "WT"},
+    ]
     assert scoped.complete_heavy("x") == double.marker
     assert scoped.complete_light("x") == double.marker
     assert double.get_active_model() is None
+
+
+def test_frozen_h9_policy_drives_real_design_checkpoints(tmp_path):
+    harness = _load_harness()
+    from aria.agents.design_agent import DesignAgent
+    from aria.bus.message_bus import bus
+    from aria.memory.memory import ARIAMemory
+
+    fastqs = []
+    for samples in harness.H9_GROUPS.values():
+        for sample in samples:
+            for read in (1, 2):
+                path = tmp_path / f"{sample}_{read}.fq.gz"
+                path.touch()
+                fastqs.append(str(path))
+
+    experiment_id = "h9_frozen_design"
+    memory = ARIAMemory(db_path=str(tmp_path / "memory.db"))
+    agent = DesignAgent(memory=memory, llm=harness.FrozenLLMDouble())
+    result = agent.start_design(
+        experiment_id,
+        {
+            "modalities": {"bulk_RNA_raw": fastqs},
+            "organism": "Homo sapiens",
+            "genome": "hg38",
+        },
+        {"question": harness.DEFAULT_QUESTION},
+    )
+    decisions = []
+    for _ in range(20):
+        pending = [
+            msg for msg in bus.get_pending_checkpoints(
+                experiment_id=experiment_id
+            )
+            if not msg.payload.get("resolved")
+        ]
+        if not pending:
+            break
+        msg = pending[0]
+        cp_num = msg.payload.get("checkpoint")
+        choice = harness.frozen_h9_answer_policy(
+            cp_num,
+            msg.payload.get("question", ""),
+            msg.payload.get("options", []),
+        )
+        bus.resolve_checkpoint(msg.id, {"choice": choice})
+        decisions.append((cp_num, choice))
+        result = agent.handle_user_response(
+            experiment_id=experiment_id,
+            checkpoint_num=cp_num,
+            choice=choice,
+        )
+        if result.get("status") in {"done", "cancelled"}:
+            break
+
+    memory.close()
+    assert result["status"] == "done", result
+    design = result["design"]
+    assert design["groups"] == {
+        group: list(samples) for group, samples in harness.H9_GROUPS.items()
+    }
+    assert design["replicates"] == {"B": 3, "R": 3, "WT": 3}
+    assert design["main_factor"] == "condition"
+    assert design["design_formula"] == "~ condition"
+    assert design["design_status"] == "ready"
+    assert dict(decisions)[2.1] == harness.H9_MANUAL_GROUP_ASSIGNMENT
+    assert dict(decisions)[2.6] == "Yes — proceed"
+
+
+def test_frozen_h9_design_maps_to_bulk_matrix_and_explicit_contrasts(tmp_path):
+    harness = _load_harness()
+    from aria.agents.bulk_rna_agent import BulkRNAAgent
+
+    counts = tmp_path / "counts.tsv"
+    sample_names = [
+        sample for samples in harness.H9_GROUPS.values() for sample in samples
+    ]
+    counts.write_text(
+        "gene\t" + "\t".join(sample_names) + "\n"
+        "GENE_1\t" + "\t".join(["10"] * len(sample_names)) + "\n",
+        encoding="utf-8",
+    )
+    design = {
+        "groups": {
+            group: list(samples) for group, samples in harness.H9_GROUPS.items()
+        },
+        "main_factor": "condition",
+        "plan_contrasts": list(harness.H9_CONTRASTS),
+    }
+
+    agent = BulkRNAAgent.__new__(BulkRNAAgent)
+    mapped_samples, labels, factor, contrasts = agent._apply_design(
+        design, [str(counts)], "h9_design_mapping"
+    )
+
+    assert mapped_samples == sample_names
+    assert labels == {
+        sample: group
+        for group, samples in harness.H9_GROUPS.items()
+        for sample in samples
+    }
+    assert factor == "condition"
+    assert contrasts == [
+        {"numerator": "B", "denominator": "WT", "name": "B vs WT"},
+        {"numerator": "R", "denominator": "WT", "name": "R vs WT"},
+    ]
 
 
 def _make_fake_report(tmp_path: Path) -> Path:
@@ -123,6 +241,18 @@ def test_publish_assembles_capsule_and_copies_canonical_artifacts(tmp_path):
 
     assert capsule["schema_version"] == harness.CAPSULE_SCHEMA
     assert capsule["lane_id"] == "c1_h9_fastq_e2e"
+    assert capsule["requested_cpus"] == 30
+    assert capsule["checkpoint_policy"].endswith("frozen_h9_answer_policy")
+    assert capsule["design_contract"] == {
+        "groups": {"B": ["B1", "B2", "B3"],
+                   "R": ["R1", "R2", "R3"],
+                   "WT": ["WT1", "WT2", "WT3"]},
+        "contrasts": [
+            {"numerator": "B", "denominator": "WT"},
+            {"numerator": "R", "denominator": "WT"},
+        ],
+        "factor": "condition",
+    }
     assert {c["name"] for c in capsule["canonical_artifacts"]} == {
         "report.html", "methodology.json", "de_results.tsv", "fig1_h9_bulk_de.svg"
     }

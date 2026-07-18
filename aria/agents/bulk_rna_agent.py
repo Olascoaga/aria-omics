@@ -34,6 +34,16 @@ def _is_fastq(files: list) -> bool:
     if not files: return False
     return any(str(files[0]).lower().endswith(s) for s in [".fastq.gz", ".fq.gz", ".fastq", ".fq"])
 
+
+def _preprocessing_threads(exp_ctx: dict) -> int:
+    """Resolve an explicit per-run CPU request without oversubscribing the host."""
+    try:
+        requested = int(exp_ctx.get("n_cpus", 8))
+    except (TypeError, ValueError):
+        requested = 8
+    return max(1, min(requested, os.cpu_count() or requested))
+
+
 # F1 (preprint audit 2026-06-19 / ADR-055): the |log2FC| DE-significance threshold
 # is DATA- AND PROMPT-INDEPENDENT by default. It must never be derived from the
 # question text or a hardcoded gene list — otherwise the inferential cutoff (and
@@ -234,6 +244,8 @@ class BulkRNAAgent(BaseAgent):
                 "run_pathways":   True,
                 "padj_threshold": padj_thr,
                 "lfc_threshold":  lfc_thr,
+                **({"n_cpus": _preprocessing_threads(exp_ctx)}
+                   if "n_cpus" in exp_ctx else {}),
             },
         )
 
@@ -741,6 +753,7 @@ class BulkRNAAgent(BaseAgent):
 
     def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
         fastq_dir, output_dir, genome_cfg = str(Path(fastq_files[0]).parent), str(Path(fastq_files[0]).parent.parent / "aria_processing"), exp_ctx.get("genome_config", {})
+        threads = _preprocessing_threads(exp_ctx)
 
         self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
         qc_result = self.env.run_in_stack(
@@ -750,7 +763,7 @@ class BulkRNAAgent(BaseAgent):
                 "fastq_dir": fastq_dir,
                 "fastq_files": fastq_files,
                 "output_dir": str(Path(output_dir) / "qc"),
-                "threads": 8,
+                "threads": threads,
             },
         )
         if qc_result.get("status") == "error": return None, qc_result
@@ -768,7 +781,7 @@ class BulkRNAAgent(BaseAgent):
                 "genome_fasta": genome_cfg.get("fasta", ""),
                 "gtf_file": genome_cfg.get("gtf", ""),
                 "output_dir": str(Path(output_dir) / "aligned"),
-                "threads": 8,
+                "threads": threads,
                 "two_pass": True,
             },
         )
@@ -785,7 +798,7 @@ class BulkRNAAgent(BaseAgent):
                 "bam_files": align_result.get("bam_files", []),
                 "gtf_file": genome_cfg.get("gtf", ""),
                 "output_dir": str(Path(output_dir) / "counts"),
-                "threads": 8,
+                "threads": threads,
                 "strand": genome_cfg.get("strand", "auto"),
             },
         )

@@ -25,6 +25,7 @@ Input params:
     run_pathways:    bool  (default: True)
     padj_threshold:  float (default: 0.05)
     lfc_threshold:   float (default: 1.0)
+    n_cpus:          int   (optional; clamped to locally available CPUs)
 
 Output:
     {
@@ -99,6 +100,18 @@ from aria.scripts.rna_bulk.qc import (  # noqa: E402,F401
 # The paper plot theme (`_P`) now lives in aria/scripts/rna_bulk/plots.py.
 
 
+def _bounded_n_cpus(value) -> int | None:
+    """Clamp an explicit DE worker request; keep the ordinary default unchanged."""
+    if value is None:
+        return None
+    try:
+        requested = int(value)
+    except (TypeError, ValueError):
+        return None
+    available = os.cpu_count() or max(1, requested)
+    return max(1, min(requested, available))
+
+
 def bulk_rna_de(params: dict) -> dict:
     from pathlib import Path
     import numpy as np
@@ -143,6 +156,7 @@ def bulk_rna_de(params: dict) -> dict:
     padj_thr       = float(params.get("padj_threshold", 0.05))
     lfc_thr        = float(params.get("lfc_threshold", 1.0))
     min_reps       = int(params.get("min_replicates_per_condition", 3))
+    n_cpus         = _bounded_n_cpus(params.get("n_cpus"))
     # B5: explicit, audited exclusion of count columns that lack metadata. Only
     # genuine orphan columns may be named here; everything else needs metadata.
     excluded_samples = params.get("excluded_samples", []) or []
@@ -363,6 +377,7 @@ def bulk_rna_de(params: dict) -> dict:
             continue
 
         # Run DE for this contrast
+        parallel = {"n_cpus": n_cpus} if n_cpus else {}
         de_result, de_warn = _run_deseq2(
             counts_filt, metadata, design_factor,
             num, den, padj_thr, lfc_thr,
@@ -370,6 +385,7 @@ def bulk_rna_de(params: dict) -> dict:
             min_replicates_per_condition=min_reps,
             covariates=covariates,
             lfc_shrink=lfc_shrink,
+            **parallel,
         )
 
         if de_result.get("status") == "error":
@@ -722,6 +738,7 @@ def bulk_rna_de(params: dict) -> dict:
         "design_used":      f"~{design_factor}",
         "padj_threshold":   padj_thr,
         "lfc_threshold":    lfc_thr,
+        "n_cpus":           n_cpus,
         # P1-1c: pre-registered contrast-FDR family + the pooled-BH family size.
         "fdr_family":       {**fdr_family, "n_tests_family": n_tests_family},
         # P1-2 closure (ADR-027): IHW + s-values honestly disclosed as not

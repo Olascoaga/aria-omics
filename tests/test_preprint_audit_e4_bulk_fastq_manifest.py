@@ -232,8 +232,13 @@ def test_e4_alignment_is_all_or_fail_when_one_sample_fails(
     assert result["failed_samples"] == ["bad"]
 
 
-def test_e4_bulk_agent_propagates_selection_and_does_not_force_paired(tmp_path):
+def test_e4_bulk_agent_propagates_selection_and_does_not_force_paired(
+    tmp_path, monkeypatch
+):
+    from aria.agents import bulk_rna_agent as bulk_module
     from aria.agents.bulk_rna_agent import BulkRNAAgent
+
+    monkeypatch.setattr(bulk_module.os, "cpu_count", lambda: 32)
 
     fastq = tmp_path / "single_R1.fastq.gz"
     fastq.write_bytes(b"fastq")
@@ -275,11 +280,29 @@ def test_e4_bulk_agent_propagates_selection_and_does_not_force_paired(tmp_path):
     agent.publish_finding = lambda *args, **kwargs: None
 
     counts, _ = agent._run_preprocessing(
-        "exp", [str(fastq)], {"genome_config": {}}, {}
+        "exp", [str(fastq)], {"genome_config": {}, "n_cpus": 30}, {}
     )
 
     assert counts == ["/tmp/counts.tsv"]
     qc_params = calls[0][1]
     quant_params = calls[2][1]
     assert qc_params["fastq_files"] == [str(fastq)]
+    assert [params["threads"] for _, params in calls] == [30, 30, 30]
     assert "paired" not in quant_params
+
+
+def test_e4_cpu_requests_are_bounded_without_changing_ordinary_defaults(
+    monkeypatch,
+):
+    from aria.agents import bulk_rna_agent as bulk_module
+    from aria.scripts import rna_bulk_de
+
+    monkeypatch.setattr(bulk_module.os, "cpu_count", lambda: 12)
+    monkeypatch.setattr(rna_bulk_de.os, "cpu_count", lambda: 12)
+
+    assert bulk_module._preprocessing_threads({"n_cpus": 30}) == 12
+    assert bulk_module._preprocessing_threads({"n_cpus": 0}) == 1
+    assert bulk_module._preprocessing_threads({}) == 8
+    assert rna_bulk_de._bounded_n_cpus(30) == 12
+    assert rna_bulk_de._bounded_n_cpus(0) == 1
+    assert rna_bulk_de._bounded_n_cpus(None) is None

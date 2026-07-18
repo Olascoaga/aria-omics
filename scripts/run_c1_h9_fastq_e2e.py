@@ -14,15 +14,18 @@ Honesty contract (see memory/DECISIONS.md and the preprint audit invariants):
     ``aria-rnaseq-env`` / ``aria-rna-env``). This harness only orchestrates the
     real run and packages the resulting evidence.
   * The genome/index is auto-resolved by ARIA's own setup agent to the managed
-    ``~/.aria/genomes/hg38`` (a prebuilt STAR index — no rebuild). Nothing about
-    the reference is hard-coded here.
+    ``~/.aria/genomes/hg38``. STAR builds the managed index when it is absent or
+    incomplete and reuses it thereafter. Nothing about the reference is
+    hard-coded here.
   * The LLM is a hermetic, deterministic in-process double (no network, no
     cost). ARIA's scientific results and the F3-governed report are
     evidence-derived, not free-text; the double only satisfies incidental
-    proposal calls so the run is fully offline and reproducible. Design
-    decisions follow ARIA's own inference through
-    ``aria.headless.default_answer_policy`` (ADR-011: no dataset-specific
-    injection by the policy).
+    proposal calls so the run is fully offline and reproducible.
+  * The frozen H9 checkpoint policy supplies the independently known sample
+    grouping at CP2.1 and authorizes the two explicit contrasts at CP2. This is
+    dataset-specific validation metadata in the harness, not runtime inference:
+    DesignAgent still parses, validates and confirms the groups, replicate
+    structure and factor through the real checkpoint state machine.
   * If the completed report lacks a differential-expression table or figure, the
     harness fails loudly rather than emitting a partial capsule.
 
@@ -66,6 +69,19 @@ DEFAULT_QUESTION = (
 # evidence: the orchestrator env plus the two scientific envs the pipeline
 # dispatches into.
 CAPSULE_ENVIRONMENTS = ("aria-env", "aria-rnaseq-env", "aria-rna-env")
+FREEZE_N_CPUS = 30
+H9_GROUPS = {
+    "B": ("B1", "B2", "B3"),
+    "R": ("R1", "R2", "R3"),
+    "WT": ("WT1", "WT2", "WT3"),
+}
+H9_CONTRASTS = (
+    {"numerator": "B", "denominator": "WT"},
+    {"numerator": "R", "denominator": "WT"},
+)
+H9_MANUAL_GROUP_ASSIGNMENT = "; ".join(
+    f"{group}={','.join(samples)}" for group, samples in H9_GROUPS.items()
+)
 
 # DE table / figure discovery in the completed report directory. Patterns are
 # DE-biased and fall back conservatively; a completed bulk-DE report always
@@ -90,12 +106,40 @@ class FrozenLLMDouble:
     """
 
     marker = "[frozen-llm-double: proposal suppressed for reproducible freeze]"
+    intent_response = json.dumps({
+        "analysis_type": "differential",
+        "biological_entities": [],
+        "comparison": "",
+        "key_modalities_needed": ["RNA"],
+        "complexity": "moderate",
+        "summary": "Differential expression analysis.",
+    }, sort_keys=True)
+    plan_response = json.dumps({
+        "steps": [{
+            "order": 1,
+            "agent": "bulk_rna_agent",
+            "analysis": "Bulk RNA differential expression",
+            "depends_on": [],
+            "can_parallel": False,
+        }],
+        "contrasts": list(H9_CONTRASTS),
+        "integration_needed": False,
+        "integration_type": "none",
+        "estimated_complexity": "medium",
+        "rationale": (
+            "Run the two pre-specified contrasts against the shared reference."
+        ),
+    }, sort_keys=True)
 
     def for_execution(self, experiment_id, usage_log, egress_policy):
         return self
 
     def complete(self, prompt, system="", tier=None, max_tokens=1024,
                  messages=None):
+        if "analysis_type" in prompt and "key_modalities_needed" in prompt:
+            return self.intent_response
+        if '"steps"' in prompt and '"contrasts"' in prompt:
+            return self.plan_response
         return self.marker
 
     def complete_heavy(self, prompt, system="", max_tokens=2048, messages=None):
@@ -109,6 +153,31 @@ class FrozenLLMDouble:
 
     def get_active_model(self, tier=None):
         return None
+
+
+def frozen_h9_answer_policy(cp_num, question: str, options: list) -> str:
+    """Confirm the frozen H9 design through ARIA's real checkpoint contract."""
+    from aria.headless import default_answer_policy
+
+    if cp_num == 2.1:
+        return H9_MANUAL_GROUP_ASSIGNMENT
+    if cp_num == 2.3:
+        condition = next(
+            (option for option in options
+             if option.strip().lower() == "condition"),
+            None,
+        )
+        if condition:
+            return condition
+    if cp_num == 2:
+        recommended = next(
+            (option for option in options
+             if option.strip().lower() == "run recommended plan only"),
+            None,
+        )
+        if recommended:
+            return recommended
+    return default_answer_policy(cp_num, question, options)
 
 
 def _sha256(path: Path, chunk_size: int = 8 * 1024 * 1024) -> str:
@@ -250,7 +319,15 @@ def publish(repo_root: Path, report_dir: Path, output_dir: Path,
         "pipeline": "raw FASTQ -> fastp/STAR -> featureCounts -> pyDESeq2 -> "
                     "F3-governed report",
         "llm": "frozen-deterministic-double (hermetic, no network)",
-        "checkpoint_policy": "aria.headless.default_answer_policy",
+        "checkpoint_policy": "c1_h9_fastq_e2e.frozen_h9_answer_policy",
+        "design_contract": {
+            "groups": {
+                group: list(samples) for group, samples in H9_GROUPS.items()
+            },
+            "contrasts": list(H9_CONTRASTS),
+            "factor": "condition",
+        },
+        "requested_cpus": FREEZE_N_CPUS,
         "checkpoint_decisions": [
             {"checkpoint": cp, "choice": choice} for cp, choice in decisions
         ],
@@ -268,16 +345,17 @@ def publish(repo_root: Path, report_dir: Path, output_dir: Path,
 
 
 def run(data_dir: str, output_dir: str, question: str, timeout: float) -> dict:
-    from aria.headless import run_headless, default_answer_policy
+    from aria.headless import run_headless
 
     data_path = str(Path(data_dir).expanduser())
     result = run_headless(
         data_path,
         question,
-        policy=default_answer_policy,
+        policy=frozen_h9_answer_policy,
         reproducible_mode=True,
         enable_hypotheses=False,
         timeout=timeout,
+        context_overrides={"n_cpus": FREEZE_N_CPUS},
         llm_provider=FrozenLLMDouble(),
     )
     if result.status != "completed" or not result.report_path:
