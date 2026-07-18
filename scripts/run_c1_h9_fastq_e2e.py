@@ -43,7 +43,9 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -200,6 +202,37 @@ def _find_first(report_dir: Path, subdir: str, patterns) -> Path | None:
     return None
 
 
+def _portable_json_paths(value, replacements: dict[str, str]):
+    """Replace machine-absolute JSON paths with stable basename references."""
+    if isinstance(value, dict):
+        return {
+            key: _portable_json_paths(nested, replacements)
+            for key, nested in value.items()
+        }
+    if isinstance(value, list):
+        return [_portable_json_paths(nested, replacements) for nested in value]
+    if isinstance(value, str) and Path(value).is_absolute():
+        portable = Path(value).name or "artifact"
+        replacements[value] = portable
+        return portable
+    return value
+
+
+def _portable_report_html(text: str, replacements: dict[str, str]) -> str:
+    """Apply the methodology path map to the copied public HTML report."""
+    for source, portable in sorted(
+        replacements.items(), key=lambda item: len(item[0]), reverse=True
+    ):
+        text = text.replace(source, portable)
+        text = text.replace(html.escape(source, quote=True), portable)
+    if re.search(r"(?<!:)\/(?:home|Users|mnt|tmp|var|opt|private)\/", text):
+        raise RuntimeError(
+            "completed report still contains a machine-absolute path after "
+            "portable publication"
+        )
+    return text
+
+
 def _inventory(report_dir: Path, subdir: str) -> list[dict]:
     """Name + sha256 + size for every artifact the report emitted in ``subdir``."""
     directory = report_dir / subdir
@@ -283,13 +316,36 @@ def publish(repo_root: Path, report_dir: Path, output_dir: Path,
             "emit a partial capsule (searched figures/ for volcano/MA/DE plots)"
         )
 
+    methodology_payload = json.loads(methodology.read_text(encoding="utf-8"))
+    path_replacements: dict[str, str] = {}
+    portable_methodology = _portable_json_paths(
+        methodology_payload, path_replacements
+    )
+    portable_report = _portable_report_html(
+        report_html.read_text(encoding="utf-8"), path_replacements
+    )
+
     copies = {
-        "report.html": report_html,
-        "methodology.json": methodology,
         "de_results.tsv": de_table,
         "fig1_h9_bulk_de.svg": de_figure,
     }
     artifacts: list[dict] = []
+    portable_copies = {
+        "report.html": (portable_report, report_html.name),
+        "methodology.json": (
+            json.dumps(portable_methodology, indent=2, sort_keys=True) + "\n",
+            methodology.name,
+        ),
+    }
+    for out_name, (content, source_name) in portable_copies.items():
+        dst = output_dir / out_name
+        dst.write_text(content, encoding="utf-8")
+        artifacts.append({
+            "name": out_name,
+            "source_name": source_name,
+            "size_bytes": dst.stat().st_size,
+            "sha256": _sha256(dst),
+        })
     for out_name, src in copies.items():
         dst = output_dir / out_name
         shutil.copyfile(src, dst)
@@ -302,8 +358,7 @@ def publish(repo_root: Path, report_dir: Path, output_dir: Path,
 
     de_summary: list[dict] = []
     try:
-        _scan_de_summary(json.loads(methodology.read_text(encoding="utf-8")),
-                         de_summary)
+        _scan_de_summary(portable_methodology, de_summary)
     except Exception:
         de_summary = []
 

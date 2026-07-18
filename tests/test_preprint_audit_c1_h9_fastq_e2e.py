@@ -204,7 +204,10 @@ def _make_fake_report(tmp_path: Path) -> Path:
     report_dir = tmp_path / "report_exp1234"
     (report_dir / "figures" / "b_vs_wt").mkdir(parents=True)
     (report_dir / "tables").mkdir(parents=True)
-    (report_dir / "report.html").write_text("<html>report</html>", encoding="utf-8")
+    (report_dir / "report.html").write_text(
+        "<html><a href='/home/test/run/b_vs_wt_de_genes.tsv'>report</a></html>",
+        encoding="utf-8",
+    )
     (report_dir / "methodology.json").write_text(
         json.dumps({
             "contrasts": [
@@ -212,7 +215,8 @@ def _make_fake_report(tmp_path: Path) -> Path:
                  "n_upregulated": 20, "n_downregulated": 22},
                 {"name": "REV_ERBa_KO vs WT", "n_significant": 17,
                  "n_upregulated": 9, "n_downregulated": 8},
-            ]
+            ],
+            "source_table": "/home/test/run/b_vs_wt_de_genes.tsv",
         }),
         encoding="utf-8",
     )
@@ -259,6 +263,11 @@ def test_publish_assembles_capsule_and_copies_canonical_artifacts(tmp_path):
     # DE summary is extracted schema-agnostically from methodology.json.
     names = {row.get("name") for row in capsule["de_summary"]}
     assert "BMAL1_KO vs WT" in names and "REV_ERBa_KO vs WT" in names
+    assert "/home/" not in (output_dir / "methodology.json").read_text()
+    assert "/home/" not in (output_dir / "report.html").read_text()
+    assert json.loads((output_dir / "methodology.json").read_text())[
+        "source_table"
+    ] == "b_vs_wt_de_genes.tsv"
     # Every environment lock is enumerated by name (sha256 present when the lock
     # is committed).
     assert [e["env_name"] for e in capsule["environments"]] == [
