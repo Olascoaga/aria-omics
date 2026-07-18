@@ -48,7 +48,9 @@ For implementation-impact checks, use the deeper
 [Code Dependency Graph](code_graph.md), which maps runtime dependencies,
 ownership boundaries, and test anchors. For repository-wide navigation, use the
 generated [Graphify map](graphify/README.md): it includes a queryable
-`graph.json`, an interactive `graph.html`, and a file-oriented `GRAPH_TREE.html`.
+`graph.json` and an interactive file-oriented `GRAPH_TREE.html`. The larger
+force-directed `graph.html` is omitted when Graphify's visualization limit is
+exceeded, so the repository never retains a stale map from an older snapshot.
 The frozen v4.5 RNA/evidence-governance benchmarking protocol lives in
 [benchmarking_v45.md](benchmarking_v45.md); it closes v4.5 as a benchmarking
 specification and leaves full benchmark execution as the RNA preprint lane.
