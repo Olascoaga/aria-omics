@@ -82,11 +82,14 @@ PY
 fi
 
 # cluster-only regenerates the human-readable report + html (god-files,
-# communities) FROM the structure-only graph.json. graphify computes communities
-# at report time and does not persist them per-node, so graph.json stays the
-# complete, clean structural graph (its "fewer nodes than before" safety refusal
-# is expected here and harmless — the filter intentionally shrank the graph).
-"$GRAPHIFY_BIN" cluster-only "$RUN_OUT" --no-label
+# communities) FROM the structure-only graph.json. Keep the filtered graph as a
+# separate input so Graphify writes a fresh output file. Reusing the same path
+# can trigger Graphify's shrink-safety guard after the structure filter removes
+# semantic nodes; that leaves an old graph.json beside a new report.
+CLUSTER_INPUT="$TMP_ROOT/structure-only.json"
+mv "$RUN_OUT/graphify-out/graph.json" "$CLUSTER_INPUT"
+"$GRAPHIFY_BIN" cluster-only "$RUN_OUT" \
+  --graph "$CLUSTER_INPUT" --no-label
 
 # Copy each artifact only if it was produced. `cluster-only` skips graph.html when the
 # graph exceeds the viz node limit; under `set -e` a hard `cp graph.html` would abort
@@ -130,22 +133,58 @@ for path in out_dir.iterdir():
         path.write_text(text, encoding="utf-8")
 PY
 
-# F11: keep the README snapshot pointer fresh (it had drifted to a stale commit).
-# Stamp the HEAD the graph was built from + the date so it never goes stale on regen.
+# F11: keep the README snapshot pointer and artifact metrics fresh. Stamping the
+# actual files prevents the map description from drifting after extractor or
+# filter changes.
 HEAD_SHORT="$(git -C "$ROOT" rev-parse --short HEAD)"
 TODAY="$(date +%Y-%m-%d)"
 README="$OUT_DIR/README.md"
 if [[ -f "$README" ]]; then
-  python - "$README" "$HEAD_SHORT" "$TODAY" <<'PY'
+  python - "$README" "$HEAD_SHORT" "$TODAY" \
+    "$OUT_DIR/graph.json" "$OUT_DIR/GRAPH_REPORT.md" <<'PY'
+import json
 import re
 import sys
 from pathlib import Path
 
 readme, head, today = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+graph_path, report_path = Path(sys.argv[4]), Path(sys.argv[5])
 text = readme.read_text(encoding="utf-8")
 text = re.sub(r"(?m)^- Commit: `[0-9a-f]+`.*$",
               f"- Commit: `{head}` (HEAD the graph was built from)", text)
 text = re.sub(r"(?m)^- Generated: .*$", f"- Generated: {today}", text)
+
+graph = json.loads(graph_path.read_text(encoding="utf-8"))
+edges = graph.get("edges", graph.get("links", []))
+structure_line = (
+    f"- Structure-only graph: **{len(graph.get('nodes', []))} code nodes / "
+    f"{len(edges)} EXTRACTED structural edges** in `graph.json`."
+)
+text = re.sub(
+    r"(?ms)^- Structure-only graph:.*?(?=^- Clustered report:)",
+    structure_line + "\n",
+    text,
+)
+
+report = report_path.read_text(encoding="utf-8")
+summary = re.search(
+    r"(?m)^- (\d+) nodes · (\d+) edges · (\d+) communities "
+    r"\((\d+) shown, (\d+) thin omitted\)$",
+    report,
+)
+if not summary:
+    raise SystemExit("Graphify report has no parseable summary")
+nodes, report_edges, communities, shown, omitted = summary.groups()
+report_line = (
+    f"- Clustered report: **{nodes} nodes / {report_edges} edges / "
+    f"{communities} communities** in `GRAPH_REPORT.md` "
+    f"({shown} shown, {omitted} thin omitted)."
+)
+text = re.sub(
+    r"(?ms)^- Clustered report:.*?(?=^- No LLM layer)",
+    report_line + "\n",
+    text,
+)
 readme.write_text(text, encoding="utf-8")
 PY
 fi

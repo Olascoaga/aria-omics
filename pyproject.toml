@@ -19,7 +19,7 @@ name = "aria-omics"
 description = "Agentic Research Intelligence for -omics Analysis"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
 dynamic = ["version"]
 
 dependencies = [
@@ -46,7 +46,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Programming Language :: Python :: 3.11",
-    "License :: OSI Approved :: MIT License",
 ]
 
 [project.optional-dependencies]

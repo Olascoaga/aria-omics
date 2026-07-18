@@ -31,6 +31,15 @@ def test_requires_python_is_3_11():
     assert _proj()["requires-python"] == ">=3.11"
 
 
+def test_license_uses_pep_639_spdx_expression():
+    project = _proj()
+    assert project["license"] == "MIT"
+    assert not any(
+        classifier.startswith("License ::")
+        for classifier in project.get("classifiers", [])
+    )
+
+
 def test_no_python_310_classifier():
     classifiers = _proj().get("classifiers", [])
     assert not any("3.10" in c for c in classifiers)
