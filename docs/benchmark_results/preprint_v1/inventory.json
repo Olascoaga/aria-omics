@@ -10,7 +10,7 @@
         "c1_ercc_dose_response",
         "c1_h9_fastq_e2e"
       ],
-      "status": "verified"
+      "status": "blocked"
     },
     {
       "claim_id": "claim_2",
@@ -20,7 +20,7 @@
         "c2_pairing_and_technical_replicates",
         "c2_scatac_donor_aware"
       ],
-      "status": "verified"
+      "status": "blocked"
     },
     {
       "claim_id": "claim_3",
@@ -46,7 +46,7 @@
         "c5_semantic_negation",
         "c5_multimodal_null_permutations"
       ],
-      "status": "verified"
+      "status": "blocked"
     },
     {
       "claim_id": "claim_6",
@@ -54,21 +54,69 @@
         "c6_b3_in_process_matrix",
         "c6_b3_real_e2e"
       ],
-      "status": "verified"
+      "status": "blocked"
     },
     {
       "claim_id": "claim_7",
       "lane_ids": [
         "c7_speculative_quarantine"
       ],
-      "status": "verified"
+      "status": "blocked"
     }
   ],
   "freeze_gate": {
     "blockers": [
       {
+        "lane_id": "c1_a1_synthetic_bulk_de",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c1_a1_external_comparators",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c1_seqc_maqc_taqman",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c1_seqc_multisite",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c1_ercc_dose_response",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c1_h9_fastq_e2e",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c2_a2_synthetic_pseudobulk",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c2_kang_muscat",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c2_pairing_and_technical_replicates",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c2_scatac_donor_aware",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c3_b1_design_governance",
+        "status": "stale_receipt"
+      },
+      {
         "lane_id": "c3_blind_multifactorial_corpus",
         "status": "blocked_missing_resources"
+      },
+      {
+        "lane_id": "c4_b2_governance_ablation",
+        "status": "stale_receipt"
       },
       {
         "lane_id": "c4_b2_multi_annotator_gold",
@@ -77,14 +125,38 @@
       {
         "lane_id": "c4_report_e2e_false_narrative",
         "status": "blocked_missing_resources"
+      },
+      {
+        "lane_id": "c5_b4_null_narrative",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c5_semantic_negation",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c5_multimodal_null_permutations",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c6_b3_in_process_matrix",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c6_b3_real_e2e",
+        "status": "stale_receipt"
+      },
+      {
+        "lane_id": "c7_speculative_quarantine",
+        "status": "stale_receipt"
       }
     ],
     "n_required_lanes": 21,
-    "n_verified_lanes": 18,
+    "n_verified_lanes": 0,
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-07-18T04:45:55.945337+00:00",
+  "generated_utc": "2026-07-18T06:15:16.510830+00:00",
   "lanes": [
     {
       "claims": [
@@ -104,7 +176,7 @@
       "resources": [
         "env:aria-rna-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -131,7 +203,7 @@
         "env:aria-env",
         "env:aria-bench-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -152,7 +224,7 @@
         "env:aria-rna-env",
         "data:seqc_bgi"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -173,7 +245,7 @@
         "env:aria-rna-env",
         "data:seqc_multisite"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -194,7 +266,7 @@
         "env:aria-rna-env",
         "data:seqc_ercc"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -220,7 +292,7 @@
         "env:aria-rna-env",
         "data:h9_fastq"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -240,7 +312,7 @@
       "resources": [
         "env:aria-rna-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -261,7 +333,7 @@
         "env:aria-rna-env",
         "data:kang_muscat"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -278,7 +350,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -299,7 +371,7 @@
         "env:aria-bench-env",
         "data:gse278576"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -319,7 +391,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -359,7 +431,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -420,7 +492,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -437,7 +509,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -458,7 +530,7 @@
         "env:aria-rna-env",
         "env:aria-chromatin-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -475,7 +547,7 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -494,7 +566,7 @@
         "data:pbmc3k",
         "manual:configured_provider"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     },
     {
       "claims": [
@@ -511,20 +583,20 @@
       "resources": [
         "env:aria-env"
       ],
-      "status": "verified"
+      "status": "stale_receipt"
     }
   ],
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
     "aria_version": "4.7.0",
-    "git_commit": "6430ad56ce20dcb3bc15bebae75c0ceb5115aeaa",
-    "git_describe": "v4.7.0-292-g6430ad5",
+    "git_commit": "e3e29893bedc9eeb46b595afca785fc304be204b",
+    "git_describe": "v4.7.0-301-ge3e2989",
     "git_dirty": false,
-    "git_tree_sha": "6b779b21e75cb6c613cb0ca997cbed8f0e8f6e99",
-    "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
+    "git_tree_sha": "226f4816372f624d939df9a33fd9fa101fb1bc31",
+    "source_snapshot_hash": "7607fb3527a486e1d3d41fd16a9f5bf2f290dd1c4395f618fb69186f008fdb3a",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f",
+    "workflow_hash": "ed11242654d9ce03063dea22b7c625606a3bfa2e6e0745b5c0e7f81b24982642",
     "workflow_hash_algorithm": "sha256(version+source_snapshot_hash)"
   },
   "resources": {
