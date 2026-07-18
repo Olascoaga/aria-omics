@@ -54,7 +54,7 @@
         "c6_b3_in_process_matrix",
         "c6_b3_real_e2e"
       ],
-      "status": "blocked"
+      "status": "verified"
     },
     {
       "claim_id": "claim_7",
@@ -77,18 +77,14 @@
       {
         "lane_id": "c4_report_e2e_false_narrative",
         "status": "blocked_missing_resources"
-      },
-      {
-        "lane_id": "c6_b3_real_e2e",
-        "status": "blocked_manual_confirmation"
       }
     ],
     "n_required_lanes": 21,
-    "n_verified_lanes": 17,
+    "n_verified_lanes": 18,
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-07-18T03:34:36.818716+00:00",
+  "generated_utc": "2026-07-18T04:45:55.945337+00:00",
   "lanes": [
     {
       "claims": [
@@ -498,7 +494,7 @@
         "data:pbmc3k",
         "manual:configured_provider"
       ],
-      "status": "blocked_manual_confirmation"
+      "status": "verified"
     },
     {
       "claims": [
@@ -521,10 +517,10 @@
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
     "aria_version": "4.7.0",
-    "git_commit": "4ecd0f9c78df31f06a3a024548b0b5e6b256bfc0",
-    "git_describe": "v4.7.0-290-g4ecd0f9",
+    "git_commit": "6430ad56ce20dcb3bc15bebae75c0ceb5115aeaa",
+    "git_describe": "v4.7.0-292-g6430ad5",
     "git_dirty": false,
-    "git_tree_sha": "b7358115cf78e70db01a40b781008be033a5fe8f",
+    "git_tree_sha": "6b779b21e75cb6c613cb0ca997cbed8f0e8f6e99",
     "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
