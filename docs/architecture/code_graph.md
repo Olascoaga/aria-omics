@@ -100,6 +100,10 @@ flowchart TD
     PAIRED_QC --> MUDATA_IO[aria/utils/mudata_io.py read_h5mu_paired + h5py /obs bijective join]
     INT_AGENT -->|stack=chromatin| WNN_SCRIPT[aria/scripts/integration_wnn.py V48 I2 deterministic WNN joint state + UMAP/Leiden]
     WNN_SCRIPT --> MUDATA_IO
+    WNN_SCRIPT --> WNN_DIAG_CORE[aria/utils/wnn_diagnostics.py V48 I3 5-axis lens-not-replacement guardrail]
+    INT_AGENT -->|stack=chromatin| WNN_DIAG_SCRIPT[aria/scripts/integration_wnn_diagnostics.py V48 I3 standalone WNN guardrail]
+    WNN_DIAG_SCRIPT --> MUDATA_IO
+    WNN_DIAG_SCRIPT --> WNN_DIAG_CORE
     WNN_SCRIPT --> CONC_WNN[aria/benchmarks/concordance_wnn.py + scripts/run_wnn_concordance.py vs Seurat v5]
     AUDIT --> SENS[aria/utils/sensitivity.py classify input sensitivity]
     SENS --> CP1[Checkpoint 1 detected data + sensitivity + air-gap option]
@@ -553,6 +557,18 @@ Use these tests as impact anchors when editing the graph's major nodes:
   opt-in, P0-6): `tests/test_filename_fallback_gate.py`
 - WNN no-fabrication (NotImplemented blocker, no `_mock_wnn`, no hardcoded weights,
   P0-8): `tests/test_wnn_no_fabrication.py`
+- V48 paired multiome integration (Slices I1–I3, ADR-064 / ADR-065 / ADR-066):
+  - I1 paired `.h5mu` same-cell gate, joint RNA+ATAC QC, and `h5py` `/obs` bijective
+    barcode label join: `tests/test_v48_i1_paired_mudata_qc.py`
+  - I2 deterministic WNN joint state + R Seurat v5 external concordance:
+    `tests/test_v48_i2_wnn.py`, `scripts/run_wnn_concordance.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i2_wnn_concordance.json`
+  - I3 5-axis WNN anti-degradation guardrail ("lens, not replacement" — chance-adjusted
+    per-modality kNN preservation, hypergeometric-adjusted rare-population cohesion,
+    spurious bridge/orphan-edge screen, per-cluster modality weight audit, and
+    stratified K-fold cross-modal + orthogonal split-dimension held-out check):
+    `tests/test_v48_i3_wnn_guardrail.py`, `scripts/run_wnn_guardrail_validation.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i3_wnn_guardrail_hc11.json`
 - Confirmed-threshold propagation (`AnalysisThresholds`, pseudobulk dispatch, P0-7):
   `tests/test_analysis_thresholds.py`
 - Repo-wide anti-fabrication guard (P-FAKE-GUARD / ADR-002 mechanized, P1-13):

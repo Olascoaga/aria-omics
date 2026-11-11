@@ -493,14 +493,41 @@ class IntegrationAgent(BaseAgent):
 
         return wnn_result
 
+    def _run_wnn_diagnostics(
+        self,
+        h5mu_path: str,
+        *,
+        seed: int = 0,
+        audit_group_col: str | None = None,
+        update_h5mu: bool = False,
+        output_json: str | None = None,
+    ) -> dict:
+        """Execute standalone V48 Slice I3 WNN anti-degradation diagnostics."""
+        diag_params: dict = {
+            "h5mu_path": str(h5mu_path),
+            "seed": int(seed),
+            "update_h5mu": bool(update_h5mu),
+        }
+        if audit_group_col:
+            diag_params["audit_group_col"] = str(audit_group_col)
+        if output_json:
+            diag_params["output_json"] = str(output_json)
+        return self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/integration_wnn_diagnostics.py",
+            params=diag_params,
+        )
+
     def _evaluate_wnn_weights(self, experiment_id: str,
                                wnn_result: dict, intent: dict):
         """
-        Evaluate WNN modality weights and invoke DebateCouncil
-        when imbalanced weights suggest data quality issues.
+        Evaluate WNN modality weights and V48 Slice I3 anti-degradation
+        diagnostics, invoking DebateCouncil when imbalanced weights suggest
+        data quality issues.
         """
         rna_weight  = wnn_result.get("mean_rna_weight")
         atac_weight = wnn_result.get("mean_atac_weight")
+        anti_deg    = wnn_result.get("anti_degradation")
 
         if rna_weight is None or atac_weight is None:
             self.publish_finding(
@@ -554,11 +581,28 @@ class IntegrationAgent(BaseAgent):
         else:
             conf = Confidence.HIGH
 
+        payload = {
+            "summary": summary,
+            "rna_weight": rna_weight,
+            "atac_weight": atac_weight,
+        }
+        if isinstance(anti_deg, dict):
+            g_status = str(anti_deg.get("guardrail_status", "pass"))
+            g_codes = list(anti_deg.get("issue_codes") or [])
+            payload["guardrail_status"] = g_status
+            payload["guardrail_issue_codes"] = g_codes
+            if g_status == "degraded":
+                conf = Confidence.LOW
+                payload["summary"] = (
+                    f"{summary} (anti-degradation guardrail=degraded: "
+                    f"{', '.join(g_codes) if g_codes else 'check per-modality structure'})"
+                )
+            elif g_status == "warn" and conf == Confidence.HIGH:
+                conf = Confidence.MEDIUM
+
         self.publish_finding(
             experiment_id,
-            {"summary": summary,
-             "rna_weight": rna_weight,
-             "atac_weight": atac_weight},
+            payload,
             conf,
         )
 
@@ -908,6 +952,61 @@ class IntegrationAgent(BaseAgent):
                     "action":      "Review discordant clusters manually",
                 }
                 conflicts.append(conflict)
+
+            anti_deg = wnn.get("anti_degradation")
+            if isinstance(anti_deg, dict):
+                issue_codes = set(anti_deg.get("issue_codes") or [])
+                if (
+                    "rare_population_degraded" in issue_codes
+                    or "reference_rare_population_degraded" in issue_codes
+                ):
+                    conflicts.append(
+                        {
+                            "type": "wnn_rare_population_degradation",
+                            "description": (
+                                "One or more rare per-modality populations lost "
+                                "local neighborhood cohesion in the joint WNN "
+                                "embedding. Retain per-modality clustering as "
+                                "primary reference ('lens, not replacement')."
+                            ),
+                            "confidence": "low",
+                            "action": "Inspect rare per-modality clusters directly",
+                        }
+                    )
+                if "spurious_bridge_candidate" in issue_codes:
+                    flagged_cl = (
+                        anti_deg.get("spurious_bridge_screen", {}).get(
+                            "flagged_clusters", []
+                        )
+                    )
+                    conflicts.append(
+                        {
+                            "type": "wnn_spurious_bridge_candidate",
+                            "description": (
+                                f"Joint cluster(s) {flagged_cl} mix distinct "
+                                f"single-modality populations without native kNN "
+                                f"support. Do not interpret as transitional states."
+                            ),
+                            "confidence": "low",
+                            "action": "Screen flagged clusters for doublets or graph artifacts",
+                        }
+                    )
+                if issue_codes & {
+                    "rna_structure_degraded",
+                    "atac_structure_degraded",
+                    "held_out_joint_degraded",
+                }:
+                    conflicts.append(
+                        {
+                            "type": "wnn_modality_structure_degradation",
+                            "description": (
+                                "Joint WNN graph degraded informative per-modality "
+                                "neighborhood or held-out latent predictability."
+                            ),
+                            "confidence": "low",
+                            "action": "Use single-modality embeddings as primary reference",
+                        }
+                    )
 
         # Check peak-gene negative correlations (discordant evidence)
         if p2g.get("status") == "success":

@@ -29,6 +29,10 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+from aria.utils.wnn_diagnostics import (
+    compute_wnn_anti_degradation_diagnostics,
+    sanitize_for_hdf5_uns,
+)
 
 _FRIP_COL_HINTS = ("frip", "fraction_reads_in_peaks", "pct_reads_in_peaks")
 
@@ -650,6 +654,61 @@ def integration_wnn(params: dict) -> dict:
             "wnn_vs_atac_ari": round(float(wnn_vs_atac_ari), 4),
         }
 
+        # ── 5b. V48 Slice I3 anti-degradation guardrail ("Lens, not replacement")
+        run_guardrail = bool(params.get("run_guardrail", True))
+        anti_degradation: dict[str, Any] | None = None
+        guardrail_status = "skipped"
+        if run_guardrail and n_cells >= 6:
+            audit_group_col = params.get("audit_group_col")
+            audit_labels: list[str] | None = None
+            if audit_group_col:
+                for df in (global_obs_preserved, rna_adata.obs, atac_adata.obs):
+                    if df is not None and str(audit_group_col) in df.columns:
+                        audit_labels = [
+                            str(v) for v in df[str(audit_group_col)].tolist()
+                        ]
+                        break
+
+            wnn_graph_for_diag = (
+                mdata.obsp["wnn_distances"]
+                if "wnn_distances" in mdata.obsp
+                else mdata.obsp["wnn_connectivities"]
+            )
+            is_conn_diag = "wnn_distances" not in mdata.obsp
+            anti_degradation = compute_wnn_anti_degradation_diagnostics(
+                rna_embedding=np.asarray(rna_adata.obsm["X_pca_l2"], dtype=np.float64),
+                atac_embedding=np.asarray(
+                    atac_adata.obsm["X_lsi_l2"], dtype=np.float64
+                ),
+                wnn_distances=wnn_graph_for_diag,
+                wnn_clusters=wnn_labels,
+                rna_clusters=rna_labels,
+                atac_clusters=atac_labels,
+                rna_weights=(
+                    rna_w
+                    if (rna_w_series is not None and atac_w_series is not None)
+                    else None
+                ),
+                atac_weights=(
+                    atac_w
+                    if (rna_w_series is not None and atac_w_series is not None)
+                    else None
+                ),
+                audit_labels=audit_labels,
+                graph_is_connectivity=is_conn_diag,
+                k=int(k_eff),
+                seed=int(seed),
+            )
+            guardrail_status = str(anti_degradation["guardrail_status"])
+            mdata.uns["aria_wnn_diagnostics"] = sanitize_for_hdf5_uns(
+                anti_degradation
+            )
+            for issue in anti_degradation.get("issues", []):
+                if issue.get("severity") == "degraded":
+                    warnings.append(
+                        f"WNN guardrail [{issue['code']}]: {issue['detail']}"
+                    )
+
         # ── 6. Atomic .h5mu output write ──────────────────────────────────
         out_path = Path(output_dir) / "wnn_integrated.h5mu"
         tmp_path = Path(output_dir) / f".wnn_integrated.tmp.{os.getpid()}.h5mu"
@@ -721,6 +780,8 @@ def integration_wnn(params: dict) -> dict:
             "atac_frip": atac_frip,
             "atac_frip_source": frip_col,
             "metrics_not_computed": metrics_not_computed,
+            "guardrail_status": guardrail_status,
+            "anti_degradation": anti_degradation,
             "output_path": str(out_path),
             "warnings": warnings,
         }
