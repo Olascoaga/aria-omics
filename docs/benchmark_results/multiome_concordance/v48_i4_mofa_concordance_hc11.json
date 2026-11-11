@@ -1,0 +1,523 @@
+{
+  "aria_mofa_summary": {
+    "cell_cycle_evaluated": false,
+    "cell_cycle_factor_flag": false,
+    "factors": [
+      {
+        "active": true,
+        "active_views": [
+          "rna",
+          "atac"
+        ],
+        "category": "shared",
+        "cell_cycle_flag": false,
+        "dominant_modality": "rna",
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 1,
+        "max_depth_abs_r": 0.5337,
+        "r2_by_view": {
+          "atac": 0.001,
+          "rna": 0.1515
+        },
+        "sharing_balance": 0.0066,
+        "technical_depth_flag": false
+      },
+      {
+        "active": true,
+        "active_views": [
+          "rna"
+        ],
+        "category": "modality_specific",
+        "cell_cycle_flag": false,
+        "dominant_modality": "rna",
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 2,
+        "max_depth_abs_r": 0.269,
+        "r2_by_view": {
+          "atac": 0.0006,
+          "rna": 0.1105
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": true,
+        "active_views": [
+          "rna",
+          "atac"
+        ],
+        "category": "shared",
+        "cell_cycle_flag": false,
+        "dominant_modality": "rna",
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 3,
+        "max_depth_abs_r": 0.3538,
+        "r2_by_view": {
+          "atac": 0.0012,
+          "rna": 0.104
+        },
+        "sharing_balance": 0.0115,
+        "technical_depth_flag": false
+      },
+      {
+        "active": true,
+        "active_views": [
+          "rna"
+        ],
+        "category": "modality_specific",
+        "cell_cycle_flag": false,
+        "dominant_modality": "rna",
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 4,
+        "max_depth_abs_r": 0.0235,
+        "r2_by_view": {
+          "atac": 0.0005,
+          "rna": 0.0418
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": true,
+        "active_views": [
+          "atac"
+        ],
+        "category": "modality_specific",
+        "cell_cycle_flag": false,
+        "dominant_modality": "atac",
+        "excluded_from_biological_interpretation": true,
+        "exclusion_reasons": [
+          "sequencing_depth_correlated:atac(|r|=0.941)"
+        ],
+        "factor_id": 5,
+        "max_depth_abs_r": 0.9406,
+        "r2_by_view": {
+          "atac": 0.0164,
+          "rna": 0.0019
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": true
+      },
+      {
+        "active": true,
+        "active_views": [
+          "rna"
+        ],
+        "category": "modality_specific",
+        "cell_cycle_flag": false,
+        "dominant_modality": "rna",
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 6,
+        "max_depth_abs_r": 0.1814,
+        "r2_by_view": {
+          "atac": 0.0,
+          "rna": 0.0117
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": false,
+        "active_views": [],
+        "category": "low_variance",
+        "cell_cycle_flag": false,
+        "dominant_modality": null,
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 7,
+        "max_depth_abs_r": 0.0267,
+        "r2_by_view": {
+          "atac": 0.0,
+          "rna": 0.0081
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": false,
+        "active_views": [],
+        "category": "low_variance",
+        "cell_cycle_flag": false,
+        "dominant_modality": null,
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 8,
+        "max_depth_abs_r": 0.0596,
+        "r2_by_view": {
+          "atac": 0.0001,
+          "rna": 0.0048
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": false,
+        "active_views": [],
+        "category": "low_variance",
+        "cell_cycle_flag": false,
+        "dominant_modality": null,
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 9,
+        "max_depth_abs_r": 0.0231,
+        "r2_by_view": {
+          "atac": 0.0003,
+          "rna": 0.0004
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      },
+      {
+        "active": false,
+        "active_views": [],
+        "category": "low_variance",
+        "cell_cycle_flag": false,
+        "dominant_modality": null,
+        "excluded_from_biological_interpretation": false,
+        "exclusion_reasons": [],
+        "factor_id": 10,
+        "max_depth_abs_r": 0.0568,
+        "r2_by_view": {
+          "atac": 0.0,
+          "rna": 0.0006
+        },
+        "sharing_balance": 0.0,
+        "technical_depth_flag": false
+      }
+    ],
+    "metrics_not_computed": [
+      "cell_cycle_factor_correlation"
+    ],
+    "modality_specific_counts": {
+      "atac": 1,
+      "rna": 3
+    },
+    "n_active_factors": 6,
+    "n_cells": 2517,
+    "n_excluded_factors": 1,
+    "n_factors": 10,
+    "n_shared_factors": 2,
+    "technical_factor_flag": true,
+    "technical_factor_id": 5,
+    "variance_explained": {
+      "atac": 0.0198,
+      "rna": 0.4336
+    },
+    "variance_explained_additive": {
+      "atac": 0.0201,
+      "rna": 0.4352
+    }
+  },
+  "dataset_id": "hc11_paired",
+  "determinism_seed0": {
+    "max_elementwise_abs_diff": 0.0,
+    "max_r2_total_abs_diff": 0.0,
+    "mean_pairwise_canonical_corr": 1.0,
+    "mean_pairwise_matched_abs_r": 1.0,
+    "min_pairwise_matched_abs_r": 1.0,
+    "n_runs": 2,
+    "status": "success"
+  },
+  "external_concordance_vs_muon_mofa": {
+    "factor_matching": {
+      "matches": [
+        {
+          "abs_pearson_r": 0.9967,
+          "abs_spearman_rho": 0.9921,
+          "aria_factor_id": 1,
+          "aria_factor_idx": 0,
+          "pearson_r": 0.9967,
+          "ref_factor_id": 1,
+          "ref_factor_idx": 0,
+          "ref_r2_sum": 0.1527,
+          "sign": 1,
+          "spearman_rho": 0.9921
+        },
+        {
+          "abs_pearson_r": 0.9566,
+          "abs_spearman_rho": 0.9672,
+          "aria_factor_id": 2,
+          "aria_factor_idx": 1,
+          "pearson_r": -0.9566,
+          "ref_factor_id": 2,
+          "ref_factor_idx": 1,
+          "ref_r2_sum": 0.1109,
+          "sign": -1,
+          "spearman_rho": -0.9672
+        },
+        {
+          "abs_pearson_r": 0.9492,
+          "abs_spearman_rho": 0.9511,
+          "aria_factor_id": 3,
+          "aria_factor_idx": 2,
+          "pearson_r": -0.9492,
+          "ref_factor_id": 3,
+          "ref_factor_idx": 2,
+          "ref_r2_sum": 0.1043,
+          "sign": -1,
+          "spearman_rho": -0.9511
+        },
+        {
+          "abs_pearson_r": 0.9976,
+          "abs_spearman_rho": 0.8806,
+          "aria_factor_id": 4,
+          "aria_factor_idx": 3,
+          "pearson_r": 0.9976,
+          "ref_factor_id": 4,
+          "ref_factor_idx": 3,
+          "ref_r2_sum": 0.0425,
+          "sign": 1,
+          "spearman_rho": 0.8806
+        },
+        {
+          "abs_pearson_r": 0.915,
+          "abs_spearman_rho": 0.9385,
+          "aria_factor_id": 5,
+          "aria_factor_idx": 4,
+          "pearson_r": 0.915,
+          "ref_factor_id": 7,
+          "ref_factor_idx": 6,
+          "ref_r2_sum": 0.0061,
+          "sign": 1,
+          "spearman_rho": 0.9385
+        }
+      ],
+      "max_offdiag_abs_r_aria": 0.3801,
+      "max_offdiag_abs_r_ref": 0.1904,
+      "mean_matched_abs_r": 0.963,
+      "median_matched_abs_r": 0.9566,
+      "min_matched_abs_r": 0.915,
+      "n_active_aria": 6,
+      "n_active_ref": 5,
+      "n_matched": 5,
+      "n_total_aria": 10,
+      "n_total_ref": 10,
+      "n_unmatched_aria": 1,
+      "n_unmatched_ref": 0,
+      "ref_r2_weighted_abs_r": 0.973
+    },
+    "loading_concordance": {
+      "metrics_not_computed": [],
+      "views": {
+        "atac": {
+          "mean_pearson_r": 0.9364,
+          "mean_spearman_rho": 0.9527,
+          "mean_top_k_jaccard": 0.4736,
+          "n_shared_features": 3331,
+          "per_factor": [
+            {
+              "aria_factor_id": 1,
+              "pearson_r": 0.9549,
+              "ref_factor_id": 1,
+              "sign_consistent": true,
+              "spearman_rho": 0.9707,
+              "top_k_jaccard": 0.3333
+            },
+            {
+              "aria_factor_id": 2,
+              "pearson_r": 0.9111,
+              "ref_factor_id": 2,
+              "sign_consistent": true,
+              "spearman_rho": 0.9356,
+              "top_k_jaccard": 0.4085
+            },
+            {
+              "aria_factor_id": 3,
+              "pearson_r": 0.9396,
+              "ref_factor_id": 3,
+              "sign_consistent": true,
+              "spearman_rho": 0.9522,
+              "top_k_jaccard": 0.5385
+            },
+            {
+              "aria_factor_id": 4,
+              "pearson_r": 0.9683,
+              "ref_factor_id": 4,
+              "sign_consistent": true,
+              "spearman_rho": 0.9971,
+              "top_k_jaccard": 0.7544
+            },
+            {
+              "aria_factor_id": 5,
+              "pearson_r": 0.9083,
+              "ref_factor_id": 7,
+              "sign_consistent": true,
+              "spearman_rho": 0.908,
+              "top_k_jaccard": 0.3333
+            }
+          ],
+          "sign_consistency_rate": 1.0,
+          "status": "success",
+          "top_k_evaluated": 50
+        },
+        "rna": {
+          "mean_pearson_r": 0.7902,
+          "mean_spearman_rho": 0.9053,
+          "mean_top_k_jaccard": 0.5699,
+          "n_shared_features": 3000,
+          "per_factor": [
+            {
+              "aria_factor_id": 1,
+              "pearson_r": 0.9905,
+              "ref_factor_id": 1,
+              "sign_consistent": true,
+              "spearman_rho": 0.9857,
+              "top_k_jaccard": 0.8519
+            },
+            {
+              "aria_factor_id": 2,
+              "pearson_r": 0.9688,
+              "ref_factor_id": 2,
+              "sign_consistent": true,
+              "spearman_rho": 0.9584,
+              "top_k_jaccard": 0.5625
+            },
+            {
+              "aria_factor_id": 3,
+              "pearson_r": 0.9453,
+              "ref_factor_id": 3,
+              "sign_consistent": true,
+              "spearman_rho": 0.954,
+              "top_k_jaccard": 0.4706
+            },
+            {
+              "aria_factor_id": 4,
+              "pearson_r": 0.9996,
+              "ref_factor_id": 4,
+              "sign_consistent": true,
+              "spearman_rho": 0.9672,
+              "top_k_jaccard": 0.9231
+            },
+            {
+              "aria_factor_id": 5,
+              "pearson_r": 0.0468,
+              "ref_factor_id": 7,
+              "sign_consistent": true,
+              "spearman_rho": 0.6613,
+              "top_k_jaccard": 0.0417
+            }
+          ],
+          "sign_consistency_rate": 1.0,
+          "status": "success",
+          "top_k_evaluated": 50
+        }
+      }
+    },
+    "metrics_not_computed": [],
+    "n_aria_cells": 2517,
+    "n_ref_cells": 2517,
+    "n_shared_cells": 2517,
+    "reference_name": "muon.tl.mofa",
+    "status": "success",
+    "subspace_concordance": {
+      "canonical_correlations": [
+        1.0,
+        0.9999,
+        0.9997,
+        0.9984,
+        0.9496
+      ],
+      "mean_canonical_corr": 0.9895,
+      "min_top3_canonical_corr": 0.9997,
+      "n_dims_aria": 6,
+      "n_dims_ref": 5
+    },
+    "variance_explained_concordance": {
+      "aria_r2_total": {
+        "atac": 0.0198,
+        "rna": 0.4336
+      },
+      "max_abs_diff": 0.0097,
+      "per_view_abs_diff": {
+        "atac": 0.0097,
+        "rna": 0.0013
+      },
+      "ref_r2_total": {
+        "atac": 0.0101,
+        "rna": 0.4323
+      }
+    }
+  },
+  "paired_qc_summary": {
+    "label_join": {
+      "label_size_distribution": [
+        3,
+        4,
+        10,
+        11,
+        14,
+        18,
+        24,
+        47,
+        130,
+        294,
+        350,
+        461,
+        1151
+      ],
+      "match_fraction": 1.0,
+      "match_strategy": "trailing_barcode_within_sample_scope",
+      "mechanism": "obs_barcode_join",
+      "n_matched": 2517,
+      "n_query": 2517,
+      "n_unique_labels": 13,
+      "n_unmatched": 0,
+      "ran": true,
+      "reference_h5ad": "GSE278576_hippocampus_RNA.h5ad",
+      "reference_label_col": "subclass",
+      "reference_sample_col": "orig.ident",
+      "requested": true,
+      "sample_id": "hc11",
+      "target_label_col": "subclass"
+    },
+    "n_cells_after": 2517,
+    "n_cells_before": 3143,
+    "n_genes": 36601,
+    "n_peaks": 60990
+  },
+  "parameters": {
+    "integration_env": "aria-integration-env",
+    "n_factors_requested": 10,
+    "n_top_genes": 3000,
+    "n_top_peaks": 5000,
+    "reference_comparator": "muon.tl.mofa",
+    "scale_views": true,
+    "seed": 0,
+    "subsample_validation_max_cells": 1200
+  },
+  "slice": "V48_I4_mofa_interpretable_factors",
+  "subsampling_and_posterior_projection": {
+    "all_cells_finite_no_nan": true,
+    "concordance_vs_full_cohort": {
+      "mean_matched_abs_r": 0.9143,
+      "ref_r2_weighted_abs_r": 0.8871,
+      "subspace_mean_canonical_corr": 0.9924,
+      "subspace_min_top3_canonical_corr": 0.9989
+    },
+    "subsampling_metadata": {
+      "exceeded_max_cells_for_rare_floor": false,
+      "max_cells": 1200,
+      "method": "stratified",
+      "n_cells_total": 2517,
+      "n_cells_trained": 1200,
+      "projection_method": "exact_variational_posterior_mean",
+      "projection_min_train_abs_r": 0.999946,
+      "strata_col": "subclass",
+      "subsampled": true
+    }
+  },
+  "variational_cross_seed_ceiling": {
+    "max_elementwise_abs_diff": 0.20426702,
+    "max_r2_total_abs_diff": 0.0,
+    "mean_pairwise_canonical_corr": 1.0,
+    "mean_pairwise_matched_abs_r": 1.0,
+    "min_pairwise_matched_abs_r": 1.0,
+    "n_runs": 2,
+    "status": "success"
+  }
+}

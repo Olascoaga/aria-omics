@@ -775,19 +775,31 @@ class IntegrationAgent(BaseAgent):
                 "details": "User skipped MOFA+ at checkpoint 3.",
             }
 
+        mofa_mods = {
+            k: v for k, v in mods.items()
+            if k in ("scRNA", "bulk_RNA", "scATAC", "bulk_ATAC", "HiC")
+        }
+        first_files = next(iter(mofa_mods.values()), [])
+        mofa_params: dict = {
+            "modalities": mofa_mods,
+            "genome": exp_ctx.get("genome", "hg38"),
+            "organism": exp_ctx.get("organism", "Homo sapiens"),
+            "n_factors": n_factors_decision,
+            "seed": int(exp_ctx.get("seed", 0)),
+            "max_cells": int(exp_ctx.get("max_cells_mofa", 5000)),
+            "output_dir": exp_ctx.get("mofa_output_dir")
+            or (self._get_output_dir(first_files) if first_files else "/tmp/aria_mofa"),
+        }
+        h5mu_cand = exp_ctx.get("h5mu_path") or exp_ctx.get("paired_h5mu")
+        if h5mu_cand:
+            mofa_params["h5mu_path"] = str(h5mu_cand)
+        if isinstance(exp_ctx.get("cell_cycle_genes"), dict):
+            mofa_params["cell_cycle_genes"] = exp_ctx["cell_cycle_genes"]
+
         mofa_result = self.env.run_in_stack(
             stack="integration",
             script_path="aria/scripts/integration_mofa.py",
-            params={
-                "modalities":    {
-                    k: v for k, v in mods.items()
-                    if k in ("scRNA", "bulk_RNA", "scATAC", "bulk_ATAC", "HiC")
-                },
-                "genome":        exp_ctx.get("genome", "hg38"),
-                "organism":      exp_ctx.get("organism", "Homo sapiens"),
-                "n_factors":     n_factors_decision,
-                "output_dir":    "/tmp/aria_mofa",
-            },
+            params=mofa_params,
         )
 
         if mofa_result.get("status") == "success":
@@ -877,10 +889,22 @@ class IntegrationAgent(BaseAgent):
             factors        = mofa_result.get("top_factors", [])
             variance_exp   = mofa_result.get("variance_explained", {})
             factor1_top    = mofa_result.get("factor1_top_features", [])
+            shared_factors = mofa_result.get("shared_factors", [])
+            excluded_list  = mofa_result.get("excluded_factors", [])
+            excluded_ids   = [
+                f.get("factor_id") for f in excluded_list
+                if isinstance(f, dict) and f.get("factor_id") is not None
+            ]
+            if not excluded_ids and mofa_result.get("technical_factor_flag"):
+                tfid = mofa_result.get("technical_factor_id")
+                if tfid is not None:
+                    excluded_ids.append(tfid)
 
             claim = (
-                f"MOFA+ identified {len(factors)} factors. "
-                f"Top factor explains: {list(variance_exp.values())[:3]}. "
+                f"MOFA+ identified {len(factors)} factors "
+                f"({len(shared_factors)} shared cross-modal, "
+                f"{len(excluded_ids)} excluded confounder). "
+                f"Variance explained: {list(variance_exp.values())[:3]}. "
                 f"Factor 1 top features: {factor1_top[:5]}"
             )
 
@@ -889,11 +913,17 @@ class IntegrationAgent(BaseAgent):
                 initial_claim=claim,
                 evidence={
                     "n_factors":        len(factors),
+                    "n_shared_factors": len(shared_factors),
                     "variance_explained": variance_exp,
                     "factor1_features": factor1_top,
                     "technical_factor_flag": mofa_result.get(
                         "technical_factor_flag", False
                     ),
+                    "technical_factor_id": mofa_result.get("technical_factor_id"),
+                    "cell_cycle_factor_flag": mofa_result.get(
+                        "cell_cycle_factor_flag", False
+                    ),
+                    "excluded_factor_ids": excluded_ids,
                 },
                 biological_context=intent,
             )
@@ -904,10 +934,12 @@ class IntegrationAgent(BaseAgent):
             }
             self.publish_finding(
                 experiment_id,
-                {"summary":    debate.consensus,
-                 "n_factors":  len(factors),
-                 "verdict":    debate.verdict.value,
-                 "limitations": debate.limitations},
+                {"summary":             debate.consensus,
+                 "n_factors":           len(factors),
+                 "n_shared_factors":    len(shared_factors),
+                 "excluded_factor_ids": excluded_ids,
+                 "verdict":             debate.verdict.value,
+                 "limitations":         debate.limitations},
                 conf_map.get(debate.confidence, Confidence.MEDIUM),
             )
 
@@ -1032,6 +1064,34 @@ class IntegrationAgent(BaseAgent):
                      "n_events": n_negative,
                      "type": "accessibility_expression_discordance"},
                     Confidence.MEDIUM,
+                )
+
+        # Check MOFA+ confounder-associated factors (depth / phase covariates)
+        if mofa.get("status") == "success":
+            excl_ids = [
+                f.get("factor_id")
+                for f in (mofa.get("excluded_factors") or [])
+                if isinstance(f, dict) and f.get("factor_id") is not None
+            ]
+            if not excl_ids and mofa.get("technical_factor_flag"):
+                tfid = mofa.get("technical_factor_id")
+                if tfid is not None:
+                    excl_ids.append(tfid)
+            if not excl_ids and mofa.get("cell_cycle_factor_flag"):
+                excl_ids.extend(mofa.get("cell_cycle_factor_ids") or [])
+            if excl_ids:
+                conflicts.append(
+                    {
+                        "type": "mofa_confounder_factor_excluded",
+                        "description": (
+                            f"MOFA+ factor(s) {excl_ids} strongly correlate with "
+                            "measured technical sequencing depth or phase covariates "
+                            "and are excluded from biological lineage interpretation."
+                        ),
+                        "excluded_factor_ids": excl_ids,
+                        "confidence": "medium",
+                        "action": "Exclude flagged confounder factors from biological claims",
+                    }
                 )
 
         if conflicts:

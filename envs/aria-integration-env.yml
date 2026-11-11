@@ -8,45 +8,30 @@ channel_priority: strict
 
 dependencies:
   - python=3.11
+  - pip
   - numpy>=1.24,<2.0.0
-  - pandas>=2.0,<3.0
-  - scipy>=1.11
-  - scikit-learn>=1.3
+  - pandas>=2.2,<3.0
+  - scipy>=1.12,<2.0.0
+  - scikit-learn>=1.4,<2.0.0
   - h5py>=3.9
-  - hdf5=1.14.*
 
-  # ── R runtime (required for MOFA+ full integration) ──────────────────
-  # mofapy2 uses R under the hood for some routines.
-  # rpy2 and r-base MUST be installed from conda-forge together
-  # to ensure ABI compatibility. Never install rpy2 via pip alone.
-  - r-base>=4.3
-  - rpy2>=3.5
-
-  # ── Multimodal single-cell ───────────────────────────────────────────
-  - scanpy>=1.9.6,<2.0
-  - anndata>=0.10,<0.11
-  - numba>=0.58,<0.62
-  - llvmlite>=0.41,<0.45
-  - umap-learn>=0.5.4,<0.6
-  - leidenalg>=0.10
-  - python-igraph>=0.11
+  # ── BAM/BED/genome tools (shared paired multiome & regulatory layers) ──
+  - pysam>=0.21
+  - pybedtools>=0.9
+  - bedtools>=2.31
 
   # ── Visualization ────────────────────────────────────────────────────
   - matplotlib>=3.7
   - seaborn>=0.12
 
   - pip:
-    # Multi-omics factor analysis (MOFA+)
-    - mofapy2>=0.7
+    # Multi-omics factor analysis (pure Python variational Bayes MOFA+)
+    - mofapy2==0.7.4
 
-    # Multimodal AnnData container
-    - muon>=0.1
-
-    # RNA+ATAC graph-linked embedding
-    - scglue>=0.3
-
-    # Gene regulatory network inference (SCENIC+)
-    - pyscenic>=0.12
-
-    # TF activity inference
-    - decoupler-py>=1.4
+    # Multimodal AnnData / MuData container & single-cell chromatin stack
+    - muon==0.1.7
+    - mudata==0.3.3
+    - snapatac2==2.9.0
+    - episcanpy==0.4.0
+    - MACS3==3.0.4
+    - pyBigWig==0.3.25

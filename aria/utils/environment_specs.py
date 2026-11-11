@@ -77,8 +77,8 @@ ENVIRONMENT_SPECS: dict[str, EnvironmentSpec] = {
     ),
     "integration": EnvironmentSpec(
         "integration", "aria-integration-env", "aria-integration-env.yml",
-        "Scaffold multi-omics integration", 7200,
-        ("python", "R"), lock_required=False,
+        "Paired multi-omics factor and regulatory integration", 7200,
+        ("python",), lock_required=False,
         lock_policy="scaffold_not_dispatchable",
     ),
     "benchmark": EnvironmentSpec(

@@ -804,14 +804,34 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("diagnostics", "dict"),
         ),
     ),
+    # V48 multi-omics integration: Slice I4 deterministic MOFA+ Tier 2a factors.
     "aria/scripts/integration_mofa.py": ScriptContract(
         script_path="aria/scripts/integration_mofa.py",
-        validation_level="scaffold",
+        validation_level="beta",
         inputs=(
+            ContractField(
+                name="h5mu_path",
+                type="path",
+                required=False,
+                allow_empty=False,
+                aliases=("data_path",),
+            ),
+            _f("modalities", "dict", required=False),
             _f("output_dir", "str", required=False),
+            _f("n_factors", "int", required=False),
+            _f("max_cells", "int", required=False),
+            _f("seed", "int", required=False),
+            _f("scale_views", "bool", required=False),
+            _f("cell_cycle_genes", "dict", required=False),
         ),
         success_outputs=(
-            _f("factor_id", "any", required=False),
+            _f("n_factors", "int"),
+            _f("n_cells", "int"),
+            _f("top_factors", "list"),
+            _f("variance_explained", "dict"),
+            _f("factor1_top_features", "list"),
+            _f("technical_factor_flag", "bool"),
+            _f("warnings", "list"),
         ),
     ),
     "aria/scripts/integration_peak2gene.py": ScriptContract(
