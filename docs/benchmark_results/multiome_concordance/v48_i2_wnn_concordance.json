@@ -1,0 +1,335 @@
+{
+  "aria_summary": {
+    "aria_wnn": {
+      "atac_counts_source": "X",
+      "atac_frip": null,
+      "atac_frip_source": null,
+      "cluster_concordance": {
+        "0": {
+          "discordant": false,
+          "modal_rna_cluster": "0",
+          "modal_rna_purity": 0.9945,
+          "n_cells": 365
+        },
+        "1": {
+          "discordant": false,
+          "modal_rna_cluster": "1",
+          "modal_rna_purity": 1.0,
+          "n_cells": 294
+        },
+        "2": {
+          "discordant": false,
+          "modal_rna_cluster": "2",
+          "modal_rna_purity": 0.978,
+          "n_cells": 590
+        },
+        "3": {
+          "discordant": false,
+          "modal_rna_cluster": "4",
+          "modal_rna_purity": 1.0,
+          "n_cells": 461
+        },
+        "4": {
+          "discordant": false,
+          "modal_rna_cluster": "5",
+          "modal_rna_purity": 0.9201,
+          "n_cells": 563
+        },
+        "5": {
+          "discordant": false,
+          "modal_rna_cluster": "3",
+          "modal_rna_purity": 1.0,
+          "n_cells": 198
+        },
+        "6": {
+          "discordant": false,
+          "modal_rna_cluster": "6",
+          "modal_rna_purity": 1.0,
+          "n_cells": 46
+        }
+      },
+      "discordance_method": "contingency_modal_purity_lt_0.70",
+      "dropped_lsi_components": [
+        0
+      ],
+      "input_kind": "paired_h5mu",
+      "joint_cluster_sizes": {
+        "0": 365,
+        "1": 294,
+        "2": 590,
+        "3": 461,
+        "4": 563,
+        "5": 198,
+        "6": 46
+      },
+      "k": 20,
+      "lsi_depth_correlations": [
+        0.9838,
+        0.686,
+        0.1759,
+        0.0894,
+        0.0048,
+        0.0211,
+        0.0715,
+        0.0288,
+        0.0108,
+        0.02,
+        0.0021,
+        0.0129,
+        0.0315,
+        0.0095,
+        0.0364,
+        0.002,
+        0.0121,
+        0.0109,
+        0.007,
+        0.0105,
+        0.0245,
+        0.0199,
+        0.0057,
+        0.0031,
+        0.0124,
+        0.0292,
+        0.0013,
+        0.0136,
+        0.0097,
+        0.0153,
+        0.0021,
+        0.011,
+        0.0058,
+        0.0043,
+        0.0038,
+        0.0008,
+        0.0072,
+        0.0099,
+        0.0034,
+        0.0131,
+        0.0157,
+        0.0046,
+        0.0116,
+        0.0146,
+        0.005,
+        0.003,
+        0.0215,
+        0.0082,
+        0.002,
+        0.0011
+      ],
+      "mean_atac_weight": 0.3923,
+      "mean_rna_weight": 0.6077,
+      "median_atac_weight": 0.4298,
+      "median_rna_weight": 0.5702,
+      "metrics_not_computed": [
+        "atac_frip"
+      ],
+      "n_atac_only_clusters": 6,
+      "n_cells": 2517,
+      "n_discordant_clusters": 0,
+      "n_genes": 36601,
+      "n_hvg": 3000,
+      "n_joint_clusters": 7,
+      "n_lsi_components_raw": 50,
+      "n_lsi_components_used": 49,
+      "n_pcs": 50,
+      "n_peaks": 60990,
+      "n_rna_only_clusters": 7,
+      "per_cluster_modality_weights": {
+        "0": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.4336,
+          "mean_rna_weight": 0.5664,
+          "n_cells": 365
+        },
+        "1": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.3461,
+          "mean_rna_weight": 0.6539,
+          "n_cells": 294
+        },
+        "2": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.4157,
+          "mean_rna_weight": 0.5843,
+          "n_cells": 590
+        },
+        "3": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.4139,
+          "mean_rna_weight": 0.5861,
+          "n_cells": 461
+        },
+        "4": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.3956,
+          "mean_rna_weight": 0.6044,
+          "n_cells": 563
+        },
+        "5": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.3104,
+          "mean_rna_weight": 0.6896,
+          "n_cells": 198
+        },
+        "6": {
+          "dominant_modality": "rna",
+          "mean_atac_weight": 0.1533,
+          "mean_rna_weight": 0.8467,
+          "n_cells": 46
+        }
+      },
+      "resolution": 0.5,
+      "rna_counts_source": "X",
+      "rna_vs_atac_ari": 0.5939,
+      "rna_vs_atac_nmi": 0.7046,
+      "seed": 0,
+      "status": "success",
+      "warnings": [
+        "Dropped depth-associated ATAC LSI component(s) [0] (|r| vs log10 depth >= 0.75)."
+      ],
+      "wnn_vs_atac_ari": 0.596,
+      "wnn_vs_atac_nmi": 0.7066,
+      "wnn_vs_rna_ari": 0.9307,
+      "wnn_vs_rna_nmi": 0.9483
+    },
+    "determinism_umap_max_abs_diff": 0.0,
+    "label_column_used": "subclass",
+    "paired_qc": {
+      "label_join": {
+        "label_counts": {
+          "Astro": 461,
+          "Chandelier": 3,
+          "LAMP5": 18,
+          "Macro": 14,
+          "Microglia": 350,
+          "NR2F2": 24,
+          "OPC": 294,
+          "Oligo": 1151,
+          "PVALB": 10,
+          "SST": 47,
+          "SUB": 11,
+          "T-Cell": 4,
+          "VIP": 130
+        },
+        "match_fraction": 1.0,
+        "match_strategy": "trailing_barcode_within_sample_scope",
+        "mechanism": "obs_barcode_join",
+        "n_matched": 2517,
+        "n_query": 2517,
+        "n_unmatched": 0,
+        "ran": true,
+        "reference_h5ad": "GSE278576_hippocampus_RNA.h5ad",
+        "reference_label_col": "subclass",
+        "reference_sample_col": "orig.ident",
+        "requested": true,
+        "sample_id": "hc11",
+        "target_label_col": "subclass"
+      },
+      "n_cells_after": 2517,
+      "n_cells_before": 3143,
+      "n_genes": 36601,
+      "n_peaks": 60990
+    },
+    "status": "success"
+  },
+  "aria_version": "4.7.0",
+  "benchmark": "V48_I2_wnn_external_concordance",
+  "caveats": [
+    "muon.pp.neighbors and Seurat::FindMultiModalNeighbors implement the Hao et al. 2021 WNN kernel independently (differences in local bandwidth smoothing, UMAP vs SNN edge pruning, and igraph Leiden vs Seurat Louvain/SLM on wsnn produce expected non-identical partitions).",
+    "Joint WNN embeddings are an exploratory lens over paired cells and never replace per-modality count-based DE/DA inference."
+  ],
+  "concordance": {
+    "cluster_ari": 0.9582,
+    "cluster_nmi": 0.966,
+    "knn_overlap": {
+      "mean_jaccard": 0.7948,
+      "mean_recall": 0.8776,
+      "median_jaccard": 0.8182,
+      "n_cells_compared": 2517,
+      "status": "success"
+    },
+    "label_recovery": {
+      "aria_atac_only_ari": 0.7292,
+      "aria_atac_only_nmi": 0.7514,
+      "aria_rna_only_ari": 0.6949,
+      "aria_rna_only_nmi": 0.8686,
+      "aria_wnn_ari": 0.6929,
+      "aria_wnn_nmi": 0.8677,
+      "n_labeled_cells": 2517,
+      "n_unique_labels": 13,
+      "ref_wnn_ari": 0.6937,
+      "ref_wnn_nmi": 0.8678,
+      "status": "success"
+    },
+    "modality_weights": {
+      "aria_mean_rna_weight": 0.6077,
+      "dominant_modality_agreement": 0.9654,
+      "mae": 0.0275,
+      "median_abs_diff": 0.0128,
+      "n_cells_compared": 2517,
+      "pearson_r": 0.9001,
+      "ref_mean_rna_weight": 0.6006,
+      "spearman_rho": 0.9277,
+      "status": "success"
+    },
+    "n_aria_cells": 2517,
+    "n_aria_clusters": 7,
+    "n_ref_cells": 2517,
+    "n_ref_clusters": 7,
+    "n_shared_cells": 2517,
+    "seed_stability": {
+      "max_weight_abs_diff": 0.0,
+      "mean_pairwise_ari": 1.0,
+      "min_pairwise_ari": 1.0,
+      "n_runs": 2,
+      "status": "success"
+    },
+    "status": "success"
+  },
+  "dataset": "GSE278576_hc11_paired",
+  "design": {
+    "aria_method": "aria/scripts/integration_wnn.py (muon.pp.neighbors over unit-L2 X_pca + depth-filtered Signac TF-IDF/SVD X_lsi, igraph Leiden on joint wnn_connectivities)",
+    "feature_space": "identical shared barcodes, X_pca, and post-DepthCor X_lsi",
+    "k": 20,
+    "reference_method": "Seurat::FindMultiModalNeighbors (l2.norm=TRUE, k.nn=k) + Seurat::FindClusters (wsnn)",
+    "resolution": 0.5,
+    "seed": 0
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": "anaconda3",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "anaconda3",
+      "source": "no_lock"
+    },
+    "git_commit": "02111df55d04665ef597d73d6bd07047ae0c58b1",
+    "git_describe": "v4.7.0-304-g02111df-dirty",
+    "git_dirty": true,
+    "git_sha": "02111df55d04665ef597d73d6bd07047ae0c58b1",
+    "git_tree_sha": "5a17a8b204398ae24412368b187ace28a60ca2ba",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "08b852b8bf6475277ff14872cfb8b1fdd90c78a3287c0dbcef1ced638764a823",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "scope": "paired_multiome_wnn_vs_seurat_findmultimodalneighbors",
+  "seurat_status": {
+    "k": 20,
+    "mean_atac_weight": 0.3994,
+    "mean_rna_weight": 0.6006,
+    "n_cells": 2517,
+    "n_clusters": 7,
+    "seurat_version": "5.3.0",
+    "status": "success"
+  }
+}

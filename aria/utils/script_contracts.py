@@ -740,16 +740,33 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("metrics_not_computed", "list"),
         ),
     ),
-    # Scaffold modalities (dispatch-gated; contract present for completeness).
+    # V48 multi-omics integration: Slice I2 deterministic WNN joint state.
     "aria/scripts/integration_wnn.py": ScriptContract(
         script_path="aria/scripts/integration_wnn.py",
-        validation_level="scaffold",
+        validation_level="beta",
         inputs=(
+            ContractField(
+                name="h5mu_path",
+                type="path",
+                required=False,
+                allow_empty=False,
+                aliases=("data_path",),
+            ),
             _f("rna_files", "list", required=False),
             _f("atac_files", "list", required=False),
+            _f("output_dir", "str", required=False),
+            _f("k", "int", required=False),
+            _f("seed", "int", required=False),
         ),
         success_outputs=(
-            _f("n_cells", "int", required=False),
+            _f("output_path", "path", allow_empty=False, path_must_exist=True),
+            _f("n_cells", "int"),
+            _f("n_joint_clusters", "int"),
+            _f("n_rna_only_clusters", "int"),
+            _f("n_atac_only_clusters", "int"),
+            _f("n_discordant_clusters", "int"),
+            _f("per_cluster_modality_weights", "dict"),
+            _f("warnings", "list"),
         ),
     ),
     "aria/scripts/integration_mofa.py": ScriptContract(

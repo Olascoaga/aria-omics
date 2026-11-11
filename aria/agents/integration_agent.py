@@ -450,21 +450,40 @@ class IntegrationAgent(BaseAgent):
                 k_decision.chosen_by = "user"
             k_decision.approved_by_user = True
 
-        # Execute WNN in isolated environment
-        rna_files  = mods.get("scRNA", [])
-        atac_files = mods.get("scATAC", [])
+        # Execute WNN in isolated environment (aria-chromatin-env provides the
+        # locked muon + mudata + scanpy + leidenalg + umap-learn stack).
+        rna_files  = list(mods.get("scRNA", []) or [])
+        atac_files = list(mods.get("scATAC", []) or [])
+        wnn_overrides = dict(exp_ctx.get("wnn_params") or {})
+
+        h5mu_path = wnn_overrides.pop("h5mu_path", None)
+        if not h5mu_path:
+            for cand in [*rna_files, *atac_files]:
+                if str(cand).lower().endswith(".h5mu"):
+                    h5mu_path = str(cand)
+                    break
+
+        ref_paths = [h5mu_path] if h5mu_path else (rna_files or atac_files)
+        wnn_params = {
+            "rna_files":   rna_files,
+            "atac_files":  atac_files,
+            "genome":      exp_ctx.get("genome", "hg38"),
+            "organism":    exp_ctx.get("organism", "Homo sapiens"),
+            "k":           k_decision.chosen_value,
+            "seed":        int(exp_ctx.get("seed", 0)),
+            "output_dir":  wnn_overrides.pop(
+                "output_dir",
+                self._get_output_dir(ref_paths),
+            ),
+        }
+        if h5mu_path:
+            wnn_params["h5mu_path"] = h5mu_path
+        wnn_params.update(wnn_overrides)
 
         wnn_result = self.env.run_in_stack(
-            stack="integration",
+            stack="chromatin",
             script_path="aria/scripts/integration_wnn.py",
-            params={
-                "rna_files":   rna_files,
-                "atac_files":  atac_files,
-                "genome":      exp_ctx.get("genome", "hg38"),
-                "organism":    exp_ctx.get("organism", "Homo sapiens"),
-                "k":           k_decision.chosen_value,
-                "output_dir":  self._get_output_dir(rna_files),
-            },
+            params=wnn_params,
         )
 
         if wnn_result.get("status") == "success":
@@ -480,8 +499,23 @@ class IntegrationAgent(BaseAgent):
         Evaluate WNN modality weights and invoke DebateCouncil
         when imbalanced weights suggest data quality issues.
         """
-        rna_weight  = wnn_result.get("mean_rna_weight", 0.6)
-        atac_weight = wnn_result.get("mean_atac_weight", 0.4)
+        rna_weight  = wnn_result.get("mean_rna_weight")
+        atac_weight = wnn_result.get("mean_atac_weight")
+
+        if rna_weight is None or atac_weight is None:
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        "WNN integration completed without measured modality "
+                        "weights (reported as null; not estimated)."
+                    ),
+                    "rna_weight": rna_weight,
+                    "atac_weight": atac_weight,
+                },
+                Confidence.LOW,
+            )
+            return
 
         summary = (
             f"WNN integration: RNA weight={rna_weight:.2f}, "
