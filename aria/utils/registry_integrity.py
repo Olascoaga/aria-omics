@@ -61,6 +61,7 @@ AGENT_SCRIPT_CONTRACTS = {
     },
     "integration_agent": {
         "required": (
+            "aria/scripts/integration_paired_qc.py",
             "aria/scripts/integration_wnn.py",
             "aria/scripts/integration_peak2gene.py",
             "aria/scripts/integration_mofa.py",

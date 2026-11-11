@@ -716,6 +716,30 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("bam_files", "list", required=False),
         ),
     ),
+    # V48 multi-omics integration: Slice I1 paired .h5mu contract + joint QC.
+    "aria/scripts/integration_paired_qc.py": ScriptContract(
+        script_path="aria/scripts/integration_paired_qc.py",
+        validation_level="beta",
+        inputs=(
+            ContractField(
+                name="h5mu_path",
+                type="path",
+                allow_empty=False,
+                aliases=("data_path",),
+            ),
+            _f("output_dir", "str", required=False),
+            _f("reference_h5ad", "path", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "path", allow_empty=False, path_must_exist=True),
+            _f("n_cells_before", "int"),
+            _f("n_cells_after", "int"),
+            _f("n_genes", "int"),
+            _f("n_peaks", "int"),
+            _f("label_join", "dict"),
+            _f("metrics_not_computed", "list"),
+        ),
+    ),
     # Scaffold modalities (dispatch-gated; contract present for completeness).
     "aria/scripts/integration_wnn.py": ScriptContract(
         script_path="aria/scripts/integration_wnn.py",

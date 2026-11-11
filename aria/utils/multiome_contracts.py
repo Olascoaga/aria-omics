@@ -208,13 +208,18 @@ def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
 
     # Filename fallback only marks a candidate. It does not inspect the file; a
     # later script still reads the `.h5mu` and can return structured blockers.
-    for path in (exp_context.get("modalities") or {}).get("scATAC", []) or []:
-        if str(path).lower().endswith(".h5mu"):
-            records.append({
-                "path": str(path),
-                "evidence": {"format": "h5mu", "paired_rna": True},
-                "confidence": "medium",
-            })
+    seen_paths: set[str] = set()
+    mods = exp_context.get("modalities") or {}
+    for mod_key in ("scATAC", "scRNA"):
+        for path in mods.get(mod_key, []) or []:
+            p_str = str(path)
+            if p_str.lower().endswith(".h5mu") and p_str not in seen_paths:
+                seen_paths.add(p_str)
+                records.append({
+                    "path": p_str,
+                    "evidence": {"format": "h5mu", "paired_rna": True},
+                    "confidence": "medium",
+                })
     return records
 
 
@@ -364,3 +369,117 @@ def multiome_evidence_paths(contract: dict[str, Any]) -> list[str]:
         for p in contract.get("evidence_paths") or []
         if str(p).strip()
     ]
+
+
+_SAME_CELL_BLOCKING_CHECKS = frozenset({
+    "multiome_contract_barcode_namespace_missing",
+    "multiome_contract_sample_mismatch",
+    "multiome_contract_pairing_unconfirmed",
+    "multiome_contract_sample_alignment_unconfirmed",
+})
+
+
+def enforce_same_cell_integration_gate(
+    exp_context: dict[str, Any],
+    *,
+    require_genome: bool = False,
+) -> dict[str, Any]:
+    """Hard pre-flight gate for same-cell vertical multiome integration (V48 I1).
+
+    `validate_multiome_contract` intentionally emits `yellow` warnings when split
+    scRNA + scATAC inputs lack confirmed cell pairing so independent single-assay
+    lanes remain dispatchable. Same-cell integration (paired `.h5mu` joint QC,
+    WNN, same-cell MOFA+, cell-level peak-to-gene) is stricter: it MUST fail
+    closed unless `same_cell is True`, cell-barcode identity is explicit, and no
+    blocking or unconfirmed-pairing issues exist.
+    """
+    validation = validate_multiome_contract(exp_context)
+    status = str(validation.get("status") or "not_applicable")
+    contract = dict(validation.get("contract") or {})
+    checks = dict(validation.get("checks") or {})
+    raw_findings = list(validation.get("findings") or [])
+
+    blockers: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+
+    if status == "not_applicable" or contract.get("same_cell") is not True:
+        # Promote any unconfirmed-pairing findings to explicit gate blockers, and
+        # always emit a primary same-cell requirement blocker when absent.
+        for finding in raw_findings:
+            check = str(finding.get("check") or "")
+            if (
+                finding.get("severity") == "blocking"
+                or check in _SAME_CELL_BLOCKING_CHECKS
+            ):
+                blockers.append({**finding, "severity": "blocking"})
+            else:
+                warnings.append(dict(finding))
+        if not blockers:
+            blockers.append(_finding(
+                "blocking",
+                "multiome_same_cell_required",
+                (
+                    "Same-cell multi-omics integration requires confirmed "
+                    "same-cell RNA+ATAC pairing (`same_cell=True`), which is "
+                    f"not satisfied (object_type={contract.get('object_type')!r}, "
+                    f"status={status!r})."
+                ),
+                (
+                    "Provide a paired `.h5mu` containing RNA and ATAC modalities "
+                    "over a shared cell-barcode namespace, or supply an explicit "
+                    "`multiome_contract` with `same_cell=True` and verified "
+                    "shared barcodes."
+                ),
+            ))
+    else:
+        for finding in raw_findings:
+            check = str(finding.get("check") or "")
+            if (
+                finding.get("severity") == "blocking"
+                or check in _SAME_CELL_BLOCKING_CHECKS
+                or (
+                    require_genome
+                    and check == "multiome_contract_genome_feature_space_unconfirmed"
+                )
+            ):
+                blockers.append({**finding, "severity": "blocking"})
+            else:
+                warnings.append(dict(finding))
+
+        evidence_paths = multiome_evidence_paths(contract)
+        has_explicit_map = bool(
+            contract.get("barcode_map")
+            or contract.get("cell_barcode_map")
+            or contract.get("paired_obs_names")
+        )
+        if (
+            contract.get("object_type") == "paired_mudata"
+            and not evidence_paths
+            and not has_explicit_map
+        ):
+            blockers.append(_finding(
+                "blocking",
+                "multiome_paired_path_missing",
+                (
+                    "The multiome contract declares `paired_mudata`, but no "
+                    "backing `.h5mu` file path is recorded."
+                ),
+                (
+                    "Include at least one readable `.h5mu` path in "
+                    "`evidence_paths` or `modalities` before running paired "
+                    "integration."
+                ),
+            ))
+
+    allowed = len(blockers) == 0
+    return {
+        "allowed": allowed,
+        "status": "allowed" if allowed else "blocked",
+        "reason": None if allowed else "multiome_same_cell_gate_blocked",
+        "validation_status": status,
+        "contract": contract,
+        "checks": checks,
+        "blockers": blockers,
+        "warnings": warnings,
+        "evidence_paths": multiome_evidence_paths(contract),
+    }

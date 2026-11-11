@@ -144,14 +144,26 @@ class IntegrationAgent(BaseAgent):
         """
         exp_ctx  = context.get("exp_context", {})
         intent   = context.get("biological_intent", {})
-        mods     = exp_ctx.get("modalities", {})
+        mods     = dict(exp_ctx.get("modalities", {}) or {})
 
         self.publish_status(experiment_id,
                             "IntegrationAgent: selecting strategy...", 0.0)
 
-        # Determine which modalities are available
-        has_scrna  = "scRNA"    in mods
-        has_scatac = "scATAC"   in mods
+        from aria.utils.multiome_contracts import (
+            enforce_same_cell_integration_gate,
+            infer_multiome_contract,
+        )
+
+        multiome_contract = infer_multiome_contract(exp_ctx)
+        is_paired_mudata = (
+            multiome_contract.get("object_type") == "paired_mudata"
+            and multiome_contract.get("same_cell") is True
+        )
+
+        # Determine which modalities are available (a paired .h5mu carries both
+        # scRNA and scATAC in a single shared-cell container).
+        has_scrna  = ("scRNA" in mods) or is_paired_mudata
+        has_scatac = ("scATAC" in mods) or is_paired_mudata
         has_rna    = has_scrna or "bulk_RNA" in mods
         has_atac   = has_scatac or "bulk_ATAC" in mods
         has_hic    = "HiC"      in mods
@@ -172,6 +184,70 @@ class IntegrationAgent(BaseAgent):
             has_scrna, has_scatac, has_hic, n_modalities, intent
         )
         results   = {}
+
+        # V48 I1 hard gate: any same-cell integration strategy MUST satisfy
+        # the paired multiome contract before touching downstream algorithms.
+        if strategy in ("wnn", "wnn_then_mofa"):
+            gate = enforce_same_cell_integration_gate(exp_ctx)
+            results["multiome_gate"] = gate
+            if not gate["allowed"]:
+                blocker_msgs = "; ".join(
+                    str(b.get("message") or b.get("check"))
+                    for b in gate.get("blockers", [])
+                )
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "error": (
+                            "Same-cell multi-omics integration blocked by "
+                            f"multiome contract gate: {blocker_msgs}"
+                        ),
+                        "blockers": gate.get("blockers", []),
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+                return {
+                    "status": "blocked",
+                    "reason": "multiome_same_cell_gate_blocked",
+                    "strategy": strategy,
+                    "multiome_gate": gate,
+                }
+
+            if gate["contract"].get("object_type") == "paired_mudata":
+                self.publish_status(
+                    experiment_id,
+                    "Running paired .h5mu contract & joint RNA+ATAC QC...",
+                    0.05,
+                )
+                paired_qc_res = self._run_paired_qc(
+                    experiment_id, exp_ctx, intent, gate
+                )
+                results["paired_qc"] = paired_qc_res
+                if paired_qc_res.get("status") != "success":
+                    self.publish_finding(
+                        experiment_id,
+                        {
+                            "error": (
+                                "Paired .h5mu joint QC failed: "
+                                f"{paired_qc_res.get('details', paired_qc_res.get('error_type', 'unknown'))}"
+                            ),
+                            "paired_qc": paired_qc_res,
+                        },
+                        Confidence.INSUFFICIENT,
+                    )
+                    return {
+                        "status": "failed",
+                        "reason": "paired_qc_failed",
+                        "strategy": strategy,
+                        "findings": results,
+                    }
+                validated_h5mu = paired_qc_res.get("output_path")
+                if validated_h5mu:
+                    mods = {
+                        **mods,
+                        "scRNA": [validated_h5mu],
+                        "scATAC": [validated_h5mu],
+                    }
 
         self.publish_status(
             experiment_id,
@@ -250,6 +326,69 @@ class IntegrationAgent(BaseAgent):
             return "mofa"
         else:
             return "peak_to_gene_only"
+
+    # ── Paired .h5mu contract & joint QC (V48 I1) ─────────────────────────
+
+    def _run_paired_qc(
+        self,
+        experiment_id: str,
+        exp_ctx: dict,
+        intent: dict,
+        gate: dict,
+    ) -> dict:
+        """Validate paired `.h5mu` and run joint RNA+ATAC QC over shared cells."""
+        evidence_paths = list(gate.get("evidence_paths") or [])
+        if not evidence_paths:
+            return {
+                "status": "error",
+                "error_type": "MissingPairedH5mu",
+                "details": "No paired .h5mu path resolved from multiome contract.",
+            }
+
+        h5mu_path = evidence_paths[0]
+        qc_overrides = dict(exp_ctx.get("paired_qc_params") or {})
+        params = {
+            "h5mu_path": h5mu_path,
+            "output_dir": qc_overrides.pop(
+                "output_dir",
+                self._get_output_dir(evidence_paths),
+            ),
+            "organism": exp_ctx.get("organism", "Homo sapiens"),
+            "genome": exp_ctx.get("genome"),
+        }
+        for opt_key in (
+            "sample_id",
+            "reference_h5ad",
+            "reference_label_col",
+            "target_label_col",
+            "reference_sample_col",
+        ):
+            if opt_key in exp_ctx and exp_ctx[opt_key] is not None:
+                params[opt_key] = exp_ctx[opt_key]
+        params.update(qc_overrides)
+
+        qc_res = self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/integration_paired_qc.py",
+            params=params,
+        )
+        if qc_res.get("status") == "success":
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"Paired multiome joint QC retained "
+                        f"{qc_res.get('n_cells_after')}/{qc_res.get('n_cells_before')} "
+                        f"shared cells ({qc_res.get('n_genes')} genes, "
+                        f"{qc_res.get('n_peaks')} peaks)."
+                    ),
+                    "n_cells_before": qc_res.get("n_cells_before"),
+                    "n_cells_after": qc_res.get("n_cells_after"),
+                    "label_join": qc_res.get("label_join"),
+                },
+                Confidence.HIGH,
+            )
+        return qc_res
 
     # ── WNN integration ───────────────────────────────────────────────────
 

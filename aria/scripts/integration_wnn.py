@@ -103,10 +103,11 @@ def integration_wnn(params: dict) -> dict:
                 "details":    "Could not load ATAC data.",
             }
 
-        # ── Align cells (intersect barcodes) ─────────────────────────────
-        common_cells = list(
-            set(rna_adata.obs_names) & set(atac_adata.obs_names)
-        )
+        # ── Align cells deterministically (preserve RNA obs_names order) ─
+        atac_obs_set = set(atac_adata.obs_names)
+        common_cells = [
+            bc for bc in rna_adata.obs_names if bc in atac_obs_set
+        ]
         if len(common_cells) < 200:
             warnings.append(
                 f"Only {len(common_cells)} cells shared between RNA and ATAC. "
