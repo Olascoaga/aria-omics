@@ -326,6 +326,26 @@ matrix and a dataset-gated headless E2E seam. It establishes fail-closed public
 claim invariance: provider wording can cause an unsupported claim to be withheld,
 but cannot add or elevate a public claim.
 
+B3 frozen open-weight reagent ablation EXECUTED (2026-11-12): to verify long-horizon
+reproducibility unaffected by 12–24 month commercial cloud API deprecation, all
+three ARIA tiers (`light`, `medium`, `heavy`) were routed externally via `127.0.0.1`
+loopback (`~/.aria/config.yaml`, zero ARIA source edits, `$0.00` API cost) to a
+SHA-256-pinned open-weight reagent selected from a 31-configuration empirical
+hardware race across five 2026 open-weight families (`llama.cpp b12316`, commit
+`5d4c8eeb2`, 12 GB RDNA3 `Vulkan0` + 16-core Ryzen 9 7950X `-t 8` + 128 GB DDR5,
+`-np 1`, `seed=0`, `temperature=0.0`, `KV=f16`; Strict Frozen Reagent Mode
+`--reasoning-budget 0 --reasoning off` resolved RDNA3 Vulkan FP16 `split_k`
+non-associativity across 25/25 tested configurations). On the primary reagent
+(`Qwen3.6-35B-A3B-UD-Q4_K_M`, `gguf_sha256=ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61`,
+34.6 peak decode tok/s), 18 live replays across ARIA's six core agent callsites
+(`CS1`–`CS6`) achieved **100% JSON contract validity**, **0 hallucinated HGNC
+symbols**, **0 observational causal-language violations**, **public claim-set
+Jaccard 1.0000** (sign concordance 1.0000), and zero claim/ledger divergence
+across repeated real `run_headless(..., reproducible_mode=True)` capsules.
+Artifacts: `docs/benchmark_results/b3_frozen_reagent/B3_FROZEN_REAGENT_SUPPLEMENT.md`,
+`docs/benchmark_results/b3_frozen_reagent/b3_frozen_reagent_ablation.json`, and
+`docs/benchmark_results/b3_frozen_reagent/fig_s_b3_frozen_reagent_ablation.svg`.
+
 ### B4 Null Narrative
 
 Use label permutations and null/spike-in controls tied to W-CALIB. Measure

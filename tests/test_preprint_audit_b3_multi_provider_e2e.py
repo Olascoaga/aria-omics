@@ -80,6 +80,29 @@ def test_run_headless_defaults_to_no_injected_provider(monkeypatch):
     assert captured["llm"] is None
 
 
+def test_find_report_on_disk_waits_for_post_html_capsule_artifacts(tmp_path):
+    """Guard against closing ARIAMemory between report.html and memory_snapshot.sqlite."""
+    from aria.headless import _find_report_on_disk
+
+    exp_id = "7bdbb284-0cb"
+    rep_dir = tmp_path / f"aria_reproducible_demo_{exp_id}_-0cb"
+    rep_dir.mkdir()
+    (rep_dir / "report.html").write_text("<html/>", encoding="utf-8")
+
+    # Mid-render (only report.html exists): must NOT return yet.
+    assert _find_report_on_disk(exp_id, reproducible_mode=True, reports_root=tmp_path) is None
+
+    (rep_dir / "methodology.json").write_text("{}", encoding="utf-8")
+    (rep_dir / "ro-crate-metadata.json").write_text("{}", encoding="utf-8")
+    # Reproducible mode still needs non-empty memory_snapshot.sqlite.
+    (rep_dir / "memory_snapshot.sqlite").write_bytes(b"")
+    assert _find_report_on_disk(exp_id, reproducible_mode=True, reports_root=tmp_path) is None
+
+    (rep_dir / "memory_snapshot.sqlite").write_bytes(b"SQLite format 3\x00")
+    found = _find_report_on_disk(exp_id, reproducible_mode=True, reports_root=tmp_path)
+    assert found == str(rep_dir / "report.html")
+
+
 # ── 2. Dataset-gated end-to-end repetition reproducibility ────────────────────
 
 _E2E_DATA = os.environ.get("ARIA_B3_E2E_DATA")

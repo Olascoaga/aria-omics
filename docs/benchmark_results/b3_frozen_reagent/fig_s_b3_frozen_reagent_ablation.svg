@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="20" y="32" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#111827">Fig. S-B3: Frozen Open-Weight Reagent Ablation — &quot;LLM Proposes, Code Guarantees&quot;</text>
+  <text x="820" y="32" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="700" fill="#2F6F73">PASS</text>
+  <text x="20" y="53" font-family="Inter, Arial, sans-serif" font-size="12" fill="#4b5563">31 hardware configs across 5 open-weight families (12 GB RDNA3 Vulkan + 128 GB DDR5) + 6-callsite &amp; Claim 6 invariance at $0.00 API cost.</text>
+
+  <!-- Panel A: 5-Family Peak Decode Throughput & Strict Frozen Reagent Repeatability -->
+  <text x="20" y="84" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933">A. Five-family open-weight decode speed (tok/s) &amp; 3-run SHA-256 repeatability (rb=0 vs unconstrained &lt;think&gt;)</text>
+
+  <text x="32" y="108" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Qwen3.5-9B Q4_K_M (VRAM, moe=0, rb=0)</text>
+  <rect x="330" y="94" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="94" width="331.7" height="18" fill="#2F6F73"/>
+  <text x="702" y="108" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">64.5 tok/s · 3/3 SHA-256</text>
+
+  <text x="32" y="132" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">gpt-oss-20b MXFP4 (moe=8, ngram, rb=0)</text>
+  <rect x="330" y="118" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="118" width="257.7" height="18" fill="#2F6F73"/>
+  <text x="702" y="132" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">50.1 tok/s · 3/3 SHA-256</text>
+
+  <text x="32" y="156" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Gemma 4 12B Q4_K_M (VRAM, moe=0, rb=0)</text>
+  <rect x="330" y="142" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="142" width="237.1" height="18" fill="#2F6F73"/>
+  <text x="702" y="156" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">46.1 tok/s · 3/3 SHA-256</text>
+
+  <text x="32" y="180" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">Qwen3.6-35B-A3B Q4_K_M (Primary, moe=24, rb=0)</text>
+  <rect x="330" y="166" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="166" width="177.9" height="18" fill="#1D4ED8"/>
+  <text x="702" y="180" font-family="Inter, Arial, sans-serif" font-size="12" font-weight="700" fill="#111827">34.6 tok/s · 3/3 SHA-256</text>
+
+  <text x="32" y="204" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Gemma 4 26B-A4B Q4_K_M (moe=16, rb=0)</text>
+  <rect x="330" y="190" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="190" width="176.4" height="18" fill="#2F6F73"/>
+  <text x="702" y="204" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">34.3 tok/s · 3/3 SHA-256</text>
+
+  <text x="32" y="228" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Unconstrained &lt;think&gt; chains (rb&gt;=1024, 6 configs)</text>
+  <rect x="330" y="214" width="360" height="18" fill="#e8edf0"/>
+  <rect x="330" y="214" width="160.5" height="18" fill="#A23B3B"/>
+  <text x="702" y="228" font-family="Inter, Arial, sans-serif" font-size="12" fill="#A23B3B">0/6 byte-identical (FP16 split-K)</text>
+
+  <!-- Panel B: Governance, Epistemic Restraint & Claim 6 Invariance -->
+  <text x="20" y="268" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="700" fill="#1f2933">B. Frontier reference vs frozen Qwen3.6-35B-A3B reagent across ARIA governance gates (CS1–CS6 + pbmc3k E2E)</text>
+
+  <text x="32" y="294" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Structured JSON contract validity (CS1–CS4, CS6; n=15)</text>
+  <rect x="360" y="280" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="280" width="330.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="294" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">1.00 (15/15 valid)</text>
+
+  <text x="32" y="318" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Entity grounding — zero hallucinated HGNC symbols (n=18)</text>
+  <rect x="360" y="304" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="304" width="330.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="318" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">1.00 (0 ungrounded)</text>
+
+  <text x="32" y="342" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Observational causal restraint (CS1–CS6; n=18)</text>
+  <rect x="360" y="328" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="328" width="330.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="342" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">1.00 (0 elevations)</text>
+
+  <text x="32" y="366" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Claim 6 public claim-set Jaccard (Frontier vs Reagent)</text>
+  <rect x="360" y="352" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="352" width="330.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="366" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">1.0000 (sign conc. 1.0000)</text>
+
+  <text x="32" y="390" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Repeated real E2E run_headless claim/ledger divergence</text>
+  <rect x="360" y="376" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="376" width="0.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="390" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">0.00 (capsule PASS)</text>
+
+  <text x="32" y="414" font-family="Inter, Arial, sans-serif" font-size="12" fill="#374151">Commercial cloud API egress &amp; monetary cost</text>
+  <rect x="360" y="400" width="330" height="18" fill="#e8edf0"/>
+  <rect x="360" y="400" width="0.0" height="18" fill="#2F6F73"/>
+  <text x="702" y="414" font-family="Inter, Arial, sans-serif" font-size="12" fill="#1f2933">$0.00 USD (127.0.0.1 only)</text>
+
+  <!-- Footer provenance stamp -->
+  <rect x="20" y="442" width="860" height="58" rx="6" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="32" y="463" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#334155">Primary Frozen Reagent: Qwen3.6-35B-A3B-UD-Q4_K_M · gguf_sha256=ac0e2c1189e055fa...547f167d53e31a61</text>
+  <text x="32" y="483" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" fill="#334155">Engine: llama.cpp b12316 (5d4c8eeb2) · Vulkan0 (RX 7700 XT 12 GB + Ryzen 9 7950X -t 8) · KV=f16 · -np 1 · seed=0 · temp=0.0</text>
+</svg>

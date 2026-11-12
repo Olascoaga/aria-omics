@@ -233,9 +233,12 @@ def run_headless(data_dir: str, question: str,
         decisions.extend(more)
         snap = build_snapshot(experiment_id)
         # Bus-derived path first (now reads the right payload key), then the
-        # filesystem fallback: the report dir is named with the experiment id
-        # suffix and contains report.html once narrative finishes.
-        report_path = snap.report_path or _find_report_on_disk(experiment_id)
+        # filesystem fallback: the report dir carries experiment_id and is only
+        # complete once methodology.json, optional memory_snapshot.sqlite, and
+        # ro-crate-metadata.json have all finished writing after report.html.
+        report_path = snap.report_path or _find_report_on_disk(
+            experiment_id, reproducible_mode=reproducible_mode, min_mtime=start - 2.0
+        )
         if report_path:
             memory.close()
             return HeadlessResult(experiment_id, "completed", report_path, decisions)
@@ -245,22 +248,41 @@ def run_headless(data_dir: str, question: str,
         time.sleep(0.5)
 
 
-def _find_report_on_disk(experiment_id: str) -> Optional[str]:
+def _find_report_on_disk(
+    experiment_id: str,
+    *,
+    reproducible_mode: bool = False,
+    min_mtime: float = 0.0,
+    reports_root=None,
+) -> Optional[str]:
     """Return the path to a finished report.html for this experiment, if any.
 
-    Report directories are named ``aria_<ts>_<slug>_<suffix>`` where suffix is
-    derived from the experiment id; matching on the id's last segment is enough
-    to disambiguate within a session.
+    Waits until post-HTML artifacts (`methodology.json`, optional
+    `memory_snapshot.sqlite`, and `ro-crate-metadata.json`) exist so `run_headless`
+    never closes `ARIAMemory` mid-export between `report.html` and
+    `_write_memory_snapshot`.
     """
     from pathlib import Path
 
-    reports = Path.home() / ".aria" / "reports"
+    reports = Path(reports_root) if reports_root is not None else (Path.home() / ".aria" / "reports")
     if not reports.is_dir():
         return None
     suffix = experiment_id.split("-")[-1]
     for d in reports.iterdir():
-        if d.is_dir() and d.name.endswith(suffix):
-            html = d / "report.html"
-            if html.exists():
-                return str(html)
+        if not d.is_dir():
+            continue
+        if experiment_id not in d.name and not d.name.endswith(suffix):
+            continue
+        html = d / "report.html"
+        meth = d / "methodology.json"
+        rocrate = d / "ro-crate-metadata.json"
+        if not (html.is_file() and meth.is_file() and rocrate.is_file()):
+            continue
+        if min_mtime > 0.0 and rocrate.stat().st_mtime < min_mtime:
+            continue
+        if reproducible_mode:
+            mem_snap = d / "memory_snapshot.sqlite"
+            if not mem_snap.is_file() or mem_snap.stat().st_size == 0:
+                continue
+        return str(html)
     return None

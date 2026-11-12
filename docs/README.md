@@ -62,6 +62,7 @@ cross-modal integration scaffold.
 - [Biological Synthesis](architecture/biological_synthesis.md)
 - [Preprint-v1 Evidence Freeze](architecture/preprint_freeze_v1.md)
 - [Frozen v4.5 Benchmarking Protocol](architecture/benchmarking_v45.md)
+- [Track B3 Frozen Open-Weight Reagent Ablation](benchmark_results/b3_frozen_reagent/B3_FROZEN_REAGENT_SUPPLEMENT.md)
 
 The preprint freeze is fail-closed. Receipts are tied to a clean indexed source
 snapshot, including tracked documentation, and become stale after source changes.

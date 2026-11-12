@@ -1,0 +1,2901 @@
+{
+  "schema_version": "aria.benchmark.b3_frozen_reagent_ablation.v1",
+  "principle": "LLM proposes, code guarantees",
+  "track": "B3_multi_llm_and_frozen_reagent_ablation",
+  "part_1_hardware_and_determinism_race": {
+    "workstation": "Medusa (AMD Ryzen 9 7950X 16C/32T AVX-512 + 128 GB DDR5-3600 + RX 7700 XT 12 GB GDDR6 gfx1101)",
+    "llama_cpp": {
+      "version": "b12316",
+      "commit": "5d4c8eeb2",
+      "backend": "Vulkan0 (RX 7700 XT)"
+    },
+    "total_runs_benchmarked": 31,
+    "selected_primary_scientific_reagent": "qwen3.6-35b-a3b-q4_k_m_moe24_t8_rb0",
+    "selected_cross_family_hybrid_validator": "gemma-4-26b-a4b-q4_k_m_moe16_t8_rb0",
+    "selected_vram_only_scientific_reagent": "gemma-4-12b-q4_k_m_moe0_t8_rb0",
+    "vram_only_speed_leader": "qwen3.5-9b-q4_k_m_moe0_t8_rb0",
+    "hybrid_moe_speed_leader": "gpt-oss-20b-mxfp4_moe8_t8_rb0_ngram",
+    "records": [
+      {
+        "candidate_id": "qwen3.5-9b-q4_k_m_moe0_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 0,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 865.11,
+            "prompt_tokens": 137,
+            "completion_tokens": 43,
+            "tok_s": 49.7,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"single cell\", \"recommended_model\": \"linear_mixed_model_with_batch_random_effect\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 618.15,
+            "prompt_tokens": 150,
+            "completion_tokens": 29,
+            "tok_s": 46.91,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 2571.07,
+            "prompt_tokens": 182,
+            "completion_tokens": 146,
+            "tok_s": 56.79,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1 knockout (KO) samples compared to wild-type (WT), statistically significant differential expression (padj < 0.01) was observed for four genes: CDKN1A and MDM2 were upregul"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 934.68,
+            "prompt_tokens": 87,
+            "completion_tokens": 51,
+            "tok_s": 54.56,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] 32 cells flagged for high mitochondrial content. [evidence] 32 cells > 15% mt vs 2.1% median. [confidence] High. [next step] Filter or remove flagged cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 1247.25,
+        "p50_wall_ms": 899.89,
+        "mean_tok_s": 51.99,
+        "passed_all_gates": true,
+        "load_seconds": 2.6,
+        "reagent_stamp": {
+          "gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+          "tokenizer_sha256": "62f4c1606684d9dd37b42ea4ca4d7b914a7b09a3bde5d2aaac971c5d1814efed",
+          "chat_template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 1244.01,
+          "peak_decode_tok_s": 64.53,
+          "median_decode_tok_s": 64.02,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-12b-q4_k_m_moe0_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 0,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 1864.89,
+            "prompt_tokens": 139,
+            "completion_tokens": 68,
+            "tok_s": 36.46,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell line genotype\", \"recommended_model\": \"Linear Mixed Model (LMM) or ANOVA\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1053.34,
+            "prompt_tokens": 147,
+            "completion_tokens": 34,
+            "tok_s": 32.28,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 3613.57,
+            "prompt_tokens": 178,
+            "completion_tokens": 145,
+            "tok_s": 40.13,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO versus WT samples revealed significant transcriptional alterations in several key genes. Specifically, *CDKN1A* and *MDM2* exhibited si"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 865.95,
+            "prompt_tokens": 91,
+            "completion_tokens": 31,
+            "tok_s": 35.8,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[Data clean] [2700 cells, low MT (2.1%), few outliers] [High] [Proceed to downstream analysis]."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 1849.44,
+        "p50_wall_ms": 1459.12,
+        "mean_tok_s": 36.17,
+        "passed_all_gates": true,
+        "load_seconds": 3.44,
+        "reagent_stamp": {
+          "gguf_sha256": "0a270ec9fe6b34f4a0d33992b6135117b484ebc4766ab76b51d4ae8c457e4c42",
+          "tokenizer_sha256": "ac9ddd198d4ca7bf4b4fb75e2fd6cac77c4aea0e47ff1e891252a6f0deaef464",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 767.95,
+          "peak_decode_tok_s": 46.1,
+          "median_decode_tok_s": 45.22,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe8_t8_rb0_ngram",
+        "backend": "vulkan",
+        "n_cpu_moe": 8,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 1805.58,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 22.71,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1083.04,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 29.55,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 4610.66,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 42.29,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1031.2,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 30.06,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 2132.62,
+        "p50_wall_ms": 1444.31,
+        "mean_tok_s": 31.15,
+        "passed_all_gates": true,
+        "load_seconds": 3.72,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 609.85,
+          "peak_decode_tok_s": 50.06,
+          "median_decode_tok_s": 48.71,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe8_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 8,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 2193.05,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 18.7,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1061.99,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 30.13,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 4581.97,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 42.56,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1048.13,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 29.58,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 2221.29,
+        "p50_wall_ms": 1627.52,
+        "mean_tok_s": 30.24,
+        "passed_all_gates": true,
+        "load_seconds": 0.01,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 621.08,
+          "peak_decode_tok_s": 50.47,
+          "median_decode_tok_s": 49.71,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe8_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 8,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 1891.15,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 21.68,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1158.52,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 27.62,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 4863.75,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 40.09,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1099.2,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 28.2,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 2253.16,
+        "p50_wall_ms": 1524.84,
+        "mean_tok_s": 29.4,
+        "passed_all_gates": true,
+        "load_seconds": 4.07,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 607.36,
+          "peak_decode_tok_s": 46.59,
+          "median_decode_tok_s": 46.38,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe16_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3029.19,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 13.53,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1745.49,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 18.33,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7256.13,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 26.87,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1716.73,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 18.06,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3436.89,
+        "p50_wall_ms": 2387.34,
+        "mean_tok_s": 19.2,
+        "passed_all_gates": true,
+        "load_seconds": 3.1,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 356.05,
+          "peak_decode_tok_s": 32.55,
+          "median_decode_tok_s": 31.6,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe16_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3863.02,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 16.05,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1846.62,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 16.79,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 5561.9,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 27.33,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 2932.79,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 24.21,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3551.08,
+        "p50_wall_ms": 3397.9,
+        "mean_tok_s": 21.09,
+        "passed_all_gates": true,
+        "load_seconds": 4.73,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 245.07,
+          "peak_decode_tok_s": 34.26,
+          "median_decode_tok_s": 33.44,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe16_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3120.9,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 13.14,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1831.78,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 17.47,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7802.23,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 24.99,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1768.07,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 17.53,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3630.74,
+        "p50_wall_ms": 2476.34,
+        "mean_tok_s": 18.28,
+        "passed_all_gates": true,
+        "load_seconds": 2.65,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 355.57,
+          "peak_decode_tok_s": 29.45,
+          "median_decode_tok_s": 29.13,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe16_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3826.48,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 16.2,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1805.64,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 17.17,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 5888.76,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 25.81,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 3034.41,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 23.4,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3638.82,
+        "p50_wall_ms": 3430.44,
+        "mean_tok_s": 20.64,
+        "passed_all_gates": true,
+        "load_seconds": 4.7,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 241.47,
+          "peak_decode_tok_s": 32.85,
+          "median_decode_tok_s": 32.6,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe24_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 24,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4293.54,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 9.08,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2185.82,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 12.35,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7162.35,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 25.13,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1419.3,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 9.16,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3765.25,
+        "p50_wall_ms": 3239.68,
+        "mean_tok_s": 13.93,
+        "passed_all_gates": true,
+        "load_seconds": 0.01,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 136.6,
+          "peak_decode_tok_s": 34.6,
+          "median_decode_tok_s": 34.31,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe16_t8_rb0_ngram",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3789.32,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 16.36,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 1771.13,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 17.5,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 6705.31,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 22.67,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 2870.41,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 24.74,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3784.04,
+        "p50_wall_ms": 3329.86,
+        "mean_tok_s": 20.32,
+        "passed_all_gates": true,
+        "load_seconds": 4.77,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 239.58,
+          "peak_decode_tok_s": 34.09,
+          "median_decode_tok_s": 33.83,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe24_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 24,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4085.32,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 9.55,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2306.53,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 11.71,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7480.83,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 24.06,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1444.73,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 9.0,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3829.35,
+        "p50_wall_ms": 3195.93,
+        "mean_tok_s": 13.58,
+        "passed_all_gates": true,
+        "load_seconds": 4.96,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 134.92,
+          "peak_decode_tok_s": 32.67,
+          "median_decode_tok_s": 32.36,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe12_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 12,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 3987.07,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 15.55,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2282.95,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 13.58,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 6188.43,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 24.56,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 3195.79,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 22.22,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 3913.56,
+        "p50_wall_ms": 3591.43,
+        "mean_tok_s": 18.98,
+        "passed_all_gates": true,
+        "load_seconds": 5.02,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 152.59,
+          "peak_decode_tok_s": 34.48,
+          "median_decode_tok_s": 34.05,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe12_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 12,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4653.52,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 13.32,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2179.3,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 14.22,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 6071.65,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 25.03,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 3122.79,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 22.74,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4006.82,
+        "p50_wall_ms": 3888.16,
+        "mean_tok_s": 18.83,
+        "passed_all_gates": true,
+        "load_seconds": 0.01,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 156.61,
+          "peak_decode_tok_s": 35.47,
+          "median_decode_tok_s": 34.21,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe28_t8_rb0_ngram",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4494.74,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 8.68,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2498.6,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 10.81,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 8048.58,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 22.36,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1605.78,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 8.1,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4161.93,
+        "p50_wall_ms": 3496.67,
+        "mean_tok_s": 12.49,
+        "passed_all_gates": true,
+        "load_seconds": 4.35,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 119.03,
+          "peak_decode_tok_s": 31.4,
+          "median_decode_tok_s": 31.27,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe28_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4526.03,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 8.62,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2527.96,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 10.68,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7991.18,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 22.52,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1619.52,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 8.03,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4166.17,
+        "p50_wall_ms": 3526.99,
+        "mean_tok_s": 12.46,
+        "passed_all_gates": true,
+        "load_seconds": 4.1,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 117.6,
+          "peak_decode_tok_s": 31.48,
+          "median_decode_tok_s": 31.15,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe22_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 22,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4629.18,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 13.39,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2154.1,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 14.39,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 6988.05,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 21.75,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 3526.4,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 20.13,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4324.43,
+        "p50_wall_ms": 4077.79,
+        "mean_tok_s": 17.41,
+        "passed_all_gates": true,
+        "load_seconds": 3.64,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 187.34,
+          "peak_decode_tok_s": 28.53,
+          "median_decode_tok_s": 28.24,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe28_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4668.65,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 8.35,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2614.14,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 10.33,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 8421.5,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 21.37,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1655.33,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 7.85,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4339.9,
+        "p50_wall_ms": 3641.39,
+        "mean_tok_s": 11.97,
+        "passed_all_gates": true,
+        "load_seconds": 4.23,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 117.48,
+          "peak_decode_tok_s": 29.5,
+          "median_decode_tok_s": 29.22,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe22_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 22,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4780.29,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 12.97,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2220.63,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 13.96,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 7124.41,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 21.34,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 3747.36,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 18.95,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4468.17,
+        "p50_wall_ms": 4263.82,
+        "mean_tok_s": 16.8,
+        "passed_all_gates": true,
+        "load_seconds": 3.62,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 188.12,
+          "peak_decode_tok_s": 27.19,
+          "median_decode_tok_s": 26.97,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe24_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 24,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4222.66,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 9.71,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2376.93,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 13.46,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 9703.55,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 20.1,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 2233.23,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 13.88,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4634.09,
+        "p50_wall_ms": 3299.8,
+        "mean_tok_s": 14.29,
+        "passed_all_gates": true,
+        "load_seconds": 1.68,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 263.34,
+          "peak_decode_tok_s": 24.13,
+          "median_decode_tok_s": 23.4,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe34_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 34,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 5275.28,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 7.39,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2905.28,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 9.29,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 9108.33,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 19.76,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1868.01,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 6.96,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4789.23,
+        "p50_wall_ms": 4090.28,
+        "mean_tok_s": 10.85,
+        "passed_all_gates": true,
+        "load_seconds": 3.48,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 100.4,
+          "peak_decode_tok_s": 28.03,
+          "median_decode_tok_s": 27.36,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe34_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 34,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 5455.81,
+            "prompt_tokens": 139,
+            "completion_tokens": 39,
+            "tok_s": 7.15,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2 ~ genotype\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 3012.23,
+            "prompt_tokens": 152,
+            "completion_tokens": 27,
+            "tok_s": 8.96,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 9508.61,
+            "prompt_tokens": 184,
+            "completion_tokens": 180,
+            "tok_s": 18.93,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "DESeq2 analysis comparing BMAL1 knockout (KO) to wild-type (WT) samples identified four statistically significant differentially expressed genes at a false discovery rate threshold"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1903.39,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 6.83,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4970.01,
+        "p50_wall_ms": 4234.02,
+        "mean_tok_s": 10.47,
+        "passed_all_gates": true,
+        "load_seconds": 3.52,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 99.2,
+          "peak_decode_tok_s": 26.07,
+          "median_decode_tok_s": 25.84,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe24_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 24,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 4423.67,
+            "prompt_tokens": 197,
+            "completion_tokens": 41,
+            "tok_s": 9.27,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"cell\", \"recommended_model\": \"linear mixed model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2518.34,
+            "prompt_tokens": 206,
+            "completion_tokens": 32,
+            "tok_s": 12.71,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"CD4+ T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 10590.99,
+            "prompt_tokens": 234,
+            "completion_tokens": 195,
+            "tok_s": 18.41,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1\u2011knockout versus wild\u2011type cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was up\u2011regulated (log\u2082F"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 2394.36,
+            "prompt_tokens": 140,
+            "completion_tokens": 31,
+            "tok_s": 12.95,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "low mt % 2.1% [QC summary] high confidence. next step: keep cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 4981.84,
+        "p50_wall_ms": 3471.01,
+        "mean_tok_s": 13.34,
+        "passed_all_gates": true,
+        "load_seconds": 2.08,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 262.03,
+          "peak_decode_tok_s": 21.6,
+          "median_decode_tok_s": 21.55,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe28_t8_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 5648.21,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 10.98,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2644.03,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 11.72,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 8057.52,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 18.86,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 4156.77,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 17.08,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 5126.63,
+        "p50_wall_ms": 4902.49,
+        "mean_tok_s": 14.66,
+        "passed_all_gates": true,
+        "load_seconds": 2.55,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 153.83,
+          "peak_decode_tok_s": 24.66,
+          "median_decode_tok_s": 24.31,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe28_t16_rb0",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 5767.46,
+            "prompt_tokens": 141,
+            "completion_tokens": 62,
+            "tok_s": 10.75,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell culture batch\", \"recommended_model\": \"Generalized Linear Model (GLM) with batch covariate\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 2697.32,
+            "prompt_tokens": 149,
+            "completion_tokens": 31,
+            "tok_s": 11.49,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 8355.03,
+            "prompt_tokens": 180,
+            "completion_tokens": 152,
+            "tok_s": 18.19,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO compared to WT revealed significant transcriptomic alterations (padj < 0.01). Specifically, the loss of BMAL1 was associated with the u"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 4326.02,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 16.41,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": true,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 5286.46,
+        "p50_wall_ms": 5046.74,
+        "mean_tok_s": 14.21,
+        "passed_all_gates": true,
+        "load_seconds": 2.56,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 153.15,
+          "peak_decode_tok_s": 23.35,
+          "median_decode_tok_s": 23.25,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gpt-oss-20b-mxfp4_moe12_t16_rb1024",
+        "backend": "vulkan",
+        "n_cpu_moe": 12,
+        "threads": 16,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 12609.09,
+            "prompt_tokens": 197,
+            "completion_tokens": 376,
+            "tok_s": 29.82,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"one-way ANOVA (genotype as fixed effect)\", \"batch_confounded\": true, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 4988.69,
+            "prompt_tokens": 206,
+            "completion_tokens": 149,
+            "tok_s": 29.87,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive CD4 T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 10646.44,
+            "prompt_tokens": 234,
+            "completion_tokens": 335,
+            "tok_s": 31.47,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In BMAL1 knockout (KO) versus wild\u2011type (WT) cells, DESeq2 analysis identified four genes with statistically significant differential expression (padj\u202f<\u202f0.01). CDKN1A was markedly "
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 5364.46,
+            "prompt_tokens": 0,
+            "completion_tokens": 0,
+            "tok_s": 0.0,
+            "json_valid": false,
+            "think_leaked": false,
+            "http_ok": false,
+            "output_preview": "HTTP 422: {\"error\": {\"message\": \"Truncated inside reasoning before emitting answer\", \"type\": \"contract_violation\"}}"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 8402.17,
+        "p50_wall_ms": 8005.45,
+        "mean_tok_s": 30.39,
+        "passed_all_gates": false,
+        "load_seconds": 3.28,
+        "reagent_stamp": {
+          "gguf_sha256": "27cd6c432c7672cb812a92f611cf3ba7bbc35928262bb1e1253ff4ee6ae35901",
+          "tokenizer_sha256": "d53c509aa6fc3d263c1a61ceea67fd1676b44459f35474145e5acdf76fb9850c",
+          "chat_template_sha256": "a4c9919cbbd4acdd51ccffe22da049264b1b73e59055fa58811a99efbd7c8146",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 458.99,
+          "peak_decode_tok_s": 35.79,
+          "median_decode_tok_s": 35.62,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-12b-q4_k_m_moe0_t8",
+        "backend": "vulkan",
+        "n_cpu_moe": 0,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 16836.64,
+            "prompt_tokens": 139,
+            "completion_tokens": 668,
+            "tok_s": 39.68,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell genotype\", \"recommended_model\": \"Linear Model\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 11544.08,
+            "prompt_tokens": 147,
+            "completion_tokens": 481,
+            "tok_s": 41.67,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 20291.86,
+            "prompt_tokens": 178,
+            "completion_tokens": 846,
+            "tok_s": 41.69,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis between BMAL1_KO and WT revealed significant transcriptomic changes (padj < 0.01). CDKN1A (log2FC=+1.84, padj=2.1e-8) and MDM2 (log2FC=+1.12, padj="
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 861.62,
+            "prompt_tokens": 91,
+            "completion_tokens": 31,
+            "tok_s": 35.98,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[Data clean] [2700 cells, low MT (2.1%), few outliers] [High] [Proceed to downstream analysis]."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 12383.55,
+        "p50_wall_ms": 14190.36,
+        "mean_tok_s": 39.75,
+        "passed_all_gates": false,
+        "load_seconds": 0.01,
+        "reagent_stamp": {
+          "gguf_sha256": "0a270ec9fe6b34f4a0d33992b6135117b484ebc4766ab76b51d4ae8c457e4c42",
+          "tokenizer_sha256": "ac9ddd198d4ca7bf4b4fb75e2fd6cac77c4aea0e47ff1e891252a6f0deaef464",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 775.99,
+          "peak_decode_tok_s": 46.26,
+          "median_decode_tok_s": 45.33,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.5-9b-q4_k_m_moe0_t8",
+        "backend": "vulkan",
+        "n_cpu_moe": 0,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 18080.99,
+            "prompt_tokens": 137,
+            "completion_tokens": 1073,
+            "tok_s": 59.34,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 13937.34,
+            "prompt_tokens": 150,
+            "completion_tokens": 822,
+            "tok_s": 58.98,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 19671.7,
+            "prompt_tokens": 182,
+            "completion_tokens": 1168,
+            "tok_s": 59.37,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In the BMAL1_KO versus WT comparison, four genes met the significance threshold (padj < 0.01) for differential expression. CDKN1A and MDM2 exhibited upregulation with log2 fold cha"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 936.02,
+            "prompt_tokens": 87,
+            "completion_tokens": 51,
+            "tok_s": 54.49,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] 32 cells flagged for high mitochondrial content. [evidence] 32 cells > 15% mt vs 2.1% median. [confidence] High. [next step] Filter or remove flagged cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 13156.51,
+        "p50_wall_ms": 16009.17,
+        "mean_tok_s": 58.05,
+        "passed_all_gates": false,
+        "load_seconds": 2.72,
+        "reagent_stamp": {
+          "gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+          "tokenizer_sha256": "62f4c1606684d9dd37b42ea4ca4d7b914a7b09a3bde5d2aaac971c5d1814efed",
+          "chat_template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 1224.26,
+          "peak_decode_tok_s": 64.38,
+          "median_decode_tok_s": 63.83,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.5-9b-q4_k_m_moe0_t8_nofa",
+        "backend": "vulkan",
+        "n_cpu_moe": 0,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 18074.38,
+            "prompt_tokens": 137,
+            "completion_tokens": 1073,
+            "tok_s": 59.37,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"DESeq2\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 14062.45,
+            "prompt_tokens": 150,
+            "completion_tokens": 822,
+            "tok_s": 58.45,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"T cells\", \"cluster_1\": \"B cells\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 19591.93,
+            "prompt_tokens": 182,
+            "completion_tokens": 1168,
+            "tok_s": 59.62,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "In the BMAL1_KO versus WT comparison, four genes met the significance threshold (padj < 0.01) for differential expression. CDKN1A and MDM2 exhibited upregulation with log2 fold cha"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 939.67,
+            "prompt_tokens": 87,
+            "completion_tokens": 51,
+            "tok_s": 54.27,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] 32 cells flagged for high mitochondrial content. [evidence] 32 cells > 15% mt vs 2.1% median. [confidence] High. [next step] Filter or remove flagged cells."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 13167.11,
+        "p50_wall_ms": 16068.42,
+        "mean_tok_s": 57.93,
+        "passed_all_gates": false,
+        "load_seconds": 2.87,
+        "reagent_stamp": {
+          "gguf_sha256": "03b74727a860a56338e042c4420bb3f04b2fec5734175f4cb9fa853daf52b7e8",
+          "tokenizer_sha256": "62f4c1606684d9dd37b42ea4ca4d7b914a7b09a3bde5d2aaac971c5d1814efed",
+          "chat_template_sha256": "7f0e529032c25183bcd66c7f238da2d377f43be754a94e2725a58c4e16d2ed67",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 1224.27,
+          "peak_decode_tok_s": 64.36,
+          "median_decode_tok_s": 63.68,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "gemma-4-26b-a4b-q4_k_m_moe16_t8_rb1024",
+        "backend": "vulkan",
+        "n_cpu_moe": 16,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 24980.95,
+            "prompt_tokens": 139,
+            "completion_tokens": 720,
+            "tok_s": 28.82,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"H9 cell RNA-seq library\", \"recommended_model\": \"DESeq2\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 18862.56,
+            "prompt_tokens": 147,
+            "completion_tokens": 563,
+            "tok_s": 29.85,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 32281.42,
+            "prompt_tokens": 178,
+            "completion_tokens": 978,
+            "tok_s": 30.3,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis of BMAL1_KO relative to WT identified significant transcriptomic changes (padj < 0.01). Upregulation was observed in *CDKN1A* (log2FC = +1.84, padj"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 2878.54,
+            "prompt_tokens": 91,
+            "completion_tokens": 71,
+            "tok_s": 24.67,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "[finding] Sample healthy, low mitochondrial load, minor outlier group. [evidence] 2700 cells, 845 median genes, 2.1% median MT, 32 cells > 15% MT. [confidence] High. [next step] Fi"
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 19750.87,
+        "p50_wall_ms": 21921.76,
+        "mean_tok_s": 28.41,
+        "passed_all_gates": false,
+        "load_seconds": 4.4,
+        "reagent_stamp": {
+          "gguf_sha256": "f2c28b3dc4776931ac6f879e11f203dec637ea0f14267a86ec8f6165f63f293f",
+          "tokenizer_sha256": "d54635141e3ea8f35d8fd772699bebf76475a3c021786cf1451f5c64cda19b99",
+          "chat_template_sha256": "845f1ee48e39fc942fe190da9df6a1c5db229e17a96ea08966ad1c9274e73d1b",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 258.48,
+          "peak_decode_tok_s": 33.71,
+          "median_decode_tok_s": 33.28,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      },
+      {
+        "candidate_id": "qwen3.6-35b-a3b-q4_k_m_moe28_t8_rb1024",
+        "backend": "vulkan",
+        "n_cpu_moe": 28,
+        "threads": 8,
+        "workloads": [
+          {
+            "workload_id": "W1_design_structured",
+            "tier": "heavy",
+            "wall_ms": 40096.03,
+            "prompt_tokens": 137,
+            "completion_tokens": 1056,
+            "tok_s": 26.34,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"experimental_unit\": \"biological replicate\", \"recommended_model\": \"~ genotype\", \"batch_confounded\": false, \"min_replicates_per_group\": 3}"
+          },
+          {
+            "workload_id": "W2_scrna_marker_annotation",
+            "tier": "medium",
+            "wall_ms": 38351.01,
+            "prompt_tokens": 150,
+            "completion_tokens": 1053,
+            "tok_s": 27.46,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "{\"cluster_0\": \"Naive T cell\", \"cluster_1\": \"B cell\", \"confidence\": \"high\"}"
+          },
+          {
+            "workload_id": "W3_heavy_narrative_grounded",
+            "tier": "heavy",
+            "wall_ms": 43977.3,
+            "prompt_tokens": 182,
+            "completion_tokens": 1218,
+            "tok_s": 27.7,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "Differential expression analysis comparing BMAL1_KO to WT samples (padj < 0.01) identified statistically significant, condition-associated expression changes for four genes. CDKN1A"
+          },
+          {
+            "workload_id": "W4_light_caveman_status",
+            "tier": "light",
+            "wall_ms": 1581.55,
+            "prompt_tokens": 87,
+            "completion_tokens": 13,
+            "tok_s": 8.22,
+            "json_valid": true,
+            "think_leaked": false,
+            "http_ok": true,
+            "output_preview": "32 cells bad. High mt DNA. Drop them."
+          }
+        ],
+        "repeatability_runs": 3,
+        "byte_identical": false,
+        "json_valid_rate": 1.0,
+        "think_leak_count": 0,
+        "mean_wall_ms": 31001.47,
+        "p50_wall_ms": 39223.52,
+        "mean_tok_s": 22.43,
+        "passed_all_gates": false,
+        "load_seconds": 4.29,
+        "reagent_stamp": {
+          "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+          "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+          "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+          "llama_cpp_version": "b12316",
+          "llama_cpp_commit": "5d4c8eeb2",
+          "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6"
+        },
+        "engine_timings": {
+          "peak_prefill_tok_s": 136.89,
+          "peak_decode_tok_s": 31.21,
+          "median_decode_tok_s": 30.86,
+          "logged_vram_mib": null,
+          "logged_cpu_mib": null
+        }
+      }
+    ]
+  },
+  "part_2_six_callsite_governance_replay": {
+    "created_at_utc": "2026-11-12T13:14:43.288589+00:00",
+    "frontier_model_label": "Claude Opus (ARIA v48 Governed Reference)",
+    "reagent": {
+      "model_id": "qwen3.6-35b-a3b-ud-q4_k_m",
+      "gguf_path": "reagent-gguf://Qwen3.6-35B-A3B-UD-Q4_K_M.gguf",
+      "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+      "tokenizer_sha256": "f2f491ce0b89b6daa98d9e10e46fab2959da6bb2a513042512b3b4678c32b639",
+      "chat_template_sha256": "55d4931433fe502b794226ee7f4d206a6bdd436ac9f80eb7d8ebb4c639f9ea0c",
+      "llama_cpp_version": "b12316",
+      "llama_cpp_commit": "5d4c8eeb2",
+      "llama_server_sha256": "f1e6be3c20821e4434ca0be2cc5093ee21d5b78ffe2ee98b2f4382b39ea8cbc6",
+      "backend": "vulkan",
+      "kv_cache_type": "f16",
+      "n_ctx": 16384,
+      "n_parallel": 1,
+      "seed": 0,
+      "temperature": 0.0
+    },
+    "callsite_results": [
+      {
+        "callsite_id": "CS1_orchestrator_routing",
+        "agent_name": "Orchestrator",
+        "expect_json": true,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 2766.45,
+        "passed_all": true
+      },
+      {
+        "callsite_id": "CS2_design_agent_audit",
+        "agent_name": "DesignAgent",
+        "expect_json": true,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 2450.39,
+        "passed_all": true
+      },
+      {
+        "callsite_id": "CS3_scrna_annotation",
+        "agent_name": "scRNAAnnotationAgent",
+        "expect_json": true,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 2547.08,
+        "passed_all": true
+      },
+      {
+        "callsite_id": "CS4_scrna_de_summary",
+        "agent_name": "scRNADEAgent",
+        "expect_json": true,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 5534.7,
+        "passed_all": true
+      },
+      {
+        "callsite_id": "CS5_narrative_agent",
+        "agent_name": "NarrativeAgent",
+        "expect_json": false,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 7521.77,
+        "passed_all": true
+      },
+      {
+        "callsite_id": "CS6_hypothesis_debate",
+        "agent_name": "HypothesisAgent",
+        "expect_json": true,
+        "json_valid": true,
+        "grounding_passed": true,
+        "ungrounded_genes": [],
+        "causal_restraint_passed": true,
+        "causal_violations": [],
+        "wall_ms": 6520.82,
+        "passed_all": true
+      }
+    ],
+    "claim6_invariance": {
+      "jaccard_index": 1.0,
+      "exact_match": true,
+      "sign_concordance": 1.0,
+      "epistemic_elevations": [],
+      "missing_entities": [],
+      "extra_entities": []
+    },
+    "json_validity_rate": 1.0,
+    "grounding_pass_rate": 1.0,
+    "causal_restraint_rate": 1.0,
+    "ablation_gate_passed": true,
+    "reasoning_budget": 0,
+    "repeatability_3x_rate": 0.3333,
+    "callsite_raw_outputs": {
+      "CS1_orchestrator_routing": {
+        "output_text": "{\"modality\": \"scrna\", \"steps\": [\"decompress_matrix\", \"decompress_barcodes\", \"decompress_features\", \"concatenate_matrices_by_donor\", \"merge_donors_into_single_matrix\", \"generate_sample_metadata\"], \"batch_check_required\": true}",
+        "sha256": "3e3e3f48c2e8594102c0adaa9ccec74df7d9a1c817dcdb057f454f9748d5af4d",
+        "run_sha256s": [
+          "3e3e3f48c2e8594102c0adaa9ccec74df7d9a1c817dcdb057f454f9748d5af4d",
+          "e265ef0e5562a04091fba7482d608d7608dfb4180bb4b5b258430566c0bc9f65",
+          "edaf10183cf8fefeb240c6bd74694f72fe98d965b784a1b204f92c972c05bae2"
+        ],
+        "run_wall_ms": [
+          4364.43,
+          2766.45,
+          2666.13
+        ],
+        "replay_byte_identical": false,
+        "eval": {
+          "callsite_id": "CS1_orchestrator_routing",
+          "agent_name": "Orchestrator",
+          "expect_json": true,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 2766.45,
+          "passed_all": true
+        }
+      },
+      "CS2_design_agent_audit": {
+        "output_text": "{\"experimental_unit\": \"nucleus\", \"pseudoreplication_risk\": true, \"recommended_test\": \"mixed-effects model with donor as random effect\"}",
+        "sha256": "5dceca7deba558cb4df2eece93f538a2fc7b1c0aadfe18deafa4922bfd23bafa",
+        "run_sha256s": [
+          "5dceca7deba558cb4df2eece93f538a2fc7b1c0aadfe18deafa4922bfd23bafa",
+          "5dceca7deba558cb4df2eece93f538a2fc7b1c0aadfe18deafa4922bfd23bafa",
+          "5dceca7deba558cb4df2eece93f538a2fc7b1c0aadfe18deafa4922bfd23bafa"
+        ],
+        "run_wall_ms": [
+          2700.64,
+          2450.39,
+          2431.56
+        ],
+        "replay_byte_identical": true,
+        "eval": {
+          "callsite_id": "CS2_design_agent_audit",
+          "agent_name": "DesignAgent",
+          "expect_json": true,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 2450.39,
+          "passed_all": true
+        }
+      },
+      "CS3_scrna_annotation": {
+        "output_text": "{\"cluster_0\": \"T cells\", \"cluster_1\": \"B cells\", \"evidence_markers\": [\"CD3D\", \"IL7R\", \"MS4A1\", \"CD79A\"]}",
+        "sha256": "590c9a5b12e5470b4ae5cdf8b4f4d2a8d95a07595f42e8e1d63ea551f003ff62",
+        "run_sha256s": [
+          "590c9a5b12e5470b4ae5cdf8b4f4d2a8d95a07595f42e8e1d63ea551f003ff62",
+          "590c9a5b12e5470b4ae5cdf8b4f4d2a8d95a07595f42e8e1d63ea551f003ff62",
+          "590c9a5b12e5470b4ae5cdf8b4f4d2a8d95a07595f42e8e1d63ea551f003ff62"
+        ],
+        "run_wall_ms": [
+          2635.74,
+          2525.41,
+          2547.08
+        ],
+        "replay_byte_identical": true,
+        "eval": {
+          "callsite_id": "CS3_scrna_annotation",
+          "agent_name": "scRNAAnnotationAgent",
+          "expect_json": true,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 2547.08,
+          "passed_all": true
+        }
+      },
+      "CS4_scrna_de_summary": {
+        "output_text": "{\"summary\": \"In an observational cohort of 40 donors, aged oligodendrocyte pseudobulk samples exhibit significant downregulation of myelin structural genes MBP and PLP1, alongside significant upregulation of astrocytic marker GFAP and lipid metabolism regulator APOE, indicating age-associated transcriptional shifts in myelin integrity and glial response.\", \"cited_genes\": [\"MBP\", \"PLP1\", \"GFAP\", \"APOE\"], \"epistemic_status\": \"associative\"}",
+        "sha256": "1dcbc791e8c236c5c851f3b2c33df4b4a71b29b41810e86d2d766b19f0505ba2",
+        "run_sha256s": [
+          "1dcbc791e8c236c5c851f3b2c33df4b4a71b29b41810e86d2d766b19f0505ba2",
+          "e4dbd3cd20ace9cf96efff79d9d744c8f99f175ad4f9762d97abffef2e225588",
+          "e4dbd3cd20ace9cf96efff79d9d744c8f99f175ad4f9762d97abffef2e225588"
+        ],
+        "run_wall_ms": [
+          5672.69,
+          5534.7,
+          5489.61
+        ],
+        "replay_byte_identical": false,
+        "eval": {
+          "callsite_id": "CS4_scrna_de_summary",
+          "agent_name": "scRNADEAgent",
+          "expect_json": true,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 5534.7,
+          "passed_all": true
+        }
+      },
+      "CS5_narrative_agent": {
+        "output_text": "In the donor-level pseudobulk analysis of the observational cohort (N=40), distinct transcriptional shifts were observed among key glial markers. Myelin-associated genes exhibited significant downregulation, with **MBP** showing a log2 fold change (log2FC) of -0.92 (padj=1.2e-4) and **PLP1** demonstrating a log2FC of -0.81 (padj=4.8e-4). Conversely, reactive astrocytic and lipid metabolism pathways appeared upregulated; **GFAP** was significantly elevated with a log2FC of +1.35 (padj=3.1e-5), while **APOE** also showed increased expression with a log2FC of +0.88 (padj=9.0e-4). These findings suggest a coordinated shift from myelin maintenance toward astrocytic activation and lipid response within this cohort.",
+        "sha256": "c2df2786dfcc6358ef1566e60d86c9b61e0e2b9e2119730e68f597c9b7841d80",
+        "run_sha256s": [
+          "c2df2786dfcc6358ef1566e60d86c9b61e0e2b9e2119730e68f597c9b7841d80",
+          "3a6fdeaf7279cc8551c81c2abe5c998510238aa02f36555c77e7e365b6437675",
+          "3a6fdeaf7279cc8551c81c2abe5c998510238aa02f36555c77e7e365b6437675"
+        ],
+        "run_wall_ms": [
+          7700.34,
+          7521.77,
+          7472.75
+        ],
+        "replay_byte_identical": false,
+        "eval": {
+          "callsite_id": "CS5_narrative_agent",
+          "agent_name": "NarrativeAgent",
+          "expect_json": false,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 7521.77,
+          "passed_all": true
+        }
+      },
+      "CS6_hypothesis_debate": {
+        "output_text": "{\"hypothesis\": \"The observed differential expression of ARNTL, NR1D1, CDKN1A, MDM2, and TP53 indicates a functional coupling between the circadian clock machinery and the p53-mediated DNA damage response, where clock components directly regulate p53 stability and downstream cell cycle arrest.\", \"falsification_test\": \"Perform chromatin immunoprecipitation followed by sequencing (ChIP-seq) using antibodies against ARNTL and NR1D1 in the relevant cell type; if the promoters of CDKN1A, MDM2, and TP53 do not show significant enrichment of these clock transcription factors compared to control regions, the hypothesis is falsified.\", \"epistemic_tier\": \"hypothesis_only\"}",
+        "sha256": "bf5856b06dcbf3006dfd37acc54e986b24b920f650dc63e689e513e7b680273a",
+        "run_sha256s": [
+          "bf5856b06dcbf3006dfd37acc54e986b24b920f650dc63e689e513e7b680273a",
+          "e2b894421bc8423bed75a6dfde35666e1cff1d10acc625e4ced593028f1f966a",
+          "e2b894421bc8423bed75a6dfde35666e1cff1d10acc625e4ced593028f1f966a"
+        ],
+        "run_wall_ms": [
+          6462.56,
+          6525.78,
+          6520.82
+        ],
+        "replay_byte_identical": false,
+        "eval": {
+          "callsite_id": "CS6_hypothesis_debate",
+          "agent_name": "HypothesisAgent",
+          "expect_json": true,
+          "json_valid": true,
+          "grounding_passed": true,
+          "ungrounded_genes": [],
+          "causal_restraint_passed": true,
+          "causal_violations": [],
+          "wall_ms": 6520.82,
+          "passed_all": true
+        }
+      }
+    }
+  },
+  "part_3_live_zero_cost_headless_and_c6_e2e": {
+    "headless_e2e_summary": {
+      "experiment_id": "c23b3455-f5e",
+      "status": "completed",
+      "dataset": "validation-data://pbmc3k_test",
+      "report_path": "aria-report://aria_reproducible_pbmc_celltypes_genes_nohash_a591a590_c23b3455-f5e_-f5e/report.html",
+      "report_exists": true,
+      "report_size_bytes": 227679,
+      "reagent_model_id": "qwen3.6-35b-a3b-ud-q4_k_m",
+      "gguf_sha256": "ac0e2c1189e055faa36eff361580e79c5bd6f8e76bffb4ce547f167d53e31a61",
+      "llama_cpp_version": "b12316",
+      "llama_cpp_commit": "5d4c8eeb2",
+      "new_ledger_calls_recorded": 8,
+      "tier_call_breakdown": {
+        "medium": 4,
+        "light": 1,
+        "heavy": 3
+      },
+      "mean_decode_tok_s": 34.4,
+      "total_prompt_tokens": 7926,
+      "total_completion_tokens": 1248,
+      "retries_needed": 0,
+      "total_cloud_cost_usd": 0.0,
+      "aria_git_status": "",
+      "zero_touch_aria_verified": true,
+      "calls_summary": [
+        {
+          "call_id": "126e1af1f52a4acfb516ed46a57df0ce",
+          "tier": "medium",
+          "requested_model": "tantalus-medium",
+          "structured_mode": "json_object",
+          "prompt_tokens": 669,
+          "completion_tokens": 83,
+          "total_latency_ms": 7039.77,
+          "tok_s": 34.63,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "eed308c681e048e98f01ce2963fdb999",
+          "tier": "medium",
+          "requested_model": "tantalus-medium",
+          "structured_mode": "json_object",
+          "prompt_tokens": 727,
+          "completion_tokens": 52,
+          "total_latency_ms": 4287.57,
+          "tok_s": 34.68,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "d5b94ec5d0cc49dd815fb3ff664e3053",
+          "tier": "light",
+          "requested_model": "tantalus-light",
+          "structured_mode": "none",
+          "prompt_tokens": 250,
+          "completion_tokens": 16,
+          "total_latency_ms": 1687.06,
+          "tok_s": 35.39,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "1e205db3e10c43e583924bae1c5f2641",
+          "tier": "medium",
+          "requested_model": "tantalus-medium",
+          "structured_mode": "json_object",
+          "prompt_tokens": 842,
+          "completion_tokens": 332,
+          "total_latency_ms": 13732.26,
+          "tok_s": 33.87,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "d1cafdf020f14a88b12fab337e76f053",
+          "tier": "medium",
+          "requested_model": "tantalus-medium",
+          "structured_mode": "none",
+          "prompt_tokens": 1088,
+          "completion_tokens": 64,
+          "total_latency_ms": 5806.42,
+          "tok_s": 34.51,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "1c60391569524d73a3959d454bde27cf",
+          "tier": "heavy",
+          "requested_model": "tantalus-heavy",
+          "structured_mode": "none",
+          "prompt_tokens": 947,
+          "completion_tokens": 390,
+          "total_latency_ms": 15047.73,
+          "tok_s": 34.25,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "9ed148b39f5b4bc8b18e7e7815580f39",
+          "tier": "heavy",
+          "requested_model": "tantalus-heavy",
+          "structured_mode": "none",
+          "prompt_tokens": 2247,
+          "completion_tokens": 167,
+          "total_latency_ms": 12094.35,
+          "tok_s": 34.13,
+          "estimated_cloud_cost_usd": 0.0
+        },
+        {
+          "call_id": "d9fa5805c9db4cdc9d5cc794bde8fc02",
+          "tier": "heavy",
+          "requested_model": "tantalus-heavy",
+          "structured_mode": "none",
+          "prompt_tokens": 1156,
+          "completion_tokens": 144,
+          "total_latency_ms": 8271.17,
+          "tok_s": 33.73,
+          "estimated_cloud_cost_usd": 0.0
+        }
+      ]
+    },
+    "c6_b3_real_e2e_repeated_capsule_gate": {
+      "test_module": "tests/test_preprint_audit_b3_multi_provider_e2e.py",
+      "dataset_ref": "validation-data://pbmc3k_test",
+      "reproducible_mode": true,
+      "claims_added": [],
+      "claims_removed": [],
+      "claims_changed": [],
+      "ledger_status_changed": [],
+      "capsule_verification_status": "pass",
+      "passed": true
+    }
+  }
+}
