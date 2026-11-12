@@ -1,10 +1,10 @@
 {
-  "aria_version": "4.7.0",
+  "aria_version": "4.8.0",
   "artifacts": [
     {
       "path": "claim_1/a1_synthetic/a1_bulk_de.json",
-      "sha256": "be01ffc7e8fce1e5bf55b7c9e033b1c56b3896e8c50905b557b5a07729c39f7a",
-      "size_bytes": 5140
+      "sha256": "1d93d898fa6714c146f68c3efaca434ead928400835f137c50a28853508c8d2c",
+      "size_bytes": 5127
     },
     {
       "path": "claim_1/a1_synthetic/fig1_a1_bulk_de.svg",
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_bulk_de_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_1/a1_synthetic --manifest-name a1_bulk_de.json --figure-name fig1_a1_bulk_de.svg",
-  "completed_utc": "2026-07-18T03:23:48.257182+00:00",
+  "completed_utc": "2026-11-12T18:34:59.313308+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
-  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
+  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
   "lane_id": "c1_a1_synthetic_bulk_de",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
-  "started_utc": "2026-07-18T03:23:32.430769+00:00",
+  "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
+  "started_utc": "2026-11-12T18:34:47.161122+00:00",
   "status": "pass",
-  "stderr_sha256": "81845f5f0273e1c7d917e0ecea28e9fb9f94d54642b0ea7746834fea97b677a4",
-  "stdout_sha256": "2f777c91aa524bf04ac1759d53605e1d93ebf6b6506f719c6f0ce6e614bef859",
+  "stderr_sha256": "e625727c27baad5d3ab0ae117c921c8bac6dda1392a2df6ca97e706a36e106a4",
+  "stdout_sha256": "3f089a423dadff31d44f11b37f2582c377c28ac44ae6c1b7843beb99a831e7d8",
   "test_summary": null,
-  "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f"
+  "workflow_hash": "beb889142b3dcd1bcd91bf610ab24f0b01cc940b7cb386680c84dab09808f940"
 }

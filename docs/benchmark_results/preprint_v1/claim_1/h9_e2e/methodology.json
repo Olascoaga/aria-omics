@@ -2753,156 +2753,248 @@
       }
     }
   ],
+  "cross_modal_evidence_graph": {
+    "absent_not_tested": [
+      "integration.eregulons",
+      "integration.mofa",
+      "integration.paired_qc",
+      "integration.peak_to_gene",
+      "integration.wnn",
+      "modality.atac_differential_accessibility",
+      "modality.atac_motif_enrichment"
+    ],
+    "circular_convergence_prevented": true,
+    "edges": [],
+    "executed_integration_stages": [],
+    "external_modality_contrasts": {
+      "atac_differential_accessibility": false,
+      "atac_motif_enrichment": false,
+      "rna_differential_expression": true
+    },
+    "genome": "hg38",
+    "mofa_summary": {
+      "n_excluded_confounder_factors": 0,
+      "n_shared_factors": 0
+    },
+    "nodes": [
+      {
+        "artifact": null,
+        "id": "state:eregulons",
+        "label": "eregulons",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:mofa",
+        "label": "mofa",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:paired_qc",
+        "label": "paired_qc",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:peak_to_gene",
+        "label": "peak_to_gene",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      },
+      {
+        "artifact": null,
+        "id": "state:wnn",
+        "label": "wnn",
+        "node_type": "modality_state",
+        "status": "absent_not_tested"
+      }
+    ],
+    "non_causal_contract": true,
+    "organism": "Homo sapiens",
+    "ran": false,
+    "regulatory_axes": [],
+    "schema_version": "1.0.0",
+    "summary_counts": {
+      "associative_cis_candidate": 0,
+      "caveated_ambiguous": 0,
+      "convergent_cross_contrast": 0,
+      "convergent_paired_multiome": 0,
+      "discordant_signal": 0,
+      "n_axes_total": 0,
+      "n_convergent_total": 0,
+      "n_edges": 0,
+      "n_nodes": 5
+    },
+    "wnn_guardrail": {
+      "lens_not_replacement": true,
+      "n_discordant_clusters": 0,
+      "status": "not_evaluated"
+    }
+  },
   "decisions": [
     {
       "checkpoint": "1",
       "decision": "Confirm and continue",
-      "id": "003560c2",
-      "made_at": "2026-07-17T21:20:56.296253",
+      "id": "dcd0e423",
+      "made_at": "2026-11-12T12:36:46.197911",
       "made_by": "user",
       "question": "\ud83d\udcc1 ARIA found the following data:\n\n  \ud83e\uddec bulk_RNA_raw: 18 file(s)\n\n  \ud83c\udf0d Organism: Homo sapiens\n  \ud83d\uddfa\ufe0f  Genome:   hg38 \u2713\n\n  \u26a0\ufe0f  Warnings:\n     \u2022 Ambiguous library type: generic paired-end FASTQ with no modality signal (R1_1.fq.gz, B2_1.fq.gz, B3_1.fq.gz, WT1_2.fq.gz, B3_2.fq.gz, ...) \u2014 hinted as bulk_RNA_raw but NOT bound. Declare the library type (assay manifest / library_type) or confirm the modality at CHECKPOINT 1; filenames are only a hint.\n\nIs this correct?\n\n\u2014 Data sensitivity (ELEVATED): Input appears to be human data with no obvious PHI fields. Consider air-gapped mode if the data are not de-identified.\n  To block ALL network egress (cloud LLM, Enrichr ORA, GEO/SRA), choose 'Confirm and enable air-gapped mode'.",
       "rationale": "User confirmed data audit results",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "2",
       "decision": "{\n  \"organism\": \"Homo sapiens\",\n  \"genome\": \"hg38\",\n  \"groups\": {\n    \"B\": [\n      \"B1\",\n      \"B2\",\n      \"B3\"\n    ],\n    \"R\": [\n      \"R1\",\n      \"R2\",\n      \"R3\"\n    ],\n    \"WT\": [\n      \"WT1\",\n      \"WT2\",\n      \"WT3\"\n    ]\n  },\n  \"analysis_groups\": {\n    \"B\": [\n      \"B::B1\",\n      \"B::B2\",\n      \"B::B3\"\n    ],\n    \"R\": [\n      \"R::R1\",\n      \"R::R2\",\n      \"R::R3\"\n    ],\n    \"WT\": [\n      \"WT::WT1\",\n      \"WT::WT2\",\n      \"WT::WT3\"\n    ]\n  },\n  \"main_factor\": \"condition\",\n  \"design_formula\": \"~ condition\",\n  \"batch_covariate\": null,\n  \"pseudobulk\": {},\n  \"source\": null,\n  \"sample_aliases\": {},\n  \"replicate_handling\": {\n    \"mode\": \"independent_biological\",\n    \"source\": \"cp2.5_independent\",\n    \"aggregation\": \"none\",\n    \"units\": [\n      {\n        \"id\": \"B::B1\",\n        \"group\": \"B\",\n        \"root\": \"B1\",\n        \"members\": [\n          \"B1\"\n        ]\n      },\n      {\n        \"id\": \"B::B2\",\n        \"group\": \"B\",\n        \"root\": \"B2\",\n        \"members\": [\n          \"B2\"\n        ]\n      },\n      {\n        \"id\": \"B::B3\",\n        \"group\": \"B\",\n        \"root\": \"B3\",\n        \"members\": [\n          \"B3\"\n        ]\n      },\n      {\n        \"id\": \"R::R1\",\n        \"group\": \"R\",\n        \"root\": \"R1\",\n        \"members\": [\n          \"R1\"\n        ]\n      },\n      {\n        \"id\": \"R::R2\",\n        \"group\": \"R\",\n        \"root\": \"R2\",\n        \"members\": [\n          \"R2\"\n        ]\n      },\n      {\n        \"id\": \"R::R3\",\n        \"group\": \"R\",\n        \"root\": \"R3\",\n        \"members\": [\n          \"R3\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT1\",\n        \"group\": \"WT\",\n        \"root\": \"WT1\",\n        \"members\": [\n          \"WT1\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT2\",\n        \"group\": \"WT\",\n        \"root\": \"WT2\",\n        \"members\": [\n          \"WT2\"\n        ]\n      },\n      {\n        \"id\": \"WT::WT3\",\n        \"group\": \"WT\",\n        \"root\": \"WT3\",\n        \"members\": [\n          \"WT3\"\n        ]\n      }\n    ],\n    \"sample_to_unit\": {\n      \"B1\": \"B::B1\",\n      \"B2\": \"B::B2\",\n      \"B3\": \"B::B3\",\n      \"R1\": \"R::R1\",\n      \"R2\": \"R::R2\",\n      \"R3\": \"R::R3\",\n      \"WT1\": \"WT::WT1\",\n      \"WT2\": \"WT::WT2\",\n      \"WT3\": \"WT::WT3\"\n    },\n    \"conflicts\": []\n  },\n  \"experimental_unit\": \"sample\",\n  \"analysis_design_formula\": \"~ condition\",\n  \"replicates\": {\n    \"B\": 3,\n    \"R\": 3,\n    \"WT\": 3\n  },\n  \"n_input_libraries\": 9,\n  \"n_total_samples\": 9,\n  \"nominal_residual_df\": 6,\n  \"design_status\": \"ready\",\n  \"blocking_groups\": {},\n  \"blocking_reasons\": [],\n  \"confounded_covariates\": []\n}",
-      "id": "4b76a6b4",
-      "made_at": "2026-07-17T21:20:56.502931",
+      "id": "4f7aae26",
+      "made_at": "2026-11-12T12:36:46.403027",
       "made_by": "user",
       "question": "Experimental design (organism, groups, factor, formula)",
       "rationale": "User confirmed design interactively",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "2.pre",
       "decision": "2 recommended, 1 optional, 1 unsupported/not recommended, 0 warning(s).",
-      "id": "469bfd82-f70_design_intelligence",
-      "made_at": "2026-07-17T21:20:56.627785",
+      "id": "d4851b62-3c2_design_intelligence",
+      "made_at": "2026-11-12T12:36:46.532081",
       "made_by": "design_intelligence",
       "question": "Design Intelligence assessment",
       "rationale": "ARIA evaluated modality feasibility, recommended analyses, optional analyses, unsupported analyses, covariates, and design limitations before compute.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "2",
       "decision": "Run recommended plan only",
-      "id": "ec6282cb",
-      "made_at": "2026-07-17T21:20:56.678988",
+      "id": "a9248af9",
+      "made_at": "2026-11-12T12:36:46.583064",
       "made_by": "user",
       "question": "Analysis plan confirmed",
       "rationale": "User approved analysis plan directly. Optional supported analyses were not added.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
+    },
+    {
+      "checkpoint": "3.5",
+      "decision": "Proceed anyway",
+      "id": "d4851b62-3c2_cp3_5_audit_ack",
+      "made_at": "2026-11-12T12:36:46.642638",
+      "made_by": "headless_policy",
+      "question": "Quality Audit found dispatch readiness issue(s) that may compromise your results:\n\n  [1] bulk_RNA_raw is yellow and requires explicit acknowledgement before dispatch.\n      -> bulk_RNA_raw is beta and requires explicit acknowledgement.\n\nAdditional warnings:\n  \u2022 bulk_RNA_raw is beta and requires explicit acknowledgement.\n  \u2022 Contrast B vs WT has approximate power 0.231 for the target log2FC under stated assumptions; detectable effects at 80% power are about 2.286 log2FC.\n  \u2022 Contrast R vs WT has approximate power 0.231 for the target log2FC under stated assumptions; detectable effects at 80% power are about 2.286 log2FC.\n\nHow would you like to proceed?",
+      "rationale": "CP3.5 explicit acknowledgement recorded (actor=headless_policy) for beta/warning-gated dispatch.",
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "2",
       "decision": "~ condition",
-      "id": "469bfd82-design-01",
-      "made_at": "2026-07-17T21:21:00.473932",
+      "id": "d4851b62-design-01",
+      "made_at": "2026-11-12T12:36:53.032152",
       "made_by": "user",
       "question": "Experimental design (source: DesignAgent)",
       "rationale": "User confirmed design interactively.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "1",
       "decision": "Raw integer counts | DESeq2 median-of-ratios (internal) | \u226510 counts in \u22652 samples",
-      "id": "469bfd82-auto-01",
-      "made_at": "2026-07-17T21:21:29.245138",
+      "id": "d4851b62-auto-01",
+      "made_at": "2026-11-12T12:37:22.848480",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Differential expression (DESeq2)",
       "rationale": "DESeq2 handles library-size normalization internally; external normalization would break the negative-binomial model assumptions.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "0",
       "decision": "All count-matrix samples | Primary DE retains all samples | Design-safe removal is evaluated only as sensitivity",
-      "id": "469bfd82-auto-00",
-      "made_at": "2026-07-17T21:21:29.245227",
+      "id": "d4851b62-auto-00",
+      "made_at": "2026-11-12T12:37:22.848562",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Sample outliers",
       "rationale": "Automatic pre-DE pruning can turn a null primary result into a significant result; ARIA reports primary and outlier-removal sensitivity separately.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "2",
       "decision": "VST-transformed counts | Variance-Stabilizing Transformation (pydeseq2) | Top 2000 most-variable protein_coding genes",
-      "id": "469bfd82-auto-02",
-      "made_at": "2026-07-17T21:21:29.245254",
+      "id": "d4851b62-auto-02",
+      "made_at": "2026-11-12T12:37:22.848584",
       "made_by": "bulk_rna_agent (auto)",
       "question": "PCA + MDS (sample-level structure)",
       "rationale": "VST produces homoscedastic values suitable for Euclidean-based methods (DESeq2 authors' recommendation). Protein-coding filter removes pseudogene/ncRNA noise. Variable-gene filter focuses on informative signal.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "3",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 most significant DE genes (sorted by padj)",
-      "id": "469bfd82-auto-03",
-      "made_at": "2026-07-17T21:21:29.245277",
+      "id": "d4851b62-auto-03",
+      "made_at": "2026-11-12T12:37:22.848606",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (padj top 50)",
       "rationale": "Statistically confident signal; symbol-annotated rows.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "4",
       "decision": "VST (or log2(counts+1) fallback) | Row z-score | 50 DE genes with largest effect sizes",
-      "id": "469bfd82-auto-04",
-      "made_at": "2026-07-17T21:21:29.245301",
+      "id": "d4851b62-auto-04",
+      "made_at": "2026-11-12T12:37:22.848626",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Heatmap (|log2FC| top 50)",
       "rationale": "Complementary view \u2014 surfaces largest effect sizes, which may not have smallest padj for low-count genes.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "5",
       "decision": "DE gene symbols | Local hypergeometric test against versioned GMT libraries (Enrichr is opt-in) | padj<0.05 from Wald lfcThreshold test; ORA universe = genes retained after expression filtering",
-      "id": "469bfd82-auto-05",
-      "made_at": "2026-07-17T21:21:29.245322",
+      "id": "d4851b62-auto-05",
+      "made_at": "2026-11-12T12:37:22.848645",
       "made_by": "bulk_rna_agent (auto)",
       "question": "Pathway enrichment (ORA)",
       "rationale": "Standard over-representation for discrete gene lists, computed locally against the dataset-expressed background so the gene list never leaves the machine (W-PRIV); the exact gene-set release is recorded in pathway_ora.gene_set_versions.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "6",
       "decision": "All DE-tested genes ranked by log2FC | blitzgsea running sum | None (uses full ranking)",
-      "id": "469bfd82-auto-06",
-      "made_at": "2026-07-17T21:21:29.245343",
+      "id": "d4851b62-auto-06",
+      "made_at": "2026-11-12T12:37:22.848664",
       "made_by": "bulk_rna_agent (auto)",
       "question": "GSEA (pre-ranked)",
       "rationale": "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "7",
       "decision": "Raw counts + exon-union gene lengths | TPM (transcripts per million) | Genes with length annotation in GTF",
-      "id": "469bfd82-auto-07",
-      "made_at": "2026-07-17T21:21:29.245365",
+      "id": "d4851b62-auto-07",
+      "made_at": "2026-11-12T12:37:22.848686",
       "made_by": "bulk_rna_agent (auto)",
       "question": "TPM (supplementary export)",
       "rationale": "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA \u2014 both use more appropriate methods.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "0",
       "decision": "padj < 0.05, |log2FC| > 1.0",
-      "id": "469bfd82-auto-00-thr",
-      "made_at": "2026-07-17T21:21:29.245386",
+      "id": "d4851b62-auto-00-thr",
+      "made_at": "2026-11-12T12:37:22.848723",
       "made_by": "User / bulk_rna_agent",
       "question": "Statistical thresholds for DE significance",
       "rationale": "|log2FC| threshold provenance: default. The default (1.0) is fixed and prompt-independent; it changes only via an explicit User Checkpoint 3 profile or a versioned global_lfc override (never inferred from the question text).",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     },
     {
       "checkpoint": "0",
       "decision": "~condition",
-      "id": "469bfd82-auto-00-design",
-      "made_at": "2026-07-17T21:21:29.245409",
+      "id": "d4851b62-auto-00-design",
+      "made_at": "2026-11-12T12:37:22.855394",
       "made_by": "bulk_rna_agent (auto)",
       "question": "DESeq2 design formula",
       "rationale": "Single-factor design inferred from sample labels. No batch or covariate adjustment applied.",
-      "wing_id": "469bfd82-f70"
+      "wing_id": "d4851b62-3c2"
     }
   ],
   "design": {
@@ -6892,7 +6984,7 @@
     }
   ],
   "provenance": {
-    "aria_version": "4.7.0",
+    "aria_version": "4.8.0",
     "conda_env": "aria-env",
     "environment": {
       "conda_prefix": null,
@@ -6901,11 +6993,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
-    "git_describe": "v4.7.0-289-g040f28e-dirty",
+    "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
+    "git_describe": "v4.8.0-dirty",
     "git_dirty": true,
-    "git_sha": "040f28e707df72b6d7c5608528500c5729ee8457",
-    "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+    "git_sha": "5efea55f2b824ac149c9290eb70b83df04b18f33",
+    "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
     "image": {
       "containerized": false,
       "digest": null,
@@ -6918,9 +7010,9 @@
     "platform": "Linux-5.15.167.4-microsoft-standard-WSL2-x86_64-with-glibc2.39",
     "python_version": "3.11.15 | packaged by conda-forge | (main, Mar  5 2026, 16:45:40) [GCC 14.3.0]",
     "timestamp_utc": "<timestamp redacted for byte-identity>",
-    "version": "4.7.0",
+    "version": "4.8.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "97eff5a75eeee8227a7098b613f407577c337f67279b2643f90550c17663e82e",
+    "workflow_hash": "52b1d7d849f3158f0b1838223d7926f16a610d9aee7c8d666d5e5367723ccdd7",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "raw_ingestion": [],
@@ -7000,6 +7092,114 @@
         "status": "ran"
       },
       {
+        "analysis": "paired_qc",
+        "divergence": false,
+        "label": "Paired multiome QC",
+        "modality": "integration",
+        "node_id": "ledger://integration/paired_qc",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "paired_qc"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "wnn",
+        "divergence": false,
+        "label": "Weighted Nearest Neighbors (WNN)",
+        "modality": "integration",
+        "node_id": "ledger://integration/wnn",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "wnn"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "mofa",
+        "divergence": false,
+        "label": "MOFA+ factor decomposition",
+        "modality": "integration",
+        "node_id": "ledger://integration/mofa",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "mofa"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "peak_to_gene",
+        "divergence": false,
+        "label": "Cis peak-to-gene linkage",
+        "modality": "integration",
+        "node_id": "ledger://integration/peak_to_gene",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "peak_to_gene"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "eregulons",
+        "divergence": false,
+        "label": "Candidate eRegulon inference",
+        "modality": "integration",
+        "node_id": "ledger://integration/eregulons",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "eregulons"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
+        "analysis": "cross_modal_triangulation",
+        "divergence": false,
+        "label": "Cross-modal evidence triangulation",
+        "modality": "integration",
+        "node_id": "ledger://integration/cross_modal_triangulation",
+        "node_type": "analysis_run",
+        "planned": false,
+        "provenance": {
+          "finding_keys": [
+            "cross_modal_triangulation"
+          ],
+          "kind": "structured_agent_result",
+          "modality": "integration"
+        },
+        "reason": null,
+        "status": "not_run"
+      },
+      {
         "analysis": "executive_summary",
         "divergence": false,
         "label": "Executive summary",
@@ -7039,6 +7239,7 @@
     ],
     "modalities": [
       "bulk",
+      "integration",
       "report"
     ],
     "n_divergences": 0

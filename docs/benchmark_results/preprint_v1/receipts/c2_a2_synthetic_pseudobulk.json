@@ -1,9 +1,9 @@
 {
-  "aria_version": "4.7.0",
+  "aria_version": "4.8.0",
   "artifacts": [
     {
       "path": "claim_2/a2_synthetic/a2_pseudobulk.json",
-      "sha256": "315c39027f9ae54395d9359c08920dc8a12d931dfbad56cb4e1c37fc4286880e",
+      "sha256": "ae96a96ba1a4a023ae5a4714fc6ca2379d2a6872a720f27095b00c7e834d606d",
       "size_bytes": 3917
     },
     {
@@ -16,18 +16,18 @@
     "claim_2"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a2_pseudobulk_benchmark.py --output-dir docs/benchmark_results/preprint_v1/claim_2/a2_synthetic --manifest-name a2_pseudobulk.json --figure-name fig2_a2_pseudobulk.svg --artifact-version preprint_v1",
-  "completed_utc": "2026-07-18T03:23:54.943309+00:00",
+  "completed_utc": "2026-11-12T18:34:39.146954+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
-  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
+  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
   "lane_id": "c2_a2_synthetic_pseudobulk",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "3ec571564391c33e4bc4fa3b271b1dabc7e90ce5882fc6d7ab8042be56461e36",
-  "started_utc": "2026-07-18T03:23:48.402623+00:00",
+  "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
+  "started_utc": "2026-11-12T18:34:33.166518+00:00",
   "status": "pass",
-  "stderr_sha256": "83204afba1015bd766b317a0776e81734c50ffea261e821fe61408a27caea787",
+  "stderr_sha256": "2c32a1ff498c8ca772233ceefcb99697cee2cc18c6d779f775572c026d27a6b9",
   "stdout_sha256": "f13f9d9e66a7b34ae44961820c3557737fa3c2620a397151fa2422ca7f51600c",
   "test_summary": "Using None as control genes, passed at DeseqDataSet initialization",
-  "workflow_hash": "736b03624910c6d457c58f9900904ed696d04402e0bdfc65acb26e7a4678071f"
+  "workflow_hash": "beb889142b3dcd1bcd91bf610ab24f0b01cc940b7cb386680c84dab09808f940"
 }

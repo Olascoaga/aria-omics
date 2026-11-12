@@ -1,16 +1,16 @@
 {
-  "aria_version": "4.7.0",
+  "aria_version": "4.8.0",
   "canonical_artifacts": [
     {
       "name": "report.html",
-      "sha256": "ea49d1c5e168edb8f0bb58a440a1f69108c5638638e41b65a0c3828060a9f03e",
-      "size_bytes": 9397135,
+      "sha256": "f09dd6dc053ca29cc2f2e86fa724512999f4546b4dce1bd7c5837019f65aaa4f",
+      "size_bytes": 9406991,
       "source_name": "report.html"
     },
     {
       "name": "methodology.json",
-      "sha256": "e0b1149a820d6c59ecba7ed88e369846f5109bf17aa640551ddb40373faab9ed",
-      "size_bytes": 246738,
+      "sha256": "6fe101fe92879fcc861b6f6fdaad67233ba243f485b8b4c2428e6dc5514017d3",
+      "size_bytes": 253092,
       "source_name": "methodology.json"
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "name": "fig1_h9_bulk_de.svg",
-      "sha256": "d0bad003b0de235cb570d6ce52ab792e2e40d288b7fd2e3c8111cf8f56010a63",
+      "sha256": "74e3dae7a570c7bcf30674dbaf1937704331dc78b20c79763cfdd3f49ddf4c71",
       "size_bytes": 2105247,
       "source_name": "volcano.svg"
     }
@@ -122,22 +122,22 @@
       "sha256": "6d950daba70fc7091bddc3ab7e9e9da918e39ff376e95c406096d6cced65927f"
     }
   ],
-  "experiment_id": "469bfd82-f70",
-  "git_commit": "040f28e707df72b6d7c5608528500c5729ee8457",
-  "git_tree_sha": "26da2b75f4b5f26d720d3aed3835543733dbbae0",
+  "experiment_id": "d4851b62-3c2",
+  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
+  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
   "lane_id": "c1_h9_fastq_e2e",
   "llm": "frozen-deterministic-double (hermetic, no network)",
   "pipeline": "raw FASTQ -> fastp/STAR -> featureCounts -> pyDESeq2 -> F3-governed report",
   "report_figures": [
     {
       "name": "b_vs_wt/gsea_results.csv",
-      "sha256": "ffe6b8fc078f1074db96373dac39d2946a480817897138ca01e06786da8ad77d",
-      "size_bytes": 921027
+      "sha256": "1fe24956047c89fd0a78dddab50c05fd6ac28c6b97642368bdd13cbd8474b7ba",
+      "size_bytes": 920989
     },
     {
       "name": "b_vs_wt/gsea_running_sum_1.png",
-      "sha256": "51e12877384b1c767aa372700b3351ab91164fbdbc1a34f8d43456dca96a9bf9",
-      "size_bytes": 132447
+      "sha256": "44f7b46905d762d7c613228495117cb3b99c5a4487a7b82ab21096233d03619f",
+      "size_bytes": 132449
     },
     {
       "name": "b_vs_wt/gsea_running_sum_2.png",
@@ -156,12 +156,12 @@
     },
     {
       "name": "b_vs_wt/heatmap_lfc.svg",
-      "sha256": "4d410a2a1a9b3b514def185ea87c84e9137bf751ec745f30bfff0bb8e49ad928",
+      "sha256": "04db9db79fa7dc123a8dd8177a64fbb2fa30707d93b3c447bf89570dbd12a659",
       "size_bytes": 87106
     },
     {
       "name": "b_vs_wt/heatmap_padj.svg",
-      "sha256": "3fd063d7ce0ab514464ac0c8734ca2d3d0cb78d2fda0c24394c5e03ca2cedf4a",
+      "sha256": "5081bb0f0c9a01215b7faa1f9d92600507fafbd7bedf05451d35753f8376a1ad",
       "size_bytes": 85462
     },
     {
@@ -191,48 +191,48 @@
     },
     {
       "name": "b_vs_wt/volcano.svg",
-      "sha256": "d0bad003b0de235cb570d6ce52ab792e2e40d288b7fd2e3c8111cf8f56010a63",
+      "sha256": "74e3dae7a570c7bcf30674dbaf1937704331dc78b20c79763cfdd3f49ddf4c71",
       "size_bytes": 2105247
     },
     {
       "name": "mds.svg",
-      "sha256": "ecc03b6d9c57041b16e25a01ce5b4b10e8c7ffc1b88f282b9a3159dee486ecb6",
+      "sha256": "f4e8d52e804e7ae2e0a2523c89f60a090f006adf5dc768597accde970303ef34",
       "size_bytes": 33124
     },
     {
       "name": "mds_all_samples.svg",
-      "sha256": "ecc03b6d9c57041b16e25a01ce5b4b10e8c7ffc1b88f282b9a3159dee486ecb6",
+      "sha256": "f4e8d52e804e7ae2e0a2523c89f60a090f006adf5dc768597accde970303ef34",
       "size_bytes": 33124
     },
     {
       "name": "pca.svg",
-      "sha256": "9ad1c0aaad59d1974661491617dd851b25d5f7a0e84e1aa7e72a6f69d4004234",
+      "sha256": "79e8f8c6f3e8844c1924fa9de8cc57a183dc104ff79adae4d86ca55b8b9d2202",
       "size_bytes": 37069
     },
     {
       "name": "pca_all_samples.svg",
-      "sha256": "9ad1c0aaad59d1974661491617dd851b25d5f7a0e84e1aa7e72a6f69d4004234",
+      "sha256": "79e8f8c6f3e8844c1924fa9de8cc57a183dc104ff79adae4d86ca55b8b9d2202",
       "size_bytes": 37069
     },
     {
       "name": "pca_mds.svg",
-      "sha256": "bb673a0e79552dc250db8c4b0d0552d17df3f2e94b4bb8ba0dd0ac9abf3c6eec",
+      "sha256": "a1ebc6194696c7b77a4d0acf53f29beb8f8525bd64ea19615060d861b2346347",
       "size_bytes": 58560
     },
     {
       "name": "r_vs_wt/gsea_results.csv",
-      "sha256": "cd7b8ef65f18b14fea458e8cbddb9d35e13a65a33ed9b23978ac4c86f223486d",
-      "size_bytes": 938315
+      "sha256": "22bdc70011295d3df0c81f27db35f9510aeade0d94707b17b63e8996f194f6a3",
+      "size_bytes": 938268
     },
     {
       "name": "r_vs_wt/gsea_running_sum_1.png",
-      "sha256": "4f25c4aa6f5a7591eb11b30b2e61ea0a463e2d13b6ea01a41c96b47484a7a0bc",
-      "size_bytes": 138148
+      "sha256": "761eb498f6441149e25e8b0df1bc493d9b40d0a167a55f3711758ff464dc61d0",
+      "size_bytes": 138186
     },
     {
       "name": "r_vs_wt/gsea_running_sum_2.png",
-      "sha256": "27359d0217843aacd65d49ed70195b3b69047c53c8fce26f0a1ab704dd64fb7c",
-      "size_bytes": 137821
+      "sha256": "5c7f3bd2d42634cefae9d70521d87194a6ad8dd7e44dc8992704a549f848f9c1",
+      "size_bytes": 137808
     },
     {
       "name": "r_vs_wt/gsea_running_sum_3.png",
@@ -246,12 +246,12 @@
     },
     {
       "name": "r_vs_wt/heatmap_lfc.svg",
-      "sha256": "6b7e8b918b54ef0e7d39d4293220d9d15470dda415534f167f2296190e3ba8ae",
+      "sha256": "eb392fda85ae536a5731ffa8e174916e1bcbf1d1f4a5aa3c1251c252ce77a41d",
       "size_bytes": 91966
     },
     {
       "name": "r_vs_wt/heatmap_padj.svg",
-      "sha256": "9b46b49f38981a8843875d4b33c91b66dae6a2dfc7c7a45f86137c8d195020d9",
+      "sha256": "5362c3a65e5026ec5deff1a30bcf6c6c31518e7e1bb20c17c9bb4ad95239dd3f",
       "size_bytes": 87762
     },
     {
@@ -281,7 +281,7 @@
     },
     {
       "name": "r_vs_wt/volcano.svg",
-      "sha256": "9e492440edfac15ee0f6608bb1f0e409c916dd5b09a6cf68e03a0491dd8f73f8",
+      "sha256": "74476091530a4131e01494e74f57d9e7a83d5486864cab69c7cfe60dcc622eb4",
       "size_bytes": 1945728
     }
   ],
