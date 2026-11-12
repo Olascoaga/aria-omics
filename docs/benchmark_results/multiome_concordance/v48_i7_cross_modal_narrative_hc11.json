@@ -1,0 +1,629 @@
+{
+  "aria_version": "4.7.0",
+  "benchmark": "v48_i7_cross_modal_narrative_governance",
+  "cross_modal_evidence_graph_audit": {
+    "absent_not_tested": [
+      "modality.atac_differential_accessibility",
+      "modality.atac_motif_enrichment",
+      "modality.rna_differential_expression"
+    ],
+    "circular_convergence_prevented": true,
+    "executed_integration_stages": [
+      "paired_qc",
+      "wnn",
+      "mofa",
+      "peak_to_gene",
+      "eregulons"
+    ],
+    "mofa_summary": {
+      "n_excluded_confounder_factors": 1,
+      "n_shared_factors": 2
+    },
+    "non_causal_contract": true,
+    "ran": true,
+    "repeat_run_bit_exact": true,
+    "schema_version": "1.0.0",
+    "summary_counts": {
+      "associative_cis_candidate": 16,
+      "caveated_ambiguous": 6,
+      "convergent_cross_contrast": 0,
+      "convergent_paired_multiome": 18,
+      "discordant_signal": 5,
+      "n_axes_total": 45,
+      "n_convergent_total": 18,
+      "n_edges": 290,
+      "n_nodes": 200
+    },
+    "top_regulatory_axes": [
+      {
+        "axis_id": "mofa_confounder:Factor_5",
+        "axis_kind": "latent_factor_confounder",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "independent_contrast_support": false,
+        "non_causal": true,
+        "reasons": [
+          "sequencing_depth_correlated:atac(|r|=0.941)"
+        ],
+        "shared_cell_universe": true,
+        "shared_upstream": [],
+        "sign": "confounded",
+        "subject": "Factor 5",
+        "target_gene": null,
+        "tf_regulator": null
+      },
+      {
+        "axis_id": "eregulon:SPI1:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": true,
+        "motif_id": "MA0080.7",
+        "n_enhancer_peaks": 68,
+        "n_target_genes": 72,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "motif_family_ambiguity"
+        ],
+        "rna_atac_aucell_corr": 0.4476,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "SPI1 (pos_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": 0.163,
+        "tf_regulator": "SPI1"
+      },
+      {
+        "axis_id": "eregulon:IKZF1:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": true,
+        "motif_id": "MA1508.2",
+        "n_enhancer_peaks": 51,
+        "n_target_genes": 57,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "motif_family_ambiguity"
+        ],
+        "rna_atac_aucell_corr": 0.4351,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "IKZF1 (pos_tf_pos_p2g)",
+        "target_gene": "PTPRC",
+        "tf_gene_corr": 0.2854,
+        "tf_regulator": "IKZF1"
+      },
+      {
+        "axis_id": "eregulon:FLI1:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0475.3",
+        "n_enhancer_peaks": 17,
+        "n_target_genes": 20,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.2896,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "FLI1 (pos_tf_pos_p2g)",
+        "target_gene": "PTPRC",
+        "tf_gene_corr": 0.2699,
+        "tf_regulator": "FLI1"
+      },
+      {
+        "axis_id": "eregulon:ETV6:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0645.2",
+        "n_enhancer_peaks": 38,
+        "n_target_genes": 40,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3471,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "ETV6 (pos_tf_pos_p2g)",
+        "target_gene": "DOCK8",
+        "tf_gene_corr": 0.1955,
+        "tf_regulator": "ETV6"
+      },
+      {
+        "axis_id": "eregulon:BNC2:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": true,
+        "motif_id": "MA1928.2",
+        "n_enhancer_peaks": 40,
+        "n_target_genes": 41,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "motif_family_ambiguity"
+        ],
+        "rna_atac_aucell_corr": 0.288,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "BNC2 (pos_tf_pos_p2g)",
+        "target_gene": "SH3RF3",
+        "tf_gene_corr": 0.2002,
+        "tf_regulator": "BNC2"
+      },
+      {
+        "axis_id": "eregulon:ELF1:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0473.4",
+        "n_enhancer_peaks": 51,
+        "n_target_genes": 54,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3557,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "ELF1 (pos_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": 0.1061,
+        "tf_regulator": "ELF1"
+      },
+      {
+        "axis_id": "eregulon:MEIS1:neg_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "discordant_signal",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0498.3",
+        "n_enhancer_peaks": 47,
+        "n_target_genes": 46,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "inverse_tf_expression_vs_accessible_peak2gene"
+        ],
+        "rna_atac_aucell_corr": 0.5,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "negative",
+        "subject": "MEIS1 (neg_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": -0.0767,
+        "tf_regulator": "MEIS1"
+      },
+      {
+        "axis_id": "eregulon:KLF6:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA1517.2",
+        "n_enhancer_peaks": 47,
+        "n_target_genes": 50,
+        "non_causal": true,
+        "padj": 0.0,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3395,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "KLF6 (pos_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": 0.1078,
+        "tf_regulator": "KLF6"
+      },
+      {
+        "axis_id": "eregulon:KLF16:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0741.1",
+        "n_enhancer_peaks": 66,
+        "n_target_genes": 64,
+        "non_causal": true,
+        "padj": 1e-06,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3332,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "KLF16 (pos_tf_pos_p2g)",
+        "target_gene": "TLR5",
+        "tf_gene_corr": 0.089,
+        "tf_regulator": "KLF16"
+      },
+      {
+        "axis_id": "eregulon:BATF3:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": true,
+        "motif_id": "MA0835.3",
+        "n_enhancer_peaks": 31,
+        "n_target_genes": 30,
+        "non_causal": true,
+        "padj": 5e-06,
+        "reasons": [
+          "motif_family_ambiguity"
+        ],
+        "rna_atac_aucell_corr": 0.2939,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "BATF3 (pos_tf_pos_p2g)",
+        "target_gene": "PIK3AP1",
+        "tf_gene_corr": 0.1149,
+        "tf_regulator": "BATF3"
+      },
+      {
+        "axis_id": "eregulon:BATF:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "caveated_ambiguous",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": true,
+        "motif_id": "MA0462.3",
+        "n_enhancer_peaks": 24,
+        "n_target_genes": 25,
+        "non_causal": true,
+        "padj": 9e-06,
+        "reasons": [
+          "motif_family_ambiguity"
+        ],
+        "rna_atac_aucell_corr": 0.2845,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "BATF (pos_tf_pos_p2g)",
+        "target_gene": "SH3RF3",
+        "tf_gene_corr": 0.0971,
+        "tf_regulator": "BATF"
+      },
+      {
+        "axis_id": "eregulon:RUNX1:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0002.3",
+        "n_enhancer_peaks": 28,
+        "n_target_genes": 30,
+        "non_causal": true,
+        "padj": 1e-05,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3558,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "RUNX1 (pos_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": 0.3836,
+        "tf_regulator": "RUNX1"
+      },
+      {
+        "axis_id": "eregulon:IKZF2:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA2326.1",
+        "n_enhancer_peaks": 123,
+        "n_target_genes": 120,
+        "non_causal": true,
+        "padj": 2.3e-05,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.4697,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "IKZF2 (pos_tf_pos_p2g)",
+        "target_gene": "ARHGAP15",
+        "tf_gene_corr": 0.097,
+        "tf_regulator": "IKZF2"
+      },
+      {
+        "axis_id": "eregulon:ELF4:pos_tf_pos_p2g",
+        "axis_kind": "candidate_eregulon",
+        "cis_peak": null,
+        "classification": "convergent_paired_multiome",
+        "depth_confounded": false,
+        "independent_contrast_support": false,
+        "motif_family_ambiguity": false,
+        "motif_id": "MA0641.1",
+        "n_enhancer_peaks": 18,
+        "n_target_genes": 19,
+        "non_causal": true,
+        "padj": 2.8e-05,
+        "reasons": [
+          "concordant_rna_atac_aucell_on_shared_cells"
+        ],
+        "rna_atac_aucell_corr": 0.3169,
+        "shared_cell_universe": true,
+        "shared_upstream": [
+          "peak_to_gene"
+        ],
+        "sign": "positive",
+        "subject": "ELF4 (pos_tf_pos_p2g)",
+        "target_gene": "SP100",
+        "tf_gene_corr": 0.082,
+        "tf_regulator": "ELF4"
+      }
+    ],
+    "wnn_guardrail": {
+      "lens_not_replacement": true,
+      "n_discordant_clusters": 0,
+      "status": "pass"
+    }
+  },
+  "dataset": {
+    "accession": "GSE278576",
+    "n_atac_peaks": 60990,
+    "n_cells_post_qc": 2517,
+    "n_cells_raw": 3143,
+    "n_rna_genes": 36601,
+    "sample_id": "hc11",
+    "tissue": "human_hippocampus_multiome_10x"
+  },
+  "dual_png_svg_figures": {
+    "mofa_variance_explained": {
+      "embedded_base64_in_report_html": true,
+      "png_bytes": 248344,
+      "png_rel": "figures/mofa_variance_explained.png",
+      "svg_bytes": 46501,
+      "svg_has_editable_text": true,
+      "svg_rel": "figures/mofa_variance_explained.svg"
+    },
+    "regulatory_triangulation_summary": {
+      "embedded_base64_in_report_html": true,
+      "png_bytes": 320518,
+      "png_rel": "figures/regulatory_triangulation_summary.png",
+      "svg_bytes": 101553,
+      "svg_has_editable_text": true,
+      "svg_rel": "figures/regulatory_triangulation_summary.svg"
+    },
+    "wnn_joint_vs_modality_umap": {
+      "embedded_base64_in_report_html": true,
+      "png_bytes": 603177,
+      "png_rel": "figures/wnn_joint_vs_modality_umap.png",
+      "svg_bytes": 172726,
+      "svg_has_editable_text": true,
+      "svg_rel": "figures/wnn_joint_vs_modality_umap.svg"
+    },
+    "wnn_modality_weights_by_cluster": {
+      "embedded_base64_in_report_html": true,
+      "png_bytes": 136538,
+      "png_rel": "figures/wnn_modality_weights_by_cluster.png",
+      "svg_bytes": 19826,
+      "svg_has_editable_text": true,
+      "svg_rel": "figures/wnn_modality_weights_by_cluster.svg"
+    }
+  },
+  "narrative_governance_audit": {
+    "all_estimands_associative": true,
+    "claim6_monotone_invariance": {
+      "causal_injection_target": "multiome.eregulons",
+      "causal_injection_withheld": true,
+      "n_baseline_published": 6,
+      "n_baseline_withheld": 0,
+      "n_published_after_causal_injection": 0,
+      "n_withheld_after_causal_injection": 1,
+      "paraphrase_invariant": true
+    },
+    "html_double_escape_free": true,
+    "ledger_n_violations": 0,
+    "methods_paragraphs_count": 5,
+    "n_published_blocks": 7,
+    "n_withheld_blocks": 0,
+    "published_block_ids": [
+      "executive_summary",
+      "multiome.paired_qc",
+      "multiome.wnn",
+      "multiome.mofa",
+      "multiome.peak_to_gene",
+      "multiome.eregulons",
+      "multiome.triangulation"
+    ],
+    "ro_crate_emitted": true,
+    "zero_causal_language_matches": true
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": "anaconda3",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "anaconda3",
+      "source": "no_lock"
+    },
+    "git_commit": "edd618cd03f01db2c5a6476ec7687c16ba4e5ea0",
+    "git_describe": "v4.7.0-314-gedd618c-dirty",
+    "git_dirty": true,
+    "git_sha": "edd618cd03f01db2c5a6476ec7687c16ba4e5ea0",
+    "git_tree_sha": "89079a1d3c6e46c3e76b26609b5ebb6f4cc7ca67",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "bb89966f3e3a7f3d0906875c040b4095d1c1d99016cd1862560ce186e03456a8",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "slice": "V48_I7_cross_modal_evidence_graph_and_narrator",
+  "stage_timings_sec": {
+    "i1_paired_qc_sec": 3.48,
+    "i2_i3_wnn_sec": 48.22,
+    "i4_mofa_sec": 114.87,
+    "i5_peak2gene_sec": 28.97,
+    "i6_eregulons_sec": 163.77,
+    "i7_narrative_run1_sec": 1.49,
+    "i7_narrative_run2_sec": 1.33
+  },
+  "staged_csv_tables": {
+    "eregulon_triplets.csv": {
+      "bytes": 365070,
+      "n_rows_including_header": 1848,
+      "rel_path": "tables/eregulon_triplets.csv"
+    },
+    "eregulons.csv": {
+      "bytes": 23757,
+      "n_rows_including_header": 48,
+      "rel_path": "tables/eregulons.csv"
+    },
+    "mofa_factor_loadings.csv": {
+      "bytes": 27868,
+      "n_rows_including_header": 501,
+      "rel_path": "tables/mofa_factor_loadings.csv"
+    },
+    "peak_gene_links.csv": {
+      "bytes": 16684,
+      "n_rows_including_header": 92,
+      "rel_path": "tables/peak_gene_links.csv"
+    }
+  },
+  "upstream_stage_summary": {
+    "eregulons": {
+      "motif_pvalue": 5e-05,
+      "n_candidate_modules_tested": 1110,
+      "n_depth_confounded": 0,
+      "n_eregulons": 47,
+      "n_neg_tf_pos_p2g": 13,
+      "n_paralog_ambiguous": 5,
+      "n_pos_tf_pos_p2g": 34,
+      "n_triplets": 1847,
+      "n_unique_tfs": 47
+    },
+    "mofa": {
+      "n_active_factors": 6,
+      "n_excluded_factors": 1,
+      "n_factors": 10,
+      "n_shared_factors": 2,
+      "variance_explained": {
+        "atac": 0.0198,
+        "rna": 0.4336
+      },
+      "variance_explained_additive": {
+        "atac": 0.0201,
+        "rna": 0.4352
+      }
+    },
+    "paired_qc": {
+      "metrics_not_computed": [
+        "tss_enrichment (fragment-level metric; requires fragments.tsv.gz + TSS reference)",
+        "frip (fragment-level metric; requires fragments.tsv.gz + called peaks)",
+        "atac_fragments_per_cell (no per-cell fragment obs column in ATAC modality)",
+        "atac_mito_fraction (no per-cell mitochondrial obs column in ATAC modality)"
+      ],
+      "pct_removed": 19.92
+    },
+    "peak_to_gene": {
+      "distance_kb": 500,
+      "max_padj": 0.05,
+      "min_corr": 0.15,
+      "n_distal_cis": 83,
+      "n_links": 91,
+      "n_negative_correlations": 0,
+      "n_positive_correlations": 91,
+      "n_promoter_proximal": 8,
+      "n_tested": 495875
+    },
+    "wnn": {
+      "guardrail_status": "pass",
+      "mean_atac_weight": 0.3923,
+      "mean_rna_weight": 0.6077,
+      "n_atac_only_clusters": 6,
+      "n_discordant_clusters": 0,
+      "n_joint_clusters": 7,
+      "n_rna_only_clusters": 7,
+      "wnn_vs_atac_ari": 0.596,
+      "wnn_vs_rna_ari": 0.9307
+    }
+  }
+}

@@ -148,6 +148,7 @@ class NarrativeAgent(ReportBuilderMixin, BaseAgent):
         report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
         self._generate_scrna_figures(agent_results, report_dir)
         self._generate_chromatin_figures(agent_results, report_dir)
+        self._generate_integration_figures(agent_results, report_dir)
 
         self.publish_status(experiment_id,
                             "Writing executive summary...", 0.2)
@@ -325,7 +326,9 @@ for small-effect genes.""",
         sc = (agent_results or {}).get("scrna_agent") or \
              (agent_results or {}).get("rna_agent") or {}
         if sc.get("status") != "done":
-            return ""
+            return self._deterministic_integration_executive_summary(
+                agent_results
+            )
 
         from aria.agents import _narrative_scrna
         sc_f = _narrative_scrna.unwrap_scrna_findings(sc)
@@ -797,7 +800,109 @@ for small-effect genes.""",
             if hic_parts:
                 lines.append("3D GENOME: " + ", ".join(hic_parts) + ".")
 
+        # Paired multiome integration (V48 Slice I7)
+        integ = agent_results.get("integration_agent", {})
+        if integ.get("status") == "done":
+            from aria.agents.narrative.narrators.integration import (
+                unwrap_integration_findings,
+            )
+            int_f = unwrap_integration_findings(integ)
+            int_parts = []
+            pqc = int_f.get("paired_qc") or {}
+            if isinstance(pqc, dict) and pqc.get("status") == "success":
+                int_parts.append(
+                    f"paired QC retained {pqc.get('n_cells_after', 0)} of "
+                    f"{pqc.get('n_cells_before', 0)} shared cells "
+                    f"({pqc.get('n_genes', 0)} RNA genes, {pqc.get('n_peaks', 0)} ATAC peaks)"
+                )
+            wnn = int_f.get("wnn") or {}
+            if isinstance(wnn, dict) and wnn.get("status") == "success":
+                int_parts.append(
+                    f"WNN identified {wnn.get('n_joint_clusters', 0)} joint clusters "
+                    f"(RNA ARI {wnn.get('wnn_vs_rna_ari', 0)}, "
+                    f"ATAC ARI {wnn.get('wnn_vs_atac_ari', 0)}, "
+                    f"guardrail {wnn.get('guardrail_status', 'skipped')})"
+                )
+            mofa = int_f.get("mofa") or {}
+            if isinstance(mofa, dict) and mofa.get("status") == "success":
+                int_parts.append(
+                    f"MOFA+ retained {mofa.get('n_active_factors', 0)} of "
+                    f"{mofa.get('n_factors', 0)} factors "
+                    f"({len(mofa.get('excluded_factors') or [])} confounder factors quarantined)"
+                )
+            p2g = int_f.get("peak_to_gene") or {}
+            if isinstance(p2g, dict) and p2g.get("status") == "success":
+                int_parts.append(
+                    f"peak-to-gene found {p2g.get('n_links', 0)} BH-FDR cis links"
+                )
+            ereg = int_f.get("eregulons") or {}
+            if isinstance(ereg, dict) and ereg.get("status") == "success":
+                int_parts.append(
+                    f"candidate eRegulons retained {ereg.get('n_eregulons', 0)} modules "
+                    f"across {ereg.get('n_triplets', 0)} triplets"
+                )
+            if int_parts:
+                lines.append("MULTIOME INTEGRATION: " + "; ".join(int_parts) + ".")
+
         return "\n".join(lines) if lines else "(no concrete outputs recorded)"
+
+    @staticmethod
+    def _deterministic_integration_executive_summary(agent_results: dict) -> str:
+        """Grounded deterministic executive summary for paired multiome runs."""
+        integ = (agent_results or {}).get("integration_agent") or {}
+        if integ.get("status") != "done":
+            return ""
+        from aria.agents.narrative.narrators.integration import (
+            unwrap_integration_findings,
+        )
+        int_f = unwrap_integration_findings(integ)
+        pqc = int_f.get("paired_qc") or {}
+        wnn = int_f.get("wnn") or {}
+        mofa = int_f.get("mofa") or {}
+        p2g = int_f.get("peak_to_gene") or {}
+        ereg = int_f.get("eregulons") or {}
+
+        sentences: list[str] = []
+        if isinstance(pqc, dict) and pqc.get("status") == "success":
+            sentences.append(
+                f"Paired multiome QC retained {pqc.get('n_cells_after', 0)} of "
+                f"{pqc.get('n_cells_before', 0)} shared barcodes across "
+                f"{pqc.get('n_genes', 0)} RNA genes and "
+                f"{pqc.get('n_peaks', 0)} ATAC peaks."
+            )
+        if isinstance(wnn, dict) and wnn.get("status") == "success":
+            guard = str(wnn.get("guardrail_status") or "skipped")
+            sentences.append(
+                f"WNN manifold integration identified {wnn.get('n_joint_clusters', 0)} "
+                f"joint clusters (WNN vs RNA ARI {wnn.get('wnn_vs_rna_ari', 0)}, "
+                f"WNN vs ATAC ARI {wnn.get('wnn_vs_atac_ari', 0)}, "
+                f"guardrail status {guard})."
+            )
+        reg_clauses: list[str] = []
+        if isinstance(mofa, dict) and mofa.get("status") == "success":
+            reg_clauses.append(
+                f"MOFA+ retained {mofa.get('n_active_factors', 0)} of "
+                f"{mofa.get('n_factors', 0)} fitted factors "
+                f"({len(mofa.get('excluded_factors') or [])} confounder factor(s) quarantined)"
+            )
+        if isinstance(p2g, dict) and p2g.get("status") == "success":
+            reg_clauses.append(
+                f"cis peak-to-gene linkage identified {p2g.get('n_links', 0)} BH-FDR associations"
+            )
+        if isinstance(ereg, dict) and ereg.get("status") == "success":
+            reg_clauses.append(
+                f"candidate eRegulon inference retained {ereg.get('n_eregulons', 0)} "
+                f"associative modules across {ereg.get('n_triplets', 0)} triplets"
+            )
+        if reg_clauses:
+            sentences.append("; ".join(reg_clauses) + ".")
+        if sentences:
+            sentences.append(
+                "All cross-modal links and candidate eRegulons represent "
+                "observational co-variation rather than proof of transcriptional "
+                "causation, and single-modality analyses remain the primary reference."
+            )
+        return " ".join(sentences)
 
     def _write_findings_sections(self, grouped: dict,
                                   agent_results: dict,
@@ -866,10 +971,18 @@ for small-effect genes.""",
 
     def _narrative_registry(self):
         from aria.agents.narrative.narrators import (
-            BulkRnaNarrator, ChromatinNarrator, ScrnaNarrator)
+            BulkRnaNarrator,
+            ChromatinNarrator,
+            IntegrationNarrator,
+            ScrnaNarrator,
+        )
         from aria.agents.narrative.registry import registry_with
-        return registry_with(
-            (ScrnaNarrator(), BulkRnaNarrator(), ChromatinNarrator()))
+        return registry_with((
+            ScrnaNarrator(),
+            BulkRnaNarrator(),
+            ChromatinNarrator(),
+            IntegrationNarrator(),
+        ))
 
     def _collect_narrative_blocks(self, agent_results: dict,
                                   exp_ctx: dict | None = None) -> list:
@@ -1171,24 +1284,35 @@ for small-effect genes.""",
                 f"for full-genome optimization."
             )
 
-        # Integration methods
+        # Integration methods (V48 Slice I7: delegated to IntegrationNarrator for
+        # executed-stage-exact, copy-pasteable manuscript methods).
         integ = agent_results.get("integration_agent", {})
         if integ.get("status") == "done":
-            strategy = integ.get("strategy", "")
-            lines.append(f"\n**Multi-omics integration**\n")
-            if "wnn" in strategy:
-                lines.append(
-                    f"RNA and ATAC data from the same cells were integrated "
-                    f"using Weighted Nearest Neighbors (WNN), implemented "
-                    f"in muon. Modality weights were computed per cell based "
-                    f"on local prediction accuracy."
-                )
-            if "mofa" in strategy:
-                lines.append(
-                    f"Multi-omics factor analysis (MOFA+) was applied to "
-                    f"decompose variance across modalities into shared and "
-                    f"modality-specific factors."
-                )
+            from aria.agents.narrative.narrators.integration import (
+                IntegrationNarrator,
+            )
+            integ_paragraphs = IntegrationNarrator().methods(
+                "integration_agent", integ, {"exp_context": exp_ctx}
+            )
+            if integ_paragraphs:
+                lines.append("\n**Multi-omics integration**\n")
+                lines.extend(integ_paragraphs)
+            else:
+                strategy = str(integ.get("strategy") or "")
+                if "wnn" in strategy or "mofa" in strategy:
+                    lines.append("\n**Multi-omics integration**\n")
+                    if "wnn" in strategy:
+                        lines.append(
+                            "RNA and ATAC data from the same cells were integrated "
+                            "using Weighted Nearest Neighbors (WNN), implemented "
+                            "in muon."
+                        )
+                    if "mofa" in strategy:
+                        lines.append(
+                            "Multi-omics factor analysis (MOFA+) was applied to "
+                            "decompose variance across modalities into shared and "
+                            "modality-specific factors."
+                        )
 
         # Parameter decisions appendix reference
         if decisions:

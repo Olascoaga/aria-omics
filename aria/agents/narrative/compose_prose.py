@@ -28,6 +28,18 @@ def compose_block_prose(block: NarrativeBlock) -> str:
         return _compose_cellcomm(block)
     if block.analysis == "trajectory":
         return _compose_trajectory(block)
+    if block.analysis == "paired_qc":
+        return _compose_paired_qc(block)
+    if block.analysis == "wnn":
+        return _compose_wnn(block)
+    if block.analysis == "mofa":
+        return _compose_mofa(block)
+    if block.analysis == "peak_to_gene":
+        return _compose_peak_to_gene(block)
+    if block.analysis == "eregulons":
+        return _compose_eregulons(block)
+    if block.analysis == "cross_modal_triangulation":
+        return _compose_triangulation(block)
     if block.analysis in {"qc", "sample_qc"} or block.block_type == "qc":
         return _compose_qc(block)
     if block.analysis == "power":
@@ -236,6 +248,189 @@ def _compose_power(block: NarrativeBlock) -> str:
             f"{min_power:.0%} and {max_power:.0%} across analyzable contrasts."
         )
     return _sentence(block.claim)
+
+
+def _compose_paired_qc(block: NarrativeBlock) -> str:
+    before = _ev(block, "cells before QC", block.metrics.get("n_cells_before"))
+    after = _ev(block, "cells after QC", block.metrics.get("n_cells_after"))
+    pct = _ev(block, "removed fraction pct", block.metrics.get("pct_removed"))
+    pct_str = str(pct) if str(pct).endswith("%") else f"{pct}%"
+    genes = _ev(block, "RNA genes", block.metrics.get("n_genes"))
+    peaks = _ev(block, "ATAC peaks", block.metrics.get("n_peaks"))
+    matched = _ev(block, "label join matched cells")
+    join_txt = (
+        f" Reference barcode label join matched {matched} shared cells."
+        if matched is not None
+        else ""
+    )
+    return (
+        f"{block.title} retained {after} of {before} verified shared barcodes "
+        f"({pct_str} removed) spanning {genes} RNA genes and {peaks} ATAC peaks."
+        f"{join_txt}"
+    )
+
+
+def _compose_wnn(block: NarrativeBlock) -> str:
+    n_cells = _ev(block, "shared cells", block.metrics.get("n_cells"))
+    n_joint = _ev(block, "WNN joint clusters", block.metrics.get("n_joint_clusters"))
+    n_rna = _ev(block, "RNA-only clusters", block.metrics.get("n_rna_only_clusters"))
+    n_atac = _ev(block, "ATAC-only clusters", block.metrics.get("n_atac_only_clusters"))
+    ari_r = _ev(block, "WNN vs RNA ARI", block.metrics.get("wnn_vs_rna_ari"))
+    ari_a = _ev(block, "WNN vs ATAC ARI", block.metrics.get("wnn_vs_atac_ari"))
+    nmi_r = _ev(block, "WNN vs RNA NMI", block.metrics.get("wnn_vs_rna_nmi"))
+    nmi_a = _ev(block, "WNN vs ATAC NMI", block.metrics.get("wnn_vs_atac_nmi"))
+    n_disc = _ev(block, "discordant clusters", block.metrics.get("n_discordant_clusters"))
+    guard = _ev(block, "WNN guardrail status", block.metrics.get("guardrail_status"))
+    rw = _ev(block, "mean RNA weight", block.metrics.get("mean_rna_weight"))
+    aw = _ev(block, "mean ATAC weight", block.metrics.get("mean_atac_weight"))
+    w_txt = (
+        f" Mean modality weights were {rw} for RNA and {aw} for ATAC."
+        if (rw is not None and aw is not None)
+        else ""
+    )
+    return (
+        f"{block.title} integrated {n_cells} shared cells into {n_joint} joint "
+        f"clusters compared with {n_rna} RNA-only and {n_atac} ATAC-only clusters "
+        f"(WNN vs RNA ARI {ari_r}, NMI {nmi_r}; WNN vs ATAC ARI {ari_a}, "
+        f"NMI {nmi_a}; {n_disc} discordant cluster(s); guardrail status {guard})."
+        f"{w_txt}"
+    )
+
+
+def _compose_mofa(block: NarrativeBlock) -> str:
+    n_cells = _ev(block, "MOFA cells evaluated", block.metrics.get("n_cells"))
+    n_fac = _ev(block, "fitted factors", block.metrics.get("n_factors"))
+    n_act = _ev(block, "active factors", block.metrics.get("n_active_factors"))
+    n_sh = _ev(block, "shared factors", block.metrics.get("n_shared_factors"))
+    n_sp = _ev(
+        block,
+        "modality-specific factors",
+        block.metrics.get("n_modality_specific_factors"),
+    )
+    n_ex = _ev(
+        block,
+        "excluded confounder factors",
+        block.metrics.get("n_excluded_factors"),
+    )
+    rna_r2 = _ev(block, "RNA non-additive R2 pct", block.metrics.get("rna_r2_pct"))
+    atac_r2 = _ev(block, "ATAC non-additive R2 pct", block.metrics.get("atac_r2_pct"))
+    rna_str = str(rna_r2) if str(rna_r2).endswith("%") else f"{rna_r2}%"
+    atac_str = str(atac_r2) if str(atac_r2).endswith("%") else f"{atac_r2}%"
+    return (
+        f"{block.title} evaluated {n_cells} shared cells across {n_fac} fitted "
+        f"factors, retaining {n_act} active factors ({n_sh} shared and {n_sp} "
+        f"modality-specific) while quarantining {n_ex} technical or cell-cycle "
+        f"confounder factor(s); total non-additive R2 was {rna_str} in RNA and "
+        f"{atac_str} in ATAC."
+    )
+
+
+def _compose_peak_to_gene(block: NarrativeBlock) -> str:
+    n_cells = _ev(block, "shared cells", block.metrics.get("n_cells"))
+    dist_kb = _ev(block, "cis window kb", block.metrics.get("distance_kb"))
+    n_tested = _ev(block, "tested peak-gene pairs", block.metrics.get("n_tested"))
+    n_links = _ev(block, "BH-FDR cis links", block.metrics.get("n_links"))
+    n_pos = _ev(block, "positive cis links", block.metrics.get("n_positive_correlations"))
+    n_neg = _ev(block, "negative cis links", block.metrics.get("n_negative_correlations"))
+    n_prom = _ev(block, "promoter-proximal links", block.metrics.get("n_promoter_proximal"))
+    n_dist = _ev(block, "distal cis links", block.metrics.get("n_distal_cis"))
+    candidates = []
+    for ev in block.evidence:
+        if ev.label.startswith("candidate cis link ") and ev.value is not None:
+            gene = ev.label[len("candidate cis link "):]
+            candidates.append(f"{gene} (r={ev.value})")
+    cand_txt = (
+        f" Top associative cis candidates include {', '.join(candidates[:4])}."
+        if candidates
+        else ""
+    )
+    return (
+        f"{block.title} tested {n_tested} cis pairs within {dist_kb} kb across "
+        f"{n_cells} shared cells and identified {n_links} BH-FDR candidate cis "
+        f"associations ({n_pos} positive, {n_neg} negative; {n_prom} "
+        f"promoter-proximal, {n_dist} distal cis).{cand_txt}"
+    )
+
+
+def _compose_eregulons(block: NarrativeBlock) -> str:
+    n_cells = _ev(block, "shared cells", block.metrics.get("n_shared_cells"))
+    n_tested = _ev(
+        block,
+        "candidate modules tested",
+        block.metrics.get("n_candidate_modules_tested"),
+    )
+    n_ereg = _ev(
+        block,
+        "BH-FDR candidate eRegulons",
+        _ev(block, "candidate eRegulons", block.metrics.get("n_eregulons")),
+    )
+    n_trip = _ev(block, "TF-enhancer-gene triplets", block.metrics.get("n_triplets"))
+    n_tfs = _ev(block, "unique TFs", block.metrics.get("n_unique_tfs"))
+    n_pos = _ev(
+        block,
+        "concordant pos_tf_pos_p2g modules",
+        block.metrics.get("n_pos_tf_pos_p2g"),
+    )
+    n_neg = _ev(
+        block,
+        "inverse neg_tf_pos_p2g modules",
+        block.metrics.get("n_neg_tf_pos_p2g"),
+    )
+    n_par = _ev(
+        block,
+        "paralog-ambiguous modules",
+        block.metrics.get("n_paralog_ambiguous"),
+    )
+    n_dep = _ev(
+        block,
+        "depth-confounded modules",
+        block.metrics.get("n_depth_confounded"),
+    )
+    mods = []
+    for ev in block.evidence:
+        if ev.label.startswith("candidate eRegulon ") and ev.value is not None:
+            tf = ev.label[len("candidate eRegulon "):]
+            mods.append(f"{tf} (r={ev.value})")
+    mod_txt = (
+        f" Leading associative candidate modules include {', '.join(mods[:4])}."
+        if mods
+        else ""
+    )
+    return (
+        f"{block.title} evaluated {n_tested} motif-linked modules across "
+        f"{n_cells} shared cells and retained {n_ereg} BH-FDR candidate "
+        f"eRegulons ({n_pos} pos_tf_pos_p2g, {n_neg} neg_tf_pos_p2g) spanning "
+        f"{n_tfs} unique TFs and {n_trip} triplets, with {n_par} "
+        f"paralog-ambiguous and {n_dep} depth-confounded module(s) flagged."
+        f"{mod_txt}"
+    )
+
+
+def _compose_triangulation(block: NarrativeBlock) -> str:
+    n_stages = _ev(block, "integration stages executed", block.metrics.get("n_stages"))
+    n_nodes = _ev(block, "evidence graph nodes", block.metrics.get("n_nodes"))
+    n_edges = _ev(block, "evidence graph edges", block.metrics.get("n_edges"))
+    n_axes = _ev(block, "triangulated axes", block.metrics.get("n_axes_total"))
+    n_conv = _ev(block, "convergent axes", block.metrics.get("n_convergent_total"))
+    n_assoc = _ev(
+        block,
+        "associative cis candidates",
+        block.metrics.get("associative_cis_candidate"),
+    )
+    n_disc = _ev(block, "discordant axes", block.metrics.get("discordant_signal"))
+    n_cav = _ev(block, "caveated ambiguous axes", block.metrics.get("caveated_ambiguous"))
+    guard = _ev(
+        block,
+        "WNN guardrail status",
+        block.metrics.get("wnn_guardrail_status"),
+    )
+    return (
+        f"{block.title} synthesized {n_stages} executed integration stage(s) "
+        f"into {n_nodes} nodes and {n_edges} non-causal associative edges across "
+        f"{n_axes} axes ({n_conv} convergent, {n_assoc} associative cis "
+        f"candidates, {n_disc} discordant, and {n_cav} caveated ambiguous; "
+        f"WNN guardrail {guard})."
+    )
 
 
 def _ev(block: NarrativeBlock, label: str, default=None):

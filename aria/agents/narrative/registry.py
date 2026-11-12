@@ -23,11 +23,12 @@ class NarrativeRegistry:
     def collect_blocks(self, agent_results: dict,
                        context: dict | None = None) -> list[NarrativeBlock]:
         blocks: list[NarrativeBlock] = []
+        ctx = {**(context or {}), "agent_results": agent_results or {}}
         for agent_name, result in (agent_results or {}).items():
             for narrator in self._narrators:
                 if narrator.accepts(agent_name, result or {}):
                     blocks.extend(
-                        narrator.collect(agent_name, result or {}, context or {})
+                        narrator.collect(agent_name, result or {}, ctx)
                     )
                     break
         return validate_blocks(blocks)

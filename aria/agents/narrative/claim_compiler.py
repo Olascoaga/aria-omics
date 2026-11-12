@@ -74,12 +74,19 @@ _ANALYSIS_EVIDENCE = {
     "differential_accessibility": "regulatory",
     "peak2gene": "regulatory",
     "regulon": "regulatory",
+    # V48 Slice I7 paired multiome integration analyses:
+    "paired_qc": "descriptive",
+    "wnn": "descriptive",
+    "mofa": "latent_program",
+    "peak_to_gene": "regulatory",
+    "eregulons": "regulatory",
+    "cross_modal_triangulation": "regulatory",
 }
 
 # Evidence categories that count as observational/associative support.
 _ASSOCIATIVE = {
     "expression_change", "abundance_change", "functional_annotation",
-    "communication", "trajectory",
+    "communication", "trajectory", "latent_program",
 }
 # Evidence categories that count as independent mechanistic lines.
 _MECHANISTIC = {"regulatory"}

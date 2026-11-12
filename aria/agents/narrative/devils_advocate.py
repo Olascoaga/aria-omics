@@ -80,6 +80,28 @@ def _run_signals(agent_results: dict, exp_ctx: dict) -> dict:
         "da_ran": _ran(da),
         "da_significant": bool(da.get("any_significant")),
         "batch_covariate": any("batch" in c for c in covariates),
+        "multiome": _multiome_signals(agent_results),
+    }
+
+
+def _multiome_signals(agent_results: dict) -> dict:
+    integ = (agent_results or {}).get("integration_agent")
+    if not isinstance(integ, dict):
+        return {}
+    findings = integ.get("findings") if isinstance(integ.get("findings"), dict) else integ
+    wnn = findings.get("wnn") if isinstance(findings, dict) else {}
+    mofa = findings.get("mofa") if isinstance(findings, dict) else {}
+    ereg = findings.get("eregulons") if isinstance(findings, dict) else {}
+    guard = str((wnn or {}).get("guardrail_status") or "skipped")
+    mofa_ran = _ran(mofa)
+    ereg_depth = int((ereg or {}).get("n_depth_confounded") or 0)
+    ereg_paralog = int((ereg or {}).get("n_paralog_ambiguous") or 0)
+    return {
+        "wnn_guardrail_pass": guard == "pass",
+        "wnn_guardrail_status": guard,
+        "depth_screened": (mofa_ran or _ran(wnn)) and ereg_depth == 0,
+        "paralog_free": ereg_paralog == 0,
+        "n_paralog_ambiguous": ereg_paralog,
     }
 
 
@@ -100,7 +122,51 @@ def _block_composition_ok(block: NarrativeBlock, signals: dict) -> bool:
 
 
 def _challenges_for(block: NarrativeBlock, signals: dict) -> list[dict]:
-    modality = str(block.modality or "").lower()
+    modality = str(block.modality or "").lower().strip()
+    if modality == "integration" or "multiome" in modality:
+        ms = signals.get("multiome") or {}
+        out_m: list[dict] = [
+            {
+                "alternative": "sequencing_depth_confounding",
+                "addressed": bool(ms.get("depth_screened")),
+                "basis": (
+                    "ATAC LSI depth components and MOFA/eRegulon depth associations "
+                    "were screened with zero depth-confounded modules retained"
+                    if ms.get("depth_screened")
+                    else "library depth co-variation was flagged or not screened across all layers"
+                ),
+            },
+            {
+                "alternative": "wnn_modality_degradation",
+                "addressed": bool(ms.get("wnn_guardrail_pass")),
+                "basis": (
+                    "WNN 5-axis anti-degradation guardrail passed"
+                    if ms.get("wnn_guardrail_pass")
+                    else f"WNN guardrail status is {ms.get('wnn_guardrail_status', 'skipped')}"
+                ),
+            },
+        ]
+        if block.analysis in {"eregulons", "cross_modal_triangulation"}:
+            out_m.append({
+                "alternative": "paralog_motif_sharing",
+                "addressed": bool(ms.get("paralog_free")),
+                "basis": (
+                    "no paralog motif-sharing ambiguity flagged"
+                    if ms.get("paralog_free")
+                    else f"{ms.get('n_paralog_ambiguous', 0)} module(s) share PWMs across paralog TFs"
+                ),
+            })
+        if block.analysis in {"peak_to_gene", "eregulons", "cross_modal_triangulation"}:
+            out_m.append({
+                "alternative": "absence_of_perturbation_or_3d_contact",
+                "addressed": False,
+                "basis": (
+                    "cis correlation and motif sequence matches are observational; "
+                    "3D chromatin contact and CRISPRi/TF perturbation were not assayed"
+                ),
+            })
+        return out_m
+
     is_scrna = "scrna" in modality or modality in ("rna", "")
     out: list[dict] = []
 

@@ -257,12 +257,18 @@ flowchart TD
     REGISTRY --> BULK_NARR[aria/agents/narrative/narrators/bulk_rna.py]
     REGISTRY --> SCRNA_NARR[aria/agents/narrative/narrators/scrna.py]
     REGISTRY --> CHROM_NARR[aria/agents/narrative/narrators/chromatin.py ChromatinNarrator: QC/LSI/DA/motifs v4.6 + bulk ATAC methods _bulk_atac_methods/_is_bulk_atac caller/counting/model params]
+    REGISTRY --> INT_NARR[aria/agents/narrative/narrators/integration.py V48 I7 IntegrationNarrator: paired_qc/wnn/mofa/peak_to_gene/eregulons/triangulation + HTML-safe methods]
     SCRNA_NARR --> SCRNA_HELPERS[aria/agents/_narrative_scrna.py]
+    INT_NARR --> INT_FIG_HELPERS[aria/agents/_narrative_integration.py V48 I7 dual PNG+SVG figures + mofa_loadings.json->CSV staging]
+    INT_NARR --> CM_TRIANG[aria/agents/narrative/synthesis/cross_modal_triangulation.py V48 I7 non-circular cross-modal evidence graph]
+    CM_TRIANG --> METHODOLOGY
     BULK_NARR --> BLOCKS[NarrativeBlock list]
     SCRNA_NARR --> BLOCKS
     CHROM_NARR --> BLOCKS
+    INT_NARR --> BLOCKS
     BULK_NARR --> SEMANTIC_FACTS[types.SemanticFact: subject type + predicate + polarity + explicit aliases + value/provenance]
     SCRNA_NARR --> SEMANTIC_FACTS
+    INT_NARR --> SEMANTIC_FACTS
     SEMANTIC_FACTS --> EVIDENCE_VERIFIER[evidence_verifier: controlled claim-fact grammar + contradiction/support matching]
     BLOCKS --> PUBLIC_CLAIMS[claim_compiler.compile_public_claims exclusive public set]
     LEDGER --> TYPED_LEDGER[typed analysis_run nodes + structured-result provenance; canonical RNA/chromatin families]
@@ -452,6 +458,7 @@ flowchart TD
 | `data_audit_agent.py` SIGNATURES / `_scan_directory` bounded scan / `utils/assay_detector.py` | modality classification, CP1, `.h5mu`/chromatin routing, `exp_context["assay_detections"]` | `.h5mu` (paired RNA+ATAC) is scanned and classified as `scATAC` (C8); changing the signature order or extension set can make the v4.6 entry input undetectable again. P2-7 replaces unbounded `rglob("*")` with `DataAuditScanLimits`: configurable max files/entries/depth/time/file-size, symlink opt-in, visited-directory protection, and CP1 warnings when the scan is truncated or skips paths. P2-3 adds content-first `AssayDetector` before regex fallback: HDF5 AnnData/H5Mu/10X H5, 10X MEX feature tables, Salmon/Kallisto quant tables, generic count tables, and BAM/SAM headers produce `AssayDetection(modality, confidence, evidence, possible_alternatives, blocking_issues)`. Low-confidence alignment detections must warn at CP1 and preserve alternatives; do not turn ambiguous BAMs into publication-grade modality certainty. Keep defaults permissive enough for valid BAM/H5 inputs, and do not silently follow symlinks. |
 | `chromatin_footprint_tobias.py` replicate-score inference / `ChromatinAgent._bulk_replicate_bams` / `ChromatinNarrator._footprint_block` | scATAC barcode design, bulk ATAC replicate BAM design, TOBIAS stack, standalone footprint wrappers, committed footprint artifacts, `tests/test_preprint_audit_b7_footprint_inference.py` | **B7 preprint-readiness (2026-07-13):** inferential footprinting requires explicit biological identity: scATAC accepts `barcode→group→replicate/donor`; bulk accepts `condition→biological replicate→BAM(s)` and merges only technical BAMs within a replicate. ATACorrect+ScoreBigwig run independently per biological replicate; one multi-signal BINDetect supplies `<replicate>_mean_score` columns, while BINDetect motif-site p-values are ignored. ARIA uses paired t-tests on within-donor score differences for complete pairs (a partial design uses only its complete-pair subset) or two-sided Welch tests for independent replicates, then Benjamini–Hochberg across all tested motifs, a full TSV, and deterministic label permutations (within-donor swaps when paired) as calibration diagnostics, never a post-hoc gate. Default minimum is 3 replicates per condition; an explicit n=2 override is low-power. Missing identity or insufficient replication falls back to the legacy descriptive pseudobulk/condition ranking and must never emit `n_significant`. The narrator has separate inferential and descriptive claims; both remain associative/non-causal. The historical 873/879 and 877/879 artifacts are reclassified as descriptive candidate rankings. Modality tier remains beta/requires-ack; no DE/DA core or freeze/tag change. |
 | `integration_agent.py` / `multiome_contracts.py` / `mudata_io.py` / `wnn_diagnostics.py` / `peak2gene_core.py` / `eregulon_core.py` / `integration_{paired_qc,wnn,wnn_diagnostics,mofa,peak2gene,eregulons}.py` | V48 paired 10x Multiome vertical integration (Slices I1–I6, `ADR-064`..`ADR-069`), `aria-chromatin-env` + `aria-integration-env`, `script_contracts.py`, `chromatin_regulatory.py`, `docs/benchmark_results/multiome_concordance/` | **ADR-064..ADR-069:** `IntegrationAgent` stays gated at `MODALITY_VALIDATION["integration"] = scaffold` (`dispatch_enabled=False`) until Slice `I8`, while individual paired IPC scripts carry `validation_level="beta"` after external concordance (`Seurat 5.3.0` WNN, `muon.tl.mofa`, `Signac::LinkPeaks`, `SCENIC+ 1.0.0`). `enforce_same_cell_integration_gate` blocks non-paired split modalities fail-closed. `peak2gene_core.py` is the single cis peak-to-gene statistical engine shared by `chromatin_regulatory.py::_peak_to_gene` (`preprocess="as_is"`) and `integration_peak2gene.py` (`preprocess="paired"`). `eregulon_core.py` consumes local MEME collections + `.fai` fixed-500bp peak-center sequences + `peak2gene_core` BH-FDR cis links + paired TF expression co-variation (`r_tf_gene`, library-depth partial correlations, `5x5` `(expr, prevalence)` stratified null, BH across all `(motif, tf, sign_class)` modules prior to best-motif collapse, weighted GSEA leading-edge pruning, paralog motif-sharing screen, and rank-based RNA/ATAC AUCell). All integration outputs are strictly associative (`pos_tf_pos_p2g`, `neg_tf_pos_p2g`; never causal "activator"/"repressor"/"silencer" labels) with zero hardcoded TF/gene panels. |
+| `narrative/synthesis/cross_modal_triangulation.py` / `narrative/narrators/integration.py` / `_narrative_integration.py` / `narrative/run_ledger.py` (`_INTEGRATION_ANALYSES`) / `narrative/compose_prose.py` (`_compose_*`) | V48 Slice I7 (`ADR-070`, opens FASE E), `NarrativeAgent`, `methodology.json["cross_modal_evidence_graph"]`, `report.html`, `report_dir/figures/*.{png,svg}`, `report_dir/tables/*.csv`, `tests/test_v48_i7_integration_narrative.py`, `docs/benchmark_results/multiome_concordance/v48_i7_cross_modal_narrative_hc11.json` | **V48 Slice I7 (2026-11-12, ADR-070):** deterministic, zero-LLM cross-modal evidence graph (`build_cross_modal_evidence_graph`) + `IntegrationNarrator` (`MODALITY_NARRATORS["integration"]` / `"multiome"`) + dual PNG+SVG publication figures. Separates `convergent_paired_multiome` (explicitly stamping `shared_upstream=["peak_to_gene"]`, `shared_cell_universe=True`, `independent_contrast_support=False` so `eRegulons` + `peak2gene` co-occurrence never self-inflates as independent replication) from `convergent_cross_contrast` (requiring independent DE/DA/motif contrasts), `associative_cis_candidate`, `discordant_signal` (`neg_tf_pos_p2g` / opposite LFC vs DA), and `caveated_ambiguous` (`motif_family_ambiguity`, `depth_confounded`, excluded MOFA+ depth/cell-cycle confounders, degraded WNN guardrail), while recording unexecuted single-modality lanes in `absent_not_tested` and serializing zero machine-absolute paths into `methodology.json`. `run_ledger.py` routes `peak2gene -> peak_to_gene` modality-aware (`ledger://integration/peak_to_gene` vs `ledger://chromatin/regulatory_peak2gene`) and promotes stages to `ran` strictly when `status` is not `skipped`/`error`/`failed`/`blocked`. `IntegrationNarrator` emits `multiome.{paired_qc,wnn,mofa,peak_to_gene,eregulons,triangulation}` with typed `SemanticFact`s, strict C1–C4 / W-CLAIM / Claim-6 monotone invariance, and raw unescaped Methods text (escaped exactly once by `_build_methods_section`). `_narrative_integration.py` converts `mofa_loadings.json` -> `tables/mofa_factor_loadings.csv` (`_convert_mofa_loadings_json_to_csv`), reads `.h5mu` embeddings/categories via `h5py` without loading count matrices (safely handling categorical `code == -1`), and renders 4 dual PNG+SVG figures (`svg.fonttype='none'`, scatter-rasterized UMAP + editable vector axes/labels): `wnn_joint_vs_modality_umap`, `wnn_modality_weights_by_cluster`, `mofa_variance_explained`, and `regulatory_triangulation_summary`. Validated on real `GSE278576` `hc11` (`2,517` post-QC cells: `200` nodes, `290` edges, `45` axes, `7` published blocks, `0` withheld, bit-exact repeat determinism). `INTEGRATION_VALIDATION` stays `scaffold` (`dispatch_enabled=False`) until Slice `I8`. |
 | module-global accessors `bus` / `env_manager` | all agents and tests importing global coordination helpers | These are lazy accessors, not eagerly constructed singletons; avoid import-time workspace creation or broker state just by importing enums/classes. |
 | `memory.py` schema / scoped export | checkpoints, provenance, reports, resume, reproducible capsules | DB shape changes can break old sessions and audit trails. The public snapshot path is per-experiment and atomic (A2); do not replace it with a live SQLite copy. Operational root `memory/` files are private local context and must stay ignored/out of GitHub. |
 
@@ -573,7 +580,7 @@ Use these tests as impact anchors when editing the graph's major nodes:
   opt-in, P0-6): `tests/test_filename_fallback_gate.py`
 - WNN no-fabrication (NotImplemented blocker, no `_mock_wnn`, no hardcoded weights,
   P0-8): `tests/test_wnn_no_fabrication.py`
-- V48 paired multiome integration (Slices I1–I6, ADR-064 / ADR-065 / ADR-066 / ADR-067 / ADR-068 / ADR-069):
+- V48 paired multiome integration (Slices I1–I7, ADR-064 / ADR-065 / ADR-066 / ADR-067 / ADR-068 / ADR-069 / ADR-070):
   - I1 paired `.h5mu` same-cell gate, joint RNA+ATAC QC, and `h5py` `/obs` bijective
     barcode label join: `tests/test_v48_i1_paired_mudata_qc.py`
   - I2 deterministic WNN joint state + R Seurat v5 external concordance:
@@ -605,6 +612,12 @@ Use these tests as impact anchors when editing the graph's major nodes:
     concordance vs `scenicplus==1.0.0`):
     `tests/test_v48_i6_eregulons.py`, `scripts/run_eregulon_concordance.py`,
     `docs/benchmark_results/multiome_concordance/v48_i6_eregulon_concordance_hc11.json`
+  - I7 deterministic non-circular Cross-Modal Evidence Graph + Regulatory Triangulation,
+    `IntegrationNarrator` (`multiome.*` blocks + HTML-safe Methods + Run-Ledger routing +
+    Claim 6 monotone invariance), `mofa_loadings.json -> CSV` staging, and 4 dual PNG+SVG
+    publication figures:
+    `tests/test_v48_i7_integration_narrative.py`, `scripts/run_v48_i7_narrative_validation.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i7_cross_modal_narrative_hc11.json`
 - Confirmed-threshold propagation (`AnalysisThresholds`, pseudobulk dispatch, P0-7):
   `tests/test_analysis_thresholds.py`
 - Repo-wide anti-fabrication guard (P-FAKE-GUARD / ADR-002 mechanized, P1-13):
@@ -769,11 +782,18 @@ Use these tests as impact anchors when editing the graph's major nodes:
   **B4 preprint-readiness (2026-07-12):** the old column-name group recovery
   `BulkRNAAgent._infer_col_groups` was REMOVED (see the `_apply_design` row);
   a confirmed design that cannot be mapped now fails closed.
-- LLM deterministic provenance:
+- LLM deterministic provenance & Track B3 frozen open-weight reagent ablation:
   `tests/test_pytest_smoke.py::test_llm_provider_forces_deterministic_generation`,
   `tests/test_pytest_smoke.py::test_llm_cache_key_includes_deterministic_controls`,
   `tests/test_pytest_smoke.py::test_collect_llm_usage_summarizes_deterministic_provenance`,
-  `tests/test_pytest_smoke.py::test_provenance_section_renders_llm_usage`
+  `tests/test_pytest_smoke.py::test_provenance_section_renders_llm_usage`,
+  `tests/test_preprint_audit_b3_multi_provider.py`,
+  `tests/test_preprint_audit_b3_multi_provider_e2e.py` (including
+  `aria/headless.py::_find_report_on_disk` post-HTML synchronization gate waiting
+  for `methodology.json`, `memory_snapshot.sqlite`, and `ro-crate-metadata.json`
+  before `ARIAMemory.close()`),
+  `docs/benchmark_results/b3_frozen_reagent/` (`B3_FROZEN_REAGENT_SUPPLEMENT.md`,
+  `b3_frozen_reagent_ablation.json`, `fig_s_b3_frozen_reagent_ablation.svg`).
 - Version/provenance stamp (`version.py` single source, README badge, release notes,
   workflow hash, P0-9):
   `tests/test_pytest_smoke.py::test_version_stamps_are_derived_from_single_source`,

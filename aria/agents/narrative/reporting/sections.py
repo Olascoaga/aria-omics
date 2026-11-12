@@ -86,6 +86,31 @@ class ReportSectionsMixin:
                         f"<td>ICE balancing: {bal.get('status', 'done')}</td></tr>"
                     )
 
+            # Paired Multiome (RNA + ATAC)
+            integ = agent_results.get("integration_agent", {})
+            if integ.get("status") == "done":
+                int_f = integ.get("findings", {}) or {}
+                pqc = int_f.get("paired_qc") or {}
+                if isinstance(pqc, dict) and pqc.get("status") == "success":
+                    nb = pqc.get("n_cells_before", "?")
+                    na = pqc.get("n_cells_after", "?")
+                    pr = pqc.get("pct_removed")
+                    pr_str = (
+                        f" · {float(pr):.2f}% removed"
+                        if isinstance(pr, (int, float)) else ""
+                    )
+                    wnn_d = int_f.get("wnn") or {}
+                    guard_str = (
+                        f" · WNN guardrail: {_html.escape(str(wnn_d.get('guardrail_status')))}"
+                        if isinstance(wnn_d, dict) and wnn_d.get("guardrail_status")
+                        else ""
+                    )
+                    rows.append(
+                        f"<tr><td>Paired Multiome (RNA + ATAC)</td>"
+                        f"<td>{_html.escape(str(nb))} → {_html.escape(str(na))} "
+                        f"shared cells{pr_str}{guard_str}</td></tr>"
+                    )
+
             if rows:
                 qc_rows = f"""
 <table style="margin-top:1rem">
@@ -163,6 +188,7 @@ class ReportSectionsMixin:
             "rna":         ("RNA-seq", "var(--green)"),
             "chromatin":   ("Chromatin", "var(--teal)"),
             "hic":         ("3D Genome", "#a78bfa"),
+            "multiome":    ("Multi-Omics Integration (Paired RNA + ATAC)", "#ec4899"),
             "integration": ("Integrated Biological Discussion", "#f472b6"),
             "synthesis":   ("Integrated Interpretation", "var(--navy)"),
         }
@@ -568,6 +594,23 @@ class ReportSectionsMixin:
                 )
             except Exception as e:
                 log.warning(f"Stage scRNA supplementary tables: {e}",
+                            exc_info=True)
+
+        # Paired multiome integration CSV tables (MOFA loadings, peak2gene, eRegulons).
+        integ = (agent_results or {}).get("integration_agent") or {}
+        if integ.get("status") == "done":
+            try:
+                from aria.agents import _narrative_integration
+                from aria.agents.narrative.narrators.integration import (
+                    unwrap_integration_findings,
+                )
+                int_findings = unwrap_integration_findings(integ)
+                _narrative_integration.stage_integration_tables(
+                    int_findings,
+                    report_dir / "tables",
+                )
+            except Exception as e:
+                log.warning(f"Stage integration supplementary tables: {e}",
                             exc_info=True)
 
 

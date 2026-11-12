@@ -122,6 +122,31 @@ _BULK_ANALYSES: list[dict[str, Any]] = [
 ]
 
 
+# V48 Slice I7 (ADR-070): paired multiome integration analyses reconciled
+# directly from IntegrationAgent structured outputs. Process vocabulary only.
+_INTEGRATION_ANALYSES: list[dict[str, Any]] = [
+    {"key": "paired_qc", "label": "Paired multiome QC",
+     "plan_kw": ["paired qc", "multiome qc", "shared barcode"],
+     "finding_keys": ["paired_qc"]},
+    {"key": "wnn", "label": "Weighted Nearest Neighbors (WNN)",
+     "plan_kw": ["wnn", "weighted nearest", "joint manifold"],
+     "finding_keys": ["wnn"]},
+    {"key": "mofa", "label": "MOFA+ factor decomposition",
+     "plan_kw": ["mofa", "factor analysis", "variance decomposition"],
+     "finding_keys": ["mofa"]},
+    {"key": "peak_to_gene", "label": "Cis peak-to-gene linkage",
+     "plan_kw": ["peak2gene", "peak-to-gene", "peak to gene", "cis link"],
+     "finding_keys": ["peak_to_gene"]},
+    {"key": "eregulons", "label": "Candidate eRegulon inference",
+     "plan_kw": ["eregulon", "scenic", "cistrome", "regulatory triplet"],
+     "finding_keys": ["eregulons"]},
+    {"key": "cross_modal_triangulation",
+     "label": "Cross-modal evidence triangulation",
+     "plan_kw": ["triangulation", "cross-modal evidence"],
+     "finding_keys": ["cross_modal_triangulation"]},
+]
+
+
 def _plan_phrases(exp_ctx: dict) -> list[str]:
     di = (exp_ctx or {}).get("design_intelligence", {}) or {}
     phrases: list[str] = []
@@ -140,12 +165,16 @@ def _status_from_finding(val: Any) -> tuple[str, str | None]:
     if val is None:
         return "not_run", None
     if isinstance(val, dict):
-        st = str(val.get("status") or "").lower()
-        if st == "skipped":
-            return "skipped", val.get("reason")
-        if st == "error":
-            return "error", (val.get("error_type") or val.get("details"))
-        if st in ("success", "ok"):
+        st = str(val.get("status") or "").lower().strip()
+        if st == "not_run":
+            return "not_run", val.get("reason")
+        if st in ("skipped", "blocked"):
+            return "skipped", (val.get("reason") or val.get("details"))
+        if st in ("error", "failed"):
+            return "error", (
+                val.get("error_type") or val.get("details") or val.get("reason")
+            )
+        if st in ("success", "ok", "done"):
             return "ran", None
         if val.get("ran") is False:
             return "skipped", val.get("reason")
@@ -285,6 +314,13 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
         entries += _entries_for("bulk", _BULK_ANALYSES, bk_findings, phrases)
         modalities.append("bulk")
 
+    int_findings = _integration_findings_normalized(agent_results, exp_ctx)
+    if bool(int_findings) or "integration_agent" in (agent_results or {}):
+        entries += _entries_for(
+            "integration", _INTEGRATION_ANALYSES, int_findings, phrases
+        )
+        modalities.append("integration")
+
     divergences = [e for e in entries if e["divergence"]]
     return {
         "entries": entries,
@@ -292,6 +328,38 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
         "n_divergences": len(divergences),
         "modalities": modalities,
     }
+
+
+def _integration_findings_normalized(
+    agent_results: dict,
+    exp_ctx: dict | None = None,
+) -> dict:
+    """Normalize IntegrationAgent outputs for ledger reconciliation.
+
+    Synthesizes ``cross_modal_triangulation`` as executed iff the deterministic
+    evidence graph genuinely ran over structured outputs (mirrors
+    ``IntegrationNarrator.collect``; never fabricates on absent inputs).
+    """
+    integ = (agent_results or {}).get("integration_agent")
+    if not isinstance(integ, dict):
+        return {}
+    from aria.agents.narrative.narrators.integration import (
+        unwrap_integration_findings,
+    )
+    findings = unwrap_integration_findings(integ)
+    if not isinstance(findings, dict):
+        return {}
+    out = dict(findings)
+    try:
+        from aria.agents.narrative.synthesis.cross_modal_triangulation import (
+            build_cross_modal_evidence_graph,
+        )
+        graph = build_cross_modal_evidence_graph(agent_results, exp_ctx or {})
+        if graph.get("ran"):
+            out["cross_modal_triangulation"] = {"status": "success"}
+    except Exception:
+        pass
+    return out
 
 
 # ── W-LEDGER: claim ↔ ledger-node linkage + active verification ──────────────
@@ -340,9 +408,11 @@ _REPORT_DERIVED_ANALYSES = {
 
 def _ledger_modality_group(modality: str) -> str:
     """Map a block/claim modality label to a ledger modality group."""
-    m = str(modality or "").lower()
+    m = str(modality or "").lower().strip()
     if "report" in m or "integrated" in m:
         return "report"
+    if m == "integration" or "multiome" in m:
+        return "integration"
     if "bulk" in m:
         return "bulk"
     if "atac" in m or "chromatin" in m:
@@ -353,7 +423,18 @@ def _ledger_modality_group(modality: str) -> str:
 def node_id_for(modality: str, analysis: str) -> str:
     """Deterministic ledger node id for a claim's (modality, analysis)."""
     group = _ledger_modality_group(modality)
-    key = _LEDGER_KEY_ALIASES.get(str(analysis or ""), str(analysis or ""))
+    raw = str(analysis or "")
+    if group == "integration":
+        # Modality-aware mapping: chromatin's single-assay `peak2gene` maps to
+        # `regulatory_layers`, whereas paired integration owns `peak_to_gene`.
+        int_aliases = {
+            "peak2gene": "peak_to_gene",
+            "eregulon": "eregulons",
+            "triangulation": "cross_modal_triangulation",
+        }
+        key = int_aliases.get(raw, raw)
+    else:
+        key = _LEDGER_KEY_ALIASES.get(raw, raw)
     return f"ledger://{group}/{key}"
 
 

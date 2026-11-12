@@ -135,6 +135,35 @@ class ReportRenderMixin:
         except Exception as e:
             log.warning(f"chromatin figure generation failed: {e}", exc_info=True)
 
+    def _generate_integration_figures(self, agent_results: dict,
+                                      report_dir: Path) -> None:
+        """V48 Slice I7: render dual PNG+SVG integration figures inline and attach
+        their paths onto ``integration_agent.findings['figures']`` so
+        ``IntegrationNarrator`` embeds them into governed narrative blocks."""
+        integ = (agent_results or {}).get("integration_agent") or {}
+        if integ.get("status") != "done":
+            return
+        try:
+            from aria.agents import _narrative_integration
+            from aria.agents.narrative.narrators.integration import (
+                unwrap_integration_findings,
+            )
+        except Exception as e:
+            log.warning(f"Cannot import integration figure helpers: {e}")
+            return
+        findings = unwrap_integration_findings(integ)
+        if not findings:
+            return
+        try:
+            _narrative_integration.generate_figures(
+                findings=findings,
+                output_dir=Path(report_dir) / "figures",
+            )
+        except Exception as e:
+            log.warning(
+                f"integration figure generation failed: {e}", exc_info=True
+            )
+
     def _speculative_verification_state(
         self, run_ledger: dict | None, narrative_blocks: list | None
     ) -> "VerificationReceipt":
@@ -297,7 +326,14 @@ class ReportRenderMixin:
         if report_dir is None:
             report_dir = self._build_report_dir(experiment_id, intent, exp_ctx)
         report_dir.mkdir(parents=True, exist_ok=True)
+        (report_dir / "figures").mkdir(exist_ok=True)
+        (report_dir / "tables").mkdir(exist_ok=True)
         self._stage_artifacts(agent_results, report_dir)
+        integ_env = (agent_results or {}).get("integration_agent") or {}
+        if integ_env.get("status") == "done":
+            integ_f = integ_env.get("findings") if isinstance(integ_env.get("findings"), dict) else integ_env
+            if isinstance(integ_f, dict) and not integ_f.get("figures"):
+                self._generate_integration_figures(agent_results, report_dir)
         narrative_blocks = self._collect_narrative_blocks(agent_results, exp_ctx)
         executive_summary, executive_summary_warning = (
             self._govern_executive_summary(

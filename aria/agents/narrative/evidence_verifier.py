@@ -52,15 +52,22 @@ _ANALYSIS_FAMILY = {
     "qc": "descriptive",
     "sample_qc": "descriptive",
     "power": "descriptive",
+    "paired_qc": "descriptive",
+    "wnn": "descriptive",
+    "mofa": "latent_program",
+    "peak_to_gene": "regulatory",
+    "eregulons": "regulatory",
+    "cross_modal_triangulation": "integration",
 }
 
 _GENE_STOPWORDS = {
-    "ARIA", "ATAC", "BAM", "CTRL", "DE", "DNA", "DPT", "FDR", "FRIP",
-    "GEO", "GO", "GSEA", "HTML", "IF", "KEGG", "LIANA", "LLM", "NES",
-    "ORA", "PAGA", "PBMC", "QC", "RNA", "SRA", "TAD", "UMAP", "VST",
+    "ARIA", "ARI", "ATAC", "BAM", "CMH", "CTRL", "DE", "DNA", "DPT", "FDR",
+    "FRIP", "GEO", "GO", "GSEA", "HTML", "IF", "KEGG", "LIANA", "LLM", "LSI",
+    "MOFA", "NES", "NMI", "ORA", "PAGA", "PBMC", "PWM", "QC", "RNA", "SRA",
+    "SVD", "TAD", "TF", "TFs", "TSS", "UMAP", "VST", "WNN",
     # Mixed-case tool/identifier tokens that the T11 digit-bearing pattern would
     # otherwise treat as gene symbols.
-    "DESeq2",
+    "DESeq2", "CP10k", "R2",
 }
 
 _NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])-?\d+(?:\.\d+)?%?")

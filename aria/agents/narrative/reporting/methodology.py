@@ -143,6 +143,23 @@ class MethodologyMixin:
         except Exception as exc:
             log.warning(f"Robustness multiverse build failed: {exc}", exc_info=True)
             robustness_multiverse = {"status": "error", "details": str(exc)}
+        try:
+            from aria.agents.narrative.synthesis.cross_modal_triangulation import (
+                build_cross_modal_evidence_graph,
+            )
+            cross_modal_evidence_graph = build_cross_modal_evidence_graph(
+                agent_results, exp_ctx
+            )
+        except Exception as exc:
+            log.warning(
+                f"Cross-modal evidence graph build failed: {exc}", exc_info=True
+            )
+            cross_modal_evidence_graph = {
+                "schema_version": "1.0.0",
+                "ran": False,
+                "status": "error",
+                "details": str(exc),
+            }
         return {
             "provenance": provenance,
             "inputs": exp_ctx.get("input_files", []),
@@ -160,6 +177,7 @@ class MethodologyMixin:
             "devils_advocate": devils_advocate,
             "run_ledger": run_ledger,
             "robustness_multiverse": robustness_multiverse,
+            "cross_modal_evidence_graph": cross_modal_evidence_graph,
             "design": exp_ctx.get("design", {}),
             "design_intelligence": exp_ctx.get("design_intelligence", {}),
             "thresholds": thresholds,
