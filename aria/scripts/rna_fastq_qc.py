@@ -57,8 +57,21 @@ def rna_fastq_qc(params: dict) -> dict:
     output_dir = Path(params.get("output_dir",
                                   str(fastq_dir.parent / "aria_qc")))
     threads    = int(params.get("threads", 4))
-    min_len    = int(params.get("min_length", 36))
+    library_protocol = str(params.get("library_protocol") or "full_length").strip().lower()
+    default_min_len = 20 if library_protocol in {"tag_3prime", "tag_5prime", "umi_bulk"} else 36
+    min_len    = int(params.get("min_length", default_min_len))
     quality    = int(params.get("quality", 20))
+    umi_config = params.get("umi_config") if isinstance(params.get("umi_config"), dict) else None
+    trim_poly_x = bool(
+        params.get(
+            "trim_poly_x",
+            library_protocol in {"tag_3prime", "tag_5prime"}
+            or bool((umi_config or {}).get("trim_poly_x", False)),
+        )
+    )
+    trim_poly_g = bool(params.get("trim_poly_g", True))
+    trim_front1 = int(params.get("trim_front1", 0) or 0)
+    r1_only = bool(params.get("r1_only", False))
     allow_mock = mocks_allowed(params)
     warnings   = []
 
@@ -73,6 +86,8 @@ def rna_fastq_qc(params: dict) -> dict:
         fastq_dir,
         warnings,
         fastq_files=params.get("fastq_files"),
+        r1_only=r1_only,
+        known_samples=params.get("known_samples"),
     )
     if not samples:
         return {
@@ -96,6 +111,11 @@ def rna_fastq_qc(params: dict) -> dict:
             quality=quality,
             warnings=warnings,
             allow_mock=allow_mock,
+            library_protocol=library_protocol,
+            trim_poly_x=trim_poly_x,
+            trim_poly_g=trim_poly_g,
+            trim_front1=trim_front1,
+            umi_config=umi_config,
         )
         processed.append(result)
 
@@ -118,6 +138,7 @@ def rna_fastq_qc(params: dict) -> dict:
             "failed_samples": failed_samples,
             "samples":        processed,
             "n_samples":      len(processed),
+            "library_protocol": library_protocol,
             "multiqc_report": str(multiqc_report) if multiqc_report else None,
             "output_dir":     str(output_dir),
             "trimmed_dir":    str(trimmed_dir),
@@ -128,6 +149,9 @@ def rna_fastq_qc(params: dict) -> dict:
         "status":         "success",
         "samples":        processed,
         "n_samples":      len(processed),
+        "library_protocol": library_protocol,
+        "umi_extracted":  bool(umi_config),
+        "trim_poly_x":    trim_poly_x,
         "multiqc_report": str(multiqc_report) if multiqc_report else None,
         "output_dir":     str(output_dir),
         "trimmed_dir":    str(trimmed_dir),
@@ -135,14 +159,30 @@ def rna_fastq_qc(params: dict) -> dict:
     }
 
 
+def _strip_fastq_ext(filename: str) -> str:
+    stem = filename
+    for extension in (".fastq.gz", ".fq.gz", ".fastq", ".fq"):
+        if stem.lower().endswith(extension):
+            return stem[:-len(extension)]
+    return stem
+
+
 def _detect_samples(fastq_dir: Path, warnings: list,
-                    fastq_files: list[str] | None = None) -> list[dict]:
+                    fastq_files: list[str] | None = None,
+                    *,
+                    r1_only: bool = False,
+                    known_samples: list[str] | None = None) -> list[dict]:
     """
     Build an explicit sample/lane/read-layout manifest.
 
     Illumina lane names such as ``sample_S1_L001_R1_001.fastq.gz`` are
     grouped under one biological sample instead of becoming separate samples.
-    ``fastq_files`` limits detection to the caller's explicit selection.
+    Single-end files without an ``_R1`` suffix (e.g. ``SRR123456.fastq.gz`` or
+    ``ctrl_1.fastq.gz``, ``ctrl_2.fastq.gz``, ``ctrl_3.fastq.gz``) are
+    supported as single-end ``R1`` lanes, while SRA-style paired mates
+    (``WT1_1.fq.gz`` + ``WT1_2.fq.gz`` with numeric suffixes strictly equal to
+    ``{1, 2}`` and not declared as standalone sample IDs) are paired, and
+    barcode/index slots (``_R3``, ``_I1``, ``_I2``) remain rejected.
     """
     # Find all FASTQ files
     if fastq_files is None:
@@ -157,15 +197,37 @@ def _detect_samples(fastq_dir: Path, warnings: list,
     if not fq_files:
         return []
 
+    bare_numeric_suffixes: dict[str, set[int]] = {}
+    for path in fq_files:
+        stem = _strip_fastq_ext(path.name)
+        m_num = re.match(r"^(?P<prefix>.+?)_(?P<num>\d+)$", stem)
+        if m_num:
+            bare_numeric_suffixes.setdefault(
+                m_num.group("prefix"), set()
+            ).add(int(m_num.group("num")))
+
+    known_set = {str(s) for s in (known_samples or ()) if s}
+
     grouped: dict[str, dict[str, dict[str, Path]]] = {}
     duplicate_slots: list[str] = []
     unmatched: list[str] = []
     for path in fq_files:
-        parsed = _parse_fastq_name(path.name)
+        stem = _strip_fastq_ext(path.name)
+        m_num = re.match(r"^(?P<prefix>.+?)_(?P<num>\d+)$", stem)
+        allow_bare_12_pair = bool(
+            m_num
+            and bare_numeric_suffixes.get(m_num.group("prefix")) == {1, 2}
+            and stem not in known_set
+        )
+        parsed = _parse_fastq_name(
+            path.name, allow_bare_12_pair=allow_bare_12_pair
+        )
         if parsed is None:
             unmatched.append(path.name)
             continue
         sample_name, lane, read = parsed
+        if r1_only and read == "R2":
+            continue
         slot = grouped.setdefault(sample_name, {}).setdefault(lane, {})
         if read in slot:
             duplicate_slots.append(f"{sample_name}/{lane}/{read}")
@@ -174,7 +236,7 @@ def _detect_samples(fastq_dir: Path, warnings: list,
 
     if unmatched:
         warnings.append(
-            "Unrecognized FASTQ names (expected an R1/R2 or _1/_2 suffix): "
+            "Unrecognized FASTQ names (unexpected barcode/index read slot): "
             + ", ".join(unmatched)
         )
     if duplicate_slots:
@@ -198,7 +260,7 @@ def _detect_samples(fastq_dir: Path, warnings: list,
             lane_records.append({
                 "lane": lane,
                 "r1": str(reads["R1"]),
-                "r2": str(reads["R2"]) if "R2" in reads else None,
+                "r2": None if r1_only else (str(reads["R2"]) if "R2" in reads else None),
             })
         if invalid or not lane_records:
             continue
@@ -228,39 +290,54 @@ def _detect_samples(fastq_dir: Path, warnings: list,
 
     if not samples:
         warnings.append(
-            "Could not pair R1/R2 files. "
-            "Expected naming: sample_1.fq.gz / sample_2.fq.gz "
-            "or sample_R1.fastq.gz / sample_R2.fastq.gz"
+            "Could not resolve FASTQ sample manifest. "
+            "Expected paired R1/R2 or single-end FASTQ files."
         )
 
     return samples
 
 
-def _parse_fastq_name(filename: str) -> tuple[str, str, str] | None:
-    """Return ``(sample, lane, R1|R2)`` for supported FASTQ names."""
-    stem = filename
-    for extension in (".fastq.gz", ".fq.gz", ".fastq", ".fq"):
-        if stem.endswith(extension):
-            stem = stem[:-len(extension)]
-            break
+def _parse_fastq_name(
+    filename: str, *, allow_bare_12_pair: bool = True
+) -> tuple[str, str, str] | None:
+    """Return ``(sample, lane, R1|R2)`` for supported paired or single-end FASTQ names."""
+    stem = _strip_fastq_ext(filename)
 
-    patterns = (
+    # Explicitly reject non-bulk barcode/index slots (R3, R4, I1, I2).
+    if re.search(r"_(?:R[34]|I[12])(?:_\d+)?$", stem, re.IGNORECASE):
+        return None
+
+    patterns: list[str] = [
         # Standard bcl2fastq / DRAGEN naming. The optional sample-number token
         # is technical metadata and is not part of the biological sample ID.
         r"^(?P<sample>.+?)(?:_S\d+)?_(?P<lane>L\d{3})_"
         r"(?P<read>R[12])(?:_\d+)?$",
         r"^(?P<sample>.+?)_(?P<read>R[12])(?:_\d+)?$",
-        r"^(?P<sample>.+?)_(?P<read>[12])$",
-    )
+    ]
+    if allow_bare_12_pair:
+        patterns.append(r"^(?P<sample>.+?)_(?P<read>[12])$")
     for pattern in patterns:
-        match = re.match(pattern, stem)
+        match = re.match(pattern, stem, flags=re.IGNORECASE)
         if not match:
             continue
-        read = match.group("read")
+        read = match.group("read").upper()
         if read in {"1", "2"}:
             read = f"R{read}"
-        lane = match.groupdict().get("lane") or "L001"
+        lane = (match.groupdict().get("lane") or "L001").upper()
         return match.group("sample"), lane, read
+
+    # Single-end lane naming without _R1 (e.g. sample_S1_L002_001.fastq.gz)
+    se_lane = re.match(
+        r"^(?P<sample>.+?)(?:_S\d+)?_(?P<lane>L\d{3})(?:_\d+)?$",
+        stem,
+        flags=re.IGNORECASE,
+    )
+    if se_lane:
+        return se_lane.group("sample"), se_lane.group("lane").upper(), "R1"
+
+    # Generic single-end FASTQ (e.g. SRR123456.fastq.gz, ctrl_rep1.fq.gz)
+    if stem:
+        return stem, "L001", "R1"
     return None
 
 
@@ -269,21 +346,19 @@ def _fastp_outputs_valid(r1_out: str, r2_out: str, json_out: str,
     """
     Check if fastp outputs are present and valid for skipping.
     Requires:
-      - R1 trimmed file > 1 KB (non-empty gzip)
-      - R2 trimmed file > 1 KB if paired
+      - R1 trimmed file > 64 bytes (non-empty gzip payload)
+      - R2 trimmed file > 64 bytes if paired
       - JSON report > 100 bytes (non-empty report)
-    Note: a valid gzip file has a minimum empty-payload size of ~20 bytes;
-    we use 1 KB as a conservative real-data floor.
     """
     try:
         r1 = Path(r1_out)
-        if not r1.exists() or r1.stat().st_size < 1024:
+        if not r1.exists() or r1.stat().st_size < 64:
             return False
         if paired:
             if not r2_out:
                 return False
             r2 = Path(r2_out)
-            if not r2.exists() or r2.stat().st_size < 1024:
+            if not r2.exists() or r2.stat().st_size < 64:
                 return False
         j = Path(json_out)
         if not j.exists() or j.stat().st_size < 100:
@@ -296,7 +371,13 @@ def _fastp_outputs_valid(r1_out: str, r2_out: str, json_out: str,
 def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
                threads: int, min_len: int, quality: int,
                warnings: list,
-               allow_mock: bool = False) -> dict:
+               allow_mock: bool = False,
+               *,
+               library_protocol: str = "full_length",
+               trim_poly_x: bool = False,
+               trim_poly_g: bool = True,
+               trim_front1: int = 0,
+               umi_config: dict | None = None) -> dict:
     """Run fastp for every lane and aggregate one sample-level result."""
     name = sample["name"]
     read_layout = sample.get(
@@ -327,6 +408,11 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
             quality=quality,
             warnings=warnings,
             allow_mock=allow_mock,
+            library_protocol=library_protocol,
+            trim_poly_x=trim_poly_x,
+            trim_poly_g=trim_poly_g,
+            trim_front1=trim_front1,
+            umi_config=umi_config,
         )
         lane_result["lane"] = lane["lane"]
         lane_results.append(lane_result)
@@ -354,6 +440,8 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
         "status": "failed" if failed_lanes else "success",
         "read_layout": read_layout,
         "paired": read_layout == "paired-end",
+        "library_protocol": library_protocol,
+        "umi_extracted": bool(umi_config),
         "lanes": lane_results,
         "failed_lanes": failed_lanes,
         "r1_raw": lanes[0]["r1"],
@@ -376,7 +464,13 @@ def _run_fastp(sample: dict, trimmed_dir: Path, fastp_dir: Path,
 def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
                     threads: int, min_len: int, quality: int,
                     warnings: list,
-                    allow_mock: bool = False) -> dict:
+                    allow_mock: bool = False,
+                    *,
+                    library_protocol: str = "full_length",
+                    trim_poly_x: bool = False,
+                    trim_poly_g: bool = True,
+                    trim_front1: int = 0,
+                    umi_config: dict | None = None) -> dict:
     """Run fastp on one lane. Idempotent when its stage manifest is current."""
     name   = sample["name"]
     r1_in  = sample["r1"]
@@ -389,9 +483,22 @@ def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     html_out = str(fastp_dir / f"{name}_fastp.html")
 
     # A4: content-addressed resume manifest for this fastp stage.
+    # Preserve exact default keys when protocol/options are at standard defaults
+    # so existing stage manifests remain valid; record non-default protocol
+    # options so switching protocol/UMI/polyX invalidates stale trimmed reads.
     manifest_path = str(fastp_dir / f"{name}.fastp.stage.json")
     stage_inputs = [("r1", r1_in), ("r2", r2_in)]
-    stage_params = {"min_len": min_len, "quality": quality, "paired": paired}
+    stage_params: dict = {"min_len": min_len, "quality": quality, "paired": paired}
+    if library_protocol != "full_length":
+        stage_params["library_protocol"] = library_protocol
+    if trim_poly_x:
+        stage_params["trim_poly_x"] = True
+    if not trim_poly_g:
+        stage_params["trim_poly_g"] = False
+    if trim_front1 > 0:
+        stage_params["trim_front1"] = trim_front1
+    if umi_config:
+        stage_params["umi_config"] = umi_config
     tool_version = _fastp_version()
 
     result = {
@@ -404,9 +511,6 @@ def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
     }
 
     # ── Resume check: outputs valid AND the stage manifest still matches? ──
-    # A4: a valid-looking output is not enough — the input FASTQ, params, or
-    # tool version must be unchanged since the output was produced, else the
-    # stale output is silently reused.
     manifest_current, manifest_reason = stage_is_current(
         manifest_path, inputs=stage_inputs, params=stage_params,
         tool_version=tool_version,
@@ -439,6 +543,9 @@ def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
             # JSON corrupted — fall through to re-run fastp
             pass
 
+    # ADR-075: both single-end and paired-end reads undergo adapter trimming and
+    # Phred quality filtering (previously single-end erroneously passed
+    # --disable_adapter_trimming and --disable_quality_filtering).
     cmd = [
         "fastp",
         "--in1",  r1_in,
@@ -448,12 +555,29 @@ def _run_fastp_lane(sample: dict, trimmed_dir: Path, fastp_dir: Path,
         "--thread",      str(threads),
         "--length_required", str(min_len),
         "--qualified_quality_phred", str(quality),
-        "--detect_adapter_for_pe" if paired else "--disable_adapter_trimming",
-        "--correction" if paired else "--disable_quality_filtering",
         "--overrepresentation_analysis",
     ]
     if paired and r2_in and r2_out:
-        cmd += ["--in2", r2_in, "--out2", r2_out]
+        cmd += [
+            "--in2", r2_in,
+            "--out2", r2_out,
+            "--detect_adapter_for_pe",
+            "--correction",
+        ]
+    if trim_poly_g:
+        cmd.append("--trim_poly_g")
+    if trim_poly_x:
+        cmd += ["--trim_poly_x", "--poly_x_min_len", "10"]
+    if trim_front1 > 0:
+        cmd += ["--trim_front1", str(trim_front1)]
+    if umi_config:
+        cmd += [
+            "--umi",
+            "--umi_loc", str(umi_config["umi_loc"]),
+            "--umi_len", str(int(umi_config["umi_len"])),
+        ]
+        if int(umi_config.get("umi_skip", 0) or 0) > 0:
+            cmd += ["--umi_skip", str(int(umi_config["umi_skip"]))]
     cmd = [c for c in cmd if c]
 
     try:

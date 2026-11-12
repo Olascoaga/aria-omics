@@ -98,3 +98,24 @@ print(result["status"], result["report_dir"])
 ```
 
 Every policy-selected checkpoint answer is persisted to `ARIAMemory` (`decisions` table with `made_by="headless_policy"`) and audited in `methodology.json` and `memory_snapshot.sqlite`.
+
+---
+
+## 6. Raw FASTQ Multi-Platform RNA Configuration (`ADR-075`)
+
+ARIA supports five short-read raw FASTQ RNA platform families without manual external pre-processing:
+
+### Bulk RNA-seq (`bulk_RNA_raw`, `production`)
+Set `rna_library_protocol` in `exp_context` (or `pooled_plate_manifest.json` in the study directory for multiplexed plates):
+
+- **`full_length`** *(default)* — Standard SE/PE/multi-lane bulk RNA-seq (`STAR` 2-pass + `pysam` multi-contig fail-closed strandedness + `featureCounts`; exports `counts_tpm.tsv` and `counts_cpm.tsv`).
+- **`tag_3prime`** *(aliases: `quantseq`, `quantseq_fwd`, `quantseq_rev`, `smart3seq`, `3prime_rna`)* — 3' end-tag libraries (`fastp --trim_poly_x --trim_poly_g` + 1-pass `STAR` preserving terminal soft-clips; exports `counts_cpm.tsv` and suppresses `TPM`).
+- **`tag_5prime`** *(aliases: `cage`, `nanocage`, `rampage`, `5prime_rna`)* — 5'-TSS tag libraries (`counts_cpm.tsv` exported; `TPM` suppressed).
+- **`umi_bulk`** *(aliases: `quantseq_umi`, `qiaseq_upx`, `umi_rna`)* — Per-sample inline-UMI libraries (`umi_config: {"umi_loc": "read1", "umi_len": 8, "umi_skip": 0, "is_tag_assay": true}` -> `fastp --umi` + `rna_umi_dedup.py` directional 1-Hamming UMI collapse).
+- **`pooled_plate_bulk`** *(aliases/presets: `brbseq`, `drugseq`, `primeseq`, `quantseq_pool`, `celseq2_bulk`)* — Multiplexed well-barcode + UMI plate libraries (`pooled_plate_manifest: {"preset": "brbseq", "barcode_to_sample": {"AAACCC...": "ctrl_1", ...}}` -> `STARsolo CB_UMI_Simple 1MM_Directional_UMItools`).
+
+### Single-Cell RNA-seq (`scRNA` via `kb-python`, `production`)
+Pass `chemistry` (or `kb_technology`) for 3', 5', plate, combinatorial, or custom geometries:
+- **10x 3' & 5':** `10XV2`, `10XV3`, `10XV4`, `10X_5P` (R2-only cDNA), `10X_5P_PE` (`0,0,16:0,16,26:0,39,0,1,0,0` skipping the 13-bp TSO on R1).
+- **Plate / microwell / combinatorial:** `SMARTSEQ2`, `SMARTSEQ3`, `BDWTA` (`bd_rhapsody`), `CELSEQ2`, `DROPSEQ`, `SPLIT-SEQ`, `STORMSEQ`, `VISIUM`, or custom `bc:umi:cdna` tuples.
+- **Fail-closed boundaries:** Long-read RNA-seq (`>=600 bp`), V(D)J TCR/BCR repertoire FASTQs, and unmanifested asymmetric barcode+UMI paired FASTQs routed to per-sample bulk alignment block pre-dispatch (`red`).

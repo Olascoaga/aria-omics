@@ -49,9 +49,20 @@ def validate_assay_contract(
         "genome": _genome_check(exp_context, modality),
         "sample_metadata": _sample_metadata_check(exp_context, files),
         "barcode_namespace": _barcode_check(exp_context, modality, files),
+        "rna_fastq_protocol": _rna_fastq_protocol_check(exp_context, modality, files),
         "replicate_structure": _replicate_check(exp_context, modality, files),
         "feature_coordinates": _coordinate_check(files),
     }
+
+    rna_proto = checks["rna_fastq_protocol"]
+    for item in rna_proto.get("findings") or []:
+        findings.append(_finding(
+            item["severity"],
+            item["check"],
+            item["message"],
+            item["recommendation"],
+            item.get("modality", modality),
+        ))
 
     if modality in _CHROMATIN_MODALITIES and not checks["genome"]["valid"]:
         findings.append(_finding(
@@ -124,7 +135,23 @@ def validate_assay_contract(
         ))
 
     reps = checks["replicate_structure"]
-    if reps["status"] == "warning":
+    if reps["status"] == "blocked":
+        findings.append(_finding(
+            "blocking",
+            "assay_contract_replicates_under_replicated",
+            (
+                f"{modality} inferential contrast has fewer than two biological "
+                f"replicates in at least one condition: "
+                f"{reps.get('replicates_per_condition')}."
+            ),
+            (
+                "Do not dispatch inferential bulk RNA-seq DE with n<2 biological "
+                "replicates per condition. Add biological replicates or remove "
+                "the contrast."
+            ),
+            modality,
+        ))
+    elif reps["status"] == "warning":
         findings.append(_finding(
             "warning",
             "assay_contract_replicates_low_or_missing",
@@ -259,6 +286,16 @@ def _barcode_check(
     }
 
 
+def _rna_fastq_protocol_check(
+    exp_context: dict[str, Any],
+    modality: str,
+    files: list[str],
+) -> dict[str, Any]:
+    from aria.utils.rna_fastq_protocol import validate_rna_fastq_contract
+
+    return validate_rna_fastq_contract(exp_context, modality, files)
+
+
 def _sample_metadata_check(exp_context: dict[str, Any], files: list[str]) -> dict[str, Any]:
     comparisons = exp_context.get("comparisons")
     if not comparisons:
@@ -302,9 +339,29 @@ def _replicate_check(
     modality: str,
     files: list[str],
 ) -> dict[str, Any]:
-    comparisons = exp_context.get("comparisons")
-    if not comparisons or modality not in {"bulk_ATAC", "scATAC", "bulk_RNA", "scRNA"}:
-        return {"status": "pass", "required_for_comparison": bool(comparisons)}
+    design = exp_context.get("design") or exp_context.get("inferred_design") or {}
+    groups = (
+        (design.get("analysis_groups") or design.get("groups") or {})
+        if isinstance(design, dict)
+        else {}
+    )
+    comparisons = exp_context.get("comparisons") or (
+        (design.get("comparisons") or design.get("contrasts") or design.get("plan_contrasts"))
+        if isinstance(design, dict)
+        else None
+    )
+    has_explicit_bulk_contrast = (
+        modality in {"bulk_RNA", "bulk_RNA_raw"}
+        and isinstance(groups, dict)
+        and len(groups) >= 2
+    )
+    if (not comparisons and not has_explicit_bulk_contrast) or modality not in {
+        "bulk_ATAC", "scATAC", "bulk_RNA", "bulk_RNA_raw", "scRNA"
+    }:
+        return {
+            "status": "pass",
+            "required_for_comparison": bool(comparisons or has_explicit_bulk_contrast),
+        }
 
     metadata = exp_context.get("sample_metadata") or {}
     condition_col = exp_context.get("condition_col", "condition")
@@ -321,9 +378,7 @@ def _replicate_check(
             replicate = row.get(replicate_col) or row.get("replicate")
             if condition and replicate:
                 counts.setdefault(str(condition), set()).add(str(replicate))
-    else:
-        design = exp_context.get("design") or exp_context.get("inferred_design") or {}
-        groups = design.get("analysis_groups") or design.get("groups") or {}
+    elif isinstance(groups, dict):
         for condition, reps in groups.items():
             if isinstance(reps, (list, tuple, set)):
                 counts[str(condition)] = {str(r) for r in reps if str(r).strip()}
@@ -332,7 +387,14 @@ def _replicate_check(
 
     per_condition = {condition: len(reps) for condition, reps in counts.items()}
     min_reps = min(per_condition.values()) if per_condition else 0
-    status = "warning" if not per_condition or min_reps < 2 else "pass"
+    if (
+        modality in {"bulk_RNA", "bulk_RNA_raw"}
+        and len(per_condition) >= 2
+        and min_reps < 2
+    ):
+        status = "blocked"
+    else:
+        status = "warning" if not per_condition or min_reps < 2 else "pass"
     return {
         "status": status,
         "required_for_comparison": True,
@@ -409,6 +471,11 @@ def _sample_ids(exp_context: dict[str, Any], files: list[str]) -> list[str]:
     sample_ids = exp_context.get("sample_ids")
     if isinstance(sample_ids, (list, tuple)) and sample_ids:
         return [str(s) for s in sample_ids]
+    from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol
+
+    proto = resolve_bulk_rna_protocol(exp_context)
+    if proto.get("pooled_plate_manifest"):
+        return list(proto["pooled_plate_manifest"]["barcode_to_sample"].values())
     return [Path(f).stem.replace(".bam", "") for f in files]
 
 

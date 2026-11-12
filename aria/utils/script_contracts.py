@@ -668,10 +668,10 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("figures", "dict", required=False),
         ),
     ),
-    # FASTQ preprocessing flow (beta).
+    # Universal Bulk RNA FASTQ preprocessing flow (ADR-075: production).
     "aria/scripts/rna_fastq_qc.py": ScriptContract(
         script_path="aria/scripts/rna_fastq_qc.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("fastq_dir", "str", allow_empty=False),
             _f("fastq_files", "list", required=False, allow_empty=False),
@@ -683,7 +683,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/rna_align.py": ScriptContract(
         script_path="aria/scripts/rna_align.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("samples", "list", allow_empty=False),
             _f("genome_dir", "str", allow_empty=False),
@@ -693,15 +693,42 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("n_aligned", "int"),
         ),
     ),
+    "aria/scripts/rna_umi_dedup.py": ScriptContract(
+        script_path="aria/scripts/rna_umi_dedup.py",
+        validation_level="production",
+        inputs=(
+            _f("bam_files", "list", allow_empty=False),
+            _f("output_dir", "str", required=False, allow_empty=False),
+        ),
+        success_outputs=(
+            _f("bam_files", "list", allow_empty=False),
+            _f("n_deduplicated", "int"),
+        ),
+    ),
     "aria/scripts/rna_quantify.py": ScriptContract(
         script_path="aria/scripts/rna_quantify.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("bam_files", "list", allow_empty=False),
             _f("gtf_file", "str", allow_empty=False),
         ),
         success_outputs=(
             _f("counts_matrix", "any"),
+            _f("read_layout", "str"),
+        ),
+    ),
+    "aria/scripts/rna_starsolo_bulk.py": ScriptContract(
+        script_path="aria/scripts/rna_starsolo_bulk.py",
+        validation_level="production",
+        inputs=(
+            _f("fastq_files", "list", allow_empty=False),
+            _f("genome_dir", "str", allow_empty=False),
+            _f("pooled_plate_manifest", "dict", allow_empty=False),
+        ),
+        success_outputs=(
+            _f("counts_matrix", "path", allow_empty=False, path_must_exist=True),
+            _f("n_genes", "int"),
+            _f("n_samples", "int"),
             _f("read_layout", "str"),
         ),
     ),

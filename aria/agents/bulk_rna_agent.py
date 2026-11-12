@@ -106,7 +106,7 @@ class BulkRNAAgent(BaseAgent):
         exp_ctx    = context.get("exp_context", {})
         intent     = context.get("biological_intent", {})
         modalities = exp_ctx.get("modalities", {})
-        files      = modalities.get("bulk_RNA", [])
+        files      = modalities.get("bulk_RNA", []) or modalities.get("bulk_RNA_raw", [])
 
         if not files:
             return {"status": "failed", "reason": "no_bulk_rna_files"}
@@ -224,6 +224,28 @@ class BulkRNAAgent(BaseAgent):
             0.70,
         )
 
+        from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol
+
+        proto_for_de = resolve_bulk_rna_protocol(exp_ctx)
+        de_proto = (
+            (preprocessing or {}).get("protocol")
+            or proto_for_de.get("protocol")
+            or "full_length"
+        )
+        de_suppress_tpm = bool(
+            (preprocessing or {}).get(
+                "suppress_tpm",
+                proto_for_de.get("suppress_tpm", False),
+            )
+        )
+        de_extra_params = {}
+        if de_proto != "full_length":
+            de_extra_params["library_protocol"] = de_proto
+        if de_suppress_tpm:
+            de_extra_params["suppress_tpm"] = True
+        if proto_for_de.get("umi_config"):
+            de_extra_params["umi_config"] = proto_for_de["umi_config"]
+
         result = self.env.run_in_stack(
             stack="rna",
             script_path="aria/scripts/rna_bulk_de.py",
@@ -246,6 +268,7 @@ class BulkRNAAgent(BaseAgent):
                 "lfc_threshold":  lfc_thr,
                 **({"n_cpus": _preprocessing_threads(exp_ctx)}
                    if "n_cpus" in exp_ctx else {}),
+                **de_extra_params,
             },
         )
 
@@ -712,7 +735,16 @@ class BulkRNAAgent(BaseAgent):
         try:
             methodology = (result.get("methodology") or {})
             decisions   = methodology.get("decisions", []) or []
-            stage_to_cp = {"Differential expression (DESeq2)": 1, "PCA + MDS (sample-level structure)": 2, "Heatmap (padj top 50)": 3, "Heatmap (|log2FC| top 50)": 4, "Pathway enrichment (ORA)": 5, "GSEA (pre-ranked)": 6, "TPM (supplementary export)": 7}
+            stage_to_cp = {
+                "Differential expression (DESeq2)": 1,
+                "PCA + MDS (sample-level structure)": 2,
+                "Heatmap (padj top 50)": 3,
+                "Heatmap (|log2FC| top 50)": 4,
+                "Pathway enrichment (ORA)": 5,
+                "GSEA (pre-ranked)": 6,
+                "TPM (supplementary export)": 7,
+                "CPM (supplementary export; TPM suppressed)": 7,
+            }
 
             for d in decisions:
                 step, cp = d.get("step", ""), stage_to_cp.get(d.get("step", ""), 0)
@@ -752,60 +784,204 @@ class BulkRNAAgent(BaseAgent):
             log.warning(f"Decision logging failed (non-fatal): {e}")
 
     def _run_preprocessing(self, experiment_id: str, fastq_files: list, exp_ctx: dict, intent: dict) -> tuple:
-        fastq_dir, output_dir, genome_cfg = str(Path(fastq_files[0]).parent), str(Path(fastq_files[0]).parent.parent / "aria_processing"), exp_ctx.get("genome_config", {})
+        from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol
+
+        fastq_dir = str(Path(fastq_files[0]).parent)
+        output_dir = str(Path(fastq_files[0]).parent.parent / "aria_processing")
+        genome_cfg = exp_ctx.get("genome_config", {}) or {}
         threads = _preprocessing_threads(exp_ctx)
+
+        proto = resolve_bulk_rna_protocol(exp_ctx)
+        if proto["status"] == "invalid":
+            err_msg = "; ".join(proto["errors"])
+            self.publish_finding(
+                experiment_id,
+                {"summary": f"FASTQ protocol validation failed: {err_msg}"},
+                Confidence.INSUFFICIENT,
+            )
+            return None, {
+                "status": "error",
+                "error_type": "InvalidRnaFastqProtocol",
+                "details": err_msg,
+            }
+
+        canonical_proto = proto["protocol"]
+        star_index_dir = genome_cfg.get("star_index", "")
+        if not star_index_dir and genome_cfg.get("fasta"):
+            star_index_dir = str(Path(output_dir) / "star_index")
+
+        # ── Family 4: Multiplexed well-barcode + UMI plate bulk (STARsolo) ───
+        if canonical_proto == "pooled_plate_bulk":
+            self.publish_status(
+                experiment_id,
+                "Demultiplexing & UMI-quantifying pooled plate FASTQs (STARsolo)...",
+                0.15,
+            )
+            solo_result = self.env.run_in_stack(
+                "rnaseq",
+                "aria/scripts/rna_starsolo_bulk.py",
+                {
+                    "fastq_files": fastq_files,
+                    "genome_dir": star_index_dir,
+                    "genome_fasta": genome_cfg.get("fasta", ""),
+                    "gtf_file": genome_cfg.get("gtf", ""),
+                    "pooled_plate_manifest": proto["pooled_plate_manifest"],
+                    "preset_hint": proto.get("raw_token"),
+                    "output_dir": str(Path(output_dir) / "starsolo_bulk"),
+                    "threads": threads,
+                },
+            )
+            if solo_result.get("status") == "error":
+                return None, solo_result
+
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"STARsolo pooled bulk quantification complete: "
+                        f"{solo_result.get('n_genes', 0):,} genes × "
+                        f"{solo_result.get('n_samples', 0)} barcoded samples "
+                        f"({solo_result.get('pct_unique', 0.0):.1f}% unique mapping, "
+                        "1MM_Directional UMI deduplicated)."
+                    )
+                },
+                Confidence.HIGH,
+            )
+            return [solo_result.get("counts_matrix")], {
+                "protocol": "pooled_plate_bulk",
+                "suppress_tpm": True,
+                "starsolo": solo_result,
+                "quantification": solo_result,
+            }
+
+        # ── Families 1, 2, 3: Per-sample full_length / tag_3prime / tag_5prime / umi_bulk
+        qc_params = {
+            "fastq_dir": fastq_dir,
+            "fastq_files": fastq_files,
+            "output_dir": str(Path(output_dir) / "qc"),
+            "threads": threads,
+        }
+        design_groups = ((exp_ctx.get("design") or {}).get("groups") or {})
+        if isinstance(design_groups, dict) and design_groups:
+            known_samples = [
+                str(s)
+                for samples in design_groups.values()
+                for s in (samples if isinstance(samples, (list, tuple, set)) else [samples])
+                if s
+            ]
+            if known_samples:
+                qc_params["known_samples"] = known_samples
+        if canonical_proto != "full_length":
+            qc_params["library_protocol"] = canonical_proto
+        if proto.get("umi_config"):
+            qc_params["umi_config"] = proto["umi_config"]
+        for opt_key in ("trim_poly_x", "trim_poly_g", "trim_front1", "r1_only", "min_length", "quality"):
+            if opt_key in genome_cfg:
+                qc_params[opt_key] = genome_cfg[opt_key]
 
         self.publish_status(experiment_id, "Trimming reads (fastp)...", 0.05)
         qc_result = self.env.run_in_stack(
             "rnaseq",
             "aria/scripts/rna_fastq_qc.py",
-            {
-                "fastq_dir": fastq_dir,
-                "fastq_files": fastq_files,
-                "output_dir": str(Path(output_dir) / "qc"),
-                "threads": threads,
-            },
+            qc_params,
         )
-        if qc_result.get("status") == "error": return None, qc_result
+        if qc_result.get("status") == "error":
+            return None, qc_result
 
         self._publish_fastq_qc_findings(experiment_id, qc_result)
         self.publish_status(experiment_id, f"QC complete: {qc_result.get('n_samples',0)} samples trimmed", 0.20)
+
+        align_params = {
+            "samples": qc_result.get("samples", []),
+            "genome_dir": star_index_dir,
+            "genome_fasta": genome_cfg.get("fasta", ""),
+            "gtf_file": genome_cfg.get("gtf", ""),
+            "output_dir": str(Path(output_dir) / "aligned"),
+            "threads": threads,
+            "two_pass": (
+                bool(genome_cfg["two_pass"])
+                if "two_pass" in genome_cfg
+                else (canonical_proto == "full_length")
+            ),
+        }
+        if canonical_proto != "full_length":
+            align_params["library_protocol"] = canonical_proto
 
         self.publish_status(experiment_id, "Aligning to genome (STAR)...", 0.25)
         align_result = self.env.run_in_stack(
             "rnaseq",
             "aria/scripts/rna_align.py",
-            {
-                "samples": qc_result.get("samples", []),
-                "genome_dir": genome_cfg.get("star_index", ""),
-                "genome_fasta": genome_cfg.get("fasta", ""),
-                "gtf_file": genome_cfg.get("gtf", ""),
-                "output_dir": str(Path(output_dir) / "aligned"),
-                "threads": threads,
-                "two_pass": True,
-            },
+            align_params,
         )
-        if align_result.get("status") == "error": return None, align_result
+        if align_result.get("status") == "error":
+            return None, align_result
 
         self._publish_alignment_findings(experiment_id, align_result)
-        self.publish_status(experiment_id, f"Alignment complete: {align_result.get('n_aligned', 0)} samples mapped", 0.55)
+        self.publish_status(experiment_id, f"Alignment complete: {align_result.get('n_aligned', 0)} samples mapped", 0.50)
+
+        bams_for_quant = align_result.get("bam_files", [])
+        dedup_result = None
+        if canonical_proto == "umi_bulk":
+            self.publish_status(
+                experiment_id,
+                "Deduplicating inline UMIs (directional 1-MM)...",
+                0.55,
+            )
+            dedup_result = self.env.run_in_stack(
+                "rnaseq",
+                "aria/scripts/rna_umi_dedup.py",
+                {
+                    "bam_files": bams_for_quant,
+                    "output_dir": str(Path(output_dir) / "umi_dedup"),
+                },
+            )
+            if dedup_result.get("status") == "error":
+                return None, dedup_result
+            bams_for_quant = dedup_result.get("bam_files", [])
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"UMI deduplication complete: "
+                        f"{dedup_result.get('n_deduplicated', 0)} samples "
+                        f"(mean PCR duplicate collapse "
+                        f"{dedup_result.get('mean_umi_dedup_rate_pct', 0.0):.1f}%)."
+                    )
+                },
+                Confidence.HIGH,
+            )
 
         self.publish_status(experiment_id, "Counting reads (featureCounts)...", 0.60)
         quant_result = self.env.run_in_stack(
             "rnaseq",
             "aria/scripts/rna_quantify.py",
             {
-                "bam_files": align_result.get("bam_files", []),
+                "bam_files": bams_for_quant,
                 "gtf_file": genome_cfg.get("gtf", ""),
                 "output_dir": str(Path(output_dir) / "counts"),
                 "threads": threads,
                 "strand": genome_cfg.get("strand", "auto"),
+                **(
+                    {"min_strand_reads": int(genome_cfg["min_strand_reads"])}
+                    if "min_strand_reads" in genome_cfg
+                    else {}
+                ),
             },
         )
-        if quant_result.get("status") == "error": return None, quant_result
+        if quant_result.get("status") == "error":
+            return None, quant_result
 
         self.publish_finding(experiment_id, {"summary": f"Quantification complete: {quant_result.get('n_genes',0):,} genes × {quant_result.get('n_samples',0)} samples"}, Confidence.HIGH)
-        return [quant_result.get("counts_matrix")], {"qc": qc_result, "alignment": align_result, "quantification": quant_result}
+        preproc_payload = {
+            "protocol": canonical_proto,
+            "suppress_tpm": proto["suppress_tpm"],
+            "qc": qc_result,
+            "alignment": align_result,
+            "quantification": quant_result,
+        }
+        if dedup_result is not None:
+            preproc_payload["umi_dedup"] = dedup_result
+        return [quant_result.get("counts_matrix")], preproc_payload
 
     def _publish_findings(self, experiment_id: str, result: dict):
         if not result.get("contrasts", []):

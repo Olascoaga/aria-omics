@@ -55,7 +55,7 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | `DesignAgent` | Confirms groups, explicit biological units vs technical replicates (`B1`), confounding vetoes (`B2`), reference levels, and contrasts before compute. |
 | `AuditAgent` | Pre-dispatch statistical power, confounding, and `CP3.5` readiness acknowledgement enforcement. |
 | `SetupAgent` & `EnvironmentManager` | Verifies lock-gated Conda stacks (`ENVIRONMENT_SPECS`) and executes `aria/scripts/*.py` subprocesses over validated JSON IPC (`ScriptContract`). |
-| `BulkRNAAgent` | Orchestrates bulk RNA-seq raw FASTQ preprocessing (`fastp` -> `STAR` -> `featureCounts`) and `pyDESeq2` DE + local GMT ORA + GSEA. |
+| `BulkRNAAgent` | Orchestrates universal bulk RNA-seq raw FASTQ preprocessing (`full_length`, 3'/5' tag, inline-UMI `pysam` dedup, and `STARsolo` pooled plates) and `pyDESeq2` DE + local GMT ORA + GSEA. |
 | `scRNAAgent` | Orchestrates QC, Harmony integration + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware pseudobulk DE, PAGA/DPT trajectory, and LIANA communication. |
 | `ChromatinAgent` | Orchestrates acknowledgement-gated `beta` scATAC (`chromap`/`snapatac2`, LSI, donor-aware DA, motifs, `peak2gene`, `TOBIAS`) and `beta` bulk ATAC (`bwa-mem2`, `MACS3` consensus, `bedtools` counts, `pyDESeq2` DA, annotation, ORA, motifs, `TOBIAS`). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
 | `IntegrationAgent` | Orchestrates acknowledgement-gated `beta` paired same-cell 10x Multiome (`paired_qc`, deterministic `WNN` + 5-axis guardrail, `MOFA+`, Signac-faithful `peak2gene`, and candidate `eRegulons`). Unpaired/diagonal combinations fail closed. |
@@ -81,7 +81,7 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | :--- | :--- | :--- | :--- |
 | `rna` | `aria-rna-env` | Scanpy, AnnData, pyDESeq2, gseapy, LIANA, CellTypist | **Locked (`active_scientific_runtime`)** |
 | `ingestion` | `aria-ingestion-env` | kb-python, kallisto, bustools | **Locked (`active_scientific_runtime`)** |
-| `rnaseq` | `aria-rnaseq-env` | fastp, STAR, Subread `featureCounts`, samtools, MultiQC | **Locked (`active_scientific_runtime`)** |
+| `rnaseq` | `aria-rnaseq-env` | fastp, STAR / STARsolo, pysam, Subread `featureCounts`, samtools, MultiQC | **Locked (`active_scientific_runtime`)** |
 | `atacseq` | `aria-atacseq-env` | bwa-mem2, chromap, samtools | **Locked (`active_scientific_runtime`)** |
 | `chromatin` | `aria-chromatin-env` | SnapATAC2, MACS3, bedtools, pysam, muon, mudata | **Locked (`active_scientific_runtime`)** |
 | `tobias` | `aria-tobias-env` | TOBIAS, samtools | **Locked (`active_scientific_runtime`)** |

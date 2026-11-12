@@ -86,8 +86,9 @@ from aria.scripts.rna_bulk.deseq2 import (  # noqa: E402,F401
     _shrink_coeff, _serialize_fit_warnings, _run_deseq2, _mock_de_result,
 )
 from aria.scripts.rna_bulk.transforms import (  # noqa: E402,F401
-    _run_vst, _select_variable_genes, _compute_tpm,
+    _run_vst, _select_variable_genes, _compute_tpm, _compute_cpm,
 )
+from aria.utils.rna_fastq_protocol import is_end_tag_or_umi_bias_protocol  # noqa: E402
 from aria.scripts.rna_bulk.counts import (  # noqa: E402,F401
     _load_counts, _enforce_metadata_correspondence, _metadata_inference_allowed,
     _load_or_infer_metadata, _aggregate_technical_replicates, _infer_groups,
@@ -306,21 +307,70 @@ def bulk_rna_de(params: dict) -> dict:
             f"sensitivity analysis when design support allows: {outlier_samples}."
         )
 
-    # ── 3b. TPM supplementary table ──────────────────────────────────────
-    # TPM is NOT used internally by ARIA (DESeq2 uses raw, DR uses VST).
-    # Computed here as a supplementary output for downstream tools that
-    # require TPM (ssGSEA, deconvolution methods, external sharing).
+    # ── 3b. Supplementary expression exports (CPM + protocol-gated TPM) ──
+    # Neither CPM nor TPM is used internally by ARIA (DESeq2 uses raw integer/UMI
+    # counts; PCA/MDS use VST). For 3'-tag, 5'-tag, tag-UMI, and pooled-plate UMI
+    # protocols (~1 tag per molecule regardless of transcript length), dividing
+    # by exon-union kb introduces length bias, so TPM is explicitly suppressed
+    # and CPM is exported instead (ADR-075).
+    library_protocol = str(params.get("library_protocol") or "full_length")
+    umi_config_param = params.get("umi_config")
+    suppress_tpm = bool(
+        params.get(
+            "suppress_tpm",
+            is_end_tag_or_umi_bias_protocol(library_protocol, umi_config_param),
+        )
+    )
+    cpm_path = Path(output_dir) / "counts_cpm.tsv"
+    tpm_path = Path(output_dir) / "counts_tpm.tsv"
+    cpm_written = False
+    tpm_written = False
+
     try:
-        tpm_matrix = _compute_tpm(counts, gene_lengths, warnings)
-        if tpm_matrix is not None:
-            tpm_path = Path(output_dir) / "counts_tpm.tsv"
-            tpm_matrix.to_csv(tpm_path, sep="\t")
-            warnings.append(
-                f"TPM table written ({len(tpm_matrix)} genes) — "
-                f"supplementary only; not used for DE or PCA."
-            )
+        cpm_matrix = _compute_cpm(counts, warnings)
+        if cpm_matrix is not None:
+            cpm_matrix.to_csv(cpm_path, sep="\t")
+            cpm_written = True
     except Exception as e:
-        warnings.append(f"TPM export failed (non-fatal): {e}")
+        warnings.append(f"CPM export failed (non-fatal): {e}")
+
+    if suppress_tpm:
+        if tpm_path.exists():
+            try:
+                tpm_path.unlink()
+            except OSError:
+                pass
+        warnings.append(
+            f"TPM export suppressed for protocol '{library_protocol}': "
+            "3'/5'-tag and tag-UMI libraries generate ~1 count per molecule "
+            "regardless of transcript length, so dividing by exon-union kb "
+            "introduces length bias. Supplementary CPM table written to "
+            "counts_cpm.tsv."
+        )
+        tpm_status = {
+            "computed": False,
+            "reason": "suppressed_for_end_tag_or_umi_protocol_length_bias",
+            "alternative": str(cpm_path) if cpm_written else "counts_cpm.tsv",
+            "library_protocol": library_protocol,
+        }
+    else:
+        try:
+            tpm_matrix = _compute_tpm(counts, gene_lengths, warnings)
+            if tpm_matrix is not None:
+                tpm_matrix.to_csv(tpm_path, sep="\t")
+                tpm_written = True
+                warnings.append(
+                    f"TPM table written ({len(tpm_matrix)} genes) — "
+                    f"supplementary only; not used for DE or PCA."
+                )
+        except Exception as e:
+            warnings.append(f"TPM export failed (non-fatal): {e}")
+        tpm_status = {
+            "computed": tpm_written,
+            "tpm_path": str(tpm_path) if tpm_written else None,
+            "cpm_path": str(cpm_path) if cpm_written else None,
+            "library_protocol": library_protocol,
+        }
 
     # ── 4. Filter low-count genes (shared across contrasts) ──────────────
     min_samples = max(2, metadata.shape[0] // 4)
@@ -712,13 +762,28 @@ def bulk_rna_de(params: dict) -> dict:
                 "gene_filter":    "None (uses full ranking)",
                 "justification":  "More sensitive than ORA to coordinated small effects; complementary to cutoff-based enrichment.",
             },
-            {
-                "step":           "TPM (supplementary export)",
-                "input":          "Raw counts + exon-union gene lengths",
-                "normalization":  "TPM (transcripts per million)",
-                "gene_filter":    "Genes with length annotation in GTF",
-                "justification":  "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA — both use more appropriate methods.",
-            },
+            (
+                {
+                    "step":           "CPM (supplementary export; TPM suppressed)",
+                    "input":          "Raw integer / UMI counts",
+                    "normalization":  "CPM (counts per million; length normalization omitted)",
+                    "gene_filter":    "All quantified genes",
+                    "justification":  (
+                        f"Protocol '{library_protocol}' produces 3'/5' terminal tags or "
+                        "tag-UMIs (~1 tag per molecule regardless of transcript length). "
+                        "Dividing by exon-union length (TPM) biases against long transcripts; "
+                        "CPM is exported instead for cross-sample comparison (ADR-075)."
+                    ),
+                }
+                if suppress_tpm
+                else {
+                    "step":           "TPM (supplementary export)",
+                    "input":          "Raw counts + exon-union gene lengths",
+                    "normalization":  "TPM (transcripts per million)",
+                    "gene_filter":    "Genes with length annotation in GTF",
+                    "justification":  "Supplementary table for downstream tools that require TPM (ssGSEA, deconvolution). NOT used by ARIA for DE or PCA — both use more appropriate methods.",
+                }
+            ),
         ],
         "n_genes_dr":         sample_qc.get("n_genes_dr", 0),
         "n_protein_coding":   sample_qc.get("n_protein_coding", 0),
@@ -747,6 +812,8 @@ def bulk_rna_de(params: dict) -> dict:
         "overlap":          overlap_info,
         "methodology":      methodology,
         "count_source":     count_source,
+        "library_protocol": library_protocol,
+        "tpm_status":       tpm_status,
         "technical_replicate_aggregation": technical_replicate_aggregation,
         "metadata_correspondence": metadata_correspondence,
         "warnings":         warnings,

@@ -1,5 +1,5 @@
-"""Bulk RNA-seq expression transforms: VST, variable-gene selection, TPM
-(A7 split of rna_bulk_de.py; bodies verbatim).
+"""Bulk RNA-seq expression transforms: VST, variable-gene selection, TPM, CPM
+(A7 split of rna_bulk_de.py; ADR-075 adds CPM for 3'/5'-tag and UMI protocols).
 
 Re-exported from aria.scripts.rna_bulk_de."""
 from __future__ import annotations
@@ -193,8 +193,27 @@ def _compute_tpm(counts_raw, gene_lengths: dict, warnings: list):
         return None
 
 
+def _compute_cpm(counts_raw, warnings: list):
+    """
+    Compute CPM (Counts Per Million) from raw integer or UMI counts.
 
+    CPM = reads_or_umis_per_gene / (sample_library_total / 1e6)
 
+    CPM is library-size normalized without transcript-length division, making
+    it the valid supplementary expression table for 3'-tag, 5'-tag, inline-UMI,
+    and pooled-plate UMI bulk RNA-seq protocols where dividing by exon-union
+    length (TPM) introduces severe length bias (ADR-075). NOT used for DE or PCA.
+    """
+    try:
+        import numpy as np
+
+        lib_millions = counts_raw.sum(axis=0).astype(float) / 1e6
+        lib_safe = lib_millions.replace(0.0, np.nan)
+        cpm = counts_raw.astype(float).div(lib_safe, axis=1).fillna(0.0)
+        return cpm.round(3)
+    except Exception as e:
+        warnings.append(f"CPM computation failed: {e}")
+        return None
 
 
 # ══════════════════════════════════════════════════════════════════════════════

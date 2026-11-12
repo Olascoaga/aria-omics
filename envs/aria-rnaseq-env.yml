@@ -16,5 +16,6 @@ dependencies:
   - samtools>=1.21
   - multiqc>=1.25
   - fastqc>=0.12
+  - pysam>=0.22
   - pandas>=1.5
-  - numpy<2.0.0
+  - numpy>=1.24,<2.0.0

@@ -61,12 +61,10 @@ SIGNATURES = {
         r".*salmon.*/quant\.sf$",
         r".*kallisto.*/abundance\.tsv$",
     ],
-    # Bulk RNA — raw FASTQs (need preprocessing: fastp → STAR → featureCounts)
+    # Bulk RNA — raw FASTQs (need preprocessing: fastp → STAR/STARsolo → featureCounts)
     "bulk_RNA_raw": [
-        r".*_R[12]_.*\.fastq(\.gz)?$",
-        r".*_R[12]\.fastq(\.gz)?$",
-        r".*_[12]\.fastq(\.gz)?$",
-        r".*_[12]\.fq(\.gz)?$",
+        r".*_R[12](?:_.*)?\.(?:fastq|fq)(?:\.gz)?$",
+        r".*_[12]\.(?:fastq|fq)(?:\.gz)?$",
     ],
     # Single-cell ATAC (incl. same-cell paired RNA+ATAC MuData, the v4.6 entry
     # path — C8, audit 2026-05-29). A `.h5mu` carries both modalities; it is
@@ -1000,29 +998,48 @@ class DataAuditAgent(BaseAgent):
         return warnings
 
     _FASTQ_NAME_RE = re.compile(r"\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
+    _EXPLICIT_BULK_RNA_FASTQ_RE = re.compile(
+        r"(?:quantseq|smart[_\-]?3seq|3prime|5prime|nanocage|rampage|"
+        r"(?:^|[_\-./])cage(?:[_\-./]|$)|brb[_\-]?seq|drug[_\-]?seq|"
+        r"prime[_\-]?seq|rnaseq|rna[_\-]?seq)",
+        re.IGNORECASE,
+    )
+    _NON_BULK_READ_SLOT_RE = re.compile(
+        r"_(?:R[34]|I[12])(?:_|\.)", re.IGNORECASE
+    )
 
     @classmethod
     def _fastq_modality_hint(cls, fname: str, fpath: str) -> tuple[str | None, bool]:
-        """E2: filename modality HINT for a FASTQ (never binding).
+        """E2 + ADR-075: filename modality HINT for a FASTQ (never binding).
 
         A modality-keyword signature (atac/scatac/hic/chip/cut&run/cut&tag, histone
-        marks) beats the generic paired-end ``bulk_RNA_raw`` rule — fixing the
-        order-dependent misroute. Returns ``(modality, ambiguous)``: a keyword hit
-        is a confident hint (``ambiguous=False``); a plain ``_R[12]`` FASTQ with no
-        modality signal falls to ``bulk_RNA_raw`` as an ambiguous hint
-        (``ambiguous=True``); no FASTQ signature match → ``(None, False)``.
+        marks) beats the generic ``bulk_RNA_raw`` rule — fixing the order-dependent
+        misroute. Explicit RNA/tag/plate keywords (QuantSeq, CAGE, BRB-seq, etc.)
+        yield a confident ``bulk_RNA_raw`` hint (``ambiguous=False``); signalless
+        single-end or paired-end R1/R2 FASTQs fall to ``bulk_RNA_raw`` as an
+        ambiguous hint (``ambiguous=True``); R3/I1/I2 barcode/index slots return
+        ``(None, False)``.
         """
         for modality, patterns in SIGNATURES.items():
             if modality == "bulk_RNA_raw":
-                continue  # generic paired-end rule is the last resort for FASTQ
+                continue  # generic RNA rule is checked after specific chromatin/HiC keywords
             for pat in patterns:
                 if re.search(pat, fname, re.IGNORECASE) or \
                    re.search(pat, fpath, re.IGNORECASE):
                     return modality, False
+        if cls._NON_BULK_READ_SLOT_RE.search(fname):
+            return None, False
+        if (
+            cls._EXPLICIT_BULK_RNA_FASTQ_RE.search(fname)
+            or cls._EXPLICIT_BULK_RNA_FASTQ_RE.search(fpath)
+        ):
+            return "bulk_RNA_raw", False
         for pat in SIGNATURES["bulk_RNA_raw"]:
             if re.search(pat, fname, re.IGNORECASE) or \
                re.search(pat, fpath, re.IGNORECASE):
                 return "bulk_RNA_raw", True
+        if cls._FASTQ_NAME_RE.search(fname):
+            return "bulk_RNA_raw", True
         return None, False
 
     @staticmethod

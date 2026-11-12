@@ -86,6 +86,41 @@ def test_capability_matrix_marks_beta_and_scatac_alpha_as_yellow():
     assert matrix["dispatch"]["blocked"] == []
 
 
+def test_bulk_rna_raw_default_registry_promoted_to_production_auto_dispatch():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION
+
+    assert MODALITY_VALIDATION["bulk_RNA_raw"]["level"] == "production"
+    matrix = build_capability_matrix(
+        {
+            "genome": "hg38",
+            "modalities": {
+                "bulk_RNA_raw": [
+                    "/data/ctrl_1_R1.fastq.gz",
+                    "/data/ctrl_2_R1.fastq.gz",
+                    "/data/ctrl_3_R1.fastq.gz",
+                    "/data/treat_1_R1.fastq.gz",
+                    "/data/treat_2_R1.fastq.gz",
+                    "/data/treat_3_R1.fastq.gz",
+                ],
+            },
+            "design": {
+                "groups": {
+                    "ctrl": ["ctrl_1", "ctrl_2", "ctrl_3"],
+                    "treat": ["treat_1", "treat_2", "treat_3"],
+                },
+            },
+        },
+        modality_validation=MODALITY_VALIDATION,
+    )
+    card = matrix["cards"]["bulk_RNA_raw"]
+    assert card["validation_level"] == "production"
+    assert card["status"] == "green"
+    assert card["dispatch_policy"] == "auto"
+    assert matrix["dispatch"]["allowed"] == ["bulk_RNA_raw"]
+    assert matrix["dispatch"]["requires_ack"] == []
+    assert matrix["dispatch"]["blocked"] == []
+
+
 def test_scatac_card_is_beta_requires_ack_after_dealpha():
     # De-alpha 2026-06-15 (ADR-048): the ChromatinAuditAgent card reports beta +
     # the beta readiness finding, and scATAC still requires explicit ack.

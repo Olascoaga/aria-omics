@@ -89,6 +89,12 @@ jobs:
             tests/test_docker_hermeticity.py \
             tests/test_image_provenance.py \
             tests/test_assay_detector_fastq.py \
+            tests/test_preprint_audit_e2_library_type.py \
+            tests/test_preprint_audit_e4_bulk_fastq_manifest.py \
+            tests/test_preprint_audit_e5_scatac_manifest.py \
+            tests/test_preprint_audit_a4_stage_manifests.py \
+            tests/test_raw_ingestion_kb_dispatch.py \
+            tests/test_bulk_rna_raw_multiplatform_e2e.py \
             tests/test_metadata_correction.py \
             tests/test_benchmark_a1_seqc_maqc.py \
             tests/test_benchmark_a2_kang_muscat.py \

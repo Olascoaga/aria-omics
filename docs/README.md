@@ -29,7 +29,7 @@ power, quality control, or biological conclusions.
 ## Workflow guides
 
 ### Production-tier runtime modalities
-- [Bulk RNA-seq](workflows/bulk_rna.md) *(count-matrix DE is Production; raw FASTQ preprocessing is Beta)*
+- [Bulk RNA-seq](workflows/bulk_rna.md) *(count-matrix DE and universal multi-platform raw FASTQ preprocessing are Production)*
 - [Single-cell RNA-seq](workflows/scrna.md)
 - [Donor-level pseudobulk scRNA-seq](workflows/pseudobulk_scrna.md)
 

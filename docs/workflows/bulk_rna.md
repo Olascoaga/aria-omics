@@ -1,24 +1,39 @@
 # Bulk RNA-seq Workflow
 
-Validation level: validated on controlled + small real datasets for count
-matrices; beta for FASTQ preprocessing. Publication still requires expert
-review of the design, the fitted model, and the conclusions.
+Validation level: **validated (`production`)** for both count matrices and
+universal multi-platform raw FASTQ preprocessing (`ADR-075`). Publication still
+requires expert review of the experimental design, fitted model, power, QC, and
+conclusions.
 
 ## Goal
 
-Run differential expression and pathway analysis for bulk RNA-seq experiments
-after confirming the biological design.
+Run differential expression and pathway analysis for bulk RNA-seq experiments —
+from either pre-computed count matrices or raw short-read FASTQ libraries across
+four bulk platform families — after confirming the biological design.
 
 ## Inputs
 
-Preferred stable input:
+Validated `production` entry points:
 
-- count matrix with genes as rows and samples as columns;
-- sample metadata or names that can be mapped to biological groups.
-
-Beta input:
-
-- FASTQ files with enough metadata to infer samples and groups.
+- **Count matrices:** genes as rows and samples as columns with explicit sample
+  metadata and requested contrasts.
+- **Universal raw FASTQ (`bulk_RNA_raw`):**
+  1. **`full_length` (default):** TruSeq Stranded (`-s 2`), NEBNext, Ligation
+     (`-s 1`), Ribo-Zero (`-s 0`), SMART-Seq bulk (SE, PE, multi-lane
+     `L001..L00N`) -> `fastp` + `STAR` 2-pass + `pysam` multi-contig fail-closed
+     auto-strandedness + `featureCounts` (`TPM` + `CPM` supplementary tables).
+  2. **`tag_3prime` & `tag_5prime`:** Lexogen QuantSeq 3' FWD/REV, Takara
+     SMART-3Seq, 5' CAGE / nanoCAGE / RAMPAGE -> `fastp` (`--trim_poly_x`,
+     `--trim_poly_g`, `min_length=20`) + `STAR` 1-pass (preserving terminal
+     soft-clipped tags) + `featureCounts` (`counts_cpm.tsv` exported; `TPM`
+     suppressed due to gene-length bias).
+  3. **`umi_bulk`:** QuantSeq-UMI, QIAseq UPX, SMARTer UMI, nanoCAGE-UMI ->
+     `fastp --umi` + `STAR` + `rna_umi_dedup.py` (directional 1-Hamming UMI
+     graph collapse per `(chrom, strand, 5'-anchor)`) + `featureCounts`.
+  4. **`pooled_plate_bulk`:** BRB-seq, DRUG-seq, Prime-seq, QuantSeq-Pool,
+     CEL-Seq2 bulk plates with a typed `pooled_plate_manifest`
+     (`barcode_to_sample` + CB/UMI geometry) -> `rna_starsolo_bulk.py`
+     (`STAR --soloType CB_UMI_Simple --soloUMIdedup 1MM_Directional_UMItools`).
 
 ## Design Questions
 

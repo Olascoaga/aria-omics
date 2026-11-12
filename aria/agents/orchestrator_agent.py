@@ -134,8 +134,9 @@ MODALITY_VALIDATION = {
         "dispatch_enabled": True,
     },
     "bulk_RNA_raw": {
-        "level": "beta",
+        "level": "production",
         "dispatch_enabled": True,
+        "promotion_adr": "ADR-075",
     },
     "scATAC": {
         "level": "beta",

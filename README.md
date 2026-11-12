@@ -44,9 +44,9 @@ flowchart LR
 
 | Workflow / Layer | Readiness Tier | Dispatch Policy | Key Analytical Scope |
 | :--- | :--- | :--- | :--- |
-| **scRNA-seq** (`.h5ad`, 10x `.h5`/MEX, `kb-python` FASTQ) | **Production** | Enabled | QC, Harmony + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware `pyDESeq2` pseudobulk DE, ORA, beta PAGA/DPT & LIANA |
+| **scRNA-seq** (`.h5ad`, 10x `.h5`/MEX, `kb-python` 3'/5'/plate FASTQ) | **Production** | Enabled | 3'/5'/plate `kb count` (`10x`, `Smart-seq3`, `BD Rhapsody`, `CEL-Seq2`, `SPLiT-seq`), QC, Harmony, clustering, CellTypist/markers, donor-aware `pyDESeq2` pseudobulk DE, ORA, beta PAGA/DPT & LIANA |
 | **Bulk RNA-seq count matrices** | **Production** | Enabled | Metadata correspondence gate, technical-replicate summation, `pyDESeq2` (`lfcThreshold` Wald + apeGLM), outlier sensitivity, local GMT ORA & GSEA |
-| **Bulk RNA-seq raw FASTQ** | **Beta** | Enabled (visible caveats) | Multi-lane `fastp` QC $\rightarrow$ `STAR` alignment $\rightarrow$ `featureCounts` into the production DE core |
+| **Bulk RNA-seq raw FASTQ** (`full_length`, 3'/5' tag, UMI & plate) | **Production** | Enabled | Universal preprocessing across standard SE/PE/multi-lane (`STAR` 2-pass), 3'/5' tags (`QuantSeq`, `SMART-3Seq`, `CAGE`), inline-UMI (`pysam` directional 1-MM dedup), and multiplexed plates (`BRB-seq`/`DRUG-seq`/`Prime-seq` via `STARsolo`) with `CPM` export and length-bias `TPM` suppression |
 | **scATAC-seq** (`.h5mu`, fragments, `chromap` FASTQ) | **Beta** | Explicit `CP3.5` ack | Measured QC, TF-IDF/LSI, donor-aware pseudobulk DA, `JASPAR2024` motifs, cis `peak2gene`, descriptive/replicate `TOBIAS` footprinting |
 | **Bulk ATAC-seq** (FASTQ / BAM / CRAM) | **Beta** | Explicit `CP3.5` ack | `bwa-mem2` alignment, QC, `MACS3` consensus peaks, `bedtools` counts, replicate-gated `pyDESeq2` DA, annotation, ORA, motifs & `TOBIAS` |
 | **Paired 10x Multiome** (same-cell `.h5mu` RNA + ATAC) | **Beta** | Explicit `CP3.5` ack | Joint QC, Seurat-concordant `WNN` + 5-axis guardrail, `MOFA+`, Signac-faithful `peak2gene`, candidate `eRegulons` & Cross-Modal Evidence Graph |
@@ -132,7 +132,7 @@ For batch automation and test harnesses, use `aria.headless.run_headless` with a
 | :--- | :--- | :--- |
 | `aria-rna-env` | **Locked** | scRNA, bulk RNA DE, donor-aware pseudobulk DE, and shared `pyDESeq2` chromatin DA |
 | `aria-ingestion-env` | **Locked** | Raw scRNA FASTQ quantification (`kb-python` / `kallisto` / `bustools`) |
-| `aria-rnaseq-env` | **Locked** | Raw bulk RNA FASTQ QC, alignment, and counting (`fastp`, `STAR`, `featureCounts`) |
+| `aria-rnaseq-env` | **Locked** | Universal raw bulk RNA FASTQ QC, alignment, UMI collapse, `STARsolo` plate demux, and counting (`fastp`, `STAR`, `pysam`, `featureCounts`) |
 | `aria-atacseq-env` | **Locked** | Bulk ATAC (`bwa-mem2`) and scATAC (`chromap`) raw-read alignment |
 | `aria-chromatin-env` | **Locked** | Chromatin QC, `MACS3` peaks, `SnapATAC2` matrices/LSI, motifs, and `WNN` joint topology |
 | `aria-tobias-env` | **Locked** | `TOBIAS` Tn5-bias-corrected transcription factor footprinting |

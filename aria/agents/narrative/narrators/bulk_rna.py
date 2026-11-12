@@ -40,6 +40,7 @@ class BulkRnaNarrator:
                 context: dict | None = None) -> list[NarrativeBlock]:
         findings = agent_result.get("findings", {}) or {}
         blocks: list[NarrativeBlock] = []
+        blocks.extend(self._preprocessing_blocks(findings))
         blocks.extend(self._qc_blocks(findings))
         blocks.extend(self._contrast_blocks(findings))
         blocks.extend(self._power_blocks(findings))
@@ -62,11 +63,48 @@ class BulkRnaNarrator:
                 break
         padj = findings.get("padj_threshold", 0.05)
         lfc = findings.get("lfc_threshold", 1.0)
-        lines = [
+        lines: list[str] = []
+        preprocessing = findings.get("preprocessing") or {}
+        if isinstance(preprocessing, dict) and preprocessing:
+            proto = str(preprocessing.get("protocol") or "full_length")
+            quant = preprocessing.get("quantification") or {}
+            strand_used = quant.get("strand_used")
+            if proto == "pooled_plate_bulk":
+                lines.append(
+                    "Raw multiplexed bulk RNA-seq FASTQs were demultiplexed, "
+                    "aligned, and UMI-deduplicated with STARsolo "
+                    "(CB_UMI_Simple, 1MM_Directional_UMItools) against the "
+                    "declared well-barcode manifest."
+                )
+            else:
+                dedup_clause = (
+                    ", directional 1-Hamming UMI deduplication (pysam),"
+                    if preprocessing.get("umi_dedup")
+                    else ""
+                )
+                strand_clause = (
+                    f" (strand={strand_used})" if strand_used is not None else ""
+                )
+                lines.append(
+                    f"Raw bulk RNA-seq FASTQs (protocol={proto}) underwent "
+                    f"adapter/quality trimming with fastp, splice-aware "
+                    f"alignment with STAR{dedup_clause} and gene-level exon "
+                    f"quantification with featureCounts{strand_clause}."
+                )
+        lines.append(
             "Bulk RNA-seq differential expression used DESeq2/pyDESeq2 "
             f"with design {design}; significance used adjusted p-value < "
             f"{padj} from a Wald test against |log2FC| > {lfc}."
-        ]
+        )
+        tpm_status = findings.get("tpm_status") or {}
+        if isinstance(tpm_status, dict) and tpm_status.get("computed") is False:
+            lines.append(
+                "Transcript-length normalization (TPM) was omitted because "
+                f"protocol '{tpm_status.get('library_protocol', 'tag/UMI')}' "
+                "generates terminal tags or UMI molecule counts independent of "
+                "transcript length; library-size-normalized CPM "
+                "(counts_cpm.tsv) was exported as the supplementary table."
+            )
         technical = findings.get("technical_replicate_aggregation") or {}
         if technical.get("ran"):
             lines.append(
@@ -163,6 +201,138 @@ class BulkRnaNarrator:
                     "label": f"{contrast.get('name')} {key}",
                 })
         return tables
+
+    def _preprocessing_blocks(self, findings: dict) -> list[NarrativeBlock]:
+        preprocessing = findings.get("preprocessing") or {}
+        if not isinstance(preprocessing, dict) or not preprocessing:
+            return []
+        protocol = str(preprocessing.get("protocol") or "full_length")
+        quant = preprocessing.get("quantification") or {}
+        qc = preprocessing.get("qc") or {}
+        align = preprocessing.get("alignment") or {}
+        umi_dedup = preprocessing.get("umi_dedup") or {}
+        starsolo = preprocessing.get("starsolo") or {}
+
+        n_genes = quant.get("n_genes", 0)
+        n_samples = (
+            quant.get("n_samples")
+            or qc.get("n_samples")
+            or align.get("n_aligned")
+            or 0
+        )
+        strand_used = quant.get("strand_used")
+        read_layout = quant.get("read_layout")
+
+        evidence = [
+            _evidence("library protocol", protocol, "bulk_preprocessing"),
+            _evidence("samples quantified", n_samples, "bulk_preprocessing"),
+            _evidence("genes quantified", n_genes, "bulk_preprocessing"),
+        ]
+        if read_layout:
+            evidence.append(
+                _evidence("read layout", read_layout, "bulk_preprocessing")
+            )
+        if strand_used is not None:
+            evidence.append(
+                _evidence("featureCounts strand", strand_used, "bulk_preprocessing")
+            )
+
+        qc_samples = [
+            s for s in (qc.get("samples") or [])
+            if isinstance(s, dict) and isinstance(s.get("pct_passed"), (int, float))
+        ]
+        mean_pass_pct = None
+        if qc_samples:
+            mean_pass_pct = round(
+                sum(float(s["pct_passed"]) for s in qc_samples) / len(qc_samples),
+                1,
+            )
+            evidence.append(
+                _evidence("mean reads passed QC (%)", mean_pass_pct, "fastp")
+            )
+
+        ok_bams = [
+            b for b in (align.get("bam_files") or [])
+            if isinstance(b, dict)
+            and b.get("status") == "success"
+            and isinstance(b.get("pct_unique"), (int, float))
+        ]
+        mean_unique_pct = None
+        if ok_bams:
+            mean_unique_pct = round(
+                sum(float(b["pct_unique"]) for b in ok_bams) / len(ok_bams),
+                1,
+            )
+            evidence.append(
+                _evidence("mean unique STAR mapping (%)", mean_unique_pct, "star")
+            )
+        elif isinstance(starsolo.get("pct_unique"), (int, float)):
+            mean_unique_pct = round(float(starsolo["pct_unique"]), 1)
+            evidence.append(
+                _evidence(
+                    "STARsolo unique mapping (%)", mean_unique_pct, "starsolo"
+                )
+            )
+
+        if isinstance(umi_dedup.get("mean_umi_dedup_rate_pct"), (int, float)):
+            evidence.append(
+                _evidence(
+                    "mean UMI duplicate collapse (%)",
+                    round(float(umi_dedup["mean_umi_dedup_rate_pct"]), 1),
+                    "umi_dedup",
+                )
+            )
+        elif starsolo.get("umi_deduplicated"):
+            evidence.append(
+                _evidence(
+                    "STARsolo UMI deduplication",
+                    "1MM_Directional_UMItools",
+                    "starsolo",
+                )
+            )
+
+        assign_summary = quant.get("assignment_summary") or {}
+        if isinstance(assign_summary.get("pct_assigned"), (int, float)):
+            evidence.append(
+                _evidence(
+                    "exon assignment rate (%)",
+                    round(float(assign_summary["pct_assigned"]), 1),
+                    "featurecounts",
+                )
+            )
+
+        caveats = []
+        if preprocessing.get("suppress_tpm"):
+            caveats.append(Caveat(
+                f"Protocol '{protocol}' yields terminal-tag or UMI molecule "
+                "counts; supplementary CPM was exported and length-normalized "
+                "TPM was omitted.",
+                "info",
+            ))
+
+        return [NarrativeBlock(
+            id="bulk.preprocessing",
+            modality="bulk RNA-seq",
+            analysis="preprocessing",
+            block_type="qc",
+            title="Bulk RNA raw FASTQ preprocessing",
+            status="success",
+            confidence="high",
+            claim=(
+                f"Raw FASTQ preprocessing ({protocol}) quantified {n_genes} "
+                f"genes across {n_samples} samples."
+            ),
+            evidence=evidence,
+            caveats=caveats,
+            metrics={
+                "protocol": protocol,
+                "n_samples": n_samples,
+                "n_genes": n_genes,
+                "strand_used": strand_used,
+                "mean_pass_pct": mean_pass_pct,
+                "mean_unique_pct": mean_unique_pct,
+            },
+        )]
 
     def _qc_blocks(self, findings: dict) -> list[NarrativeBlock]:
         sqc = findings.get("sample_qc", {}) or {}

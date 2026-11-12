@@ -111,6 +111,10 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
 # (see _bulk_findings_normalized) before reconciliation. Process vocabulary only
 # (no biology — ADR-011).
 _BULK_ANALYSES: list[dict[str, Any]] = [
+    {"key": "preprocessing", "label": "Raw FASTQ preprocessing & alignment",
+     "plan_kw": ["fastq", "fastp", "star align", "starsolo", "featurecounts",
+                 "umi dedup"],
+     "finding_keys": ["preprocessing"]},
     {"key": "qc", "label": "Sample QC",
      "plan_kw": ["qc", "quality control"], "finding_keys": ["sample_qc"]},
     {"key": "differential_expression", "label": "Differential expression",

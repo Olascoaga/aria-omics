@@ -29,7 +29,7 @@ Output:
 """
 
 from __future__ import annotations
-import sys, os, subprocess, re
+import math, sys, os, subprocess, re
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
@@ -51,6 +51,27 @@ def _star_version() -> str:
         return ""
 
 
+def _sa_index_nbases(fasta_path: str) -> int:
+    """Compute STAR --genomeSAindexNbases per STAR manual:
+    min(14, floor(log2(GenomeLength)/2 - 1)), bounded below by 4."""
+    if not fasta_path:
+        return 14
+    try:
+        p = Path(fasta_path)
+        if not p.is_file():
+            return 14
+        genome_len = 0
+        with open(p, "rt", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if not line.startswith(">"):
+                    genome_len += len(line.strip())
+        if genome_len <= 0:
+            return 14
+        return min(14, max(4, int(math.floor(math.log2(genome_len) / 2.0 - 1.0))))
+    except Exception:
+        return 14
+
+
 def rna_align(params: dict) -> dict:
     samples    = params["samples"]           # from rna_fastq_qc
     genome_dir = Path(params["genome_dir"])
@@ -59,7 +80,9 @@ def rna_align(params: dict) -> dict:
                                   str(Path(samples[0]["r1_trimmed"]).parent.parent
                                       / "aria_aligned")))
     threads    = int(params.get("threads", 8))
-    two_pass   = bool(params.get("two_pass", True))
+    library_protocol = str(params.get("library_protocol") or "full_length").strip().lower()
+    default_two_pass = library_protocol == "full_length"
+    two_pass   = bool(params["two_pass"]) if "two_pass" in params else default_two_pass
     genome_fasta = params.get("genome_fasta", "")
     allow_mock = mocks_allowed(params)
     warnings   = []
@@ -89,9 +112,10 @@ def rna_align(params: dict) -> dict:
         }
 
     # ── Build genome index if needed ──────────────────────────────────────
+    sa_nbases = _sa_index_nbases(genome_fasta)
     index_manifest = str(genome_dir / _INDEX_MANIFEST)
     index_inputs = [("fasta", genome_fasta or None), ("gtf", gtf_file or None)]
-    index_params = {"sa_index_nbases": 14}
+    index_params = {"sa_index_nbases": sa_nbases}
     star_version = _star_version()
     need_build = not _index_exists(genome_dir)
     # A4: when we have the source (FASTA + GTF), a changed reference/GTF/STAR
@@ -109,7 +133,8 @@ def rna_align(params: dict) -> dict:
     if need_build:
         if genome_fasta and gtf_file:
             build_result = _build_star_index(
-                genome_dir, genome_fasta, gtf_file, threads, warnings
+                genome_dir, genome_fasta, gtf_file, threads, warnings,
+                sa_index_nbases=sa_nbases,
             )
             if build_result != "ok":
                 return {
@@ -150,6 +175,7 @@ def rna_align(params: dict) -> dict:
             index_ref=(index_manifest if os.path.exists(index_manifest)
                        else str(genome_dir / "SAindex")),
             star_version=star_version,
+            library_protocol=library_protocol,
         )
         bam_files.append(result)
 
@@ -190,10 +216,12 @@ def _index_exists(genome_dir: Path) -> bool:
 
 
 def _build_star_index(genome_dir: Path, fasta: str, gtf: str,
-                       threads: int, warnings: list) -> str:
+                       threads: int, warnings: list,
+                       *,
+                       sa_index_nbases: int = 14) -> str:
     """Build STAR genome index."""
     genome_dir.mkdir(parents=True, exist_ok=True)
-    warnings.append(f"Building STAR index at {genome_dir} — this takes ~30 min")
+    warnings.append(f"Building STAR index at {genome_dir} (SAindexNbases={sa_index_nbases})")
 
     cmd = [
         "STAR", "--runMode", "genomeGenerate",
@@ -201,7 +229,7 @@ def _build_star_index(genome_dir: Path, fasta: str, gtf: str,
         "--genomeFastaFiles", fasta,
         "--sjdbGTFfile",     gtf,
         "--runThreadN",      str(threads),
-        "--genomeSAindexNbases", "14",  # 14 for human/mouse; less for small genomes
+        "--genomeSAindexNbases", str(sa_index_nbases),
     ]
 
     try:
@@ -209,7 +237,7 @@ def _build_star_index(genome_dir: Path, fasta: str, gtf: str,
             cmd, capture_output=True, text=True, timeout=7200
         )
         if proc.returncode != 0:
-            return proc.stderr[-300:]
+            return (proc.stderr or proc.stdout or "STAR genomeGenerate failed")[-300:]
         return "ok"
     except FileNotFoundError:
         return "STAR not found — is aria-rnaseq-env active?"
@@ -221,12 +249,12 @@ def _star_output_valid(bam_path: Path, log_file: Path) -> bool:
     """
     Check if STAR output is present and complete.
     Requires:
-      - BAM file exists and > 1 MB (even tiny datasets produce MB-scale BAMs)
+      - Non-empty BAM file exists (> 128 bytes)
       - Log.final.out present (STAR writes this only after finishing)
-      - samtools quickcheck passes (BAM is not truncated)
+      - samtools quickcheck passes (BAM EOF marker intact, not truncated)
     """
     try:
-        if not bam_path.exists() or bam_path.stat().st_size < 1_000_000:
+        if not bam_path.exists() or bam_path.stat().st_size < 128:
             return False
         if not log_file.exists():
             return False
@@ -245,7 +273,9 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
                   warnings: list,
                   allow_mock: bool = False,
                   index_ref: str | None = None,
-                  star_version: str = "") -> dict:
+                  star_version: str = "",
+                  *,
+                  library_protocol: str = "full_length") -> dict:
     """Align one sample with STAR. Idempotent: skips if BAM already valid."""
     name   = sample["name"]
     r1_files = sample.get("r1_trimmed_files") or [
@@ -272,6 +302,7 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
         "status":      "pending",
         "read_layout": read_layout,
         "paired":      paired,
+        "library_protocol": library_protocol,
     }
 
     # A4: content-addressed resume manifest for this alignment stage. Inputs are
@@ -285,7 +316,9 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
           for index, path in enumerate(r2_files, start=1)],
         ("index", index_ref),
     ]
-    stage_params = {"two_pass": two_pass, "read_layout": read_layout}
+    stage_params: dict = {"two_pass": two_pass, "read_layout": read_layout}
+    if library_protocol != "full_length":
+        stage_params["library_protocol"] = library_protocol
 
     # ── Resume check: valid BAM AND the stage manifest still matches? ─────
     bam_path = Path(f"{prefix}Aligned.sortedByCoord.out.bam")
@@ -308,28 +341,35 @@ def _align_sample(sample: dict, genome_dir: Path, output_dir: Path,
             "pct_multi":   stats.get("pct_multi",  0),
             "pct_unmapped":stats.get("pct_unmapped", 0),
             "n_input":     stats.get("n_input", 0),
+            "n_reads":     stats.get("n_reads", 0),
             "resumed":     True,
         })
         return result
 
+    is_gzipped = str(r1_files[0] or "").lower().endswith(".gz")
     cmd = [
         "STAR",
         "--runThreadN",          str(threads),
         "--genomeDir",           str(genome_dir),
         "--readFilesIn",         r1,
-        "--readFilesCommand",    "zcat",
+    ]
+    if paired and r2:
+        cmd.append(r2)
+    if is_gzipped:
+        cmd += ["--readFilesCommand", "zcat"]
+    cmd += [
         "--outSAMtype",          "BAM", "SortedByCoordinate",
         "--outSAMattributes",    "NH", "HI", "AS", "NM", "MD",
         "--outFileNamePrefix",   prefix,
         "--outSAMstrandField",   "intronMotif",
-        "--outFilterIntronMotifs", "RemoveNoncanonical",
         "--outSAMunmapped",      "Within",
         "--quantMode",           "GeneCounts",
     ]
-
-    if paired and r2:
-        r1_idx = cmd.index(r1)
-        cmd.insert(r1_idx + 1, r2)
+    # ADR-075: 3'-tag, 5'-tag, and tag-UMI protocols align primarily within
+    # terminal exons/UTRs/TSSs with local soft-clipping; omit RemoveNoncanonical
+    # so short-overhang or unspliced terminal tags are retained.
+    if library_protocol == "full_length":
+        cmd += ["--outFilterIntronMotifs", "RemoveNoncanonical"]
 
     if two_pass:
         cmd += ["--twopassMode", "Basic"]

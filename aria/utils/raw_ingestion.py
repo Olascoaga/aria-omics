@@ -20,6 +20,91 @@ TENX_MATRIX = "matrix.mtx.gz"
 TENX_FEATURES = ("features.tsv.gz", "genes.tsv.gz")
 ProgressCallback = Callable[[str, dict[str, Any]], None]
 
+# Supported single-cell 3' & 5' FASTQ chemistries for kb-python (ADR-075).
+# Native kb-python names are preserved verbatim (case-insensitive in kb);
+# ARIA aliases map 10x 5' R2/PE, BD Rhapsody, and SPLiT-seq to exact kb tech
+# strings so 3', 5', droplet, microwell, and plate scRNA FASTQs work cleanly.
+NATIVE_KB_CHEMISTRIES: frozenset[str] = frozenset({
+    "10xv1",
+    "10xv2",
+    "10xv3",
+    "10xv3_ultima",
+    "10xv4",
+    "bdwta",
+    "bulk",
+    "celseq",
+    "celseq2",
+    "dropseq",
+    "indropsv1",
+    "indropsv2",
+    "indropsv3",
+    "scrubseq",
+    "smartseq2",
+    "smartseq3",
+    "split-seq",
+    "stormseq",
+    "surecell",
+    "visium",
+})
+
+SCRNA_KB_CHEMISTRY_ALIASES: dict[str, str] = {
+    # 10x Chromium 3' Gene Expression
+    "10x_3p_v1": "10XV1",
+    "10x_3p_v2": "10XV2",
+    "10x_3p_v3": "10XV3",
+    "10x_3p": "10XV3",
+    "10x_3p_v4": "10XV4",
+    "10x_gemx_3p": "10XV4",
+    # 10x Chromium 5' Gene Expression:
+    # - R2-only cDNA (standard 10x 5' v1/v2 where R1=16bp CB + 10bp UMI, R2=cDNA)
+    #   has identical 0,0,16:0,16,26:1,0,0 geometry to 10XV2.
+    # - Paired-end 10x 5' (R1 = 16bp CB + 10bp UMI + 13bp TSO + cDNA, R2 = cDNA)
+    #   uses kallisto custom tech 0,0,16:0,16,26:0,39,0,1,0,0 to skip the 13bp TSO.
+    "10x_5p": "10XV2",
+    "10x_5p_v1": "10XV2",
+    "10x_5p_v2": "10XV2",
+    "10x_5p_r2": "10XV2",
+    "10x_5p_pe": "0,0,16:0,16,26:0,39,0,1,0,0",
+    # Microwell / combinatorial / plate aliases
+    "bd_rhapsody": "BDWTA",
+    "rhapsody": "BDWTA",
+    "splitseq": "SPLIT-SEQ",
+    "split_seq": "SPLIT-SEQ",
+    "drop_seq": "DROPSEQ",
+    "cel_seq": "CELSEQ",
+    "cel_seq2": "CELSEQ2",
+    "smart_seq2": "SMARTSEQ2",
+    "smart_seq3": "SMARTSEQ3",
+    "10x_visium": "VISIUM",
+}
+
+_CUSTOM_KB_TECH_RE = re.compile(
+    r"^-?\d+,-?\d+,-?\d+:-?\d+,-?\d+,-?\d+:(?:-?\d+,-?\d+,-?\d+)(?:,-?\d+,-?\d+,-?\d+)*$"
+)
+
+
+def resolve_kb_chemistry(chemistry: str, technology: str | None = None) -> str:
+    """Resolve and validate a kb-python chemistry / technology specification."""
+    raw = str(technology or chemistry or "").strip()
+    if not raw:
+        raise ValueError("kb count requires explicit chemistry")
+    if _CUSTOM_KB_TECH_RE.fullmatch(raw):
+        return raw
+    lower = raw.lower()
+    if lower in NATIVE_KB_CHEMISTRIES:
+        # Preserve caller casing on native names (e.g. '10xv3' or '10XV3').
+        return raw
+    normalized = re.sub(r"[\s\-]+", "_", lower)
+    if normalized in SCRNA_KB_CHEMISTRY_ALIASES:
+        return SCRNA_KB_CHEMISTRY_ALIASES[normalized]
+    if lower in SCRNA_KB_CHEMISTRY_ALIASES:
+        return SCRNA_KB_CHEMISTRY_ALIASES[lower]
+    raise ValueError(
+        f"Unsupported scRNA kb chemistry {raw!r}. Supported chemistries: "
+        f"{sorted(NATIVE_KB_CHEMISTRIES)} plus aliases "
+        f"{sorted(SCRNA_KB_CHEMISTRY_ALIASES)} or custom 'bc:umi:cdna' geometry."
+    )
+
 
 @dataclass(frozen=True)
 class TenXTriplet:
@@ -353,7 +438,6 @@ def build_kb_count_command(
     technology: str | None = None,
 ) -> list[str]:
     """Build an explicit kb count command without executing it."""
-    tech = technology or chemistry
     if not fastq_files:
         raise ValueError("kb count requires FASTQ files")
     if not index_path:
@@ -362,6 +446,7 @@ def build_kb_count_command(
         raise ValueError("kb count requires a local transcript-to-gene path")
     if not chemistry:
         raise ValueError("kb count requires explicit chemistry")
+    tech = resolve_kb_chemistry(chemistry, technology=technology)
     return [
         "kb", "count",
         "-i", str(index_path),
@@ -426,15 +511,18 @@ def execute_kb_count(params: dict[str, Any]) -> dict[str, Any]:
 
     command = []
     if not blockers:
-        command = build_kb_count_command(
-            fastq_files=fastq_files,
-            index_path=index_path,
-            t2g_path=t2g_path,
-            output_dir=output_dir,
-            chemistry=chemistry,
-            threads=threads,
-            technology=params.get("technology"),
-        )
+        try:
+            command = build_kb_count_command(
+                fastq_files=fastq_files,
+                index_path=index_path,
+                t2g_path=t2g_path,
+                output_dir=output_dir,
+                chemistry=chemistry,
+                threads=threads,
+                technology=params.get("technology"),
+            )
+        except ValueError as exc:
+            blockers.append(str(exc))
     if blockers:
         return {
             "status": "blocked",

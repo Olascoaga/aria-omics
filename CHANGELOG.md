@@ -8,6 +8,17 @@ current `main`.
 
 ---
 
+## [Unreleased] — `main` (post-`v4.8.0`)
+
+### Highlights
+- **Universal Raw FASTQ Multi-Platform RNA Engine & `bulk_RNA_raw -> production` Promotion (`ADR-075`):**
+  - Promoted `MODALITY_VALIDATION["bulk_RNA_raw"]` and all five `aria-rnaseq-env` IPC contracts (`rna_fastq_qc.py`, `rna_align.py`, `rna_umi_dedup.py`, `rna_quantify.py`, `rna_starsolo_bulk.py`) to **`production`**.
+  - Added `aria/utils/rna_fastq_protocol.py` supporting four bulk RNA-seq platform families from raw FASTQ: `full_length` (SE/PE/multi-lane `STAR` 2-pass), `tag_3prime` & `tag_5prime` (`QuantSeq`, `SMART-3Seq`, `CAGE`/`RAMPAGE` with poly(X)/poly(G) trimming and 1-pass soft-clip-preserving alignment), `umi_bulk` (`fastp --umi` + `rna_umi_dedup.py` directional 1-Hamming `pysam` UMI graph collapse), and `pooled_plate_bulk` (`BRB-seq`, `DRUG-seq`, `Prime-seq`, `QuantSeq-Pool`, `CEL-Seq2` via `rna_starsolo_bulk.py` `STAR --soloType CB_UMI_Simple --soloUMIdedup 1MM_Directional_UMItools`).
+  - Expanded `scRNA` raw FASTQ `kb-python` chemistry resolution (`aria/utils/raw_ingestion.py`) across 3', 5' (`10X_5P`, `10X_5P_PE`), full-length/UMI plate (`SMARTSEQ2`, `SMARTSEQ3`, `CELSEQ2`), combinational (`SPLIT-SEQ`, `BDWTA`), and custom `bc:umi:cdna` geometries, while failing closed on long-read (`>=600 bp`), V(D)J TCR/BCR repertoire, and unmanifested asymmetric barcode+UMI FASTQs.
+  - Hardened `rna_quantify.py` with `A4` `counts_matrix.stage.json` resume, indexed/unindexed multi-contig `pysam` fail-closed strandedness detection (`AmbiguousStrandedness` / `InsufficientReadsForStrandDetection`), `CPM` export (`counts_cpm.tsv`) with automatic length-bias `TPM` suppression on tag/UMI protocols, `C3` `ledger://bulk/preprocessing` narrative linkage, locked `pysam>=0.22` in `aria-rnaseq-env`, and `docker/Dockerfile.rnaseq`.
+
+---
+
 ## [v4.8.0] — 2026-11-12 (Current Release)
 
 Full release notes: [`docs/release_notes_v4.8.0.md`](docs/release_notes_v4.8.0.md)

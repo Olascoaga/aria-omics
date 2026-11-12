@@ -32,7 +32,7 @@ def test_dockerignore_excludes_private_and_vcs_and_caches():
 
 
 def test_per_modality_dockerfiles_exist():
-    for name in ("Dockerfile.base", "Dockerfile.rna",
+    for name in ("Dockerfile.base", "Dockerfile.rna", "Dockerfile.rnaseq",
                  "Dockerfile.chromatin", "Dockerfile.integration"):
         assert (DOCKER / name).exists(), f"missing docker/{name}"
 
@@ -45,8 +45,8 @@ def test_base_image_has_no_science_env_solve():
 
 
 def test_modality_images_build_from_base():
-    for name in ("Dockerfile.rna", "Dockerfile.chromatin",
-                 "Dockerfile.integration"):
+    for name in ("Dockerfile.rna", "Dockerfile.rnaseq",
+                 "Dockerfile.chromatin", "Dockerfile.integration"):
         text = (DOCKER / name).read_text()
         assert "ARIA_BASE_IMAGE" in text and "FROM ${ARIA_BASE_IMAGE}" in text, \
             f"docker/{name} must build FROM the common base"

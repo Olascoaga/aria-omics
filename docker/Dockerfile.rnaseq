@@ -1,0 +1,28 @@
+# ARIA reproducible raw RNA-seq FASTQ preprocessing image (ADR-075).
+# Builds FROM the common base and adds ONLY the hermetic aria-rnaseq-env stack
+# (fastp, STAR / STARsolo, subread/featureCounts, samtools, pysam, multiqc).
+#
+# Build:
+#   docker build -f docker/Dockerfile.base -t aria-base:local \
+#     --build-arg ARIA_IMAGE_REVISION=$(git rev-parse HEAD) .
+#   docker build -f docker/Dockerfile.rnaseq -t aria-rnaseq:local \
+#     --build-arg ARIA_IMAGE_ENV_SHA=$(sha256sum envs/aria-rnaseq-env.yml | cut -d' ' -f1) .
+ARG ARIA_BASE_IMAGE=aria-base:local
+FROM ${ARIA_BASE_IMAGE}
+
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN micromamba install -y -n base -f /opt/aria/envs/aria-rnaseq-env.yml && \
+    micromamba clean --all --yes
+
+RUN python -m pip install --no-deps -e /opt/aria
+
+ARG ARIA_IMAGE_ENV_SHA=unknown
+ENV ARIA_IMAGE_KIND=rnaseq \
+    ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA}
+
+LABEL org.opencontainers.image.title="aria-rnaseq" \
+      org.opencontainers.image.description="ARIA raw bulk RNA-seq FASTQ preprocessing image (fastp, STAR, STARsolo, pysam, featureCounts)"
+
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["aria"]

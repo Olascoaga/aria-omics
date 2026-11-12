@@ -192,8 +192,29 @@ class DesignAgent(BaseAgent):
             self._step = DesignStep.DONE
             return {"status": "failed", "reason": "no_samples"}
         else:
-            # Normal file-based path: infer groups from sample filenames via LLM
-            self._parsed_samples = self._parse_samples(raw_files)
+            # ADR-075: multiplexed well-barcoded plate bulk (BRB-seq / DRUG-seq /
+            # Prime-seq / QuantSeq-Pool) encodes sample IDs in pooled_plate_manifest
+            # rather than individual FASTQ filenames.
+            from aria.utils.rna_fastq_protocol import resolve_bulk_rna_protocol
+
+            proto = resolve_bulk_rna_protocol(exp_context)
+            pooled_manifest = proto.get("pooled_plate_manifest")
+            if pooled_manifest and pooled_manifest.get("barcode_to_sample"):
+                barcode_samples = list(
+                    dict.fromkeys(pooled_manifest["barcode_to_sample"].values())
+                )
+                self._parsed_samples = [
+                    {
+                        "raw": s,
+                        "stem": s,
+                        "tokens": re.split(r"[_\-\s]+", s.lower()),
+                        "paired_files": list(raw_files),
+                    }
+                    for s in barcode_samples
+                ]
+            else:
+                # Normal file-based path: infer groups from sample filenames via LLM
+                self._parsed_samples = self._parse_samples(raw_files)
             self._proposed_groups = self._propose_groups(self._parsed_samples,
                                                           biological_intent)
 
@@ -719,15 +740,41 @@ class DesignAgent(BaseAgent):
 
     @staticmethod
     def _parse_samples(file_paths: list[str]) -> list[dict]:
-        """Parse sample names, merging paired-end read pairs (R1/R2)."""
-        # Agrupar por nombre base (quitando _1/_2 o _R1/_R2)
+        """Parse sample names, merging paired-end read pairs and multi-lane FASTQs."""
+        def _clean_stem(fp: str) -> str:
+            s = Path(fp).stem
+            while s.endswith(('.fastq', '.fq', '.gz', '.tsv', '.csv', '.txt')):
+                s = Path(s).stem
+            return s
+
+        stems = [_clean_stem(f) for f in file_paths]
+        bare_nums: dict[str, set[int]] = {}
+        for s in stems:
+            m = re.match(r"^(?P<prefix>.+?)_(?P<num>\d+)$", s)
+            if m:
+                bare_nums.setdefault(m.group("prefix"), set()).add(int(m.group("num")))
+
         pairs = {}
-        for f in file_paths:
-            stem = Path(f).stem
-            while stem.endswith(('.fastq', '.fq', '.gz', '.tsv', '.csv', '.txt')):
-                stem = Path(stem).stem
-            # Normalizar nombres paired-end: quitar sufijo _1/_2 o _R1/_R2
-            base = re.sub(r'(_[12]|_R[12])$', '', stem, flags=re.IGNORECASE)
+        for f, stem in zip(file_paths, stems):
+            # Strip Illumina _S1_L001_R1_001 or _R1/_R2 suffixes unconditionally
+            base = re.sub(
+                r'(?:_S\d+)?(?:_L\d{3})?_R[12](?:_\d+)?$',
+                '',
+                stem,
+                flags=re.IGNORECASE,
+            )
+            if base == stem:
+                # Strip bare _1/_2 ONLY when the prefix strictly has mates {1, 2}
+                m = re.match(r"^(?P<prefix>.+?)_[12]$", stem)
+                if m and bare_nums.get(m.group("prefix")) == {1, 2}:
+                    base = m.group("prefix")
+                else:
+                    base = re.sub(
+                        r'(?:_S\d+)?_L\d{3}(?:_\d+)?$',
+                        '',
+                        stem,
+                        flags=re.IGNORECASE,
+                    )
             pairs.setdefault(base, []).append(f)
 
         parsed = []

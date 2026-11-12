@@ -146,8 +146,8 @@ lock files:
 | Workflow need | Environment |
 |---|---|
 | Bulk count matrices, scRNA, pseudobulk, shared DESeq2 DA | `aria-rna-env` |
-| Raw scRNA FASTQ ingestion | `aria-ingestion-env` |
-| Raw bulk RNA FASTQ preprocessing | `aria-rnaseq-env` |
+| Raw scRNA FASTQ ingestion (`kb-python` 3'/5'/plate) | `aria-ingestion-env` |
+| Universal raw bulk RNA FASTQ (`fastp`, `STAR`/`STARsolo`, `pysam`, `featureCounts`) | `aria-rnaseq-env` |
 | Raw bulk/scATAC alignment | `aria-atacseq-env` |
 | Chromatin QC, peaks, clustering, regulatory layers | `aria-chromatin-env` |
 | TOBIAS footprinting | `aria-tobias-env` |
@@ -263,9 +263,12 @@ See [Control Center](CONTROL_CENTER.md) for views and shortcuts.
 
 ## Data intake boundaries
 
-Stable entry points include bulk count matrices, 10x `.h5`, a complete 10x MEX
-directory, and `.h5ad`. Beta raw-read and chromatin entry points require typed
-metadata or manifests where the assay contract needs them.
+Production entry points include bulk count matrices, universal short-read bulk
+RNA FASTQs (`full_length`, 3'/5' tag, inline-UMI, and manifested pooled plate
+bulk via `aria-rnaseq-env` / `docker/Dockerfile.rnaseq`), 10x `.h5`, complete
+10x MEX directories, `.h5ad`, and `scRNA` raw FASTQs (`kb-python`). Beta
+chromatin and paired-multiome entry points require typed metadata, manifests,
+and `CP3.5` acknowledgement where the assay contract needs them.
 
 Do not rely on filenames to establish the biological design. ARIA intentionally
 refuses silent production inference for groups, references, replicates, and
