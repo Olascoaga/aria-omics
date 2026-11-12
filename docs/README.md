@@ -33,19 +33,18 @@ power, quality control, or biological conclusions.
 - [Single-cell RNA-seq](workflows/scrna.md)
 - [Donor-level pseudobulk scRNA-seq](workflows/pseudobulk_scrna.md)
 - [Single-cell ATAC-seq (`scATAC`, `ADR-076`)](workflows/chromatin_roadmap.md) *(universal multi-platform `chromap` raw FASTQ, air-gapped `snapatac2` fragments-to-matrix, multi-sample overlap consensus peak union, and donor-aware `pyDESeq2` DA)*
+- [Bulk ATAC-seq (`bulk_ATAC`, `ADR-077`)](workflows/chromatin_roadmap.md) *(universal SE/PE/multi-lane `bwa-mem2` raw FASTQ, BAM/CRAM, and pre-computed peak matrices; local `pysam`+`bedtools`+GTF ENCODE QC, SE/PE `MACS3` consensus peaks, `CPM` export, and replicate-aware `pyDESeq2` DA)*
 
-### Optional beta RNA & scATAC sub-layers
+### Optional beta RNA & chromatin sub-layers
 - [Trajectory: PAGA + root-gated DPT](workflows/trajectory.md)
 - [Cell-cell communication: LIANA](workflows/cell_communication.md)
 - [`TOBIAS` TF footprinting & `gene_scores` (`scATAC` / `bulk_ATAC`)](workflows/chromatin_roadmap.md)
 
-### Acknowledgement-gated beta chromatin & paired 10x Multiome
-- [Bulk ATAC-seq workflow](workflows/chromatin_roadmap.md)
+### Acknowledgement-gated beta paired 10x Multiome
 - [Paired same-cell 10x Multiome integration (WNN / MOFA+ / peak2gene / eRegulons)](workflows/integration_roadmap.md)
 
-`bulk_ATAC` and paired same-cell RNA+ATAC multiome integration are
-scoped `beta` lanes requiring explicit `CP3.5` acknowledgement persisted in
-`ARIAMemory`.
+Paired same-cell RNA+ATAC multiome integration is a scoped `beta` lane
+requiring explicit `CP3.5` acknowledgement persisted in `ARIAMemory`.
 
 ### Dispatch-disabled scaffolds & blocked cross-modal scopes
 - [ChIP-seq, CUT&RUN, and CUT&TAG](workflows/chromatin_roadmap.md)

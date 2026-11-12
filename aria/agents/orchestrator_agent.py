@@ -144,15 +144,9 @@ MODALITY_VALIDATION = {
         "promotion_adr": "ADR-076",
     },
     "bulk_ATAC": {
-        "level": "beta",
+        "level": "production",
         "dispatch_enabled": True,
-        "reason": (
-            "Bulk ATAC V47 is open as a beta, acknowledgement-gated lane for "
-            "measured QC, MACS3 peak calling, and replicate-aware DESeq2 "
-            "differential accessibility over explicit peak-count matrices. "
-            "DA requires explicit condition, replicate, and comparison metadata; "
-            "under-specified designs skip honestly."
-        ),
+        "promotion_adr": "ADR-077",
     },
     "ChIP": {
         "level": "scaffold",

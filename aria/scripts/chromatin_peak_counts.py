@@ -1,4 +1,6 @@
-"""Bulk ATAC peak-by-sample count matrix.
+"""Production bulk ATAC peak-by-sample count matrix.
+
+validation_level: production (stack="chromatin").
 
 Counts aligned bulk ATAC reads/fragments overlapping an explicit peak universe.
 This is a technical prerequisite for replicate-aware differential accessibility;
@@ -8,12 +10,129 @@ it does not run DA or infer biological groups from filenames.
 from __future__ import annotations
 
 import csv
+import os
+import sys
+from bisect import bisect_left, bisect_right
 import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+
+# Compatibility with the original A4 API; keep all manifests content-addressed.
+try:
+    from aria.utils.stage_manifest import (
+        file_record, load_valid_stage_result, stage_manifest_path,
+        write_stage_manifest,
+    )
+except ImportError:
+    from aria.utils.stage_manifest import (
+        build_stage_manifest, stage_is_current, write_stage_manifest,
+    )
+
+    def file_record(path):
+        return str(Path(path).expanduser().resolve())
+
+    def stage_manifest_path(output_dir, stage):
+        return Path(output_dir) / f"{stage}.stage_manifest.json"
+
+    def load_valid_stage_result(path, *, expected_inputs, expected_parameters):
+        inputs = [(str(i), f) for i, f in enumerate(expected_inputs)]
+        try:
+            current, _ = stage_is_current(
+                path, inputs=inputs,
+                params={**expected_parameters, "_input_paths": expected_inputs},
+                tool_version="ADR-077-track1-v1",
+            )
+            if not current:
+                return None
+            import json
+            result = json.loads(Path(path).read_text()).get("extra", {}).get("result")
+            return result if isinstance(result, dict) else None
+        except (OSError, ValueError, TypeError, AttributeError):
+            return None
+
+
+def _save_stage_result(path, stage, inputs, parameters, result):
+    from aria.utils.stage_manifest import build_stage_manifest
+    manifest = build_stage_manifest(
+        stage=stage, inputs=[(str(i), f) for i, f in enumerate(inputs)],
+        params={**parameters, "_input_paths": inputs}, tool_version="ADR-077-track1-v1",
+        extra={"result": result},
+    )
+    write_stage_manifest(path, manifest)
+
+
+def _open_alignment(path, reference_fasta=None):
+    import pysam
+    return pysam.AlignmentFile(
+        str(path), "rc" if str(path).lower().endswith(".cram") else "rb",
+        **({"reference_filename": str(reference_fasta)} if reference_fasta else {}),
+    )
+
+
+def _interval_index(rows):
+    """Merge intervals so a predecessor bisect handles nested/overlapping BEDs."""
+    by_chrom = {}
+    for chrom, start, end in rows:
+        by_chrom.setdefault(chrom, []).append((start, end))
+    index = {}
+    for chrom, intervals in by_chrom.items():
+        merged = []
+        for start, end in sorted(intervals):
+            if merged and start <= merged[-1][1]:
+                merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+            else:
+                merged.append((start, end))
+        index[chrom] = ([s for s, e in merged], [e for s, e in merged])
+    return index
+
+
+def _overlaps(index, chrom, start, end):
+    starts, ends = index.get(chrom, ([], []))
+    i = bisect_left(starts, end) - 1
+    return i >= 0 and ends[i] > start
+
+
+def _primary_mapped(read):
+    return not (read.is_unmapped or read.is_secondary or read.is_supplementary)
+
+
+def _count_cram(peaks_path, file_path, reference_fasta=None):
+    """Count alignment overlaps, matching bedtools coverage -counts semantics.
+
+    A prefix maximum of peak ends bounds the search even for nested intervals.
+    """
+    rows = []
+    with open(peaks_path) as handle:
+        for line in handle:
+            if line.strip() and not line.startswith(("#", "track", "browser")):
+                cols = line.split("\t")
+                rows.append((cols[0], int(cols[1]), int(cols[2])))
+    by_chrom = {}
+    for i, (chrom, start, end) in enumerate(rows):
+        by_chrom.setdefault(chrom, []).append((start, end, i))
+    index = {}
+    for chrom, intervals in by_chrom.items():
+        intervals.sort()
+        max_end = []
+        for start, end, i in intervals:
+            max_end.append(max(end, max_end[-1] if max_end else end))
+        index[chrom] = (intervals, [v[0] for v in intervals], max_end)
+    counts = [0] * len(rows)
+    with _open_alignment(file_path, reference_fasta) as bam:
+        for read in bam.fetch(until_eof=True):
+            if read.is_unmapped or read.reference_end is None:
+                continue
+            intervals, starts, max_end = index.get(read.reference_name, ([], [], []))
+            lo = bisect_right(max_end, read.reference_start)
+            hi = bisect_left(starts, read.reference_end)
+            for start, end, i in intervals[lo:hi]:
+                if end > read.reference_start:
+                    counts[i] += 1
+    return counts
 
 
 def _error(error_type: str, details: str, **extra) -> dict:
@@ -24,8 +143,12 @@ def _error(error_type: str, details: str, **extra) -> dict:
 
 def _strip_known_suffixes(path: str | Path) -> str:
     name = Path(path).name
-    for suffix in (".bam", ".cram", ".bed", ".bed.gz",
-                   ".fragments.tsv.gz", ".fragments.tsv"):
+    for suffix in (
+        ".filtered.bam", ".markdup.bam", ".coordsort.bam",
+        ".sorted.bam", ".dedup.bam", ".filtered.cram",
+        ".bam", ".cram", ".bed", ".bed.gz",
+        ".fragments.tsv.gz", ".fragments.tsv",
+    ):
         if name.endswith(suffix):
             return name[:-len(suffix)]
     return Path(name).stem
@@ -152,7 +275,8 @@ def _write_metadata(path: Path, rows: list[dict[str, Any]]) -> None:
             writer.writerow(row)
 
 
-def _genome_sizes_from_bam(file_path: str | Path) -> list[tuple[str, int]] | None:
+def _genome_sizes_from_bam(file_path: str | Path,
+                           reference_fasta: str | None = None) -> list[tuple[str, int]] | None:
     """Read (chrom, length) in header order from a BAM/CRAM via pysam.
 
     Used to drive `bedtools coverage -sorted` (low-memory sweeping algorithm).
@@ -160,9 +284,7 @@ def _genome_sizes_from_bam(file_path: str | Path) -> list[tuple[str, int]] | Non
     TSV input, or an unreadable file) so the caller falls back to the plain call.
     """
     try:
-        import pysam
-
-        with pysam.AlignmentFile(str(file_path), "rb") as bam:
+        with _open_alignment(file_path, reference_fasta) as bam:
             refs = list(bam.references or [])
             lens = list(bam.lengths or [])
     except Exception:
@@ -256,13 +378,6 @@ def chromatin_peak_counts(params: dict) -> dict:
     if missing:
         return _error("FileNotFound", f"Input alignment file(s) not found: {missing}")
 
-    bedtools = shutil.which(str(params.get("bedtools") or "bedtools"))
-    if not bedtools:
-        return _error(
-            "MissingDependency",
-            "bedtools is required for bulk ATAC peak counting.",
-        )
-
     output_dir = Path(str(params.get("output_dir") or
                           peaks_path.parent / "bulk_atac_counts"))
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -270,9 +385,30 @@ def chromatin_peak_counts(params: dict) -> dict:
 
     try:
         sample_ids = _resolve_sample_ids(files, params.get("sample_ids"))
+        reference_fasta = params.get("reference_fasta")
+        manifest_path = stage_manifest_path(output_dir, "chromatin_peak_counts")
+        inputs = [file_record(f) for f in [*files, str(peaks_path)]]
+        if reference_fasta:
+            inputs.append(file_record(reference_fasta))
+        parameters = {"files": files, "peaks_path": str(peaks_path),
+                      "sample_ids": sample_ids,
+                      "sample_metadata": params.get("sample_metadata"),
+                      "reference_fasta": reference_fasta}
+        cached = load_valid_stage_result(
+            manifest_path, expected_inputs=inputs, expected_parameters=parameters)
+        if cached and all(Path(cached.get(k, "")).is_file() for k in (
+                "counts_matrix_path", "counts_cpm_path", "sample_metadata_path")):
+            return {**cached, "reused_from_stage_manifest": True}
+        Path(manifest_path).unlink(missing_ok=True)
+        bedtools = shutil.which(str(params.get("bedtools") or "bedtools"))
+        if not bedtools and any(not f.lower().endswith(".cram") for f in files):
+            return _error("MissingDependency",
+                          "bedtools is required for bulk ATAC BAM peak counting.")
         # Prefer the low-memory sweeping algorithm. Without `-sorted`, bedtools
         # loads the whole BAM into memory and OOMs on large bulk ATAC libraries.
-        genome_sizes = _genome_sizes_from_bam(Path(files[0]).expanduser())
+        genome_sizes = (_genome_sizes_from_bam(Path(files[0]).expanduser(), reference_fasta)
+                        if files[0].lower().endswith(".cram") else
+                        _genome_sizes_from_bam(Path(files[0]).expanduser()))
         genome_file = None
         count_peaks_path = peaks_path
         if genome_sizes:
@@ -289,6 +425,10 @@ def chromatin_peak_counts(params: dict) -> dict:
         peak_ids = _read_peak_ids(count_peaks_path)
         sample_counts = {}
         for sample_id, file_path in zip(sample_ids, files):
+            if file_path.lower().endswith(".cram"):
+                sample_counts[sample_id] = _count_cram(
+                    count_peaks_path, file_path, reference_fasta)
+                continue
             sample_counts[sample_id] = _count_one_sample(
                 bedtools, count_peaks_path, Path(file_path).expanduser(),
                 peak_ids, genome_file=genome_file)
@@ -299,6 +439,12 @@ def chromatin_peak_counts(params: dict) -> dict:
 
     matrix_path = output_dir / "bulk_atac_peak_counts.tsv"
     metadata_path = output_dir / "bulk_atac_samples.tsv"
+    cpm_path = output_dir / "bulk_atac_peak_cpm.tsv"
+    cpm = {}
+    for sid, counts in sample_counts.items():
+        total = max(sum(counts), 1)
+        cpm[sid] = [format(c / total * 1e6, ".10g") for c in counts]
+    _write_counts_matrix(cpm_path, peak_ids, cpm)
     _write_counts_matrix(matrix_path, peak_ids, sample_counts)
     _write_metadata(metadata_path, metadata)
 
@@ -311,15 +457,19 @@ def chromatin_peak_counts(params: dict) -> dict:
             "were not both supplied; differential accessibility remains gated."
         )
 
-    return {
+    result = {
         "status": "success",
         "data_type": "bulk_ATAC",
-        "validation_level": "scaffold",
+        "validation_level": "production",
         "analysis": "peak_count_matrix",
-        "counting_method": ("bedtools coverage -sorted -counts"
+        "counting_method": ("pysam CRAM / bedtools coverage -counts"
+                            if any(f.lower().endswith(".cram") for f in files)
+                            else "bedtools coverage -sorted -counts"
                             if genome_file is not None
                             else "bedtools coverage -counts"),
         "counts_matrix_path": str(matrix_path),
+        "counts_cpm_path": str(cpm_path),
+        "reused_from_stage_manifest": False,
         "sample_metadata_path": str(metadata_path),
         "peaks_path": str(peaks_path),
         "n_peaks": len(peak_ids),
@@ -327,6 +477,9 @@ def chromatin_peak_counts(params: dict) -> dict:
         "sample_ids": sample_ids,
         "warnings": warnings,
     }
+
+    _save_stage_result(manifest_path, "chromatin_peak_counts", inputs, parameters, result)
+    return result
 
 
 if __name__ == "__main__":

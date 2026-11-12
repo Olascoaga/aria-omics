@@ -122,3 +122,49 @@ def test_coordinate_contract_records_valid_bed_convention(tmp_path):
         contract["feature_coordinates"]["inspected"][0]["coordinate_convention"]
         == "bed_0_based_half_open"
     )
+
+
+def test_bulk_atac_contract_blocks_single_cell_barcoded_fastqs(tmp_path):
+    r1 = tmp_path / "lib1_S1_L001_R1_001.fastq"
+    r2 = tmp_path / "lib1_S1_L001_R2_001.fastq"
+    r3 = tmp_path / "lib1_S1_L001_R3_001.fastq"
+    for fp, seq in ((r1, "A" * 50), (r2, "A" * 16), (r3, "T" * 50)):
+        fp.write_text(f"@r1\n{seq}\n+\n{'I' * len(seq)}\n", encoding="utf-8")
+
+    result = validate_assay_contract(
+        {
+            "genome": "hg38",
+            "modalities": {"bulk_ATAC": [str(r1), str(r2), str(r3)]},
+        },
+        "bulk_ATAC",
+    )
+
+    assert result["status"] == "red"
+    assert result["checks"]["assay_contract"]["barcode_namespace"]["status"] == "blocked"
+    assert any(
+        f["check"] == "assay_contract_bulk_atac_single_cell_barcoded_fastq"
+        for f in result["findings"]
+    )
+
+
+def test_bulk_atac_contract_blocks_under_replicated_contrast():
+    result = validate_assay_contract(
+        {
+            "genome": "hg38",
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+            "sample_metadata": {
+                "c1": {"condition": "ctrl", "replicate": "r1"},
+                "t1": {"condition": "treat", "replicate": "r2"},
+                "t2": {"condition": "treat", "replicate": "r3"},
+            },
+            "modalities": {"bulk_ATAC": ["/data/c1.bam", "/data/t1.bam", "/data/t2.bam"]},
+        },
+        "bulk_ATAC",
+    )
+
+    assert result["status"] == "red"
+    assert result["checks"]["assay_contract"]["replicate_structure"]["status"] == "blocked"
+    assert any(
+        f["check"] == "assay_contract_replicates_under_replicated"
+        for f in result["findings"]
+    )

@@ -1,16 +1,18 @@
 # Chromatin Workflows
 
-Validation level: `scATAC` is **production** (`ADR-076`, governed at `CP3.5` by
-`ScATACAuditAgent` — auto-dispatching exploratory single-cohort runs and `n>=3`
-donor-aware pseudobulk contrasts, requiring acknowledgement for `n==2` low-power
-contrasts, and blocking `n<2` or batch-confounded contrasted designs), whereas
-`bulk_ATAC` remains **beta + requires explicit acknowledgement** (`CP3.5`, `ADR-056`).
-Even on the promoted `scATAC` spine, optional sub-layers keep explicit statistical
-scope limits: per-cluster Wilcoxon markers remain descriptive rankings, `gene_scores`
-remain caveated, and differential TF footprinting (`TOBIAS`) is a DESCRIPTIVE
-candidate ranking, not FDR-controlled significance, when it contrasts a single
-pseudobulk per condition without `>=3` explicit biological replicates per group
-(preprint audit B7).
+Validation level: BOTH `scATAC` (`ADR-076`, governed at `CP3.5` by
+`ScATACAuditAgent`) and `bulk_ATAC` (`ADR-077`, governed at `CP3.5` by
+`BulkATACAuditAgent`) are **production** — auto-dispatching exploratory
+single-cohort profiling runs and `n>=3` biological-replicate contrasts, requiring
+explicit acknowledgement for `n==2` low-power contrasts (such as ENCODE isogenic
+replicates), and blocking `n<2`, batch-confounded, or misrouted single-cell
+barcoded FASTQ designs.
+Even on the promoted `scATAC` and `bulk_ATAC` spines, optional sub-layers keep
+explicit statistical scope limits: per-cluster Wilcoxon markers remain descriptive
+rankings, `gene_scores` remain caveated, and differential TF footprinting (`TOBIAS`)
+is a DESCRIPTIVE candidate ranking, not FDR-controlled significance, when it
+contrasts a single pseudobulk or pooled condition BAM without `>=3` explicit
+biological replicates per group (preprint audit B7).
 ChIP-seq, CUT&RUN, and CUT&TAG remain
 scaffolded. The authoritative per-modality tier lives in the orchestrator's
 `MODALITY_VALIDATION` (single source) and is mirrored in `docs/validation_status.md`.
@@ -70,37 +72,38 @@ caveated `gene_scores`, and `C3`-verified chromatin report blocks (`ledger://chr
 Missing resources or underpowered designs are reported as skipped/limited analyses,
 not inferred around. chromVAR-style per-cell motif activity remains out of scope.
 
-## Current Bulk ATAC Beta Path
+## Current Bulk ATAC Production Path (`ADR-077`)
 
-Bulk ATAC exposes the implemented ATAC beta workflow behind CP3.5
-acknowledgement. It is not presented as universally publication-grade;
-footprinting is descriptive-only when its replicate-aware inference contract is
-not met. The lane was exercised end-to-end on ENCODE replicates (K562 vs
-GM12878): raw FASTQ→BAM
-(`atac_align.py`, bwa-mem2 + ATAC filtering) or aligned BAM/CRAM input → measured QC
-→ MACS3 peak calling with overlap-reproducibility consensus → peak-by-sample count
-matrix (`bedtools coverage -sorted -counts`) → replicate-gated DESeq2 differential
-accessibility (`chromatin_bulk_diffacc.py`) → genomic peak annotation → functional
-ORA → TF motif enrichment → condition-level TOBIAS footprinting → figures. DA
-requires explicit condition, biological replicate, and comparison metadata;
-under-specified designs return structured skips. FRiP is computed only when the real
-post-peak-counting tools succeed; ARIA does not substitute a default FRiP. n=2
-isogenic designs run with a low-power warning (directional, not FDR-calibration).
+`bulk_ATAC` reaches the unified chromatin spine from three entry points: universal
+raw SE/PE/multi-lane FASTQ cohorts (`rna_fastq_qc.py` `fastp` + `atac_align.py`
+`bwa-mem2` with SE/PE alignment flags, duplicate removal, mitochondrial contig
+stripping, and `A4` stage-manifest resume), aligned BAM/CRAM cohorts, or
+pre-computed peak-by-sample count matrices (`.tsv`/`.csv`). It is governed by
+`BulkATACAuditAgent` and is not presented as universally publication-grade without
+expert design review; footprinting (`TOBIAS`) remains `beta` and descriptive-only
+when its replicate-aware inference contract is not met. The production spine runs
+100% local `pysam` + `bedtools` + local-GTF ENCODE QC (per-sample and cohort FRiP,
+BAM-level TSS enrichment, duplicate rate, mitochondrial fraction, and paired-end
+insert-size nucleosomal banding across all samples) → SE/PE auto-detected `MACS3`
+peak calling with overlap-reproducibility consensus and optional blacklist
+filtering → integer and `CPM` peak-by-sample matrices (`chromatin_peak_counts.py`,
+`bedtools coverage -sorted -counts`) → replicate-gated `pyDESeq2` differential
+accessibility (`chromatin_bulk_diffacc.py`, externally concordant with R `DESeq2`,
+`edgeR`, and `limma-voom` on multi-replicate + batch cohorts and ENCODE `K562` vs
+`GM12878`) → genomic peak annotation → local GMT functional ORA → `JASPAR2024` TF
+motif enrichment → optional `beta` `TOBIAS` footprinting → `C3`-verified report
+blocks (`ledger://chromatin/bulk_atac_preprocessing`) and dual PNG+SVG PCA, QC,
+Volcano, and MA figures (`chromatin_figure_bulk.py`). `n=2` isogenic designs
+require explicit `CP3.5` acknowledgement and run with a low-power warning
+(directional, not FDR-calibration).
 
 ## Optional Sub-Layers & Remaining Roadmap
 
-For `scATAC` optional layers (`scATAC` core spine is `production` under `ADR-076`):
+For `scATAC` and `bulk_ATAC` optional layers (core spines are `production` under `ADR-076` and `ADR-077`):
 
 - chromVAR per-cell motif activity if that becomes a product goal;
 - independent threshold calibration if `gene_scores` is ever promoted beyond caveated exploratory status;
 - `TOBIAS` footprinting remains `beta` (`Dockerfile.tobias`), descriptive unless `>=3` biological replicates per group are supplied.
-
-For bulk ATAC (QC→peaks→DA→annotation→ORA→motifs→footprinting→figures and raw
-FASTQ→BAM are implemented and real-validated on ENCODE replicates):
-
-- broader real-data validation across more replicated cohorts and tissues;
-- chromatin CI lane (env solve + chr20 smoke) for external reproducibility;
-- the readiness ADR + release review before any production promotion.
 
 For ChIP / CUT&RUN / CUT&TAG:
 
@@ -125,7 +128,8 @@ flowchart TD
 
 ## Release Recommendation
 
-`scATAC` is promoted to **production** (`ADR-076`, governed by `ScATACAuditAgent`),
-while `bulk_ATAC` and paired same-cell RNA+ATAC integration remain available as
-acknowledgement-gated **beta** lanes (`ADR-056`, `ADR-071`); scaffolded chromatin
-assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from publication-looking dispatch.
+`scATAC` (`ADR-076`, `ScATACAuditAgent`) and `bulk_ATAC` (`ADR-077`,
+`BulkATACAuditAgent`) are promoted to **production**, while paired same-cell
+RNA+ATAC integration and `TOBIAS` footprinting remain acknowledgement-gated
+**beta** lanes (`ADR-056`, `ADR-071`); scaffolded chromatin assays
+(ChIP/CUT&RUN/CUT&TAG) remain blocked from publication-looking dispatch.

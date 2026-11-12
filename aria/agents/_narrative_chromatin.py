@@ -452,6 +452,81 @@ def _marker_peaks_by_cluster(findings: dict) -> dict:
     return out
 
 
+_BULK_ATAC_SPINE_KEYS = ("preprocessing", "qc", "peaks", "peak_counts",
+                         "differential_accessibility")
+
+
+def _is_bulk_atac_findings(findings: dict) -> bool:
+    return any(isinstance(findings.get(k), dict)
+               and findings[k].get("data_type") == "bulk_ATAC"
+               for k in _BULK_ATAC_SPINE_KEYS)
+
+
+def _bulk_figure_params(findings: dict, output_dir: Path) -> dict:
+    """IPC params for `chromatin_figure_bulk` from the measured findings only.
+    Unset optional fields are omitted (the script contract rejects empties)."""
+    counts = findings.get("peak_counts") or {}
+    da = findings.get("differential_accessibility") or {}
+    counts_path = (counts.get("counts_cpm_path")
+                   or da.get("replicate_counts_path")
+                   or counts.get("counts_matrix_path"))
+    params: dict = {"output_dir": str(output_dir)}
+    if counts_path:
+        params["counts_path"] = str(counts_path)
+    # Replicate-aggregated columns are named "<condition>::<replicate>", so the
+    # per-library metadata does not apply to them; only pass metadata for the
+    # per-library matrices.
+    if counts_path and counts_path != da.get("replicate_counts_path"):
+        if counts.get("sample_metadata_path"):
+            params["sample_metadata"] = str(counts["sample_metadata_path"])
+    elif counts_path:
+        cond_col = da.get("condition_col") or "condition"
+        try:
+            import csv
+            with open(counts_path, newline="", encoding="utf-8") as handle:
+                header = next(csv.reader(handle, delimiter="\t"))
+            meta = {c: {cond_col: c.split("::", 1)[0]}
+                    for c in header[1:] if "::" in c}
+            if meta:
+                params["sample_metadata"] = meta
+        except (OSError, StopIteration):
+            pass
+    if da.get("condition_col"):
+        params["condition_col"] = str(da["condition_col"])
+    qc = findings.get("qc")
+    if isinstance(qc, dict):
+        params["qc"] = {k: v for k, v in qc.items() if k in (
+            "frip", "frip_per_sample", "tss_enrichment",
+            "tss_enrichment_per_sample", "dup_rate", "dup_rate_per_sample",
+            "mito_frac", "mito_fraction")}
+    peaks = findings.get("peaks")
+    if isinstance(peaks, dict):
+        params["peaks"] = {k: v for k, v in peaks.items() if k in (
+            "frip", "frip_per_sample", "n_peaks", "n_consensus_peaks")}
+    return params
+
+
+def _render_bulk_atac_figures(findings: dict, output_dir: Path,
+                              env_manager=None) -> dict:
+    params = _bulk_figure_params(findings, output_dir)
+    if env_manager is not None:
+        res = env_manager.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_figure_bulk.py",
+            params=params,
+        )
+    else:
+        from aria.scripts.chromatin_figure_bulk import render_bulk_figures
+        res = render_bulk_figures(params)
+    if not isinstance(res, dict) or res.get("status") != "success":
+        log.warning("bulk ATAC figures failed: %s — %s",
+                    (res or {}).get("error_type"),
+                    str((res or {}).get("details", ""))[:200])
+        return {}
+    return {k: v for k, v in (res.get("figures") or {}).items()
+            if isinstance(v, str)}
+
+
 def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
                      env_manager=None) -> dict:
     """Generate scATAC figures into ``findings['figures']`` (mutates + returns it).
@@ -538,6 +613,16 @@ def generate_figures(findings: dict, h5ad_path: Optional[str], output_dir,
         for key, path in (ora.get("figures") or {}).items():
             if isinstance(path, str):
                 figs[key] = path
+
+    # 2b. Bulk ATAC sample PCA + ENCODE QC summary (ADR-077), rendered by
+    # `chromatin_figure_bulk` in the rna stack (or in-process without an env
+    # manager). Each panel self-skips when its data is absent/degenerate.
+    if _is_bulk_atac_findings(findings):
+        try:
+            figs.update(_render_bulk_atac_figures(findings, output_dir,
+                                                  env_manager))
+        except Exception as e:  # a figure failure must not abort the report
+            log.warning("bulk ATAC PCA/QC figures failed: %s", e)
 
     # 3. Motif enrichment dotplot (inline) from structured motif findings.
     motifs = findings.get("motifs") or {}

@@ -13,7 +13,7 @@ flowchart TD
     CP35 -->|Proceed| SETUP
     SETUP --> B["BulkRNAAgent (production)"]
     SETUP --> S["scRNAAgent (production)"]
-    SETUP --> C["ChromatinAgent (scATAC production / bulk ATAC beta)"]
+    SETUP --> C["ChromatinAgent (scATAC & bulk ATAC production)"]
     SETUP --> INT["IntegrationAgent (paired Multiome beta)"]
     SETUP -. disabled by default .-> H["GenomeArchAgent (scaffold)"]
     B --> N["NarrativeAgent + Synthesis + Triangulation"]

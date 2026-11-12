@@ -73,6 +73,14 @@ _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
                  "barcode whitelist"],
      "finding_keys": ["fastq_to_fragments", "fragments_to_matrix",
                       "cohort_matrix_union"]},
+    # ADR-077: raw bulk ATAC FASTQ -> filtered BAM front-end (fastp + bwa-mem2 +
+    # ATAC filtering). Reconciled from the bulk lane's ``preprocessing`` finding
+    # by ``_reconcile_chromatin`` (the scATAC node above is untouched).
+    {"key": "bulk_atac_preprocessing",
+     "label": "Raw bulk ATAC alignment and filtering",
+     "plan_kw": ["bwa-mem2", "bwa mem", "bulk atac alignment",
+                 "atac alignment", "atac_align"],
+     "finding_keys": ["bulk_atac_preprocessing"]},
     {"key": "dimensionality_reduction",
      "label": "Dimensionality reduction (LSI/TF-IDF)",
      "plan_kw": ["lsi", "latent semantic", "tf-idf", "tfidf",
@@ -296,6 +304,60 @@ def _entries_for(modality: str, specs: list[dict], findings: dict,
     return entries
 
 
+def _is_bulk_atac_preprocessing(preprocessing: Any) -> bool:
+    return isinstance(preprocessing, dict) and (
+        preprocessing.get("data_type") == "bulk_ATAC"
+        or "bam_files" in preprocessing
+    )
+
+
+def _reconcile_chromatin(findings: dict, phrases: list[str]) -> list[dict]:
+    """Reconcile chromatin findings, including the bulk ATAC raw front-end.
+
+    The bulk lane stores its FASTQ -> BAM step under ``preprocessing``; it maps
+    to ``ledger://chromatin/bulk_atac_preprocessing`` with script/stack/input/
+    artifact provenance. ``executed`` requires a successful status AND at least
+    one produced BAM — never inferred from the request alone.
+    """
+    findings = dict(findings or {})
+    preprocessing = findings.get("preprocessing")
+    bulk_pre = _is_bulk_atac_preprocessing(preprocessing)
+    if bulk_pre:
+        findings["bulk_atac_preprocessing"] = preprocessing
+    entries = _entries_for("chromatin", _CHROMATIN_ANALYSES, findings, phrases)
+    if not bulk_pre:
+        return entries
+    entry = next(e for e in entries
+                 if e["analysis"] == "bulk_atac_preprocessing")
+    status = str(preprocessing.get("status") or "").lower().strip()
+    artifacts: list[str] = []
+    for rec in preprocessing.get("bam_files") or []:
+        if isinstance(rec, dict):
+            if rec.get("status", "success") == "success" and rec.get("bam"):
+                artifacts.append(str(rec["bam"]))
+        elif rec:
+            artifacts.append(str(rec))
+    inputs = [str(f) for f in (preprocessing.get("fastq_files") or []) if f]
+    entry["provenance"].update({
+        "script": "aria/scripts/atac_align.py",
+        "environment_stack": "atacseq",
+        "inputs": inputs,
+        "artifacts": artifacts,
+        "validation_level": preprocessing.get("validation_level",
+                                              "production"),
+    })
+    if status in ("success", "done") and artifacts:
+        entry["status"] = "executed"
+        entry["reason"] = None
+        entry["divergence"] = False
+    elif entry["status"] == "ran":
+        # A success stamp without a produced BAM is not an executed alignment.
+        entry["status"] = "skipped"
+        entry["reason"] = "no filtered BAM produced"
+        entry["divergence"] = bool(entry["planned"])
+    return entries
+
+
 def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
     """Reconcile planned vs executed analyses into an auditable manifest.
 
@@ -315,8 +377,7 @@ def build_run_ledger(exp_ctx: dict, agent_results: dict) -> dict:
 
     ch_findings = _chromatin_findings(agent_results)
     if bool(ch_findings) or "chromatin_agent" in (agent_results or {}):
-        entries += _entries_for("chromatin", _CHROMATIN_ANALYSES,
-                                ch_findings, phrases)
+        entries += _reconcile_chromatin(ch_findings, phrases)
         modalities.append("chromatin")
 
     bk_findings = _bulk_findings_normalized(agent_results)

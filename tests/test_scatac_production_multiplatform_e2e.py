@@ -97,7 +97,8 @@ def test_scatac_production_promotion_and_scatac_audit_governance(tmp_path):
         "dispatch_enabled": True,
         "promotion_adr": "ADR-076",
     }
-    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "beta"
+    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "production"
+    assert MODALITY_VALIDATION["bulk_ATAC"]["promotion_adr"] == "ADR-077"
     assert INTEGRATION_VALIDATION["production_promoted"] is False
     assert check_registry_integrity() == []
 
@@ -117,7 +118,7 @@ def test_scatac_production_promotion_and_scatac_audit_governance(tmp_path):
         assert SCRIPT_CONTRACTS[script].validation_level == "production", script
 
     assert SCRIPT_CONTRACTS["aria/scripts/chromatin_footprint_tobias.py"].validation_level == "beta"
-    assert SCRIPT_CONTRACTS["aria/scripts/chromatin_peak_counts.py"].validation_level == "scaffold"
+    assert SCRIPT_CONTRACTS["aria/scripts/chromatin_peak_counts.py"].validation_level == "production"
 
     h5mu = tmp_path / "cohort.h5mu"
     h5mu.write_bytes(b"stub")

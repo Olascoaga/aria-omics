@@ -236,3 +236,127 @@ def test_methods_keeps_no_realign_claim_without_preprocessing():
     joined = " ".join(narr._bulk_atac_methods(findings))
     assert "does not realign" in joined
     assert "bwa-mem2" not in joined
+
+
+def test_strip_mito_sam_and_public_defaults():
+    assert aa.DEFAULT_MIN_MAPQ == 30
+    assert aa.DEFAULT_MITO == frozenset({"chrM", "MT", "M"})
+    lines = ["@SQ\tSN:chrM\tLN:100\n", "r1\t0\tchrM\t1\t60\n",
+             "r2\t0\tchr1\t1\t60\n", "r3\t0\tMT\t1\t60\n"]
+    assert list(aa._strip_mito_sam(lines)) == [lines[0], lines[2]]
+
+
+def _fake_alignment_tools(monkeypatch):
+    commands = []
+
+    def pipe(cmd1, cmd2, *args):
+        commands.extend([cmd1, cmd2])
+        return True
+
+    def run(cmd, *args):
+        commands.append(cmd)
+        if cmd[:2] == ["samtools", "index"]:
+            Path(cmd[-1] + ".bai").write_bytes(b"index")
+        return True
+
+    def filtered(cmd, path, mito, *args):
+        commands.append(cmd)
+        Path(path).write_bytes(b"filtered")
+        return True
+
+    monkeypatch.setattr(aa, "_pipe", pipe)
+    monkeypatch.setattr(aa, "_run", run)
+    monkeypatch.setattr(aa, "_filter_bam", filtered)
+    monkeypatch.setattr(aa, "_bam_valid", lambda path: True)
+    monkeypatch.setattr(aa, "_bam_metrics", lambda *a, **k: {"n_final": 12})
+    monkeypatch.setattr(aa, "_bwa_index_exists", lambda prefix: True)
+    return commands
+
+
+def _alignment_params(tmp_path, paired):
+    fasta = tmp_path / "ref.fa"
+    fasta.write_text(">chr1\nACGT\n")
+    r1, r2 = tmp_path / "R1.fq", tmp_path / "R2.fq"
+    r1.write_text("R1\n")
+    r2.write_text("R2\n")
+    return {"samples": [{"name": "s", "r1": str(r1), "r2": str(r2), "paired": paired}],
+            "genome_fasta": str(fasta), "output_dir": str(tmp_path / "out")}
+
+
+def test_atac_single_end_pipeline(monkeypatch, tmp_path):
+    commands = _fake_alignment_tools(monkeypatch)
+    result = aa.atac_align(_alignment_params(tmp_path, False))
+    assert result["status"] == "success"
+    assert result["validation_level"] == "production"
+    assert result["read_layout"] == "single"
+    assert result["filters"]["samtools_f"] == 0
+    assert not any("fixmate" in cmd for cmd in commands)
+    view = next(cmd for cmd in commands if cmd[:2] == ["samtools", "view"])
+    assert "-f" not in view and view[view.index("-F") + 1] == "1804"
+    align = commands[0]
+    assert align[-1].endswith("R1.fq") and not any(x.endswith("R2.fq") for x in align)
+    assert "-n" not in commands[1]
+    assert result["per_sample"][0]["mapped_reads_post_filter"] == 12
+
+
+def test_atac_paired_end_pipeline(monkeypatch, tmp_path):
+    commands = _fake_alignment_tools(monkeypatch)
+    result = aa.atac_align(_alignment_params(tmp_path, True))
+    assert result["read_layout"] == "paired"
+    assert result["filters"]["samtools_f"] == 2
+    assert any(cmd[:3] == ["samtools", "fixmate", "-m"] for cmd in commands)
+    assert commands[0][-2].endswith("R1.fq") and commands[0][-1].endswith("R2.fq")
+    assert "-n" in commands[1]
+    view = next(cmd for cmd in commands if cmd[:2] == ["samtools", "view"])
+    assert view[view.index("-f") + 1] == "2"
+
+
+def test_atac_stage_resume_and_invalidation(monkeypatch, tmp_path):
+    commands = _fake_alignment_tools(monkeypatch)
+    params = _alignment_params(tmp_path, False)
+    first = aa.atac_align(params)
+    assert first["per_sample"][0]["reused_from_stage_manifest"] is False
+    commands.clear()
+    cached = aa.atac_align(params)
+    assert cached["per_sample"][0]["reused_from_stage_manifest"] is True
+    assert not commands
+    def change_reference():
+        import os
+        path = Path(params["genome_fasta"])
+        timestamp = path.stat().st_mtime_ns + 1_000_000_000
+        path.write_text(">chr1\nTGCA\n")
+        os.utime(path, ns=(timestamp, timestamp))
+
+    for invalidate in (
+        lambda: params.update(min_mapq=35),
+        lambda: Path(params["samples"][0]["r1"]).write_text("changed FASTQ"),
+        change_reference,
+        lambda: Path(first["per_sample"][0]["bam"] + ".bai").unlink(),
+    ):
+        invalidate()
+        commands.clear()
+        assert aa.atac_align(params)["per_sample"][0]["reused_from_stage_manifest"] is False
+        assert commands
+
+
+def test_atac_missing_fastq_and_mixed_layout(monkeypatch, tmp_path):
+    _fake_alignment_tools(monkeypatch)
+    params = _alignment_params(tmp_path, True)
+    params["samples"].append({**params["samples"][0], "name": "se", "paired": False})
+    result = aa.atac_align(params)
+    assert result["read_layout"] == "mixed" and result["filters"]["samtools_f"] == 0
+    Path(params["samples"][0]["r1"]).unlink()
+    assert aa.atac_align(params)["status"] == "error"
+
+
+def test_atac_layout_requires_an_existing_r2_only_for_paired_samples(monkeypatch, tmp_path):
+    commands = _fake_alignment_tools(monkeypatch)
+    params = _alignment_params(tmp_path, True)
+    Path(params["samples"][0]["r2"]).unlink()
+    result = aa.atac_align(params)
+    assert result["status"] == "error" and not commands
+    params["samples"][0]["paired"] = False
+    assert aa.atac_align(params)["read_layout"] == "single"
+    params["samples"][0].pop("r2")
+    params["samples"][0]["paired"] = True
+    assert aa.atac_align(params)["read_layout"] == "single"

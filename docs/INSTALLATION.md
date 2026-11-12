@@ -269,10 +269,11 @@ bulk via `aria-rnaseq-env` / `docker/Dockerfile.rnaseq`), 10x `.h5`, complete
 10x MEX directories, `.h5ad`, `scRNA` raw FASTQs (`kb-python`), and universal
 `scATAC` inputs (`.h5mu`/`.h5ad` matrices, `fragments.tsv.gz`, and multi-lane /
 multi-platform `chromap` raw FASTQs via `aria-atacseq-env` + `aria-chromatin-env` /
-`docker/Dockerfile.atacseq` + `docker/Dockerfile.chromatin`). Beta `bulk_ATAC`,
-`TOBIAS` footprinting (`docker/Dockerfile.tobias`), and paired-multiome entry
-points require typed metadata, manifests, and `CP3.5` acknowledgement where the
-assay contract needs them.
+`docker/Dockerfile.atacseq` + `docker/Dockerfile.chromatin`), and universal
+`bulk_ATAC` inputs (SE/PE/multi-lane raw FASTQs, BAM/CRAM, and pre-computed
+peak-count matrices). Beta `TOBIAS` footprinting (`docker/Dockerfile.tobias`)
+and paired-multiome entry points require typed metadata, manifests, and `CP3.5`
+acknowledgement where the assay contract needs them.
 
 Do not rely on filenames to establish the biological design. ARIA intentionally
 refuses silent production inference for groups, references, replicates, and

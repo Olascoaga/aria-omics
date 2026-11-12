@@ -45,8 +45,13 @@ AGENT_SCRIPT_CONTRACTS = {
     },
     "chromatin_agent": {
         "required": (
+            "aria/scripts/atac_align.py",
             "aria/scripts/chromatin_qc.py",
             "aria/scripts/chromatin_peaks.py",
+            "aria/scripts/chromatin_peak_counts.py",
+            "aria/scripts/chromatin_bulk_diffacc.py",
+            "aria/scripts/chromatin_figure_bulk.py",
+            "aria/scripts/chromatin_figure_clusters.py",
             "aria/scripts/chromatin_scatac_align.py",
             "aria/scripts/chromatin_fragments_to_matrix.py",
             "aria/scripts/chromatin_merge_matrices.py",

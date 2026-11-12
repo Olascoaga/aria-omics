@@ -231,7 +231,7 @@ def _modality_stamp(params: dict) -> tuple:
     Defaults to the bulk ATAC stamp so every pre-existing bulk call (which never
     passes ``data_type``) keeps byte-identical output names and stamps."""
     data_type = str(params.get("data_type") or "bulk_ATAC")
-    validation_level = "production" if data_type == "scATAC" else "beta"
+    validation_level = "production" if data_type in {"scATAC", "bulk_ATAC"} else "beta"
     prefix = "scatac" if data_type == "scATAC" else "bulk_atac"
     return data_type, validation_level, prefix
 

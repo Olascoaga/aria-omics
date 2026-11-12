@@ -1,0 +1,675 @@
+{
+  "benchmark": "ADR-077_bulk_ATAC_multireplicate_external_R_concordance",
+  "adr": "ADR-077",
+  "scope": "bulk ATAC replicate-level differential accessibility (aria/scripts/chromatin_bulk_diffacc.py): technical-replicate aggregation, ~ batch + condition fit, concordance with Bioconductor DESeq2 / edgeR / limma-voom, recovery of planted differential peaks, and label-permutation null control",
+  "aria_version": "4.8.0",
+  "git": {
+    "commit": "7c13ce689219eeea8abffe8969e5a53559a711e1",
+    "working_tree_dirty": true
+  },
+  "generated_utc": "2026-11-12T22:59:39Z",
+  "runtime_seconds": 36.2,
+  "reproduce": "python scripts/run_bulk_atac_concordance.py (requires conda envs aria-rna-env + aria-bench-env)",
+  "data": {
+    "kind": "deterministic simulation (no external data)",
+    "generator": "aria.benchmarks.bulk_atac_concordance.simulate_multireplicate_bulk_atac",
+    "spec": {
+      "seed": 20261112,
+      "conditions": {
+        "reference": "control",
+        "test": "treated"
+      },
+      "n_bio_per_condition": 4,
+      "n_tech_per_bio": 2,
+      "batches": [
+        "batch1",
+        "batch2"
+      ],
+      "n_null_peaks": 500,
+      "n_up_peaks": 50,
+      "n_down_peaks": 50,
+      "abs_log2fc_range": [
+        1.0,
+        2.0
+      ],
+      "base_mean_lognormal": {
+        "meanlog": 5.0106352940962555,
+        "sdlog": 0.8,
+        "clip": [
+          20.0,
+          3000.0
+        ]
+      },
+      "dispersion_trend": {
+        "asymptotic": 0.03,
+        "extra_poisson": 2.0
+      },
+      "batch_log2_shift_sd": 0.4,
+      "library_size_factor_range": [
+        0.6,
+        1.4
+      ]
+    },
+    "n_libraries": 16,
+    "n_biological_replicates": 8,
+    "n_peaks": 600,
+    "library_counts_sha256": "e907dfa6597981525e51c9b23b310f2d7c5bb798d61c5a61bcf7285c4c67dc08",
+    "design_table": [
+      {
+        "sample": "control::bio1",
+        "condition": "control",
+        "replicate": "bio1",
+        "batch": "batch1"
+      },
+      {
+        "sample": "control::bio2",
+        "condition": "control",
+        "replicate": "bio2",
+        "batch": "batch1"
+      },
+      {
+        "sample": "control::bio3",
+        "condition": "control",
+        "replicate": "bio3",
+        "batch": "batch2"
+      },
+      {
+        "sample": "control::bio4",
+        "condition": "control",
+        "replicate": "bio4",
+        "batch": "batch2"
+      },
+      {
+        "sample": "treated::bio5",
+        "condition": "treated",
+        "replicate": "bio5",
+        "batch": "batch1"
+      },
+      {
+        "sample": "treated::bio6",
+        "condition": "treated",
+        "replicate": "bio6",
+        "batch": "batch1"
+      },
+      {
+        "sample": "treated::bio7",
+        "condition": "treated",
+        "replicate": "bio7",
+        "batch": "batch2"
+      },
+      {
+        "sample": "treated::bio8",
+        "condition": "treated",
+        "replicate": "bio8",
+        "batch": "batch2"
+      }
+    ]
+  },
+  "aria": {
+    "script": "aria/scripts/chromatin_bulk_diffacc.py",
+    "environment_stack": "rna",
+    "invocation": "script IPC (python <script> in.json out.json)",
+    "validation_level": "production",
+    "method": "replicate-level DESeq2 over bulk ATAC peak counts",
+    "fitted_design_formula": "~ batch + condition",
+    "covariates_adjusted": [
+      "batch"
+    ],
+    "lfc_threshold_test": {
+      "requested": 0.5,
+      "applied": true,
+      "alt_hypothesis": "greaterAbs",
+      "lfc_null": 0.5,
+      "significance_rule": "padj < threshold"
+    },
+    "lfc_shrinkage": {
+      "requested": true,
+      "applied": true,
+      "method": "apeGLM",
+      "reason": null
+    },
+    "n_replicate_samples": 8,
+    "n_peaks_tested": 600,
+    "n_sig": 75,
+    "n_up": 41,
+    "n_down": 34,
+    "n_nonconverged_excluded": 0,
+    "pydeseq2": "0.5.4",
+    "thresholds": {
+      "padj": 0.05,
+      "lfc": 0.5
+    }
+  },
+  "technical_replicate_aggregation": {
+    "n_libraries_in": 16,
+    "n_biological_replicates_out": 8,
+    "matches_independent_sum_exactly": true
+  },
+  "external_comparators": {
+    "environment": "aria-bench-env (Bioconductor)",
+    "design": "~ batch + condition",
+    "versions": {
+      "R": "4.3.3",
+      "DESeq2": "1.42.0",
+      "edgeR": "4.0.16",
+      "limma": "3.58.1"
+    },
+    "input": "ARIA's replicate-level count matrix (identical input)",
+    "aria_lfc_compared": "raw MLE log2FC (log2FoldChange_raw); apeGLM-shrunk Spearman reported separately",
+    "aria_vs_method": {
+      "deseq2": {
+        "status": "success",
+        "threshold_matched_hypothesis": true,
+        "n_common_peaks": 600,
+        "lfc_pearson": 1.0,
+        "lfc_spearman": 1.0,
+        "lfc_spearman_shrunk_aria": 0.99871,
+        "neglog10_padj_spearman": 1.0,
+        "sign_agreement_all_peaks": 1.0,
+        "sign_agreement_significant_union": 1.0,
+        "significant_overlap": {
+          "n_called": 75,
+          "n_reference": 75,
+          "n_intersection": 75,
+          "jaccard": 1.0,
+          "sensitivity": 1.0,
+          "precision": 1.0
+        },
+        "reference_significance_rule": "padj < 0.05 (lfcThreshold-matched test)"
+      },
+      "edgeR_QLF": {
+        "status": "success",
+        "threshold_matched_hypothesis": false,
+        "n_common_peaks": 600,
+        "lfc_pearson": 0.999983,
+        "lfc_spearman": 0.999904,
+        "lfc_spearman_shrunk_aria": 0.998788,
+        "neglog10_padj_spearman": 0.645918,
+        "sign_agreement_all_peaks": 0.975,
+        "sign_agreement_significant_union": 1.0,
+        "significant_overlap": {
+          "n_called": 75,
+          "n_reference": 105,
+          "n_intersection": 75,
+          "jaccard": 0.714286,
+          "sensitivity": 0.714286,
+          "precision": 1.0
+        },
+        "reference_significance_rule": "padj < 0.05 and |log2FC| >= 0.5"
+      },
+      "edgeR_glmTreat": {
+        "status": "success",
+        "threshold_matched_hypothesis": true,
+        "n_common_peaks": 600,
+        "lfc_pearson": 0.999983,
+        "lfc_spearman": 0.999904,
+        "lfc_spearman_shrunk_aria": 0.998788,
+        "neglog10_padj_spearman": 0.947149,
+        "sign_agreement_all_peaks": 0.975,
+        "sign_agreement_significant_union": 1.0,
+        "significant_overlap": {
+          "n_called": 75,
+          "n_reference": 93,
+          "n_intersection": 75,
+          "jaccard": 0.806452,
+          "sensitivity": 0.806452,
+          "precision": 1.0
+        },
+        "reference_significance_rule": "padj < 0.05 (lfcThreshold-matched test)"
+      },
+      "limma_voom": {
+        "status": "success",
+        "threshold_matched_hypothesis": false,
+        "n_common_peaks": 600,
+        "lfc_pearson": 0.998506,
+        "lfc_spearman": 0.991953,
+        "lfc_spearman_shrunk_aria": 0.992305,
+        "neglog10_padj_spearman": 0.645561,
+        "sign_agreement_all_peaks": 0.963333,
+        "sign_agreement_significant_union": 1.0,
+        "significant_overlap": {
+          "n_called": 75,
+          "n_reference": 107,
+          "n_intersection": 75,
+          "jaccard": 0.700935,
+          "sensitivity": 0.700935,
+          "precision": 1.0
+        },
+        "reference_significance_rule": "padj < 0.05 and |log2FC| >= 0.5"
+      },
+      "limma_treat": {
+        "status": "success",
+        "threshold_matched_hypothesis": true,
+        "n_common_peaks": 600,
+        "lfc_pearson": 0.998506,
+        "lfc_spearman": 0.991953,
+        "lfc_spearman_shrunk_aria": 0.992305,
+        "neglog10_padj_spearman": 0.987118,
+        "sign_agreement_all_peaks": 0.963333,
+        "sign_agreement_significant_union": 1.0,
+        "significant_overlap": {
+          "n_called": 75,
+          "n_reference": 78,
+          "n_intersection": 75,
+          "jaccard": 0.961538,
+          "sensitivity": 0.961538,
+          "precision": 1.0
+        },
+        "reference_significance_rule": "padj < 0.05 (lfcThreshold-matched test)"
+      }
+    }
+  },
+  "planted_truth_recovery": {
+    "aria_chromatin_bulk_diffacc": {
+      "n_called": 75,
+      "n_true_differential": 100,
+      "true_positives": 75,
+      "false_positives": 0,
+      "false_negatives": 25,
+      "sensitivity": 0.75,
+      "precision": 1.0,
+      "false_discovery_proportion": 0.0,
+      "direction_correct_among_tp": 1.0
+    },
+    "r_deseq2": {
+      "n_called": 75,
+      "n_true_differential": 100,
+      "true_positives": 75,
+      "false_positives": 0,
+      "false_negatives": 25,
+      "sensitivity": 0.75,
+      "precision": 1.0,
+      "false_discovery_proportion": 0.0,
+      "direction_correct_among_tp": 1.0
+    },
+    "r_edgeR_QLF": {
+      "n_called": 105,
+      "n_true_differential": 100,
+      "true_positives": 99,
+      "false_positives": 6,
+      "false_negatives": 1,
+      "sensitivity": 0.99,
+      "precision": 0.942857,
+      "false_discovery_proportion": 0.057143,
+      "direction_correct_among_tp": 1.0
+    },
+    "r_edgeR_glmTreat": {
+      "n_called": 93,
+      "n_true_differential": 100,
+      "true_positives": 93,
+      "false_positives": 0,
+      "false_negatives": 7,
+      "sensitivity": 0.93,
+      "precision": 1.0,
+      "false_discovery_proportion": 0.0,
+      "direction_correct_among_tp": 1.0
+    },
+    "r_limma_voom": {
+      "n_called": 107,
+      "n_true_differential": 100,
+      "true_positives": 99,
+      "false_positives": 8,
+      "false_negatives": 1,
+      "sensitivity": 0.99,
+      "precision": 0.925234,
+      "false_discovery_proportion": 0.074766,
+      "direction_correct_among_tp": 1.0
+    },
+    "r_limma_treat": {
+      "n_called": 78,
+      "n_true_differential": 100,
+      "true_positives": 78,
+      "false_positives": 0,
+      "false_negatives": 22,
+      "sensitivity": 0.78,
+      "precision": 1.0,
+      "false_discovery_proportion": 0.0,
+      "direction_correct_among_tp": 1.0
+    }
+  },
+  "permutation_null": {
+    "design": "batch-balanced relabelling of the 8 biological replicates (2 'treated' per batch), true labelling and its complement excluded, technical libraries move with their biological replicate; 500 null peaks only",
+    "summary": {
+      "n_permutations_requested": 20,
+      "n_permutations_completed": 20,
+      "n_null_peaks": 500,
+      "total_tests": 10000,
+      "total_false_discoveries": 0,
+      "mean_false_discoveries_per_permutation": 0.0,
+      "max_false_discoveries_in_one_permutation": 0,
+      "fraction_permutations_with_any_discovery": 0.0,
+      "per_test_false_positive_rate": 0.0,
+      "pooled_raw_pvalue_fraction_below_0.05": 0.0001,
+      "pooled_raw_pvalue_fraction_below_0.01": 0.0,
+      "n_pooled_pvalues": 10000,
+      "note": "Raw p-values come from the |log2FC| > lfc_min (greaterAbs) Wald test, which is conservative under the point null, so pooled fractions are expected to fall below the nominal level."
+    },
+    "per_permutation": [
+      {
+        "permutation": 1,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio2",
+          "bio3",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 2,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio2",
+          "bio4",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 3,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio2",
+          "bio4",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 4,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio2",
+          "bio7",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 5,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio3",
+          "bio4",
+          "bio5"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 6,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio3",
+          "bio4",
+          "bio6"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 7,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio3",
+          "bio6",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 8,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio4",
+          "bio6",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 9,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio4",
+          "bio6",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 10,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio5",
+          "bio7",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 3,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 11,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio1",
+          "bio6",
+          "bio7",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 3,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 12,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio3",
+          "bio4",
+          "bio6"
+        ],
+        "n_true_treated_in_permuted_treated": 1,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 13,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio3",
+          "bio5",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 14,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio3",
+          "bio5",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 15,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio3",
+          "bio6",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 16,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio4",
+          "bio6",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 17,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio4",
+          "bio6",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 2,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 18,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio5",
+          "bio7",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 3,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 19,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio2",
+          "bio6",
+          "bio7",
+          "bio8"
+        ],
+        "n_true_treated_in_permuted_treated": 3,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      },
+      {
+        "permutation": 20,
+        "status": "success",
+        "permuted_treated_replicates": [
+          "bio4",
+          "bio5",
+          "bio6",
+          "bio7"
+        ],
+        "n_true_treated_in_permuted_treated": 3,
+        "n_tested": 500,
+        "n_false_discoveries": 0,
+        "fitted_design_formula": "~ batch + condition",
+        "reason": null
+      }
+    ]
+  },
+  "gates": {
+    "thresholds": {
+      "lfc_spearman_vs_r_deseq2_min": 0.95,
+      "sign_agreement_vs_r_deseq2_min": 0.95,
+      "significant_jaccard_vs_r_deseq2_min": 0.8,
+      "aria_truth_fdp_max": 0.1,
+      "aria_truth_sensitivity_min": 0.7,
+      "permutation_fraction_with_any_discovery_max": 0.1
+    },
+    "checks": {
+      "technical_aggregation_exact": true,
+      "lfc_spearman_vs_r_deseq2": true,
+      "sign_agreement_vs_r_deseq2": true,
+      "significant_jaccard_vs_r_deseq2": true,
+      "aria_truth_fdp": true,
+      "aria_truth_sensitivity": true,
+      "permutation_null_control": true
+    },
+    "all_passed": true
+  },
+  "caveats": [
+    "Simulated data: the generative model (Gamma-Poisson biological variation, Poisson technical sampling, per-peak batch shift) is stated in full; real-data concordance is covered by the K562 vs GM12878 artifacts in this directory.",
+    "edgeR glmQLFTest and limma-voom test the point null (log2FC = 0) and are called at FDR plus |log2FC|; ARIA and R DESeq2 test |log2FC| > lfc_min. glmTreat / treat are the threshold-matched edgeR / limma variants.",
+    "Under the global null every discovery is false, so the fraction of permutations with any discovery is the empirical FDR."
+  ]
+}

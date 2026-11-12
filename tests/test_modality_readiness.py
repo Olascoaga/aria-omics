@@ -237,35 +237,122 @@ def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
     assert readiness["tier"] == "beta"
 
 
-def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
+def test_bulk_atac_default_registry_promoted_to_production_auto_dispatch():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION
+
+    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "production"
+    assert MODALITY_VALIDATION["bulk_ATAC"]["promotion_adr"] == "ADR-077"
+
     matrix = build_capability_matrix(
-        {"genome": "hg38", "modalities": {"bulk_ATAC": ["/data/fragments.tsv.gz"]}},
-        modality_validation={"bulk_ATAC": {"level": "beta",
-                                           "dispatch_enabled": True}},
+        {"genome": "hg38", "modalities": {"bulk_ATAC": ["/data/sample1.bam"]}},
+        modality_validation=MODALITY_VALIDATION,
     )
 
     card = matrix["cards"]["bulk_ATAC"]
-    assert card["validation_level"] == "beta"
-    assert card["status"] == "yellow"
-    assert card["dispatch_policy"] == "requires_ack"
-    assert card["checks"]["production_readiness"]["production_promoted"] is False
-    assert card["checks"]["production_readiness"]["technical_blockers_cleared"] is True
+    assert card["validation_level"] == "production"
+    assert card["status"] == "green"
+    assert card["dispatch_policy"] == "auto"
+    assert matrix["dispatch"]["allowed"] == ["bulk_ATAC"]
+    assert matrix["dispatch"]["requires_ack"] == []
+    assert matrix["dispatch"]["blocked"] == []
+    readiness = card["checks"]["production_readiness"]
+    assert readiness["production_promoted"] is True
+    assert readiness["tier"] == "production"
+    assert readiness["requires_ack"] is False
+    assert readiness["promotion_adr"] == "ADR-077"
+    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "beta"
 
 
-def test_adr056_bulk_atac_stays_beta_while_adr076_promotes_scatac_explicitly():
-    # ADR-056: bulk_ATAC stays beta + requires_ack with governance blockers listed;
-    # ADR-076 explicitly promotes scATAC to production while preserving ADR-056 policy.
+def test_bulk_atac_readiness_gates_replicates_and_confounding():
+    from aria.agents.modality_audit import BulkATACAuditAgent
+
+    # n>=3 biological replicates per condition -> green / auto
+    green_card = BulkATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"bulk_ATAC": ["/data/c1.bam", "/data/c2.bam", "/data/c3.bam",
+                                     "/data/t1.bam", "/data/t2.bam", "/data/t3.bam"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "replicate",
+            "groups": {"ctrl": ["c1", "c2", "c3"], "treat": ["t1", "t2", "t3"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert green_card["status"] == "green"
+    assert green_card["dispatch_policy"] == "auto"
+
+    # n==2 isogenic replicates -> yellow / requires_ack
+    yellow_card = BulkATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"bulk_ATAC": ["/data/c1.bam", "/data/c2.bam",
+                                     "/data/t1.bam", "/data/t2.bam"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "replicate",
+            "groups": {"ctrl": ["c1", "c2"], "treat": ["t1", "t2"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert yellow_card["status"] == "yellow"
+    assert yellow_card["dispatch_policy"] == "requires_ack"
+    assert any(f["check"] == "bulk_atac_low_power" for f in yellow_card["findings"])
+
+    # n<2 replicates on contrasted run -> red / blocked
+    red_card = BulkATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"bulk_ATAC": ["/data/c1.bam", "/data/t1.bam", "/data/t2.bam"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "replicate",
+            "groups": {"ctrl": ["c1"], "treat": ["t1", "t2"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert red_card["status"] == "red"
+    assert red_card["dispatch_policy"] == "blocked"
+    assert any(f["check"] == "bulk_atac_under_replicated" for f in red_card["findings"])
+
+    # Batch-confounded contrast -> red / blocked
+    confounded_card = BulkATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"bulk_ATAC": ["/data/c1.bam", "/data/c2.bam", "/data/c3.bam",
+                                     "/data/t1.bam", "/data/t2.bam", "/data/t3.bam"]},
+        "design": {
+            "groups": {"ctrl": ["c1", "c2", "c3"], "treat": ["t1", "t2", "t3"]},
+            "batch_map": {
+                "c1": "b1", "c2": "b1", "c3": "b1",
+                "t1": "b2", "t2": "b2", "t3": "b2",
+            },
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert confounded_card["status"] == "red"
+    assert confounded_card["dispatch_policy"] == "blocked"
+    assert any(
+        f["check"] == "bulk_atac_batch_condition_confounding"
+        for f in confounded_card["findings"]
+    )
+
+
+def test_adr056_explicit_promotion_adrs_govern_scatac_and_bulk_atac():
+    # ADR-076 promotes scATAC and ADR-077 promotes bulk_ATAC explicitly;
+    # explicit tier_override="beta" still enforces ADR-056 governance blockers.
     from aria.agents.modality_audit import (
         _ATAC_GOVERNANCE_BLOCKERS,
         _atac_production_readiness,
     )
 
     bulk = _atac_production_readiness("bulk_ATAC")
-    assert bulk["production_promoted"] is False
-    assert bulk["tier"] == "beta" and bulk["requires_ack"] is True
+    assert bulk["production_promoted"] is True
+    assert bulk["tier"] == "production" and bulk["requires_ack"] is False
     assert bulk["promotion_policy_adr"] == "ADR-056"
-    assert tuple(bulk["governance_blockers"]) == _ATAC_GOVERNANCE_BLOCKERS
-    assert "explicit_production_promotion_adr" in bulk["governance_blockers"]
+    assert bulk["promotion_adr"] == "ADR-077"
+    assert bulk["governance_blockers"] == []
+
+    bulk_beta = _atac_production_readiness("bulk_ATAC", tier_override="beta")
+    assert bulk_beta["production_promoted"] is False
+    assert bulk_beta["tier"] == "beta" and bulk_beta["requires_ack"] is True
+    assert tuple(bulk_beta["governance_blockers"]) == _ATAC_GOVERNANCE_BLOCKERS
 
     sc = _atac_production_readiness("scATAC")
     assert sc["production_promoted"] is True

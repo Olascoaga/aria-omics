@@ -12,12 +12,13 @@ It narrates the v4.6 scATAC peak-matrix pipeline:
     pseudobulk DA (``chromatin_diffacc``);
   - TF motif enrichment in DA peak sets (``chromatin_motifs``).
 
-It also narrates the V47 bulk ATAC beta slice:
-  - measured bulk chromatin QC;
-  - MACS3 peak calling.
-  - scaffolded peak-count matrix output when a comparison is requested;
+It also narrates the bulk ATAC production spine (ADR-077):
+  - raw FASTQ trimming + alignment + ATAC filtering (``atac_align``);
+  - measured bulk chromatin QC (FRiP merged after peak calling);
+  - MACS3 peak calling;
+  - the raw-integer peak-count matrix (BAM-derived or pre-computed) plus CPM;
   - replicate-gated DESeq2 DA when explicit condition/replicate/comparison
-    metadata are present.
+    metadata are present; motif / annotation / ORA interpretation layers.
 
 Honesty contract (ADR-002 / ADR-011): only measured quantities become evidence;
 not-run / skipped lanes become honest limitation blocks with the concrete
@@ -66,7 +67,8 @@ def _is_bulk_atac(findings: dict) -> bool:
     Bulk ATAC and scATAC are separate dispatch lanes, so any one
     ``data_type == "bulk_ATAC"`` stamp on QC/peaks/counts/DA is decisive.
     """
-    for key in ("qc", "peaks", "peak_counts", "differential_accessibility"):
+    for key in ("preprocessing", "qc", "peaks", "peak_counts",
+                "differential_accessibility"):
         sub = findings.get(key)
         if isinstance(sub, dict) and sub.get("data_type") == "bulk_ATAC":
             return True
@@ -130,6 +132,11 @@ class ChromatinNarrator:
         }
         if preprocessing:
             blocks.append(self._scatac_preprocessing_block(preprocessing))
+
+        bulk_preproc = findings.get("preprocessing")
+        if (_is_bulk_atac(findings) and isinstance(bulk_preproc, dict)
+                and _ok(bulk_preproc) and bulk_preproc.get("bam_files")):
+            blocks.append(self._bulk_atac_preprocessing_block(bulk_preproc))
 
         qc = findings.get("qc")
         if isinstance(qc, dict) and _ok(qc):
@@ -274,6 +281,101 @@ class ChromatinNarrator:
             metadata={"validation_level": validation},
         )
 
+    # ── bulk ATAC raw preprocessing (FASTQ -> filtered BAM) ─────────────────
+    def _bulk_atac_preprocessing_block(self, preproc: dict) -> NarrativeBlock:
+        """Measured provenance of the raw bulk ATAC front-end (ADR-077, C3 ledger
+        node ``ledger://chromatin/bulk_atac_preprocessing``).
+
+        W-CLAIM: the claim is lowercase prose whose every number and term is
+        grounded in this block's evidence; tool names (aligner, file formats)
+        live in the evidence items, not in the claim sentence."""
+        bam_records = [b for b in (preproc.get("bam_files") or [])
+                       if isinstance(b, dict)]
+        aligned = [b for b in bam_records
+                   if b.get("status") == "success" and b.get("bam")]
+        n_aligned = preproc.get("n_samples_aligned")
+        if n_aligned is None:
+            n_aligned = len(aligned)
+        read_layout = preproc.get("read_layout")
+        if not read_layout:
+            layouts = sorted({
+                "paired" if b.get("paired") else "single"
+                for b in aligned if "paired" in b
+            })
+            read_layout = (layouts[0] if len(layouts) == 1
+                           else "mixed" if layouts else "unrecorded")
+        filt = preproc.get("filter") or {}
+        filters = preproc.get("filters") or {}
+        mapq = filt.get("mapq", filters.get("min_mapq"))
+        remove_mito = filt.get("remove_mito")
+        if remove_mito is None and "mito_stripped" in filters:
+            remove_mito = bool(filters.get("mito_stripped"))
+        fastq_qc = preproc.get("fastq_qc") or {}
+        reads_post_filter = [
+            b.get("mapped_reads_post_filter") for b in aligned
+            if isinstance(b.get("mapped_reads_post_filter"), (int, float))
+        ]
+
+        src = "atac_align"
+        evidence = [
+            _ev("Raw bulk chromatin read preprocessing",
+                "trimmed and aligned", "chromatin_agent"),
+            _ev("Read trimming", "fastp (rna_fastq_qc)", "rna_fastq_qc"),
+            _ev("Samples trimmed", fastq_qc.get("n_samples"), "rna_fastq_qc"),
+            _ev("Aligner", preproc.get("aligner"), src),
+            _ev("Reference assembly", preproc.get("assembly"), src),
+            _ev("Sample(s) aligned", n_aligned, src),
+            _ev("Read layout", f"{read_layout} layout", src),
+            _ev("Minimum mapping quality", mapq, src),
+            _ev("Filtered non-mitochondrial alignments retained for peak "
+                "calling",
+                "mitochondrial reads removed" if remove_mito
+                else "mitochondrial reads retained", src),
+            _ev("Duplicate removal", "samtools markdup -r", src),
+        ]
+        if reads_post_filter:
+            evidence.append(_ev("Filtered alignments (total)",
+                                int(sum(reads_post_filter)), src))
+        for rec in aligned:
+            evidence.append(EvidenceItem(
+                label=f"Filtered alignment {rec.get('sample_id') or rec.get('name')}",
+                value="filtered BAM", source=src, path=rec.get("bam")))
+        evidence = [e for e in evidence if e.value is not None]
+
+        claim = (
+            f"Raw bulk chromatin read preprocessing trimmed and aligned "
+            f"{n_aligned} sample(s) ({read_layout} layout), retaining "
+            f"filtered non-mitochondrial alignments for peak calling."
+            if remove_mito else
+            f"Raw bulk chromatin read preprocessing trimmed and aligned "
+            f"{n_aligned} sample(s) ({read_layout} layout), retaining "
+            f"filtered alignments for peak calling.")
+        caveats = [Caveat(
+            "Alignment counts are technical preprocessing measurements; they "
+            "describe data volume and filtering, not biological signal.",
+            severity="info")]
+        failed = [b for b in bam_records if b.get("status") != "success"]
+        if failed:
+            caveats.append(Caveat(
+                f"{len(failed)} sample(s) did not align and were excluded from "
+                "downstream peak calling.", severity="warning"))
+        return NarrativeBlock(
+            id="chromatin.bulk_atac_preprocessing", modality="chromatin",
+            analysis="bulk_atac_preprocessing", block_type="result",
+            title="Bulk ATAC raw read preprocessing & alignment",
+            status="success", confidence="high", claim=claim,
+            evidence=evidence, caveats=caveats,
+            metrics={
+                "n_samples_aligned": n_aligned,
+                "read_layout": read_layout,
+                "aligner": preproc.get("aligner"),
+                "assembly": preproc.get("assembly"),
+                "min_mapq": mapq,
+            },
+            metadata={"validation_level": preproc.get("validation_level",
+                                                      "production")},
+        )
+
     # ── QC ────────────────────────────────────────────────────────────────
     def _qc_block(self, qc: dict) -> NarrativeBlock:
         data_type = qc.get("data_type")
@@ -287,6 +389,8 @@ class ChromatinNarrator:
             ("Fragments scanned", "n_fragments"),
             ("Mitochondrial fraction", "mito_fraction"),
             ("Duplicate rate", "dup_rate"),
+            ("FRiP", "frip"),
+            ("TSS enrichment", "tss_enrichment"),
         ):
             val = qc.get(key)
             if val is not None:
@@ -324,8 +428,9 @@ class ChromatinNarrator:
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"qc_complete": qc.get("qc_complete"),
                      "pass_qc": qc.get("pass_qc")},
-            metadata={"validation_level": "beta"
-                      if data_type == "bulk_ATAC" else "scaffold"},
+            metadata={"validation_level": qc.get("validation_level") or (
+                "production" if data_type in {"scATAC", "bulk_ATAC"}
+                else "scaffold")},
         )
 
     # ── Peak calling ──────────────────────────────────────────────────────
@@ -421,27 +526,36 @@ class ChromatinNarrator:
                 "consensus_peaks_path": peaks.get("consensus_peaks_path"),
                 "peak_reproducibility": repro or None,
             },
-            metadata={"validation_level": "beta"
-                      if data_type == "bulk_ATAC" else "scaffold"},
+            metadata={"validation_level": peaks.get("validation_level") or (
+                "production" if data_type in {"scATAC", "bulk_ATAC"}
+                else "scaffold")},
         )
 
     def _peak_counts_block(self, counts: dict) -> NarrativeBlock:
         data_type = counts.get("data_type")
         n_peaks = counts.get("n_peaks")
         n_samples = counts.get("n_samples")
+        precomputed = counts.get("source") == "precomputed_matrix"
         evidence = [
             _ev("Analysis", "Peak-count matrix", "chromatin_peak_counts"),
             _ev("Method", counts.get("counting_method"),
                 "chromatin_peak_counts"),
+            _ev("Source", counts.get("source"), "chromatin_peak_counts"),
             _ev("Modality", data_type, "chromatin_peak_counts"),
             _ev("Peaks counted", n_peaks, "chromatin_peak_counts"),
             _ev("Samples", n_samples, "chromatin_peak_counts"),
         ]
         if counts.get("counts_matrix_path"):
             evidence.append(EvidenceItem(
-                label="Count matrix", value="peak x sample TSV",
+                label="Count matrix", value="peak x sample TSV (raw integer)",
                 source="chromatin_peak_counts",
                 path=counts["counts_matrix_path"]))
+        if counts.get("counts_cpm_path"):
+            evidence.append(EvidenceItem(
+                label="Counts-per-million matrix",
+                value="peak x sample TSV (CPM, visualization only)",
+                source="chromatin_peak_counts",
+                path=counts["counts_cpm_path"]))
         if counts.get("sample_metadata_path"):
             evidence.append(EvidenceItem(
                 label="Sample metadata", value="sample TSV",
@@ -450,30 +564,45 @@ class ChromatinNarrator:
         evidence = [e for e in evidence if e.value is not None]
 
         caveats = [Caveat(
-            "The peak-count matrix is a technical artifact for bulk ATAC. It is "
-            "not a differential accessibility result; replicate-aware DA "
-            "remains scaffolded until separately validated.",
-            severity="warning",
+            "The peak-count matrix is the quantification layer, not a "
+            "differential accessibility result: raw integer peak overlaps feed "
+            "replicate-level negative-binomial testing, while normalized "
+            "counts-per-million values support visualization only.",
+            severity="info",
         )]
+        if precomputed:
+            caveats.append(Caveat(
+                "This matrix was supplied pre-computed; ARIA did not align "
+                "reads, call peaks, or count overlaps for this run, so read-level "
+                "QC and peak-calling provenance come from the upstream source.",
+                severity="warning"))
         for warning in counts.get("warnings") or []:
             caveats.append(Caveat(str(warning), severity="warning"))
 
-        claim = (
-            f"Bulk ATAC peak counting produced a matrix with {n_peaks} peaks "
-            f"across {n_samples} samples."
-        )
+        if precomputed:
+            claim = (
+                f"Bulk ATAC pre-computed peak-count matrix supplied with "
+                f"{n_peaks} peaks across {n_samples} samples.")
+        else:
+            claim = (
+                f"Bulk ATAC peak counting produced a matrix with {n_peaks} peaks "
+                f"across {n_samples} samples."
+            )
         return NarrativeBlock(
             id=f"chromatin.peak_count_matrix.{_safe_id(data_type)}",
             modality="chromatin", analysis="peak_count_matrix",
             block_type="result", title="Bulk ATAC peak-count matrix",
-            status="success", confidence="low",
+            status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={
                 "n_peaks": n_peaks,
                 "n_samples": n_samples,
                 "counts_matrix_path": counts.get("counts_matrix_path"),
+                "counts_cpm_path": counts.get("counts_cpm_path"),
+                "source": counts.get("source"),
             },
-            metadata={"validation_level": "scaffold"},
+            metadata={"validation_level": counts.get("validation_level")
+                      or "production"},
         )
 
     def _matrix_pipeline_block(self, matrix_pipeline: dict) -> NarrativeBlock:
@@ -737,7 +866,8 @@ class ChromatinNarrator:
                 "n_replicate_samples": n_reps,
                 "n_sig_total": n_sig,
             },
-            metadata={"validation_level": da.get("validation_level", "beta")},
+            metadata={"validation_level": da.get("validation_level")
+                      or "production"},
         )
 
     # ── Motif enrichment ────────────────────────────────────────────────────
@@ -1322,7 +1452,35 @@ class ChromatinNarrator:
             tables.append({"id": "chromatin.consensus_peaks",
                            "path": peaks["consensus_peaks_path"],
                            "label": "Consensus peaks"})
+        counts = findings.get("peak_counts") or {}
+        if counts.get("counts_matrix_path"):
+            tables.append({"id": "chromatin.peak_counts",
+                           "path": counts["counts_matrix_path"],
+                           "label": "Peak-count matrix (raw integer)"})
+        if counts.get("counts_cpm_path"):
+            tables.append({"id": "chromatin.peak_counts_cpm",
+                           "path": counts["counts_cpm_path"],
+                           "label": "Peak counts-per-million (visualization)"})
         da = findings.get("differential_accessibility") or {}
+        if da.get("data_type") == "bulk_ATAC" and da.get("ran"):
+            if da.get("output_csv"):
+                tables.append({"id": "chromatin.bulk_atac_da_summary",
+                               "path": da["output_csv"],
+                               "label": "Bulk ATAC differential accessibility "
+                                        "summary"})
+            for comp in da.get("comparisons") or []:
+                if not isinstance(comp, dict):
+                    continue
+                path = comp.get("output_csv") or comp.get("full_results_csv")
+                if not path:
+                    continue
+                key = _safe_id(f"{comp.get('test')}_vs_{comp.get('reference')}")
+                tables.append({
+                    "id": f"chromatin.bulk_atac_da.{key}",
+                    "path": path,
+                    "label": (f"Bulk ATAC differential accessibility "
+                              f"{comp.get('test')} vs {comp.get('reference')}"),
+                })
         pc = (da.get("per_cluster") or {})
         if pc.get("output_csv"):
             tables.append({"id": "chromatin.da_per_cluster",

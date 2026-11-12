@@ -13,7 +13,7 @@ per sample. It does NOT call peaks or quantify; downstream chromatin scripts do.
 
 ATAC-specific post-alignment filtering (ENCODE-style):
   - mark + remove PCR/optical duplicates (samtools fixmate -m + markdup)
-  - keep properly paired alignments (-f 2), drop unmapped/mate-unmapped/
+  - for PE only, keep properly paired alignments (-f 2); drop unmapped/mate-unmapped/
     secondary/duplicate/QC-fail reads (-F 1804, the canonical ENCODE value;
     note it does NOT exclude supplementary 0x800)
   - MAPQ threshold (default 30)
@@ -29,7 +29,7 @@ Input params:
   threads:        int   (default: 8)
   mapq:           int   (default: 30)
   remove_mito:    bool  (default: True) — drop chrM/MT reads
-  mito_contigs:   list  (default: ["chrM", "MT", "chrMT", "M"])
+  mito_contigs:   list  (default: ["chrM", "MT", "M"])
 
 Output:
   {
@@ -52,6 +52,15 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import mocks_allowed, run_script
+try:
+    from aria.utils.stage_manifest import (
+        file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
+    )
+except ImportError:
+    from aria.scripts.chromatin_peak_counts import (
+        file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
+    )
+from aria.scripts.chromatin_peak_counts import _save_stage_result
 
 # Canonical ENCODE ATAC read filter: drop unmapped (0x4), mate-unmapped (0x8),
 # secondary (0x100), QC-fail (0x200), duplicate (0x400). NOTE: 1804 does NOT
@@ -60,8 +69,10 @@ from aria.scripts._base import mocks_allowed, run_script
 # are gated by the -f 2 proper-pair requirement).
 SAMTOOLS_EXCLUDE_FLAGS = 1804
 SAMTOOLS_REQUIRE_FLAGS = 2  # properly paired
-DEFAULT_MAPQ = 30
-DEFAULT_MITO_CONTIGS = ("chrM", "MT", "chrMT", "M", "chrMt")
+DEFAULT_MIN_MAPQ = 30
+DEFAULT_MAPQ = DEFAULT_MIN_MAPQ
+DEFAULT_MITO = frozenset({"chrM", "MT", "M"})
+DEFAULT_MITO_CONTIGS = tuple(sorted(DEFAULT_MITO))
 
 
 def atac_align(params: dict) -> dict:
@@ -71,7 +82,7 @@ def atac_align(params: dict) -> dict:
     output_dir = Path(params.get("output_dir",
                                  str(Path("aria_atac_aligned"))))
     threads = int(params.get("threads", 8))
-    mapq = int(params.get("mapq", DEFAULT_MAPQ))
+    mapq = int(params.get("min_mapq", params.get("mapq", DEFAULT_MIN_MAPQ)))
     remove_mito = bool(params.get("remove_mito", True))
     mito_contigs = tuple(params.get("mito_contigs") or DEFAULT_MITO_CONTIGS)
     allow_mock = mocks_allowed(params)
@@ -93,6 +104,8 @@ def atac_align(params: dict) -> dict:
         }
 
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    index_built = False
 
     # ── Build bwa-mem2 index if missing ───────────────────────────────────
     if not _bwa_index_exists(bwa_index):
@@ -125,6 +138,7 @@ def atac_align(params: dict) -> dict:
                 "warnings": warnings,
             }
         bwa_index = genome_fasta
+        index_built = True
 
     # ── Align + filter each sample ────────────────────────────────────────
     bam_files = []
@@ -132,17 +146,46 @@ def atac_align(params: dict) -> dict:
         if sample.get("status") == "failed":
             warnings.append(f"Skipping {sample.get('name')} — QC failed upstream")
             continue
-        result = _align_sample(
-            sample=sample,
-            bwa_index=bwa_index,
-            output_dir=output_dir,
-            threads=threads,
-            mapq=mapq,
-            remove_mito=remove_mito,
-            mito_contigs=mito_contigs,
-            warnings=warnings,
-            allow_mock=allow_mock,
-        )
+        sid = str(sample.get("sample_id") or sample.get("name") or "sample")
+        r1 = sample.get("r1_trimmed") or sample.get("r1")
+        r2 = sample.get("r2_trimmed") or sample.get("r2")
+        is_paired = bool(sample.get("paired", bool(r2)) and r2)
+        if not r1 or not Path(r1).is_file() or (is_paired and not Path(r2).is_file()):
+            bam_files.append({"name": sid, "sample_id": sid, "status": "failed",
+                              "bam": None, "paired": is_paired, "error_type": "FileNotFound",
+                              "reused_from_stage_manifest": False,
+                              "mapped_reads_post_filter": None})
+            warnings.append(f"{sid}: input FASTQ missing on disk")
+            continue
+        inputs = [file_record(r1)]
+        if is_paired:
+            inputs.append(file_record(r2))
+        if genome_fasta:
+            inputs.append(file_record(genome_fasta))
+        mito = set(mito_contigs) if remove_mito else set()
+        parameters = {"sample_id": sid, "paired": is_paired, "min_mapq": mapq,
+                      "mito_contigs": sorted(mito), "bwa_index": bwa_index}
+        manifest = stage_manifest_path(output_dir, f"atac_align_{sid}")
+        cached = load_valid_stage_result(
+            manifest, expected_inputs=inputs, expected_parameters=parameters)
+        if (cached and Path(cached.get("bam", "")).is_file()
+                and Path(cached["bam"] + ".bai").is_file()):
+            result = {**cached, "reused_from_stage_manifest": True}
+        else:
+            Path(manifest).unlink(missing_ok=True)
+            result = _align_sample(
+                sample={**sample, "name": sid}, bwa_index=bwa_index,
+                output_dir=output_dir, threads=threads, mapq=mapq,
+                remove_mito=remove_mito, mito_contigs=tuple(mito),
+                warnings=warnings, allow_mock=allow_mock,
+            )
+            result.update({"sample_id": sid, "paired": is_paired,
+                           "mapped_reads_post_filter": result.get("n_final"),
+                           "reused_from_stage_manifest": False})
+            if (result.get("status") == "success" and result.get("bam")
+                    and Path(result["bam"]).is_file()
+                    and Path(result["bam"] + ".bai").is_file()):
+                _save_stage_result(manifest, "atac_align", inputs, parameters, result)
         bam_files.append(result)
 
     n_ok = sum(1 for b in bam_files if b.get("status") == "success")
@@ -155,8 +198,19 @@ def atac_align(params: dict) -> dict:
             "warnings": warnings,
         }
 
+    layouts = {b["paired"] for b in bam_files if b.get("status") == "success"}
+    all_paired = layouts == {True}
     return {
         "status": "success",
+        "validation_level": "production",
+        "per_sample": bam_files,
+        "read_layout": "mixed" if len(layouts) > 1 else "paired" if all_paired else "single",
+        "index_built": index_built,
+        "filters": {"min_mapq": mapq,
+                    "samtools_f": SAMTOOLS_REQUIRE_FLAGS if all_paired else 0,
+                    "samtools_F": SAMTOOLS_EXCLUDE_FLAGS,
+                    "markdup_removed": True,
+                    "mito_stripped": sorted(mito_contigs) if remove_mito else []},
         "bam_files": bam_files,
         "n_aligned": n_ok,
         "output_dir": str(output_dir),
@@ -164,7 +218,7 @@ def atac_align(params: dict) -> dict:
         "filter": {
             "mapq": mapq,
             "samtools_F": SAMTOOLS_EXCLUDE_FLAGS,
-            "samtools_f": SAMTOOLS_REQUIRE_FLAGS,
+            "samtools_f": SAMTOOLS_REQUIRE_FLAGS if all_paired else 0,
             "remove_mito": remove_mito,
             "mito_contigs": list(mito_contigs) if remove_mito else [],
         },
@@ -203,31 +257,22 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
                   allow_mock: bool = False) -> dict:
     """Align one ATAC sample with bwa-mem2 and apply ATAC filtering.
 
-    Idempotent: skips if the final filtered BAM is already valid.
+    Resume is governed by the caller's content-addressed A4 manifest.
     """
     name = sample["name"]
     r1 = sample.get("r1_trimmed") or sample.get("r1")
     r2 = sample.get("r2_trimmed") or sample.get("r2")
-    paired = sample.get("paired", r2 is not None)
+    paired = bool(sample.get("paired", bool(r2)) and r2)
 
     sample_dir = output_dir / name
     sample_dir.mkdir(exist_ok=True)
     final_bam = sample_dir / f"{name}.filtered.bam"
 
-    result = {"name": name, "status": "pending", "paired": paired}
+    result = {"name": name, "status": "pending", "paired": paired, "bam": None}
 
     if not r1:
         warnings.append(f"{name}: no R1 FASTQ — skipping")
         result["status"] = "failed"
-        return result
-
-    # ── Resume check ──────────────────────────────────────────────────────
-    if _bam_valid(final_bam):
-        warnings.append(f"[resume] atac_align skipped for {name} "
-                        f"(valid filtered BAM exists)")
-        result.update({"status": "success", "bam": str(final_bam),
-                       "resumed": True})
-        result.update(_bam_metrics(final_bam, mito_contigs, warnings))
         return result
 
     namesort = sample_dir / f"{name}.namesort.bam"
@@ -240,24 +285,24 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
         align_cmd = ["bwa-mem2", "mem", "-t", str(threads), bwa_index, r1]
         if paired and r2:
             align_cmd.append(r2)
-        sort_n = ["samtools", "sort", "-n", "-@", str(threads),
-                  "-o", str(namesort), "-"]
-        if not _pipe(align_cmd, sort_n, warnings, name, "align"):
+        sort_cmd = ["samtools", "sort", "-@", str(threads)]
+        if paired:
+            sort_cmd += ["-n"]
+        sort_cmd += ["-o", str(namesort if paired else coordsort), "-"]
+        if not _pipe(align_cmd, sort_cmd, warnings, name, "align"):
             result["status"] = "failed"
             return result
 
-        # 2. fixmate -m (adds mate score tags for markdup)
-        if not _run(["samtools", "fixmate", "-m", "-@", str(threads),
-                     str(namesort), str(fixmate)], warnings, name, "fixmate"):
-            result["status"] = "failed"
-            return result
-
-        # 3. coordinate sort
-        if not _run(["samtools", "sort", "-@", str(threads),
-                     "-o", str(coordsort), str(fixmate)],
-                    warnings, name, "coordsort"):
-            result["status"] = "failed"
-            return result
+        if paired:
+            if not _run(["samtools", "fixmate", "-m", "-@", str(threads),
+                         str(namesort), str(fixmate)], warnings, name, "fixmate"):
+                result["status"] = "failed"
+                return result
+            if not _run(["samtools", "sort", "-@", str(threads),
+                         "-o", str(coordsort), str(fixmate)],
+                        warnings, name, "coordsort"):
+                result["status"] = "failed"
+                return result
 
         # 4. mark + remove duplicates
         if not _run(["samtools", "markdup", "-r", "-@", str(threads),
@@ -265,23 +310,18 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
                     warnings, name, "markdup"):
             result["status"] = "failed"
             return result
-        _run(["samtools", "index", str(markdup)], warnings, name, "index_markdup")
-
-        # 5. ATAC filter: MAPQ + proper-pair + flag exclude (+ drop mito)
-        view_cmd = ["samtools", "view", "-b", "-@", str(threads),
-                    "-q", str(mapq),
-                    "-f", str(SAMTOOLS_REQUIRE_FLAGS),
-                    "-F", str(SAMTOOLS_EXCLUDE_FLAGS),
-                    str(markdup)]
-        if remove_mito:
-            keep = _non_mito_contigs(markdup, mito_contigs, warnings)
-            if keep is not None:
-                view_cmd += keep
-        view_cmd += ["-o", str(final_bam)]
-        if not _run(view_cmd, warnings, name, "filter"):
+        # Filter through SAM text so mitochondrial stripping never depends on an index.
+        view_cmd = ["samtools", "view", "-h", "-q", str(mapq)]
+        if paired:
+            view_cmd += ["-f", str(SAMTOOLS_REQUIRE_FLAGS)]
+        view_cmd += ["-F", str(SAMTOOLS_EXCLUDE_FLAGS), str(markdup)]
+        if not _filter_bam(view_cmd, final_bam, mito_contigs if remove_mito else (),
+                           warnings, name):
             result["status"] = "failed"
             return result
-        _run(["samtools", "index", str(final_bam)], warnings, name, "index_final")
+        if not _run(["samtools", "index", str(final_bam)], warnings, name, "index_final"):
+            result["status"] = "failed"
+            return result
 
         if not _bam_valid(final_bam):
             warnings.append(f"{name}: filtered BAM missing/invalid after run")
@@ -313,33 +353,38 @@ def _align_sample(sample: dict, bwa_index: str, output_dir: Path,
     return result
 
 
-def _non_mito_contigs(bam: Path, mito_contigs: tuple,
-                      warnings: list) -> list[str] | None:
-    """Return the list of non-mito reference contigs (region args) for samtools.
+def _strip_mito_sam(lines, mito=DEFAULT_MITO):
+    """Yield SAM headers and alignments outside the explicit mitochondrial set."""
+    mito = set(mito)
+    for line in lines:
+        fields = line.split("\t", 3)
+        if line.startswith("@") or (len(fields) >= 3 and fields[2] not in mito):
+            yield line
 
-    Uses idxstats so the filter only keeps reads on real (non-mito) contigs.
-    Returns None when contigs cannot be listed (caller skips mito removal).
-    """
-    try:
-        proc = subprocess.run(["samtools", "idxstats", str(bam)],
-                              capture_output=True, text=True, timeout=300)
-        if proc.returncode != 0:
-            warnings.append(f"idxstats failed; mito reads not removed: "
-                            f"{proc.stderr[-120:]}")
-            return None
-        contigs = []
-        mito_lower = {m.lower() for m in mito_contigs}
-        for line in proc.stdout.splitlines():
-            fields = line.split("\t")
-            if not fields or fields[0] in ("*", ""):
-                continue
-            if fields[0].lower() in mito_lower:
-                continue
-            contigs.append(fields[0])
-        return contigs or None
-    except (FileNotFoundError, subprocess.TimeoutExpired) as e:
-        warnings.append(f"idxstats unavailable; mito reads not removed: {e}")
-        return None
+
+def _filter_bam(view_cmd, out_bam, mito, warnings, name):
+    """Stream SAM through the mitochondrial filter, checking both processes."""
+    import tempfile
+    with tempfile.TemporaryFile(mode="w+t") as err1, tempfile.TemporaryFile(mode="w+t") as err2:
+        with subprocess.Popen(view_cmd, stdout=subprocess.PIPE, stderr=err1, text=True) as src:
+            with subprocess.Popen(["samtools", "view", "-b", "-o", str(out_bam), "-"],
+                                  stdin=subprocess.PIPE, stderr=err2, text=True) as dst:
+                try:
+                    for line in _strip_mito_sam(src.stdout, mito):
+                        dst.stdin.write(line)
+                except BrokenPipeError:
+                    pass
+                finally:
+                    dst.stdin.close()
+                    src.stdout.close()
+                dst.wait()
+            src.wait()
+        if src.returncode or dst.returncode:
+            err1.seek(0)
+            err2.seek(0)
+            warnings.append(f"{name}: filter failed: {(err1.read() + err2.read())[-300:]}")
+            return False
+    return True
 
 
 def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
@@ -396,7 +441,7 @@ def _bam_metrics(pre_filter_bam: Path, mito_contigs: tuple, warnings: list,
 
 def _bam_valid(bam: Path) -> bool:
     try:
-        if not bam.exists() or bam.stat().st_size < 1024:
+        if not bam.is_file() or bam.stat().st_size == 0:
             return False
         proc = subprocess.run(["samtools", "quickcheck", str(bam)],
                               capture_output=True, timeout=60)
@@ -418,25 +463,27 @@ def _run(cmd: list, warnings: list, name: str, step: str) -> bool:
 
 
 def _pipe(cmd1: list, cmd2: list, warnings: list, name: str, step: str) -> bool:
-    """Run `cmd1 | cmd2`, surfacing either side's failure."""
-    try:
-        p1 = subprocess.Popen(cmd1, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
-        p2 = subprocess.run(cmd2, stdin=p1.stdout, capture_output=True,
-                            text=True, timeout=14400)
-        p1.stdout.close()
-        err1 = p1.stderr.read().decode(errors="replace")
-        p1.wait()
-        if p1.returncode != 0:
-            warnings.append(f"{name}: {step} (bwa-mem2) failed: {err1[-200:]}")
+    """Run cmd1 | cmd2 without blocking on a full aligner stderr pipe."""
+    import tempfile
+    with tempfile.TemporaryFile() as stderr:
+        with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=stderr) as src:
+            try:
+                proc = subprocess.run(cmd2, stdin=src.stdout, capture_output=True,
+                                      text=True, timeout=14400)
+            except subprocess.TimeoutExpired:
+                src.kill()
+                src.wait()
+                warnings.append(f"{name}: {step} timed out")
+                return False
+            finally:
+                src.stdout.close()
+            src.wait()
+        if src.returncode or proc.returncode:
+            stderr.seek(0)
+            detail = stderr.read().decode(errors="replace") + (proc.stderr or "")
+            warnings.append(f"{name}: {step} failed: {detail[-300:]}")
             return False
-        if p2.returncode != 0:
-            warnings.append(f"{name}: {step} (sort) failed: {p2.stderr[-200:]}")
-            return False
-        return True
-    except subprocess.TimeoutExpired:
-        warnings.append(f"{name}: {step} timed out")
-        return False
+    return True
 
 
 def _mock_result(samples: list, output_dir: Path, mapq: int,

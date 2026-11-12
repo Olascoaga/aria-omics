@@ -85,12 +85,16 @@ def chromatin_qc(params: dict) -> dict:
     h5mu_files = [f for f in valid_files if str(f).lower().endswith(".h5mu")]
     if data_type == "scATAC":
         if h5mu_files:
-            return _h5mu_atac_qc(h5mu_files[0], genome, organism, warnings)
-        return _scatac_qc(valid_files, genome, organism, warnings, allow_mocks,
-                          peaks_bed=peaks_bed)
+            return {**_h5mu_atac_qc(h5mu_files[0], genome, organism, warnings),
+                    "validation_level": "production"}
+        if any(str(f).lower().endswith((".bam", ".cram")) for f in valid_files):
+            return _bulk_chromatin_qc(valid_files, data_type, genome, assay_class,
+                                      warnings, allow_mocks, params=params)
+        return {**_scatac_qc(valid_files, genome, organism, warnings, allow_mocks,
+                            peaks_bed=peaks_bed), "validation_level": "production"}
     elif data_type in ("bulk_ATAC", "ChIP", "CUT_AND_RUN", "CUT_AND_TAG"):
         return _bulk_chromatin_qc(
-            valid_files, data_type, genome, assay_class, warnings, allow_mocks
+            valid_files, data_type, genome, assay_class, warnings, allow_mocks, params=params
         )
     else:
         return {
@@ -325,117 +329,175 @@ def _h5mu_atac_qc(h5mu_path: str, genome: str,
     }
 
 
+def _read_local_tss(gtf_path):
+    """Read deduplicated, strand-aware, zero-based 1-bp TSSs from local GTF."""
+    from collections import defaultdict
+    import gzip
+    tss = defaultdict(set)
+    opener = gzip.open if str(gtf_path).endswith(".gz") else open
+    with opener(gtf_path, "rt") as handle:
+        for line in handle:
+            if line.startswith("#"):
+                continue
+            cols = line.rstrip().split("\t")
+            if len(cols) < 9 or cols[2] not in {"gene", "transcript"}:
+                continue
+            if cols[6] not in {"+", "-"}:
+                continue
+            try:
+                pos = int(cols[3]) - 1 if cols[6] == "+" else int(cols[4]) - 1
+                tss[cols[0]].add((pos, 1 if cols[6] == "+" else -1))
+            except ValueError:
+                continue
+    return {chrom: (sorted(rows), [p for p, strand in sorted(rows)])
+            for chrom, rows in tss.items()}
+
+
+def _scan_bam_metrics(bam_path, reference_fasta=None, max_reads=500_000, tss=None):
+    """Count every primary read; only detailed insert/TSS sampling is capped."""
+    from bisect import bisect_left, bisect_right
+    from aria.scripts.chromatin_peak_counts import _open_alignment, _primary_mapped
+    total_primary = dup_primary = mapped = mito = nondup = sampled = 0
+    sizes = []
+    window = center = flank = 0
+    with _open_alignment(bam_path, reference_fasta) as bam:
+        pg = str(bam.header.to_dict().get("PG", [])).lower()
+        marked = any(token in pg for token in ("markdup", "markduplicates", "dedup"))
+        for read in bam.fetch(until_eof=True):
+            if read.is_secondary or read.is_supplementary:
+                continue
+            total_primary += 1
+            dup_primary += int(read.is_duplicate)
+            if not _primary_mapped(read):
+                continue
+            mapped += 1
+            chrom = read.reference_name
+            mito += int(chrom in {"chrM", "MT", "M"} or chrom.lower().startswith("chrm"))
+            if read.is_duplicate:
+                continue
+            nondup += 1
+            if sampled >= max_reads:
+                continue
+            sampled += 1
+            if (read.is_paired and read.is_proper_pair and read.is_read1
+                    and 0 < abs(read.template_length) <= 1000):
+                sizes.append(abs(read.template_length))
+            if tss and read.reference_end is not None:
+                cut = read.reference_end - 5 if read.is_reverse else read.reference_start + 4
+                rows, positions = tss.get(chrom, ([], []))
+                lo = bisect_left(positions, cut - 2000)
+                hi = bisect_right(positions, cut + 2000)
+                for pos, strand in rows[lo:hi]:
+                    relative = (cut - pos) * strand
+                    window += 1
+                    center += int(-50 <= relative <= 50)
+                    flank += int(-2000 <= relative < -1900 or 1900 < relative <= 2000)
+    dup_rate = (dup_primary / total_primary
+                if total_primary and (dup_primary or marked) else None)
+    # A zero background does not support a finite enrichment estimate.
+    enrichment = (center / 101 / (flank / 200) if window and flank else None)
+    return {"file": str(bam_path), "total_reads": total_primary,
+            "mapped_reads": mapped, "mapped_nonduplicate_reads": nondup,
+            "mito_frac": mito / max(mapped, 1), "dup_rate": dup_rate,
+            "tss_enrichment": enrichment, "tss_reads_sampled": sampled}, sizes
+
+
 def _bulk_chromatin_qc(files: list, data_type: str,
                         genome: str, assay_class: str,
-                        warnings: list,
-                        allow_mocks: bool = False) -> dict:
-    """QC for bulk ATAC-seq, ChIP-seq, CUT&RUN, CUT&TAG using BAM files."""
+                        warnings: list, allow_mocks: bool = False,
+                        params: dict | None = None) -> dict:
+    """Local ENCODE-style QC for all BAM/CRAM inputs, without samtools."""
+    from pathlib import Path
+    params = params or {}
     try:
-        import pysam
+        import pysam  # noqa: F401 -- fail closed before opening alignments
         import numpy as np
-
-        bam_files = [f for f in files if f.endswith(".bam")]
-        if not bam_files:
-            return {
-                "status":     "error",
-                "error_type": "MissingBAM",
-                "details":    f"No .bam files found for {data_type} QC.",
-            }
-
-        metrics_per_sample = []
-
-        for bam_path in bam_files[:8]:  # limit to 8 samples
-            try:
-                bam     = pysam.AlignmentFile(bam_path, "rb")
-                stats   = bam.get_index_statistics()
-                total   = sum(s.mapped for s in stats)
-                mito    = sum(s.mapped for s in stats
-                              if s.contig in ("chrM", "MT", "chrMT"))
-                bam.close()
-
-                mito_frac = mito / max(total, 1)
-                dup_rate  = _estimate_dup_rate(bam_path)  # None if samtools NA
-
-                sample_metrics = {
-                    "file":        str(bam_path),
-                    "total_reads": int(total),
-                    "mito_frac":   round(float(mito_frac), 4),
-                    "dup_rate":    (round(float(dup_rate), 4)
-                                    if dup_rate is not None else None),
-                }
-                metrics_per_sample.append(sample_metrics)
-
-                # Check thresholds
-                MAX_MITO = 0.10 if data_type != "ChIP" else 0.20
-                if mito_frac > MAX_MITO:
-                    warnings.append(
-                        f"{bam_path}: high mito fraction "
-                        f"({mito_frac:.1%} > {MAX_MITO:.0%})"
-                    )
-                if dup_rate is not None and dup_rate > 0.5:
-                    warnings.append(
-                        f"{bam_path}: high duplicate rate "
-                        f"({dup_rate:.1%}) — low library complexity"
-                    )
-
-            except Exception as e:
-                warnings.append(f"Could not QC {bam_path}: {str(e)[:100]}")
-
-        if not metrics_per_sample:
-            return {
-                "status":     "error",
-                "error_type": "QCFailed",
-                "details":    "Could not compute QC metrics for any sample.",
-            }
-
-        # Aggregate metrics (skip samples whose dup_rate could not be measured)
-        avg_mito = float(np.mean([m["mito_frac"] for m in metrics_per_sample]))
-        _dups    = [m["dup_rate"] for m in metrics_per_sample
-                    if m["dup_rate"] is not None]
-        avg_dup  = float(np.mean(_dups)) if _dups else None
-
-        # FRiP/TSS require called peaks; they are not fabricated here (ADR-002)
-        # — None until chromatin_peaks runs. The real per-sample mito/dup
-        # failures captured above are the actual pass/fail signal.
-        qc_failures = list(warnings)
-        not_computed = [
-            "frip (requires called peaks — run chromatin_peaks first)",
-            "tss_enrichment (computed post peak calling)",
-        ]
-        warnings.append(
-            "Scaffold QC did not compute: " + "; ".join(not_computed) + "."
-        )
-
-        return {
-            "status":          "success",
-            "data_type":       data_type,
-            "n_samples":       len(metrics_per_sample),
-            "frip":            None,
-            "tss_enrichment":  None,  # computed post peak calling
-            "mito_fraction":   round(avg_mito, 4),
-            "dup_rate":        (round(avg_dup, 4) if avg_dup is not None
-                                else None),
-            "per_sample":      metrics_per_sample,
-            "qc_complete":     False,
-            "metrics_not_computed": not_computed,
-            # Real failures (mito/dup) fail QC; without FRiP/TSS a clean run
-            # cannot be asserted as a full pass, so pass_qc is None.
-            "pass_qc":         (False if qc_failures else None),
-            "warnings":        warnings,
-        }
-
     except ImportError as e:
-        if not allow_mocks:
-            return {
-                "status":     "error",
-                "error_type": "MissingDependency",
-                "details":    (
-                    f"{data_type} QC requires pysam + numpy "
-                    f"(aria-chromatin-env). Install the chromatin stack or "
-                    f"pass allow_mock=true. Underlying ImportError: {e}"
-                ),
-            }
-        return _basic_chromatin_qc(files, data_type, warnings, str(e))
+        if allow_mocks:
+            return _basic_chromatin_qc(files, data_type, warnings, str(e))
+        return {"status": "error", "error_type": "MissingDependency", "details": str(e)}
+
+    bam_files = [str(f) for f in files if str(f).lower().endswith((".bam", ".cram"))]
+    if not bam_files:
+        return {"status": "error", "error_type": "MissingBAM",
+                "details": f"No BAM/CRAM files found for {data_type} QC."}
+    peaks = params.get("peaks_bed") or params.get("peaks_path")
+    gtf = params.get("gtf") or params.get("gtf_path")
+    reference = params.get("reference_fasta")
+    tss = _read_local_tss(gtf) if gtf and Path(gtf).is_file() else None
+    metrics = []
+    sizes = []
+    dup_per_sample = {}
+    frip_per_sample = {}
+    tss_per_sample = {}
+    from aria.scripts.chromatin_peaks import _compute_frip, _read_peak_intervals
+    usable_peaks = bool(peaks and Path(peaks).is_file() and _read_peak_intervals(str(peaks)))
+    for path in bam_files:
+        try:
+            row, fragments = _scan_bam_metrics(
+                path, reference, max(0, int(params.get("max_reads_per_bam", 500_000))), tss)
+            sizes.extend(fragments)
+            sid = Path(path).stem
+            row["sample_id"] = sid
+            if row["dup_rate"] is not None:
+                dup_per_sample[sid] = row["dup_rate"]
+            if row["tss_enrichment"] is not None:
+                tss_per_sample[sid] = row["tss_enrichment"]
+            if usable_peaks:
+                frip = _compute_frip(path, str(peaks), reference_fasta=reference)
+                row["frip"] = frip
+                if frip is not None:
+                    frip_per_sample[sid] = frip
+            metrics.append(row)
+            if row["mito_frac"] > (0.2 if data_type == "ChIP" else 0.1):
+                warnings.append(f"{path}: high mito fraction ({row['mito_frac']:.1%})")
+            if row["dup_rate"] is not None and row["dup_rate"] > 0.5:
+                warnings.append(f"{path}: high duplicate rate ({row['dup_rate']:.1%})")
+        except Exception as e:
+            warnings.append(f"Could not QC {path}: {str(e)[:160]}")
+    if not metrics:
+        return {"status": "error", "error_type": "QCFailed",
+                "details": "Could not compute QC metrics for any sample.", "warnings": warnings}
+    mean = lambda values: float(np.mean(list(values))) if values else None
+    frip = mean(frip_per_sample.values())
+    enrichment = mean(tss_per_sample.values())
+    not_computed = [key for key, value in (("tss_enrichment", enrichment), ("frip", frip))
+                    if value is None]
+    th = {"min_frip": 0.2, "min_tss": 6.0, **(params.get("thresholds") or {})}
+    complete = not not_computed and len(metrics) == len(bam_files)
+    if not_computed:
+        warnings.append("QC metrics not computed: " + ", ".join(not_computed))
+    result = {
+        "status": "success", "data_type": data_type,
+        "validation_level": "production" if data_type in {"scATAC", "bulk_ATAC"} else "scaffold",
+        "n_samples": len(metrics), "mapped_reads": sum(m["mapped_reads"] for m in metrics),
+        "frip": frip, "frip_per_sample": frip_per_sample,
+        "frip_distribution": list(frip_per_sample.values()) if frip_per_sample else None,
+        "tss_enrichment": enrichment, "tss_enrichment_per_sample": tss_per_sample,
+        "mito_fraction": round(mean([m["mito_frac"] for m in metrics]), 4),
+        "dup_rate": mean(dup_per_sample.values()), "dup_rate_per_sample": dup_per_sample,
+        "per_sample": metrics, "metrics_not_computed": not_computed,
+        "qc_complete": complete,
+        "pass_qc": bool(frip >= th["min_frip"] and enrichment >= th["min_tss"])
+                   if complete else None,
+        "thresholds": th, "warnings": warnings,
+    }
+    if sizes:
+        arr = np.asarray(sizes)
+        nfr = float(np.mean(arr < 100))
+        mono = float(np.mean((arr >= 180) & (arr <= 247)))
+        di = float(np.mean((arr >= 315) & (arr <= 473)))
+        counts, edges = np.histogram(arr, bins=np.arange(0, 1001, 10))
+        result["fragment_sizes"] = {
+            "median_bp": float(np.median(arr)), "n_fragments_sampled": len(sizes),
+            "nfr_fraction": round(nfr, 4), "mononucleosomal_fraction": round(mono, 4),
+            "dinucleosomal_fraction": round(di, 4),
+            "nfr_to_mono_ratio": nfr / mono if mono else None,
+            "nucleosome_banding_detected": bool(nfr > 0.05 and mono > 0.05),
+            "size_histogram": {"bin_edges": edges.astype(float).tolist(),
+                               "counts": counts.astype(int).tolist()},
+        }
+    return result
 
 
 def _basic_chromatin_qc(files: list, data_type: str,
@@ -810,29 +872,13 @@ def _estimate_frip_bulk(data_type: str):
     return None
 
 
-def _estimate_dup_rate(bam_path: str):
-    """
-    PCR duplicate rate from `samtools flagstat`. Returns None when samtools is
-    unavailable or the parse fails — ARIA does not substitute a fabricated
-    'typical' constant (ADR-002); the previous fallback returned 0.15.
-    """
+def _estimate_dup_rate(bam_path: str, reference_fasta: str | None = None):
+    """Observed duplicate primary-read fraction; unmarked libraries stay unknown."""
     try:
-        import subprocess
-        result = subprocess.run(
-            ["samtools", "flagstat", bam_path],
-            capture_output=True, text=True, timeout=60,
-        )
-        lines = result.stdout.split("\n")
-        for line in lines:
-            if "duplicate" in line.lower():
-                parts = line.split()
-                if parts:
-                    dups = int(parts[0])
-                    total = int(lines[0].split()[0]) if lines else 1
-                    return dups / max(total, 1)
-    except Exception:
-        pass
-    return None
+        metrics, _ = _scan_bam_metrics(bam_path, reference_fasta, max_reads=0)
+        return metrics["dup_rate"]
+    except (ImportError, OSError, ValueError):
+        return None
 
 
 if __name__ == "__main__":

@@ -69,6 +69,7 @@
 | `run_scatac_peak2gene_concordance.py` | Chromatin `peak2gene` concordance vs R `Signac::LinkPeaks` (`ADR-050`). |
 | `run_scatac_geneactivity_concordance.py` | Peak-window gene-activity concordance vs R `Signac::GeneActivity`. |
 | `run_scatac_footprint_tobias.py` & `run_bulk_atac_footprint_tobias.py` | `TOBIAS` Tn5-corrected footprinting validation runners (`scATAC` and `ENCODE` bulk ATAC `B7`). |
+| `run_bulk_atac_concordance.py` | Multi-replicate (`n=4v4` + tech-rep + batch + 20 null permutations) bulk ATAC DA concordance vs R `DESeq2`, `edgeR`, and `limma-voom` (`ADR-077`). |
 | `run_bulk_atac_marker_mapping.py` & `run_bulk_atac_v47_provenance.py` | Bulk ATAC `K562` vs `GM12878` regulatory marker concordance and artifact provenance verifier. |
 | `run_wnn_concordance.py` | Paired 10x Multiome WNN concordance vs R `Seurat 5.3.0` `FindMultiModalNeighbors` (`V48 I2`, `ADR-065`). |
 | `run_wnn_guardrail_validation.py` | 5-axis WNN anti-degradation guardrail validation on `GSE278576` `hc11` (`V48 I3`, `ADR-066`). |

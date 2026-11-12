@@ -3,13 +3,23 @@
 Runs replicate-gated DESeq2 on a peak x sample count matrix. This script requires
 explicit condition, replicate, and comparison metadata; it never infers biology
 from filenames.
+
+Validation level: ``production`` (ADR-077). Technical replicates are summed to
+biological replicates before testing, covariates (e.g. batch) are fitted as
+``~ covariates + condition``, and concordance against Bioconductor DESeq2,
+edgeR glmQLFTest and limma-voom plus a label-permutation null are recorded in
+``docs/benchmark_results/bulk_atac/adr077_multireplicate_r_concordance.json``.
 """
 
 from __future__ import annotations
 
 import csv
+import os
+import sys
 from pathlib import Path
 from typing import Any
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import mocks_allowed, run_script
 
@@ -27,7 +37,7 @@ def _skipped(reason: str, **extra) -> dict:
         "reason": reason,
         "data_type": "bulk_ATAC",
         "analysis": "differential_accessibility",
-        "validation_level": "beta",
+        "validation_level": "production",
         "comparisons": [],
         "warnings": [],
     }
@@ -469,7 +479,7 @@ def chromatin_bulk_diffacc(params: dict) -> dict:
         "reason": None,
         "data_type": "bulk_ATAC",
         "analysis": "differential_accessibility",
-        "validation_level": "beta",
+        "validation_level": "production",
         "method": "replicate-level DESeq2 over bulk ATAC peak counts",
         "counts_matrix_path": str(counts_path),
         "sample_metadata_path": str(metadata_path),

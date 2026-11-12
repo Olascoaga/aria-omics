@@ -8,7 +8,7 @@ def test_bulk_atac_diffacc_contract_registered():
 
     contract = contract_for_script("aria/scripts/chromatin_bulk_diffacc.py")
     assert contract is not None
-    assert contract.validation_level == "beta"
+    assert contract.validation_level == "production"
     assert {f.name for f in contract.success_outputs} >= {
         "ran", "data_type", "analysis",
     }
@@ -34,6 +34,8 @@ def test_bulk_atac_diffacc_requires_explicit_comparison(tmp_path):
     assert res["status"] == "success"
     assert res["ran"] is False
     assert "no explicit comparison" in res["reason"]
+    # ADR-077: honest skips carry the promoted lane level too.
+    assert res["validation_level"] == "production"
 
 
 def test_load_counts_matrix_rejects_fractional_counts_before_cast(tmp_path):
@@ -186,7 +188,7 @@ def test_bulk_atac_diffacc_runs_shared_deseq2_and_gates_convergence(
 
     assert res["status"] == "success"
     assert res["ran"] is True
-    assert res["validation_level"] == "beta"
+    assert res["validation_level"] == "production"
     assert captured["count_columns"] == [
         "ctrl::r1", "ctrl::r2", "ctrl::r3",
         "treated::r1", "treated::r2", "treated::r3",

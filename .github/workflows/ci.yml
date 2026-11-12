@@ -162,8 +162,10 @@ jobs:
             tests/test_chromatin_fragments_to_matrix.py \
             tests/test_scatac_cohort_union.py \
             tests/test_scatac_production_multiplatform_e2e.py \
+            tests/test_bulk_atac_production_e2e.py \
             tests/test_bulk_atac_footprint.py \
             tests/test_bulk_atac_v47.py \
+            tests/test_bulk_atac_diffacc.py \
             tests/test_bulk_atac_peak_counts.py \
             tests/test_bulk_atac_marker_mapping.py \
             tests/test_scatac_raw_path_c4.py \

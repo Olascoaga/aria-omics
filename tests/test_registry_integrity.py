@@ -25,17 +25,19 @@ def test_every_dispatch_modality_has_validation_metadata():
 def test_scatac_production_is_dispatchable_with_adr076():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
-    # ADR-076: scATAC promoted to production; bulk_ATAC remains beta + requires_ack.
+    # ADR-076: scATAC promoted to production.
     assert MODALITY_VALIDATION["scATAC"]["level"] == "production"
     assert MODALITY_VALIDATION["scATAC"]["dispatch_enabled"] is True
     assert MODALITY_VALIDATION["scATAC"]["promotion_adr"] == "ADR-076"
 
 
-def test_bulk_atac_beta_is_dispatchable_with_readiness_ack():
+def test_bulk_atac_production_is_dispatchable_with_adr077():
     from aria.agents.orchestrator_agent import MODALITY_VALIDATION
 
-    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "beta"
+    # ADR-077: bulk_ATAC promoted to production.
+    assert MODALITY_VALIDATION["bulk_ATAC"]["level"] == "production"
     assert MODALITY_VALIDATION["bulk_ATAC"]["dispatch_enabled"] is True
+    assert MODALITY_VALIDATION["bulk_ATAC"]["promotion_adr"] == "ADR-077"
 
 
 def test_remaining_scaffold_chromatin_modalities_are_not_dispatched():

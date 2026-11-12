@@ -131,6 +131,8 @@ def _validate_fields(payload: dict[str, Any],
                 ))
             continue
         value = payload.get(key)
+        if value is None and not field.required:
+            continue
         if _is_empty(value) and not field.allow_empty:
             issues.append(ContractIssue(
                 field=field.name,
@@ -406,7 +408,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_peak_counts.py": ScriptContract(
         script_path="aria/scripts/chromatin_peak_counts.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_type", "str", allow_empty=False),
             _f("files", "list[path]", allow_empty=False, path_must_exist=True),
@@ -427,7 +429,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_bulk_diffacc.py": ScriptContract(
         script_path="aria/scripts/chromatin_bulk_diffacc.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("data_type", "str", allow_empty=False),
             _f("counts_matrix_path", "path", allow_empty=False,
@@ -699,6 +701,21 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("figures", "dict", required=False),
         ),
     ),
+    "aria/scripts/chromatin_figure_bulk.py": ScriptContract(
+        script_path="aria/scripts/chromatin_figure_bulk.py",
+        validation_level="production",
+        inputs=(
+            _f("output_dir", "str", allow_empty=False),
+            _f("counts_path", "str", required=False, allow_empty=False),
+            _f("sample_metadata", "any", required=False),
+            _f("condition_col", "str", required=False, allow_empty=False),
+            _f("qc", "dict", required=False),
+            _f("peaks", "dict", required=False),
+        ),
+        success_outputs=(
+            _f("figures", "dict", required=False),
+        ),
+    ),
     # Universal Bulk RNA FASTQ preprocessing flow (ADR-075: production).
     "aria/scripts/rna_fastq_qc.py": ScriptContract(
         script_path="aria/scripts/rna_fastq_qc.py",
@@ -765,7 +782,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/atac_align.py": ScriptContract(
         script_path="aria/scripts/atac_align.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("samples", "list", allow_empty=False),
             _f("genome_fasta", "str", allow_empty=False),

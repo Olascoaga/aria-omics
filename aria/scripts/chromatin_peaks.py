@@ -33,6 +33,11 @@ from __future__ import annotations
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+from pathlib import Path
+from aria.scripts.chromatin_peak_counts import (
+    file_record, load_valid_stage_result, stage_manifest_path, write_stage_manifest,
+    _save_stage_result, _open_alignment, _interval_index, _overlaps, _primary_mapped,
+)
 
 
 def chromatin_peaks(params: dict) -> dict:
@@ -41,14 +46,20 @@ def chromatin_peaks(params: dict) -> dict:
     data_type     = params["data_type"]
     files         = params.get("files", [])
     genome        = params.get("genome", "hg38")
-    macs3_params  = params.get("macs3_params", {})
+    macs3_params  = dict(params.get("macs3_params", {}))
+    for key in ("qvalue", "broad", "format"):
+        if key in params:
+            macs3_params[key] = params[key]
+    if params.get("reference_fasta"):
+        macs3_params["reference_fasta"] = params["reference_fasta"]
     output_dir    = params.get("output_dir", "/tmp/aria_peaks")
     control_files = params.get("control_files", [])
     run_replicate_peak_calling = params.get(
         "run_replicate_peak_calling",
         data_type in {"bulk_ATAC", "scATAC"},
     )
-    min_replicate_support = int(params.get("min_replicate_peak_support", 2))
+    min_replicate_support = int(params.get("min_replicates_for_consensus",
+                                           params.get("min_replicate_peak_support", 2)))
 
     warnings = []
     Path(output_dir).mkdir(parents=True, exist_ok=True)
@@ -61,6 +72,39 @@ def chromatin_peaks(params: dict) -> dict:
             "error_type": "FileNotFound",
             "details":    f"No valid input files for peak calling.",
         }
+
+    if len(valid_files) != len(files):
+        return {"status": "error", "error_type": "FileNotFound",
+                "details": "Some peak-calling inputs are missing."}
+    blacklist = params.get("blacklist_bed")
+    reference = params.get("reference_fasta")
+    inputs = [file_record(f) for f in valid_files]
+    for extra in [blacklist, reference, *control_files]:
+        if extra and Path(extra).is_file():
+            inputs.append(file_record(extra))
+    parameters = {"bam_files": list(files), "genome": genome,
+                  "qvalue": macs3_params.get("qvalue", 0.05),
+                  "broad": macs3_params.get("broad", False),
+                  "format": macs3_params.get("format", "BAMPE"),
+                  "blacklist_bed": blacklist,
+                  "min_replicates_for_consensus": min_replicate_support,
+                  "macs3_params": macs3_params, "control_files": control_files,
+                  "run_replicate_peak_calling": bool(run_replicate_peak_calling),
+                  "data_type": data_type}
+    manifest = stage_manifest_path(output_dir, "chromatin_peaks")
+    cached = load_valid_stage_result(
+        manifest, expected_inputs=inputs, expected_parameters=parameters)
+    if (cached and Path(cached.get("peaks_path", "")).is_file()
+            and (not cached.get("consensus_peaks_path")
+                 or Path(cached["consensus_peaks_path"]).is_file())):
+        return {**cached, "reused_from_stage_manifest": True}
+    Path(manifest).unlink(missing_ok=True)
+    effective_params, effective_format = _effective_macs3_params(valid_files, macs3_params)
+    if effective_format == "BAM_SE_TN5_SHIFT":
+        warnings.append(
+            "Single-end alignments detected: MACS3 uses -f BAM --nomodel "
+            "--shift -100 --extsize 200 (Tn5-centered SE ATAC). "
+            "Pooled inputs containing SE reads use this treatment for all reads.")
 
     # ── Build MACS3 command ───────────────────────────────────────────────
     genome_size = _get_genome_size(genome)
@@ -77,45 +121,28 @@ def chromatin_peaks(params: dict) -> dict:
 
     cmd = _build_macs3_cmd(
         valid_files, valid_ctrl, genome_size, sample_name, output_dir,
-        macs3_params,
+        effective_params,
     )
 
-    # ── Run MACS3 ────────────────────────────────────────────────────────
+    out_dir = Path(output_dir)
+    broad = macs3_params.get("broad", False)
+    peaks_ext = ".broadPeak" if broad else ".narrowPeak"
+    peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
+    peaks_file.unlink(missing_ok=True)
+
+    # A failed rerun must never reuse stale peak files after invalidation.
     peak_run = _run_macs3(cmd, timeout=7200)
     if peak_run["status"] == "error":
-        if peak_run.get("error_type") == "MACS3NonZero":
-            warnings.append(f"MACS3 non-zero exit: {peak_run.get('details', '')[-200:]}")
-        else:
-            return peak_run
-    elif peak_run.get("warning"):
+        return peak_run
+    if peak_run.get("warning"):
         warnings.append(str(peak_run["warning"]))
 
-    if peak_run.get("error_type") == "MACS3NotFound":
-        return {
-            "status":     "error",
-            "error_type": "MACS3NotFound",
-            "details":    "MACS3 not installed. Activate aria-chromatin-env.",
-        }
-
-    # ── Find output peaks file ────────────────────────────────────────────
-    out_dir    = Path(output_dir)
-    broad      = macs3_params.get("broad", False)
-    peaks_ext  = ".broadPeak" if broad else ".narrowPeak"
-    peaks_file = out_dir / f"{sample_name}_peaks{peaks_ext}"
-
-    if not peaks_file.exists():
-        # Try alternate naming
-        candidates = list(out_dir.glob(f"*{peaks_ext}"))
-        if candidates:
-            peaks_file = candidates[0]
-        else:
-            return {
-                "status":     "error",
-                "error_type": "NoPeaksFile",
-                "details":    f"Expected {peaks_file} not found after MACS3.",
-            }
+    if not peaks_file.is_file():
+        return {"status": "error", "error_type": "NoPeaksFile",
+                "details": f"Expected {peaks_file} not found after MACS3."}
 
     # ── Count peaks and compute basic stats ──────────────────────────────
+    n_blacklist_filtered = _filter_blacklist(str(peaks_file), blacklist)
     n_peaks = _count_peaks(str(peaks_file))
 
     if n_peaks < 1000:
@@ -140,32 +167,46 @@ def chromatin_peaks(params: dict) -> dict:
         pooled_peaks_path=str(peaks_file),
         min_support=min_replicate_support,
         run_replicate_peak_calling=bool(run_replicate_peak_calling),
+        blacklist_bed=blacklist,
     )
     warnings.extend(peak_repro.get("warnings") or [])
     consensus_path = peak_repro.get("consensus_peaks_path")
 
-    # ── Compute actual FRiP ───────────────────────────────────────────────
-    frip = _compute_frip(valid_files[0], str(peaks_file))
+    n_blacklist_filtered += peak_repro.get("n_blacklist_filtered", 0)
+    if consensus_path:
+        n_blacklist_filtered += _filter_blacklist(consensus_path, blacklist)
+        overlap = peak_repro["overlap"]
+        overlap["n_reproducible_regions"] = _count_peaks(consensus_path)
+        candidates = overlap.get("n_candidate_regions", 0)
+        overlap["fraction_reproducible"] = (
+            round(overlap["n_reproducible_regions"] / candidates, 4) if candidates else None)
+        if not overlap["n_reproducible_regions"]:
+            peak_repro["status"] = "unverified"
+            peak_repro["reason"] = "no_reproducible_overlap_regions"
+    frip_per_sample = {}
+    for path in valid_files:
+        value = _compute_frip(path, str(peaks_file), reference_fasta=reference)
+        if value is not None:
+            frip_per_sample[Path(path).stem] = value
+    frip = sum(frip_per_sample.values()) / len(frip_per_sample) if frip_per_sample else None
     if frip is None:
-        warnings.append(
-            "FRiP was not computed because samtools/bedtools counting failed "
-            "or was unavailable."
-        )
-
-    return {
-        "status":               "success",
-        "data_type":            data_type,
-        "n_peaks":              int(n_peaks),
-        "peaks_path":           str(peaks_file),
+        warnings.append("FRiP unavailable: no mapped nonduplicate primary reads or unreadable alignments.")
+    result = {
+        "status": "success", "data_type": data_type,
+        "validation_level": "production" if data_type in {"scATAC", "bulk_ATAC"} else "scaffold",
+        "n_peaks": int(n_peaks), "peaks_path": str(peaks_file),
         "consensus_peaks_path": consensus_path,
-        "frip":                 (round(float(frip), 4)
-                                  if frip is not None else None),
-        "genome":               genome,
-        "macs3_cmd":            " ".join(cmd),  # for reproducibility
+        "n_consensus_peaks": _count_peaks(consensus_path) if consensus_path else None,
+        "n_blacklist_filtered": n_blacklist_filtered,
+        "frip": frip, "frip_per_sample": frip_per_sample,
+        "genome": genome, "macs3_cmd": " ".join(cmd),
+        "effective_format": effective_format,
         "peak_calling_strategy": peak_repro.get("strategy"),
-        "peak_reproducibility":  peak_repro,
-        "warnings":             warnings,
+        "peak_reproducibility": peak_repro, "warnings": warnings,
+        "reused_from_stage_manifest": False,
     }
+    _save_stage_result(manifest, "chromatin_peaks", inputs, parameters, result)
+    return result
 
 
 # ── Helper functions ──────────────────────────────────────────────────────────
@@ -190,15 +231,18 @@ def _build_macs3_cmd(input_files: list[str],
                      output_dir: str,
                      macs3_params: dict) -> list[str]:
     """Build the exact MACS3 command used for a pooled or per-replicate call."""
+    macs3_params, _ = _effective_macs3_params(input_files, macs3_params)
     cmd = ["macs3", "callpeak", "-t"] + list(input_files)
     if control_files:
         cmd += ["-c"] + list(control_files)
     cmd += ["-f", macs3_params.get("format", "BAMPE")]
-    cmd += ["-g", genome_size]
+    cmd += ["-g", genome_size, "-q", str(macs3_params.get("qvalue", 0.05))]
     cmd += ["-n", sample_name, "--outdir", output_dir]
     if macs3_params.get("nomodel", False):
         cmd.append("--nomodel")
         cmd += ["--extsize", str(macs3_params.get("extsize", 200))]
+    if "shift" in macs3_params:
+        cmd += ["--shift", str(macs3_params["shift"])]
     if macs3_params.get("nolambda", False):
         cmd.append("--nolambda")
     if macs3_params.get("broad", False):
@@ -279,7 +323,8 @@ def _replicate_reproducibility(valid_files: list[str],
                                peaks_ext: str,
                                pooled_peaks_path: str,
                                min_support: int,
-                               run_replicate_peak_calling: bool) -> dict:
+                               run_replicate_peak_calling: bool,
+                               blacklist_bed: str | None = None) -> dict:
     from pathlib import Path
 
     strategy = "pooled_macs3"
@@ -331,6 +376,7 @@ def _replicate_reproducibility(valid_files: list[str],
         cmd = _build_macs3_cmd(
             [input_file], [], genome_size, label, str(rep_dir), macs3_params,
         )
+        (rep_dir / f"{label}_peaks{peaks_ext}").unlink(missing_ok=True)
         run = _run_macs3(cmd, timeout=7200)
         if run.get("status") != "success":
             failed.append({
@@ -342,6 +388,8 @@ def _replicate_reproducibility(valid_files: list[str],
         peak_file = _find_peak_file(
             str(rep_dir), label, peaks_ext, allow_fallback=False)
         if peak_file:
+            removed = _filter_blacklist(peak_file, blacklist_bed)
+            repro["n_blacklist_filtered"] = repro.get("n_blacklist_filtered", 0) + removed
             peak_files.append(peak_file)
         else:
             failed.append({
@@ -468,38 +516,106 @@ def _count_peaks(peaks_file: str) -> int:
         return 0
 
 
-def _compute_frip(bam_file: str, peaks_file: str) -> float | None:
+def _effective_macs3_params(files, params):
+    """Inspect at most 1,000 mapped primary reads per BAM before selecting BAMPE."""
+    result = dict(params)
+    fmt = result.get("format", "BAMPE")
+    if fmt != "BAMPE":
+        return result, ("BAM_SE_TN5_SHIFT" if fmt == "BAM" and result.get("shift") == -100 else fmt)
+    for path in files:
+        try:
+            mapped = paired = 0
+            with _open_alignment(path, params.get("reference_fasta")) as bam:
+                for read in bam.fetch(until_eof=True):
+                    if not _primary_mapped(read):
+                        continue
+                    mapped += 1
+                    paired += int(read.is_paired)
+                    if mapped >= 1000:
+                        break
+            if mapped and not paired:
+                result.update(format="BAM", nomodel=True, shift=-100, extsize=200)
+                return result, "BAM_SE_TN5_SHIFT"
+        except (ImportError, OSError, ValueError):
+            continue
+    return result, fmt
+
+
+def _filter_blacklist(peaks_path, blacklist_bed):
+    """Exclude any overlap, retaining every nonblacklisted peak column."""
+    if not blacklist_bed or not Path(blacklist_bed).is_file():
+        return 0
+    index = _interval_index(_read_peak_intervals(str(blacklist_bed)))
+    kept = []
+    removed = 0
+    with open(peaks_path) as handle:
+        for line in handle:
+            cols = line.rstrip().split("\t")
+            if line.startswith(("#", "track", "browser")) or len(cols) < 3:
+                kept.append(line)
+                continue
+            if _overlaps(index, cols[0], int(cols[1]), int(cols[2])):
+                removed += 1
+            else:
+                kept.append(line)
+    if removed:
+        Path(peaks_path).write_text("".join(kept))
+    return removed
+
+
+def _compute_frip(bam_file: str, peaks_file: str,
+                  reference_fasta: str | None = None) -> float | None:
+    """FRiP among mapped nonduplicate primary reads; no samtools dependency.
+
+    Stream a filtered BAM into bedtools so its BED count uses exactly the same
+    population as the denominator. CRAM and missing/failed bedtools use the
+    interval-bisect result accumulated during the pysam pass.
     """
-    Compute FRiP (Fraction of Reads in Peaks).
-    Requires samtools and bedtools in PATH.
-    """
+    import shutil
+    import subprocess
+    import tempfile
     try:
-        import subprocess
-
-        # Count reads in peaks
-        cmd = [
-            "bedtools", "intersect",
-            "-a", bam_file,
-            "-b", peaks_file,
-            "-u", "-f", "0.5",
-        ]
-        reads_in_peaks = subprocess.run(
-            ["samtools", "view", "-c", "-F", "4"],
-            input=subprocess.run(cmd, capture_output=True).stdout,
-            capture_output=True, text=True, timeout=120,
-        )
-
-        # Total mapped reads
-        total_reads = subprocess.run(
-            ["samtools", "view", "-c", "-F", "4", bam_file],
-            capture_output=True, text=True, timeout=120,
-        )
-
-        in_peaks = int(reads_in_peaks.stdout.strip() or 0)
-        total    = int(total_reads.stdout.strip() or 1)
-        return in_peaks / max(total, 1)
-
-    except Exception:
+        import pysam
+        intervals = _read_peak_intervals(peaks_file)
+        if not intervals:
+            return None
+        index = _interval_index(intervals)
+        bedtools = shutil.which("bedtools")
+        use_bedtools = bedtools and not str(bam_file).lower().endswith(".cram")
+        total = overlaps = 0
+        with tempfile.TemporaryDirectory(prefix="aria_frip_") as tmp:
+            filtered = str(Path(tmp) / "primary_nondup.bam")
+            with _open_alignment(bam_file, reference_fasta) as bam:
+                out = pysam.AlignmentFile(filtered, "wb", template=bam) if use_bedtools else None
+                try:
+                    for read in bam.fetch(until_eof=True):
+                        if not _primary_mapped(read) or read.is_duplicate:
+                            continue
+                        total += 1
+                        if read.reference_end is not None and _overlaps(
+                                index, read.reference_name, read.reference_start, read.reference_end):
+                            overlaps += 1
+                        if out is not None:
+                            out.write(read)
+                finally:
+                    if out is not None:
+                        out.close()
+            if not total:
+                return None
+            if use_bedtools:
+                try:
+                    with tempfile.TemporaryFile(mode="w+t") as output:
+                        proc = subprocess.run(
+                            [bedtools, "intersect", "-u", "-abam", filtered,
+                             "-b", str(peaks_file), "-bed"],
+                            stdout=output, stderr=subprocess.PIPE, text=True, timeout=7200)
+                        if proc.returncode == 0:
+                            output.seek(0)
+                            overlaps = sum(1 for line in output if line.strip())
+                except (OSError, subprocess.TimeoutExpired):
+                    pass  # The exact same interval population was counted above.
+        return max(0.0, min(1.0, overlaps / total))
+    except (ImportError, OSError, ValueError):
         return None
 
 

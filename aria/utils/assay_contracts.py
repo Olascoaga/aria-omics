@@ -82,23 +82,41 @@ def validate_assay_contract(
     barcode = checks["barcode_namespace"]
     if barcode["status"] == "blocked":
         errors = barcode.get("errors") or []
-        findings.append(_finding(
-            "blocking",
-            "assay_contract_scatac_fastq_barcode_missing",
-            (
-                "scATAC FASTQ input needs a valid typed library manifest with "
-                "explicit R1/R2/R3 roles, barcode whitelist, and donor/sample "
-                "identity. " + ("; ".join(errors) if errors else
-                "The barcode read cannot be inferred from genomic reads.")
-            ),
-            (
-                "Provide/edit `scatac_fastq_manifest` (schema_version 1), or "
-                "for one legacy library provide `barcode_fastq` and "
-                "`barcode_whitelist`; alternatively start from fragments or a "
-                "peak matrix."
-            ),
-            modality,
-        ))
+        if barcode.get("reason") == "single_cell_barcoded_fastq_in_bulk_atac":
+            findings.append(_finding(
+                "blocking",
+                "assay_contract_bulk_atac_single_cell_barcoded_fastq",
+                (
+                    "Single-cell barcoded ATAC FASTQ structure detected in a "
+                    "`bulk_ATAC` dispatch ("
+                    + ("; ".join(errors) if errors else "3-read/barcode FASTQ layout")
+                    + ")."
+                ),
+                (
+                    "Route single-cell barcoded ATAC FASTQs through `scATAC` "
+                    "with `scatac_fastq_manifest` (or provide unbarcoded SE/PE "
+                    "genomic FASTQs for `bulk_ATAC`)."
+                ),
+                modality,
+            ))
+        else:
+            findings.append(_finding(
+                "blocking",
+                "assay_contract_scatac_fastq_barcode_missing",
+                (
+                    "scATAC FASTQ input needs a valid typed library manifest with "
+                    "explicit R1/R2/R3 roles, barcode whitelist, and donor/sample "
+                    "identity. " + ("; ".join(errors) if errors else
+                    "The barcode read cannot be inferred from genomic reads.")
+                ),
+                (
+                    "Provide/edit `scatac_fastq_manifest` (schema_version 1), or "
+                    "for one legacy library provide `barcode_fastq` and "
+                    "`barcode_whitelist`; alternatively start from fragments or a "
+                    "peak matrix."
+                ),
+                modality,
+            ))
 
     coords = checks["feature_coordinates"]
     if coords["status"] == "blocked":
@@ -145,7 +163,7 @@ def validate_assay_contract(
                 f"{reps.get('replicates_per_condition')}."
             ),
             (
-                "Do not dispatch inferential bulk RNA-seq DE with n<2 biological "
+                "Do not dispatch inferential DE/DA with n<2 biological "
                 "replicates per condition. Add biological replicates or remove "
                 "the contrast."
             ),
@@ -217,12 +235,89 @@ def _genome_check(exp_context: dict[str, Any], modality: str) -> dict[str, Any]:
     }
 
 
+def _detect_bulk_atac_single_cell_fastq(
+    exp_context: dict[str, Any],
+    files: list[str],
+) -> list[str]:
+    """Return blocking error strings if single-cell barcoded FASTQs are routed to bulk_ATAC."""
+    import re
+
+    errors: list[str] = []
+    if exp_context.get("scatac_fastq_manifest"):
+        errors.append("`scatac_fastq_manifest` is present on a `bulk_ATAC` context")
+    for key in ("barcode_fastq", "cell_barcode_fastq", "barcode_whitelist", "cell_barcode_whitelist"):
+        if exp_context.get(key):
+            errors.append(f"`{key}` is set on a `bulk_ATAC` context")
+
+    fastq_files = [str(p) for p in files if _is_fastq(p)]
+    role_re = re.compile(
+        r"^(?P<stem>.+?)(?:_S\d+)?(?:_L\d{3})?[._-](?P<role>R1|R2|R3|I1|I2)(?:_\d{3})?\.(?:fastq|fq)(?:\.gz)?$",
+        re.IGNORECASE,
+    )
+    roles_by_stem: dict[str, set[str]] = {}
+    paths_by_stem_role: dict[tuple[str, str], str] = {}
+    for fp in fastq_files:
+        name = Path(fp).name
+        m = role_re.match(name)
+        if not m:
+            continue
+        stem = m.group("stem")
+        role = m.group("role").upper()
+        roles_by_stem.setdefault(stem, set()).add(role)
+        paths_by_stem_role[(stem, role)] = fp
+
+    for stem, roles in sorted(roles_by_stem.items()):
+        if {"R1", "R2", "R3"} <= roles or "R3" in roles or "I2" in roles:
+            errors.append(
+                f"library '{stem}' has multi-read single-cell roles {sorted(roles)}"
+            )
+            continue
+        if {"R1", "R2"} <= roles:
+            r1_len = _first_fastq_read_length(paths_by_stem_role[(stem, "R1")])
+            r2_len = _first_fastq_read_length(paths_by_stem_role[(stem, "R2")])
+            if r1_len is not None and r2_len is not None:
+                short_len, long_len = sorted((r1_len, r2_len))
+                if short_len <= 24 and long_len >= 35:
+                    errors.append(
+                        f"library '{stem}' has asymmetric barcode+genomic read lengths "
+                        f"({r1_len} bp / {r2_len} bp)"
+                    )
+    return errors
+
+
+def _first_fastq_read_length(path: str) -> int | None:
+    p = Path(path)
+    if not p.exists():
+        return None
+    try:
+        opener = gzip.open if p.suffix.lower() == ".gz" else open
+        with opener(p, "rt", encoding="utf-8", errors="replace") as fh:
+            header = fh.readline()
+            seq = fh.readline().strip()
+            if not header.startswith("@") or not seq:
+                return None
+            return len(seq)
+    except Exception:
+        return None
+
+
 def _barcode_check(
     exp_context: dict[str, Any],
     modality: str,
     files: list[str],
 ) -> dict[str, Any]:
     fastq = any(_is_fastq(p) for p in files)
+    if modality == "bulk_ATAC" and fastq:
+        sc_errors = _detect_bulk_atac_single_cell_fastq(exp_context, files)
+        if sc_errors:
+            return {
+                "status": "blocked",
+                "required": False,
+                "fastq_input": True,
+                "reason": "single_cell_barcoded_fastq_in_bulk_atac",
+                "errors": sc_errors,
+            }
+        return {"status": "pass", "required": False, "fastq_input": True}
     if modality != "scATAC" or not fastq:
         return {"status": "pass", "required": False, "fastq_input": fastq}
     from aria.utils.scatac_fastq_manifest import resolve_scatac_fastq_manifest
@@ -351,7 +446,7 @@ def _replicate_check(
         else None
     )
     has_explicit_bulk_contrast = (
-        modality in {"bulk_RNA", "bulk_RNA_raw"}
+        modality in {"bulk_RNA", "bulk_RNA_raw", "bulk_ATAC"}
         and isinstance(groups, dict)
         and len(groups) >= 2
     )
@@ -370,15 +465,22 @@ def _replicate_check(
     )
     counts: dict[str, set[str]] = {}
     if isinstance(metadata, dict) and metadata:
-        for sample_id in _sample_ids(exp_context, files):
+        sids = _sample_ids(exp_context, files)
+        lookup_ids = sids if any(s in metadata for s in sids) else [str(k) for k in metadata]
+        for sample_id in lookup_ids:
             row = metadata.get(sample_id) or {}
             if not isinstance(row, dict):
                 continue
             condition = row.get(condition_col) or row.get("condition")
-            replicate = row.get(replicate_col) or row.get("replicate")
+            replicate = (
+                row.get(replicate_col)
+                or row.get("replicate")
+                or row.get("donor_id")
+                or sample_id
+            )
             if condition and replicate:
                 counts.setdefault(str(condition), set()).add(str(replicate))
-    elif isinstance(groups, dict):
+    if not counts and isinstance(groups, dict):
         for condition, reps in groups.items():
             if isinstance(reps, (list, tuple, set)):
                 counts[str(condition)] = {str(r) for r in reps if str(r).strip()}
@@ -388,7 +490,7 @@ def _replicate_check(
     per_condition = {condition: len(reps) for condition, reps in counts.items()}
     min_reps = min(per_condition.values()) if per_condition else 0
     if (
-        modality in {"bulk_RNA", "bulk_RNA_raw", "scATAC"}
+        modality in {"bulk_RNA", "bulk_RNA_raw", "scATAC", "bulk_ATAC"}
         and len(per_condition) >= 2
         and min_reps < 2
     ):

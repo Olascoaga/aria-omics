@@ -865,6 +865,10 @@ class ChromatinAgent(BaseAgent):
         ``atac_align`` (bwa-mem2 + ATAC filtering) in the atacseq stack. Returns
         ``(bam_paths | None, preprocessing_findings)``; None signals an honest
         failure the caller surfaces as a skip.
+
+        The explicit FASTQ list (plus the audited ``bulk_fastq_manifest`` /
+        ``sample_ids`` when present) is forwarded so the trimmer pairs reads from
+        the declared files instead of re-globbing the directory.
         """
         fastq_dir = str(Path(fastq_files[0]).parent)
         out_dir = Path(fastq_files[0]).parent.parent / "aria_atac_processing"
@@ -879,8 +883,10 @@ class ChromatinAgent(BaseAgent):
         if not genome_fasta:
             return None, {
                 "status": "skipped", "ran": False,
-                "analysis": "bulk_atac_alignment", "validation_level": "beta",
+                "analysis": "bulk_atac_alignment", "data_type": "bulk_ATAC",
+                "validation_level": "production",
                 "reason": "no_reference_genome_fasta",
+                "fastq_files": [str(f) for f in fastq_files],
                 "message": (
                     f"Bulk ATAC FASTQ alignment needs a reference genome FASTA "
                     f"for assembly '{assembly}', which is not staged locally. "
@@ -890,15 +896,24 @@ class ChromatinAgent(BaseAgent):
 
         # 1. fastp trim/QC (reuse the validated bulk RNA trimmer).
         self.publish_status(experiment_id, "bulk ATAC FASTQ QC (fastp)...", 0.10)
+        qc_params = {
+            "fastq_dir": fastq_dir,
+            "fastq_files": [str(f) for f in fastq_files],
+            "output_dir": str(out_dir / "qc"),
+            "threads": 8,
+        }
+        for key in ("bulk_fastq_manifest", "sample_ids"):
+            if exp_ctx.get(key):
+                qc_params[key] = exp_ctx[key]
         qc = self.env.run_in_stack(
             stack="rnaseq",
             script_path="aria/scripts/rna_fastq_qc.py",
-            params={"fastq_dir": fastq_dir,
-                    "output_dir": str(out_dir / "qc"), "threads": 8},
+            params=qc_params,
         )
         if qc.get("status") != "success" or not qc.get("samples"):
             return None, {"status": "failed", "ran": False,
                           "analysis": "bulk_atac_alignment",
+                          "data_type": "bulk_ATAC",
                           "stage": "fastq_qc", "details": qc}
 
         # 2. bwa-mem2 alignment + ATAC filtering.
@@ -919,41 +934,221 @@ class ChromatinAgent(BaseAgent):
         )
         if align.get("status") != "success":
             return None, {"status": "failed", "ran": False,
-                          "analysis": "bulk_atac_alignment", "stage": "align",
+                          "analysis": "bulk_atac_alignment",
+                          "data_type": "bulk_ATAC", "stage": "align",
                           "details": align}
 
         bams = [b.get("bam") for b in align.get("bam_files", [])
                 if b.get("status") == "success" and b.get("bam")]
         if not bams:
             return None, {"status": "failed", "ran": False,
-                          "analysis": "bulk_atac_alignment", "stage": "align",
+                          "analysis": "bulk_atac_alignment",
+                          "data_type": "bulk_ATAC", "stage": "align",
                           "reason": "no_bam_produced", "details": align}
 
         preprocessing = {
             "status": "success", "ran": True,
-            "analysis": "bulk_atac_alignment", "validation_level": "beta",
-            "data_type": "bulk_ATAC",
+            "analysis": "bulk_atac_alignment",
             "aligner": align.get("aligner", "bwa-mem2"),
             "genome_fasta": genome_fasta, "assembly": assembly,
             "filter": align.get("filter"),
+            "filters": align.get("filters"),
+            "read_layout": align.get("read_layout"),
             "n_samples_aligned": len(bams),
+            "fastq_files": [str(f) for f in fastq_files],
             "fastq_qc": {"n_samples": qc.get("n_samples"),
                          "multiqc_report": qc.get("multiqc_report")},
             "bam_files": align.get("bam_files"),
         }
+        preprocessing = {k: v for k, v in preprocessing.items()
+                         if v is not None}
+        preprocessing["data_type"] = "bulk_ATAC"
+        preprocessing["validation_level"] = "production"
         return bams, preprocessing
+
+    # Direct peak-count matrix intake (ADR-077). Tabular files that are NOT
+    # fragments / BED / narrowPeak / broadPeak are treated as a peak x sample
+    # count matrix; the BAM-level QC / MACS3 / counting stages are skipped.
+    _MATRIX_SUFFIXES = (".tsv", ".csv", ".txt", ".tsv.gz", ".csv.gz",
+                        ".txt.gz")
+    _NON_MATRIX_MARKERS = ("fragments.tsv", ".bed", ".narrowpeak",
+                           ".broadpeak")
+    _ALIGNMENT_SUFFIXES = (".bam", ".cram", ".sam")
+    _PEAK_ID_COLUMNS = ("peak_id", "peak", "feature_id")
+
+    @classmethod
+    def _is_peak_count_matrix_path(cls, path) -> bool:
+        name = Path(str(path)).name.lower()
+        if not name.endswith(cls._MATRIX_SUFFIXES):
+            return False
+        return not any(marker in name for marker in cls._NON_MATRIX_MARKERS)
+
+    @classmethod
+    def _detect_precomputed_counts_matrix(cls, exp_ctx: dict,
+                                          files: list) -> Optional[str]:
+        """Return the peak-count matrix path when this bulk ATAC run starts from
+        a pre-computed matrix, else ``None`` (alignment-level lane)."""
+        names = [Path(str(f)).name.lower() for f in (files or [])]
+        has_alignment_or_interval = any(
+            n.endswith(cls._ALIGNMENT_SUFFIXES)
+            or any(m in n for m in cls._NON_MATRIX_MARKERS)
+            for n in names
+        )
+        if has_alignment_or_interval:
+            return None
+        matrices = [str(f) for f in (files or [])
+                    if cls._is_peak_count_matrix_path(f)]
+        if matrices:
+            return matrices[0]
+        explicit = exp_ctx.get("counts_matrix_path")
+        if explicit:
+            return str(explicit)
+        return None
+
+    @staticmethod
+    def _write_sample_metadata_tsv(sample_metadata, path: Path) -> Optional[str]:
+        """Materialise ``exp_ctx['sample_metadata']`` (``{sample: {col: v}}`` or a
+        list of records carrying ``sample_id``) as the TSV the DA script reads.
+        Returns ``None`` when no usable records exist (never fabricates rows)."""
+        records: list[dict] = []
+        if isinstance(sample_metadata, dict):
+            for sid, meta in sample_metadata.items():
+                if isinstance(meta, dict):
+                    records.append({"sample_id": str(sid), **meta})
+        elif isinstance(sample_metadata, list):
+            for meta in sample_metadata:
+                if isinstance(meta, dict) and meta.get("sample_id") is not None:
+                    records.append({**meta, "sample_id": str(meta["sample_id"])})
+        if not records:
+            return None
+        cols = ["sample_id"]
+        for rec in records:
+            for key in rec:
+                if key not in cols:
+                    cols.append(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        import csv
+        with open(path, "w", newline="", encoding="utf-8") as handle:
+            writer = csv.DictWriter(handle, fieldnames=cols, delimiter="\t",
+                                    extrasaction="ignore")
+            writer.writeheader()
+            for rec in records:
+                writer.writerow({k: ("" if rec.get(k) is None else rec.get(k))
+                                 for k in cols})
+        return str(path)
+
+    def _ingest_precomputed_counts_matrix(self, exp_ctx: dict,
+                                          matrix_path: str) -> dict:
+        """Validate a pre-computed peak-count matrix and record honest direct-
+        matrix provenance. Comma-separated input is re-written as the TSV the DA
+        script consumes; the numeric content is never altered."""
+        import pandas as pd
+
+        src = Path(str(matrix_path))
+        base = {
+            "analysis": "peak_count_matrix",
+            "data_type": "bulk_ATAC",
+            "source": "precomputed_matrix",
+            "input_counts_matrix_path": str(src),
+        }
+        if not src.is_file():
+            return {**base, "status": "skipped", "ran": False,
+                    "validation_level": "production",
+                    "reason": f"counts matrix not found: {src}"}
+        name = src.name.lower()
+        sep = "," if name.endswith((".csv", ".csv.gz")) else "\t"
+        try:
+            df = pd.read_csv(src, sep=sep)
+        except Exception as exc:  # malformed table -> honest skip
+            return {**base, "status": "skipped", "ran": False,
+                    "validation_level": "production",
+                    "reason": f"counts matrix could not be parsed: {exc}"}
+        if df.shape[1] < 2 or df.empty:
+            return {**base, "status": "skipped", "ran": False,
+                    "validation_level": "production",
+                    "reason": "counts matrix must contain peak_id plus sample "
+                              "columns"}
+        if str(df.columns[0]) not in self._PEAK_ID_COLUMNS:
+            return {**base, "status": "skipped", "ran": False,
+                    "validation_level": "production",
+                    "reason": ("first counts matrix column must be one of "
+                               f"{list(self._PEAK_ID_COLUMNS)}; got "
+                               f"{df.columns[0]!r}")}
+
+        out_dir = src.parent / "bulk_atac_counts"
+        counts_path = str(src)
+        if sep != "\t" or name.endswith(".gz"):
+            out_dir.mkdir(parents=True, exist_ok=True)
+            counts_path = str(out_dir / "bulk_atac_peak_counts.tsv")
+            df.to_csv(counts_path, sep="\t", index=False)
+
+        meta_path = exp_ctx.get("sample_metadata_path")
+        meta_source = "exp_context.sample_metadata_path" if meta_path else None
+        if not meta_path:
+            meta_path = self._write_sample_metadata_tsv(
+                exp_ctx.get("sample_metadata"),
+                out_dir / "bulk_atac_sample_metadata.tsv")
+            meta_source = ("synthesized_from_exp_context.sample_metadata"
+                           if meta_path else None)
+        return {
+            **base,
+            "status": "success",
+            "ran": True,
+            "validation_level": "production",
+            "counting_method": "pre-computed peak-count matrix (supplied)",
+            "counts_matrix_path": counts_path,
+            "sample_metadata_path": str(meta_path) if meta_path else None,
+            "sample_metadata_source": meta_source,
+            "n_peaks": int(df.shape[0]),
+            "n_samples": int(df.shape[1] - 1),
+            "sample_ids": [str(c) for c in df.columns[1:]],
+            "warnings": [],
+        }
+
+    @staticmethod
+    def _merge_peak_frip_into_qc(findings: dict, peaks_result: dict) -> None:
+        """Close the bulk ATAC QC gate with the post-peak-calling FRiP.
+
+        BAM-level QC cannot measure FRiP before peaks exist; once MACS3 has run
+        and ``chromatin_peaks`` measured FRiP, merge it into ``findings['qc']``.
+        ``pass_qc`` is decided only when FRiP and TSS enrichment are both
+        measured, against the thresholds the QC step recorded (ENCODE defaults
+        FRiP >= 0.20 / TSSe >= 5 when none were recorded)."""
+        qc = findings.get("qc")
+        if not isinstance(qc, dict) or not isinstance(peaks_result, dict):
+            return
+        if peaks_result.get("frip") is None:
+            return
+        qc["frip"] = peaks_result["frip"]
+        if peaks_result.get("frip_per_sample"):
+            qc["frip_per_sample"] = peaks_result["frip_per_sample"]
+        qc["frip_source"] = "chromatin_peaks"
+        not_computed = [
+            m for m in (qc.get("metrics_not_computed") or [])
+            if not str(m).strip().lower().startswith("frip")
+        ]
+        qc["metrics_not_computed"] = not_computed
+        if qc.get("frip") is not None and qc.get("tss_enrichment") is not None:
+            th = qc.get("thresholds") if isinstance(qc.get("thresholds"),
+                                                    dict) else {}
+            min_frip = float(th.get("min_frip", 0.2))
+            min_tss = float(th.get("min_tss", 5.0))
+            qc["qc_complete"] = True
+            qc["pass_qc"] = bool(float(qc["frip"]) >= min_frip
+                                 and float(qc["tss_enrichment"]) >= min_tss)
 
     def _run_bulk_atac(self, experiment_id: str, exp_ctx: dict,
                        intent: dict, files: list) -> dict:
-        """Bulk ATAC-seq V47 slice: QC + MACS3 peak calling.
+        """Bulk ATAC-seq lane (production spine, ADR-077).
 
-        Comparison requests build the technical peak-count matrix and then run
-        replicate-gated DESeq2 DA only when explicit condition/replicate/
-        comparison metadata are present; under-specified designs skip honestly.
-
-        Raw FASTQ inputs are aligned to BAM first (bwa-mem2, ATAC filtering),
-        mirroring the bulk RNA FASTQ->counts prepend; the rest of the lane is
-        unchanged. scATAC FASTQ is intentionally NOT handled here.
+        FASTQ -> BAM (bwa-mem2) -> QC -> MACS3 -> peak-count matrix ->
+        replicate-gated DESeq2 DA -> motifs / annotation / ORA (+ beta TOBIAS).
+        Raw FASTQ inputs are aligned first; a pre-computed peak x sample count
+        matrix skips straight to DA. The DA branch fires whenever the confirmed
+        design contract (or the parsed intent) carries a comparison, so a
+        ``design.contrasts`` / ``exp_ctx['comparisons']`` run is no longer lost
+        when the intent lacks a free-text comparison. Under-specified designs
+        skip honestly inside the DA script. scATAC FASTQ is NOT handled here.
         """
         findings = {}
 
@@ -967,44 +1162,90 @@ class ChromatinAgent(BaseAgent):
                         "reason": "bulk_atac_preprocessing_failed"}
             files = bam_files
 
+        # E7: resolve the shared design contract BEFORE deciding whether the
+        # count-matrix + DA branch runs.
+        contract = self._resolve_da_design(exp_ctx)
+        precomputed_matrix = self._detect_precomputed_counts_matrix(
+            exp_ctx, files)
+
+        if precomputed_matrix:
+            self.publish_status(
+                experiment_id, "bulk ATAC pre-computed peak-count matrix...",
+                0.60)
+            count_result = self._ingest_precomputed_counts_matrix(
+                exp_ctx, precomputed_matrix)
+            findings["peak_counts"] = count_result
+            self._run_bulk_atac_da_branch(
+                experiment_id, exp_ctx, intent, contract, findings,
+                count_result, peaks_result=None,
+                files=[count_result.get("counts_matrix_path")
+                       or precomputed_matrix],
+                run_footprinting=False)
+            return {"status": "done", "findings": findings}
+
+        reference_fasta = exp_ctx.get("reference_fasta")
+        if not reference_fasta and any(
+                str(f).lower().endswith(".cram") for f in files):
+            reference_fasta = exp_ctx.get("genome_fasta")
+        gtf_path = (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
+                    or exp_ctx.get("gtf_file"))
+
         # QC
         self.publish_status(experiment_id, "bulk ATAC QC...", 0.35)
+        qc_params = {
+            "data_type": "bulk_ATAC",
+            "files":     files,
+            "genome":    exp_ctx.get("genome", "hg38"),
+        }
+        if gtf_path:
+            qc_params["gtf"] = str(gtf_path)
+        if reference_fasta:
+            qc_params["reference_fasta"] = str(reference_fasta)
         qc_result = self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_qc.py",
-            params={
-                "data_type": "bulk_ATAC",
-                "files":     files,
-                "genome":    exp_ctx.get("genome", "hg38"),
-            },
+            params=qc_params,
         )
         if isinstance(qc_result, dict) and qc_result.get("status") == "success":
-            qc_result.setdefault("validation_level", "beta")
+            qc_result["validation_level"] = "production"
+            qc_result.setdefault("data_type", "bulk_ATAC")
         findings["qc"] = qc_result
         if qc_result.get("status") == "success":
             self._publish_qc_finding(experiment_id, qc_result, "bulk_ATAC")
 
         # Peak calling
         self.publish_status(experiment_id, "bulk ATAC peak calling...", 0.55)
+        peaks_params = {
+            "data_type":    "bulk_ATAC",
+            "files":        files,
+            "genome":       exp_ctx.get("genome", "hg38"),
+            "macs3_params": self.MACS3_PARAMS["bulk_ATAC"],
+            "output_dir":   str(Path(files[0]).parent / "peaks"),
+        }
+        if exp_ctx.get("blacklist_bed"):
+            peaks_params["blacklist_bed"] = str(exp_ctx["blacklist_bed"])
+        if reference_fasta:
+            peaks_params["reference_fasta"] = str(reference_fasta)
         peaks_result = self.env.run_in_stack(
             stack="chromatin",
             script_path="aria/scripts/chromatin_peaks.py",
-            params={
-                "data_type":    "bulk_ATAC",
-                "files":        files,
-                "genome":       exp_ctx.get("genome", "hg38"),
-                "macs3_params": self.MACS3_PARAMS["bulk_ATAC"],
-                "output_dir":   str(Path(files[0]).parent / "peaks"),
-            },
+            params=peaks_params,
         )
         if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
-            peaks_result.setdefault("validation_level", "beta")
+            peaks_result["validation_level"] = "production"
+            peaks_result.setdefault("data_type", "bulk_ATAC")
+            # FRiP is measured only after peaks exist: close the QC gate here.
+            self._merge_peak_frip_into_qc(findings, peaks_result)
         findings["peaks"] = peaks_result
         if peaks_result.get("status") == "success":
             self._publish_peaks_finding(experiment_id, peaks_result, "bulk_ATAC")
 
-        # Peak-count matrix + replicate-gated DA if comparison defined.
-        if intent.get("comparison"):
+        # Peak-count matrix + replicate-gated DA whenever a comparison exists in
+        # the confirmed design contract or the parsed intent.
+        run_da = bool(contract.get("comparisons")
+                      or intent.get("comparisons")
+                      or intent.get("comparison"))
+        if run_da:
             peak_universe = (
                 peaks_result.get("consensus_peaks_path")
                 or peaks_result.get("peaks_path")
@@ -1013,125 +1254,152 @@ class ChromatinAgent(BaseAgent):
             if peak_universe:
                 self.publish_status(
                     experiment_id, "bulk ATAC peak-count matrix...", 0.70)
+                count_params = {
+                    "data_type": "bulk_ATAC",
+                    "files": files,
+                    "peaks_path": peak_universe,
+                    "sample_ids": exp_ctx.get("sample_ids"),
+                    "sample_metadata": exp_ctx.get("sample_metadata"),
+                    "output_dir": str(Path(files[0]).parent /
+                                      "bulk_atac_counts"),
+                }
+                if reference_fasta:
+                    count_params["reference_fasta"] = str(reference_fasta)
                 count_result = self.env.run_in_stack(
                     stack="chromatin",
                     script_path="aria/scripts/chromatin_peak_counts.py",
-                    params={
-                        "data_type": "bulk_ATAC",
-                        "files": files,
-                        "peaks_path": peak_universe,
-                        "sample_ids": exp_ctx.get("sample_ids"),
-                        "sample_metadata": exp_ctx.get("sample_metadata"),
-                        "output_dir": str(Path(files[0]).parent /
-                                          "bulk_atac_counts"),
-                    },
+                    params=count_params,
                 )
+                if (isinstance(count_result, dict)
+                        and count_result.get("status") == "success"):
+                    count_result["validation_level"] = "production"
+                    count_result.setdefault("data_type", "bulk_ATAC")
                 findings["peak_counts"] = count_result
             else:
                 findings["peak_counts"] = {
                     "status": "skipped",
                     "reason": "no_peak_universe_for_bulk_atac_counts",
                     "analysis": "peak_count_matrix",
-                    "validation_level": "scaffold",
-                }
-            if isinstance(count_result, dict) and count_result.get("status") == "success":
-                self.publish_status(
-                    experiment_id, "bulk ATAC differential accessibility...",
-                    0.82)
-                # E7: derive condition/replicate/covariates from the shared design
-                # contract, not flat exp_ctx keys with hard-coded "condition"/
-                # "replicate" literals. A confirmed design whose factor is named
-                # otherwise now reaches DA correctly, and the confirmed batch is
-                # modelled instead of dropped. Fall back to the historical literals
-                # only when no design confirmed a column at all.
-                contract = self._resolve_da_design(exp_ctx)
-                da_params = {
                     "data_type": "bulk_ATAC",
-                    "counts_matrix_path": count_result.get("counts_matrix_path"),
-                    "sample_metadata_path": count_result.get(
-                        "sample_metadata_path"),
-                    "condition_col": contract["condition_col"] or "condition",
-                    "replicate_col": contract["replicate_col"] or "replicate",
-                    "comparisons": (
-                        contract["comparisons"]
-                        or intent.get("comparisons")
-                        or intent.get("comparison")
-                    ),
-                    "covariates": contract["covariates"],
-                    "exp_context": exp_ctx,
-                    "output_dir": str(Path(files[0]).parent / "bulk_atac_da"),
+                    "validation_level": "production",
                 }
-                # Honor an explicit replicate-floor override (e.g. n=2 ENCODE
-                # isogenic-replicate designs run with a low_power_warning). Absent
-                # an override, the script keeps its production floor.
-                min_reps = (exp_ctx.get("min_replicates_per_condition")
-                            or intent.get("min_replicates_per_condition"))
-                if min_reps is not None:
-                    da_params["min_replicates_per_condition"] = int(min_reps)
-                # DA runs in the rna stack: pydeseq2 lives in aria-rna-env, not the
-                # chromatin env. The DA script operates on TSVs (no chromatin deps).
-                da_result = self.env.run_in_stack(
-                    stack="rna",
-                    script_path="aria/scripts/chromatin_bulk_diffacc.py",
-                    params=da_params,
-                )
-                if (isinstance(da_result, dict)
-                        and da_result.get("status") == "success"
-                        and da_result.get("ran")):
-                    findings["differential_accessibility"] = da_result
-                    # TF motif enrichment over the bulk ATAC DA peak sets
-                    # (offline, self-gating on genome FASTA + motif collection).
-                    # Reuses the scATAC chromatin_motifs engine with explicit
-                    # direction-split region groups; both directions reported.
-                    motif_result = self._run_bulk_atac_motifs(
-                        experiment_id, exp_ctx, da_result, files)
-                    if motif_result is not None:
-                        findings["motifs"] = motif_result
-                    # Genomic annotation of the DA peaks (B2): nearest gene +
-                    # distance-to-TSS + feature class over an auto-resolved GTF.
-                    # Pure-python (pandas only) → runs in the rna stack alongside
-                    # the DA CSVs. Honest-skip without a GTF.
-                    ann_result = self._run_bulk_atac_annotation(
-                        experiment_id, exp_ctx, da_result, files)
-                    if ann_result is not None:
-                        findings["peak_annotation"] = ann_result
-                    # Functional ORA of genes near the DA peaks (B3): reuses the
-                    # bulk RNA ORA engine over the B2 peak->gene assignment. Honest-
-                    # skip without a GTF or a provisioned GMT.
-                    ora_result = self._run_bulk_atac_ora(
-                        experiment_id, exp_ctx, da_result, files)
-                    if ora_result is not None:
-                        findings["peak_ora"] = ora_result
-                    # C2: condition-level TOBIAS footprinting is part of the
-                    # live bulk ATAC flow now. The TOBIAS script self-gates on
-                    # assets/env and returns ran:false instead of fabricating
-                    # uncorrected footprints.
-                    footprint_result = self._run_bulk_atac_footprinting(
-                        experiment_id, exp_ctx, da_result, peaks_result, files)
-                    if footprint_result is not None:
-                        findings["footprinting"] = footprint_result
-                else:
-                    findings["differential_accessibility"] = {
-                        "status": "skipped",
-                        "reason": (
-                            da_result.get("reason")
-                            if isinstance(da_result, dict)
-                            else "bulk_atac_da_not_run"
-                        ),
-                        "analysis": "differential_accessibility",
-                        "validation_level": "beta",
-                        "details": da_result,
-                    }
-            else:
-                findings["differential_accessibility"] = {
-                    "status": "skipped",
-                    "reason": "bulk_atac_peak_count_matrix_not_available",
-                    "analysis": "differential_accessibility",
-                    "validation_level": "beta",
-                    "details": findings.get("peak_counts"),
-                }
+            self._run_bulk_atac_da_branch(
+                experiment_id, exp_ctx, intent, contract, findings,
+                count_result, peaks_result=peaks_result, files=files,
+                run_footprinting=True)
 
         return {"status": "done", "findings": findings}
+
+    def _run_bulk_atac_da_branch(self, experiment_id: str, exp_ctx: dict,
+                                 intent: dict, contract: dict, findings: dict,
+                                 count_result: Optional[dict],
+                                 peaks_result: Optional[dict], files: list,
+                                 run_footprinting: bool = True) -> None:
+        """Replicate-gated DESeq2 DA + downstream interpretation over a bulk
+        ATAC peak-count matrix (BAM-derived or pre-computed). Mutates
+        ``findings`` in place; every non-run stage records an honest reason."""
+        if not (isinstance(count_result, dict)
+                and count_result.get("status") == "success"):
+            findings["differential_accessibility"] = {
+                "status": "skipped",
+                "reason": "bulk_atac_peak_count_matrix_not_available",
+                "analysis": "differential_accessibility",
+                "data_type": "bulk_ATAC",
+                "validation_level": "production",
+                "details": findings.get("peak_counts"),
+            }
+            return
+        if not count_result.get("sample_metadata_path"):
+            findings["differential_accessibility"] = {
+                "status": "skipped",
+                "reason": ("bulk_atac_sample_metadata_missing: provide "
+                           "exp_context['sample_metadata'] or "
+                           "'sample_metadata_path' with condition/replicate "
+                           "columns"),
+                "analysis": "differential_accessibility",
+                "data_type": "bulk_ATAC",
+                "validation_level": "production",
+            }
+            return
+
+        self.publish_status(
+            experiment_id, "bulk ATAC differential accessibility...", 0.82)
+        # E7: condition/replicate/covariates come from the shared design
+        # contract; the historical literals apply only when no design confirmed
+        # a column at all.
+        out_base = Path(str(files[0])).parent
+        da_params = {
+            "data_type": "bulk_ATAC",
+            "counts_matrix_path": count_result.get("counts_matrix_path"),
+            "sample_metadata_path": count_result.get("sample_metadata_path"),
+            "condition_col": contract.get("condition_col") or "condition",
+            "replicate_col": contract.get("replicate_col") or "replicate",
+            "comparisons": (
+                contract.get("comparisons")
+                or intent.get("comparisons")
+                or intent.get("comparison")
+            ),
+            "covariates": contract.get("covariates") or [],
+            "exp_context": exp_ctx,
+            "output_dir": str(out_base / "bulk_atac_da"),
+        }
+        # Honor an explicit replicate-floor override (e.g. n=2 ENCODE
+        # isogenic-replicate designs run with a low_power_warning). Absent an
+        # override, the script keeps its production floor.
+        min_reps = (exp_ctx.get("min_replicates_per_condition")
+                    or intent.get("min_replicates_per_condition"))
+        if min_reps is not None:
+            da_params["min_replicates_per_condition"] = int(min_reps)
+        # DA runs in the rna stack: pydeseq2 lives in aria-rna-env, not the
+        # chromatin env. The DA script operates on TSVs (no chromatin deps).
+        da_result = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_bulk_diffacc.py",
+            params=da_params,
+        )
+        if not (isinstance(da_result, dict)
+                and da_result.get("status") == "success"
+                and da_result.get("ran")):
+            findings["differential_accessibility"] = {
+                "status": "skipped",
+                "reason": (
+                    da_result.get("reason")
+                    if isinstance(da_result, dict)
+                    else "bulk_atac_da_not_run"
+                ),
+                "analysis": "differential_accessibility",
+                "data_type": "bulk_ATAC",
+                "validation_level": "production",
+                "details": da_result,
+            }
+            return
+
+        da_result["validation_level"] = "production"
+        findings["differential_accessibility"] = da_result
+        # TF motif enrichment over the bulk ATAC DA peak sets (offline,
+        # self-gating on genome FASTA + motif collection).
+        motif_result = self._run_bulk_atac_motifs(
+            experiment_id, exp_ctx, da_result, files)
+        if motif_result is not None:
+            findings["motifs"] = motif_result
+        # Genomic annotation of the DA peaks (B2). Honest-skip without a GTF.
+        ann_result = self._run_bulk_atac_annotation(
+            experiment_id, exp_ctx, da_result, files)
+        if ann_result is not None:
+            findings["peak_annotation"] = ann_result
+        # Functional ORA of genes near the DA peaks (B3).
+        ora_result = self._run_bulk_atac_ora(
+            experiment_id, exp_ctx, da_result, files)
+        if ora_result is not None:
+            findings["peak_ora"] = ora_result
+        # C2: condition-level TOBIAS footprinting (beta) needs BAMs, so it only
+        # runs on the alignment-level lane; it self-gates on assets/env.
+        if run_footprinting and isinstance(peaks_result, dict):
+            footprint_result = self._run_bulk_atac_footprinting(
+                experiment_id, exp_ctx, da_result, peaks_result, files,
+                contract=contract)
+            if footprint_result is not None:
+                findings["footprinting"] = footprint_result
 
     def _footprint_common_params(self, exp_ctx: dict, output_dir: str) -> dict:
         return {
@@ -1220,6 +1488,7 @@ class ChromatinAgent(BaseAgent):
 
     def _bulk_condition_bams(self, exp_ctx: dict, files: list,
                              condition_col: str = "condition") -> dict:
+        condition_col = condition_col or "condition"
         provided = exp_ctx.get("condition_bams")
         if isinstance(provided, dict):
             return provided
@@ -1228,7 +1497,8 @@ class ChromatinAgent(BaseAgent):
             return {}
         sample_ids = exp_ctx.get("sample_ids")
         if not sample_ids or len(sample_ids) != len(files):
-            sample_ids = [Path(f).stem.replace(".bam", "") for f in files]
+            from aria.scripts.chromatin_peak_counts import _strip_known_suffixes
+            sample_ids = [_strip_known_suffixes(f) for f in files]
         out: dict[str, list[str]] = {}
         for sample_id, bam in zip(sample_ids, files):
             meta = sample_metadata.get(sample_id) or {}
@@ -1240,8 +1510,12 @@ class ChromatinAgent(BaseAgent):
         return out
 
     def _bulk_replicate_bams(self, exp_ctx: dict, files: list,
-                             condition_col: str = "condition") -> dict:
-        """Build an explicit biological-replicate design without filename guesses."""
+                             condition_col: str = "condition",
+                             replicate_col: str = "replicate") -> dict:
+        """Build an explicit biological-replicate design without filename guesses.
+
+        ``condition_col`` / ``replicate_col`` come from the shared design
+        contract (E7) so a confirmed factor named otherwise groups correctly."""
         provided = exp_ctx.get("replicate_bams")
         if isinstance(provided, dict):
             return provided
@@ -1250,7 +1524,8 @@ class ChromatinAgent(BaseAgent):
         if (not isinstance(sample_metadata, dict) or not sample_ids
                 or len(sample_ids) != len(files)):
             return {}
-        replicate_col = exp_ctx.get("replicate_col", "replicate")
+        condition_col = condition_col or "condition"
+        replicate_col = replicate_col or "replicate"
         out: dict[str, dict[str, list[str]]] = {}
         for sample_id, bam in zip(sample_ids, files):
             meta = sample_metadata.get(sample_id) or {}
@@ -1258,6 +1533,8 @@ class ChromatinAgent(BaseAgent):
                 continue
             condition = meta.get(condition_col) or meta.get("condition")
             replicate = meta.get(replicate_col)
+            if replicate is None:
+                replicate = meta.get("replicate")
             if condition is None or replicate is None:
                 continue
             out.setdefault(str(condition), {}).setdefault(
@@ -1266,14 +1543,21 @@ class ChromatinAgent(BaseAgent):
 
     def _run_bulk_atac_footprinting(self, experiment_id: str, exp_ctx: dict,
                                     da_result: dict, peaks_result: dict,
-                                    files: list) -> Optional[dict]:
-        """Inline bulk ATAC condition-level TOBIAS dispatch (C2)."""
+                                    files: list,
+                                    contract: Optional[dict] = None,
+                                    ) -> Optional[dict]:
+        """Inline bulk ATAC condition-level TOBIAS dispatch (C2, beta)."""
         comparisons = [
             c for c in (da_result.get("comparisons") or [])
             if isinstance(c, dict) and c.get("status") == "success"
         ]
         comp = comparisons[0] if comparisons else {}
-        condition_col = exp_ctx.get("condition_col", "condition")
+        if contract is None:
+            contract = self._resolve_da_design(exp_ctx)
+        condition_col = (contract.get("condition_col")
+                         or exp_ctx.get("condition_col") or "condition")
+        replicate_col = (contract.get("replicate_col")
+                         or exp_ctx.get("replicate_col") or "replicate")
         params = {
             **self._footprint_common_params(
                 exp_ctx, str(Path(files[0]).parent / "bulk_atac_footprinting")),
@@ -1282,7 +1566,8 @@ class ChromatinAgent(BaseAgent):
             "condition_bams": self._bulk_condition_bams(
                 exp_ctx, files, condition_col=condition_col),
             "replicate_bams": self._bulk_replicate_bams(
-                exp_ctx, files, condition_col=condition_col),
+                exp_ctx, files, condition_col=condition_col,
+                replicate_col=replicate_col),
             "group_a": (
                 exp_ctx.get("footprint_group_a")
                 or exp_ctx.get("tobias_group_a")
@@ -1360,7 +1645,7 @@ class ChromatinAgent(BaseAgent):
                 motif_result.setdefault("warnings", []).extend(warnings)
             motif_result.setdefault("data_type", "bulk_ATAC")
             if motif_result.get("ran"):
-                motif_result.setdefault("validation_level", "beta")
+                motif_result["validation_level"] = "production"
         return motif_result
 
     def _run_bulk_atac_annotation(self, experiment_id: str, exp_ctx: dict,
@@ -1387,7 +1672,8 @@ class ChromatinAgent(BaseAgent):
                 "data_type": "bulk_ATAC",
                 "comparisons": comparisons,
                 "genome": exp_ctx.get("genome"),
-                "gtf": exp_ctx.get("gtf") or exp_ctx.get("gtf_path"),
+                "gtf": (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
+                        or exp_ctx.get("gtf_file")),
                 "promoter_upstream": exp_ctx.get("promoter_upstream"),
                 "promoter_downstream": exp_ctx.get("promoter_downstream"),
                 "output_dir": str(Path(files[0]).parent / "bulk_atac_annotation"),
@@ -1395,6 +1681,8 @@ class ChromatinAgent(BaseAgent):
         )
         if isinstance(ann_result, dict):
             ann_result.setdefault("data_type", "bulk_ATAC")
+            if ann_result.get("status") == "success":
+                ann_result["validation_level"] = "production"
         return ann_result
 
     def _run_bulk_atac_ora(self, experiment_id: str, exp_ctx: dict,
@@ -1425,6 +1713,8 @@ class ChromatinAgent(BaseAgent):
         )
         if isinstance(ora_result, dict):
             ora_result.setdefault("data_type", "bulk_ATAC")
+            if ora_result.get("status") == "success":
+                ora_result["validation_level"] = "production"
         return ora_result
 
     # ── ChIP-seq pipeline ─────────────────────────────────────────────────

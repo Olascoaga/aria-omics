@@ -29,11 +29,14 @@ import json
 import math
 import random
 import re
+import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Iterable, Iterator
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.scripts._base import run_script
 
