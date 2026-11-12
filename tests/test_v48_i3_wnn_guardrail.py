@@ -487,8 +487,10 @@ def test_script_contract_and_registry_integrity_for_i3():
     assert SCRIPT_CONTRACTS[key].validation_level == "beta"
     assert key in AGENT_SCRIPT_CONTRACTS["integration_agent"]["required"]
     assert check_registry_integrity() == []
-    assert INTEGRATION_VALIDATION["level"] == "scaffold"
-    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["production_promoted"] is False
 
 
 def test_integration_wnn_diagnostics_missing_file_fails_closed(tmp_path: Path):

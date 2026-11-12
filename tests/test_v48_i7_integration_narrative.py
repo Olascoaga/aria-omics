@@ -576,11 +576,14 @@ def test_methods_html_safety_and_full_html_report_e2e(tmp_path: Path):
     assert (report_html_path.parent / "ro-crate-metadata.json").exists()
 
 
-def test_integration_validation_remains_scaffold_until_slice_i8():
+def test_integration_validation_promoted_to_beta_in_slice_i8():
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-    assert INTEGRATION_VALIDATION["level"] == "scaffold"
-    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["production_promoted"] is False
+    assert INTEGRATION_VALIDATION["scope"] == "paired_same_cell_rna_atac"
 
 
 def test_real_ipc_schema_mofa_dict_p2g_correlation_and_json_loadings(tmp_path: Path):

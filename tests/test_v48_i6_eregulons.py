@@ -712,8 +712,10 @@ def test_no_causal_labels_or_hardcoded_gene_panels_ast_guard():
     if _has_module("litellm"):
         from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-        assert INTEGRATION_VALIDATION["level"] == "scaffold"
-        assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+        assert INTEGRATION_VALIDATION["level"] == "beta"
+        assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+        assert INTEGRATION_VALIDATION["requires_ack"] is True
+        assert INTEGRATION_VALIDATION["production_promoted"] is False
 
     core_src = (ROOT / "aria" / "utils" / "eregulon_core.py").read_text(encoding="utf-8")
     script_src = (ROOT / "aria" / "scripts" / "integration_eregulons.py").read_text(

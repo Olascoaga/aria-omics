@@ -343,8 +343,10 @@ def test_integration_dispatch_guardrail_stays_scaffold():
     _require_orchestration_deps()
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
 
-    assert INTEGRATION_VALIDATION["level"] == "scaffold"
-    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["production_promoted"] is False
 
 
 class _RecordingEnv:

@@ -21,7 +21,7 @@ dependencies:
   - bedtools>=2.31
 
   # ── Visualization ────────────────────────────────────────────────────
-  - matplotlib>=3.7
+  - matplotlib>=3.6
   - seaborn>=0.12
 
   - pip:
@@ -29,6 +29,8 @@ dependencies:
     - mofapy2==0.7.4
 
     # Multimodal AnnData / MuData container & single-cell chromatin stack
+    - anndata==0.11.4
+    - scanpy==1.11.0
     - muon==0.1.7
     - mudata==0.3.3
     - snapatac2==2.9.0

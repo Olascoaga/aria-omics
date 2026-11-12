@@ -50,6 +50,7 @@ class AuditAgent(BaseAgent):
         exp_context: dict,
         experiment_id: str,
         modality_validation: dict | None = None,
+        integration_validation: dict | None = None,
     ) -> dict:
         """
         Run all applicable checks.
@@ -80,6 +81,7 @@ class AuditAgent(BaseAgent):
         capability_matrix = build_capability_matrix(
             exp_context,
             modality_validation=modality_validation,
+            integration_validation=integration_validation,
         )
         findings.extend(capability_matrix.get("findings", []))
 
@@ -113,7 +115,11 @@ class AuditAgent(BaseAgent):
             log.warning(f"STAR alignment check failed: {e}")
 
         dispatch = capability_matrix.get("dispatch", {})
-        requires_ack = bool(dispatch.get("requires_ack"))
+        integration_readiness = capability_matrix.get("integration_readiness") or {}
+        requires_ack = bool(
+            dispatch.get("requires_ack")
+            or integration_readiness.get("requires_ack_for_dispatch")
+        )
         has_blocking = any(f["severity"] == "blocking" for f in findings)
         has_warnings = any(f["severity"] == "warning" for f in findings)
 

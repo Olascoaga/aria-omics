@@ -191,73 +191,105 @@ class IntegrationAgent(BaseAgent):
             return {"status": "failed", "reason": "insufficient_modalities"}
 
         strategy  = self._select_strategy(
-            has_scrna, has_scatac, has_hic, n_modalities, intent
+            has_scrna, has_scatac, has_hic, n_modalities, intent,
+            exp_ctx=exp_ctx,
         )
         results   = {}
+        stage_ctx = dict(exp_ctx)
 
-        # V48 I1 hard gate: any same-cell integration strategy MUST satisfy
-        # the paired multiome contract before touching downstream algorithms.
-        if strategy in ("wnn", "wnn_then_mofa"):
-            gate = enforce_same_cell_integration_gate(exp_ctx)
-            results["multiome_gate"] = gate
-            if not gate["allowed"]:
-                blocker_msgs = "; ".join(
-                    str(b.get("message") or b.get("check"))
-                    for b in gate.get("blockers", [])
-                )
+        # V48 I1 + I8 hard gate (ADR-064 / ADR-071): ALL cross-modal integration
+        # strategies MUST satisfy confirmed same-cell RNA+ATAC pairing before
+        # touching downstream algorithms (closing any non-WNN bypass).
+        gate = enforce_same_cell_integration_gate(exp_ctx)
+        results["multiome_gate"] = gate
+        if not gate["allowed"]:
+            blocker_msgs = "; ".join(
+                str(b.get("message") or b.get("check"))
+                for b in gate.get("blockers", [])
+            )
+            self.publish_finding(
+                experiment_id,
+                {
+                    "error": (
+                        "Same-cell multi-omics integration blocked by "
+                        f"multiome contract gate: {blocker_msgs}"
+                    ),
+                    "blockers": gate.get("blockers", []),
+                },
+                Confidence.INSUFFICIENT,
+            )
+            return {
+                "status": "blocked",
+                "reason": "multiome_same_cell_gate_blocked",
+                "strategy": strategy,
+                "multiome_gate": gate,
+            }
+
+        if gate["contract"].get("object_type") == "paired_mudata":
+            self.publish_status(
+                experiment_id,
+                "Running paired .h5mu contract & joint RNA+ATAC QC...",
+                0.05,
+            )
+            paired_qc_res = self._run_paired_qc(
+                experiment_id, exp_ctx, intent, gate
+            )
+            results["paired_qc"] = paired_qc_res
+            if paired_qc_res.get("status") != "success":
                 self.publish_finding(
                     experiment_id,
                     {
                         "error": (
-                            "Same-cell multi-omics integration blocked by "
-                            f"multiome contract gate: {blocker_msgs}"
+                            "Paired .h5mu joint QC failed: "
+                            f"{paired_qc_res.get('details', paired_qc_res.get('error_type', 'unknown'))}"
                         ),
-                        "blockers": gate.get("blockers", []),
+                        "paired_qc": paired_qc_res,
                     },
                     Confidence.INSUFFICIENT,
                 )
                 return {
-                    "status": "blocked",
-                    "reason": "multiome_same_cell_gate_blocked",
+                    "status": "failed",
+                    "reason": "paired_qc_failed",
                     "strategy": strategy,
-                    "multiome_gate": gate,
+                    "findings": results,
                 }
-
-            if gate["contract"].get("object_type") == "paired_mudata":
-                self.publish_status(
+            validated_h5mu = paired_qc_res.get("output_path")
+            evidence_paths = list(gate.get("evidence_paths") or [])
+            raw_exists = bool(
+                evidence_paths and Path(str(evidence_paths[0])).exists()
+            )
+            if not validated_h5mu or (
+                raw_exists and not Path(str(validated_h5mu)).is_file()
+            ):
+                self.publish_finding(
                     experiment_id,
-                    "Running paired .h5mu contract & joint RNA+ATAC QC...",
-                    0.05,
+                    {
+                        "error": (
+                            "Paired .h5mu joint QC succeeded without a valid "
+                            f"post-QC output container: {validated_h5mu!r}"
+                        ),
+                        "paired_qc": paired_qc_res,
+                    },
+                    Confidence.INSUFFICIENT,
                 )
-                paired_qc_res = self._run_paired_qc(
-                    experiment_id, exp_ctx, intent, gate
-                )
-                results["paired_qc"] = paired_qc_res
-                if paired_qc_res.get("status") != "success":
-                    self.publish_finding(
-                        experiment_id,
-                        {
-                            "error": (
-                                "Paired .h5mu joint QC failed: "
-                                f"{paired_qc_res.get('details', paired_qc_res.get('error_type', 'unknown'))}"
-                            ),
-                            "paired_qc": paired_qc_res,
-                        },
-                        Confidence.INSUFFICIENT,
-                    )
-                    return {
-                        "status": "failed",
-                        "reason": "paired_qc_failed",
-                        "strategy": strategy,
-                        "findings": results,
-                    }
-                validated_h5mu = paired_qc_res.get("output_path")
-                if validated_h5mu:
-                    mods = {
-                        **mods,
-                        "scRNA": [validated_h5mu],
-                        "scATAC": [validated_h5mu],
-                    }
+                return {
+                    "status": "failed",
+                    "reason": "paired_qc_missing_output",
+                    "strategy": strategy,
+                    "findings": results,
+                }
+            validated_str = str(validated_h5mu)
+            mods = {
+                **mods,
+                "scRNA": [validated_str],
+                "scATAC": [validated_str],
+            }
+            stage_ctx = {
+                **exp_ctx,
+                "_validated_paired_h5mu": validated_str,
+                "h5mu_path": validated_str,
+                "paired_h5mu": validated_str,
+            }
 
         self.publish_status(
             experiment_id,
@@ -271,7 +303,7 @@ class IntegrationAgent(BaseAgent):
                 self.publish_status(experiment_id,
                                     "Running WNN (RNA + ATAC)...", 0.2)
                 wnn_result = self._run_wnn(
-                    experiment_id, exp_ctx, intent, mods
+                    experiment_id, stage_ctx, intent, mods
                 )
                 results["wnn"] = wnn_result
 
@@ -279,14 +311,14 @@ class IntegrationAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Linking peaks to genes...", 0.5)
             p2g_result = self._run_peak_to_gene(
-                experiment_id, exp_ctx, intent, mods,
+                experiment_id, stage_ctx, intent, mods,
                 context.get("rna_results", {}),
                 context.get("chromatin_results", {}),
             )
             results["peak_to_gene"] = p2g_result
 
         if has_scrna and has_scatac and self._should_run_eregulons(
-            is_paired_mudata, exp_ctx, intent
+            is_paired_mudata, stage_ctx, intent
         ):
             self.publish_status(
                 experiment_id,
@@ -295,7 +327,7 @@ class IntegrationAgent(BaseAgent):
             )
             ereg_result = self._run_eregulons(
                 experiment_id,
-                exp_ctx,
+                stage_ctx,
                 intent,
                 mods,
                 results.get("peak_to_gene", {}),
@@ -306,7 +338,7 @@ class IntegrationAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Running MOFA+ factor decomposition...", 0.7)
             mofa_result = self._run_mofa(
-                experiment_id, exp_ctx, intent, mods
+                experiment_id, stage_ctx, intent, mods
             )
             results["mofa"] = mofa_result
 
@@ -315,7 +347,7 @@ class IntegrationAgent(BaseAgent):
             self.publish_status(experiment_id,
                                 "Resolving cross-modal conflicts...", 0.9)
             conflicts = self._resolve_conflicts(
-                experiment_id, exp_ctx, intent, results
+                experiment_id, stage_ctx, intent, results
             )
             results["conflicts"] = conflicts
 
@@ -327,23 +359,34 @@ class IntegrationAgent(BaseAgent):
 
     def _select_strategy(self, has_scrna: bool, has_scatac: bool,
                           has_hic: bool, n_modalities: int,
-                          intent: dict) -> str:
+                          intent: dict,
+                          exp_ctx: dict | None = None) -> str:
         """
         Select the optimal integration strategy.
 
         Decision tree:
           same-cell RNA + ATAC (multiome) → WNN (primary) + peak-to-gene
-          3+ modalities OR factor request → MOFA+
-          RNA + ATAC (bulk or different cells) → peak-to-gene only
+          3+ modalities OR factor request / enable_mofa → MOFA+
+          enable_mofa=False → explicitly disables MOFA+
+          RNA + ATAC (non-WNN fallback) → peak-to-gene only
         """
-        question = intent.get("user_question", "").lower()
+        question = (intent or {}).get("user_question", "").lower()
+        ctx = exp_ctx or {}
 
         FACTOR_KEYWORDS = [
             "factor", "latent", "mofa", "decomposition",
             "shared variation", "modality-specific",
         ]
 
-        user_wants_mofa = any(k in question for k in FACTOR_KEYWORDS)
+        enable_mofa = ctx.get("enable_mofa")
+        if enable_mofa is False:
+            return "wnn" if (has_scrna and has_scatac) else "peak_to_gene_only"
+
+        user_wants_mofa = (
+            (enable_mofa is True)
+            or bool(ctx.get("mofa_params"))
+            or any(k in question for k in FACTOR_KEYWORDS)
+        )
 
         if has_scrna and has_scatac:
             if n_modalities >= 3 or user_wants_mofa:
@@ -370,6 +413,15 @@ class IntegrationAgent(BaseAgent):
                 "status": "error",
                 "error_type": "MissingPairedH5mu",
                 "details": "No paired .h5mu path resolved from multiome contract.",
+            }
+        if len(evidence_paths) > 1:
+            return {
+                "status": "error",
+                "error_type": "MultiplePairedMuDataUnsupported",
+                "details": (
+                    f"Found {len(evidence_paths)} paired .h5mu containers; "
+                    "merge shared-donor containers first or select a single .h5mu."
+                ),
             }
 
         h5mu_path = evidence_paths[0]
@@ -506,6 +558,11 @@ class IntegrationAgent(BaseAgent):
         if h5mu_path:
             wnn_params["h5mu_path"] = h5mu_path
         wnn_params.update(wnn_overrides)
+        validated_paired = exp_ctx.get("_validated_paired_h5mu")
+        if validated_paired:
+            wnn_params["h5mu_path"] = str(validated_paired)
+            wnn_params["rna_files"] = [str(validated_paired)]
+            wnn_params["atac_files"] = [str(validated_paired)]
 
         wnn_result = self.env.run_in_stack(
             stack="chromatin",
@@ -677,13 +734,21 @@ class IntegrationAgent(BaseAgent):
                 self._get_output_dir(ref_paths),
             ),
         }
+        genome_cfg = exp_ctx.get("genome_config") or {}
+        gtf_val = exp_ctx.get("gtf_path") or genome_cfg.get("gtf")
+        fasta_val = exp_ctx.get("genome_fasta") or genome_cfg.get("fasta")
         if h5mu_path:
             p2g_params["h5mu_path"] = str(h5mu_path)
-        if exp_ctx.get("gtf_path"):
-            p2g_params["gtf_path"] = str(exp_ctx["gtf_path"])
-        if exp_ctx.get("genome_fasta"):
-            p2g_params["genome_fasta"] = str(exp_ctx["genome_fasta"])
+        if gtf_val:
+            p2g_params["gtf_path"] = str(gtf_val)
+        if fasta_val:
+            p2g_params["genome_fasta"] = str(fasta_val)
         p2g_params.update(p2g_overrides)
+        validated_paired = exp_ctx.get("_validated_paired_h5mu")
+        if validated_paired:
+            p2g_params["h5mu_path"] = str(validated_paired)
+            p2g_params["rna_files"] = [str(validated_paired)]
+            p2g_params["atac_files"] = [str(validated_paired)]
 
         p2g_result = self.env.run_in_stack(
             stack="integration",
@@ -879,12 +944,24 @@ class IntegrationAgent(BaseAgent):
                 self._get_output_dir(ref_paths),
             ),
         }
+        genome_cfg = exp_ctx.get("genome_config") or {}
         if h5mu_path:
             ereg_params["h5mu_path"] = str(h5mu_path)
-        for opt_key in ("gtf_path", "genome_fasta", "motif_collection", "motif_file"):
+        gtf_val = exp_ctx.get("gtf_path") or genome_cfg.get("gtf")
+        fasta_val = exp_ctx.get("genome_fasta") or genome_cfg.get("fasta")
+        if gtf_val:
+            ereg_params["gtf_path"] = str(gtf_val)
+        if fasta_val:
+            ereg_params["genome_fasta"] = str(fasta_val)
+        for opt_key in ("motif_collection", "motif_file"):
             if exp_ctx.get(opt_key):
                 ereg_params[opt_key] = str(exp_ctx[opt_key])
         ereg_params.update(ereg_overrides)
+        validated_paired = exp_ctx.get("_validated_paired_h5mu")
+        if validated_paired:
+            ereg_params["h5mu_path"] = str(validated_paired)
+            ereg_params["rna_files"] = [str(validated_paired)]
+            ereg_params["atac_files"] = [str(validated_paired)]
 
         ereg_result = self.env.run_in_stack(
             stack="integration",
@@ -1040,11 +1117,23 @@ class IntegrationAgent(BaseAgent):
                 "details": "User skipped MOFA+ at checkpoint 3.",
             }
 
+        mofa_overrides = dict(exp_ctx.get("mofa_params") or {})
         mofa_mods = {
-            k: v for k, v in mods.items()
+            k: list(v) for k, v in mods.items()
             if k in ("scRNA", "bulk_RNA", "scATAC", "bulk_ATAC", "HiC")
         }
         first_files = next(iter(mofa_mods.values()), [])
+        h5mu_cand = (
+            mofa_overrides.pop("h5mu_path", None)
+            or exp_ctx.get("h5mu_path")
+            or exp_ctx.get("paired_h5mu")
+        )
+        if not h5mu_cand:
+            for cand in [f for files in mofa_mods.values() for f in (files or [])]:
+                if str(cand).lower().endswith(".h5mu"):
+                    h5mu_cand = str(cand)
+                    break
+        ref_paths = [str(h5mu_cand)] if h5mu_cand else first_files
         mofa_params: dict = {
             "modalities": mofa_mods,
             "genome": exp_ctx.get("genome", "hg38"),
@@ -1052,14 +1141,25 @@ class IntegrationAgent(BaseAgent):
             "n_factors": n_factors_decision,
             "seed": int(exp_ctx.get("seed", 0)),
             "max_cells": int(exp_ctx.get("max_cells_mofa", 5000)),
-            "output_dir": exp_ctx.get("mofa_output_dir")
-            or (self._get_output_dir(first_files) if first_files else "/tmp/aria_mofa"),
+            "output_dir": mofa_overrides.pop(
+                "output_dir",
+                exp_ctx.get("mofa_output_dir")
+                or (self._get_output_dir(ref_paths) if ref_paths else "/tmp/aria_mofa"),
+            ),
         }
-        h5mu_cand = exp_ctx.get("h5mu_path") or exp_ctx.get("paired_h5mu")
         if h5mu_cand:
             mofa_params["h5mu_path"] = str(h5mu_cand)
         if isinstance(exp_ctx.get("cell_cycle_genes"), dict):
             mofa_params["cell_cycle_genes"] = exp_ctx["cell_cycle_genes"]
+        mofa_params.update(mofa_overrides)
+        validated_paired = exp_ctx.get("_validated_paired_h5mu")
+        if validated_paired:
+            mofa_params["h5mu_path"] = str(validated_paired)
+            mofa_params["modalities"] = {
+                **dict(mofa_params.get("modalities") or {}),
+                "scRNA": [str(validated_paired)],
+                "scATAC": [str(validated_paired)],
+            }
 
         mofa_result = self.env.run_in_stack(
             stack="integration",
@@ -1455,7 +1555,10 @@ class IntegrationAgent(BaseAgent):
 
     def _get_output_dir(self, files: list) -> str:
         if files:
-            return str(Path(files[0]).parent / "aria_integration")
+            parent = Path(files[0]).parent
+            if parent.name == "aria_integration":
+                return str(parent)
+            return str(parent / "aria_integration")
         return "/tmp/aria_integration"
 
     def receive(self, message):

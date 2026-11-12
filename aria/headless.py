@@ -162,6 +162,7 @@ def _build_headless_context(
 ) -> dict:
     """Build the explicit headless context, including typed assay manifests."""
     ctx = dict(context_overrides or {})
+    ctx.setdefault("decision_actor", "headless_policy")
     ctx.update({
         "data_dir": str(data_dir),
         "user_question": question,

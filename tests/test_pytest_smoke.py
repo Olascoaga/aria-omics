@@ -397,8 +397,8 @@ def test_orchestrator_skips_scaffolded_integration_agent():
     assert "integration_agent" not in calls
     result = agent._agent_results["exp_integration_gate"]["integration_agent"]
     assert result["status"] == "skipped"
-    assert result["reason"] == "agent_not_validated"
-    assert result["validation_level"] == "scaffold"
+    assert result["reason"] == "multiome_same_cell_gate_blocked"
+    assert result["validation_level"] == "beta"
     assert any(f.get("agent") == "integration_agent" for f in findings)
 
 

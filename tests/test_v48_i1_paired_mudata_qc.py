@@ -328,8 +328,10 @@ def test_registry_integrity_and_integration_tier_still_scaffold():
     assert "aria/scripts/integration_paired_qc.py" in (
         AGENT_SCRIPT_CONTRACTS["integration_agent"]["required"]
     )
-    assert INTEGRATION_VALIDATION["level"] == "scaffold"
-    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["production_promoted"] is False
 
 
 def test_ipc_contract_for_paired_qc(tmp_path):

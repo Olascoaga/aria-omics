@@ -51,6 +51,7 @@ def test_active_scientific_and_raw_stacks_have_committed_locks():
         "aria-rnaseq-env",
         "aria-atacseq-env",
         "aria-chromatin-env",
+        "aria-integration-env",
         "aria-tobias-env",
         "aria-bench-env",
     } <= required

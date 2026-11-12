@@ -12,7 +12,10 @@ from typing import Any
 
 from aria.utils.assay_contracts import validate_assay_contract
 from aria.utils.design_power import assess_design_power
-from aria.utils.multiome_contracts import validate_multiome_contract
+from aria.utils.multiome_contracts import (
+    enforce_same_cell_integration_gate,
+    validate_multiome_contract,
+)
 from aria.utils.reference_integrity import assess_reference_integrity
 
 
@@ -47,6 +50,16 @@ _ATAC_GOVERNANCE_BLOCKERS = (
     "reproducible_preprint_freeze",        # artifacts regenerated from clean checkout
     "multi_annotator_claim_review",        # independent expert review of conclusions
     "explicit_production_promotion_adr",   # a deliberate promotion decision
+)
+
+# ADR-056 + ADR-071: paired same-cell RNA+ATAC integration is promoted from
+# scaffold to beta + requires_ack (never production without external multi-donor
+# multiome replication, CI smoke, preprint freeze, and an explicit promotion ADR).
+_INTEGRATION_GOVERNANCE_BLOCKERS = (
+    "external_multi_donor_multiome_replication",
+    "end_to_end_integration_ci_green",
+    "reproducible_preprint_freeze",
+    "explicit_production_promotion_adr",
 )
 
 _DOUBLET_HINTS = ("doublet", "scrublet", "demuxlet")
@@ -421,10 +434,120 @@ class ChromatinAuditAgent:
         return card
 
 
+def _build_integration_readiness(
+    exp_context: dict[str, Any],
+    multiome_contract: dict[str, Any],
+    integration_validation: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Evaluate pre-dispatch readiness for paired same-cell integration (ADR-071).
+
+    Intentionally kept separate from per-assay `dispatch` so unpaired/blocked
+    cross-modal contracts never block independent single-modality lanes (`scRNA`,
+    `scATAC`, `bulk_RNA`, `bulk_ATAC`).
+    """
+    meta = dict(integration_validation or {})
+    level = str(meta.get("level") or "beta")
+    enabled = bool(meta.get("dispatch_enabled", True))
+    requires_ack = bool(meta.get("requires_ack", level in {"alpha", "beta", "experimental"}))
+    scope = str(meta.get("scope") or "paired_same_cell_rna_atac")
+
+    if multiome_contract.get("status") == "not_applicable":
+        return {
+            "status": "not_applicable",
+            "tier": level,
+            "dispatch_enabled": enabled,
+            "requires_ack": requires_ack,
+            "requires_ack_for_dispatch": False,
+            "dispatch_policy": "not_applicable",
+            "scope": scope,
+            "production_promoted": False,
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-071",
+            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
+            "findings": [],
+        }
+
+    gate = enforce_same_cell_integration_gate(exp_context)
+    if not enabled:
+        return {
+            "status": "red",
+            "tier": level,
+            "dispatch_enabled": False,
+            "requires_ack": requires_ack,
+            "requires_ack_for_dispatch": False,
+            "dispatch_policy": "blocked",
+            "reason": "agent_not_validated",
+            "scope": scope,
+            "production_promoted": False,
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-071",
+            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
+            "same_cell_gate_allowed": bool(gate.get("allowed")),
+            "findings": [],
+        }
+
+    if not gate.get("allowed"):
+        return {
+            "status": "red",
+            "tier": level,
+            "dispatch_enabled": True,
+            "requires_ack": requires_ack,
+            "requires_ack_for_dispatch": False,
+            "dispatch_policy": "blocked",
+            "reason": "multiome_same_cell_gate_blocked",
+            "scope": scope,
+            "production_promoted": False,
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-071",
+            "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
+            "same_cell_gate_allowed": False,
+            "blockers": list(gate.get("blockers") or []),
+            "findings": [],
+        }
+
+    findings: list[dict[str, Any]] = []
+    if requires_ack and integration_validation is not None:
+        findings.append(_finding(
+            "warning",
+            "integration_beta_ack_required",
+            (
+                "Cross-modal IntegrationAgent is beta (`paired_same_cell_rna_atac`; "
+                "ADR-056 / ADR-071) and requires explicit CP3.5 acknowledgement "
+                "before dispatch."
+            ),
+            (
+                "Proceed only if you accept paired-multiome beta limitations "
+                "(associative peak-to-gene / candidate eRegulons; WNN joint "
+                "topology audited against per-modality structure, never causal)."
+            ),
+            modality="multiome",
+        ))
+
+    return {
+        "status": "yellow" if requires_ack else "green",
+        "tier": level,
+        "dispatch_enabled": True,
+        "requires_ack": requires_ack,
+        "requires_ack_for_dispatch": bool(
+            requires_ack and integration_validation is not None
+        ),
+        "dispatch_policy": "requires_ack" if requires_ack else "auto",
+        "reason": str(meta.get("reason") or ""),
+        "scope": scope,
+        "production_promoted": False,
+        "promotion_policy_adr": "ADR-056",
+        "promotion_adr": "ADR-071",
+        "governance_blockers": list(_INTEGRATION_GOVERNANCE_BLOCKERS),
+        "same_cell_gate_allowed": True,
+        "findings": findings,
+    }
+
+
 def build_capability_matrix(
     exp_context: dict[str, Any],
     *,
     modality_validation: dict[str, dict[str, Any]] | None = None,
+    integration_validation: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     modalities = exp_context.get("modalities") or {}
     validation = modality_validation or {}
@@ -493,6 +616,11 @@ def build_capability_matrix(
     multiome_contract = validate_multiome_contract(exp_context)
     if multiome_contract.get("status") != "not_applicable":
         contracts["multiome"] = multiome_contract
+    integration_readiness = _build_integration_readiness(
+        exp_context,
+        multiome_contract,
+        integration_validation,
+    )
 
     preflight = {}
     design_power = assess_design_power(exp_context)
@@ -516,6 +644,7 @@ def build_capability_matrix(
         findings.extend(card.get("findings", []))
     for contract in contracts.values():
         findings.extend(contract.get("findings", []))
+    findings.extend(integration_readiness.get("findings", []))
     for check in preflight.values():
         findings.extend(check.get("findings", []))
 
@@ -525,11 +654,15 @@ def build_capability_matrix(
     return {
         "status": (
             "red" if dispatch["blocked"]
-            else "yellow" if dispatch["requires_ack"]
+            else "yellow" if (
+                dispatch["requires_ack"]
+                or integration_readiness.get("requires_ack_for_dispatch")
+            )
             else "green"
         ),
         "cards": cards,
         "contracts": contracts,
+        "integration_readiness": integration_readiness,
         "preflight": preflight,
         "dispatch": dispatch,
         "findings": findings,

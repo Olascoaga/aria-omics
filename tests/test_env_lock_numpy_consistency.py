@@ -34,8 +34,8 @@ _PIP_NUMPY_RE = re.compile(r"(?mi)^numpy==(\d+)\.(\d+)\.(\d+)\b")
 # A conda YAML numpy line, e.g. "  - numpy>=2.0,<3.0" (trailing comment ignored).
 _YAML_NUMPY_RE = re.compile(r"(?m)^\s*-\s*numpy\s*([<>=!,\d.\s]*)")
 
-# Expected numpy MAJOR per env (the T16 verified intent).
-_EXPECTED_MAJOR = {"rna": 2, "chromatin": 1, "ingestion": 1}
+# Expected numpy MAJOR per env (the T16 verified intent + V48 Slice I8 integration).
+_EXPECTED_MAJOR = {"rna": 2, "chromatin": 1, "ingestion": 1, "integration": 1}
 
 # Every YAML that declares the env's numpy constraint (env + any CI/variant YAMLs
 # that must stay in sync with it).
@@ -43,6 +43,7 @@ _ENV_YAMLS = {
     "rna": ["aria-rna-env.yml", "aria-rna-ci.yml"],
     "chromatin": ["aria-chromatin-env.yml"],
     "ingestion": ["aria-ingestion-env.yml"],
+    "integration": ["aria-integration-env.yml"],
 }
 
 
@@ -88,7 +89,7 @@ def test_rna_stack_is_numpy_2_and_chromatin_ingestion_are_numpy_1():
     assert rna is not None and rna[0] == 2
     # MACS2 (chromatin) and the kb ingestion stack require numpy 1.x — this is an
     # intentional pin, not a drift to chase.
-    for env in ("chromatin", "ingestion"):
+    for env in ("chromatin", "ingestion", "integration"):
         v = _conda_numpy(env) or _pip_numpy(env)
         assert v is not None and v[0] == 1, f"aria-{env}-env should pin numpy 1.x"
 

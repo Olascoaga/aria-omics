@@ -718,6 +718,30 @@ class DataAuditAgent(BaseAgent):
         )
         if context.get("provenance"):
             exp_context["provenance"] = context["provenance"]
+        for _passthrough_key in (
+            "decision_actor",
+            "integration_ack_confirmed",
+            "multiome_contract",
+            "enable_mofa",
+            "enable_eregulons",
+            "seed",
+            "gtf_path",
+            "genome_fasta",
+            "motif_collection",
+            "motif_file",
+            "sample_id",
+            "reference_h5ad",
+            "reference_label_col",
+            "target_label_col",
+            "reference_sample_col",
+            "paired_qc_params",
+            "wnn_params",
+            "peak2gene_params",
+            "eregulon_params",
+            "mofa_params",
+        ):
+            if _passthrough_key in context and context[_passthrough_key] is not None:
+                exp_context[_passthrough_key] = context[_passthrough_key]
 
         # Propagate GEO metadata into exp_context so downstream agents can use it
         if geo_metadata:

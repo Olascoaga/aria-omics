@@ -37,6 +37,7 @@ from aria.llm.prompt_boundary import (
 )
 from aria.memory.memory import ARIAMemory
 from aria.runtime.experiment_session import ExperimentSession
+from aria.utils.multiome_contracts import enforce_same_cell_integration_gate
 from aria.utils.privacy import use_egress_policy
 from aria.utils.provenance import collect_provenance
 
@@ -199,11 +200,20 @@ MODALITY_VALIDATION_LEVELS = {
 }
 
 INTEGRATION_VALIDATION = {
-    "level": "scaffold",
-    "dispatch_enabled": False,
+    "level": "beta",
+    "dispatch_enabled": True,
+    "requires_ack": True,
+    "scope": "paired_same_cell_rna_atac",
+    "production_promoted": False,
+    "promotion_policy_adr": "ADR-056",
+    "promotion_adr": "ADR-071",
     "reason": (
-        "IntegrationAgent is scaffolded until WNN/MOFA+/peak-to-gene "
-        "validation closes."
+        "Paired same-cell RNA+ATAC multiome integration (V48 Tier 1 WNN + "
+        "5-axis anti-degradation guardrail, Tier 2a MOFA+, Tier 2b cis "
+        "peak-to-gene + candidate eRegulons, and non-circular cross-modal "
+        "evidence graph; ADR-064..ADR-071) is open as a beta, "
+        "acknowledgement-gated lane. Unpaired, diagonal, and bulk "
+        "cross-modal integration remain blocked fail-closed."
     ),
 }
 
@@ -700,6 +710,11 @@ class OrchestratorAgent(BaseAgent):
         from aria.agents.audit_agent import AuditAgent
 
         session = self._get_session(experiment_id)
+        session.cp35_acknowledged = False
+        session.cp35_decision = None
+        session.cp35_decision_actor = None
+        if "cp35_acknowledged" in exp_context:
+            exp_context = {**exp_context, "cp35_acknowledged": False}
         audit = self._register_session_agent(
             experiment_id,
             AuditAgent(memory=self.memory, llm=session.llm_provider),
@@ -709,6 +724,7 @@ class OrchestratorAgent(BaseAgent):
                 exp_context,
                 experiment_id,
                 modality_validation=MODALITY_VALIDATION,
+                integration_validation=INTEGRATION_VALIDATION,
             )
         exp_context = self._apply_capability_dispatch_policy(
             exp_context,
@@ -740,6 +756,15 @@ class OrchestratorAgent(BaseAgent):
                         "acknowledgement before dispatch."
                     )
                     for finding in card.get("findings", []):
+                        lines.append(f"      -> {finding.get('message', '')}")
+                int_ready = matrix.get("integration_readiness") or {}
+                if int_ready.get("requires_ack_for_dispatch"):
+                    lines.append(
+                        f"  [{len(lines) + 1}] integration_agent is "
+                        f"{int_ready.get('tier', 'beta')} ({int_ready.get('scope', 'paired_same_cell_rna_atac')}) "
+                        "and requires explicit acknowledgement before dispatch."
+                    )
+                    for finding in int_ready.get("findings", []):
                         lines.append(f"      -> {finding.get('message', '')}")
             issue_text = "\n".join(lines)
 
@@ -820,12 +845,47 @@ class OrchestratorAgent(BaseAgent):
         session.pending_dispatch = None
         self._pending_dispatch.pop(experiment_id, None)
 
-        if "cancel" in decision.lower() or pending is None:
+        decision_text = str(decision or "").strip()
+        decision_norm = decision_text.lower()
+        is_affirmative = (
+            "cancel" not in decision_norm
+            and (
+                decision_norm.startswith("proceed")
+                or decision_norm.startswith("confirm")
+            )
+        )
+        if pending is None or not is_affirmative:
             return {"status": "cancelled"}
 
         plan, exp_context = pending
         if not (exp_context.get("modalities") or {}):
             return {"status": "cancelled", "reason": "no_dispatchable_modalities"}
+
+        actor = str(exp_context.get("decision_actor") or "checkpoint_3_5")
+        session.cp35_acknowledged = True
+        session.cp35_decision = decision_text
+        session.cp35_decision_actor = actor
+        if hasattr(self, "memory") and hasattr(self.memory, "store_decision"):
+            try:
+                self.memory.store_decision(
+                    decision_id=f"{experiment_id}_cp3_5_audit_ack",
+                    wing_id=experiment_id,
+                    checkpoint=3.5,
+                    question=(
+                        msg.payload.get("question", "Checkpoint 3.5 audit acknowledgement")
+                        if msg is not None and hasattr(msg, "payload")
+                        else "Checkpoint 3.5 audit acknowledgement"
+                    ),
+                    decision=decision_text,
+                    rationale=(
+                        f"CP3.5 explicit acknowledgement recorded (actor={actor}) "
+                        "for beta/warning-gated dispatch."
+                    ),
+                    made_by=actor,
+                )
+            except Exception as exc:
+                log.debug("Could not persist CP3.5 decision in ARIAMemory: %s", exc)
+
         self.publish_status(
             experiment_id, "Proceeding with analysis despite audit warnings.", 0.10
         )
@@ -992,7 +1052,10 @@ class OrchestratorAgent(BaseAgent):
             log.info(f"{agent_name}: {result.get('status', '?')}")
 
         n_mods = len([m for m in modalities if m in MODALITY_TO_AGENT])
-        integration_requested = n_mods >= 2 or plan.get("integration_needed")
+        paired_multiome = self._has_paired_same_cell_multiome(exp_context)
+        integration_requested = bool(
+            n_mods >= 2 or plan.get("integration_needed") or paired_multiome
+        )
         if integration_requested and not self._integration_dispatch_enabled():
             meta = INTEGRATION_VALIDATION
             agent_results["integration_agent"] = {
@@ -1007,7 +1070,7 @@ class OrchestratorAgent(BaseAgent):
                 experiment_id,
                 {
                     "summary": (
-                        "IntegrationAgent is scaffolded and was not dispatched."
+                        "IntegrationAgent is disabled for dispatch and was skipped."
                     ),
                     "agent": "integration_agent",
                     "validation_level": meta.get("level", "unknown"),
@@ -1018,19 +1081,86 @@ class OrchestratorAgent(BaseAgent):
                 Confidence.INSUFFICIENT,
             )
         elif integration_requested:
-            self.publish_status(experiment_id, "Running IntegrationAgent...", 0.72)
-            result = self._run_agent(
-                agent_name="integration_agent",
-                experiment_id=experiment_id,
-                context={
-                    "exp_context":       exp_context,
-                    "biological_intent": intent,
-                    "rna_results":       agent_results.get("scrna_agent", agent_results.get("bulk_rna_agent", agent_results.get("rna_agent", {}))),
-                    "chromatin_results": agent_results.get("chromatin_agent", {}),
-                    "hic_results":       agent_results.get("genome_arch_agent", {}),
-                },
+            meta = INTEGRATION_VALIDATION
+            multiome_gate = enforce_same_cell_integration_gate(exp_context)
+            session_ack = bool(
+                self._get_session(experiment_id).cp35_acknowledged is True
             )
-            agent_results["integration_agent"] = result
+            ack_satisfied = (
+                (meta.get("requires_ack") is not True)
+                or session_ack
+                or (exp_context.get("cp35_acknowledged") is True)
+                or (exp_context.get("integration_ack_confirmed") is True)
+            )
+            if not multiome_gate.get("allowed"):
+                blocker_msgs = "; ".join(
+                    str(b.get("message") or b.get("check"))
+                    for b in multiome_gate.get("blockers", [])
+                )
+                agent_results["integration_agent"] = {
+                    "status": "skipped",
+                    "reason": "multiome_same_cell_gate_blocked",
+                    "validation_level": meta.get("level", "beta"),
+                    "scope": meta.get("scope", "paired_same_cell_rna_atac"),
+                    "multiome_gate": multiome_gate,
+                    "details": (
+                        "Cross-modal IntegrationAgent requires confirmed "
+                        f"same-cell RNA+ATAC pairing (ADR-071): {blocker_msgs}"
+                    ),
+                }
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            "IntegrationAgent skipped: cross-modal integration "
+                            "requires confirmed same-cell RNA+ATAC pairing "
+                            "(single-modality lanes remain unaffected)."
+                        ),
+                        "agent": "integration_agent",
+                        "validation_level": meta.get("level", "beta"),
+                        "reason": "multiome_same_cell_gate_blocked",
+                        "blockers": multiome_gate.get("blockers", []),
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+            elif not ack_satisfied:
+                agent_results["integration_agent"] = {
+                    "status": "skipped",
+                    "reason": "integration_ack_required",
+                    "validation_level": meta.get("level", "beta"),
+                    "scope": meta.get("scope", "paired_same_cell_rna_atac"),
+                    "details": (
+                        "IntegrationAgent is beta (ADR-056 / ADR-071) and "
+                        "requires explicit CP3.5 acknowledgement before dispatch."
+                    ),
+                }
+                self.publish_finding(
+                    experiment_id,
+                    {
+                        "summary": (
+                            "IntegrationAgent skipped: explicit CP3.5 beta "
+                            "acknowledgement was not recorded."
+                        ),
+                        "agent": "integration_agent",
+                        "validation_level": meta.get("level", "beta"),
+                        "reason": "integration_ack_required",
+                    },
+                    Confidence.INSUFFICIENT,
+                )
+            else:
+                self.publish_status(experiment_id, "Running IntegrationAgent...", 0.72)
+                result = self._run_agent(
+                    agent_name="integration_agent",
+                    experiment_id=experiment_id,
+                    context={
+                        "exp_context":       exp_context,
+                        "biological_intent": intent,
+                        "rna_results":       agent_results.get("scrna_agent", agent_results.get("bulk_rna_agent", agent_results.get("rna_agent", {}))),
+                        "chromatin_results": agent_results.get("chromatin_agent", {}),
+                        "hic_results":       agent_results.get("genome_arch_agent", {}),
+                    },
+                )
+                agent_results["integration_agent"] = result
 
         self.publish_status(experiment_id, "Generating report...", 0.88)
         findings = self._get_session(experiment_id).message_bus.get_findings(
@@ -1113,6 +1243,17 @@ class OrchestratorAgent(BaseAgent):
     def _integration_dispatch_enabled() -> bool:
         return bool(INTEGRATION_VALIDATION.get("dispatch_enabled", True))
 
+    @staticmethod
+    def _has_paired_same_cell_multiome(exp_context: dict) -> bool:
+        """Return True iff `exp_context` satisfies confirmed same-cell RNA+ATAC pairing."""
+        if not isinstance(exp_context, dict):
+            return False
+        gate = enforce_same_cell_integration_gate(exp_context)
+        return bool(
+            gate.get("allowed")
+            and (gate.get("contract") or {}).get("same_cell") is True
+        )
+
     def _resolve_execution_order(self, steps: list) -> list:
         remaining, ordered, completed = list(steps), [], set()
         for _ in range(len(steps) + 1):
@@ -1192,6 +1333,7 @@ class OrchestratorAgent(BaseAgent):
         )
 
     def _design_analysis_plan(self, experiment_id: str, exp_context: dict) -> dict:
+        paired_multiome = self._has_paired_same_cell_multiome(exp_context)
         prompt = build_untrusted_prompt(
             task="Design the analysis pipeline using the submitted context.",
             fields=[
@@ -1208,9 +1350,11 @@ class OrchestratorAgent(BaseAgent):
                                 "metadata", "data_audit"),
                 PromptDataField("genome", exp_context.get("genome"),
                                 "metadata", "data_audit"),
-                PromptDataField("is_multimodal", exp_context.get(
-                    "is_multimodal"
+                PromptDataField("is_multimodal", bool(
+                    exp_context.get("is_multimodal") or paired_multiome
                 ), "metadata", "data_audit"),
+                PromptDataField("paired_same_cell_multiome", paired_multiome,
+                                "metadata", "data_audit"),
             ],
             response_contract='''Return JSON with this schema:
 {
@@ -1236,7 +1380,12 @@ class OrchestratorAgent(BaseAgent):
         except Exception as e:
             log.warning(f"LLM plan generation failed: {e}. Using fallback plan.")
             plan = self._fallback_plan(exp_context)
-        
+
+        if paired_multiome:
+            plan["integration_needed"] = True
+            if not plan.get("integration_type") or plan.get("integration_type") == "none":
+                plan["integration_type"] = "WNN"
+
         self._experiment_plans[experiment_id]["plan"] = plan
         return plan
 
@@ -1257,6 +1406,7 @@ class OrchestratorAgent(BaseAgent):
     def _fallback_plan(self, exp_context: dict) -> dict:
         """Generate a minimal plan if LLM fails."""
         modalities = exp_context.get("modalities", {})
+        paired_multiome = self._has_paired_same_cell_multiome(exp_context)
         steps = []
         order = 1
         for mod in modalities:
@@ -1269,10 +1419,11 @@ class OrchestratorAgent(BaseAgent):
                     "can_parallel": False
                 })
                 order += 1
+        integration_needed = (len(steps) > 1) or paired_multiome
         return {
             "steps": steps,
-            "integration_needed": len(steps) > 1,
-            "integration_type": "WNN" if len(steps) > 1 else "none",
+            "integration_needed": integration_needed,
+            "integration_type": "WNN" if integration_needed else "none",
             "estimated_complexity": "low",
             "rationale": "Fallback plan (LLM unavailable)",
             "contrasts": []

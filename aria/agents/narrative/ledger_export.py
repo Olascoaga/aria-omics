@@ -327,11 +327,10 @@ def _file_entry(path: Path, arcname: str, role: str) -> dict[str, Any]:
 
 def _repo_snapshot_files(repo_root: Path) -> list[tuple[Path, str, str]]:
     files: list[tuple[Path, str, str]] = []
-    for pattern in ("*.lock", "*.pip.lock"):
-        for path in sorted((repo_root / "envs").glob(pattern)):
-            if path.is_file():
-                rel = path.relative_to(repo_root).as_posix()
-                files.append((path, f"repository/{rel}", "lockfile"))
+    for path in sorted((repo_root / "envs").glob("*.lock")):
+        if path.is_file():
+            rel = path.relative_to(repo_root).as_posix()
+            files.append((path, f"repository/{rel}", "lockfile"))
     for rel in (
         "requirements.lock",
         "docs/architecture/code_graph.md",

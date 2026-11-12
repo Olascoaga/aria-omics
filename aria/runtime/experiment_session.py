@@ -26,6 +26,9 @@ class ExperimentSession:
     agent_results: dict[str, Any] = field(default_factory=dict)
     design_agent: Any = None
     pending_dispatch: tuple[dict, dict] | None = None
+    cp35_acknowledged: bool = False
+    cp35_decision: str | None = None
+    cp35_decision_actor: str | None = None
     log_handler: Any = None
     message_bus: MessageBus = field(default_factory=MessageBus)
     egress_policy: EgressPolicy = field(default_factory=EgressPolicy.from_environment)

@@ -124,12 +124,38 @@ def check_registry_integrity(repo_root: Path | None = None) -> list[IntegrityIss
                 severity="warning",
             ))
 
-    if (INTEGRATION_VALIDATION.get("level") == "scaffold" and
-            INTEGRATION_VALIDATION.get("dispatch_enabled", True)):
+    int_level = INTEGRATION_VALIDATION.get("level")
+    int_enabled = INTEGRATION_VALIDATION.get("dispatch_enabled", True)
+    if not int_level:
+        issues.append(IntegrityIssue(
+            "integration_missing_validation_level",
+            "integration_agent: missing validation level",
+        ))
+    elif int_level == "scaffold" and int_enabled:
         issues.append(IntegrityIssue(
             "scaffold_dispatch_enabled",
             "integration_agent: scaffold agent is dispatch-enabled",
-            severity="warning",
+        ))
+    elif int_level == "beta":
+        if INTEGRATION_VALIDATION.get("requires_ack") is not True:
+            issues.append(IntegrityIssue(
+                "integration_beta_missing_ack_gate",
+                "integration_agent: beta tier must declare requires_ack=True (ADR-056/ADR-071)",
+            ))
+        if INTEGRATION_VALIDATION.get("production_promoted") is not False:
+            issues.append(IntegrityIssue(
+                "integration_beta_production_flag_invalid",
+                "integration_agent: beta tier must declare production_promoted=False (ADR-056)",
+            ))
+        if INTEGRATION_VALIDATION.get("scope") != "paired_same_cell_rna_atac":
+            issues.append(IntegrityIssue(
+                "integration_beta_scope_invalid",
+                "integration_agent: beta tier scope must be 'paired_same_cell_rna_atac' (ADR-071)",
+            ))
+    elif int_level == "production":
+        issues.append(IntegrityIssue(
+            "integration_premature_production_tier",
+            "integration_agent: production promotion is blocked by ADR-056 governance criteria",
         ))
 
     for agent_name, contract in AGENT_SCRIPT_CONTRACTS.items():

@@ -332,6 +332,13 @@ class SetupAgent(BaseAgent):
                 envs.extend([by_stack["rnaseq"], by_stack["atacseq"]])
         if {"HiC", "Micro-C"} & modality_set:
             envs.append(by_stack["hic"])
+        has_paired_h5mu = any(
+            str(f).lower().endswith(".h5mu")
+            for files in modalities.values()
+            for f in (files or [])
+        )
+        if has_paired_h5mu or ({"scRNA", "scATAC"} <= modality_set):
+            envs.append(by_stack["integration"])
         return list(dict.fromkeys(envs))
 
     def _ensure_env(self, env_name: str, conda_cmd: str,

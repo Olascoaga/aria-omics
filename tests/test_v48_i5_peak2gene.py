@@ -529,9 +529,11 @@ def test_agent_associative_tunnels_orchestrator_gate_and_no_fabrication_guard(tm
     from aria.agents.orchestrator_agent import INTEGRATION_VALIDATION
     from aria.utils.script_contracts import contract_for_script
 
-    # Orchestrator gate stays scaffold until Slice I8!
-    assert INTEGRATION_VALIDATION["level"] == "scaffold"
-    assert INTEGRATION_VALIDATION["dispatch_enabled"] is False
+    # Slice I8 (ADR-071): promoted to paired same-cell beta + requires_ack!
+    assert INTEGRATION_VALIDATION["level"] == "beta"
+    assert INTEGRATION_VALIDATION["dispatch_enabled"] is True
+    assert INTEGRATION_VALIDATION["requires_ack"] is True
+    assert INTEGRATION_VALIDATION["production_promoted"] is False
 
     # ScriptContract is promoted to beta and validates canonical success payload
     contract = contract_for_script("aria/scripts/integration_peak2gene.py")

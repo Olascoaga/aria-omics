@@ -198,22 +198,30 @@ def validate_multiome_contract(exp_context: dict[str, Any]) -> dict[str, Any]:
 
 def _paired_h5mu_records(exp_context: dict[str, Any]) -> list[dict[str, Any]]:
     records = []
+    inspected_h5mu_paths: set[str] = set()
     for rec in exp_context.get("assay_detections") or []:
         evidence = rec.get("evidence") or {}
         fmt = str(evidence.get("format") or "").lower()
-        if fmt in _H5MU_FORMATS and evidence.get("paired_rna"):
-            records.append(rec)
+        if fmt in _H5MU_FORMATS:
+            if rec.get("path"):
+                inspected_h5mu_paths.add(str(rec.get("path")))
+            if evidence.get("paired_rna"):
+                records.append(rec)
     if records:
         return records
 
-    # Filename fallback only marks a candidate. It does not inspect the file; a
-    # later script still reads the `.h5mu` and can return structured blockers.
+    # Filename fallback only marks a candidate when AssayDetector has not
+    # already inspected the `.h5mu` path and determined `paired_rna` is false.
     seen_paths: set[str] = set()
     mods = exp_context.get("modalities") or {}
     for mod_key in ("scATAC", "scRNA"):
         for path in mods.get(mod_key, []) or []:
             p_str = str(path)
-            if p_str.lower().endswith(".h5mu") and p_str not in seen_paths:
+            if (
+                p_str.lower().endswith(".h5mu")
+                and p_str not in seen_paths
+                and p_str not in inspected_h5mu_paths
+            ):
                 seen_paths.add(p_str)
                 records.append({
                     "path": p_str,
@@ -468,6 +476,25 @@ def enforce_same_cell_integration_gate(
                     "Include at least one readable `.h5mu` path in "
                     "`evidence_paths` or `modalities` before running paired "
                     "integration."
+                ),
+            ))
+        elif (
+            contract.get("object_type") == "paired_mudata"
+            and len(evidence_paths) > 1
+            and not has_explicit_map
+        ):
+            blockers.append(_finding(
+                "blocking",
+                "multiome_multiple_mudata_unsupported",
+                (
+                    f"Multiple paired `.h5mu` containers ({len(evidence_paths)}) "
+                    "were detected without an explicit merged cell-barcode "
+                    "namespace."
+                ),
+                (
+                    "Merge shared-donor `.h5mu` containers with collision-safe "
+                    "barcodes first, or select a single paired `.h5mu` container "
+                    "before running same-cell integration."
                 ),
             ))
 

@@ -1,0 +1,308 @@
+{
+  "adr": "ADR-071",
+  "aria_version": "4.7.0",
+  "dataset": {
+    "accession": "GSE278576",
+    "assay": "10x_chromium_single_cell_multiome_atac_plus_gene_expression",
+    "gtf_annotation": "gencode.v49.primary_assembly.annotation.gtf",
+    "input_container": "hc11_paired.h5mu",
+    "n_cells_post_qc": 2517,
+    "n_cells_raw": 3143,
+    "n_cells_wnn_downstream": 2517,
+    "reference_fasta": "GRCh38.primary_assembly.genome.fa",
+    "reference_labels": "GSE278576_hippocampus_RNA.h5ad",
+    "sample_id": "hc11",
+    "tissue": "human_hippocampus"
+  },
+  "fail_closed_gate_probes": {
+    "live_cp35_cancel_probe": {
+      "checkpoints_visited": [
+        {
+          "checkpoint": 1,
+          "choice": "Confirm and continue"
+        },
+        {
+          "checkpoint": 2,
+          "choice": "Run recommended + optional supported analyses"
+        },
+        {
+          "checkpoint": 3.5,
+          "choice": "Cancel analysis"
+        }
+      ],
+      "elapsed_s": 0.21,
+      "integration_outputs_created": false,
+      "status": "cancelled"
+    },
+    "unit_dispatch_probes": {
+      "paired_h5mu_without_cp35_ack": {
+        "dispatched_agents": [
+          "setup_agent",
+          "raw_ingestion_agent",
+          "chromatin_agent",
+          "narrative_agent"
+        ],
+        "integration_dispatched": false,
+        "integration_reason": "integration_ack_required",
+        "integration_status": "skipped",
+        "validation_level": "beta"
+      },
+      "scrna_plus_bulk_rna": {
+        "dispatched_agents": [
+          "setup_agent",
+          "raw_ingestion_agent",
+          "scrna_agent",
+          "bulk_rna_agent",
+          "narrative_agent"
+        ],
+        "integration_dispatched": false,
+        "integration_reason": "multiome_same_cell_gate_blocked",
+        "integration_status": "skipped",
+        "validation_level": "beta"
+      },
+      "split_scrna_scatac_unconfirmed": {
+        "dispatched_agents": [
+          "setup_agent",
+          "raw_ingestion_agent",
+          "scrna_agent",
+          "chromatin_agent",
+          "narrative_agent"
+        ],
+        "integration_dispatched": false,
+        "integration_reason": "multiome_same_cell_gate_blocked",
+        "integration_status": "skipped",
+        "validation_level": "beta"
+      }
+    }
+  },
+  "live_orchestrated_e2e_run": {
+    "checkpoints_resolved": [
+      {
+        "checkpoint": 1,
+        "choice": "Confirm and continue"
+      },
+      {
+        "checkpoint": 2,
+        "choice": "Run recommended + optional supported analyses"
+      },
+      {
+        "checkpoint": 3.5,
+        "choice": "Proceed anyway"
+      },
+      {
+        "checkpoint": 3,
+        "choice": "Use recommended k=20"
+      },
+      {
+        "checkpoint": 3,
+        "choice": "Use recommended n_factors=10"
+      },
+      {
+        "checkpoint": 5,
+        "choice": "Accept report"
+      }
+    ],
+    "cross_modal_evidence_graph": {
+      "absent_not_tested": [
+        "modality.rna_differential_expression"
+      ],
+      "circular_convergence_prevented": true,
+      "executed_integration_stages": [
+        "paired_qc",
+        "wnn",
+        "mofa",
+        "peak_to_gene",
+        "eregulons"
+      ],
+      "mofa_summary": {
+        "n_excluded_confounder_factors": 1,
+        "n_shared_factors": 2
+      },
+      "non_causal_contract": true,
+      "ran": true,
+      "schema_version": "1.0.0",
+      "summary_counts": {
+        "associative_cis_candidate": 3,
+        "caveated_ambiguous": 6,
+        "convergent_cross_contrast": 0,
+        "convergent_paired_multiome": 18,
+        "discordant_signal": 5,
+        "n_axes_total": 32,
+        "n_convergent_total": 18,
+        "n_edges": 271,
+        "n_nodes": 164
+      },
+      "wnn_guardrail": {
+        "lens_not_replacement": true,
+        "n_discordant_clusters": 0,
+        "status": "pass"
+      }
+    },
+    "elapsed_s": 871.51,
+    "llm_mode": "offline_deterministic_zero_egress",
+    "llm_plan_integration_needed_override_exercised": true,
+    "memory_snapshot_decisions": [
+      {
+        "checkpoint": "1",
+        "decision": "Confirm and continue",
+        "made_by": "user"
+      },
+      {
+        "checkpoint": "2.pre",
+        "decision": "1 recommended, 4 optional, 1 unsupported/not recommended, 1 warning(s).",
+        "made_by": "design_intelligence"
+      },
+      {
+        "checkpoint": "2",
+        "decision": "Run recommended + optional supported analyses",
+        "made_by": "user"
+      },
+      {
+        "checkpoint": "3.5",
+        "decision": "Proceed anyway",
+        "made_by": "headless_policy"
+      },
+      {
+        "checkpoint": "3",
+        "decision": "20",
+        "made_by": "advisor"
+      },
+      {
+        "checkpoint": "3",
+        "decision": "10",
+        "made_by": "advisor"
+      }
+    ],
+    "memory_tunnels_stored": 30,
+    "narrative_governance": {
+      "chromatin_block_ids": [
+        "chromatin.qc.scATAC",
+        "chromatin.clustering",
+        "chromatin.differential_accessibility.per_cluster",
+        "chromatin.differential_accessibility.pseudobulk_skipped",
+        "chromatin.motifs",
+        "chromatin.regulatory_layers"
+      ],
+      "claim_ledger_violations": 0,
+      "html_size_bytes": 1819304,
+      "multiome_block_ids": [
+        "multiome.paired_qc",
+        "multiome.wnn",
+        "multiome.mofa",
+        "multiome.peak_to_gene",
+        "multiome.eregulons",
+        "multiome.triangulation"
+      ],
+      "n_chromatin_blocks": 6,
+      "n_multiome_blocks": 6,
+      "n_published_claims": 12,
+      "n_total_narrative_blocks": 13,
+      "n_withheld_claims": 0,
+      "reproducible_capsule_files_checked": 43,
+      "reproducible_capsule_status": "warning",
+      "rocrate_present": true
+    },
+    "post_qc_container": "paired_qc_hc11.h5mu",
+    "staged_figures": {
+      "png": [
+        "marker_heatmap.png",
+        "mofa_variance_explained.png",
+        "motif_dotplot.png",
+        "qc_depth_violin.png",
+        "regulatory_triangulation_summary.png",
+        "umap_leiden.png",
+        "umap_log10_n_fragments.png",
+        "wnn_joint_vs_modality_umap.png",
+        "wnn_modality_weights_by_cluster.png"
+      ],
+      "svg": [
+        "marker_heatmap.svg",
+        "mofa_variance_explained.svg",
+        "motif_dotplot.svg",
+        "qc_depth_violin.svg",
+        "regulatory_triangulation_summary.svg",
+        "wnn_joint_vs_modality_umap.svg",
+        "wnn_modality_weights_by_cluster.svg"
+      ]
+    },
+    "staged_tables": [
+      "eregulon_triplets.csv",
+      "eregulons.csv",
+      "mofa_factor_loadings.csv",
+      "peak_gene_links.csv"
+    ],
+    "status": "completed",
+    "wnn_container": "wnn_integrated.h5mu"
+  },
+  "registry_and_environment_gates": {
+    "aria_chromatin_env_audit": {
+      "conda_exact": true,
+      "pip_exact": true,
+      "status": "pass"
+    },
+    "aria_integration_env_audit": {
+      "binaries": {
+        "bedtools": true,
+        "python": true
+      },
+      "conda_exact": true,
+      "conda_expected": 49,
+      "pip_exact": true,
+      "pip_expected": 215,
+      "status": "pass"
+    },
+    "integration_validation": {
+      "dispatch_enabled": true,
+      "level": "beta",
+      "production_promoted": false,
+      "promotion_adr": "ADR-071",
+      "promotion_policy_adr": "ADR-056",
+      "reason": "Paired same-cell RNA+ATAC multiome integration (V48 Tier 1 WNN + 5-axis anti-degradation guardrail, Tier 2a MOFA+, Tier 2b cis peak-to-gene + candidate eRegulons, and non-circular cross-modal evidence graph; ADR-064..ADR-071) is open as a beta, acknowledgement-gated lane. Unpaired, diagonal, and bulk cross-modal integration remain blocked fail-closed.",
+      "requires_ack": true,
+      "scope": "paired_same_cell_rna_atac"
+    },
+    "modality_validation_levels": {
+      "CUT_AND_RUN": "scaffold",
+      "CUT_AND_TAG": "scaffold",
+      "ChIP": "scaffold",
+      "HiC": "scaffold",
+      "bulk_ATAC": "beta",
+      "bulk_RNA": "production",
+      "bulk_RNA_raw": "beta",
+      "scATAC": "beta",
+      "scRNA": "production"
+    },
+    "registry_integrity_errors": 0
+  },
+  "slice": "V48_I8",
+  "title": "IntegrationAgent scaffold -> beta promotion, fail-closed same-cell & CP3.5 acknowledgement gate, hermetic env locks, and full headless orchestrated E2E validation",
+  "total_wall_time_s": 880.28,
+  "version_metadata": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "conda_prefix": "aria-env",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "aria-env",
+      "source": "no_lock"
+    },
+    "git_commit": "9251055c81506a408f819de12d5d1b2a41a93623",
+    "git_describe": "v4.7.0-318-g9251055-dirty",
+    "git_dirty": true,
+    "git_sha": "9251055c81506a408f819de12d5d1b2a41a93623",
+    "git_tree_sha": "bfac1276a079d097c3b3c244750597b372c03db8",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "373a6d3f1a59830bd062ea83dcb78b6f1941d7e87854d5ff8ac1c47386cc7f71",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  }
+}
