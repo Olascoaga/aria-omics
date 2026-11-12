@@ -84,7 +84,7 @@
     "ready": false,
     "tag_action_authorized": false
   },
-  "generated_utc": "2026-11-12T18:46:48.827866+00:00",
+  "generated_utc": "2026-11-12T18:49:22.353239+00:00",
   "lanes": [
     {
       "claims": [
@@ -517,10 +517,10 @@
   "output_root": "docs/benchmark_results/preprint_v1",
   "provenance": {
     "aria_version": "4.8.0",
-    "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-    "git_describe": "v4.8.0",
+    "git_commit": "e18a082456500b9a97e97e365d4c94695c72ff63",
+    "git_describe": "v4.8.0-1-ge18a082",
     "git_dirty": false,
-    "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+    "git_tree_sha": "c3db2ef879a685dc76c75351c32bf773851b6230",
     "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
     "source_snapshot_hash_algorithm": "sha256(git-ls-files-stage-excluding-output)",
     "version_source": "aria.version.__version__",
