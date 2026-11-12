@@ -29,6 +29,16 @@ from typing import Any
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
+from aria.utils.peak2gene_core import (
+    _gtf_attr as _core_gtf_attr,
+    compute_peak_to_gene_links,
+    genes_to_peak_indices as _core_genes_to_peak_indices,
+    parse_gtf_tss as _core_parse_gtf_tss,
+    parse_gtf_tss_detailed,
+    parse_peak_coord,
+    scalar_pearson_corr,
+    vectorized_pearson_corr,
+)
 
 
 def _skip(reason: str, **extra) -> dict[str, Any]:
@@ -38,18 +48,7 @@ def _skip(reason: str, **extra) -> dict[str, Any]:
 
 
 def _peak_coord(name: str) -> tuple[str, int, int] | None:
-    text = str(name)
-    try:
-        if ":" in text and "-" in text:
-            chrom, pos = text.split(":", 1)
-            start, end = pos.replace("_", "-").split("-", 1)
-            return chrom, int(start), int(end)
-        parts = text.split("\t")
-        if len(parts) >= 3:
-            return parts[0], int(parts[1]), int(parts[2])
-    except Exception:
-        return None
-    return None
+    return parse_peak_coord(name)
 
 
 def _load_motif_peak_map(path: str | None, peak_universe: set[str]) -> dict[str, list[str]]:
@@ -78,41 +77,12 @@ def _load_motif_peak_map(path: str | None, peak_universe: set[str]) -> dict[str,
 
 
 def _parse_gtf_tss(gtf_path: str | None, wanted: set[str] | None = None) -> dict[str, tuple[str, int]]:
-    """Parse gene TSS coordinates from a local GTF/GTF.GZ."""
-    if not gtf_path or not Path(gtf_path).is_file():
-        return {}
-    import gzip
-
-    opener = gzip.open if str(gtf_path).endswith(".gz") else open
-    coords: dict[str, tuple[str, int]] = {}
-    with opener(gtf_path, "rt") as fh:
-        for line in fh:
-            if not line or line.startswith("#"):
-                continue
-            parts = line.rstrip("\n").split("\t")
-            if len(parts) < 9 or parts[2] != "gene":
-                continue
-            attrs = parts[8]
-            gene = _gtf_attr(attrs, "gene_name") or _gtf_attr(attrs, "gene_id")
-            if not gene or (wanted is not None and gene not in wanted):
-                continue
-            start = int(parts[3])
-            end = int(parts[4])
-            tss = start if parts[6] != "-" else end
-            coords[gene] = (parts[0], tss)
-            if wanted is not None and len(coords) >= len(wanted):
-                break
-    return coords
+    """Parse gene TSS coordinates from a local GTF/GTF.GZ via shared peak2gene_core."""
+    return _core_parse_gtf_tss(gtf_path, wanted=wanted)
 
 
 def _gtf_attr(attrs: str, key: str) -> str | None:
-    prefix = key + " "
-    for chunk in attrs.split(";"):
-        item = chunk.strip()
-        if item.startswith(prefix):
-            value = item[len(prefix):].strip()
-            return value.strip('"') or None
-    return None
+    return _core_gtf_attr(attrs, key)
 
 
 def _genes_to_peak_indices(
@@ -121,24 +91,7 @@ def _genes_to_peak_indices(
     *,
     window_bp: int,
 ) -> dict[str, list[int]]:
-    peaks_by_chrom: dict[str, list[tuple[int, int, int]]] = {}
-    for idx, peak in enumerate(peak_names):
-        coord = _peak_coord(str(peak))
-        if coord is None:
-            continue
-        chrom, start, end = coord
-        peaks_by_chrom.setdefault(chrom, []).append((start, end, idx))
-
-    out: dict[str, list[int]] = {}
-    for gene, (chrom, tss) in gene_tss.items():
-        hits = []
-        lo, hi = tss - window_bp, tss + window_bp
-        for start, end, idx in peaks_by_chrom.get(chrom, []):
-            if end >= lo and start <= hi:
-                hits.append(idx)
-        if hits:
-            out[gene] = hits
-    return out
+    return _core_genes_to_peak_indices(peak_names, gene_tss, window_bp=window_bp)
 
 
 def _safe_mean(values) -> float | None:
@@ -149,43 +102,13 @@ def _safe_mean(values) -> float | None:
 
 
 def _corr(x, y) -> float | None:
-    import numpy as np
-
-    a = np.asarray(x, dtype=float).ravel()
-    b = np.asarray(y, dtype=float).ravel()
-    if a.shape[0] != b.shape[0] or a.shape[0] < 3:
-        return None
-    if float(np.std(a)) == 0.0 or float(np.std(b)) == 0.0:
-        return None
-    r = float(np.corrcoef(a, b)[0, 1])
-    return round(r, 6) if math.isfinite(r) else None
+    return scalar_pearson_corr(x, y)
 
 
 def _vectorized_corr(x, cols):
     """Pearson correlation of vector ``x`` (n,) against each column of ``cols``
-    (n, k), in one pass. Returns a length-k array, NaN where a column has zero
-    variance or n < 3 — the same undefined cases :func:`_corr` returns None for.
-    Used to vectorize the peak-to-gene inner loop (P4.2: O(genes*peaks) sparse
-    per-pair getcol -> one masked matmul per gene)."""
-    import numpy as np
-
-    x = np.asarray(x, dtype=float).ravel()
-    n = x.shape[0]
-    k = cols.shape[1] if getattr(cols, "ndim", 1) == 2 else 1
-    if n < 3:
-        return np.full(k, np.nan)
-    xc = x - x.mean()
-    xs = float(np.sqrt((xc * xc).sum()))
-    C = np.asarray(cols, dtype=float)
-    if C.ndim == 1:
-        C = C.reshape(-1, 1)
-    Cc = C - C.mean(axis=0, keepdims=True)
-    cs = np.sqrt((Cc * Cc).sum(axis=0))
-    denom = xs * cs
-    num = xc @ Cc
-    with np.errstate(invalid="ignore", divide="ignore"):
-        r = np.where(denom > 0, num / denom, np.nan)
-    return r
+    (n, k), in one pass via shared ``aria.utils.peak2gene_core``."""
+    return vectorized_pearson_corr(x, cols)
 
 
 def _param_int(params: dict, key: str, default: int) -> int:
@@ -339,67 +262,42 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
     atac_aligned = adata[common, :]
     rna_aligned = rna[common, :]
     genes = {str(g) for g in rna_aligned.var_names}
-    gene_tss = _parse_gtf_tss(gtf, wanted=genes)
-    if not gene_tss:
+    gene_records, _ = parse_gtf_tss_detailed(gtf, wanted=genes)
+    if not gene_records:
         return _skip(
             "local GTF gene annotation was not provided or did not overlap RNA genes",
             method="paired_cell_peak_gene_correlation",
         )
 
-    peak_names = [str(p) for p in atac_aligned.var_names]
-    peak_coords = [_peak_coord(p) for p in peak_names]
-    gene_index = {str(g): i for i, g in enumerate(rna_aligned.var_names)}
+    core_res = compute_peak_to_gene_links(
+        rna_matrix=rna_aligned.X,
+        rna_var_names=[str(g) for g in rna_aligned.var_names],
+        atac_matrix=atac_aligned.X,
+        atac_var_names=[str(p) for p in atac_aligned.var_names],
+        gene_records=gene_records,
+        distance_bp=distance_bp,
+        min_corr=min_corr,
+        preprocess="as_is",
+        min_cells_detected=1,
+        background_null=False,
+        distance_mode="endpoint_min",
+    )
+    if core_res.get("status") != "success":
+        return _skip(
+            core_res.get("details", core_res.get("error_type", "peak_to_gene_failed")),
+            method="paired_cell_peak_gene_correlation",
+        )
 
-    # Spatial index: candidate peaks per chromosome (skip unparseable coords), so a
-    # gene only ever scans its own chromosome instead of the whole peak universe.
-    peaks_by_chrom: dict[str, list[tuple[int, int, int]]] = {}
-    for pi, coord in enumerate(peak_coords):
-        if coord is None:
-            continue
-        peaks_by_chrom.setdefault(coord[0], []).append((coord[1], coord[2], pi))
-
-    rows = []
-    tested = 0
-    atac_X = atac_aligned.X
-    for gene, (chrom, tss) in gene_tss.items():
-        gi = gene_index.get(gene)
-        if gi is None:
-            continue
-        expr = _col(rna_aligned.X, gi)
-        if float(np.mean(expr)) <= 0.0:
-            continue
-        local = peaks_by_chrom.get(chrom)
-        if not local:
-            continue
-        # In-window peaks: nearest-endpoint distance to the TSS <= distance_bp
-        # (identical predicate to the per-pair version it replaces).
-        cand_idx: list[int] = []
-        cand_dist: list[int] = []
-        for start, end, pi in local:
-            dist = min(abs(start - tss), abs(end - tss))
-            if dist <= distance_bp:
-                cand_idx.append(pi)
-                cand_dist.append(int(dist))
-        if not cand_idx:
-            continue
-        tested += len(cand_idx)
-        sub = atac_X[:, cand_idx]
-        sub = np.asarray(sub.todense()) if hasattr(sub, "todense") else np.asarray(sub)
-        rvals = _vectorized_corr(expr, sub)
-        for j, pi in enumerate(cand_idx):
-            rv = rvals[j]
-            if not math.isfinite(float(rv)):  # NaN = undefined (zero variance / n<3)
-                continue
-            r = round(float(rv), 6)
-            if abs(r) >= min_corr:
-                rows.append({
-                    "gene": gene,
-                    "peak": peak_names[pi],
-                    "correlation": r,
-                    "distance_bp": cand_dist[j],
-                    "direction": "positive" if r > 0 else "negative",
-                })
-    rows.sort(key=lambda r: (-abs(float(r["correlation"])), r["gene"], r["peak"]))
+    rows = [
+        {
+            "gene": r["gene"],
+            "peak": r["peak"],
+            "correlation": r["correlation"],
+            "distance_bp": r["distance_bp"],
+            "direction": r["direction"],
+        }
+        for r in core_res["links"]
+    ]
     csv_path = _write_rows(out_dir / "chromatin_peak_to_gene.csv", rows)
     return {
         "ran": True,
@@ -411,10 +309,10 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
         # scaffold/exploratory, so the script-level umbrella level is unchanged.
         "validation_level": "beta",
         "method": "paired_cell_peak_gene_correlation",
-        "n_tested": tested,
+        "n_tested": int(core_res["n_tested"]),
         "n_links": len(rows),
-        "n_positive": sum(1 for r in rows if r["direction"] == "positive"),
-        "n_negative": sum(1 for r in rows if r["direction"] == "negative"),
+        "n_positive": int(core_res["n_positive"]),
+        "n_negative": int(core_res["n_negative"]),
         "output_csv": csv_path,
         "top_links": rows[:20],
         "caveat": (

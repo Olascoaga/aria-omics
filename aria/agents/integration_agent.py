@@ -613,31 +613,55 @@ class IntegrationAgent(BaseAgent):
                            rna_results: dict,
                            chromatin_results: dict) -> dict:
         """
-        Link ATAC peaks to nearby genes using correlation across cells.
-        Stores high-confidence links as Tunnels in ARIAMemory.
-
-        This answers: "What regulatory elements control this gene?"
+        Link ATAC peaks to nearby genes using paired cis correlation + background null.
+        Stores strong associative links as Tunnels in ARIAMemory.
         """
-        rna_files  = mods.get("scRNA", mods.get("bulk_RNA", []))
-        atac_files = mods.get("scATAC", mods.get("bulk_ATAC", []))
+        rna_files  = list(mods.get("scRNA", mods.get("bulk_RNA", [])) or [])
+        atac_files = list(mods.get("scATAC", mods.get("bulk_ATAC", [])) or [])
         peaks_path = (chromatin_results.get("scATAC", {})
                       .get("findings", {})
                       .get("peaks", {})
                       .get("peaks_path", ""))
+        p2g_overrides = dict(exp_ctx.get("peak2gene_params") or {})
+
+        h5mu_path = (
+            p2g_overrides.pop("h5mu_path", None)
+            or exp_ctx.get("h5mu_path")
+            or exp_ctx.get("paired_h5mu")
+        )
+        if not h5mu_path:
+            for cand in [*rna_files, *atac_files]:
+                if str(cand).lower().endswith(".h5mu"):
+                    h5mu_path = str(cand)
+                    break
+
+        ref_paths = [h5mu_path] if h5mu_path else (rna_files or atac_files)
+        p2g_params: dict = {
+            "rna_files":    rna_files,
+            "atac_files":   atac_files,
+            "peaks_path":   peaks_path,
+            "genome":       exp_ctx.get("genome", "hg38"),
+            "organism":     exp_ctx.get("organism", "Homo sapiens"),
+            "distance_kb":  int(exp_ctx.get("peak2gene_distance_kb", 500)),
+            "min_corr":     float(exp_ctx.get("peak2gene_min_corr", 0.3)),
+            "seed":         int(exp_ctx.get("seed", 0)),
+            "output_dir":   p2g_overrides.pop(
+                "output_dir",
+                self._get_output_dir(ref_paths),
+            ),
+        }
+        if h5mu_path:
+            p2g_params["h5mu_path"] = str(h5mu_path)
+        if exp_ctx.get("gtf_path"):
+            p2g_params["gtf_path"] = str(exp_ctx["gtf_path"])
+        if exp_ctx.get("genome_fasta"):
+            p2g_params["genome_fasta"] = str(exp_ctx["genome_fasta"])
+        p2g_params.update(p2g_overrides)
 
         p2g_result = self.env.run_in_stack(
             stack="integration",
             script_path="aria/scripts/integration_peak2gene.py",
-            params={
-                "rna_files":    rna_files,
-                "atac_files":   atac_files,
-                "peaks_path":   peaks_path,
-                "genome":       exp_ctx.get("genome", "hg38"),
-                "organism":     exp_ctx.get("organism", "Homo sapiens"),
-                "distance_kb":  500,   # 500kb window (standard)
-                "min_corr":     0.3,   # minimum correlation threshold
-                "output_dir":   self._get_output_dir(rna_files),
-            },
+            params=p2g_params,
         )
 
         if p2g_result.get("status") == "success":
@@ -653,14 +677,15 @@ class IntegrationAgent(BaseAgent):
     def _store_peak_gene_tunnels(self, experiment_id: str,
                                   p2g_result: dict):
         """
-        Store high-confidence peak-to-gene links as Tunnels in ARIAMemory.
+        Store strong associative peak-to-gene links as Tunnels in ARIAMemory.
         Tunnels represent cross-modal connections (ATAC <-> RNA).
-        These persist across sessions and build the lab's regulatory map.
         """
         top_links = p2g_result.get("top_links", [])[:50]
+        n_stored = 0
 
         for link in top_links:
-            if link.get("correlation", 0) >= 0.4:
+            corr_val = float(link.get("correlation", 0.0) or 0.0)
+            if abs(corr_val) >= 0.4:
                 try:
                     self.memory.create_tunnel(
                         tunnel_id=str(uuid.uuid4())[:8],
@@ -669,28 +694,26 @@ class IntegrationAgent(BaseAgent):
                         to_hall=f"{experiment_id}_scRNA",
                         entity=link.get("gene", "unknown"),
                         description=(
-                            f"Peak {link.get('peak', '?')} -> "
-                            f"Gene {link.get('gene', '?')}: "
-                            f"r={link.get('correlation', 0):.3f}, "
-                            f"dist={link.get('distance_kb', 0):.0f}kb"
+                            f"Peak {link.get('peak', '?')} <-> "
+                            f"Gene {link.get('gene', '?')} (associative): "
+                            f"r={corr_val:.3f}, "
+                            f"dist={float(link.get('distance_kb', 0.0) or 0.0):.1f}kb"
                         ),
                         confidence=(
-                            "high"   if link.get("correlation", 0) >= 0.6 else
-                            "medium"
+                            "high" if abs(corr_val) >= 0.6 else "medium"
                         ),
                     )
+                    n_stored += 1
                 except Exception as e:
                     log.warning(f"Could not store tunnel: {e}")
 
-        n_stored = min(len(top_links), 50)
         log.info(f"Stored {n_stored} peak-gene links as Tunnels in ARIAMemory")
 
     def _debate_peak_gene_links(self, experiment_id: str,
                                  p2g_result: dict, intent: dict):
         """
-        Invoke DebateCouncil for high-confidence peak-gene links.
-        Requires 2 independent lines of evidence before claiming
-        a regulatory relationship.
+        Invoke DebateCouncil for associative peak-gene links.
+        Requires independent orthogonal evidence before claiming mechanism.
         """
         n_links   = p2g_result.get("n_links", 0)
         top_links = p2g_result.get("top_links", [])[:5]
@@ -710,7 +733,7 @@ class IntegrationAgent(BaseAgent):
 
             top_genes = [l.get("gene", "?") for l in top_links]
             claim = (
-                f"{n_links} peak-gene regulatory links identified. "
+                f"{n_links} cis peak-gene accessibility-expression links identified. "
                 f"Top linked genes: {', '.join(top_genes)}"
             )
 
@@ -718,12 +741,16 @@ class IntegrationAgent(BaseAgent):
                 topic="peak_to_gene_regulatory_links",
                 initial_claim=claim,
                 evidence={
-                    "n_links":           n_links,
-                    "top_links":         top_links,
-                    "distance_cutoff_kb": 500,
-                    "min_correlation":    0.3,
-                    "ctcf_validated":     p2g_result.get("ctcf_validated", False),
-                    "hic_corroborated":   p2g_result.get("hic_corroborated", False),
+                    "n_links":                 n_links,
+                    "n_positive_correlations": p2g_result.get("n_positive_correlations", 0),
+                    "n_negative_correlations": p2g_result.get("n_negative_correlations", 0),
+                    "top_links":               top_links,
+                    "distance_cutoff_kb":      p2g_result.get("distance_kb", 500),
+                    "min_correlation":         p2g_result.get("min_corr", 0.3),
+                    "max_padj":                p2g_result.get("max_padj"),
+                    "background_method":       p2g_result.get("background_method"),
+                    "ctcf_validated":          p2g_result.get("ctcf_validated", False),
+                    "hic_corroborated":        p2g_result.get("hic_corroborated", False),
                 },
                 biological_context=intent,
             )

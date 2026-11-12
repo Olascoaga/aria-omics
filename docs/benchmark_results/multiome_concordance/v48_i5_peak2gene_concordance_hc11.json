@@ -1,0 +1,198 @@
+{
+  "aria_version": "4.7.0",
+  "benchmark": "v48_i5_paired_peak2gene_concordance",
+  "dataset": {
+    "accession": "GSE278576",
+    "n_cells_post_qc": 2517,
+    "n_cells_raw": 3143,
+    "n_genes_total": 36601,
+    "n_standard_peaks": 60924,
+    "sample_id": "hc11",
+    "tissue": "human_hippocampus_multiome_10x"
+  },
+  "design": {
+    "aria_script": "aria/scripts/integration_peak2gene.py",
+    "atac_normalization": "raw_counts",
+    "background_match": "gc_and_accessibility",
+    "background_method": "binned_matched_background",
+    "external_reference": "Signac::LinkPeaks (Seurat 5.3.0 / BSgenome.Hsapiens.UCSC.hg38)",
+    "gc_matching": {
+      "available": true,
+      "median_gc": 0.5276,
+      "n_computed": 60562,
+      "n_valid_peaks": 60562
+    },
+    "min_cells_detected": 10,
+    "reconciled_scatac_layer": "aria/scripts/chromatin_regulatory.py::_peak_to_gene",
+    "rna_normalization": "log1p_cp10k",
+    "shared_core": "aria/utils/peak2gene_core.py"
+  },
+  "ensembl_vs_ucsc_gtf_canonicalization": {
+    "n_genes_tested_ensembl": 14399,
+    "n_links_ensembl": 1,
+    "ran": true,
+    "shared_linked_gene_concordance": {
+      "link_jaccard": 1.0,
+      "n_aria_genes": 1,
+      "n_aria_links": 1,
+      "n_ref_genes": 1,
+      "n_ref_links": 1,
+      "n_shared_links": 1,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 1.0,
+      "score_spearman": 1.0,
+      "sign_agreement": 1.0
+    },
+    "status": "success"
+  },
+  "external_concordance_vs_signac": {
+    "aria_production_fdr005_r030_in_signac_all": {
+      "link_jaccard": 5.8e-05,
+      "n_aria_genes": 1,
+      "n_aria_links": 1,
+      "n_ref_genes": 7465,
+      "n_ref_links": 17103,
+      "n_shared_links": 1,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 5.8e-05,
+      "score_spearman": 1.0,
+      "sign_agreement": 1.0
+    },
+    "aria_production_fdr005_r030_vs_signac_r030": {
+      "link_jaccard": 1.0,
+      "n_aria_genes": 1,
+      "n_aria_links": 1,
+      "n_ref_genes": 1,
+      "n_ref_links": 1,
+      "n_shared_links": 1,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 1.0,
+      "score_spearman": 1.0,
+      "sign_agreement": 1.0
+    },
+    "matched_signac_cutoffs_r005_p005": {
+      "link_jaccard": 0.867023,
+      "n_aria_genes": 7394,
+      "n_aria_links": 16804,
+      "n_ref_genes": 7465,
+      "n_ref_links": 17103,
+      "n_shared_links": 15746,
+      "recall_aria_in_ref": 0.937039,
+      "recall_ref_in_aria": 0.920657,
+      "score_mae": 0.0,
+      "score_pearson": 1.0,
+      "score_spearman": 1.0,
+      "sign_agreement": 1.0,
+      "zscore_pearson": 0.967261,
+      "zscore_sign_agreement": 1.0,
+      "zscore_spearman": 0.918515
+    },
+    "signac_reference_summary": {
+      "n_cells": 2517,
+      "n_genes": 7465,
+      "n_links": 17103,
+      "n_peaks": 60924,
+      "status": "success"
+    }
+  },
+  "governance": {
+    "associative_only": true,
+    "caveat": "Peak-to-gene links measure paired cis accessibility-expression co-variation controlled against a matched trans-chromosomal background null; correlation sign and genomic distance are strictly associative and do not establish regulatory mechanism without independent orthogonal validation.",
+    "ctcf_validated": false,
+    "hic_corroborated": false
+  },
+  "production_windows": {
+    "window_250kb": {
+      "distance_bp": 250000,
+      "fraction_of_250kb_links_in_500kb": 1.0,
+      "max_padj": 0.05,
+      "min_corr": 0.3,
+      "n_distal_cis": 1,
+      "n_fdr_significant_all_tested": 1471,
+      "n_links": 1,
+      "n_negative_correlations": 0,
+      "n_positive_correlations": 1,
+      "n_promoter_proximal": 0,
+      "n_tested": 264384
+    },
+    "window_500kb": {
+      "distance_bp": 500000,
+      "max_padj": 0.05,
+      "min_corr": 0.3,
+      "n_distal_cis": 1,
+      "n_fdr_significant_all_tested": 2335,
+      "n_genes_tested": 14349,
+      "n_links": 1,
+      "n_negative_correlations": 0,
+      "n_peaks_tested": 60562,
+      "n_positive_correlations": 1,
+      "n_promoter_proximal": 0,
+      "n_tested": 495862,
+      "top_links": [
+        {
+          "background_scope": "trans",
+          "correlation": 0.331385,
+          "direction": "positive",
+          "distance_bp": 11749,
+          "distance_kb": 11.749,
+          "gene": "GFAP",
+          "gene_id": "ENSG00000131095.15",
+          "p_value": 7.145298936473777e-08,
+          "p_value_signac": 3.5726494682368886e-08,
+          "padj": 0.00011693340664151023,
+          "peak": "chr17:44904368-44905188",
+          "region_class": "distal_cis",
+          "tss_offset_bp": 12159,
+          "zscore": 5.387479
+        }
+      ]
+    }
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "environment": {
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "env_name": "anaconda3",
+      "source": "no_lock"
+    },
+    "git_commit": "b33e1e461974e1bbb20931dbebe0c4b94fd878c2",
+    "git_describe": "v4.7.0-310-gb33e1e4-dirty",
+    "git_dirty": true,
+    "git_sha": "b33e1e461974e1bbb20931dbebe0c4b94fd878c2",
+    "git_tree_sha": "cbeaa1f7e0aa304fa6611fbfe82839d277eed20d",
+    "image": {
+      "containerized": false,
+      "digest": null,
+      "env_lock_sha256": null,
+      "kind": null,
+      "reference": null,
+      "revision": null,
+      "validation": null
+    },
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "workflow_hash": "82fed6f94ad1af125c9b6aa41f7b572da68c8dbfdfc548f152f362fb21e0d8e6",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
+  },
+  "seed_determinism": {
+    "cross_seed_0_vs_1": {
+      "link_jaccard": 1.0,
+      "n_aria_genes": 1,
+      "n_aria_links": 1,
+      "n_ref_genes": 1,
+      "n_ref_links": 1,
+      "n_shared_links": 1,
+      "recall_aria_in_ref": 1.0,
+      "recall_ref_in_aria": 1.0,
+      "score_spearman": 1.0,
+      "sign_agreement": 1.0
+    },
+    "exact_link_order_identical": true,
+    "max_abs_delta_correlation": 0.0,
+    "max_abs_delta_padj": 0.0,
+    "max_abs_delta_zscore": 0.0,
+    "seed": 0
+  },
+  "slice": "V48_I5_peak2gene_paired"
+}
