@@ -139,18 +139,9 @@ MODALITY_VALIDATION = {
         "promotion_adr": "ADR-075",
     },
     "scATAC": {
-        "level": "beta",
+        "level": "production",
         "dispatch_enabled": True,
-        "reason": (
-            "scATAC beta dispatch requires explicit CP3.5 acknowledgement. "
-            "De-alpha closed 2026-06-15 (ADR-048): P0-P3 done; clustering + motif "
-            "are externally concordant (SnapATAC2 on HC11), and the pseudobulk "
-            "condition-DA lane is validated against edgeR/limma/DESeq2 on real "
-            "biological replicates (5 young vs 5 old GSE278576 donors; ARIA a clean "
-            "subset of R-DESeq2, LFC Spearman 0.61-0.76). The per-cluster wilcoxon "
-            "marker path is exploratory/single-sample-fragile and stays caveated. "
-            "Beta + requires_ack: dispatchable after ack, not fully autonomous."
-        ),
+        "promotion_adr": "ADR-076",
     },
     "bulk_ATAC": {
         "level": "beta",

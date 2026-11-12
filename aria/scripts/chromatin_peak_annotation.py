@@ -27,9 +27,12 @@ import csv
 import gzip
 import os
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Optional
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from aria.benchmarks.bulk_atac_marker_mapping import parse_peak_interval
 from aria.scripts.rna_bulk.gtf_io import _locate_gtf
@@ -222,11 +225,39 @@ def _resolve_gtf(params: dict, out_dir: Path) -> Optional[Path]:
     return _locate_gtf(out_dir / "peaks", hint)
 
 
-def _significant_peaks(csv_path: str):
-    """Yield significant peak ids from a bulk ATAC DA full CSV (`significant==True`)."""
+def _modality_stamp(params: dict) -> tuple:
+    """(data_type, validation_level, filename_prefix) for this dispatch.
+
+    Defaults to the bulk ATAC stamp so every pre-existing bulk call (which never
+    passes ``data_type``) keeps byte-identical output names and stamps."""
+    data_type = str(params.get("data_type") or "bulk_ATAC")
+    validation_level = "production" if data_type == "scATAC" else "beta"
+    prefix = "scatac" if data_type == "scATAC" else "bulk_atac"
+    return data_type, validation_level, prefix
+
+
+def _select_comparison_rows(df, comp: Optional[dict]):
+    """Restrict a DA table to one contrast when it is a combined multi-contrast
+    table (a ``comparison`` column, as in the scATAC pseudobulk full CSV).
+
+    Filters to ``f"{test}_vs_{reference}"`` only when that key is present in the
+    table; a single-contrast table (no ``comparison`` column, or no matching
+    rows) is returned unchanged, so per-comparison CSVs are never emptied."""
+    comp = comp or {}
+    test, ref = comp.get("test"), comp.get("reference")
+    if "comparison" not in df.columns or test is None or ref is None:
+        return df
+    comp_key = f"{test}_vs_{ref}"
+    mask = df["comparison"].astype(str) == comp_key
+    return df[mask] if bool(mask.any()) else df
+
+
+def _significant_peaks(csv_path: str, comp: Optional[dict] = None):
+    """Yield significant peak ids from a DA full CSV (`significant==True`),
+    restricted to ``comp``'s contrast when the table is multi-contrast."""
     import pandas as pd
 
-    df = pd.read_csv(csv_path)
+    df = _select_comparison_rows(pd.read_csv(csv_path), comp)
     peak_col = "peak" if "peak" in df.columns else df.columns[0]
     if "significant" in df.columns:
         df = df[df["significant"].fillna(False).astype(bool)]
@@ -234,8 +265,11 @@ def _significant_peaks(csv_path: str):
 
 
 def chromatin_peak_annotation(params: dict) -> dict:
-    """Dispatchable entry: annotate the significant DA peaks of each bulk ATAC
-    comparison against an auto-resolved GTF. Honest-skip without a GTF or peaks."""
+    """Dispatchable entry: annotate the significant DA peaks of each ATAC
+    comparison (bulk ATAC DA, or scATAC pseudobulk DA when ``data_type`` is
+    ``"scATAC"``) against an auto-resolved GTF. Honest-skip without a GTF or
+    peaks."""
+    data_type, validation_level, prefix = _modality_stamp(params)
     out_dir = Path(params.get("output_dir", "."))
     out_dir.mkdir(parents=True, exist_ok=True)
     _up = params.get("promoter_upstream")
@@ -247,8 +281,8 @@ def chromatin_peak_annotation(params: dict) -> dict:
     if not gtf_path:
         return {
             "status": "skipped", "ran": False,
-            "analysis": "peak_annotation", "data_type": "bulk_ATAC",
-            "validation_level": "beta",
+            "analysis": "peak_annotation", "data_type": data_type,
+            "validation_level": validation_level,
             "reason": "no_gtf_for_peak_annotation",
             "details": ("No GTF found. Place one at "
                         "~/.aria/genomes/<assembly>/annotation.gtf[.gz], pass "
@@ -259,8 +293,8 @@ def chromatin_peak_annotation(params: dict) -> dict:
     if not models:
         return {
             "status": "skipped", "ran": False,
-            "analysis": "peak_annotation", "data_type": "bulk_ATAC",
-            "validation_level": "beta",
+            "analysis": "peak_annotation", "data_type": data_type,
+            "validation_level": validation_level,
             "reason": "gtf_parsed_zero_gene_models",
             "gtf": Path(gtf_path).name,
         }
@@ -273,12 +307,12 @@ def chromatin_peak_annotation(params: dict) -> dict:
         csv_path = (comp or {}).get("full_results_csv")
         if not csv_path or not Path(csv_path).exists():
             continue
-        peaks = _significant_peaks(csv_path)
+        peaks = _significant_peaks(csv_path, comp)
         if not peaks:
             continue
         ann = annotate_peaks(peaks, models, promoter_up, promoter_down)
         comp_key = f"{comp.get('test')}_vs_{comp.get('reference')}"
-        ann_csv = out_dir / f"bulk_atac_peak_annotation_{comp_key}.csv"
+        ann_csv = out_dir / f"{prefix}_peak_annotation_{comp_key}.csv"
 
         # persist_csv calls write_fn() with no args; bind the per-iteration path +
         # rows via defaults to avoid late-binding over the loop variables.
@@ -305,16 +339,16 @@ def chromatin_peak_annotation(params: dict) -> dict:
     if not comp_results:
         return {
             "status": "skipped", "ran": False,
-            "analysis": "peak_annotation", "data_type": "bulk_ATAC",
-            "validation_level": "beta",
+            "analysis": "peak_annotation", "data_type": data_type,
+            "validation_level": validation_level,
             "reason": "no_significant_peaks_to_annotate",
             "gtf": Path(gtf_path).name, "warnings": warnings,
         }
 
     return {
         "status": "success", "ran": True,
-        "analysis": "peak_annotation", "data_type": "bulk_ATAC",
-        "validation_level": "beta",
+        "analysis": "peak_annotation", "data_type": data_type,
+        "validation_level": validation_level,
         "method": ("nearest-TSS genomic annotation (Promoter/Exonic/Intronic/"
                    "Distal Intergenic) over GTF gene models"),
         "gtf": Path(gtf_path).name,
@@ -328,6 +362,10 @@ def chromatin_peak_annotation(params: dict) -> dict:
 
 if __name__ == "__main__":
     import json
-    import sys
 
-    print(json.dumps(chromatin_peak_annotation(json.loads(sys.argv[1]))))
+    if len(sys.argv) == 2 and sys.argv[1].lstrip().startswith("{"):
+        print(json.dumps(chromatin_peak_annotation(json.loads(sys.argv[1]))))
+    else:
+        from aria.scripts._base import run_script
+
+        run_script(chromatin_peak_annotation)

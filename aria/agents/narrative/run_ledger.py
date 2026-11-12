@@ -67,6 +67,12 @@ _SCRNA_ANALYSES: list[dict[str, Any]] = [
 _CHROMATIN_ANALYSES: list[dict[str, Any]] = [
     {"key": "qc", "label": "Quality control",
      "plan_kw": ["qc", "quality control"], "finding_keys": ["qc"]},
+    {"key": "scatac_preprocessing",
+     "label": "scATAC raw preprocessing & matrix construction",
+     "plan_kw": ["chromap", "fastq to fragments", "fragments to matrix",
+                 "barcode whitelist"],
+     "finding_keys": ["fastq_to_fragments", "fragments_to_matrix",
+                      "cohort_matrix_union"]},
     {"key": "dimensionality_reduction",
      "label": "Dimensionality reduction (LSI/TF-IDF)",
      "plan_kw": ["lsi", "latent semantic", "tf-idf", "tfidf",

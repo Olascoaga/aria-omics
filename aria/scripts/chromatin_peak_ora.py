@@ -19,11 +19,16 @@ when no versioned GMT is provisioned (no fabrication).
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 from aria.scripts.chromatin_peak_annotation import (
-    _resolve_gtf, annotate_peaks, parse_gtf_gene_models)
+    _modality_stamp, _resolve_gtf, _select_comparison_rows, annotate_peaks,
+    parse_gtf_gene_models)
 
 
 def _organism_from_genome(genome) -> str:
@@ -48,9 +53,15 @@ def _genes_for_peaks(peaks, models) -> list:
 
 
 def chromatin_peak_ora(params: dict) -> dict:
-    """Dispatchable entry: functional ORA of genes near each bulk ATAC comparison's DA
-    peaks, against a peak-proximal background. Honest-skip without a GTF / sig genes."""
+    """Dispatchable entry: functional ORA of genes near each ATAC comparison's DA
+    peaks (bulk ATAC DA, or scATAC pseudobulk DA when ``data_type`` is
+    ``"scATAC"``), against a peak-proximal background. Honest-skip without a GTF /
+    sig genes."""
     import pandas as pd
+
+    data_type, validation_level, _prefix = _modality_stamp(params)
+    # Bulk ATAC keeps its historical (unprefixed) figure keys/filenames.
+    fig_prefix = "scatac_" if data_type == "scATAC" else ""
 
     out_dir = Path(params.get("output_dir", "."))
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -58,7 +69,7 @@ def chromatin_peak_ora(params: dict) -> dict:
     gtf_path = _resolve_gtf(params, out_dir)
     if not gtf_path:
         return {"status": "skipped", "ran": False, "analysis": "peak_ora",
-                "data_type": "bulk_ATAC", "validation_level": "beta",
+                "data_type": data_type, "validation_level": validation_level,
                 "reason": "no_gtf_for_peak_ora",
                 "details": ("No GTF found. Place one at "
                             "~/.aria/genomes/<assembly>/annotation.gtf[.gz], pass "
@@ -66,7 +77,7 @@ def chromatin_peak_ora(params: dict) -> dict:
     models = parse_gtf_gene_models(str(gtf_path))
     if not models:
         return {"status": "skipped", "ran": False, "analysis": "peak_ora",
-                "data_type": "bulk_ATAC", "validation_level": "beta",
+                "data_type": data_type, "validation_level": validation_level,
                 "reason": "gtf_parsed_zero_gene_models",
                 "gtf": Path(gtf_path).name}
 
@@ -85,7 +96,7 @@ def chromatin_peak_ora(params: dict) -> dict:
         csv_path = (comp or {}).get("full_results_csv")
         if not csv_path or not Path(csv_path).exists():
             continue
-        df = pd.read_csv(csv_path)
+        df = _select_comparison_rows(pd.read_csv(csv_path), comp)
         peak_col = "peak" if "peak" in df.columns else df.columns[0]
         sig = df
         if "significant" in df.columns:
@@ -100,11 +111,15 @@ def chromatin_peak_ora(params: dict) -> dict:
         # Directional foreground (up/down by accessibility log2FC).
         up_genes: list = []
         down_genes: list = []
-        if "log2FoldChange" in sig.columns:
+        # bulk ATAC DA tables carry `log2FoldChange`; the scATAC pseudobulk
+        # full table carries the same estimate as `log2fc`.
+        lfc_col = next((c for c in ("log2FoldChange", "log2fc")
+                        if c in sig.columns), None)
+        if lfc_col is not None:
             up_peaks = [str(p) for p in
-                        sig.loc[sig["log2FoldChange"] > 0, peak_col].tolist()]
+                        sig.loc[sig[lfc_col] > 0, peak_col].tolist()]
             down_peaks = [str(p) for p in
-                          sig.loc[sig["log2FoldChange"] < 0, peak_col].tolist()]
+                          sig.loc[sig[lfc_col] < 0, peak_col].tolist()]
             up_genes = _genes_for_peaks(up_peaks, models)
             down_genes = _genes_for_peaks(down_peaks, models)
         # Peak-proximal background: genes near ALL tested peaks.
@@ -122,7 +137,7 @@ def chromatin_peak_ora(params: dict) -> dict:
             for db, terms in pathways.items():
                 if not terms:
                     continue
-                key = f"peak_ora_{db}_{comp_key}"
+                key = f"{fig_prefix}peak_ora_{db}_{comp_key}"
                 path = make_ora_dotplot(
                     terms, db, comp_key.replace("_", " "),
                     str(out_dir / f"{key}.png"))
@@ -145,13 +160,13 @@ def chromatin_peak_ora(params: dict) -> dict:
 
     if not comp_results:
         return {"status": "skipped", "ran": False, "analysis": "peak_ora",
-                "data_type": "bulk_ATAC", "validation_level": "beta",
+                "data_type": data_type, "validation_level": validation_level,
                 "reason": "no_enrichable_genes_near_da_peaks",
                 "gtf": Path(gtf_path).name, "warnings": warnings}
 
     return {
         "status": "success", "ran": True, "analysis": "peak_ora",
-        "data_type": "bulk_ATAC", "validation_level": "beta",
+        "data_type": data_type, "validation_level": validation_level,
         "method": ("functional ORA (local hypergeometric over versioned GMTs) of "
                    "genes near DA peaks, against a peak-proximal background"),
         "organism": organism,
@@ -164,6 +179,10 @@ def chromatin_peak_ora(params: dict) -> dict:
 
 if __name__ == "__main__":
     import json
-    import sys
 
-    print(json.dumps(chromatin_peak_ora(json.loads(sys.argv[1]))))
+    if len(sys.argv) == 2 and sys.argv[1].lstrip().startswith("{"):
+        print(json.dumps(chromatin_peak_ora(json.loads(sys.argv[1]))))
+    else:
+        from aria.scripts._base import run_script
+
+        run_script(chromatin_peak_ora)

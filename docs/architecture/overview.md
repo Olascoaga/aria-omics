@@ -24,12 +24,12 @@ flowchart TD
     D --> CP2["CP2 / CP2.5: Confirm Groups, Replicates, Covariates & Contrasts"]
     CP2 --> CP3["CP3: Analysis Plan & Threshold Profiles"]
     CP3 --> A["AuditAgent + modality_audit"]
-    A -->|Beta chromatin / paired multiome or blocking risks| CP35["CP3.5: Explicit Acknowledgement or Cancel"]
-    A -->|Validated RNA & no blocking issues| SETUP["SetupAgent + EnvironmentManager"]
+    A -->|Beta bulk ATAC / paired multiome / low-power ack or blocking risks| CP35["CP3.5: Explicit Acknowledgement or Cancel"]
+    A -->|Validated RNA / scATAC & no blocking issues| SETUP["SetupAgent + EnvironmentManager"]
     CP35 -->|Proceed confirmed| SETUP
-    SETUP --> B["BulkRNAAgent (Production Matrix / Beta FASTQ)"]
+    SETUP --> B["BulkRNAAgent (Production Matrix & Universal Raw FASTQ)"]
     SETUP --> S["scRNAAgent (Production + Beta Trajectory/LIANA)"]
-    SETUP --> C["ChromatinAgent (Beta scATAC & Bulk ATAC)"]
+    SETUP --> C["ChromatinAgent (Production scATAC / Beta Bulk ATAC)"]
     SETUP --> INT["IntegrationAgent (Beta Paired Same-Cell 10x Multiome)"]
     SETUP -. disabled by default .-> H["GenomeArchAgent (Scaffold Hi-C)"]
     B --> N["NarrativeAgent + BiologicalSynthesisAgent + Cross-Modal Triangulation"]
@@ -57,7 +57,7 @@ The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_
 | `SetupAgent` & `EnvironmentManager` | Verifies lock-gated Conda stacks (`ENVIRONMENT_SPECS`) and executes `aria/scripts/*.py` subprocesses over validated JSON IPC (`ScriptContract`). |
 | `BulkRNAAgent` | Orchestrates universal bulk RNA-seq raw FASTQ preprocessing (`full_length`, 3'/5' tag, inline-UMI `pysam` dedup, and `STARsolo` pooled plates) and `pyDESeq2` DE + local GMT ORA + GSEA. |
 | `scRNAAgent` | Orchestrates QC, Harmony integration + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware pseudobulk DE, PAGA/DPT trajectory, and LIANA communication. |
-| `ChromatinAgent` | Orchestrates acknowledgement-gated `beta` scATAC (`chromap`/`snapatac2`, LSI, donor-aware DA, motifs, `peak2gene`, `TOBIAS`) and `beta` bulk ATAC (`bwa-mem2`, `MACS3` consensus, `bedtools` counts, `pyDESeq2` DA, annotation, ORA, motifs, `TOBIAS`). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
+| `ChromatinAgent` | Orchestrates `production` universal `scATAC` (`chromap` multi-platform/multi-lane/auto-RC FASTQ, air-gapped `snapatac2` fragments-to-matrix, multi-sample overlap consensus peak union, LSI, donor-aware `pyDESeq2` DA, peak annotation, local ORA, motifs, Signac-calibrated `peak2gene`, optional `beta` `TOBIAS`) and acknowledgement-gated `beta` bulk ATAC (`bwa-mem2`, `MACS3` consensus, `bedtools` counts, `pyDESeq2` DA, annotation, ORA, motifs, `TOBIAS`). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
 | `IntegrationAgent` | Orchestrates acknowledgement-gated `beta` paired same-cell 10x Multiome (`paired_qc`, deterministic `WNN` + 5-axis guardrail, `MOFA+`, Signac-faithful `peak2gene`, and candidate `eRegulons`). Unpaired/diagonal combinations fail closed. |
 | `BiologicalSynthesisAgent` & `cross_modal_triangulation` | Deterministic zero-LLM within/cross-contrast RNA synthesis (`ADR-028`) and non-circular paired multiome triangulation (`ADR-070`). |
 | `NarrativeAgent` | Compiles evidence-verified `NarrativeBlock`s (`C1–C4`, `W-CLAIM`, `W-LEDGER`) into self-contained HTML reports, `methodology.json`, RO-Crate metadata, and reproducibility capsules. |

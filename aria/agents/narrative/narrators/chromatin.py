@@ -122,6 +122,15 @@ class ChromatinNarrator:
         findings = unwrap_chromatin_findings(agent_result)
         blocks: list[NarrativeBlock] = []
 
+        preprocessing = {
+            key: findings.get(key)
+            for key in ("fastq_to_fragments", "fragments_to_matrix",
+                        "cohort_matrix_union")
+            if _ok(findings.get(key))
+        }
+        if preprocessing:
+            blocks.append(self._scatac_preprocessing_block(preprocessing))
+
         qc = findings.get("qc")
         if isinstance(qc, dict) and _ok(qc):
             blocks.append(self._qc_block(qc))
@@ -169,6 +178,101 @@ class ChromatinNarrator:
             blocks.append(self._footprint_block(footprinting))
 
         return blocks
+
+    # ── scATAC raw preprocessing (FASTQ -> fragments -> matrix) ─────────────
+    def _scatac_preprocessing_block(self, steps: dict) -> NarrativeBlock:
+        """Measured provenance of the raw scATAC front-end (ADR-076, C3 ledger
+        node ``ledger://chromatin/scatac_preprocessing``). Only quantities the
+        aligner / matrix bridge / cohort union actually reported are stated."""
+        align = steps.get("fastq_to_fragments") or {}
+        matrix = steps.get("fragments_to_matrix") or {}
+        union = steps.get("cohort_matrix_union") or {}
+
+        orientation = align.get("barcode_orientation")
+        if not orientation:
+            seen = []
+            for row in align.get("library_manifest") or []:
+                value = row.get("barcode_orientation") if isinstance(
+                    row, dict) else None
+                if value and value not in seen:
+                    seen.append(value)
+            orientation = ", ".join(str(v) for v in seen) or None
+
+        def _int(value):
+            try:
+                return int(value) if value is not None else None
+            except (TypeError, ValueError):
+                return None
+
+        metrics = {
+            "aligner": align.get("aligner"),
+            "n_libraries": _int(align.get("n_libraries")
+                                or matrix.get("n_libraries")),
+            "n_fragments": _int(align.get("n_fragments")),
+            "barcode_orientation": orientation,
+            "n_cells": _int(matrix.get("n_cells") or union.get("n_cells")),
+            "n_peaks": _int(matrix.get("n_peaks")),
+            "peak_mode": matrix.get("peak_mode"),
+            "n_consensus_peaks": _int(union.get("n_consensus_peaks")),
+        }
+        labels = (
+            ("aligner", "Aligner", "chromatin_scatac_align"),
+            ("n_libraries", "Libraries aligned", "chromatin_scatac_align"),
+            ("n_fragments", "Fragments written", "chromatin_scatac_align"),
+            ("barcode_orientation", "Cell-barcode orientation",
+             "chromatin_scatac_align"),
+            ("n_cells", "Cells in matrix", "chromatin_fragments_to_matrix"
+             if matrix else "chromatin_merge_matrices"),
+            ("n_peaks", "Peaks in matrix", "chromatin_fragments_to_matrix"),
+            ("peak_mode", "Peak set mode", "chromatin_fragments_to_matrix"),
+            ("n_consensus_peaks", "Cohort consensus peaks",
+             "chromatin_merge_matrices"),
+        )
+        evidence = [_ev(label, metrics[key], source)
+                    for key, label, source in labels
+                    if metrics[key] is not None]
+        ran_steps = [name for name, key in (
+            ("raw read alignment to fragments", "fastq_to_fragments"),
+            ("fragments to cell x peak matrix", "fragments_to_matrix"),
+            ("cohort matrix union", "cohort_matrix_union"),
+        ) if key in steps]
+        if not evidence:
+            evidence = [_ev("Steps completed", ", ".join(ran_steps),
+                            "chromatin_agent")]
+
+        parts = []
+        if metrics["n_fragments"] is not None:
+            parts.append(f"{metrics['n_fragments']} fragment(s) were written"
+                         + (f" by {metrics['aligner']}"
+                            if metrics["aligner"] else ""))
+        n_cells = metrics["n_cells"]
+        n_feat = (metrics["n_consensus_peaks"]
+                  if metrics["n_consensus_peaks"] is not None
+                  else metrics["n_peaks"])
+        if n_cells is not None and n_feat is not None:
+            parts.append(f"the resulting matrix has {n_cells} cell(s) x "
+                         f"{n_feat} peak(s)")
+        claim = (
+            "scATAC preprocessing completed ("
+            + "; ".join(ran_steps) + ")"
+            + (": " + "; ".join(parts) if parts else "") + ".")
+
+        validation = next(
+            (s.get("validation_level") for s in (align, matrix, union)
+             if s.get("validation_level")), "production")
+        return NarrativeBlock(
+            id="chromatin.scatac_preprocessing", modality="chromatin",
+            analysis="scatac_preprocessing", block_type="result",
+            title="scATAC raw preprocessing & matrix construction",
+            status="success", confidence="high", claim=claim,
+            evidence=evidence,
+            caveats=[Caveat(
+                "Fragment, cell, and peak counts are technical preprocessing "
+                "measurements; they describe data volume and matrix shape, not "
+                "biological signal.", severity="info")],
+            metrics={k: v for k, v in metrics.items() if v is not None},
+            metadata={"validation_level": validation},
+        )
 
     # ── QC ────────────────────────────────────────────────────────────────
     def _qc_block(self, qc: dict) -> NarrativeBlock:
@@ -729,14 +833,15 @@ class ChromatinNarrator:
                     path=comp["annotation_csv"]))
         evidence = [e for e in evidence if e.value is not None]
 
+        label = _modality_label(ann.get("data_type") or "bulk_ATAC")
         claim = (
-            f"Genomic annotation classified {total} differentially accessible "
-            f"peak(s) by feature; {n_promoter} ({promoter_pct:.0f}%) fall in "
-            f"promoter regions.")
+            f"Genomic annotation classified {total} {label} differentially "
+            f"accessible peak(s) by feature; {n_promoter} "
+            f"({promoter_pct:.0f}%) fall in promoter regions.")
         return NarrativeBlock(
             id="chromatin.peak_annotation", modality="chromatin",
             analysis="peak_annotation", block_type="result",
-            title="Genomic peak annotation", status="success",
+            title=f"Genomic peak annotation ({label})", status="success",
             confidence="medium", claim=claim, evidence=evidence,
             caveats=[Caveat(
                 "Peak annotation is positional: each peak is assigned to its "
@@ -785,14 +890,15 @@ class ChromatinNarrator:
                     f"{skipped}: no versioned GMT provisioned — skipped (no "
                     "fabrication).", severity="info"))
 
+        label = _modality_label(ora.get("data_type") or "bulk_ATAC")
         claim = (
-            f"Functional ORA ({method}) of genes near differentially accessible "
-            f"peaks found {n_terms} enriched term(s) across "
+            f"Functional ORA ({method}) of genes near {label} differentially "
+            f"accessible peaks found {n_terms} enriched term(s) across "
             f"{len(per_db)} database(s).")
         return NarrativeBlock(
             id="chromatin.peak_ora", modality="chromatin",
             analysis="peak_ora", block_type="result",
-            title="Functional enrichment of DA-peak genes",
+            title=f"Functional enrichment of DA-peak genes ({label})",
             status="success", confidence="medium",
             claim=claim, evidence=evidence, caveats=caveats,
             metrics={"comparisons": comps},

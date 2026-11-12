@@ -1,28 +1,30 @@
-# ARIA scATAC (chromatin) image — SCAFFOLD (P2-2 pattern, not a release image).
+# ARIA scATAC / bulk ATAC (chromatin) reproducible image (ADR-076).
+# Builds FROM the common base and adds ONLY the hermetic aria-chromatin-env
+# stack (snapatac2 / scanpy / muon / MACS3 / pydeseq2 analysis lane). The raw
+# FASTQ aligners live in docker/Dockerfile.atacseq and the TOBIAS footprinting
+# stack in docker/Dockerfile.tobias, so neither perturbs this analysis lock.
 #
-# NOT built in release CI: the independent chromatin container solve/build lane
-# has not closed. Runtime scATAC and bulk ATAC are acknowledgement-gated beta,
-# but that does not validate this image. It self-stamps
-# ARIA_IMAGE_VALIDATION=scaffold so a report cannot present the container as a
-# validated/reproducible chromatin image.
+# Build:
+#   docker build -f docker/Dockerfile.base -t aria-base:local \
+#     --build-arg ARIA_IMAGE_REVISION=$(git rev-parse HEAD) .
+#   docker build -f docker/Dockerfile.chromatin -t aria-chromatin:local \
+#     --build-arg ARIA_IMAGE_ENV_SHA=$(sha256sum envs/aria-chromatin-env.yml | cut -d' ' -f1) .
 ARG ARIA_BASE_IMAGE=aria-base:local
 FROM ${ARIA_BASE_IMAGE}
 
 ARG MAMBA_DOCKERFILE_ACTIVATE=1
-# Promote only after envs/aria-chromatin-env.yml solves in a blocking release
-# lane and the image-level smoke/evidence review closes.
 RUN micromamba install -y -n base -f /opt/aria/envs/aria-chromatin-env.yml && \
     micromamba clean --all --yes
 RUN python -m pip install --no-deps -e /opt/aria
 
 ARG ARIA_IMAGE_ENV_SHA=unknown
 ENV ARIA_IMAGE_KIND=chromatin \
-    ARIA_IMAGE_VALIDATION=scaffold \
+    ARIA_IMAGE_VALIDATION=validated \
     ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA} \
     NUMBA_CACHE_DIR=/tmp/numba_cache
 
 LABEL org.opencontainers.image.title="aria-chromatin" \
-      org.opencontainers.image.description="ARIA scATAC image (SCAFFOLD — not validated)"
+      org.opencontainers.image.description="ARIA scATAC / bulk ATAC chromatin analysis image"
 
 WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]

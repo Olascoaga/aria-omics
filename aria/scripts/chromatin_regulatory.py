@@ -269,37 +269,66 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
             method="paired_cell_peak_gene_correlation",
         )
 
-    core_res = compute_peak_to_gene_links(
-        rna_matrix=rna_aligned.X,
-        rna_var_names=[str(g) for g in rna_aligned.var_names],
-        atac_matrix=atac_aligned.X,
-        atac_var_names=[str(p) for p in atac_aligned.var_names],
-        gene_records=gene_records,
-        distance_bp=distance_bp,
-        min_corr=min_corr,
-        preprocess="as_is",
-        min_cells_detected=1,
-        background_null=False,
-        distance_mode="endpoint_min",
+    genome_fasta = params.get("genome_fasta")
+    genome_fai = params.get("genome_fai")
+    p2g_mode = params.get("peak2gene_mode")
+    use_null = bool(
+        genome_fasta
+        and Path(str(genome_fasta)).is_file()
+        and p2g_mode != "as_is"
+        and (
+            (len(common) >= 20 and atac_aligned.n_vars >= 20)
+            or p2g_mode == "signac"
+        )
     )
+
+    if use_null:
+        core_res, null_meta = _peak_to_gene_signac_null(
+            rna_aligned, atac_aligned, gene_records, params, out_dir,
+            genome_fasta=str(genome_fasta),
+            genome_fai=str(genome_fai) if genome_fai else None,
+            min_corr=min_corr, distance_bp=distance_bp,
+        )
+    else:
+        null_meta = {}
+        core_res = compute_peak_to_gene_links(
+            rna_matrix=rna_aligned.X,
+            rna_var_names=[str(g) for g in rna_aligned.var_names],
+            atac_matrix=atac_aligned.X,
+            atac_var_names=[str(p) for p in atac_aligned.var_names],
+            gene_records=gene_records,
+            distance_bp=distance_bp,
+            min_corr=min_corr,
+            preprocess="as_is",
+            min_cells_detected=1,
+            background_null=False,
+            distance_mode="endpoint_min",
+        )
     if core_res.get("status") != "success":
         return _skip(
             core_res.get("details", core_res.get("error_type", "peak_to_gene_failed")),
             method="paired_cell_peak_gene_correlation",
         )
 
-    rows = [
-        {
+    rows = []
+    for r in core_res["links"]:
+        row = {
             "gene": r["gene"],
             "peak": r["peak"],
             "correlation": r["correlation"],
             "distance_bp": r["distance_bp"],
             "direction": r["direction"],
         }
-        for r in core_res["links"]
-    ]
+        if use_null:
+            # Null-calibrated statistics exactly as emitted by peak2gene_core
+            # (z vs the matched trans background, two-sided Gaussian p, BH-FDR
+            # over ALL tested cis pairs); None stays None (never imputed).
+            row["z_score"] = r.get("zscore", r.get("z_score"))
+            row["pvalue"] = r.get("p_value", r.get("pvalue"))
+            row["fdr"] = r.get("padj", r.get("fdr"))
+        rows.append(row)
     csv_path = _write_rows(out_dir / "chromatin_peak_to_gene.csv", rows)
-    return {
+    out = {
         "ran": True,
         # Peak-to-gene link recovery is the one regulatory layer promoted out of
         # scaffold: it is externally concordance-validated against a canonical
@@ -309,6 +338,7 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
         # scaffold/exploratory, so the script-level umbrella level is unchanged.
         "validation_level": "beta",
         "method": "paired_cell_peak_gene_correlation",
+        "null_calibrated": bool(use_null),
         "n_tested": int(core_res["n_tested"]),
         "n_links": len(rows),
         "n_positive": int(core_res["n_positive"]),
@@ -320,6 +350,119 @@ def _peak_to_gene(adata, params: dict, out_dir: Path) -> dict[str, Any]:
             "distance are descriptive and do not establish regulatory mechanism."
         ),
     }
+    if use_null:
+        out.update(null_meta)
+        out["method"] = (
+            "paired_cell_peak_gene_correlation_with_matched_trans_null")
+        out["background_method"] = core_res.get("background_method")
+        out["background_match"] = core_res.get("background_match")
+        out["gc_matching"] = core_res.get("gc_matching")
+        out["n_fdr_significant_all_tested"] = core_res.get(
+            "n_fdr_significant_all_tested")
+        out["rna_normalization"] = core_res.get("rna_normalization")
+        out["atac_normalization"] = core_res.get("atac_normalization")
+        if core_res.get("warnings"):
+            out["warnings"] = list(core_res["warnings"])
+        out["caveat"] = (
+            "Peak-to-gene links are correlations across paired cells, tested "
+            "against a (GC, accessibility)-matched trans-chromosomal background "
+            "null with BH-FDR; they remain associative and do not establish "
+            "regulatory mechanism."
+        )
+    return out
+
+
+def _stage_genome_with_fai(genome_fasta: str, genome_fai: str | None,
+                           out_dir: Path) -> str:
+    """Return a FASTA path whose sibling ``<fasta>.fai`` is the provided index.
+
+    peak2gene_core reads the index from ``<fasta>.fai``. When an explicit local
+    ``.fai`` is supplied elsewhere (air-gapped installs), both files are
+    symlinked into a private staging dir so the core finds the pair without
+    touching (or re-indexing) the user's reference."""
+    fasta = Path(genome_fasta)
+    if not genome_fai or not Path(genome_fai).is_file():
+        return str(fasta)
+    if Path(f"{fasta}.fai").resolve() == Path(genome_fai).resolve():
+        return str(fasta)
+    stage = out_dir / "_peak2gene_genome"
+    try:
+        stage.mkdir(parents=True, exist_ok=True)
+        fa_link = stage / fasta.name
+        fai_link = stage / f"{fasta.name}.fai"
+        for link, target in ((fa_link, fasta), (fai_link, Path(genome_fai))):
+            if link.is_symlink() or link.exists():
+                link.unlink()
+            link.symlink_to(target.resolve())
+        return str(fa_link)
+    except OSError:
+        return str(fasta)
+
+
+def _peak_to_gene_signac_null(rna_aligned, atac_aligned, gene_records: dict,
+                              params: dict, out_dir: Path, *, genome_fasta: str,
+                              genome_fai: str | None, min_corr: float,
+                              distance_bp: int):
+    """ADR-068 Signac-calibrated peak-to-gene: Signac-matched normalization
+    (log1p CP10k RNA when raw counts; ATAC counts as provided) plus the
+    (GC, accessibility)-matched trans-chromosomal background null and BH-FDR
+    implemented in ``aria.utils.peak2gene_core``. Only arguments the installed
+    core actually accepts are forwarded."""
+    import inspect
+
+    from aria.utils.mudata_io import _select_raw_counts_matrix
+
+    n_null = int(params.get("peak2gene_n_null") or 200)
+    fdr_alpha = float(params.get("peak2gene_fdr") or 0.05)
+
+    rna_chk = _select_raw_counts_matrix(
+        rna_aligned, modality_label="rna", require_raw_counts=False)
+    atac_chk = _select_raw_counts_matrix(
+        atac_aligned, modality_label="atac", require_raw_counts=False)
+    rna_mat = rna_chk.get("matrix")
+    atac_mat = atac_chk.get("matrix")
+    staged_fasta = _stage_genome_with_fai(genome_fasta, genome_fai, out_dir)
+
+    accepted = set(inspect.signature(compute_peak_to_gene_links).parameters)
+    kwargs: dict[str, Any] = {
+        "rna_matrix": rna_mat if rna_mat is not None else rna_aligned.X,
+        "rna_var_names": [str(g) for g in rna_aligned.var_names],
+        "atac_matrix": atac_mat if atac_mat is not None else atac_aligned.X,
+        "atac_var_names": [str(p) for p in atac_aligned.var_names],
+        "gene_records": gene_records,
+        "distance_bp": distance_bp,
+        "min_corr": min_corr,
+        "min_cells_detected": 1,
+        "background_null": True,
+        "genome_fasta": staged_fasta,
+        "distance_mode": "endpoint_min",
+        "seed": 0,
+        "rna_is_raw_counts": bool(rna_chk.get("is_raw_counts", False)),
+        "atac_is_raw_counts": bool(atac_chk.get("is_raw_counts", False)),
+    }
+    # ADR-068 Signac-matched preprocessing is the core's "paired" mode.
+    kwargs["preprocess"] = "paired"
+    # Null size + FDR cutoff, under whichever names the core exposes.
+    if "n_null" in accepted:
+        kwargs["n_null"] = n_null
+    else:
+        kwargs["n_bg_per_bin"] = n_null
+    if "fdr_alpha" in accepted:
+        kwargs["fdr_alpha"] = fdr_alpha
+    else:
+        kwargs["max_padj"] = fdr_alpha
+    if "genome_fai" in accepted:
+        kwargs["genome_fai"] = genome_fai
+    kwargs = {k: v for k, v in kwargs.items() if k in accepted}
+
+    core_res = compute_peak_to_gene_links(**kwargs)
+    meta = {
+        "peak2gene_mode": "signac_calibrated",
+        "n_null": n_null,
+        "fdr_alpha": fdr_alpha,
+        "seed": 0,
+    }
+    return core_res, meta
 
 
 def _footprinting(params: dict) -> dict[str, Any]:

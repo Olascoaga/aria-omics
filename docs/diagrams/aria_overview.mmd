@@ -11,9 +11,9 @@ flowchart TD
     A -->|Beta ack required or blocking risks| CP35["Checkpoint 3.5: Proceed or Cancel"]
     A -->|No blocking issues| SETUP["SetupAgent + EnvironmentManager"]
     CP35 -->|Proceed| SETUP
-    SETUP --> B["BulkRNAAgent"]
-    SETUP --> S["scRNAAgent"]
-    SETUP --> C["ChromatinAgent (beta)"]
+    SETUP --> B["BulkRNAAgent (production)"]
+    SETUP --> S["scRNAAgent (production)"]
+    SETUP --> C["ChromatinAgent (scATAC production / bulk ATAC beta)"]
     SETUP --> INT["IntegrationAgent (paired Multiome beta)"]
     SETUP -. disabled by default .-> H["GenomeArchAgent (scaffold)"]
     B --> N["NarrativeAgent + Synthesis + Triangulation"]

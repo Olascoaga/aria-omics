@@ -119,3 +119,13 @@ Pass `chemistry` (or `kb_technology`) for 3', 5', plate, combinatorial, or custo
 - **10x 3' & 5':** `10XV2`, `10XV3`, `10XV4`, `10X_5P` (R2-only cDNA), `10X_5P_PE` (`0,0,16:0,16,26:0,39,0,1,0,0` skipping the 13-bp TSO on R1).
 - **Plate / microwell / combinatorial:** `SMARTSEQ2`, `SMARTSEQ3`, `BDWTA` (`bd_rhapsody`), `CELSEQ2`, `DROPSEQ`, `SPLIT-SEQ`, `STORMSEQ`, `VISIUM`, or custom `bc:umi:cdna` tuples.
 - **Fail-closed boundaries:** Long-read RNA-seq (`>=600 bp`), V(D)J TCR/BCR repertoire FASTQs, and unmanifested asymmetric barcode+UMI paired FASTQs routed to per-sample bulk alignment block pre-dispatch (`red`).
+
+---
+
+## 7. Universal Multi-Platform `scATAC-seq` Configuration (`ADR-076`)
+
+`scATAC` is a **`production`** modality supporting multi-lane raw FASTQs, single or multi-sample `fragments.tsv(.gz)`, and single or multi-file `.h5mu`/`.h5ad` peak matrices:
+
+- **Typed FASTQ manifest (`scatac_fastq_manifest`):** Supports single or multi-lane (`L001..L00N`) lists under `fastqs: {"R1": [...], "R2": [...], "R3": [...]}` (or `fastq_lanes`), `platform` presets (`10x_atac`, `10x_multiome_atac`, `sci_atac`, `share_seq`, `surecell`, or `custom` with explicit `chromap` `read_format`), and `barcode_orientation` (`auto`, `direct`, or `reverse_complement`). In `auto` mode, `chromatin_scatac_align.py` samples cell-barcode reads against `barcode_whitelist`, automatically flips reverse-complemented NextSeq/NovaSeq whitelists, and fails closed (`barcode_whitelist_mismatch`) when neither orientation matches.
+- **Air-gapped fragments-to-matrix (`ARIA_AIR_GAPPED=1`):** Pass `genome_fasta`, `genome_fai`, or `chrom_sizes` (or stage `~/.aria/genomes/<assembly>/genome.fa[.fai]`) so `chromatin_fragments_to_matrix.py` builds `snapatac2` peak matrices 100% offline without downloading UCSC chromosome sizes.
+- **Multi-sample cohorts:** Multiple `fragments.tsv.gz` files or multiple `.h5mu`/`.h5ad` matrices are merged onto a sweep-line genomic-overlap consensus peak universe (`chromatin_merge_matrices.py`, `ADR-043`) with `{sample_id}#{barcode}` identity preservation before donor-aware `pyDESeq2` pseudobulk DA, genomic peak annotation, and local GMT ORA.

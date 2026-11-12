@@ -1,0 +1,32 @@
+# ARIA TOBIAS footprinting image — BETA (ADR-076).
+# Builds FROM the common base and adds ONLY the hermetic aria-tobias-env stack
+# (TOBIAS ATACorrect -> ScoreBigwig -> BINDetect, samtools, pysam, pybigwig)
+# used by aria/scripts/chromatin_footprint_tobias.py. TOBIAS pins its own
+# numpy/pysam/pybigwig stack, so it never shares a layer with the chromatin
+# analysis lock. Footprinting stays a beta lane: the image self-stamps
+# ARIA_IMAGE_VALIDATION=beta so a report cannot present it as validated.
+#
+# Build:
+#   docker build -f docker/Dockerfile.base -t aria-base:local \
+#     --build-arg ARIA_IMAGE_REVISION=$(git rev-parse HEAD) .
+#   docker build -f docker/Dockerfile.tobias -t aria-tobias:local \
+#     --build-arg ARIA_IMAGE_ENV_SHA=$(sha256sum envs/aria-tobias-env.yml | cut -d' ' -f1) .
+ARG ARIA_BASE_IMAGE=aria-base:local
+FROM ${ARIA_BASE_IMAGE}
+
+ARG MAMBA_DOCKERFILE_ACTIVATE=1
+RUN micromamba install -y -n base -f /opt/aria/envs/aria-tobias-env.yml && \
+    micromamba clean --all --yes
+RUN python -m pip install --no-deps -e /opt/aria
+
+ARG ARIA_IMAGE_ENV_SHA=unknown
+ENV ARIA_IMAGE_KIND=tobias \
+    ARIA_IMAGE_VALIDATION=beta \
+    ARIA_IMAGE_ENV_SHA=${ARIA_IMAGE_ENV_SHA}
+
+LABEL org.opencontainers.image.title="aria-tobias" \
+      org.opencontainers.image.description="ARIA TOBIAS footprinting image (BETA)"
+
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/_entrypoint.sh"]
+CMD ["aria"]

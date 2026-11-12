@@ -48,6 +48,12 @@ from aria.agents.chromatin_helpers import (
 log = logging.getLogger("aria.chromatin")
 
 
+def _drop_none(params: dict) -> dict:
+    """Omit unset optional params so script input contracts (which reject an
+    explicit None for non-empty fields) only see values that actually exist."""
+    return {k: v for k, v in params.items() if v is not None}
+
+
 CHROMATIN_SYSTEM = """
 You are ARIA's ChromatinAgent — a specialist in chromatin accessibility
 and protein-DNA interaction analysis.
@@ -205,10 +211,18 @@ class ChromatinAgent(BaseAgent):
         # the pipeline is QC -> LSI/clustering -> differential accessibility ->
         # motif enrichment (no MACS3 peak calling). Fragments/BAM inputs fall
         # through to the legacy peak-calling path below.
-        h5mu = next((f for f in files
-                     if str(f).lower().endswith(".h5mu")), None)
-        if h5mu:
-            return self._run_scatac_matrix(experiment_id, exp_ctx, intent, h5mu)
+        # ADR-076: one pre-built matrix (`.h5mu` or cell x peak `.h5ad`) routes
+        # straight to the matrix pipeline; several matrices (a multi-sample
+        # cohort) are first unioned onto one consensus peak set.
+        if not _is_fastq(files):
+            matrix_files = [f for f in files
+                            if str(f).lower().endswith((".h5mu", ".h5ad"))]
+            if len(matrix_files) == 1:
+                return self._run_scatac_matrix(
+                    experiment_id, exp_ctx, intent, matrix_files[0])
+            if len(matrix_files) >= 2:
+                return self._run_scatac_cohort_matrices(
+                    experiment_id, exp_ctx, intent, matrix_files)
 
         findings = {}
 
@@ -225,9 +239,12 @@ class ChromatinAgent(BaseAgent):
                     and frag_attempt.get("fragments_file")):
                 files = [frag_attempt["fragments_file"]]
                 if frag_attempt.get("library_manifest"):
-                    exp_ctx["scatac_fastq_manifest"] = {
-                        "schema_version": "1",
-                        "libraries": frag_attempt["library_manifest"],
+                    exp_ctx = {
+                        **exp_ctx,
+                        "scatac_fastq_manifest": {
+                            "schema_version": "1",
+                            "libraries": frag_attempt["library_manifest"],
+                        },
                     }
             else:
                 return {"status": "done", "findings": findings,
@@ -303,8 +320,12 @@ class ChromatinAgent(BaseAgent):
                 and matrix_attempt.get("output_path")):
             self.publish_status(
                 experiment_id, "scATAC matrix pipeline from fragments...", 0.6)
+            matrix_ctx = exp_ctx
+            if len(files) == 1 and "fragments_file" not in exp_ctx:
+                # Downstream regulatory / TOBIAS layers need the fragments.
+                matrix_ctx = {**exp_ctx, "fragments_file": files[0]}
             matrix_result = self._run_scatac_matrix(
-                experiment_id, exp_ctx, intent,
+                experiment_id, matrix_ctx, intent,
                 matrix_attempt["output_path"], precomputed_qc=qc_result)
             findings.update(matrix_result.get("findings", {}))
             return {"status": "done", "findings": findings}
@@ -360,22 +381,21 @@ class ChromatinAgent(BaseAgent):
         Returns the bridge result (honest skip dict when no fragments file is
         present or snapatac2/genome are unavailable).
         """
-        frag = next(
-            (f for f in files
-             if "fragment" in str(f).lower()
-             and str(f).lower().endswith((".tsv", ".tsv.gz", ".bed", ".bed.gz"))),
-            None,
-        )
-        if frag is None:
+        frags = [f for f in files
+                 if "fragment" in str(f).lower()
+                 and str(f).lower().endswith(
+                     (".tsv", ".tsv.gz", ".bed", ".bed.gz"))]
+        if not frags:
             # A single tsv/bed.gz with no "fragment" token: accept only when it
             # is the lone input (avoid grabbing peak/annotation BEDs).
             tsvs = [f for f in files
                     if str(f).lower().endswith((".tsv", ".tsv.gz"))]
-            frag = tsvs[0] if len(tsvs) == 1 else None
-        if frag is None:
+            frags = tsvs if len(tsvs) == 1 else []
+        if not frags:
             return {"status": "skipped", "ran": False,
                     "analysis": "fragments_to_peak_matrix",
                     "reason": "no_fragments_file"}
+        frag = frags[0]
 
         peak_file = None
         if isinstance(peaks_result, dict) and peaks_result.get("status") == "success":
@@ -389,6 +409,27 @@ class ChromatinAgent(BaseAgent):
             "min_fragments": int(exp_ctx.get("min_fragments", 1000)),
             "resolution": exp_ctx.get("leiden_resolution", 1.0),
         }
+        if len(frags) > 1:
+            # Multi-sample cohort: the bridge unions every fragments file
+            # (sample-prefixed barcodes) onto one peak set.
+            params["fragments_files"] = frags
+            for key in ("sample_ids", "sample_metadata"):
+                if exp_ctx.get(key) is not None:
+                    params[key] = exp_ctx[key]
+        genome_fasta = exp_ctx.get("genome_fasta")
+        genome_fai = exp_ctx.get("genome_fai")
+        if not genome_fasta and not genome_fai:
+            # Air-gapped: chrom sizes cannot be downloaded, so reuse a locally
+            # staged FASTA (+ its .fai) when one exists.
+            from aria.utils import genomes, privacy
+            if not privacy.egress_allowed():
+                local, _src = genomes.resolve_local_genome_fasta(
+                    exp_ctx.get("genome"))
+                genome_fasta = local
+        if genome_fasta:
+            params["genome_fasta"] = genome_fasta
+        if genome_fai:
+            params["genome_fai"] = genome_fai
         library_manifest = (
             (exp_ctx.get("scatac_fastq_manifest") or {}).get("libraries")
         )
@@ -468,7 +509,9 @@ class ChromatinAgent(BaseAgent):
             "threads": int(exp_ctx.get("threads", 8)),
         }
         if libraries is not None:
-            first_r1 = libraries[0]["fastqs"]["R1"]
+            raw_r1 = libraries[0]["fastqs"]["R1"]
+            # Multi-lane libraries carry a list of R1 files per library.
+            first_r1 = raw_r1[0] if isinstance(raw_r1, list) else raw_r1
             params.update({
                 "libraries": libraries,
                 "output_dir": str(Path(first_r1).parent
@@ -483,10 +526,98 @@ class ChromatinAgent(BaseAgent):
                 "output_dir": str(Path((r1 or barcode)).parent
                                   / "aria_scatac_aligned"),
             })
+            for key in ("barcode_orientation", "platform", "read_format"):
+                if exp_ctx.get(key):
+                    params[key] = exp_ctx[key]
         return self.env.run_in_stack(
             stack="atacseq",
             script_path="aria/scripts/chromatin_scatac_align.py",
             params=params,
+        )
+
+    def _run_scatac_cohort_matrices(self, experiment_id: str, exp_ctx: dict,
+                                    intent: dict, matrix_files: list) -> dict:
+        """Union several per-sample scATAC matrices onto one consensus peak set
+        (chromatin_merge_matrices.py), then run the matrix pipeline on the
+        merged cohort. A failed union is reported honestly; nothing downstream
+        runs on a partial cohort."""
+        self.publish_status(
+            experiment_id, "scATAC cohort matrix union...", 0.05)
+        merge_res = self.env.run_in_stack(
+            stack="chromatin",
+            script_path="aria/scripts/chromatin_merge_matrices.py",
+            params=_drop_none({
+                "files": matrix_files,
+                "output_dir": str(Path(matrix_files[0]).parent
+                                  / "aria_chromatin_cohort"),
+                "sample_ids": exp_ctx.get("sample_ids"),
+                "sample_metadata": exp_ctx.get("sample_metadata"),
+            }),
+        )
+        if (not isinstance(merge_res, dict)
+                or merge_res.get("status") != "success"
+                or not merge_res.get("output_path")):
+            merge_res = merge_res if isinstance(merge_res, dict) else {}
+            return {"status": "done",
+                    "findings": {"cohort_matrix_union": merge_res},
+                    "reason": (merge_res.get("error_type")
+                               or "cohort_matrix_union_failed")}
+        merged_ctx = {
+            **exp_ctx,
+            "peak_provenance": merge_res.get(
+                "peak_provenance", "cohort_interval_union_consensus"),
+        }
+        matrix_res = self._run_scatac_matrix(
+            experiment_id, merged_ctx, intent, merge_res["output_path"])
+        return {"status": matrix_res.get("status", "done"),
+                "findings": {"cohort_matrix_union": merge_res,
+                             **(matrix_res.get("findings") or {})}}
+
+    def _run_scatac_pseudobulk_interpretation(self, experiment_id: str,
+                                              exp_ctx: dict, pb: dict,
+                                              out_dir: str,
+                                              findings: dict) -> None:
+        """Genomic annotation + functional ORA of the scATAC pseudobulk DA peaks,
+        reusing the bulk ATAC interpretation cores (ADR-076 parity). Runs only
+        when the pseudobulk DA actually persisted per-peak result tables."""
+        pb_comparisons = [
+            {**c, "full_results_csv": (c.get("full_results_csv")
+                                       or pb.get("full_results_csv"))}
+            for c in pb.get("comparisons") or []
+            if isinstance(c, dict) and c.get("status") == "success"
+        ]
+        if not any(c.get("full_results_csv") for c in pb_comparisons):
+            return
+        gtf = (exp_ctx.get("gtf") or exp_ctx.get("gtf_path")
+               or exp_ctx.get("gene_annotation_gtf"))
+        self.publish_status(
+            experiment_id, "scATAC DA peak annotation...", 0.65)
+        findings["peak_annotation"] = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_peak_annotation.py",
+            params=_drop_none({
+                "data_type": "scATAC",
+                "comparisons": pb_comparisons,
+                "genome": exp_ctx.get("genome"),
+                "gtf": gtf,
+                "promoter_upstream": exp_ctx.get("promoter_upstream"),
+                "promoter_downstream": exp_ctx.get("promoter_downstream"),
+                "output_dir": str(Path(out_dir) / "scatac_annotation"),
+            }),
+        )
+        self.publish_status(
+            experiment_id, "scATAC DA peak functional enrichment...", 0.7)
+        findings["peak_ora"] = self.env.run_in_stack(
+            stack="rna",
+            script_path="aria/scripts/chromatin_peak_ora.py",
+            params=_drop_none({
+                "data_type": "scATAC",
+                "comparisons": pb_comparisons,
+                "genome": exp_ctx.get("genome"),
+                "organism": exp_ctx.get("organism"),
+                "gtf": gtf,
+                "output_dir": str(Path(out_dir) / "scatac_ora"),
+            }),
         )
 
     def _resolve_da_design(self, exp_ctx: dict) -> dict:
@@ -613,9 +744,18 @@ class ChromatinAgent(BaseAgent):
             )
             findings["differential_accessibility"] = da_result
 
+            pb: dict = {}
+            if da_result.get("status") == "success":
+                pb = da_result.get("pseudobulk") or {}
+                if pb.get("ran") and pb.get("comparisons"):
+                    self._run_scatac_pseudobulk_interpretation(
+                        experiment_id, exp_ctx, pb, out_dir, findings)
+
             # 4. TF motif enrichment in the DA peak sets (offline, self-gating)
             da_csv = ((da_result.get("per_cluster") or {}).get("output_csv")
                       if da_result.get("status") == "success" else None)
+            if da_csv is None and pb.get("output_csv"):
+                da_csv = pb.get("output_csv")
 
             # Resolve the reference genome automatically (no env var required).
             # If nothing is staged locally, guide the user with a checkpoint
@@ -698,6 +838,10 @@ class ChromatinAgent(BaseAgent):
                     "peak_gene_distance_bp": exp_ctx.get("peak_gene_distance_bp"),
                     "min_peak_gene_corr": exp_ctx.get("min_peak_gene_corr"),
                     "min_shared_cells": exp_ctx.get("min_shared_cells"),
+                    **{k: v for k, v in (
+                        ("genome_fasta", genome_fasta or local),
+                        ("genome_fai", exp_ctx.get("genome_fai")),
+                    ) if v is not None},
                 },
             )
             findings["regulatory"] = regulatory_result

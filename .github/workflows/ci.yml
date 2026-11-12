@@ -160,6 +160,8 @@ jobs:
             tests/test_atac_align.py \
             tests/test_chromatin_scatac_align.py \
             tests/test_chromatin_fragments_to_matrix.py \
+            tests/test_scatac_cohort_union.py \
+            tests/test_scatac_production_multiplatform_e2e.py \
             tests/test_bulk_atac_footprint.py \
             tests/test_bulk_atac_v47.py \
             tests/test_bulk_atac_peak_counts.py \
@@ -273,6 +275,17 @@ jobs:
           docker build -f docker/Dockerfile.rna -t aria-rna:ci \
             --build-arg ARIA_BASE_IMAGE=aria-base:ci \
             --build-arg ARIA_IMAGE_ENV_SHA="$ENV_SHA" .
+
+      - name: Build the reproducible scATAC / ATAC aligner & chromatin images (ADR-076)
+        run: |
+          ATAC_SHA=$(sha256sum envs/aria-atacseq-env.yml | cut -d' ' -f1)
+          docker build -f docker/Dockerfile.atacseq -t aria-atacseq:ci \
+            --build-arg ARIA_BASE_IMAGE=aria-base:ci \
+            --build-arg ARIA_IMAGE_ENV_SHA="$ATAC_SHA" .
+          CHROM_SHA=$(sha256sum envs/aria-chromatin-env.yml | cut -d' ' -f1)
+          docker build -f docker/Dockerfile.chromatin -t aria-chromatin:ci \
+            --build-arg ARIA_BASE_IMAGE=aria-base:ci \
+            --build-arg ARIA_IMAGE_ENV_SHA="$CHROM_SHA" .
 
       - name: Real synthetic-DE recovery benchmark inside the image
         run: |

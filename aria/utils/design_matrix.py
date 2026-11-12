@@ -74,12 +74,28 @@ def resolve_design_contract(
         seen.add(cov)
         clean_covariates.append(cov)
 
+    raw_comparisons = exp_ctx.get("comparisons")
+    if raw_comparisons is None:
+        raw_comparisons = design.get("comparisons")
+    if raw_comparisons is None and isinstance(design.get("contrasts"), list):
+        norm_comps = []
+        for item in design["contrasts"]:
+            if isinstance(item, dict):
+                test_lvl = item.get("test") or item.get("numerator")
+                ref_lvl = item.get("reference") or item.get("denominator")
+                if test_lvl and ref_lvl:
+                    norm_comps.append(
+                        {"test": str(test_lvl), "reference": str(ref_lvl)}
+                    )
+        if norm_comps:
+            raw_comparisons = norm_comps
+
     return {
         "condition_col": condition_col,
         "replicate_col": replicate_col,
         "covariates": clean_covariates,
         "batch_covariate": batch_covariate,
-        "comparisons": exp_ctx.get("comparisons"),
+        "comparisons": raw_comparisons,
         "pseudobulk": {
             "condition_col": condition_col,
             "replicate_col": replicate_col,

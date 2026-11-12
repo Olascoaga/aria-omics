@@ -388,7 +388,7 @@ def _replicate_check(
     per_condition = {condition: len(reps) for condition, reps in counts.items()}
     min_reps = min(per_condition.values()) if per_condition else 0
     if (
-        modality in {"bulk_RNA", "bulk_RNA_raw"}
+        modality in {"bulk_RNA", "bulk_RNA_raw", "scATAC"}
         and len(per_condition) >= 2
         and min_reps < 2
     ):

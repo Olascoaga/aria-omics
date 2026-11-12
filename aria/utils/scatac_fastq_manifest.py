@@ -1,4 +1,4 @@
-"""Typed 10x scATAC FASTQ manifest loading and validation.
+"""Typed, multi-platform scATAC FASTQ manifest loading and validation.
 
 The manifest is the authoritative mapping from biological libraries to the
 three 10x ATAC read roles. Filenames remain non-binding hints (ADR-001/E2).
@@ -15,6 +15,19 @@ from typing import Any
 
 SCHEMA_VERSION = "1"
 REQUIRED_ROLES = ("R1", "R2", "R3")
+PLATFORM_ROLES = {
+    "10x_atac": REQUIRED_ROLES,
+    "10x_multiome_atac": REQUIRED_ROLES,
+    "share_seq": REQUIRED_ROLES,
+    "sci_atac": ("R1", "R2"),
+    "surecell": ("R1", "R2"),
+    "custom": ("R1",),
+}
+ORIENTATION_ALIASES = {
+    "auto": "auto", "direct": "direct", "forward": "direct", "fwd": "direct",
+    "reverse_complement": "reverse_complement", "rc": "reverse_complement",
+    "revcomp": "reverse_complement",
+}
 DISCOVERY_NAMES = (
     "scatac_fastq_manifest.json",
     "scatac_manifest.json",
@@ -124,40 +137,77 @@ def _canonicalize_manifest(
         if not donor_id:
             errors.append(f"{label}.donor_id is required")
         metadata["donor_id"] = donor_id
+        _structural_keys = {
+            "library_id", "sample_id", "donor_id", "fastqs", "fastq_lanes",
+            "platform", "barcode_orientation", "read_format",
+            "barcode_whitelist", "metadata", "barcode_prefix",
+            "fragments_file", "status", "alignment",
+        }
+        for extra_k, extra_v in row.items():
+            if (
+                extra_k not in _structural_keys
+                and isinstance(extra_v, (str, int, float, bool))
+                and extra_v is not None
+            ):
+                metadata.setdefault(extra_k, extra_v)
+
+        platform = row.get("platform", raw.get("platform", "10x_atac"))
+        if not isinstance(platform, str) or platform not in PLATFORM_ROLES:
+            errors.append(f"{label}.platform is unknown: {platform!r}")
+            platform = "10x_atac"
+        orientation = row.get(
+            "barcode_orientation", raw.get("barcode_orientation", "auto")
+        )
+        orientation = ORIENTATION_ALIASES.get(str(orientation).lower().strip())
+        if orientation is None:
+            errors.append(f"{label}.barcode_orientation is invalid")
+            orientation = "auto"
+        read_format = row.get("read_format", raw.get("read_format"))
+        if read_format is not None:
+            if not isinstance(read_format, str) or not read_format.strip():
+                errors.append(f"{label}.read_format must be a non-empty string")
+            else:
+                read_format = read_format.strip()
+        if platform == "custom" and not read_format:
+            errors.append(f"{label}.read_format is required for custom platform")
 
         fastqs = row.get("fastqs")
         if not isinstance(fastqs, dict):
             errors.append(f"{label}.fastqs must be an object with R1/R2/R3")
             fastqs = {}
         normalized_fastqs = {}
+        fastq_lanes = {}
         for role in REQUIRED_ROLES:
-            value = fastqs.get(role) or fastqs.get(role.lower())
-            if isinstance(value, list):
-                if len(value) != 1:
-                    errors.append(
-                        f"{label}.fastqs.{role} must name exactly one FASTQ"
-                    )
-                    continue
-                value = value[0]
-            path = _resolve_path(value, base_dir)
-            if not path:
-                errors.append(f"{label}.fastqs.{role} is required")
+            value = fastqs.get(role, fastqs.get(role.lower()))
+            if value is None and role not in PLATFORM_ROLES[platform]:
                 continue
-            if path in assigned_fastqs:
-                errors.append(
-                    f"FASTQ assigned more than once: {path} "
-                    f"({assigned_fastqs[path]} and {library_id}/{role})"
-                )
-            else:
-                assigned_fastqs[path] = f"{library_id}/{role}"
-            if require_paths and not Path(path).is_file():
-                errors.append(f"{label}.fastqs.{role} not found: {path}")
-            normalized_fastqs[role] = path
+            lanes = value if isinstance(value, list) else [value]
+            if not lanes:
+                errors.append(f"{label}.fastqs.{role} must be a non-empty list")
+            paths = []
+            for lane in lanes:
+                if not isinstance(lane, str) or not lane.strip():
+                    errors.append(f"{label}.fastqs.{role} requires non-empty path strings")
+                    continue
+                path = _resolve_path(lane, base_dir)
+                if path in assigned_fastqs:
+                    errors.append(
+                        f"FASTQ assigned more than once: {path} "
+                        f"({assigned_fastqs[path]} and {library_id}/{role})"
+                    )
+                else:
+                    assigned_fastqs[path] = f"{library_id}/{role}"
+                if require_paths and not Path(path).is_file():
+                    errors.append(f"{label}.fastqs.{role} not found: {path}")
+                paths.append(path)
+            if paths:
+                fastq_lanes[role] = paths
+                normalized_fastqs[role] = paths[0] if len(paths) == 1 else paths
 
         whitelist = _resolve_path(row.get("barcode_whitelist"), base_dir)
-        if not whitelist:
+        if not whitelist and platform in {"10x_atac", "10x_multiome_atac"}:
             errors.append(f"{label}.barcode_whitelist is required")
-        elif require_paths and not Path(whitelist).is_file():
+        elif whitelist and require_paths and not Path(whitelist).is_file():
             errors.append(f"{label}.barcode_whitelist not found: {whitelist}")
 
         canonical.append({
@@ -165,6 +215,10 @@ def _canonicalize_manifest(
             "sample_id": sample_id,
             "donor_id": donor_id,
             "fastqs": normalized_fastqs,
+            "fastq_lanes": fastq_lanes,
+            "platform": platform,
+            "barcode_orientation": orientation,
+            **({"read_format": read_format} if read_format else {}),
             "barcode_whitelist": whitelist,
             "metadata": metadata,
         })
@@ -182,23 +236,26 @@ def _resolve_path(value: Any, base_dir: Path) -> str:
     path = Path(text).expanduser()
     if not path.is_absolute():
         path = base_dir / path
-    return str(path)
+    return str(path.resolve())
 
 
 def manifest_library_types(manifest: dict[str, Any]) -> dict[str, str]:
     """Return authoritative per-file declarations for DataAudit classification."""
-    declarations = {}
-    for row in (manifest or {}).get("libraries") or []:
-        for path in (row.get("fastqs") or {}).values():
-            if path:
-                declarations[str(path)] = "scATAC"
-    return declarations
+    return {path: "scATAC" for path in manifest_fastq_files(manifest)}
 
 
 def manifest_fastq_files(manifest: dict[str, Any]) -> list[str]:
     """Return FASTQs in stable library then R1/R2/R3 order."""
     paths = []
     for row in (manifest or {}).get("libraries") or []:
-        roles = row.get("fastqs") or {}
-        paths.extend(str(roles[role]) for role in REQUIRED_ROLES if roles.get(role))
+        roles = row.get("fastq_lanes") or row.get("fastqs") or {}
+        for role in REQUIRED_ROLES:
+            value = roles.get(role)
+            if value:
+                paths.extend(value if isinstance(value, list) else [value])
     return paths
+
+
+def first_manifest_fastq(manifest: dict[str, Any]) -> str | None:
+    """Return the first declared lane in stable library/read/lane order."""
+    return next(iter(manifest_fastq_files(manifest)), None)

@@ -40,7 +40,7 @@ Output:
     "n_peaks": int,
     "peak_mode": "provided" | "de_novo",
     "peak_source": str,
-    "validation_level": "beta",
+    "validation_level": "production",
     "warnings": [str]
   }
   On a missing dependency / unknown assembly / no usable fragments it returns a
@@ -48,6 +48,7 @@ Output:
 """
 
 from __future__ import annotations
+import gzip
 import os
 import sys
 from pathlib import Path
@@ -56,11 +57,85 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from aria.scripts._base import run_script
 
 
+def _resolve_local_chrom_sizes(params: dict) -> tuple[dict[str, int] | None, str | None, list[str]]:
+    """Resolve only explicitly supplied local assembly assets, with no network IO."""
+    warnings = []
+
+    def positive_sizes(items):
+        sizes = {}
+        for chrom, length in items:
+            value = int(length)
+            if isinstance(length, bool) or value <= 0 or float(length) != value or not str(chrom).strip():
+                raise ValueError("contig names must be non-empty and lengths must be positive integers")
+            if str(chrom) in sizes:
+                raise ValueError(f"duplicate contig: {chrom}")
+            sizes[str(chrom)] = value
+        if not sizes:
+            raise ValueError("chromosome sizes are empty")
+        return sizes
+
+    def parse_table(path):
+        with open(path) as handle:
+            return positive_sizes(line.split()[:2] for line in handle
+                                  if line.strip() and not line.startswith("#"))
+
+    sizes = params.get("chrom_sizes")
+    if isinstance(sizes, dict):
+        try:
+            return positive_sizes(sizes.items()), "chrom_sizes", warnings
+        except (ValueError, TypeError, OverflowError) as exc:
+            warnings.append(f"invalid chrom_sizes: {exc}")
+    for key in ("chrom_sizes", "genome_fai"):
+        path = params.get(key)
+        if isinstance(path, (str, Path)) and path:
+            try:
+                return parse_table(path), str(path), warnings
+            except (OSError, ValueError, TypeError, OverflowError) as exc:
+                warnings.append(f"cannot read {key}: {exc}")
+    fasta = params.get("genome_fasta")
+    if fasta:
+        fasta = Path(fasta)
+        if Path(str(fasta) + ".fai").is_file():
+            try:
+                return parse_table(str(fasta) + ".fai"), str(fasta) + ".fai", warnings
+            except (OSError, ValueError, TypeError, OverflowError) as exc:
+                warnings.append(f"cannot read FASTA index: {exc}")
+        try:
+            opener = gzip.open if fasta.suffix == ".gz" else open
+            lengths, contig, length = [], None, 0
+            with opener(fasta, "rt") as handle:
+                for line in handle:
+                    if line.startswith(">"):
+                        if contig is not None:
+                            lengths.append((contig, length))
+                        header = line[1:].split()
+                        if not header:
+                            raise ValueError("FASTA header has no contig name")
+                        contig, length = header[0], 0
+                    elif line.strip():
+                        if contig is None:
+                            raise ValueError("FASTA sequence has no header")
+                        length += len("".join(line.split()))
+            if contig is not None:
+                lengths.append((contig, length))
+            return positive_sizes(lengths), str(fasta), warnings
+        except (OSError, ValueError, TypeError, OverflowError) as exc:
+            warnings.append(f"cannot read genome_fasta: {exc}")
+    return None, None, warnings
+
+
 def chromatin_fragments_to_matrix(params: dict) -> dict:
+    from aria.utils.stage_manifest import build_stage_manifest, stage_is_current, write_stage_manifest
+
     fragments_file = params.get("fragments_file")
+    fragments_files = params.get("fragments_files")
+    if fragments_files is None:
+        fragments_files = [fragments_file] if fragments_file else []
     genome = params.get("genome", "hg38")
     peak_file = params.get("peak_file")
     library_manifest = params.get("library_manifest") or []
+    if isinstance(library_manifest, dict):
+        library_manifest = library_manifest.get("libraries") or []
     output_dir = Path(params.get("output_dir")
                       or (Path(fragments_file).parent / "aria_chromatin"
                           if fragments_file else "aria_chromatin"))
@@ -72,119 +147,139 @@ def chromatin_fragments_to_matrix(params: dict) -> dict:
     def not_run(reason: str, **extra) -> dict:
         return {"status": "skipped", "ran": False,
                 "analysis": "fragments_to_peak_matrix",
-                "validation_level": "beta", "reason": reason,
+                "validation_level": "production", "reason": reason,
                 "warnings": warnings, **extra}
 
-    if not fragments_file or not Path(fragments_file).exists():
-        return not_run("fragments_file_missing",
-                       message=f"fragments file not found: {fragments_file}")
+    if (not isinstance(fragments_files, list) or not fragments_files
+            or any(not isinstance(path, (str, Path)) or not Path(path).is_file()
+                   for path in fragments_files)):
+        return not_run("fragments_file_missing", message="one or more fragment files are missing")
+    fragments_files = [str(path) for path in fragments_files]
+    fragments_file = fragments_files[0]
+    if peak_file and not Path(peak_file).is_file():
+        return not_run("peak_file_missing", message=f"peak file not found: {peak_file}")
 
-    # Resolve the assembly -> snapatac2 genome object (chrom sizes + annotation),
-    # reusing ARIA's governed mapping (same as QC/TSSe).
-    from aria.utils import genomes
-    attr = genomes.snapatac2_attr(genome)
-    if not attr:
-        return not_run("unknown_assembly",
-                       message=(f"no snapatac2 genome for assembly "
-                                f"'{genome or 'unknown'}'"))
-
-    from aria.utils import privacy
-    if not privacy.egress_allowed():
-        return not_run("air_gapped_genome",
-                       message=(f"snapatac2 genome '{attr}' is a governed "
-                                f"auto-fetch and egress is disabled"))
-
+    gobj, local_source, local_warnings = _resolve_local_chrom_sizes(params)
+    warnings.extend(local_warnings)
+    attr = None
+    if gobj is None:
+        from aria.utils import genomes, privacy
+        attr = genomes.snapatac2_attr(genome)
+        if not attr:
+            return not_run("unknown_assembly", message=f"no snapatac2 genome for assembly '{genome or 'unknown'}'")
+        if not privacy.egress_allowed():
+            return not_run("air_gapped_genome",
+                           message=f"snapatac2 genome '{attr}' is a governed auto-fetch and egress is disabled")
     try:
         import snapatac2 as snap
-    except ImportError as e:
-        return not_run("snapatac2_unavailable", message=str(e))
-
-    gobj = getattr(snap.genome, attr, None)
+    except ImportError as exc:
+        return not_run("snapatac2_unavailable", message=str(exc))
     if gobj is None:
-        return not_run("snapatac2_genome_missing",
-                       message=f"snapatac2 has no genome '{attr}'")
+        gobj = getattr(snap.genome, attr, None)
+        if gobj is None:
+            return not_run("snapatac2_genome_missing", message=f"snapatac2 has no genome '{attr}'")
 
     output_dir.mkdir(parents=True, exist_ok=True)
     out_path = output_dir / "fragments_peak_matrix.h5ad"
+    samples = []
+    if len(fragments_files) >= 2:
+        from aria.utils.scatac_cohort_union import resolve_sample_ids
+        try:
+            samples = resolve_sample_ids(fragments_files, params.get("sample_ids"))
+        except ValueError as exc:
+            return not_run("invalid_sample_ids", message=str(exc))
+        if "library_manifest" not in params:
+            library_manifest = []
+            for sample in samples:
+                meta = dict((params.get("sample_metadata") or {}).get(sample) or {})
+                library_manifest.append({
+                    "library_id": sample, "sample_id": sample,
+                    "donor_id": meta.get("donor_id") or meta.get("replicate") or sample,
+                    "barcode_prefix": f"{sample}#", "metadata": meta,
+                })
 
-    # Resume-by-file-validity: a prior valid matrix with matching peak intent.
-    required_obs = ({"library_id", "sample_id", "donor_id"}
-                    if library_manifest else set())
-    if _matrix_valid(out_path, required_obs=required_obs):
+    manifest_path = output_dir / "chromatin_fragments_to_matrix.stage_manifest.json"
+    inputs = [(f"fragments_{index}", path) for index, path in enumerate(fragments_files)]
+    for key in ("peak_file", "genome_fai", "genome_fasta", "chrom_sizes"):
+        value = params.get(key)
+        if isinstance(value, (str, Path)) and value and Path(value).is_file():
+            inputs.append((key, str(value)))
+    if local_source and local_source != "chrom_sizes" and Path(local_source).is_file():
+        inputs.append(("resolved_chrom_sizes", local_source))
+    stage_params = {"genome": genome, "min_fragments": min_fragments,
+                    "resolution": resolution, "macs3_qvalue": macs3_qvalue,
+                    "library_manifest": library_manifest, "sample_metadata": params.get("sample_metadata"),
+                    "sample_ids": samples, "chrom_sizes": gobj if isinstance(gobj, dict) else None}
+    tool_version = getattr(snap, "__version__", "")
+    required_obs = ({"library_id", "sample_id", "donor_id"} if library_manifest else set())
+    if (_matrix_valid(out_path, required_obs=required_obs) and stage_is_current(
+            manifest_path, inputs=inputs, params=stage_params, tool_version=tool_version)[0]):
         warnings.append("[resume] reused existing fragments_peak_matrix.h5ad")
-        meta = _matrix_meta(out_path)
         return {"status": "success", "output_path": str(out_path),
-                "validation_level": "beta", "resumed": True,
+                "validation_level": "production", "resumed": True,
                 "peak_mode": "provided" if peak_file else "de_novo",
-                "warnings": warnings, **meta}
+                "warnings": warnings, **_matrix_meta(out_path)}
 
-    import_fn = (getattr(snap.pp, "import_fragments", None)
-                 or getattr(snap.pp, "import_data", None))
+    if len(fragments_files) >= 2:
+        from aria.scripts.chromatin_scatac_align import _merge_library_fragments, _bgzip_tabix
+        combined = output_dir / "combined_cohort.fragments.tsv"
+        records = [{"library_id": sample, "fragments_file": path}
+                   for sample, path in zip(samples, fragments_files)]
+        union = _merge_library_fragments(records, combined)
+        if union.get("status") != "success":
+            return not_run("fragment_union_failed", message=union.get("message"))
+        compressed = output_dir / "combined_cohort.fragments.tsv.gz"
+        result = _bgzip_tabix(combined, compressed, warnings)
+        fragments_file = str(compressed if result == "ok" else combined)
+        if result != "ok":
+            warnings.append(f"bgzip/tabix unavailable ({result}); leaving plain cohort TSV")
+
+    import_fn = (getattr(snap.pp, "import_fragments", None) or getattr(snap.pp, "import_data", None))
     if import_fn is None:
-        return not_run("snapatac2_no_importer",
-                       message="snapatac2 exposes no import_fragments/import_data")
-
+        return not_run("snapatac2_no_importer", message="snapatac2 exposes no import_fragments/import_data")
     try:
-        adata = import_fn(fragments_file, chrom_sizes=gobj,
-                          min_num_fragments=min_fragments,
+        adata = import_fn(fragments_file, chrom_sizes=gobj, min_num_fragments=min_fragments,
                           sorted_by_barcode=False, file=None)
-    except Exception as e:
-        return not_run("fragment_import_failed", message=str(e))
-
+    except Exception as exc:
+        return not_run("fragment_import_failed", message=str(exc))
     n_cells = int(adata.n_obs)
     if n_cells == 0:
-        return not_run("no_cells_pass_fragment_floor",
-                       message=(f"no barcodes had >= {min_fragments} fragments"))
-
-    n_library_annotated = _annotate_library_metadata(
-        adata, library_manifest
-    ) if library_manifest else 0
+        return not_run("no_cells_pass_fragment_floor", message=f"no barcodes had >= {min_fragments} fragments")
+    n_library_annotated = _annotate_library_metadata(adata, library_manifest) if library_manifest else 0
     if library_manifest and n_library_annotated != n_cells:
-        return not_run(
-            "library_metadata_correspondence_failed",
-            message=(
-                f"typed library manifest annotated {n_library_annotated}/{n_cells} "
-                "fragment barcodes"
-            ),
-        )
+        return not_run("library_metadata_correspondence_failed",
+                       message=f"typed library manifest annotated {n_library_annotated}/{n_cells} fragment barcodes")
 
-    peak_mode = "provided" if peak_file and Path(peak_file).exists() else "de_novo"
+    peak_mode = "provided" if peak_file else "de_novo"
     try:
         if peak_mode == "provided":
-            peak_matrix = snap.pp.make_peak_matrix(
-                adata, peak_file=str(peak_file), inplace=False)
+            peak_matrix = snap.pp.make_peak_matrix(adata, peak_file=str(peak_file), inplace=False)
             peak_source = str(peak_file)
         else:
-            peak_source, peak_matrix = _de_novo_peaks(
-                snap, adata, gobj, resolution, macs3_qvalue, warnings)
+            peak_source, peak_matrix = _de_novo_peaks(snap, adata, gobj, resolution, macs3_qvalue, warnings)
             if peak_matrix is None:
-                return not_run("de_novo_peak_calling_failed",
-                               message=peak_source)
-    except Exception as e:
-        return not_run("peak_matrix_failed", message=f"{peak_mode}: {e}")
-
-    # Carry the per-cell QC the importer computed (n_fragment, tsse if present)
-    # so the matrix pipeline keeps cell-level provenance.
+                return not_run("de_novo_peak_calling_failed", message=peak_source)
+        # Some snapatac2 versions return only obs_names on the peak matrix.
+        # Align by barcode so metadata and importer QC survive reordering.
+        if not peak_matrix.obs_names.isin(adata.obs_names).all():
+            return not_run("peak_matrix_failed", message="peak matrix contains unknown fragment barcodes")
+        for column in adata.obs.columns:
+            if column not in peak_matrix.obs.columns:
+                peak_matrix.obs[column] = adata.obs[column].reindex(peak_matrix.obs_names)
+    except Exception as exc:
+        return not_run("peak_matrix_failed", message=f"{peak_mode}: {exc}")
     try:
         peak_matrix.write_h5ad(out_path)
-    except Exception as e:
-        return not_run("write_failed", message=str(e))
-
-    n_peaks = int(peak_matrix.n_vars)
-    return {
-        "status": "success",
-        "output_path": str(out_path),
-        "n_cells": int(peak_matrix.n_obs),
-        "n_peaks": n_peaks,
-        "peak_mode": peak_mode,
-        "peak_source": peak_source,
-        "min_fragments": min_fragments,
-        "genome": genome,
-        "validation_level": "beta",
-        "n_libraries": len(library_manifest) if library_manifest else None,
-        "n_library_annotated": n_library_annotated,
-        "warnings": warnings,
-    }
+        write_stage_manifest(manifest_path, build_stage_manifest(
+            stage="chromatin_fragments_to_matrix", inputs=inputs, params=stage_params, tool_version=tool_version))
+    except Exception as exc:
+        return not_run("write_failed", message=str(exc))
+    return {"status": "success", "output_path": str(out_path),
+            "n_cells": int(peak_matrix.n_obs), "n_peaks": int(peak_matrix.n_vars),
+            "peak_mode": peak_mode, "peak_source": peak_source, "min_fragments": min_fragments,
+            "genome": genome, "validation_level": "production",
+            "n_libraries": len(library_manifest) if library_manifest else None,
+            "n_library_annotated": n_library_annotated, "warnings": warnings}
 
 
 def _de_novo_peaks(snap, adata, gobj, resolution, qvalue, warnings):

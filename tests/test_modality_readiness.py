@@ -121,9 +121,82 @@ def test_bulk_rna_raw_default_registry_promoted_to_production_auto_dispatch():
     assert matrix["dispatch"]["blocked"] == []
 
 
-def test_scatac_card_is_beta_requires_ack_after_dealpha():
-    # De-alpha 2026-06-15 (ADR-048): the ChromatinAuditAgent card reports beta +
-    # the beta readiness finding, and scATAC still requires explicit ack.
+def test_scatac_default_registry_promoted_to_production_auto_dispatch():
+    from aria.agents.orchestrator_agent import MODALITY_VALIDATION
+
+    assert MODALITY_VALIDATION["scATAC"]["level"] == "production"
+    assert MODALITY_VALIDATION["scATAC"]["promotion_adr"] == "ADR-076"
+
+    # Exploratory / chromatin-characterization run (no cross-condition contrast)
+    matrix = build_capability_matrix(
+        {"genome": "hg38", "modalities": {"scATAC": ["/data/a.h5mu"]}},
+        modality_validation=MODALITY_VALIDATION,
+    )
+    card = matrix["cards"]["scATAC"]
+    assert card["validation_level"] == "production"
+    assert card["status"] == "green"
+    assert card["dispatch_policy"] == "auto"
+    assert matrix["dispatch"]["allowed"] == ["scATAC"]
+    assert matrix["dispatch"]["requires_ack"] == []
+    assert matrix["dispatch"]["blocked"] == []
+    readiness = card["checks"]["production_readiness"]
+    assert readiness["production_promoted"] is True
+    assert readiness["tier"] == "production"
+    assert readiness["promotion_adr"] == "ADR-076"
+    assert readiness["caveated_sub_layers"]["per_cluster_marker_peaks"] == "exploratory"
+    assert readiness["caveated_sub_layers"]["differential_tf_footprinting"] == "beta"
+
+
+def test_scatac_readiness_gates_pseudobulk_replicates_like_scrna():
+    from aria.agents.modality_audit import ScATACAuditAgent
+
+    # n>=3 donors per condition -> green / auto
+    green_card = ScATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"scATAC": ["/data/cohort.h5ad"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "donor_id",
+            "groups": {"ctrl": ["d1", "d2", "d3"], "treat": ["d4", "d5", "d6"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert green_card["status"] == "green"
+    assert green_card["dispatch_policy"] == "auto"
+
+    # n==2 donors -> yellow / requires_ack
+    yellow_card = ScATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"scATAC": ["/data/cohort.h5ad"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "donor_id",
+            "groups": {"ctrl": ["d1", "d2"], "treat": ["d3", "d4"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert yellow_card["status"] == "yellow"
+    assert yellow_card["dispatch_policy"] == "requires_ack"
+    assert any(f["check"] == "scatac_pseudobulk_low_power" for f in yellow_card["findings"])
+
+    # n<2 donors on contrasted run -> red / blocked
+    red_card = ScATACAuditAgent().audit({
+        "genome": "hg38",
+        "modalities": {"scATAC": ["/data/cohort.h5ad"]},
+        "design": {
+            "condition_col": "condition",
+            "replicate_col": "donor_id",
+            "groups": {"ctrl": ["d1"], "treat": ["d2", "d3"]},
+            "comparisons": [{"test": "treat", "reference": "ctrl"}],
+        },
+    })
+    assert red_card["status"] == "red"
+    assert red_card["dispatch_policy"] == "blocked"
+    assert any(f["check"] == "scatac_pseudobulk_under_replicated" for f in red_card["findings"])
+
+
+def test_scatac_explicit_beta_override_still_requires_ack():
+    # Explicit downgrade override in modality_validation still enforces beta + ack.
     matrix = build_capability_matrix(
         {"genome": "hg38", "modalities": {"scATAC": ["/data/a.h5mu"]}},
         modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
@@ -134,28 +207,7 @@ def test_scatac_card_is_beta_requires_ack_after_dealpha():
     assert card["dispatch_policy"] == "requires_ack"
     codes = {f["check"] for f in card["findings"]}
     assert "chromatin_readiness_beta_ack_required" in codes
-    assert "chromatin_readiness_alpha_ack_required" not in codes
-    readiness = card["checks"]["production_readiness"]
-    # ADR-056: technical blockers cleared, but NOT promoted to production.
-    assert readiness["technical_blockers_cleared"] is True
-    assert readiness["open_blockers"] == []
-    assert readiness["production_promoted"] is False
-    assert readiness["tier"] == "beta"
-    assert readiness["governance_blockers"]
-
-
-def test_scatac_default_registry_stays_beta_until_tier_promotion():
-    matrix = build_capability_matrix(
-        {"genome": "hg38", "modalities": {"scATAC": ["/data/a.h5mu"]}},
-        modality_validation={"scATAC": {"level": "beta", "dispatch_enabled": True}},
-    )
-
-    card = matrix["cards"]["scATAC"]
-    assert card["validation_level"] == "beta"
-    assert card["status"] == "yellow"
-    assert card["dispatch_policy"] == "requires_ack"
     assert card["checks"]["production_readiness"]["production_promoted"] is False
-    assert card["checks"]["production_readiness"]["technical_blockers_cleared"] is True
 
 
 def test_capability_matrix_marks_bulk_atac_beta_requires_ack():
@@ -200,26 +252,28 @@ def test_bulk_atac_default_registry_stays_beta_until_tier_promotion():
     assert card["checks"]["production_readiness"]["technical_blockers_cleared"] is True
 
 
-def test_adr056_atac_never_inferred_production_no_governance_blockers_dropped():
-    # ADR-056: production is never inferred from the audit. Even with all technical
-    # blockers cleared, ATAC stays beta + requires_ack with the governance blockers
-    # listed and production_promoted hard-False.
+def test_adr056_bulk_atac_stays_beta_while_adr076_promotes_scatac_explicitly():
+    # ADR-056: bulk_ATAC stays beta + requires_ack with governance blockers listed;
+    # ADR-076 explicitly promotes scATAC to production while preserving ADR-056 policy.
     from aria.agents.modality_audit import (
         _ATAC_GOVERNANCE_BLOCKERS,
         _atac_production_readiness,
     )
 
-    for modality in ("scATAC", "bulk_ATAC"):
-        r = _atac_production_readiness(modality)
-        assert r["production_promoted"] is False, modality
-        assert r["tier"] == "beta" and r["requires_ack"] is True, modality
-        assert r["promotion_policy_adr"] == "ADR-056", modality
-        # The governance bar must stay visible (not silently emptied like the
-        # technical blockers were).
-        assert tuple(r["governance_blockers"]) == _ATAC_GOVERNANCE_BLOCKERS, modality
-        assert "explicit_production_promotion_adr" in r["governance_blockers"]
+    bulk = _atac_production_readiness("bulk_ATAC")
+    assert bulk["production_promoted"] is False
+    assert bulk["tier"] == "beta" and bulk["requires_ack"] is True
+    assert bulk["promotion_policy_adr"] == "ADR-056"
+    assert tuple(bulk["governance_blockers"]) == _ATAC_GOVERNANCE_BLOCKERS
+    assert "explicit_production_promotion_adr" in bulk["governance_blockers"]
+
+    sc = _atac_production_readiness("scATAC")
+    assert sc["production_promoted"] is True
+    assert sc["tier"] == "production" and sc["requires_ack"] is False
+    assert sc["promotion_policy_adr"] == "ADR-056"
+    assert sc["promotion_adr"] == "ADR-076"
     # No legacy ambiguous field that could be misread as "is production".
-    assert "production_ready" not in _atac_production_readiness("scATAC")
+    assert "production_ready" not in sc and "production_ready" not in bulk
 
 
 def test_audit_agent_surfaces_capability_matrix_without_heavy_checks(monkeypatch):

@@ -80,7 +80,8 @@ def test_integration_validation_is_beta_ack_gated_and_never_production():
         "CUT_AND_TAG",
         "HiC",
     }
-    assert MODALITY_VALIDATION_LEVELS["scATAC"] == "beta"
+    assert MODALITY_VALIDATION_LEVELS["scATAC"] == "production"
+    assert MODALITY_VALIDATION_LEVELS["bulk_ATAC"] == "beta"
     assert "integration" not in MODALITY_VALIDATION
 
 

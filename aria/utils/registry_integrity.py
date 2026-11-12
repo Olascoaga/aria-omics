@@ -47,9 +47,16 @@ AGENT_SCRIPT_CONTRACTS = {
         "required": (
             "aria/scripts/chromatin_qc.py",
             "aria/scripts/chromatin_peaks.py",
+            "aria/scripts/chromatin_scatac_align.py",
+            "aria/scripts/chromatin_fragments_to_matrix.py",
+            "aria/scripts/chromatin_merge_matrices.py",
+            "aria/scripts/chromatin_lsi_clustering.py",
+            "aria/scripts/chromatin_diffacc.py",
+            "aria/scripts/chromatin_motifs.py",
+            "aria/scripts/chromatin_peak_annotation.py",
+            "aria/scripts/chromatin_peak_ora.py",
         ),
         "planned": (
-            "aria/scripts/chromatin_motifs.py",
             "aria/scripts/chromatin_differential.py",
         ),
     },

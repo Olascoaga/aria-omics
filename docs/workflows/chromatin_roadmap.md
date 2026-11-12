@@ -1,17 +1,19 @@
 # Chromatin Workflows
 
-Validation level: scATAC and bulk ATAC are both **beta + require explicit
-acknowledgement** (CP3.5). Both expose implemented beta workflows end-to-end,
-but stay beta + `requires_ack` pending the readiness ADR and CI coverage — they are
-NOT autonomous production, and one step is explicitly not publication-grade yet:
-differential TF footprinting (TOBIAS) is a DESCRIPTIVE candidate ranking, not
-FDR-controlled significance, because it contrasts a single pseudobulk per condition
-(preprint audit B7; per-replicate inference + multiplicity is the deferred fix).
+Validation level: `scATAC` is **production** (`ADR-076`, governed at `CP3.5` by
+`ScATACAuditAgent` — auto-dispatching exploratory single-cohort runs and `n>=3`
+donor-aware pseudobulk contrasts, requiring acknowledgement for `n==2` low-power
+contrasts, and blocking `n<2` or batch-confounded contrasted designs), whereas
+`bulk_ATAC` remains **beta + requires explicit acknowledgement** (`CP3.5`, `ADR-056`).
+Even on the promoted `scATAC` spine, optional sub-layers keep explicit statistical
+scope limits: per-cluster Wilcoxon markers remain descriptive rankings, `gene_scores`
+remain caveated, and differential TF footprinting (`TOBIAS`) is a DESCRIPTIVE
+candidate ranking, not FDR-controlled significance, when it contrasts a single
+pseudobulk per condition without `>=3` explicit biological replicates per group
+(preprint audit B7).
 ChIP-seq, CUT&RUN, and CUT&TAG remain
 scaffolded. The authoritative per-modality tier lives in the orchestrator's
 `MODALITY_VALIDATION` (single source) and is mirrored in `docs/validation_status.md`.
-
-This module should not yet be described as production-ready.
 
 ## Target Assays
 
@@ -46,18 +48,24 @@ This module should not yet be described as production-ready.
   per-file modality, and publishes only a complete generation. Raw SRA requires the
   external SRA Toolkit; downstream assay-specific readiness contracts remain binding.
 
-## Current scATAC Beta Path
+## Current scATAC Production Path (`ADR-076`)
 
-scATAC reaches the full matrix pipeline from three entry points (all behind CP3.5
-acknowledgement): a same-cell RNA+ATAC `.h5mu` (pre-called peaks); a raw fragments
-file (the `chromatin_fragments_to_matrix.py` snapatac2 bridge builds the cell×peak
-matrix — real-validated on the 10x PBMC Multiome); and raw FASTQ
-(`chromatin_scatac_align.py` chromap → fragments → bridge). The beta lane supports
-measured QC (incl. TSSe/FRiP gating figures), TF-IDF/LSI clustering, per-cluster
-accessibility markers, replicate-gated pseudobulk condition-DA, local motif
-enrichment, peak-to-gene link recovery (beta, ADR-050), TOBIAS footprinting + RNA
-cross-evidence, gene-activity scoring (caveated scaffold), and chromatin report
-blocks + publication figures.
+`scATAC` reaches the unified matrix pipeline from three entry points: single or
+multi-file `.h5mu`/`.h5ad` peak matrices (merged onto a genomic-overlap consensus
+peak universe via `chromatin_merge_matrices.py`, honoring `ADR-043`); single or
+multi-sample `fragments.tsv(.gz)` inputs (`chromatin_fragments_to_matrix.py`
+`snapatac2` bridge with 100% offline `ARIA_AIR_GAPPED=1` local `.fai`/FASTA support
+and `A4` stage resume); and universal raw FASTQs (`chromatin_scatac_align.py`
+`chromap` supporting multi-lane `L001..L00N`, platform presets `10x_atac`,
+`10x_multiome_atac`, `sci_atac`, `share_seq`, `surecell`, or custom `--read-format`,
+and automatic direct/reverse-complement barcode-whitelist detection failing closed
+on `barcode_whitelist_mismatch`). The `production` spine runs measured QC (incl.
+TSSe/FRiP gating figures), TF-IDF/LSI clustering, descriptive per-cluster
+accessibility markers, donor-aware `pyDESeq2` pseudobulk condition-DA, genomic peak
+annotation (`chromatin_peak_annotation.py`), local GMT functional ORA
+(`chromatin_peak_ora.py`), `JASPAR2024` motif enrichment, Signac-calibrated cis
+`peak2gene` (`ADR-068`), optional `beta` `TOBIAS` footprinting + RNA cross-evidence,
+caveated `gene_scores`, and `C3`-verified chromatin report blocks (`ledger://chromatin/scatac_preprocessing`) + publication figures.
 
 Missing resources or underpowered designs are reported as skipped/limited analyses,
 not inferred around. chromVAR-style per-cell motif activity remains out of scope.
@@ -79,17 +87,13 @@ under-specified designs return structured skips. FRiP is computed only when the 
 post-peak-counting tools succeed; ARIA does not substitute a default FRiP. n=2
 isogenic designs run with a low-power warning (directional, not FDR-calibration).
 
-## Required Before Stable
+## Optional Sub-Layers & Remaining Roadmap
 
-For scATAC:
+For `scATAC` optional layers (`scATAC` core spine is `production` under `ADR-076`):
 
-- broader real-data fixture coverage beyond the current HC11/synthetic/
-  multi-sample validation set;
-- expert review of biological conclusions and thresholds;
 - chromVAR per-cell motif activity if that becomes a product goal;
-- independent replication and threshold review for peak-to-gene and
-  gene-activity outputs;
-- stable promotion criteria and release review.
+- independent threshold calibration if `gene_scores` is ever promoted beyond caveated exploratory status;
+- `TOBIAS` footprinting remains `beta` (`Dockerfile.tobias`), descriptive unless `>=3` biological replicates per group are supplied.
 
 For bulk ATAC (QC→peaks→DA→annotation→ORA→motifs→footprinting→figures and raw
 FASTQ→BAM are implemented and real-validated on ENCODE replicates):
@@ -121,8 +125,7 @@ flowchart TD
 
 ## Release Recommendation
 
-Do not promote multimodal integration before standalone chromatin conclusions
-have stable validation and expert review. The scATAC and bulk ATAC paths are
-available as acknowledgement-gated **beta** runs (not autonomous production);
-scaffolded chromatin assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from
-publication-looking dispatch.
+`scATAC` is promoted to **production** (`ADR-076`, governed by `ScATACAuditAgent`),
+while `bulk_ATAC` and paired same-cell RNA+ATAC integration remain available as
+acknowledgement-gated **beta** lanes (`ADR-056`, `ADR-071`); scaffolded chromatin
+assays (ChIP/CUT&RUN/CUT&TAG) remain blocked from publication-looking dispatch.

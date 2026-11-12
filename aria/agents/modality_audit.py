@@ -152,17 +152,49 @@ def _has_column_hint(columns: list[str], hints: tuple[str, ...]) -> bool:
     return any(any(hint in col for hint in hints) for col in lowered)
 
 
-def _atac_production_readiness(modality: str) -> dict[str, Any]:
-    """ATAC readiness, ADR-056-honest.
+_SCATAC_CAVEATED_SUBLAYERS = {
+    "per_cluster_marker_peaks": "exploratory",
+    "gene_scores": "exploratory",
+    "motif_activity": "scaffold",
+    "label_transfer": "exploratory",
+    "differential_tf_footprinting": "beta",
+}
 
-    The technical C1-C6 blockers are closed, but ATAC stays beta + requires_ack:
-    a closed technical blocker list does NOT promote the tier. `production_promoted`
-    is therefore False until an explicit promotion ADR clears the governance
-    blockers. The old ambiguous `production_ready` field (which meant "no technical
-    blockers" and could be misread as "is production") is replaced by the explicit
-    `technical_blockers_cleared` + `production_promoted` pair.
+
+def _atac_production_readiness(
+    modality: str,
+    *,
+    tier_override: str | None = None,
+) -> dict[str, Any]:
+    """ATAC readiness, ADR-056 / ADR-076-honest.
+
+    `scATAC` is explicitly promoted to `production` by `ADR-076` (universal raw
+    multi-lane/multi-platform `chromap` ingestion, multi-sample fragment &
+    matrix interval-consensus union, air-gapped `.fai` bridge, donor-aware
+    `pyDESeq2` pseudobulk DA + peak annotation + ORA + JASPAR motifs, `C3`
+    ledger linkage, and `ScATACAuditAgent` design/replicate gating), while its
+    optional exploratory/beta sub-layers stay explicitly caveated.
+
+    `bulk_ATAC` remains `beta + requires_ack` under `ADR-056`: a closed
+    technical blocker list does NOT promote the tier without an explicit
+    promotion ADR.
     """
     technical_blockers = list(_ATAC_PRODUCTION_BLOCKERS.get(modality, ()))
+    effective_tier = tier_override or (
+        "production" if modality == "scATAC" else "beta"
+    )
+    if modality == "scATAC" and effective_tier == "production":
+        return {
+            "tier": "production",
+            "requires_ack": False,
+            "production_promoted": True,
+            "technical_blockers_cleared": not technical_blockers,
+            "open_blockers": technical_blockers,
+            "governance_blockers": [],
+            "promotion_policy_adr": "ADR-056",
+            "promotion_adr": "ADR-076",
+            "caveated_sub_layers": dict(_SCATAC_CAVEATED_SUBLAYERS),
+        }
     return {
         "tier": "beta",
         "requires_ack": True,
@@ -329,55 +361,235 @@ class ScRNAAuditAgent:
         return card
 
 
-class ChromatinAuditAgent:
-    """Readiness cards for chromatin modalities before full validation closes."""
+class ScATACAuditAgent:
+    """Pre-dispatch readiness checks for production scATAC workflows (ADR-076).
 
-    def audit(self, exp_context: dict[str, Any], modality: str) -> dict[str, Any]:
+    Mirrors ``ScRNAAuditAgent`` for multi-condition inferential pseudobulk DA
+    while allowing non-contrasted chromatin-characterization runs (`no_de_design`
+    or single-condition clustering/peak/motif runs) to dispatch autonomously
+    (`green` / `auto`). Optional exploratory/beta sub-layers (per-cluster
+    Wilcoxon marker peaks, gene activity scores, TOBIAS footprinting) remain
+    explicitly caveated inside the report without gating the core spine.
+    """
+
+    modality = "scATAC"
+
+    def audit(self, exp_context: dict[str, Any]) -> dict[str, Any]:
+        card = _base_card(
+            self.modality,
+            agent="chromatin_agent",
+            validation_level="production",
+        )
+        design = _combined_design(exp_context)
+        pb = design.get("pseudobulk") or {}
+        groups = design.get("analysis_groups") or design.get("groups") or {}
+
+        condition_col = (
+            pb.get("condition_col")
+            or design.get("condition_col")
+            or design.get("main_factor")
+            or exp_context.get("condition_col")
+        )
+        replicate_col = (
+            pb.get("replicate_col")
+            or design.get("replicate_col")
+            or exp_context.get("replicate_col")
+            or exp_context.get("replicate_column")
+        )
+        comparisons = (
+            exp_context.get("comparisons")
+            or design.get("comparisons")
+            or design.get("contrasts")
+            or design.get("plan_contrasts")
+        )
+
+        counts = _replicate_counts(groups)
+        if not counts:
+            metadata = exp_context.get("sample_metadata") or {}
+            if isinstance(metadata, dict) and metadata:
+                by_cond: dict[str, set[str]] = {}
+                c_key = str(condition_col or "condition")
+                r_key = str(replicate_col or "replicate")
+                for sample_id, row in metadata.items():
+                    if not isinstance(row, dict):
+                        continue
+                    cond = row.get(c_key) or row.get("condition")
+                    rep = (
+                        row.get(r_key)
+                        or row.get("donor_id")
+                        or row.get("replicate")
+                        or sample_id
+                    )
+                    if cond and rep:
+                        by_cond.setdefault(str(cond), set()).add(str(rep))
+                counts = {k: len(v) for k, v in by_cond.items()}
+        if not counts:
+            libraries = (
+                (exp_context.get("scatac_fastq_manifest") or {}).get("libraries")
+                or []
+            )
+            if isinstance(libraries, list) and libraries:
+                by_cond = {}
+                c_key = str(condition_col or "condition")
+                for row in libraries:
+                    if not isinstance(row, dict):
+                        continue
+                    meta = row.get("metadata") or {}
+                    cond = meta.get(c_key) or meta.get("condition")
+                    donor = row.get("donor_id") or meta.get("donor_id") or row.get("sample_id")
+                    if cond and donor:
+                        by_cond.setdefault(str(cond), set()).add(str(donor))
+                counts = {k: len(v) for k, v in by_cond.items()}
+
+        min_reps = min(counts.values()) if counts else 0
+        has_inferential_contrast = bool(comparisons) or len(counts) >= 2
+
+        card["checks"]["validation"] = {
+            "validated": True,
+            "stage": "production",
+            "live_orchestrator_run": "done",
+            "external_concordance": "done",
+            "promotion_adr": "ADR-076",
+        }
+        card["checks"]["production_readiness"] = _atac_production_readiness(
+            self.modality, tier_override="production"
+        )
+        card["checks"]["pseudobulk_design"] = {
+            "condition_col": condition_col,
+            "replicate_col": replicate_col,
+            "has_groups": bool(counts),
+            "inferential_contrast_requested": has_inferential_contrast,
+        }
+        card["checks"]["pseudobulk_replicates"] = {
+            "replicates_per_condition": counts,
+            "min_replicates": min_reps,
+            "publication_ready_min": 3,
+            "minimum_supported": 2,
+        }
+
+        if has_inferential_contrast:
+            missing = [
+                name
+                for name, value in (
+                    ("condition_col", condition_col),
+                    ("replicate_col", replicate_col),
+                )
+                if not value
+            ]
+            if not counts or (comparisons and missing):
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    "scatac_pseudobulk_design_incomplete",
+                    (
+                        "scATAC inferential pseudobulk DA readiness is incomplete "
+                        f"(missing: {', '.join(missing) or 'biological replicate groups'})."
+                    ),
+                    (
+                        "Confirm condition, biological replicate/donor column, "
+                        "and explicit contrasts before running inferential "
+                        "pseudobulk DA."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 2:
+                _set_status(card, "red")
+                card["findings"].append(_finding(
+                    "blocking",
+                    "scatac_pseudobulk_under_replicated",
+                    (
+                        "scATAC pseudobulk contrast has condition levels with "
+                        f"fewer than two biological replicates: {counts}."
+                    ),
+                    (
+                        "Do not dispatch inferential scATAC pseudobulk DA with "
+                        "n<2 donors/replicates per condition. Add biological "
+                        "replicates or remove the cross-condition contrast."
+                    ),
+                    modality=self.modality,
+                ))
+            elif min_reps < 3:
+                _set_status(card, "yellow")
+                card["findings"].append(_finding(
+                    "warning",
+                    "scatac_pseudobulk_low_power",
+                    (
+                        "scATAC pseudobulk has exactly two biological replicates "
+                        f"in at least one condition: {counts}."
+                    ),
+                    (
+                        "Treat pseudobulk DA as low-power. Dispatch requires "
+                        "explicit user acknowledgement; three or more biological "
+                        "replicates per condition is the publication-ready default."
+                    ),
+                    modality=self.modality,
+                ))
+
+        if _batch_condition_confounded(design):
+            _set_status(card, "red")
+            card["findings"].append(_finding(
+                "blocking",
+                "scatac_batch_condition_confounding",
+                "Each condition maps to a distinct batch in the confirmed design.",
+                (
+                    "Do not dispatch condition DA from a batch-confounded design. "
+                    "Add a balanced batch design or run non-contrasted chromatin "
+                    "characterization."
+                ),
+                modality=self.modality,
+            ))
+
+        return card
+
+
+class ChromatinAuditAgent:
+    """Readiness cards for non-production chromatin modalities (bulk_ATAC, ChIP, etc.)."""
+
+    def audit(
+        self,
+        exp_context: dict[str, Any],
+        modality: str,
+        *,
+        tier_override: str | None = None,
+    ) -> dict[str, Any]:
         if modality == "scATAC":
+            effective_tier = tier_override or "production"
+            if effective_tier == "production":
+                return ScATACAuditAgent().audit(exp_context)
             card = _base_card(
                 modality,
                 agent="chromatin_agent",
-                validation_level="beta",
+                validation_level=effective_tier,
                 status="yellow",
                 reason=(
-                    "scATAC beta dispatch is available only after explicit "
-                    "user acknowledgement."
+                    f"scATAC {effective_tier} dispatch is available only after "
+                    "explicit user acknowledgement."
                 ),
             )
             card["checks"]["validation"] = {
                 "validated": True,
-                "stage": "beta",
-                # Closed 2026-06-09 (ADR-034): a real headless orchestrator/bus
-                # run on the HC11 paired .h5mu drove CP1 -> CP2 -> CP3.5 ack ->
-                # live dispatch into aria-chromatin-env (QC -> LSI/clustering ->
-                # differential accessibility -> motif enrichment).
+                "stage": effective_tier,
                 "live_orchestrator_run": "done",
-                # De-alpha 2026-06-15 (ADR-048): clustering + motif externally
-                # concordant (SnapATAC2/HC11); pseudobulk condition-DA validated
-                # vs edgeR/limma/DESeq2 on real biological replicates. scATAC is
-                # beta + requires_ack.
                 "external_concordance": "done",
             }
             card["checks"]["production_readiness"] = _atac_production_readiness(
-                modality
+                modality, tier_override="beta"
             )
-            card["findings"].append(_finding(
-                "warning",
-                "chromatin_readiness_beta_ack_required",
-                (
-                    "scATAC is beta: P0-P3 closed, clustering + motif are externally "
-                    "concordant, and the pseudobulk condition-DA lane is validated "
-                    "against edgeR/limma/DESeq2 on real biological replicates. The "
-                    "per-cluster wilcoxon marker path is exploratory (single-sample "
-                    "fragile)."
-                ),
-                (
-                    "Proceed only after explicit CP3.5 acknowledgement; use the "
-                    "pseudobulk DA lane with biological replicates and treat the "
-                    "per-cluster wilcoxon markers as exploratory."
-                ),
-                modality=modality,
-            ))
+            if effective_tier == "beta":
+                card["findings"].append(_finding(
+                    "warning",
+                    "chromatin_readiness_beta_ack_required",
+                    (
+                        "scATAC is explicitly configured at beta tier and "
+                        "requires CP3.5 acknowledgement."
+                    ),
+                    (
+                        "Proceed only after explicit CP3.5 acknowledgement; use "
+                        "the pseudobulk DA lane with biological replicates and "
+                        "treat per-cluster wilcoxon markers as exploratory."
+                    ),
+                    modality=modality,
+                ))
             return card
 
         if modality == "bulk_ATAC":
@@ -601,9 +813,14 @@ def build_capability_matrix(
     chromatin_auditor = ChromatinAuditAgent()
     for modality in sorted(set(modalities) & _CHROMATIN_MODALITIES):
         if cards.get(modality, {}).get("status") != "red":
+            configured_level = (validation.get(modality) or {}).get("level")
             cards[modality] = _merge_cards(
                 cards.get(modality, _base_card(modality)),
-                chromatin_auditor.audit(exp_context, modality),
+                chromatin_auditor.audit(
+                    exp_context,
+                    modality,
+                    tier_override=configured_level if modality == "scATAC" else None,
+                ),
             )
 
     for modality, files in modalities.items():

@@ -31,9 +31,13 @@ def test_dockerignore_excludes_private_and_vcs_and_caches():
         assert pat in lines, f"must ignore {pat}"
 
 
+_MODALITY_IMAGES = ("Dockerfile.rna", "Dockerfile.rnaseq", "Dockerfile.chromatin",
+                    "Dockerfile.atacseq", "Dockerfile.tobias",
+                    "Dockerfile.integration")
+
+
 def test_per_modality_dockerfiles_exist():
-    for name in ("Dockerfile.base", "Dockerfile.rna", "Dockerfile.rnaseq",
-                 "Dockerfile.chromatin", "Dockerfile.integration"):
+    for name in ("Dockerfile.base",) + _MODALITY_IMAGES:
         assert (DOCKER / name).exists(), f"missing docker/{name}"
 
 
@@ -45,8 +49,7 @@ def test_base_image_has_no_science_env_solve():
 
 
 def test_modality_images_build_from_base():
-    for name in ("Dockerfile.rna", "Dockerfile.rnaseq",
-                 "Dockerfile.chromatin", "Dockerfile.integration"):
+    for name in _MODALITY_IMAGES:
         text = (DOCKER / name).read_text()
         assert "ARIA_BASE_IMAGE" in text and "FROM ${ARIA_BASE_IMAGE}" in text, \
             f"docker/{name} must build FROM the common base"
@@ -54,8 +57,36 @@ def test_modality_images_build_from_base():
             f"docker/{name} must add its own conda env layer"
 
 
-def test_scaffold_modalities_are_marked_unvalidated():
-    for name in ("Dockerfile.chromatin", "Dockerfile.integration"):
+def test_stack_images_install_their_own_env():
+    expected = {
+        "Dockerfile.chromatin": ("aria-chromatin-env.yml", "chromatin"),
+        "Dockerfile.atacseq": ("aria-atacseq-env.yml", "atacseq"),
+        "Dockerfile.tobias": ("aria-tobias-env.yml", "tobias"),
+    }
+    for name, (env_yml, kind) in expected.items():
         text = (DOCKER / name).read_text()
-        assert "ARIA_IMAGE_VALIDATION=scaffold" in text, \
-            f"docker/{name} must stamp itself as a scaffold (not a validated image)"
+        assert f"/opt/aria/envs/{env_yml}" in text, \
+            f"docker/{name} must install envs/{env_yml}"
+        assert (ROOT / "envs" / env_yml).exists(), f"missing envs/{env_yml}"
+        assert f"ARIA_IMAGE_KIND={kind}" in text, \
+            f"docker/{name} must stamp ARIA_IMAGE_KIND={kind}"
+
+
+def test_scaffold_modalities_are_marked_unvalidated():
+    text = (DOCKER / "Dockerfile.integration").read_text()
+    assert "ARIA_IMAGE_VALIDATION=scaffold" in text, \
+        "docker/Dockerfile.integration must stamp itself as a scaffold"
+
+
+def test_validated_chromatin_images_are_stamped_validated():
+    for name in ("Dockerfile.chromatin", "Dockerfile.atacseq"):
+        text = (DOCKER / name).read_text()
+        assert "ARIA_IMAGE_VALIDATION=validated" in text, \
+            f"docker/{name} must stamp ARIA_IMAGE_VALIDATION=validated"
+        assert "ARIA_IMAGE_VALIDATION=scaffold" not in text
+
+
+def test_tobias_image_is_stamped_beta():
+    text = (DOCKER / "Dockerfile.tobias").read_text()
+    assert "ARIA_IMAGE_VALIDATION=beta" in text, \
+        "docker/Dockerfile.tobias must stamp ARIA_IMAGE_VALIDATION=beta"

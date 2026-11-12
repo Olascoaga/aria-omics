@@ -67,11 +67,16 @@ class ScriptContract(BaseModel):
                 ContractField(name="details", type="str", allow_empty=False),
             )))
             return issues
+        if result.get("status") == "skipped":
+            issues.extend(_validate_fields(result, (
+                ContractField(name="reason", type="str", allow_empty=False),
+            )))
+            return issues
         if result.get("status") != "success":
             issues.append(ContractIssue(
                 field="status",
                 message=(
-                    "Script output status must be 'success' or 'error'; "
+                    "Script output status must be 'success', 'skipped', or 'error'; "
                     f"got {result.get('status')!r}."
                 ),
             ))
@@ -379,7 +384,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_qc.py": ScriptContract(
         script_path="aria/scripts/chromatin_qc.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_type", "str", allow_empty=False),
             _f("files", "list[path]", allow_empty=False, path_must_exist=True),
@@ -390,7 +395,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_peaks.py": ScriptContract(
         script_path="aria/scripts/chromatin_peaks.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_type", "str", allow_empty=False),
             _f("files", "list[path]", allow_empty=False, path_must_exist=True),
@@ -441,13 +446,35 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
             _f("analysis", "str"),
         ),
     ),
+    "aria/scripts/chromatin_merge_matrices.py": ScriptContract(
+        script_path="aria/scripts/chromatin_merge_matrices.py",
+        validation_level="production",
+        inputs=(
+            _f("files", "list[path]", allow_empty=False, path_must_exist=True),
+            _f("output_path", "path", required=False, allow_empty=False),
+            _f("output_dir", "path", required=False, allow_empty=False),
+            _f("sample_ids", "list", required=False, allow_empty=False),
+            _f("sample_metadata", "any", required=False),
+        ),
+        success_outputs=(
+            _f("output_path", "path", allow_empty=False, path_must_exist=True),
+            _f("n_cells", "int"),
+            _f("n_consensus_peaks", "int"),
+        ),
+    ),
     "aria/scripts/chromatin_fragments_to_matrix.py": ScriptContract(
         script_path="aria/scripts/chromatin_fragments_to_matrix.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
-            _f("fragments_file", "str", allow_empty=False),
+            _f("fragments_file", "str", required=False, allow_empty=False),
+            _f("fragments_files", "list", required=False, allow_empty=False),
             _f("genome", "str", required=False),
+            _f("genome_fasta", "str", required=False, allow_empty=False),
+            _f("genome_fai", "str", required=False, allow_empty=False),
+            _f("chrom_sizes", "any", required=False),
             _f("library_manifest", "list", required=False, allow_empty=False),
+            _f("sample_ids", "list", required=False, allow_empty=False),
+            _f("sample_metadata", "any", required=False),
         ),
         success_outputs=(
             _f("output_path", "str", required=False),
@@ -455,12 +482,16 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_scatac_align.py": ScriptContract(
         script_path="aria/scripts/chromatin_scatac_align.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
-            _f("r1_fastq", "str", required=False, allow_empty=False),
-            _f("r3_fastq", "str", required=False, allow_empty=False),
-            _f("barcode_fastq", "str", required=False, allow_empty=False),
+            _f("r1_fastq", "any", required=False),
+            _f("r3_fastq", "any", required=False),
+            _f("r2_fastq", "any", required=False),
+            _f("barcode_fastq", "any", required=False),
             _f("barcode_whitelist", "str", required=False, allow_empty=False),
+            _f("barcode_orientation", "str", required=False, allow_empty=False),
+            _f("platform", "str", required=False, allow_empty=False),
+            _f("read_format", "str", required=False, allow_empty=False),
             _f("libraries", "list", required=False, allow_empty=False),
             _f("genome_fasta", "str", allow_empty=False),
         ),
@@ -470,7 +501,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_lsi_clustering.py": ScriptContract(
         script_path="aria/scripts/chromatin_lsi_clustering.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_path", "path", allow_empty=False, path_must_exist=True),
         ),
@@ -483,7 +514,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_diffacc.py": ScriptContract(
         script_path="aria/scripts/chromatin_diffacc.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_path", "path", allow_empty=False, path_must_exist=True),
         ),
@@ -493,7 +524,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_motifs.py": ScriptContract(
         script_path="aria/scripts/chromatin_motifs.py",
-        validation_level="scaffold",
+        validation_level="production",
         inputs=(
             _f("data_path", "path", required=False, path_must_exist=True),
         ),
@@ -503,7 +534,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_peak_annotation.py": ScriptContract(
         script_path="aria/scripts/chromatin_peak_annotation.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("comparisons", "any", required=False),
             _f("gtf", "str", required=False, allow_empty=False),
@@ -519,7 +550,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     ),
     "aria/scripts/chromatin_peak_ora.py": ScriptContract(
         script_path="aria/scripts/chromatin_peak_ora.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("comparisons", "any", required=False),
             _f("genome", "str", required=False, allow_empty=False),
@@ -659,7 +690,7 @@ SCRIPT_CONTRACTS: dict[str, ScriptContract] = {
     # violin, rendered in the chromatin stack from the clustered .h5ad.
     "aria/scripts/chromatin_figure_clusters.py": ScriptContract(
         script_path="aria/scripts/chromatin_figure_clusters.py",
-        validation_level="beta",
+        validation_level="production",
         inputs=(
             _f("h5ad_path", "str", allow_empty=False),
             _f("output_dir", "str", allow_empty=False),

@@ -632,6 +632,29 @@ def chromatin_diffacc(params: dict) -> dict:
             warnings)
     pseudobulk["full_results_csv"] = pb_full_csv
 
+    # ADR-076: per-comparison FULL tables, so each successful contrast carries
+    # its own `full_results_csv` — the same per-comparison contract the bulk ATAC
+    # DA lane exposes to peak annotation / peak ORA. Rows are the exact rows of
+    # the combined table, split by their `comparison` key (no recomputation).
+    rows_by_comp: dict = {}
+    for row in pb_full_rows:
+        rows_by_comp.setdefault(row.get("comparison"), []).append(row)
+    for comp in pseudobulk.get("comparisons") or []:
+        if not isinstance(comp, dict) or comp.get("status") != "success":
+            continue
+        comp_key = f"{comp.get('test')}_vs_{comp.get('reference')}"
+        comp_rows = rows_by_comp.get(comp_key) or []
+        per_comp_csv = None
+        if comp_rows:
+            per_comp_path = str(
+                out_dir / f"chromatin_da_pseudobulk_{comp_key}_full.csv")
+            per_comp_csv = persist_csv(
+                per_comp_path, f"chromatin_da_pseudobulk_{comp_key}_full.csv",
+                lambda _p=per_comp_path, _r=comp_rows:
+                    pd.DataFrame(_r).to_csv(_p, index=False),
+                warnings)
+        comp["full_results_csv"] = per_comp_csv
+
     return {
         "status": "success",
         "groupby": groupby,
