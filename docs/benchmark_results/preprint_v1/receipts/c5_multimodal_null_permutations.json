@@ -3,26 +3,26 @@
   "artifacts": [
     {
       "path": "claim_5/multimodal_null/multimodal_null.json",
-      "sha256": "5a1df94a03fe685ddb224210ca4791116b861c8d9f606d5e26d0a9250ae66f44",
-      "size_bytes": 2275
+      "sha256": "cf255710a6f4f4051c9b08b5673b02262e5533ee98e8328e506aaabde344f104",
+      "size_bytes": 2286
     }
   ],
   "claims": [
     "claim_5"
   ],
   "command": "conda run -n aria-env python scripts/run_c5_multimodal_null_permutations.py --output-dir docs/benchmark_results/preprint_v1/claim_5/multimodal_null --manifest-name multimodal_null.json",
-  "completed_utc": "2026-11-12T18:42:05.208103+00:00",
+  "completed_utc": "2026-11-12T19:31:58.116771+00:00",
   "environment": "aria-env -> aria-rna-env + aria-chromatin-env",
-  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
   "lane_id": "c5_multimodal_null_permutations",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
-  "started_utc": "2026-11-12T18:38:53.217154+00:00",
+  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
+  "started_utc": "2026-11-12T19:28:47.601732+00:00",
   "status": "pass",
   "stderr_sha256": "befed506869b31ace4499dc8d66ccb5e1c92d30a4e02a53c77d82ae35fc589e1",
   "stdout_sha256": "f4e4eff18956f1e567d763a5ee1a1056ded7162aceb8a56cf779fb356636c424",
   "test_summary": null,
-  "workflow_hash": "beb889142b3dcd1bcd91bf610ab24f0b01cc940b7cb386680c84dab09808f940"
+  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
 }

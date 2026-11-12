@@ -3,8 +3,8 @@
   "artifacts": [
     {
       "path": "claim_1/seqc/a1_seqc_maqc_v4.5.5.json",
-      "sha256": "90e786dfb9060f6cd52f14ae37124da33e5e67c1a559a9df1d5211daed916786",
-      "size_bytes": 3717
+      "sha256": "62526ab1cc2a3f725b18b79d2a8a895766eb5d18b6ea8407a4be52da57ff49e7",
+      "size_bytes": 3728
     },
     {
       "path": "claim_1/seqc/fig1_a1_seqc_maqc_v4.5.5.svg",
@@ -16,18 +16,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-rna-env python scripts/run_a1_seqc_maqc_benchmark.py --bundle ~/.aria/benchmarks/seqc_maqc_BGI --output-dir docs/benchmark_results/preprint_v1/claim_1/seqc",
-  "completed_utc": "2026-11-12T18:34:47.059083+00:00",
+  "completed_utc": "2026-11-12T19:24:49.796321+00:00",
   "environment": "aria-rna-env",
-  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
   "lane_id": "c1_seqc_maqc_taqman",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
-  "started_utc": "2026-11-12T18:34:39.269033+00:00",
+  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
+  "started_utc": "2026-11-12T19:24:41.934431+00:00",
   "status": "pass",
   "stderr_sha256": "e625727c27baad5d3ab0ae117c921c8bac6dda1392a2df6ca97e706a36e106a4",
   "stdout_sha256": "be07862a521bae489e1b3a84f91536028e4243fd3714a42c1e4201973fb9f10e",
   "test_summary": null,
-  "workflow_hash": "beb889142b3dcd1bcd91bf610ab24f0b01cc940b7cb386680c84dab09808f940"
+  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
 }

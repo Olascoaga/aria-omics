@@ -3,18 +3,18 @@
   "artifacts": [
     {
       "path": "claim_1/h9_e2e/capsule.json",
-      "sha256": "d48a2ec4182cda8926cbbd57c213d9602202ccafd296ac96c6ca08961946f8a5",
+      "sha256": "589b372b774ae7492757683ca42072766620b3556dccfe9838f2dfb96d25938d",
       "size_bytes": 9250
     },
     {
       "path": "claim_1/h9_e2e/report.html",
-      "sha256": "f09dd6dc053ca29cc2f2e86fa724512999f4546b4dce1bd7c5837019f65aaa4f",
-      "size_bytes": 9406991
+      "sha256": "1af39e97df620198018897c9b9978eb58c64380e324796cb25a721c3a0633cd4",
+      "size_bytes": 9407002
     },
     {
       "path": "claim_1/h9_e2e/methodology.json",
-      "sha256": "3087e3329e6b8a19da0417bf4ea0930d36af890351943cd412da69d92c4d3716",
-      "size_bytes": 253086
+      "sha256": "6f1b82a945de2063dffe2c1d40cdb9cc4f69a1a81cc807c0843971f3b9a27705",
+      "size_bytes": 253097
     },
     {
       "path": "claim_1/h9_e2e/de_results.tsv",
@@ -23,7 +23,7 @@
     },
     {
       "path": "claim_1/h9_e2e/fig1_h9_bulk_de.svg",
-      "sha256": "74e3dae7a570c7bcf30674dbaf1937704331dc78b20c79763cfdd3f49ddf4c71",
+      "sha256": "1e1487d3042b2c6fba43ea638bc043fc1fc1b8a0c1a12d446f1045d80dc99f25",
       "size_bytes": 2105247
     }
   ],
@@ -31,18 +31,18 @@
     "claim_1"
   ],
   "command": "conda run -n aria-env python scripts/run_c1_h9_fastq_e2e.py --output-dir docs/benchmark_results/preprint_v1/claim_1/h9_e2e",
-  "completed_utc": "2026-11-12T18:37:24.389590+00:00",
+  "completed_utc": "2026-11-12T19:27:25.511220+00:00",
   "environment": "aria-env -> aria-rnaseq-env + aria-rna-env",
-  "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-  "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+  "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+  "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
   "lane_id": "c1_h9_fastq_e2e",
   "returncode": 0,
   "schema_version": "aria.preprint_freeze.receipt.v1",
-  "source_snapshot_hash": "9231e2d23cdd309af843a34cbe56ba45bb073a9497c9edcfd707b2921575ecc4",
-  "started_utc": "2026-11-12T18:35:55.342182+00:00",
+  "source_snapshot_hash": "5b704032458992b53a2684019aa9d2a1990c3ab8506c367b2f6df1ad30a0d839",
+  "started_utc": "2026-11-12T19:25:58.344302+00:00",
   "status": "pass",
   "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "stdout_sha256": "813f5ea1f940bf5b2b59a713af597e8e8a1adb9d2908eb2ccfdf0aec97fff175",
+  "stdout_sha256": "842e463e4148b1e53627e4b4ef4feb9e80a9255ae3ea13e00ca540f362309200",
   "test_summary": null,
-  "workflow_hash": "beb889142b3dcd1bcd91bf610ab24f0b01cc940b7cb386680c84dab09808f940"
+  "workflow_hash": "8e1d74b693fd4714afa54ba2b1762141eefb611ddbfb4bd79d54a8f8a80cbff4"
 }

@@ -68,11 +68,11 @@
       "env_name": "aria-rna-env",
       "source": "conda_lock"
     },
-    "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-    "git_describe": "v4.8.0-dirty",
+    "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+    "git_describe": "v4.8.0-3-gb5c83c3-dirty",
     "git_dirty": true,
-    "git_sha": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-    "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+    "git_sha": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+    "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
     "image": {
       "containerized": false,
       "digest": null,
@@ -84,7 +84,7 @@
     },
     "version": "4.8.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "e08ffc6a5fc067219b80bfdb53002d74cd9a5e714225165e96fb7857565b5348",
+    "workflow_hash": "4e61a6de87ce9289a525106ff8c65249c852f370e73c23a8f4c4fcd348ffdc7a",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "external_reference_ercc",

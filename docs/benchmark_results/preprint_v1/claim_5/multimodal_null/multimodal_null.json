@@ -45,11 +45,11 @@
       "env_name": "aria-env",
       "source": "no_lock"
     },
-    "git_commit": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-    "git_describe": "v4.8.0-dirty",
+    "git_commit": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+    "git_describe": "v4.8.0-3-gb5c83c3-dirty",
     "git_dirty": true,
-    "git_sha": "5efea55f2b824ac149c9290eb70b83df04b18f33",
-    "git_tree_sha": "7e9f583773cc1a611973a584fe06b6d56047e970",
+    "git_sha": "b5c83c367fa52d524a40d84c9b4041ad49dd6e70",
+    "git_tree_sha": "44324c727eb8ace11166f8613a73ff43d5b41558",
     "image": {
       "containerized": false,
       "digest": null,
@@ -61,7 +61,7 @@
     },
     "version": "4.8.0",
     "version_source": "aria.version.__version__",
-    "workflow_hash": "75aed8eb14a76ae008c20aca9b511ca53374e83bfbaac819cc29322b8b1043b1",
+    "workflow_hash": "5cc4ac622ee3b4ccb6635f83cd909569d27b5c7b92c363953c4018f11b2c3ac3",
     "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)"
   },
   "scope": "multimodal_label_permutation_null_through_public_compiler",
