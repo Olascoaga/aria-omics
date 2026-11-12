@@ -65,6 +65,7 @@ AGENT_SCRIPT_CONTRACTS = {
             "aria/scripts/integration_wnn.py",
             "aria/scripts/integration_wnn_diagnostics.py",
             "aria/scripts/integration_peak2gene.py",
+            "aria/scripts/integration_eregulons.py",
             "aria/scripts/integration_mofa.py",
         ),
         "planned": (),

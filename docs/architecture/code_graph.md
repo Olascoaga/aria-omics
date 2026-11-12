@@ -113,6 +113,12 @@ flowchart TD
     P2G_SCRIPT --> MUDATA_IO
     P2G_SCRIPT --> P2G_CORE[aria/utils/peak2gene_core.py unified Signac-faithful cis linker + .fai GC + trans null]
     P2G_SCRIPT --> CONC_P2G[aria/benchmarks/concordance_atac.py + scripts/run_peak2gene_paired_concordance.py vs Signac::LinkPeaks]
+    INT_AGENT -->|stack=integration| EREG_SCRIPT[aria/scripts/integration_eregulons.py V48 I6 paired candidate eRegulons Tier 2b]
+    EREG_SCRIPT --> MUDATA_IO
+    EREG_SCRIPT --> EREG_CORE[aria/utils/eregulon_core.py fixed-500bp motif scan + CMH GC cistrome + GSEA pruning + AUCell]
+    EREG_CORE --> P2G_CORE
+    EREG_SCRIPT --> MOTIFDIR
+    EREG_SCRIPT --> CONC_EREG[aria/benchmarks/concordance_eregulons.py + scripts/run_eregulon_concordance.py vs SCENIC+ 1.0.0]
     AUDIT --> SENS[aria/utils/sensitivity.py classify input sensitivity]
     SENS --> CP1[Checkpoint 1 detected data + sensitivity + air-gap option]
     CP1 --> DESIGN[aria/agents/design_agent.py]
@@ -445,6 +451,7 @@ flowchart TD
 | `aria/benchmarks/bulk_atac_v47_provenance.py` (`stamp_artifacts` / `stamp_body`) / `scripts/run_bulk_atac_v47_provenance.py` / `aria/version.py::collect_version_metadata` | the two committed V47 artifacts in `docs/benchmark_results/bulk_atac/`, `tests/test_bulk_atac_v47_provenance.py`, `tests/test_public_artifacts_no_absolute_paths.py` | **F6 preprint audit (2026-06-20):** the V47 bulk ATAC DA + motif artifacts shipped with NO provenance. This re-emission *stamper* preserves each artifact's measured scientific body verbatim and appends a fresh provenance block (`collect_version_metadata()` → `git_commit`/`aria_version`/`git_describe` + the `source_commit` where the numbers were actually computed (`5c11fc0` DA, `5a407be` motif) + `tool_versions` used (MACS3 3.0.4 / bedtools 2.31.1 / pydeseq2 0.5.4; snapatac2+JASPAR2024 for motif) + `seed=None`/determinism note + `generated_utc`). Idempotent: prior provenance is stripped before re-stamping. NOT a re-computation of the DA/motif pipeline (separate preprint-freeze work). Guard: every JSON in `bulk_atac/` must carry `aria_version` + `provenance.git_commit`. Do not hand-author artifacts here without provenance. |
 | `data_audit_agent.py` SIGNATURES / `_scan_directory` bounded scan / `utils/assay_detector.py` | modality classification, CP1, `.h5mu`/chromatin routing, `exp_context["assay_detections"]` | `.h5mu` (paired RNA+ATAC) is scanned and classified as `scATAC` (C8); changing the signature order or extension set can make the v4.6 entry input undetectable again. P2-7 replaces unbounded `rglob("*")` with `DataAuditScanLimits`: configurable max files/entries/depth/time/file-size, symlink opt-in, visited-directory protection, and CP1 warnings when the scan is truncated or skips paths. P2-3 adds content-first `AssayDetector` before regex fallback: HDF5 AnnData/H5Mu/10X H5, 10X MEX feature tables, Salmon/Kallisto quant tables, generic count tables, and BAM/SAM headers produce `AssayDetection(modality, confidence, evidence, possible_alternatives, blocking_issues)`. Low-confidence alignment detections must warn at CP1 and preserve alternatives; do not turn ambiguous BAMs into publication-grade modality certainty. Keep defaults permissive enough for valid BAM/H5 inputs, and do not silently follow symlinks. |
 | `chromatin_footprint_tobias.py` replicate-score inference / `ChromatinAgent._bulk_replicate_bams` / `ChromatinNarrator._footprint_block` | scATAC barcode design, bulk ATAC replicate BAM design, TOBIAS stack, standalone footprint wrappers, committed footprint artifacts, `tests/test_preprint_audit_b7_footprint_inference.py` | **B7 preprint-readiness (2026-07-13):** inferential footprinting requires explicit biological identity: scATAC accepts `barcode→group→replicate/donor`; bulk accepts `condition→biological replicate→BAM(s)` and merges only technical BAMs within a replicate. ATACorrect+ScoreBigwig run independently per biological replicate; one multi-signal BINDetect supplies `<replicate>_mean_score` columns, while BINDetect motif-site p-values are ignored. ARIA uses paired t-tests on within-donor score differences for complete pairs (a partial design uses only its complete-pair subset) or two-sided Welch tests for independent replicates, then Benjamini–Hochberg across all tested motifs, a full TSV, and deterministic label permutations (within-donor swaps when paired) as calibration diagnostics, never a post-hoc gate. Default minimum is 3 replicates per condition; an explicit n=2 override is low-power. Missing identity or insufficient replication falls back to the legacy descriptive pseudobulk/condition ranking and must never emit `n_significant`. The narrator has separate inferential and descriptive claims; both remain associative/non-causal. The historical 873/879 and 877/879 artifacts are reclassified as descriptive candidate rankings. Modality tier remains beta/requires-ack; no DE/DA core or freeze/tag change. |
+| `integration_agent.py` / `multiome_contracts.py` / `mudata_io.py` / `wnn_diagnostics.py` / `peak2gene_core.py` / `eregulon_core.py` / `integration_{paired_qc,wnn,wnn_diagnostics,mofa,peak2gene,eregulons}.py` | V48 paired 10x Multiome vertical integration (Slices I1–I6, `ADR-064`..`ADR-069`), `aria-chromatin-env` + `aria-integration-env`, `script_contracts.py`, `chromatin_regulatory.py`, `docs/benchmark_results/multiome_concordance/` | **ADR-064..ADR-069:** `IntegrationAgent` stays gated at `MODALITY_VALIDATION["integration"] = scaffold` (`dispatch_enabled=False`) until Slice `I8`, while individual paired IPC scripts carry `validation_level="beta"` after external concordance (`Seurat 5.3.0` WNN, `muon.tl.mofa`, `Signac::LinkPeaks`, `SCENIC+ 1.0.0`). `enforce_same_cell_integration_gate` blocks non-paired split modalities fail-closed. `peak2gene_core.py` is the single cis peak-to-gene statistical engine shared by `chromatin_regulatory.py::_peak_to_gene` (`preprocess="as_is"`) and `integration_peak2gene.py` (`preprocess="paired"`). `eregulon_core.py` consumes local MEME collections + `.fai` fixed-500bp peak-center sequences + `peak2gene_core` BH-FDR cis links + paired TF expression co-variation (`r_tf_gene`, library-depth partial correlations, `5x5` `(expr, prevalence)` stratified null, BH across all `(motif, tf, sign_class)` modules prior to best-motif collapse, weighted GSEA leading-edge pruning, paralog motif-sharing screen, and rank-based RNA/ATAC AUCell). All integration outputs are strictly associative (`pos_tf_pos_p2g`, `neg_tf_pos_p2g`; never causal "activator"/"repressor"/"silencer" labels) with zero hardcoded TF/gene panels. |
 | module-global accessors `bus` / `env_manager` | all agents and tests importing global coordination helpers | These are lazy accessors, not eagerly constructed singletons; avoid import-time workspace creation or broker state just by importing enums/classes. |
 | `memory.py` schema / scoped export | checkpoints, provenance, reports, resume, reproducible capsules | DB shape changes can break old sessions and audit trails. The public snapshot path is per-experiment and atomic (A2); do not replace it with a live SQLite copy. Operational root `memory/` files are private local context and must stay ignored/out of GitHub. |
 
@@ -566,7 +573,7 @@ Use these tests as impact anchors when editing the graph's major nodes:
   opt-in, P0-6): `tests/test_filename_fallback_gate.py`
 - WNN no-fabrication (NotImplemented blocker, no `_mock_wnn`, no hardcoded weights,
   P0-8): `tests/test_wnn_no_fabrication.py`
-- V48 paired multiome integration (Slices I1–I4, ADR-064 / ADR-065 / ADR-066 / ADR-067):
+- V48 paired multiome integration (Slices I1–I6, ADR-064 / ADR-065 / ADR-066 / ADR-067 / ADR-068 / ADR-069):
   - I1 paired `.h5mu` same-cell gate, joint RNA+ATAC QC, and `h5py` `/obs` bijective
     barcode label join: `tests/test_v48_i1_paired_mudata_qc.py`
   - I2 deterministic WNN joint state + R Seurat v5 external concordance:
@@ -584,6 +591,20 @@ Use these tests as impact anchors when editing the graph's major nodes:
     cell-cycle confounder exclusion, and external concordance vs `muon.tl.mofa`):
     `tests/test_v48_i4_mofa.py`, `scripts/run_mofa_concordance.py`,
     `docs/benchmark_results/multiome_concordance/v48_i4_mofa_concordance_hc11.json`
+  - I5 unified Signac-faithful cis peak-to-gene engine (`peak2gene_core.py` shared by
+    `chromatin_regulatory.py` and `integration_peak2gene.py`, bidirectional UCSC/Ensembl
+    contig canonicalization, pure-Python `.fai` GC matching, BLAS-vectorized
+    trans-chromosomal null, and external concordance vs R `Signac::LinkPeaks`):
+    `tests/test_v48_i5_peak2gene.py`, `scripts/run_peak2gene_paired_concordance.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i5_peak2gene_concordance_hc11.json`
+  - I6 deterministic paired candidate eRegulons (`TF -> cis peak -> target gene`,
+    fixed-500bp `.fai` motif scanning with `snapatac2_rust` / `aria_numpy_dp` parity,
+    GC-quintile CMH cistrome enrichment, `5x5` `(expr, prevalence)` stratified null +
+    pre-collapse BH-FDR, weighted GSEA leading-edge pruning, paralog motif-sharing &
+    library-depth partial-correlation guards, rank AUCell, and 4-tier external
+    concordance vs `scenicplus==1.0.0`):
+    `tests/test_v48_i6_eregulons.py`, `scripts/run_eregulon_concordance.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i6_eregulon_concordance_hc11.json`
 - Confirmed-threshold propagation (`AnalysisThresholds`, pseudobulk dispatch, P0-7):
   `tests/test_analysis_thresholds.py`
 - Repo-wide anti-fabrication guard (P-FAKE-GUARD / ADR-002 mechanized, P1-13):

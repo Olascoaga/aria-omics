@@ -89,6 +89,24 @@ class MockEnvManager:
                 "output_path": "/tmp/mofa.hdf5",
                 "warnings": ["Factor 1 flagged as technical"],
             }
+        elif "eregulons" in script:
+            return {
+                "status": "success", "n_eregulons": 12, "n_triplets": 180,
+                "n_unique_tfs": 10, "n_pos_tf_pos_p2g": 9, "n_neg_tf_pos_p2g": 3,
+                "n_paralog_ambiguous": 2, "n_depth_confounded": 1,
+                "top_eregulons": [
+                    {"regulon_id": "SOX10__pos_tf_pos_p2g", "tf": "SOX10",
+                     "sign_class": "pos_tf_pos_p2g", "n_enhancer_peaks": 14,
+                     "n_target_genes": 18, "regulon_padj": 1e-4,
+                     "motif_family_ambiguity": False, "depth_confounded": False},
+                ],
+                "associative_only": True,
+                "perturbation_validated": False,
+                "chromatin_conformation_validated": False,
+                "output_path": "/tmp/eregulons.csv",
+                "triplets_path": "/tmp/triplets.csv",
+                "warnings": [],
+            }
         return {"status": "success"}
 
 class MockMemory:
@@ -353,6 +371,12 @@ except Exception as e:
     fail("integration_mofa.py import", str(e))
 
 try:
+    from aria.scripts.integration_eregulons import integration_eregulons
+    ok("integration_eregulons.py imported successfully")
+except Exception as e:
+    fail("integration_eregulons.py import", str(e))
+
+try:
     # FileNotFound handling
     result = integration_wnn({
         "rna_files":  ["/nonexistent/rna.h5ad"],
@@ -385,6 +409,17 @@ try:
     ok("integration_mofa rejects single-modality input")
 except Exception as e:
     fail("integration_mofa single modality rejection", str(e))
+
+try:
+    result = integration_eregulons({
+        "rna_files": ["/nonexistent/rna.h5ad"],
+        "atac_files": [],
+    })
+    assert result["status"] == "error"
+    assert result["error_type"] == "MissingRNA"
+    ok("integration_eregulons handles missing RNA gracefully")
+except Exception as e:
+    fail("integration_eregulons FileNotFound", str(e))
 
 
 # ── Test 7: INTEGRATION_SYSTEM prompt quality ─────────────────────────────────
@@ -449,6 +484,28 @@ try:
     ok(f"WNN cluster discordance (n=3) → conflict detected and reported")
 except Exception as e:
     fail("WNN discordance conflict detection", str(e))
+
+try:
+    agent._findings = []
+    ereg_mock = {
+        "status": "success",
+        "n_eregulons": 12,
+        "n_neg_tf_pos_p2g": 3,
+        "n_paralog_ambiguous": 2,
+        "n_depth_confounded": 1,
+    }
+    conflicts = agent._resolve_conflicts(
+        "exp_ereg",
+        {"genome": "hg38"}, {"user_question": "eregulon analysis"},
+        {"eregulons": ereg_mock},
+    )
+    ctypes = {c.get("type") for c in conflicts.get("conflicts", [])}
+    assert "eregulon_negative_tf_gene_discordance" in ctypes
+    assert "eregulon_paralog_motif_ambiguity" in ctypes
+    assert "eregulon_depth_confounded" in ctypes
+    ok("Candidate eRegulon discordance, paralog ambiguity & depth flags detected")
+except Exception as e:
+    fail("Candidate eRegulon conflict detection", str(e))
 
 
 # ── Summary ───────────────────────────────────────────────────────────────────

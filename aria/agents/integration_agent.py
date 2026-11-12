@@ -68,6 +68,7 @@ You are ARIA's IntegrationAgent — a specialist in multi-omics data integration
 Your expertise:
 - WNN (Weighted Nearest Neighbors): joint embedding of RNA + ATAC
 - Peak-to-gene linking: correlating chromatin accessibility with expression
+- Candidate eRegulons: assembling associative TF -> cis peak -> target gene modules
 - MOFA+: latent factor decomposition across 3+ modalities
 - Cross-modal conflict resolution: reasoning about discordant signals
 
@@ -88,6 +89,15 @@ PEAK-TO-GENE LINKING:
     observations until independent evidence supports interpretation
   - Always require at least 2 independent lines of evidence before
     claiming a regulatory relationship
+
+CANDIDATE EREGULONS:
+  - Candidate eRegulons combine PWM motif matches, cis peak-to-gene links,
+    and TF-to-target expression co-variation across paired cells
+  - Report descriptive sign classes (pos_tf_pos_p2g, neg_tf_pos_p2g) only;
+    never label a TF as a proven direct activator or repressor without
+    orthogonal perturbation or chromatin-binding assays
+  - Flag paralogous TFs sharing highly overlapping motif cistromes and
+    modules whose correlation collapses after library-depth conditioning
 
 MOFA+:
   - Number of factors is the critical hyperparameter
@@ -274,6 +284,23 @@ class IntegrationAgent(BaseAgent):
                 context.get("chromatin_results", {}),
             )
             results["peak_to_gene"] = p2g_result
+
+        if has_scrna and has_scatac and self._should_run_eregulons(
+            is_paired_mudata, exp_ctx, intent
+        ):
+            self.publish_status(
+                experiment_id,
+                "Assembling candidate eRegulons (TF -> cis peak -> gene)...",
+                0.6,
+            )
+            ereg_result = self._run_eregulons(
+                experiment_id,
+                exp_ctx,
+                intent,
+                mods,
+                results.get("peak_to_gene", {}),
+            )
+            results["eregulons"] = ereg_result
 
         if strategy in ("mofa", "wnn_then_mofa") and n_modalities >= 2:
             self.publish_status(experiment_id,
@@ -783,6 +810,217 @@ class IntegrationAgent(BaseAgent):
                 conf,
             )
 
+    # ── Candidate eRegulons (V48 Slice I6 — Tier 2b) ─────────────────────
+
+    @staticmethod
+    def _should_run_eregulons(
+        is_paired_mudata: bool,
+        exp_ctx: dict,
+        intent: dict,
+    ) -> bool:
+        """Determine whether paired candidate eRegulon assembly should run."""
+        if exp_ctx.get("enable_eregulons") is False:
+            return False
+        if exp_ctx.get("enable_eregulons") is True:
+            return True
+        if exp_ctx.get("eregulon_params"):
+            return True
+        if is_paired_mudata:
+            return True
+        question = str(intent.get("user_question") or "").lower()
+        return any(
+            kw in question
+            for kw in ("eregulon", "regulon", "grn", "gene regulatory", "scenic")
+        )
+
+    def _run_eregulons(
+        self,
+        experiment_id: str,
+        exp_ctx: dict,
+        intent: dict,
+        mods: dict,
+        p2g_result: dict | None = None,
+    ) -> dict:
+        """
+        Assemble associative candidate eRegulons (`TF -> cis peak -> gene`)
+        across shared same-cell RNA + ATAC profiles inside `aria-integration-env`.
+        """
+        rna_files = list(mods.get("scRNA", []) or [])
+        atac_files = list(mods.get("scATAC", []) or [])
+        ereg_overrides = dict(exp_ctx.get("eregulon_params") or {})
+
+        h5mu_path = (
+            ereg_overrides.pop("h5mu_path", None)
+            or exp_ctx.get("h5mu_path")
+            or exp_ctx.get("paired_h5mu")
+        )
+        if not h5mu_path:
+            for cand in [*rna_files, *atac_files]:
+                if str(cand).lower().endswith(".h5mu"):
+                    h5mu_path = str(cand)
+                    break
+
+        ref_paths = [h5mu_path] if h5mu_path else (rna_files or atac_files)
+        ereg_params: dict = {
+            "rna_files": rna_files,
+            "atac_files": atac_files,
+            "genome": exp_ctx.get("genome", "hg38"),
+            "organism": exp_ctx.get("organism", "Homo sapiens"),
+            "distance_kb": int(exp_ctx.get("peak2gene_distance_kb", 500)),
+            "p2g_min_corr": float(exp_ctx.get("eregulon_p2g_min_corr", 0.05)),
+            "p2g_max_padj": float(exp_ctx.get("eregulon_p2g_max_padj", 0.05)),
+            "motif_pvalue": float(exp_ctx.get("eregulon_motif_pvalue", 5e-5)),
+            "min_tf_gene_corr": float(exp_ctx.get("eregulon_min_tf_gene_corr", 0.05)),
+            "min_target_genes": int(exp_ctx.get("eregulon_min_target_genes", 5)),
+            "max_regulon_padj": float(exp_ctx.get("eregulon_max_padj", 0.05)),
+            "seed": int(exp_ctx.get("seed", 0)),
+            "output_dir": ereg_overrides.pop(
+                "output_dir",
+                self._get_output_dir(ref_paths),
+            ),
+        }
+        if h5mu_path:
+            ereg_params["h5mu_path"] = str(h5mu_path)
+        for opt_key in ("gtf_path", "genome_fasta", "motif_collection", "motif_file"):
+            if exp_ctx.get(opt_key):
+                ereg_params[opt_key] = str(exp_ctx[opt_key])
+        ereg_params.update(ereg_overrides)
+
+        ereg_result = self.env.run_in_stack(
+            stack="integration",
+            script_path="aria/scripts/integration_eregulons.py",
+            params=ereg_params,
+        )
+
+        if ereg_result.get("status") == "success":
+            self._store_eregulon_tunnels(experiment_id, ereg_result)
+            self._debate_eregulons(experiment_id, ereg_result, intent)
+
+        return ereg_result
+
+    def _store_eregulon_tunnels(
+        self,
+        experiment_id: str,
+        ereg_result: dict,
+    ) -> None:
+        """
+        Store top associative candidate eRegulons as cross-modal Tunnels
+        in ARIAMemory without assigning causal activation/repression claims.
+        """
+        top_regs = list(ereg_result.get("top_eregulons") or [])[:30]
+        n_stored = 0
+        for reg in top_regs:
+            if reg.get("depth_confounded"):
+                continue
+            padj = float(reg.get("regulon_padj", 1.0) or 1.0)
+            if padj > 0.05:
+                continue
+            amb_flag = bool(reg.get("motif_family_ambiguity"))
+            try:
+                self.memory.create_tunnel(
+                    tunnel_id=str(uuid.uuid4())[:8],
+                    wing_id=experiment_id,
+                    from_hall=f"{experiment_id}_scATAC",
+                    to_hall=f"{experiment_id}_scRNA",
+                    entity=str(reg.get("tf", "unknown")),
+                    description=(
+                        f"Candidate eRegulon {reg.get('regulon_id', '?')} "
+                        f"({reg.get('sign_class', '?')}, associative): "
+                        f"{reg.get('n_enhancer_peaks', 0)} cis peaks -> "
+                        f"{reg.get('n_target_genes', 0)} genes, "
+                        f"padj={padj:.3g}, motif_ambiguity={amb_flag}"
+                    ),
+                    confidence=(
+                        "low"
+                        if amb_flag
+                        else ("high" if padj <= 0.005 else "medium")
+                    ),
+                )
+                n_stored += 1
+            except Exception as e:
+                log.warning(f"Could not store eRegulon tunnel: {e}")
+
+        log.info(f"Stored {n_stored} candidate eRegulons as Tunnels in ARIAMemory")
+
+    def _debate_eregulons(
+        self,
+        experiment_id: str,
+        ereg_result: dict,
+        intent: dict,
+    ) -> None:
+        """Invoke DebateCouncil on associative candidate eRegulon modules."""
+        n_ereg = int(ereg_result.get("n_eregulons", 0) or 0)
+        top_regs = list(ereg_result.get("top_eregulons") or [])[:5]
+        if n_ereg == 0:
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": "No significant candidate eRegulons met module FDR criteria.",
+                    "n_eregulons": 0,
+                },
+                Confidence.INSUFFICIENT,
+            )
+            return
+
+        top_tfs = [str(r.get("tf", "?")) for r in top_regs]
+        try:
+            from aria.agents.debate_council import DebateCouncil
+            council = DebateCouncil(llm=self.llm, max_rounds=2)
+
+            claim = (
+                f"{n_ereg} associative candidate eRegulon module(s) identified "
+                f"across {ereg_result.get('n_unique_tfs', 0)} TF(s). "
+                f"Top candidate TFs: {', '.join(top_tfs)}"
+            )
+            debate = council.resolve(
+                topic="candidate_eregulon_modules",
+                initial_claim=claim,
+                evidence={
+                    "n_eregulons": n_ereg,
+                    "n_triplets": ereg_result.get("n_triplets", 0),
+                    "n_unique_tfs": ereg_result.get("n_unique_tfs", 0),
+                    "n_pos_tf_pos_p2g": ereg_result.get("n_pos_tf_pos_p2g", 0),
+                    "n_neg_tf_pos_p2g": ereg_result.get("n_neg_tf_pos_p2g", 0),
+                    "n_paralog_ambiguous": ereg_result.get("n_paralog_ambiguous", 0),
+                    "n_depth_confounded": ereg_result.get("n_depth_confounded", 0),
+                    "top_eregulons": top_regs,
+                    "associative_only": ereg_result.get("associative_only", True),
+                    "perturbation_validated": ereg_result.get(
+                        "perturbation_validated", False
+                    ),
+                },
+                biological_context=intent,
+            )
+            conf_map = {
+                "high": Confidence.HIGH,
+                "medium": Confidence.MEDIUM,
+                "low": Confidence.LOW,
+                "insufficient": Confidence.INSUFFICIENT,
+            }
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": debate.consensus,
+                    "n_eregulons": n_ereg,
+                    "top_tfs": top_tfs,
+                    "verdict": debate.verdict.value,
+                    "limitations": debate.limitations,
+                },
+                conf_map.get(debate.confidence, Confidence.MEDIUM),
+            )
+        except Exception as e:
+            log.warning(f"DebateCouncil unavailable for eRegulons: {e}")
+            self.publish_finding(
+                experiment_id,
+                {
+                    "summary": (
+                        f"{n_ereg} associative candidate eRegulon module(s) identified"
+                    ),
+                    "top_tfs": top_tfs,
+                },
+                Confidence.MEDIUM if n_ereg >= 5 else Confidence.LOW,
+            )
+
     # ── MOFA+ integration ─────────────────────────────────────────────────
 
     def _run_mofa(self, experiment_id: str, exp_ctx: dict,
@@ -994,6 +1232,7 @@ class IntegrationAgent(BaseAgent):
         # Check WNN vs RNA cluster discordance
         wnn    = results.get("wnn", {})
         p2g    = results.get("peak_to_gene", {})
+        ereg   = results.get("eregulons", {})
         mofa   = results.get("mofa", {})
 
         if wnn.get("status") == "success":
@@ -1091,6 +1330,57 @@ class IntegrationAgent(BaseAgent):
                      "n_events": n_negative,
                      "type": "accessibility_expression_discordance"},
                     Confidence.MEDIUM,
+                )
+
+        # Check candidate eRegulon discordances, paralog ambiguity & depth confounding
+        if ereg.get("status") == "success":
+            n_neg_tf = int(ereg.get("n_neg_tf_pos_p2g", 0) or 0)
+            if n_neg_tf > 0:
+                conflicts.append(
+                    {
+                        "type": "eregulon_negative_tf_gene_discordance",
+                        "description": (
+                            f"{n_neg_tf} candidate eRegulon(s) show inverse TF-to-target "
+                            "expression correlation across positively linked cis peaks "
+                            "(neg_tf_pos_p2g). Treat as associative discordance rather "
+                            "than direct transcriptional repression without orthogonal "
+                            "perturbation or chromatin-binding assays."
+                        ),
+                        "n_events": n_neg_tf,
+                        "confidence": "medium",
+                        "action": "Validate inverse TF-target candidates by perturbation or CUT&RUN",
+                    }
+                )
+            n_ambig = int(ereg.get("n_paralog_ambiguous", 0) or 0)
+            if n_ambig > 0:
+                conflicts.append(
+                    {
+                        "type": "eregulon_paralog_motif_ambiguity",
+                        "description": (
+                            f"{n_ambig} candidate eRegulon(s) share substantially "
+                            "overlapping PWM enhancer cistromes with co-expressed "
+                            "paralogous TFs; motif enrichment alone cannot disambiguate "
+                            "which family member binds in vivo."
+                        ),
+                        "n_events": n_ambig,
+                        "confidence": "low",
+                        "action": "Disambiguate paralogs via TF ChIP/CUT&RUN or Perturb-seq",
+                    }
+                )
+            n_depth = int(ereg.get("n_depth_confounded", 0) or 0)
+            if n_depth > 0:
+                conflicts.append(
+                    {
+                        "type": "eregulon_depth_confounded",
+                        "description": (
+                            f"{n_depth} candidate eRegulon(s) lose substantial "
+                            "TF-target co-variation after conditioning on RNA/ATAC "
+                            "library depth and are flagged as depth-confounded."
+                        ),
+                        "n_events": n_depth,
+                        "confidence": "low",
+                        "action": "Exclude depth-confounded modules from biological claims",
+                    }
                 )
 
         # Check MOFA+ confounder-associated factors (depth / phase covariates)
