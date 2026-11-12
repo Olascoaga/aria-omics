@@ -18,6 +18,15 @@ class _FakeAln:
     def __init__(self, mapped):
         self.mapped = mapped
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        pass
+
+    def has_index(self):
+        return True
+
 
 def _install_fake_pysam(monkeypatch, mapped_by_bam):
     """Install a fake pysam whose merge writes a stub file and whose AlignmentFile
@@ -129,3 +138,77 @@ def test_bulk_footprint_narrator_block_uses_condition_labels():
     # B7 interim: the block must NOT present pseudobulk footprints as significance.
     assert "not FDR-controlled significance" in block.claim
     assert not any(e.label.startswith("Significant") for e in block.evidence)
+
+
+@pytest.mark.parametrize("suffix,reference,expected_reference", [
+    (".cram", "genome.fa", True), (".CRAM", "genome.fa", True),
+    (".bam", "genome.fa", False), (".cram", None, False),
+])
+def test_merge_cram_forwards_reference_only_when_needed(
+    tmp_path, monkeypatch, suffix, reference, expected_reference,
+):
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    source = tmp_path / f"sample{suffix}"
+    source.write_bytes(b"alignment")
+    calls = []
+
+    def merge(*args):
+        calls.append(args)
+
+    monkeypatch.setitem(sys.modules, "pysam", types.SimpleNamespace(
+        merge=merge, index=lambda _: None))
+    monkeypatch.setattr(mod, "_count_mapped", lambda *args: 123)
+    result = mod._merge_condition_bams({"A": [str(source)]}, tmp_path,
+                                      reuse=False, reference_fasta=reference)
+    expected = ["-f"] + (["--reference", reference] if expected_reference else [])
+    assert calls == [(*expected, str(tmp_path / "A.bam"), str(source))]
+    assert result["A"]["n_fragments"] == 123
+
+
+@pytest.mark.parametrize("indexed", [True, False])
+def test_count_mapped_cram_opens_reference_and_counts_primary_only(tmp_path, monkeypatch, indexed):
+    from aria.scripts.chromatin_footprint_tobias import _count_mapped
+
+    calls = []
+    reads = [types.SimpleNamespace(is_unmapped=u, is_secondary=s, is_supplementary=p)
+             for u, s, p in [(False, False, False), (False, False, False),
+                             (True, False, False), (False, True, False),
+                             (False, False, True)]]
+
+    class Alignment(_FakeAln):
+        def has_index(self):
+            return indexed
+
+        def fetch(self, *, until_eof):
+            assert until_eof is True
+            return iter(reads)
+
+    def open_alignment(path, **kwargs):
+        calls.append((path, kwargs))
+        return Alignment(7)
+
+    monkeypatch.setitem(sys.modules, "pysam", types.SimpleNamespace(AlignmentFile=open_alignment))
+    path = tmp_path / "input.CRAM"
+    assert _count_mapped(path, "genome.fa") == (7 if indexed else 2)
+    assert calls == [(str(path), {"reference_filename": "genome.fa"})]
+
+
+def test_prepare_bulk_replicates_forwards_reference_and_reuse(tmp_path, monkeypatch):
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    calls = []
+
+    def merge(inputs, out_dir, **kwargs):
+        calls.append((inputs, out_dir, kwargs))
+        return {}
+
+    monkeypatch.setattr(mod, "_merge_condition_bams", merge)
+    _, groups, ids = mod._prepare_bulk_replicate_bams(
+        {"A": {"r1": ["a.cram", "a_lane2.cram"]}, "B": {"r2": "b.cram"}},
+        "A", "B", tmp_path, reference_fasta="genome.fa", reuse=False)
+    assert set(groups.values()) == {"A", "B"}
+    assert set(ids.values()) == {"r1", "r2"}
+    assert calls[0][1] == tmp_path / "replicate_bams"
+    assert calls[0][2] == {"reference_fasta": "genome.fa", "reuse": False}
+    assert list(calls[0][0].values()) == [["a.cram", "a_lane2.cram"], ["b.cram"]]

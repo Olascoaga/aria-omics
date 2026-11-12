@@ -11,6 +11,8 @@ import math
 import json
 from pathlib import Path
 
+import pytest
+
 
 def _synthetic_scores(n_per_group: int = 6) -> tuple[dict, dict]:
     labels = {}
@@ -258,7 +260,7 @@ def test_bulk_driver_selects_replicate_route_and_writes_bh_table(tmp_path, monke
     monkeypatch.setattr(mod.shutil, "which", lambda _: "/usr/bin/TOBIAS")
     monkeypatch.setattr(
         mod, "_prepare_bulk_replicate_bams",
-        lambda *args: (replicate_info, replicate_groups,
+        lambda *args, **kwargs: (replicate_info, replicate_groups,
                        {name: name for name in replicate_groups}),
     )
 
@@ -338,3 +340,268 @@ def test_standalone_bulk_wrapper_propagates_repo_pythonpath(tmp_path, monkeypatc
     manifest = json.loads((tmp_path / "out" /
                            "b4_bulk_footprint_tobias_bindetect.json").read_text())
     assert manifest["provenance"]["environment"]["conda_prefix"] is None
+
+
+def _batch_scores():
+    import numpy as np
+
+    groups = {f"a{i}": "A" for i in range(6)} | {f"b{i}": "B" for i in range(6)}
+    # A is enriched in the low batch; the raw contrast hides a true positive effect.
+    batches = dict(zip(groups, ["low"] * 4 + ["high"] * 2
+                       + ["low"] * 2 + ["high"] * 4))
+    rng = np.random.default_rng(42)
+    table = {}
+    for i, effect in enumerate([2.0, -2.0, 0.0]):
+        table[f"m{i}"] = {"scores": {
+            rep: (1000.0 if batches[rep] == "high" else 0.0)
+            + (effect if group == "A" else 0.0) + rng.normal(0, 0.06)
+            for rep, group in groups.items()
+        }}
+    return table, groups, batches
+
+
+def test_batch_adjusted_ols_matches_numpy_scipy_and_recovers_masked_signal():
+    import numpy as np
+    from scipy.stats import false_discovery_control, t
+    from aria.scripts.chromatin_footprint_tobias import infer_replicate_footprints
+
+    table, groups, batches = _batch_scores()
+    result = infer_replicate_footprints(table, groups, "A", "B", replicate_batches=batches)
+    unadjusted = infer_replicate_footprints(table, groups, "A", "B")
+    assert unadjusted["n_significant"] == 0
+    x = np.array([[1, batches[r] == "low", groups[r] == "A"] for r in groups], float)
+    covariance = np.linalg.inv(x.T @ x)
+    expected_p = []
+    for row in result["all_results"]:
+        y = np.array([table[row["motif_id"]]["scores"][r] for r in groups])
+        beta = np.linalg.lstsq(x, y, rcond=None)[0]
+        df = len(y) - x.shape[1]
+        variance = np.sum((y - x @ beta) ** 2) / df
+        pvalue = 2 * t.sf(abs(beta[-1] / np.sqrt(variance * covariance[-1, -1])), df)
+        expected_p.append(pvalue)
+        assert row["pvalue"] == pytest.approx(pvalue, rel=1e-8)
+        assert row["change"] == round(beta[-1], 4)
+        assert row["raw_change"] == round(y[:6].mean() - y[6:].mean(), 4)
+        assert row["mean_score_a"] == pytest.approx(y[:6].mean())
+        assert row["mean_score_b"] == pytest.approx(y[6:].mean())
+    assert [r["padj"] for r in result["all_results"]] == pytest.approx(
+        false_discovery_control(expected_p), rel=1e-8)
+    assert result["all_results"][0]["change"] > 1.9
+    assert result["all_results"][0]["raw_change"] < -300
+    assert result["n_significant"] == 2
+    inference = result["inference"]
+    assert inference["test"] == "ols_t_test_on_replicate_mean_scores_batch_adjusted"
+    assert inference["batch_adjusted"] is True
+    assert inference["df_residual"] == 9
+    assert inference["null_label_controls"]["method"] == (
+        "within_batch_condition_label_permutation_with_bh")
+
+
+@pytest.mark.parametrize("limit", [100, 5, 0])
+def test_within_batch_permutations_preserve_counts_and_exclude_observed(monkeypatch, limit):
+    import itertools
+    import numpy as np
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    batches = ["x", "x", "y", "y", "x", "x", "y", "y"]
+    matrix = np.random.default_rng(1).normal(size=(4, 8))
+    designs, expected_fractions = [], []
+    original = mod._ols_group_test
+
+    def capture(data, x):
+        designs.append(x.copy())
+        result = original(data, x)
+        expected_fractions.append(sum(p <= 0.05 for p in mod._bh_adjust(result[1])) / 4)
+        return result
+
+    monkeypatch.setattr(mod, "_ols_group_test", capture)
+    result = mod._within_batch_null_controls(matrix, 4, batches, 0.05, limit, 7)
+    assert result["n_permutations"] == min(limit, 34)  # 6 * 6 - observed - complement
+    assignments = set()
+    for x in designs:
+        selected = tuple(np.flatnonzero(x[:, -1]))
+        assert selected not in [(0, 1, 2, 3), (4, 5, 6, 7)]
+        assert len(selected) == 4
+        assert sum(batches[i] == "x" for i in selected) == 2
+        assert sum(batches[i] == "y" for i in selected) == 2
+        assert np.linalg.matrix_rank(x) == 3
+        assignments.add(selected)
+    assert len(assignments) == len(designs)
+    if limit == 100:
+        expected = {c for c in itertools.combinations(range(8), 4)
+                    if sum(batches[i] == "x" for i in c) == 2}
+        expected -= {(0, 1, 2, 3), (4, 5, 6, 7)}
+        assert assignments == expected
+    assert result["mean_discovery_fraction"] == pytest.approx(
+        np.mean(expected_fractions) if expected_fractions else 0)
+    assert result["max_discovery_fraction"] == max(expected_fractions, default=0)
+    assert result["fraction_with_any_discoveries"] == pytest.approx(
+        np.mean(np.array(expected_fractions) > 0) if expected_fractions else 0)
+    assert result["observed_labels_excluded"] is True
+    assert result["role"] == "diagnostic_only_not_a_post_hoc_significance_gate"
+
+
+@pytest.mark.parametrize("case", ["disjoint", "no_residual_df"])
+def test_batch_confounding_is_honestly_descriptive(case):
+    from aria.scripts.chromatin_footprint_tobias import infer_replicate_footprints
+
+    table, groups, _ = _batch_scores()
+    if case == "disjoint":
+        batches = {rep: group for rep, group in groups.items()}
+    else:
+        # One shared batch makes the contrast identifiable, but leaves no residual df.
+        batches = {rep: rep for rep in groups}
+        batches["a0"] = batches["b0"] = "shared"
+    result = infer_replicate_footprints(table, groups, "A", "B", replicate_batches=batches)
+    assert result["parsed"] is True
+    assert result["inference"]["status"] == "descriptive_only"
+    assert result["inference"]["reason"] == "batch_condition_confounded"
+    assert result["ranking_basis"]["fdr_controlled"] is False
+    assert result["n_ranked_candidates"] == len(table)
+    assert "n_significant" not in result
+    assert all("padj" not in row for row in result["top_toward_A"])
+
+
+@pytest.mark.parametrize("batch_mode", ["none", "empty", "single", "missing", "blank", "paired"])
+def test_batch_metadata_keeps_legacy_inference_when_inapplicable(batch_mode):
+    from aria.scripts.chromatin_footprint_tobias import infer_replicate_footprints
+
+    table, groups, batches = _batch_scores()
+    identities = None
+    if batch_mode == "none":
+        batches = None
+    elif batch_mode == "empty":
+        batches = {}
+    elif batch_mode == "single":
+        batches = {rep: "one" for rep in groups}
+    elif batch_mode == "missing":
+        batches.pop("a0")
+    elif batch_mode == "blank":
+        batches["a0"] = " "
+    elif batch_mode == "paired":
+        identities = {rep: rep[1:] for rep in groups}
+    baseline = infer_replicate_footprints(table, groups, "A", "B", replicate_ids=identities)
+    result = infer_replicate_footprints(table, groups, "A", "B", replicate_ids=identities,
+                                      replicate_batches=batches)
+    assert result == baseline
+
+
+def test_ols_zero_standard_error_has_finite_explicit_pvalues():
+    import numpy as np
+    from aria.scripts.chromatin_footprint_tobias import _batch_design, _ols_group_test
+
+    x = _batch_design(["a", "b", "a", "b", "a", "b", "a", "b"], range(4))
+    _, pvalues, _ = _ols_group_test(np.array([np.zeros(8), x[:, -1] * 2]), x)
+    assert pvalues == [1.0, 0.0]
+
+
+@pytest.mark.parametrize("header", ["batch", "batch_id", "pool", "lane", None])
+def test_barcode_design_reads_batch_aliases_and_headerless_column(tmp_path, header):
+    from aria.scripts.chromatin_footprint_tobias import _load_barcode_design
+
+    path = tmp_path / "design.tsv"
+    path.write_text((f"barcode\tgroup\tdonor\t{header}\n" if header else "")
+                    + "bc1\tA\td1\tpool1\nbc2\tB\td2\t\n")
+    assert _load_barcode_design(str(path)) == {
+        "bc1": {"group": "A", "replicate": "d1", "batch": "pool1"},
+        "bc2": {"group": "B", "replicate": "d2", "batch": None},
+    }
+
+
+@pytest.mark.parametrize("mode,batch_source", [
+    ("scatac", "design"), ("scatac", "replicate"), ("scatac", "signal"),
+    ("scatac", "inconsistent_design"), ("bulk", "replicate"), ("bulk", "nested"),
+])
+def test_drivers_plumb_batches_and_inferential_cache_requires_results_table(
+    tmp_path, monkeypatch, mode, batch_source,
+):
+    from aria.scripts import chromatin_footprint_tobias as mod
+
+    for name in ["genome.fa", "peaks.bed", "motifs.meme", "fragments.tsv"]:
+        (tmp_path / name).write_text("input\n")
+    (tmp_path / "genome.fa.fai").write_text("chr1\t1000\n")
+    design = tmp_path / "design.tsv"
+    design_rows = ["barcode\tgroup\treplicate\tbatch"]
+    replicate_design, groups, ids, batches, by_replicate = {}, {}, {}, {}, {}
+    for group in ["A", "B"]:
+        replicate_design[group] = {}
+        for i in range(3):
+            replicate_id = f"{group}_donor{i}"
+            batch = "lane1" if i % 2 == 0 else "lane2"
+            signal = mod._safe_signal_label(group, replicate_id, i + 1)
+            groups[signal], ids[signal], batches[signal] = group, replicate_id, batch
+            by_replicate[replicate_id] = batch
+            path = tmp_path / f"{replicate_id}.cram"
+            path.write_bytes(b"cram")
+            replicate_design[group][replicate_id] = [str(path)]
+            design_rows.append(f"{replicate_id}#BC1\t{group}\t{replicate_id}\t{batch}")
+    if batch_source == "inconsistent_design":
+        design_rows.append("other_barcode\tA\tA_donor0\tother_batch")
+    design.write_text("\n".join(design_rows) + "\n")
+    params = {
+        "mode": mode, "genome_fasta": str(tmp_path / "genome.fa"),
+        "peaks_bed": str(tmp_path / "peaks.bed"),
+        "motif_meme": str(tmp_path / "motifs.meme"),
+        "group_a": "A", "group_b": "B", "output_dir": str(tmp_path / "out"),
+        "fragments_file": str(tmp_path / "fragments.tsv"), "barcode_groups": str(design),
+        "replicate_bams": replicate_design,
+        "make_volcano_plot": False, "make_aggregate_plots": False,
+    }
+    if batch_source == "replicate":
+        params["replicate_batches"] = by_replicate
+    elif batch_source == "signal":
+        params["replicate_batches"] = batches
+    elif batch_source == "nested":
+        params["replicate_batches"] = {
+            group: {ids[s]: batches[s] for s in groups if groups[s] == group}
+            for group in ["A", "B"]}
+    monkeypatch.setattr(mod.shutil, "which", lambda _: "/bin/TOBIAS")
+
+    def bam_info(names):
+        return {name: {"bam": str(tmp_path / f"{name}.bam"), "n_fragments": 100}
+                for name in names}
+
+    def prepare_sc(files, barcode_signals, target_groups, chrom_sizes, out_dir, **kwargs):
+        assert set(barcode_signals.values()) == set(groups)
+        assert set(target_groups) == set(groups)
+        assert kwargs["reuse"] is False
+        return bam_info(target_groups)
+
+    def merge_bulk(inputs, out_dir, **kwargs):
+        assert kwargs == {"reference_fasta": params["genome_fasta"], "reuse": False}
+        return bam_info(inputs)
+
+    monkeypatch.setattr(mod, "_write_group_bams", prepare_sc)
+    monkeypatch.setattr(mod, "_merge_condition_bams", merge_bulk)
+    pipeline_calls = []
+
+    def pipeline(bams, replicate_groups, *args, **kwargs):
+        pipeline_calls.append(True)
+        assert replicate_groups == groups
+        path = tmp_path / "out" / "bindetect_results.txt"
+        scores = [str((10 if batches[s] == "lane2" else 0)
+                      + (2 if groups[s] == "A" else 0) + i * 0.01)
+                  for i, s in enumerate(groups)]
+        path.write_text("name\ttotal_tfbs\t" + "\t".join(f"{s}_mean_score" for s in groups)
+                        + "\nTF\t100\t" + "\t".join(scores) + "\n")
+        return {"replicate_groups": groups, "bindetect_results": str(path)}
+
+    monkeypatch.setattr(mod, "_tobias_replicate_pipeline", pipeline)
+    driver = mod.chromatin_footprint_tobias_dispatch
+    result = driver(params)
+    if batch_source == "inconsistent_design":
+        assert "replicate_batches" not in result
+        assert result["differential_summary"]["inference"]["test"] == (
+            "welch_t_test_on_replicate_mean_scores")
+    else:
+        assert result["replicate_batches"] == batches
+        assert result["differential_summary"]["inference"]["batch_adjusted"] is True
+        assert "raw_change" in Path(result["differential_summary"]["results_table"]).read_text()
+    assert result["validation_level"] == "production"
+    assert driver(params)["reused_from_stage_manifest"] is True
+    assert len(pipeline_calls) == 1
+    Path(result["differential_summary"]["results_table"]).unlink()
+    rerun = driver(params)
+    assert len(pipeline_calls) == 2
+    assert "reused_from_stage_manifest" not in rerun
+    assert Path(rerun["differential_summary"]["results_table"]).is_file()

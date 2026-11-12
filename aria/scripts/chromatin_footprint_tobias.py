@@ -11,9 +11,10 @@ Pipeline:
      bulk replicate map), merging only technical BAMs within a replicate.
   2. ``TOBIAS ATACorrect`` + ``ScoreBigwig`` independently per replicate.
   3. ``TOBIAS BINDetect`` over all replicate signals to obtain motif mean scores.
-  4. Test replicate mean scores with Welch tests, apply BH across motifs, and report
-     condition-label permutations as null diagnostics. If replicate identity/counts are
-     insufficient, retain only the legacy descriptive condition/group ranking.
+  4. Test replicate mean scores with Welch, paired t, or batch-adjusted OLS tests,
+     apply BH across motifs, and report design-respecting label permutations as null
+     diagnostics. If replicate identity/counts are insufficient, retain only the
+     legacy descriptive condition/group ranking.
 
 No fabrication (ADR-002 / W2.2): TOBIAS, the genome FASTA, and the motif collection are
 all required; any missing one is an honest ``ran: false`` with a concrete reason, never
@@ -24,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import itertools
 import json
 import math
@@ -47,7 +49,7 @@ TN5_SHIFT = (4, -5)
 
 def _skip(reason: str, **extra: Any) -> dict[str, Any]:
     """Honest not-run result (mirrors chromatin_regulatory._skip)."""
-    return {"ran": False, "reason": reason, **extra}
+    return {"ran": False, "reason": reason, **extra, "validation_level": "production"}
 
 
 # --------------------------------------------------------------------------- #
@@ -111,10 +113,13 @@ def _load_barcode_design(tsv_path: str) -> dict[str, dict[str, str | None]]:
             replicate_idx = next((i for i, value in enumerate(lowered)
                                   if value in {"replicate", "replicate_id", "donor",
                                                "donor_id", "sample", "sample_id"}), None)
+            batch_idx = next((i for i, value in enumerate(lowered)
+                              if value in {"batch", "batch_id", "pool", "lane"}), None)
             data_rows = rows
         else:
             barcode_idx, group_idx = 0, 1
             replicate_idx = 2 if len(first) >= 3 else None
+            batch_idx = 3 if len(first) >= 4 else None
             data_rows = itertools.chain([first], rows)
         for parts in data_rows:
             if len(parts) <= max(barcode_idx, group_idx):
@@ -126,6 +131,10 @@ def _load_barcode_design(tsv_path: str) -> dict[str, dict[str, str | None]]:
                 replicate = parts[replicate_idx].strip() or None
             if barcode and group:
                 design[barcode] = {"group": group, "replicate": replicate}
+                if batch_idx is not None:
+                    design[barcode]["batch"] = (
+                        parts[batch_idx].strip() or None
+                        if len(parts) > batch_idx else None)
     return design
 
 
@@ -305,6 +314,89 @@ def _null_label_controls(
     }
 
 
+def _batch_design(batches: list[str], idx_a: Iterable[int]) -> Any:
+    """Intercept, sorted treatment-coded batches, and the A-versus-B contrast."""
+    import numpy as np
+
+    levels = sorted(set(batches))
+    selected = set(idx_a)
+    return np.asarray([
+        [1.0, *[float(batch == level) for level in levels[1:]],
+         float(idx in selected)]
+        for idx, batch in enumerate(batches)
+    ], dtype=float)
+
+
+def _ols_group_test(matrix: Any, design: Any) -> tuple[Any, list[float], int]:
+    """Vectorized OLS group coefficients and two-sided residual-df t-tests."""
+    import numpy as np
+    from scipy.stats import t
+
+    xtx_inv = np.linalg.inv(design.T @ design)
+    betas = matrix @ design @ xtx_inv.T
+    resid = matrix - betas @ design.T
+    df_resid = design.shape[0] - design.shape[1]
+    s2 = np.sum(resid ** 2, axis=1) / df_resid
+    se_group = np.sqrt(np.maximum(s2 * xtx_inv[-1, -1], 0.0))
+    effects = betas[:, -1]
+    pvalues = np.where(np.abs(effects) <= 1e-12, 1.0, 0.0)
+    positive_se = se_group > 0
+    pvalues[positive_se] = 2.0 * t.sf(
+        np.abs(effects[positive_se] / se_group[positive_se]), df=df_resid)
+    return effects, [float(p) if math.isfinite(float(p)) else 1.0
+                     for p in pvalues], int(df_resid)
+
+
+def _within_batch_null_controls(
+    matrix: Any, n_a: int, batches: list[str], alpha: float,
+    max_permutations: int, random_seed: int,
+) -> dict[str, Any]:
+    """Refit OLS for labels exchanged only within their original batch stratum."""
+    strata = [[i for i, value in enumerate(batches) if value == batch]
+              for batch in sorted(set(batches))]
+    counts = [sum(i < n_a for i in stratum) for stratum in strata]
+    observed = tuple(range(n_a))
+    complement = tuple(range(n_a, len(batches)))
+    total = math.prod(math.comb(len(s), k) for s, k in zip(strata, counts))
+    limit = max(0, max_permutations)
+    candidates: list[tuple[int, ...]] = []
+    rng = random.Random(random_seed)
+    if total <= limit + 2:
+        choices = [itertools.combinations(s, k) for s, k in zip(strata, counts)]
+        for assignment in itertools.product(*choices):
+            combo = tuple(sorted(itertools.chain.from_iterable(assignment)))
+            if combo not in (observed, complement):
+                candidates.append(combo)
+        if len(candidates) > limit:
+            candidates = rng.sample(candidates, limit)
+    else:
+        seen = {observed, complement}
+        for _ in range(limit * 50):
+            combo = tuple(sorted(i for s, k in zip(strata, counts)
+                                 for i in rng.sample(s, k)))
+            if combo not in seen:
+                seen.add(combo)
+                candidates.append(combo)
+            if len(candidates) >= limit:
+                break
+    fractions = []
+    for idx_a in candidates:
+        _, pvalues, _ = _ols_group_test(matrix, _batch_design(batches, idx_a))
+        adjusted = _bh_adjust(pvalues)
+        fractions.append(sum(p <= alpha for p in adjusted) / int(matrix.shape[0]))
+    return {
+        "method": "within_batch_condition_label_permutation_with_bh",
+        "n_permutations": len(fractions),
+        "observed_labels_excluded": True,
+        "mean_discovery_fraction": (sum(fractions) / len(fractions)
+                                    if fractions else 0.0),
+        "max_discovery_fraction": max(fractions, default=0.0),
+        "fraction_with_any_discoveries": (sum(p > 0 for p in fractions) / len(fractions)
+                                          if fractions else 0.0),
+        "role": "diagnostic_only_not_a_post_hoc_significance_gate",
+    }
+
+
 def infer_replicate_footprints(
     score_table: dict[str, dict[str, Any]],
     replicate_groups: dict[str, str],
@@ -317,6 +409,7 @@ def infer_replicate_footprints(
     max_label_permutations: int = 100,
     random_seed: int = 0,
     replicate_ids: dict[str, str] | None = None,
+    replicate_batches: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """Test TF footprint mean scores with biological replicates as observations."""
     import numpy as np
@@ -355,8 +448,24 @@ def infer_replicate_footprints(
         "pairing_status": pairing_status,
         "excluded_unpaired_replicates": excluded_unpaired_replicates,
     }
-    if (len(reps_a) < min_replicates_per_condition
-            or len(reps_b) < min_replicates_per_condition):
+    batch_design = None
+    descriptive_reason = None
+    batches = [str((replicate_batches or {}).get(rep) or "").strip()
+               for rep in replicates]
+    batch_adjusted = (pairing_status == "independent" and bool(batches)
+                      and all(batches) and len(set(batches)) >= 2)
+    if batch_adjusted:
+        batch_design = _batch_design(batches, range(len(reps_a)))
+        cond_batches = {group_a: set(batches[:len(reps_a)]),
+                        group_b: set(batches[len(reps_a):])}
+        if (cond_batches[group_a].isdisjoint(cond_batches[group_b])
+                or np.linalg.matrix_rank(batch_design) < batch_design.shape[1]
+                or batch_design.shape[0] - batch_design.shape[1] < 1):
+            descriptive_reason = "batch_condition_confounded"
+    if (descriptive_reason is None and (len(reps_a) < min_replicates_per_condition
+                                       or len(reps_b) < min_replicates_per_condition)):
+        descriptive_reason = "insufficient_biological_replicates"
+    if descriptive_reason:
         ranked = []
         for motif, record, values in complete:
             mean_a = sum(values[:len(reps_a)]) / len(reps_a) if reps_a else math.nan
@@ -377,12 +486,14 @@ def infer_replicate_footprints(
                 "replicate_inference": False,
                 "pseudobulk": False,
                 "filter": "none; ranked by absolute replicate-mean difference",
-                "note": "descriptive only because biological replication is insufficient",
+                "note": ("descriptive only because biological replication is insufficient"
+                         if descriptive_reason == "insufficient_biological_replicates"
+                         else "descriptive only because batch and condition are confounded"),
             },
             "inference": {
                 **base_inference,
                 "status": "descriptive_only",
-                "reason": "insufficient_biological_replicates",
+                "reason": descriptive_reason,
             },
             f"top_toward_{group_a}": sorted(
                 ranked, key=lambda row: -row["change"])[:top_n],
@@ -400,9 +511,11 @@ def infer_replicate_footprints(
     idx_a = list(range(len(reps_a)))
     idx_b = list(range(len(reps_a), len(replicates)))
     paired = pairing_status != "independent"
-    pvalues = (_paired_pvalues(matrix, idx_a, idx_b)
-               if paired
-               else _welch_pvalues(matrix, idx_a, idx_b))
+    if batch_adjusted:
+        effects, pvalues, df_resid = _ols_group_test(matrix, batch_design)
+    else:
+        pvalues = (_paired_pvalues(matrix, idx_a, idx_b)
+                   if paired else _welch_pvalues(matrix, idx_a, idx_b))
     adjusted = _bh_adjust(pvalues)
     results = []
     for row_idx, ((motif, record, values), pvalue, padj) in enumerate(
@@ -412,7 +525,9 @@ def infer_replicate_footprints(
         results.append({
             "tf": str(record.get("tf") or motif),
             "motif_id": str(record.get("motif_id") or motif),
-            "change": round(mean_a - mean_b, 4),
+            "change": round(float(effects[row_idx]) if batch_adjusted
+                            else mean_a - mean_b, 4),
+            **({"raw_change": round(mean_a - mean_b, 4)} if batch_adjusted else {}),
             "mean_score_a": mean_a,
             "mean_score_b": mean_b,
             "pvalue": pvalue,
@@ -420,10 +535,12 @@ def infer_replicate_footprints(
             "n_sites": int(record.get("n_sites") or 0),
         })
     significant = [row for row in results if row["padj"] <= alpha]
-    null_controls = _null_label_controls(
+    null_controls = (_within_batch_null_controls(
+        matrix, len(reps_a), batches, alpha, max_label_permutations, random_seed,
+    ) if batch_adjusted else _null_label_controls(
         matrix, len(reps_a), alpha, max_label_permutations, random_seed,
         paired=paired,
-    )
+    ))
     return {
         "parsed": True,
         "n_motifs_tested": len(results),
@@ -432,9 +549,13 @@ def infer_replicate_footprints(
         "inference": {
             **base_inference,
             "status": "success",
-            "test": ("paired_t_test_on_within_donor_mean_score_differences"
+            "test": ("ols_t_test_on_replicate_mean_scores_batch_adjusted"
+                     if batch_adjusted else
+                     "paired_t_test_on_within_donor_mean_score_differences"
                      if paired
                      else "welch_t_test_on_replicate_mean_scores"),
+            **({"batch_adjusted": True, "df_residual": df_resid}
+               if batch_adjusted else {}),
             "multiple_testing": "benjamini_hochberg_across_motifs",
             "low_power_warning": min(len(reps_a), len(reps_b)) < 3,
             "null_label_controls": null_controls,
@@ -487,16 +608,48 @@ def _iter_fragments(frag_file: str, scan_limit: int | None = None
 # pysam BAM writer (gated)                                                     #
 # --------------------------------------------------------------------------- #
 
-def _write_group_bams(frag_file: str, barcode_groups: dict[str, str],
+def _fragment_inputs(frag_file: str | None, fragments_files: list[str] | None,
+                     sample_ids: list[str] | None = None) -> tuple[list[str], list[str]]:
+    """Validate fragment paths and resolve the cohort barcode namespaces."""
+    files = (fragments_files if isinstance(fragments_files, list) and fragments_files
+             else [frag_file])
+    for path in files:
+        if not path or not Path(str(path)).is_file():
+            label = "fragments_files" if fragments_files else "fragments_file"
+            raise ValueError(f"{label} missing or not a file: {path}")
+    files = [str(path) for path in files]
+    if sample_ids is not None:
+        if (not isinstance(sample_ids, list) or len(sample_ids) != len(files)
+                or any(not isinstance(s, str) or not s.strip() for s in sample_ids)):
+            raise ValueError("sample_ids must contain one non-empty string per fragments file")
+        return files, sample_ids
+    samples = []
+    for path in files:
+        name = Path(path).name
+        for suffix in (".fragments.tsv.gz", ".tsv.gz", ".bed.gz", ".tsv", ".bed"):
+            if name.endswith(suffix):
+                name = name[:-len(suffix)]
+                break
+        samples.append(name)
+    return files, samples
+
+
+def _write_group_bams(frag_file: str | list[str], barcode_groups: dict[str, str],
                       target_groups: Iterable[str], chrom_sizes: dict[str, int],
                       out_dir: Path, read_len: int = 50,
-                      reuse: bool = True) -> dict[str, dict[str, Any]]:
+                      reuse: bool = True, sample_ids: list[str] | None = None,
+                      fragments_files: list[str] | None = None) -> dict[str, dict[str, Any]]:
     """Write one sorted+indexed pseudobulk BAM per target group from the fragments.
     Returns ``{group: {"bam": path, "n_fragments": int}}``. Requires pysam. When
     ``reuse`` and a group's sorted BAM + index already exist, that group is reused
     (counts recovered from the index) so a re-run does not rewrite multi-GB BAMs."""
     import pysam
 
+    frag_files, samples = _fragment_inputs(
+        frag_file if isinstance(frag_file, str) else None,
+        fragments_files or (frag_file if isinstance(frag_file, list) else None),
+        sample_ids)
+    use_prefix = len(frag_files) > 1 or sample_ids is not None
     targets = {g for g in target_groups}
     reused: dict[str, dict[str, Any]] = {}
     if reuse:
@@ -520,8 +673,14 @@ def _write_group_bams(frag_file: str, barcode_groups: dict[str, str],
                for g, p in unsorted.items()}
     counts = {g: 0 for g in targets}
     try:
-        for chrom, start, end, bc in _iter_fragments(frag_file):
-            grp = barcode_groups.get(bc)
+        fragments = ((sample, fragment) for path, sample in zip(frag_files, samples)
+                     for fragment in _iter_fragments(path))
+        for sample, (chrom, start, end, bc) in fragments:
+            candidates = [bc]
+            if use_prefix:
+                candidates.extend(f"{sample}{sep}{bc}" for sep in ("#", "_", ":"))
+            grp = next((barcode_groups[key] for key in candidates
+                        if key in barcode_groups), None)
             if grp not in targets or chrom not in tid:
                 continue
             wrote = False
@@ -755,6 +914,8 @@ def _write_replicate_inference_table(summary: dict[str, Any], out_dir: Path) -> 
     path = out_dir / "replicate_footprint_inference.tsv"
     fields = ["motif_id", "tf", "mean_score_a", "mean_score_b", "change",
               "pvalue", "padj", "n_sites"]
+    if any("raw_change" in row for row in rows):
+        fields.insert(5, "raw_change")
     with open(path, "w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=fields, delimiter="\t")
         writer.writeheader()
@@ -783,9 +944,170 @@ def _replicate_summary(
         max_label_permutations=int(params.get("max_label_permutations", 100)),
         random_seed=int(params.get("permutation_seed", 0)),
         replicate_ids=tobias.get("replicate_ids"),
+        replicate_batches=tobias.get("replicate_batches"),
     )
     _write_replicate_inference_table(summary, out_dir)
     return summary
+
+
+def render_footprint_volcano(
+    summary: dict[str, Any], group_a: str, group_b: str, out_dir: Path, *,
+    results_table: str | None = None, bindetect_results: str | None = None,
+) -> dict[str, str] | None:
+    """Render all finite motif effects, distinguishing BH inference from site p."""
+    inferential = ((summary.get("inference") or {}).get("status") == "success"
+                   and bool(results_table) and Path(results_table).is_file())
+    path = results_table if inferential else bindetect_results
+    if not path or not Path(path).is_file():
+        return None
+    effect_col = "change" if inferential else f"{group_a}_{group_b}_change"
+    p_col = "padj" if inferential else f"{group_a}_{group_b}_pvalue"
+    rows = []
+    with open(path, encoding="utf-8") as fh:
+        reader = csv.DictReader(fh, delimiter="\t")
+        if not {effect_col, p_col}.issubset(reader.fieldnames or []):
+            return None
+        for row in reader:
+            try:
+                effect, pvalue = float(row[effect_col]), float(row[p_col])
+            except (ValueError, TypeError):
+                continue
+            if math.isfinite(effect) and math.isfinite(pvalue) and 0 <= pvalue <= 1:
+                rows.append((effect, pvalue, str(row.get("tf") or row.get("name") or "")))
+    if not rows:
+        return None
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    alpha = float(summary.get("alpha", 0.05))
+    fig, ax = plt.subplots(figsize=(8, 6))
+    try:
+        for direction, color, label in (
+            (0, "#bdbdbd", "Non-significant" if inferential else "Other motifs"),
+            (1, "#c0392b", f"Higher in {group_a}"),
+            (-1, "#2c7fb8", f"Higher in {group_b}"),
+        ):
+            selected = [r for r in rows if (
+                (1 if r[0] > 0 else -1) if r[1] <= alpha and r[0] != 0 else 0
+            ) == direction]
+            if selected:
+                ax.scatter([r[0] for r in selected],
+                           [-math.log10(max(r[1], 1e-300)) for r in selected],
+                           c=color, label=label, s=24, alpha=0.8, edgecolors="none")
+            if direction:
+                for effect, pvalue, tf in sorted(selected, key=lambda r: r[1])[:5]:
+                    ax.annotate(tf, (effect, -math.log10(max(pvalue, 1e-300))),
+                                xytext=(4, 4), textcoords="offset points", fontsize=8)
+        ax.axhline(-math.log10(alpha), color="#777777", linestyle="--", linewidth=1)
+        ax.axvline(0, color="#777777", linewidth=0.8)
+        ax.set_xlabel(f"Footprint score change ({group_a} − {group_b})")
+        ax.set_ylabel("−log10(BH-adjusted p)" if inferential else "−log10(uncorrected site p)")
+        ax.set_title("Differential TF footprinting (replicate inference, BH FDR)"
+                     if inferential else
+                     "Differential TF footprinting (descriptive — uncorrected site p)")
+        ax.legend(frameon=False, fontsize=9)
+        fig.tight_layout()
+        out_dir.mkdir(parents=True, exist_ok=True)
+        png, svg = out_dir / "footprint_volcano.png", out_dir / "footprint_volcano.svg"
+        fig.savefig(png, dpi=160)
+        fig.savefig(svg)
+    finally:
+        plt.close(fig)
+    return {"png": str(png), "svg": str(svg)}
+
+
+def _resolve_replicate_batches(
+    supplied: dict[str, Any], replicate_groups: dict[str, str],
+    replicate_ids: dict[str, str],
+) -> dict[str, str]:
+    """Map explicit signal IDs, replicate IDs, or condition-nested IDs to batches."""
+    batches = {}
+    for signal, group in replicate_groups.items():
+        nested = supplied.get(group)
+        source = nested if isinstance(nested, dict) else supplied
+        value = source.get(signal, source.get(replicate_ids[signal]))
+        if value is not None and not isinstance(value, dict) and str(value).strip():
+            batches[signal] = str(value).strip()
+    return batches
+
+
+def _stage_fingerprint(params: dict[str, Any], mode: str,
+                       inputs: list[str]) -> str:
+    """Bind a stage to its configuration, design, and input file metadata (A4)."""
+    config = {
+        "mode": mode,
+        "group_a": params.get("group_a"), "group_b": params.get("group_b"),
+        "min_replicates_per_condition": params.get("min_replicates_per_condition", 3),
+        "footprint_fdr": params.get("footprint_fdr", 0.05),
+        "make_aggregate_plots": params.get("make_aggregate_plots", True),
+        "make_volcano_plot": params.get("make_volcano_plot", True),
+        "replicate_batches": params.get("replicate_batches") or {},
+        "sample_ids": params.get("sample_ids"),
+        "condition_bams": params.get("condition_bams") or {},
+        "replicate_bams": params.get("replicate_bams") or {},
+        "max_label_permutations": params.get("max_label_permutations", 100),
+        "permutation_seed": params.get("permutation_seed", 0),
+    }
+    files = []
+    for raw in inputs:
+        path = Path(str(raw)).resolve()
+        try:
+            stat = path.stat()
+            files.append((str(path), stat.st_size, stat.st_mtime_ns))
+        except OSError:
+            files.append((str(path), None, None))
+    payload = {"schema_version": 1, "config": config, "inputs": files}
+    return hashlib.sha256(json.dumps(payload, sort_keys=True,
+                                     separators=(",", ":")).encode()).hexdigest()
+
+
+def _resume_stage(out_dir: Path, fingerprint: str,
+                  resume: bool) -> tuple[dict[str, Any] | None, bool]:
+    """Only a matching stage manifest authorizes reuse of prepared BAMs."""
+    if not resume:
+        return None, False
+    manifest = out_dir / "chromatin_footprint_tobias.stage_manifest.json"
+    result_path = out_dir / "chromatin_footprint_tobias.result.json"
+    try:
+        stage = json.loads(manifest.read_text(encoding="utf-8"))
+        if stage.get("fingerprint") != fingerprint:
+            return None, False
+        result = json.loads(result_path.read_text(encoding="utf-8"))
+        summary = result.get("differential_summary") or {}
+        required = [result.get("bindetect_results")]
+        if (summary.get("inference") or {}).get("status") == "success":
+            required.append(summary.get("results_table"))
+        if result.get("ran") and all(p and Path(p).is_file() for p in required):
+            return {**result, "reused_from_stage_manifest": True,
+                    "validation_level": "production"}, True
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    return None, False
+
+
+def _finish_stage(result: dict[str, Any], out_dir: Path,
+                  fingerprint: str, params: dict[str, Any]) -> dict[str, Any]:
+    """Render publication artifacts and persist a completed stage for resume."""
+    result["validation_level"] = "production"
+    summary = result.get("differential_summary") or {}
+    if params.get("make_volcano_plot", True) and summary.get("parsed"):
+        volcano = render_footprint_volcano(
+            summary, str(result["group_a"]), str(result["group_b"]), out_dir,
+            results_table=summary.get("results_table"),
+            bindetect_results=result.get("bindetect_results"))
+        if volcano:
+            result["volcano_plot"] = volcano
+    manifest = out_dir / "chromatin_footprint_tobias.stage_manifest.json"
+    result["stage_manifest_path"] = str(manifest)
+    result_path = out_dir / "chromatin_footprint_tobias.result.json"
+    # Commit the manifest last: an interrupted result write cannot authorize reuse.
+    manifest.unlink(missing_ok=True)
+    result_path.write_text(json.dumps(result, indent=2, sort_keys=True), encoding="utf-8")
+    manifest.write_text(json.dumps({"fingerprint": fingerprint,
+                                    "result_path": str(result_path)},
+                                   indent=2, sort_keys=True), encoding="utf-8")
+    return result
 
 
 # --------------------------------------------------------------------------- #
@@ -795,7 +1117,8 @@ def _replicate_summary(
 def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
     """Run the TOBIAS footprinting + differential-binding pipeline, or skip honestly.
 
-    Required params: ``fragments_file``, ``genome_fasta``, ``peaks_bed``,
+    Required params: ``fragments_files`` (or legacy ``fragments_file``),
+    ``genome_fasta``, ``peaks_bed``,
     ``motif_meme``, ``barcode_groups`` (TSV), ``genome_fai`` (or sibling ``.fai``),
     ``group_a``, ``group_b``, ``output_dir``.
     """
@@ -811,7 +1134,12 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
     if shutil.which("TOBIAS") is None:
         return _skip("TOBIAS not installed (needs aria-tobias-env); footprinting "
                      "refuses uncorrected output", method="tobias")
-    for label, val in (("fragments_file", frag), ("genome_fasta", genome),
+    try:
+        frag_files, _ = _fragment_inputs(
+            frag, params.get("fragments_files"), params.get("sample_ids"))
+    except ValueError as exc:
+        return _skip(str(exc), method="tobias")
+    for label, val in (("genome_fasta", genome),
                        ("peaks_bed", peaks), ("motif_meme", motifs),
                        ("barcode_groups", groups_tsv)):
         if not val or not Path(str(val)).is_file():
@@ -826,6 +1154,12 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
                      method="tobias")
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    fingerprint = _stage_fingerprint(params, "scatac", [
+        str(genome), str(fai), str(peaks), str(motifs), str(groups_tsv), *frag_files])
+    cached, reuse = _resume_stage(out_dir, fingerprint, params.get("resume", True))
+    if cached is not None:
+        return cached
+    (out_dir / "chromatin_footprint_tobias.stage_manifest.json").unlink(missing_ok=True)
     chrom_sizes = _chrom_sizes_from_fai(fai)
     barcode_design = _load_barcode_design(str(groups_tsv))
     barcode_groups = {barcode: str(row["group"])
@@ -865,7 +1199,8 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
             if (str(row.get("group")), str(row.get("replicate"))) in signal_for_pair
         }
         replicate_bams = _write_group_bams(
-            str(frag), barcode_signals, replicate_groups, chrom_sizes, out_dir)
+            frag_files, barcode_signals, replicate_groups, chrom_sizes, out_dir,
+            reuse=reuse, sample_ids=params.get("sample_ids"))
         empty = [name for name, info in replicate_bams.items()
                  if info["n_fragments"] == 0]
         if empty:
@@ -876,6 +1211,22 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
             replicate_bams, replicate_groups, str(genome), str(peaks), str(motifs),
             out_dir, cores=int(params.get("cores", 8)))
         tobias["replicate_ids"] = replicate_ids
+        supplied_batches = params.get("replicate_batches") or {}
+        replicate_batches = _resolve_replicate_batches(
+            supplied_batches, replicate_groups, replicate_ids)
+        if not supplied_batches:
+            batch_sets: dict[str, set[str]] = {signal: set() for signal in replicate_groups}
+            for row in barcode_design.values():
+                signal = signal_for_pair.get((str(row.get("group")),
+                                              str(row.get("replicate"))))
+                batch = str(row.get("batch") or "").strip()
+                if signal and batch:
+                    batch_sets[signal].add(batch)
+            if all(len(values) <= 1 for values in batch_sets.values()):
+                replicate_batches = {signal: next(iter(values))
+                                     for signal, values in batch_sets.items() if values}
+        if replicate_batches:
+            tobias["replicate_batches"] = replicate_batches
         summary = _replicate_summary(tobias, str(group_a), str(group_b), out_dir, params)
         aggregate = {}
         if (params.get("make_aggregate_plots", True) and summary.get("parsed")
@@ -884,7 +1235,7 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
                 Path(tobias["bindetect_outdir"]), tobias["corrected_signals"],
                 _top_tfs(summary, str(group_a), str(group_b)), out_dir,
                 cores=int(params.get("cores", 8)))
-        return {
+        return _finish_stage({
             "ran": True,
             "method": "tobias_replicate_atacorrect_scorebigwig_bindetect_welch_bh",
             "group_a": group_a, "group_b": group_b,
@@ -894,13 +1245,14 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
             **tobias,
             "caveat": (
                 "TF footprint inference uses biological replicate/donor mean scores "
-                "with Welch tests and BH across motifs. Label permutations are null "
-                "diagnostics. Footprint differences remain associative, not causal."
+                "with design-appropriate tests and BH across motifs. Label permutations "
+                "are null diagnostics. Footprint differences remain associative, not causal."
             ),
-        }
+        }, out_dir, fingerprint, params)
 
-    group_bams = _write_group_bams(str(frag), barcode_groups, (group_a, group_b),
-                                   chrom_sizes, out_dir)
+    group_bams = _write_group_bams(frag_files, barcode_groups, (group_a, group_b),
+                                   chrom_sizes, out_dir, reuse=reuse,
+                                   sample_ids=params.get("sample_ids"))
     for g in (group_a, group_b):
         if group_bams[g]["n_fragments"] == 0:
             return _skip(f"group '{g}' has no fragments after barcode mapping",
@@ -930,7 +1282,7 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
              group_b: str(out_dir / f"{group_b}_corrected.bw")},
             _top_tfs(summary, group_a, group_b), out_dir,
             cores=int(params.get("cores", 8)))
-    return {
+    return _finish_stage({
         "ran": True,
         "method": "tobias_atacorrect_scorebigwig_bindetect",
         "group_a": group_a, "group_b": group_b,
@@ -944,15 +1296,29 @@ def chromatin_footprint_tobias(params: dict) -> dict[str, Any]:
             "are Tn5-bias-corrected (ATACorrect). Without explicit sufficient donor/"
             "replicate identity, cell groups remain descriptive pseudobulks."
         ),
-    }
+    }, out_dir, fingerprint, params)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Bulk ATAC footprinting (replicate inference or descriptive condition pools)
 # ─────────────────────────────────────────────────────────────────────────────
 
+def _count_mapped(path: str | Path, reference_fasta: str | None = None) -> int:
+    """Count mapped reads, supporting unindexed inputs and reference-backed CRAM."""
+    import pysam
+
+    options = ({"reference_filename": str(reference_fasta)}
+               if str(path).lower().endswith(".cram") and reference_fasta else {})
+    with pysam.AlignmentFile(str(path), **options) as aln:
+        if aln.has_index():
+            return int(aln.mapped)
+        return sum(not r.is_unmapped and not r.is_secondary and not r.is_supplementary
+                   for r in aln.fetch(until_eof=True))
+
+
 def _merge_condition_bams(condition_bams: dict[str, list],
-                          out_dir: Path, reuse: bool = True
+                          out_dir: Path, reuse: bool = True,
+                          reference_fasta: str | None = None,
                           ) -> dict[str, dict[str, Any]]:
     """Merge the per-sample BAMs of each condition into one sorted+indexed
     condition BAM (the bulk analogue of the scATAC per-group pseudobulk BAM).
@@ -969,16 +1335,19 @@ def _merge_condition_bams(condition_bams: dict[str, list],
         valid = [str(b) for b in (bams or []) if b and Path(str(b)).is_file()]
         if reuse and merged.is_file() and index.is_file():
             out[cond] = {"bam": str(merged),
-                         "n_fragments": int(pysam.AlignmentFile(str(merged)).mapped),
+                         "n_fragments": _count_mapped(merged, reference_fasta),
                          "n_bams": len(valid)}
             continue
         if not valid:
             out[cond] = {"bam": None, "n_fragments": 0, "n_bams": 0}
             continue
-        pysam.merge("-f", str(merged), *valid)
+        reference_args = (["--reference", str(reference_fasta)]
+                          if reference_fasta and any(p.lower().endswith(".cram")
+                                                     for p in valid) else [])
+        pysam.merge("-f", *reference_args, str(merged), *valid)
         pysam.index(str(merged))
         out[cond] = {"bam": str(merged),
-                     "n_fragments": int(pysam.AlignmentFile(str(merged)).mapped),
+                     "n_fragments": _count_mapped(merged, reference_fasta),
                      "n_bams": len(valid)}
     return out
 
@@ -988,6 +1357,8 @@ def _prepare_bulk_replicate_bams(
     group_a: str,
     group_b: str,
     out_dir: Path,
+    reference_fasta: str | None = None,
+    reuse: bool = True,
 ) -> tuple[dict[str, dict[str, Any]], dict[str, str], dict[str, str]]:
     """Merge technical BAMs within each explicitly named biological replicate."""
     merge_inputs: dict[str, list[Any]] = {}
@@ -1005,7 +1376,8 @@ def _prepare_bulk_replicate_bams(
             original_ids[signal] = str(replicate_id)
     replicate_dir = out_dir / "replicate_bams"
     replicate_dir.mkdir(parents=True, exist_ok=True)
-    prepared = _merge_condition_bams(merge_inputs, replicate_dir)
+    prepared = _merge_condition_bams(merge_inputs, replicate_dir, reuse=reuse,
+                                     reference_fasta=reference_fasta)
     return prepared, replicate_groups, original_ids
 
 
@@ -1056,6 +1428,17 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
                      method="tobias")
 
     out_dir.mkdir(parents=True, exist_ok=True)
+    bam_inputs = [str(bam) for bams in condition_bams.values() for bam in (bams or [])]
+    bam_inputs.extend(
+        str(bam) for group_reps in replicate_design.values()
+        if isinstance(group_reps, dict) for bams in group_reps.values()
+        for bam in (bams if isinstance(bams, list) else [bams]))
+    fingerprint = _stage_fingerprint(params, "bulk", [
+        str(genome), str(fai), str(peaks), str(motifs), *bam_inputs])
+    cached, reuse = _resume_stage(out_dir, fingerprint, params.get("resume", True))
+    if cached is not None:
+        return cached
+    (out_dir / "chromatin_footprint_tobias.stage_manifest.json").unlink(missing_ok=True)
     min_replicates = int(params.get("min_replicates_per_condition", 3))
     replicate_counts = {
         group: (len(replicate_design.get(group) or {})
@@ -1068,7 +1451,8 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
     if replicate_ready:
         replicate_bam_info, replicate_groups, original_ids = (
             _prepare_bulk_replicate_bams(
-                replicate_design, str(group_a), str(group_b), out_dir))
+                replicate_design, str(group_a), str(group_b), out_dir,
+                reference_fasta=str(genome), reuse=reuse))
         empty = [name for name, info in replicate_bam_info.items()
                  if not info.get("bam") or info.get("n_fragments", 0) == 0]
         if empty:
@@ -1079,6 +1463,10 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
             replicate_bam_info, replicate_groups, str(genome), str(peaks),
             str(motifs), out_dir, cores=int(params.get("cores", 8)))
         tobias["replicate_ids"] = original_ids
+        replicate_batches = _resolve_replicate_batches(
+            params.get("replicate_batches") or {}, replicate_groups, original_ids)
+        if replicate_batches:
+            tobias["replicate_batches"] = replicate_batches
         summary = _replicate_summary(tobias, str(group_a), str(group_b), out_dir, params)
         aggregate = {}
         if (params.get("make_aggregate_plots", True) and summary.get("parsed")
@@ -1087,7 +1475,7 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
                 Path(tobias["bindetect_outdir"]), tobias["corrected_signals"],
                 _top_tfs(summary, str(group_a), str(group_b)), out_dir,
                 cores=int(params.get("cores", 8)))
-        return {
+        return _finish_stage({
             "ran": True,
             "method": "tobias_replicate_atacorrect_scorebigwig_bindetect_welch_bh",
             "data_type": "bulk_ATAC",
@@ -1100,14 +1488,14 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
             **tobias,
             "caveat": (
                 "TF footprint inference uses biological-replicate mean scores with "
-                "Welch tests and BH across motifs; label permutations are null "
-                "diagnostics. Footprint differences remain associative, not causal."
+                "design-appropriate tests and BH across motifs; label permutations "
+                "are null diagnostics. Footprint differences remain associative, not causal."
             ),
-        }
+        }, out_dir, fingerprint, params)
 
     group_bams = _merge_condition_bams(
         {group_a: condition_bams[group_a], group_b: condition_bams[group_b]},
-        out_dir)
+        out_dir, reuse=reuse, reference_fasta=str(genome))
     for g in (group_a, group_b):
         if not group_bams[g]["bam"] or group_bams[g]["n_fragments"] == 0:
             return _skip(f"condition '{g}' has no readable BAM reads after merge",
@@ -1136,7 +1524,7 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
              group_b: str(out_dir / f"{group_b}_corrected.bw")},
             _top_tfs(summary, group_a, group_b), out_dir,
             cores=int(params.get("cores", 8)))
-    return {
+    return _finish_stage({
         "ran": True,
         "method": "tobias_atacorrect_scorebigwig_bindetect",
         "data_type": "bulk_ATAC",
@@ -1152,7 +1540,7 @@ def chromatin_footprint_tobias_bulk(params: dict) -> dict[str, Any]:
             "Tn5-bias-corrected (ATACorrect). Without an explicit sufficient "
             "biological-replicate design, condition BAMs remain descriptive pools."
         ),
-    }
+    }, out_dir, fingerprint, params)
 
 
 def chromatin_footprint_tobias_dispatch(params: dict) -> dict[str, Any]:
