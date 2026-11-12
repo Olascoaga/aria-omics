@@ -1,0 +1,281 @@
+{
+  "slice": "V48_I9_cross_modal_hypotheses_S10",
+  "adr": "ADR-072",
+  "aria_version": "4.7.0",
+  "dataset": {
+    "cohort": "GSE278576_human_hippocampus_10x_multiome",
+    "sample_id": "hc11",
+    "input_container": "hc11_paired.h5mu",
+    "reference_annotation": "GSE278576_hippocampus_RNA.h5ad",
+    "n_cells_raw": 3143,
+    "n_cells_post_qc": 2517,
+    "n_genes": 36601,
+    "n_peaks": 60990,
+    "n_subclasses": 13
+  },
+  "preflight": {
+    "registry_errors": 0,
+    "aria_integration_env": "pass",
+    "aria_chromatin_env": "pass"
+  },
+  "stage_timings_sec": {
+    "paired_qc": 3.7,
+    "wnn_and_guardrail": 47.24,
+    "mofa": 74.68,
+    "peak_to_gene": 28.4,
+    "eregulons": 141.71,
+    "total_wall_sec": 341.82
+  },
+  "evidence_signal_audit": {
+    "n_integration_signals": 69,
+    "n_total_gathered_signals_with_scatac": 78,
+    "counts_by_layer": {
+      "integration_peak_to_gene": 19,
+      "integration_eregulon_tfs": 10,
+      "integration_eregulon_targets": 30,
+      "integration_mofa_shared_rna": 10,
+      "co_run_scatac_peak2gene": 9
+    },
+    "n_pos_eregulon_tfs": 9,
+    "n_neg_eregulon_tfs": 1,
+    "n_paralog_ambiguous_tfs": 5,
+    "mofa_excluded_factor_ids": [
+      "5"
+    ],
+    "excluded_mofa_signals_emitted": 0,
+    "peak_coordinate_entities_emitted": 0,
+    "composite_heterodimer_entities_emitted": 0,
+    "non_circular_lineage_probe": {
+      "cited_dependent_representations": 3,
+      "independent_lines_counted": 1,
+      "lineage_keys": [
+        "paired_cis_regulatory",
+        "paired_mofa_latent"
+      ]
+    }
+  },
+  "validation_arms": {
+    "arm_a_opt_in_default_off": {
+      "enable_hypotheses": false,
+      "speculative_html_emitted": false,
+      "speculative_manifest_written": false,
+      "public_claims_published": 7,
+      "speculative_promotion_leakage": 0
+    },
+    "arm_b_deterministic_controlled_and_redteam": {
+      "enable_hypotheses": true,
+      "reproducible_byte_identical": true,
+      "speculative_manifest_sha256": "da1cc18f44caa2450a9c45a225324b0323904dbf891ad5b9bc15013b5996ba83",
+      "promotable": false,
+      "n_candidates": 7,
+      "n_accepted": 3,
+      "n_rejected": 4,
+      "accepted_hypotheses": [
+        {
+          "id": "hc11_rival_pos_mofa",
+          "entities": [
+            "FLI1",
+            "PTPRC",
+            "LSAMP"
+          ],
+          "observation_refs": [
+            "ledger://integration/eregulons",
+            "ledger://integration/mofa"
+          ],
+          "inherited_caveats": [
+            "mofa_latent_associative",
+            "motif_not_binding",
+            "paralog_motif_ambiguity",
+            "peak2gene_associative"
+          ],
+          "rank_evidence": {
+            "n_independent_lines": 2,
+            "n_entities": 3,
+            "mean_effect_norm": 0.2616,
+            "evidence_caveat_load": 3,
+            "basis": "cited_signals"
+          },
+          "competing_with": [
+            "hc11_rival_neg_ereg"
+          ],
+          "ledger_node": "hypothesis://hc11_rival_pos_mofa"
+        },
+        {
+          "id": "hc11_rival_paralog_owned",
+          "entities": [
+            "SPI1",
+            "KCNAB3"
+          ],
+          "observation_refs": [
+            "ledger://integration/eregulons",
+            "ledger://integration/peak_to_gene"
+          ],
+          "inherited_caveats": [
+            "motif_not_binding",
+            "paralog_motif_ambiguity",
+            "peak2gene_associative"
+          ],
+          "rank_evidence": {
+            "n_independent_lines": 1,
+            "n_entities": 2,
+            "mean_effect_norm": 0.233,
+            "evidence_caveat_load": 3,
+            "basis": "cited_signals"
+          },
+          "competing_with": [],
+          "ledger_node": "hypothesis://hc11_rival_paralog_owned"
+        },
+        {
+          "id": "hc11_rival_neg_ereg",
+          "entities": [
+            "MEIS1",
+            "PTPRC"
+          ],
+          "observation_refs": [
+            "ledger://integration/eregulons"
+          ],
+          "inherited_caveats": [
+            "motif_not_binding",
+            "paralog_motif_ambiguity",
+            "peak2gene_associative"
+          ],
+          "rank_evidence": {
+            "n_independent_lines": 1,
+            "n_entities": 2,
+            "mean_effect_norm": 0.0773,
+            "evidence_caveat_load": 2,
+            "basis": "cited_signals"
+          },
+          "competing_with": [
+            "hc11_rival_pos_mofa"
+          ],
+          "ledger_node": "hypothesis://hc11_rival_neg_ereg"
+        }
+      ],
+      "rejected_by_id": {
+        "adv_ungrounded_tf": [
+          "grounding"
+        ],
+        "adv_causal_verb": [
+          "language"
+        ],
+        "adv_reversed_neg_direction": [
+          "grounding"
+        ],
+        "adv_hidden_paralog_caveat": [
+          "devils_advocate"
+        ]
+      },
+      "audited_claim_manifest_leakage": 0,
+      "capsule_verification": {
+        "status": "pass",
+        "n_files_verified": 36,
+        "missing": [],
+        "mismatched": [],
+        "memory_snapshot_valid": true
+      }
+    },
+    "arm_c_closed_verification_receipt": {
+      "ran": false,
+      "reason": "verification_gate_not_passed",
+      "proposer_calls": 0,
+      "withheld_banner_rendered": true
+    },
+    "arm_d_live_llm_provider": {
+      "status": "executed",
+      "elapsed_sec": 33.42,
+      "proposer_diagnostics": {
+        "raw_chars": 6296,
+        "parsed": 4,
+        "status": "ok",
+        "max_tokens": 8192,
+        "retries": 0,
+        "finish_reason": "stop",
+        "served_model": "gemini/gemini-2.5-flash",
+        "served_fallback": true
+      },
+      "served_provider": "gemini",
+      "served_model": "gemini/gemini-2.5-flash",
+      "n_evidence": 78,
+      "n_candidates": 4,
+      "n_accepted": 2,
+      "n_rejected": 2,
+      "honest_null": false,
+      "accepted_preview": [
+        {
+          "id": "H4",
+          "entities": [
+            "GFAP"
+          ],
+          "observation_refs": [
+            "ledger://integration/peak_to_gene"
+          ],
+          "inherited_caveats": [
+            "peak2gene_associative"
+          ],
+          "rank_evidence": {
+            "n_independent_lines": 1,
+            "n_entities": 1,
+            "mean_effect_norm": 0.3314,
+            "evidence_caveat_load": 1,
+            "basis": "cited_signals"
+          },
+          "ledger_node": "hypothesis://H4"
+        },
+        {
+          "id": "H1",
+          "entities": [
+            "IKZF1",
+            "PTPRC",
+            "ARHGAP15",
+            "DENND3"
+          ],
+          "observation_refs": [
+            "ledger://integration/eregulons"
+          ],
+          "inherited_caveats": [
+            "motif_not_binding",
+            "paralog_motif_ambiguity",
+            "peak2gene_associative"
+          ],
+          "rank_evidence": {
+            "n_independent_lines": 1,
+            "n_entities": 4,
+            "mean_effect_norm": 0.3023,
+            "evidence_caveat_load": 3,
+            "basis": "cited_signals"
+          },
+          "ledger_node": "hypothesis://H1"
+        }
+      ],
+      "all_accepted_verified_across_4_gates": true
+    }
+  },
+  "provenance": {
+    "aria_version": "4.7.0",
+    "version": "4.7.0",
+    "version_source": "aria.version.__version__",
+    "git_sha": "20e93cf94fa8c4e252319cad3a508d365bd8bf66",
+    "git_commit": "20e93cf94fa8c4e252319cad3a508d365bd8bf66",
+    "git_dirty": true,
+    "git_tree_sha": "89550600c5f2c0c5d1418a1a5112516b006bc27f",
+    "git_describe": "v4.7.0-320-g20e93cf-dirty",
+    "workflow_hash": "3ef0be8e781ae1b898fa6326d302cc9e7e6afa3d4ef1894fbeaf55758671846c",
+    "workflow_hash_algorithm": "sha256(version+git_sha+git_tree_sha+git_dirty+git_status+git_diff)",
+    "image": {
+      "containerized": false,
+      "kind": null,
+      "digest": null,
+      "reference": null,
+      "revision": null,
+      "env_lock_sha256": null,
+      "validation": null
+    },
+    "environment": {
+      "env_name": "anaconda3",
+      "env_lock_file": null,
+      "env_lock_sha256": null,
+      "source": "no_lock"
+    }
+  }
+}

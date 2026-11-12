@@ -16,6 +16,7 @@ from __future__ import annotations
 from .adapters import (
     bulk_atac_evidence,
     bulk_rna_evidence,
+    integration_evidence,
     scatac_evidence,
     scrna_evidence,
 )
@@ -93,6 +94,7 @@ __all__ = [
     "scrna_evidence",
     "bulk_atac_evidence",
     "scatac_evidence",
+    "integration_evidence",
     "LLMProposer",
     "build_proposer_prompt",
     "classify_parse",

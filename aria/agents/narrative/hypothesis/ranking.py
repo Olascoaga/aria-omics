@@ -57,14 +57,20 @@ def _normalized_effect(signal) -> float | None:
     log-scale (unbounded), correlations and gene-activity scores already sit near
     [0, 1]. They must not be averaged raw. Log-scale effects are squashed with a
     parameter-free ``tanh`` (|effect|=1 -> 0.76, 2 -> 0.96); already-bounded
-    measures are clamped. Non-numeric signals (ORA terms, abundance, L-R pairs)
-    have no magnitude and contribute no effect.
+    measures are clamped. Non-numeric signals (ORA terms, abundance, L-R pairs,
+    eRegulon target membership) and arbitrary-scale latent loadings (MOFA+ RNA
+    weights) have no comparable effect magnitude and contribute no effect.
     """
     value = _num(getattr(signal, "value", None))
-    if value is None:
+    if value is None or not math.isfinite(value):
         return None
     measure = str(getattr(signal, "measure", "") or "")
-    if measure.startswith("peak2gene") or measure == "gene_activity":
+    if measure in ("mofa_shared_rna_loading", "eregulon_target_membership"):
+        return None
+    if (
+        measure.startswith("peak2gene")
+        or measure in ("gene_activity", "eregulon_mean_tf_gene_correlation")
+    ):
         return min(abs(value), 1.0)  # correlation / bounded score
     return math.tanh(abs(value))  # log2FC, motif enrichment, generic log-scale
 
@@ -85,25 +91,43 @@ def _rank_basis(hyp: Hypothesis, by_id: dict) -> dict:
     audited signals the hypothesis cites in ``observed_claims`` (resolved by
     ``signal_id``), never from every signal its named entities were measured in.
     An independent line = a distinct ``(audited node, context)`` among the CITED
-    signals: the same entity cited in two contrasts is two lines; cited in one is
-    one, even if it was measured in three. This is an ordering key, not a
+    signals — UNLESS signals carry a code-owned ``independence_key`` (ADR-072),
+    in which case shared-upstream paired multiome representations (e.g.
+    ``peak_to_gene`` + candidate ``eregulons`` + paired ``scATAC`` ``peak2gene``
+    on the same cell barcodes) collapse into one lineage line and contribute at
+    most their strongest normalized effect once. This is an ordering key, not a
     confidence score.
     """
-    lines: set[tuple[str, str]] = set()
+    lines: set[tuple] = set()
     effects: list[float] = []
+    lineage_max_effect: dict[str, float] = {}
     caveats: set[str] = set()
     for claim in hyp.observed_claims or []:
         sid = str((claim or {}).get("signal_id", ""))
         sig = by_id.get(sid)
         if sig is None:
             continue
-        lines.add((str(sig.audited_node_ref or ""), str(sig.context or "")))
+        ind_key = str(getattr(sig, "independence_key", "") or "").strip()
+        if ind_key:
+            lines.add(("lineage", ind_key))
+        else:
+            lines.add(
+                ("node_ctx", str(sig.audited_node_ref or ""), str(sig.context or ""))
+            )
         effect = _normalized_effect(sig)
         if effect is not None:
-            effects.append(effect)
+            if ind_key:
+                prev = lineage_max_effect.get(ind_key)
+                if prev is None or effect > prev:
+                    lineage_max_effect[ind_key] = effect
+            else:
+                effects.append(effect)
         for caveat in sig.caveats_inherited or []:
             caveats.add(str(caveat).strip().lower())
-    mean_effect = round(sum(effects) / len(effects), 4) if effects else 0.0
+    all_effects = effects + [
+        lineage_max_effect[k] for k in sorted(lineage_max_effect)
+    ]
+    mean_effect = round(sum(all_effects) / len(all_effects), 4) if all_effects else 0.0
     return {
         "n_independent_lines": len(lines),
         "n_entities": len({_norm(e) for e in (hyp.entities or [])}),

@@ -56,6 +56,12 @@ class EvidenceSignal:
     # entity, measure, direction AND context. Derived deterministically when not
     # supplied so the index keys by signal, not by bare entity.
     signal_id: str = ""
+    # ADR-072 (V48 Slice I9): optional code-owned lineage group key for
+    # non-circular competitive ranking across shared-upstream paired multiome
+    # representations (e.g. peak_to_gene + candidate eregulons on the same
+    # paired cell barcodes). Excluded from signal_id derivation and omitted from
+    # to_dict() when empty so single-modality hashes stay byte-identical.
+    independence_key: str = ""
 
     def __post_init__(self) -> None:
         if not self.signal_id:
@@ -76,7 +82,10 @@ class EvidenceSignal:
         return "sig_" + hashlib.sha1(basis.encode("utf-8")).hexdigest()[:12]
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        data = asdict(self)
+        if not self.independence_key:
+            data.pop("independence_key", None)
+        return data
 
     @classmethod
     def from_dict(cls, data: dict) -> "EvidenceSignal":
@@ -97,6 +106,7 @@ class EvidenceSignal:
             caveats_inherited=list(data.get("caveats_inherited", []) or []),
             context=str(data.get("context", "") or ""),
             signal_id=str(data.get("signal_id", "") or ""),
+            independence_key=str(data.get("independence_key", "") or ""),
         )
 
 

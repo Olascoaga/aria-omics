@@ -314,7 +314,7 @@ flowchart TD
     %% SPECULATIVE hypothesis layer (ADR-057): opt-in, runs LAST over audited
     %% evidence only, mechanically walled non-promotable.
     REPORT_BUILDER -->|exp_ctx.enable_hypotheses opt-in + REAL W-CLAIM/W-LEDGER state| HYPO_SECTION[aria/agents/narrative/hypothesis/report_section.py gather_evidence + build_speculative_section + persist_speculative_manifest]
-    HYPO_SECTION --> HYPO_ADAPTERS[hypothesis/adapters/* bulk_rna/scrna/bulk_atac/scatac: audited findings to EvidenceSignal context+signal_id, no destructive dedup]
+    HYPO_SECTION --> HYPO_ADAPTERS[hypothesis/adapters/* bulk_rna/scrna/bulk_atac/scatac/integration: audited findings to EvidenceSignal context+signal_id+independence_key, no destructive dedup]
     HYPO_ADAPTERS --> HYPO_AGENT[aria/agents/hypothesis_agent.py HypothesisAgent: causal gate, per-candidate gates, ranking, quarantine]
     HYPO_SECTION --> HYPO_PROPOSER[hypothesis/proposer_llm.py LLMProposer: adaptive-budget retry + real model provenance]
     HYPO_AGENT --> HYPO_PROPOSER
@@ -582,7 +582,7 @@ Use these tests as impact anchors when editing the graph's major nodes:
   opt-in, P0-6): `tests/test_filename_fallback_gate.py`
 - WNN no-fabrication (NotImplemented blocker, no `_mock_wnn`, no hardcoded weights,
   P0-8): `tests/test_wnn_no_fabrication.py`
-- V48 paired multiome integration (Slices I1–I8, ADR-064 / ADR-065 / ADR-066 / ADR-067 / ADR-068 / ADR-069 / ADR-070 / ADR-071):
+- V48 paired multiome integration (Slices I1–I9, ADR-064 / ADR-065 / ADR-066 / ADR-067 / ADR-068 / ADR-069 / ADR-070 / ADR-071 / ADR-072):
   - I1 paired `.h5mu` same-cell gate, joint RNA+ATAC QC, and `h5py` `/obs` bijective
     barcode label join: `tests/test_v48_i1_paired_mudata_qc.py`
   - I2 deterministic WNN joint state + R Seurat v5 external concordance:
@@ -628,6 +628,17 @@ Use these tests as impact anchors when editing the graph's major nodes:
     `tests/test_v48_i8_integration_promotion.py`,
     `scripts/run_v48_i8_orchestrated_validation.py`,
     `docs/benchmark_results/multiome_concordance/v48_i8_orchestrated_dispatch_hc11.json`
+  - I9 (`S10`) cross-modal `HypothesisAgent` evidence adapter (`ADR-072`, `ADR-057`):
+    `aria/agents/narrative/hypothesis/adapters/integration.py` (`integration_evidence`
+    over `peak_to_gene` + candidate `eregulons` + active non-excluded `shared` `mofa`
+    RNA loadings + `wnn` guardrail caveat propagation), structured V48 caveat codes in
+    `caveats.py` / `devils_advocate.py`, non-circular `independence_key` lineage
+    collapse in `ranking.py` + `report_section.py::gather_evidence`, keeping
+    `HypothesisAgent`, all 4 publication gates, `SPECULATIVE` quarantine, and opt-in
+    default OFF intact:
+    `tests/test_v48_i9_cross_modal_hypotheses.py`,
+    `scripts/run_v48_i9_cross_modal_hypotheses.py`,
+    `docs/benchmark_results/multiome_concordance/v48_i9_cross_modal_hypotheses_hc11.json`
 - Confirmed-threshold propagation (`AnalysisThresholds`, pseudobulk dispatch, P0-7):
   `tests/test_analysis_thresholds.py`
 - Repo-wide anti-fabrication guard (P-FAKE-GUARD / ADR-002 mechanized, P1-13):

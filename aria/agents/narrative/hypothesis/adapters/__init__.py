@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from .bulk_atac import bulk_atac_evidence
 from .bulk_rna import bulk_rna_evidence
+from .integration import PAIRED_CIS_REGULATORY_KEY, integration_evidence
 from .scatac import scatac_evidence
 from .scrna import scrna_evidence
 
@@ -20,4 +21,6 @@ __all__ = [
     "scrna_evidence",
     "bulk_atac_evidence",
     "scatac_evidence",
+    "integration_evidence",
+    "PAIRED_CIS_REGULATORY_KEY",
 ]

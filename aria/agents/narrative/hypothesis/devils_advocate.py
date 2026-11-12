@@ -92,6 +92,43 @@ _CONFOUND_TOKENS: dict[str, tuple[str, ...]] = {
         "not establish regulatory",
         "associative cross-cell",
     ),
+    "paralog_motif_ambiguity": (
+        "paralog_motif_ambiguity",
+        "paralog",
+        "motif family",
+        "motif-family",
+        "shared motif",
+        "paralogous",
+        "regulator identity is ambiguous",
+    ),
+    "depth_confounded": (
+        "depth_confounded",
+        "depth confound",
+        "depth-confounded",
+        "sequencing depth",
+        "library depth",
+        "library-size",
+        "library size",
+        "total counts",
+    ),
+    "mofa_latent_associative": (
+        "mofa_latent_associative",
+        "mofa",
+        "latent factor",
+        "latent co-variation",
+        "latent covariation",
+        "factor sign",
+        "undirected latent",
+    ),
+    "wnn_guardrail_degraded": (
+        "wnn_guardrail_degraded",
+        "wnn guardrail",
+        "anti-degradation",
+        "guardrail warning",
+        "guardrail degraded",
+        "joint embedding warning",
+        "lens, not replacement",
+    ),
 }
 
 

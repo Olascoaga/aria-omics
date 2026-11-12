@@ -17,8 +17,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .adapters import (
+    PAIRED_CIS_REGULATORY_KEY,
     bulk_atac_evidence,
     bulk_rna_evidence,
+    integration_evidence,
     scatac_evidence,
     scrna_evidence,
 )
@@ -73,6 +75,29 @@ def gather_evidence(agent_results, run_ledger=None, exp_ctx=None) -> list:
         signals += scrna_evidence(agent_results, run_ledger, exp_ctx)
     if "chromatin_agent" in agent_results:
         signals += _chromatin_signals(agent_results, run_ledger, exp_ctx)
+    if "integration_agent" in agent_results:
+        integ_signals = integration_evidence(agent_results, run_ledger, exp_ctx)
+        has_paired_cis = any(
+            getattr(s, "independence_key", "") == PAIRED_CIS_REGULATORY_KEY
+            for s in integ_signals
+        )
+        if has_paired_cis and not (exp_ctx or {}).get(
+            "independent_chromatin_cohort"
+        ):
+            # ADR-070 / ADR-072: when paired IntegrationAgent emitted cis
+            # regulatory signals alongside ChromatinAgent on the same multiome
+            # container, single-modality scATAC peak2gene links share the same
+            # paired cell barcodes as integration peak_to_gene + eregulons.
+            # Preserve every audited signal ("no destructive dedup"), and tag
+            # the shared cis lineage so ranking never double-counts them.
+            for sig in signals:
+                if (
+                    getattr(sig, "modality", None) == "scATAC"
+                    and getattr(sig, "measure", None) == "peak2gene"
+                    and not getattr(sig, "independence_key", "")
+                ):
+                    sig.independence_key = PAIRED_CIS_REGULATORY_KEY
+        signals += integ_signals
     return signals
 
 

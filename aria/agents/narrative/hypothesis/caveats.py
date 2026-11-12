@@ -29,6 +29,11 @@ LOW_REPLICATION = "low_replication"
 MOTIF_NOT_BINDING = "motif_not_binding"
 GENE_ACTIVITY_PROXY = "gene_activity_proxy"
 PEAK2GENE_ASSOCIATIVE = "peak2gene_associative"
+# Paired cross-modal integration caveats (ADR-072 / V48 Slice I9).
+PARALOG_MOTIF_AMBIGUITY = "paralog_motif_ambiguity"
+DEPTH_CONFOUNDED = "depth_confounded"
+MOFA_LATENT_ASSOCIATIVE = "mofa_latent_associative"
+WNN_GUARDRAIL_DEGRADED = "wnn_guardrail_degraded"
 
 # code -> human-readable gloss (rendered in the prompt + the report).
 CAVEAT_GLOSSES: dict[str, str] = {
@@ -51,6 +56,23 @@ CAVEAT_GLOSSES: dict[str, str] = {
     PEAK2GENE_ASSOCIATIVE: (
         "a peak-to-gene link is an associative cross-cell correlation, not an "
         "established regulatory mechanism"
+    ),
+    PARALOG_MOTIF_AMBIGUITY: (
+        "candidate eRegulon shares motif sequence similarity and cis peaks with "
+        "co-expressed paralog TFs — regulator identity is ambiguous without "
+        "direct binding data"
+    ),
+    DEPTH_CONFOUNDED: (
+        "TF-target correlation attenuates substantially after conditioning on "
+        "sequencing depth and may reflect library-size covariation"
+    ),
+    MOFA_LATENT_ASSOCIATIVE: (
+        "MOFA+ factor loading reflects undirected latent co-variation with "
+        "arbitrary factor sign, not a directional perturbation effect"
+    ),
+    WNN_GUARDRAIL_DEGRADED: (
+        "joint WNN embedding triggered anti-degradation guardrail warnings "
+        "relative to single-modality structure (lens, not replacement)"
     ),
 }
 
