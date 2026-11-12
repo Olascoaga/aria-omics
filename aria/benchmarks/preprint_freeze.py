@@ -167,7 +167,7 @@ LANES: tuple[dict[str, Any], ...] = (
         "Fresh donor-aware scATAC DA concordance on the real multi-donor matrix.",
         "conda run -n aria-rna-env python "
         "scripts/run_scatac_multisample_da_concordance.py "
-        "--data-dir ~/Samael/Single/prueba/muon_processed "
+        "--data-dir ~/Samael/Oligos/data/interim/paired "
         "--young hc937,hc5579,hc13344,hc935,hc5614 "
         "--old hc26,hc98,hc35,hc40,hc73 "
         "--rna-env aria-rna-env --bench-env aria-bench-env "
@@ -306,7 +306,14 @@ def _resource_defaults(output_root: Path) -> dict[str, tuple[str, Path | None]]:
         "data:kang_muscat": ("benchmark-data://kang_muscat/clusters.json", home / ".aria/benchmarks/kang_muscat/clusters.json"),
         "data:h9_fastq": ("validation-data://h9_bulk_fastq", home / "Samael/H9-RNA/raw_fastq"),
         "data:pbmc3k": ("validation-data://pbmc3k_test", home / "aria-data/pbmc3k_test"),
-        "data:gse278576": ("validation-data://gse278576_scatac_donor_h5mu", home / "Samael/Single/prueba/muon_processed/hc937_paired.h5mu"),
+        "data:gse278576": (
+            "validation-data://gse278576_scatac_donor_h5mu",
+            (
+                home / "Samael/Oligos/data/interim/paired/hc937_paired.h5mu"
+                if (home / "Samael/Oligos/data/interim/paired/hc937_paired.h5mu").exists()
+                else home / "Samael/Single/prueba/muon_processed/hc937_paired.h5mu"
+            ),
+        ),
         "human:b2_annotators": ("freeze-input://human/b2_annotator_{1,2}.csv+adjudicator", output_root / "human/b2_adjudicator.csv"),
         "human:design_gold": ("freeze-input://human/design_gold.csv", output_root / "human/design_gold.csv"),
         "manual:configured_provider": ("manual-confirmation://configured-llm-provider", None),

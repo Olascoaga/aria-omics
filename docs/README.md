@@ -39,22 +39,24 @@ analysis lane.
 These are exploratory or associative layers and must not be presented as causal
 evidence.
 
-### Acknowledgement-gated beta chromatin
+### Acknowledgement-gated beta chromatin & paired multiome
 
 - [scATAC and bulk ATAC workflows](workflows/chromatin_roadmap.md)
+- [Paired same-cell 10x Multiome integration (WNN / MOFA+ / peak2gene / eRegulons)](workflows/integration_roadmap.md)
 
-Both runtime modalities are beta and require explicit acknowledgement. The same
-guide distinguishes beta steps from descriptive or caveated sub-analyses.
+scATAC, bulk ATAC, and paired same-cell RNA+ATAC multiome integration are
+scoped beta lanes requiring explicit CP3.5 acknowledgement. Each guide
+distinguishes beta steps from descriptive, associative, or caveated
+sub-analyses.
 
-### Dispatch-disabled scaffolds
+### Dispatch-disabled scaffolds & blocked cross-modal scopes
 
 - [ChIP-seq, CUT&RUN, and CUT&TAG](workflows/chromatin_roadmap.md)
 - [Hi-C / Micro-C](workflows/hic_roadmap.md)
-- [WNN / MOFA+ multimodal integration](workflows/integration_roadmap.md)
 
-Scaffold code is not a supported production workflow. Standalone scATAC
-peak-to-gene links use the beta chromatin path; that does not validate the
-cross-modal integration scaffold.
+Scaffold code is not a supported production workflow, and unpaired, diagonal, or
+bulk cross-modal integration combinations fail closed at the multiome contract
+gate.
 
 ## Architecture and governance
 
@@ -77,7 +79,8 @@ snapshot, including tracked documentation, and become stale after source changes
 
 ## Releases
 
-- [v4.7.0](release_notes_v4.7.0.md) — current release tag
+- [v4.8.0](release_notes_v4.8.0.md) — current release tag
+- [v4.7.0](release_notes_v4.7.0.md)
 - [v4.6.1](release_notes_v4.6.1.md)
 - [v4.6](release_notes_v4.6.md)
 - [v4.6.0-alpha](release_notes_v4.6.0-alpha.md)

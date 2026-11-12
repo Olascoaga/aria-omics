@@ -5,7 +5,7 @@
 > Ask the biological question. Confirm the design. Keep every conclusion tied
 > to evidence.
 
-![Version](https://img.shields.io/badge/version-4.7.0-blue)
+![Version](https://img.shields.io/badge/version-4.8.0-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
@@ -16,10 +16,11 @@ confirm experimental design, runs deterministic modality-specific tools in
 isolated environments, and builds an evidence-linked report instead of filling
 gaps with plausible prose.
 
-The package version is **4.7.0**. The `main` branch contains post-`v4.7.0`
-hardening, the current Control Center, the bulk ATAC V47 beta lane, and
-preprint-readiness work. A report records the exact commit and dirty state, so
-the package version alone is never treated as a complete reproducibility pin.
+The package version is **4.8.0**, shipping the Control Center, bulk ATAC V47
+beta lane, paired same-cell 10x Multiome V48 beta integration stack, opt-in
+cross-modal `HypothesisAgent`, and preprint-readiness governance hardening. A
+report records the exact commit and dirty state, so the package version alone
+is never treated as a complete reproducibility pin.
 
 ## What is ready today?
 
@@ -33,9 +34,10 @@ summary reflects that registry:
 | Bulk RNA-seq FASTQ | Beta | Enabled with visible limitations |
 | scATAC-seq | Beta | Explicit acknowledgement required |
 | Bulk ATAC-seq | Beta | Explicit acknowledgement required |
+| Paired 10x Multiome (same-cell RNA + ATAC: WNN / MOFA+ / peak2gene / eRegulons) | Beta | Explicit acknowledgement required |
 | ChIP-seq, CUT&RUN, CUT&TAG | Scaffold | Disabled |
 | Hi-C / Micro-C | Scaffold | Disabled by default; experimental opt-in only |
-| WNN / MOFA+ multimodal integration | Scaffold | Disabled |
+| Unpaired / diagonal multimodal integration | Blocked (fail-closed) | Disabled |
 
 “Production” and “beta” describe ARIA's validation boundary, not whether a
 particular study is ready to publish. A domain expert must still review the
