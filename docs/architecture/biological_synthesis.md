@@ -1,139 +1,55 @@
-# Biological Synthesis
+# Biological Synthesis & Cross-Modal Triangulation
 
-`BiologicalSynthesisAgent` produces the report's **Integrated Biological
-Discussion** — the section that answers "what does it all mean together, what
-converges, what conflicts, what can and cannot be claimed". It is an **evidence
-integrator, not a writer**: it organizes the structured results ARIA already
-produced, detects cross-analysis patterns deterministically, and writes only what
-the counts support. It never reads raw data, searches external literature,
-proposes unmeasured mechanisms, or adds general knowledge.
+ARIA separates **observed multi-analysis integration** from both unconstrained LLM prose and quarantined speculation through two deterministic, zero-LLM synthesis layers under `aria/agents/narrative/synthesis/`:
 
-Durable decision: **ADR-028**. Code: `aria/agents/biological_synthesis_agent.py`
-and `aria/agents/narrative/synthesis/`.
+1. **`BiologicalSynthesisAgent` (`ADR-028`):** within-modality and cross-contrast RNA synthesis (`pattern_detector.py` + `discussion_composer.py`), producing the **Integrated Biological Discussion**.
+2. **`Cross-Modal Evidence Graph` (`ADR-070`, V48 Slice `I7`):** paired same-cell RNA + ATAC regulatory triangulation (`cross_modal_triangulation.py`), serialized into `methodology.json["cross_modal_evidence_graph"]` and rendered via `IntegrationNarrator` (`multiome.triangulation`).
 
-## Where it sits
+Neither component reads raw matrices directly, queries external literature, invents unmeasured biology, or bypasses `C1–C4` claim governance.
 
-```
-structured agent results
-        ↓
-Claim Compiler (claim tiers)
-        ↓
-BiologicalSynthesisAgent
-   ├─ synthesis/pattern_detector.py   (deterministic — code guarantees)
-   └─ synthesis/discussion_composer.py (emits integration.* NarrativeBlocks)
-        ↓
-[ render_blocks · evidence_verifier · devil's advocate · run-ledger linkage ]
-        ↓
-NarrativeAgent → "Integrated Biological Discussion" section
+---
+
+## 1. Governance Pipeline
+
+```text
+Structured Agent Results (Bulk RNA / scRNA / Chromatin / Paired Multiome)
+        │
+        ├─► synthesis/pattern_detector.py + discussion_composer.py  (integration.* NarrativeBlocks)
+        └─► synthesis/cross_modal_triangulation.py + IntegrationNarrator (multiome.triangulation block)
+                │
+                ▼
+[ C1–C4 Claim Compiler · W-CLAIM SemanticFact Verifier · Devil's Advocate · W-LEDGER Linkage ]
+                │
+                ▼
+      report.html + methodology.json
 ```
 
-It runs inside `NarrativeAgent._collect_narrative_blocks`, after the per-modality
-narrators, and appends `integration.*` blocks to the same list. Because the
-output is `NarrativeBlock`s, the synthesis **inherits** the existing governance
-instead of adding a parallel one.
+---
 
-## Design rules
+## 2. Single-Modality RNA Synthesis (`pattern_detector.py` + `discussion_composer.py`)
 
-1. **The LLM does not decide patterns (ADR-002: LLM proposes, code guarantees).**
-   `pattern_detector.py` is pure set/sign math over the structured DE, pathway,
-   abundance, communication, and trajectory summaries ARIA already produced. No
-   LLM, no hardcoded biology. The numbers are reproducible.
+- **Pure Set & Sign Math (`ADR-002`):** Detects within-contrast DE + pathway convergence, reference-anchored cross-contrast shared DE genes (same-direction vs discordant opposite-direction counts), contrast-specific programs, dominant donor-aware scRNA pseudobulk DE blocks, and observational context layers (composition, LIANA, PAGA/DPT).
+- **Reference-Anchored Comparisons Only:** Cross-contrast direction concordance is computed exclusively when two contrasts share the exact same denominator/reference level.
+- **Mandatory Limitations & Conflict Visibility:** Discordant genes are surfaced explicitly (never smoothed away), `data_only=True` is the sole mode, causal vocabulary is excluded on observational designs, and every integrated section emits an explicit limitations block.
 
-2. **Emit blocks, inherit governance.** Every integration block passes through:
-   - **Claim Compiler** — observational omics caps at the *associative* tier; the
-     spec's E1–E5 inference levels map onto the existing tiers (E5
-     `causal_experimental` requires an interventional design).
-   - **Strict evidence verification** (`evidence_verifier`) — every number a claim
-     states must be on the block's evidence card, or render rejects it.
-   - **Devil's advocate** and **run-ledger linkage**.
+---
 
-3. **Claim boundaries.** Causal vocabulary (`CAUSAL_PATTERNS`) is kept out of
-   `block.claim`; the "this is not causal" disclaimers live in caveats (which are
-   not claim-verified). A limitations block is mandatory whenever any integrated
-   claim is made. Conflicts are surfaced as *discordant evidence*, never smoothed.
+## 3. Non-Circular Cross-Modal Triangulation (`cross_modal_triangulation.py`)
 
-4. **Reference-anchored comparisons only.** Convergence / direction-concordance
-   claims are made only for contrast pairs that share a reference level — because
-   "same direction" is not comparable across pairs that swap numerator and
-   denominator.
+In paired 10x Multiome (`RNA + ATAC`) analyses, candidate `eRegulons` (`integration_eregulons.py`) consume `integration_peak2gene.py` BH-FDR cis links on the identical cell universe. Treating their co-occurrence as "independent cross-modal replication" would be circular double-counting.
 
-5. **`data_only=True` is the only mode.** A `literature_augmented` mode is
-   intentionally not built; a data-supported discussion is the point of ARIA.
+`cross_modal_triangulation.py` enforces a strict, deterministic 4-tier non-causal taxonomy (`schema_version="1.0.0"`):
 
-6. **Fail-safe.** A synthesis block that cannot be verified is dropped
-   (`_drop_unverifiable_synthesis_blocks`), and report rendering is resilient
-   (`render_blocks(..., strict=False)`): one unverifiable block is withheld, never
-   aborts the whole report.
+| Tier | Definition & Lineage Stamp |
+| :--- | :--- |
+| **`convergent_paired_multiome`** | `pos_tf_pos_p2g` candidate eRegulons exhibiting concordant per-cell RNA and ATAC AUCell activity (`rna_atac_aucell_corr >= 0.15`), explicitly stamped `shared_upstream=["peak_to_gene"]`, `shared_cell_universe=True`, `independent_contrast_support=False`. |
+| **`convergent_cross_contrast`** | Reserved strictly for regulatory axes corroborated by **independent differential contrasts** (`RNA DE` + concordant `ATAC DA` and/or `ATAC motif enrichment`); unexecuted lanes are recorded transparently in `absent_not_tested`. |
+| **`associative_cis_candidate`** | BH-FDR `peak2gene` cis links or positive candidate eRegulons without independent condition-contrast corroboration. |
+| **`discordant_signal` / `caveated_ambiguous`** | Inverse `neg_tf_pos_p2g` candidates, opposite `RNA LFC` vs `ATAC DA` directions, paralog motif-family ambiguity (`motif_family_ambiguity`), library-depth attenuation (`depth_confounded`), excluded technical MOFA+ factors, or degraded WNN guardrails. |
 
-## What it detects
+---
 
-`pattern_detector.detect_bulk_patterns(contrasts)` reads
-`agent_results['bulk_rna_agent']['findings']['contrasts']` — each carries
-`all_sig_gene_ids`, `up_gene_ids`/`down_gene_ids`, and `pathways` — and computes:
+## 4. Verification Anchors
 
-- **within-contrast convergence** — a contrast produced both DE and pathway
-  enrichment;
-- **cross-contrast convergence** — shared DE genes between two contrasts, how many
-  move in the **same direction**, and the shared enriched processes;
-- **cross-contrast divergence** — contrast-specific genes and processes, plus
-  discordant (opposite-direction) shared genes;
-- **top shared genes** — the shared DE genes ranked by significance, named by
-  symbol (raw Ensembl/numeric ids are skipped);
-- **reliability** — power and low-power flags that bound interpretation.
-
-`pattern_detector.detect_scrna_patterns(agent_result)` reads measured scRNA
-findings from `scrna_agent` / `rna_agent` envelopes and computes:
-
-- **dominant pseudobulk signal** — the largest successful donor-level pseudobulk
-  DE block, with up/down counts, top DE genes, composition-covariate state, and
-  matched ORA term counts for the same group/comparison block;
-- **context layers** — abundance-shifted groups, LIANA interaction candidate
-  counts, and trajectory graph connection counts when those analyses ran;
-- **reliability** — pseudobulk power range, low-power blocks, and whether counts
-  were recovered from log-normalized input.
-
-## What it writes
-
-The Integrated Biological Discussion section (Slice 1, RNA single-modality):
-
-Bulk RNA-seq:
-
-1. **Main integrated pattern** — the headline: the shared-vs-distinct program, the
-   processes it points to, and each condition's specific program.
-2. **Convergent evidence** — shared genes (count + same-direction count), the
-   shared enriched processes the convergence points to, and the top shared genes
-   by symbol.
-3. **Divergent / condition-specific signal** — contrast-specific gene counts and
-   the processes each condition uniquely engages; discordant shared genes.
-4. **Limits of interpretation** (mandatory) — associative scope, no causal/direct
-   regulation, candidates prioritized for independent validation; power range.
-
-scRNA-seq:
-
-1. **Main scRNA integrated pattern** — the strongest replicate-aware pseudobulk
-   DE block, matched ORA support, top DE genes, and analysis resolution.
-2. **scRNA context layers** — abundance, LIANA, and trajectory summaries reported
-   as observational context, not mechanism.
-3. **scRNA synthesis limits** (mandatory) — association-only scope and pseudobulk
-   reliability bounds.
-
-Sections appear only when the data supports them — e.g. the cross-modal section is
-omitted (not faked) when there is no ATAC.
-
-## Scope
-
-- **Slice 1 (current):** bulk RNA-seq and scRNA-seq, single modality
-  (within/cross-contrast bulk synthesis; scRNA pseudobulk + ORA + abundance +
-  LIANA + trajectory context).
-- **Slice 2 (deferred):** cross-modal patterns (RNA expression + ATAC
-  accessibility + motifs + peak-to-gene), to be designed against a real
-  multi-omic run, not blind.
-
-## Tests
-
-`tests/test_biological_synthesis.py` enforces the spec guards: no fabricated
-pathways, no causal language, cross-modal only when the modality exists, mandatory
-limitations, conflicts surfaced, every claim mapped to evidence, the main-pattern
-headline, named processes and genes, scRNA-only synthesis blocks, and strict
-verification for scRNA synthesis — plus a real-data golden that runs against a
-generated report on the machine and skips in CI.
+- `tests/test_biological_synthesis.py` (within/cross-contrast bulk & scRNA synthesis, reference-anchoring, conflict visibility, zero causal overreach).
+- `tests/test_v48_i7_integration_narrative.py` (bit-exact `Cross-Modal Evidence Graph` determinism, non-circular `shared_upstream` lineage, `C1–C4` + Claim 6 monotone withholding).

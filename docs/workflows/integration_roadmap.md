@@ -20,18 +20,22 @@ Paired integration requires confirmed shared-barcode same-cell RNA + ATAC inputs
 - multi-`.h5mu` directories without an explicit merged barcode map fail closed (`multiome_multiple_mudata_unsupported`);
 - promotion beyond `beta` requires multi-cohort biological review and explicit `ADR-056` authorization.
 
-## Proposed Flow
+## Executed Paired Same-Cell Architecture
 
 ```mermaid
 flowchart TD
-    RNA[Validated scRNA object] --> CHECK[Input contract validation]
-    ATAC[Validated scATAC object] --> CHECK
-    CHECK --> WNN[WNN integration]
-    CHECK --> MOFA[MOFA+ factors]
-    CHECK --> P2G[Cross-modal peak-to-gene handoff]
-    WNN --> N[NarrativeAgent integration section]
-    MOFA --> N
-    P2G --> N
+    H5MU["Paired Same-Cell .h5mu (RNA + ATAC)"] --> GATE["enforce_same_cell_integration_gate + CP3.5 Ack"]
+    GATE --> PQC["integration_paired_qc.py (Joint RNA+ATAC QC + Bijective /obs Label Join)"]
+    PQC --> WNN["integration_wnn.py + wnn_diagnostics.py (WNN + 5-Axis Anti-Degradation Guardrail)"]
+    PQC --> MOFA["integration_mofa.py (MOFA+ Shared Factors + Depth/Cell-Cycle Confounder Exclusion)"]
+    PQC --> P2G["integration_peak2gene.py (Unified Signac-Faithful cis Peak-to-Gene)"]
+    P2G --> EREG["integration_eregulons.py (MEME v4 + CMH GC Cistrome + Stratified Null eRegulons)"]
+    WNN --> TRIANG["cross_modal_triangulation.py + IntegrationNarrator (Non-Circular Evidence Graph + 4 PNG/SVG Pairs)"]
+    MOFA --> TRIANG
+    P2G --> TRIANG
+    EREG --> TRIANG
+    TRIANG --> REPORT["Governed C1-C4 Report + CSV Supplements + Capsule"]
+    TRIANG -. "--hypotheses opt-in" .-> S10["HypothesisAgent S10 (adapters/integration.py -> SPECULATIVE Quarantine)"]
 ```
 
 ## DebateCouncil Rule

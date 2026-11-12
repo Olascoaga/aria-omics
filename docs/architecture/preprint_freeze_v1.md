@@ -1,7 +1,7 @@
 ---
 status: active
 source_of_truth_for: preprint_v1_freeze_protocol
-last_updated: 2026-07-17
+last_updated: 2026-11-12
 ---
 
 # ARIA preprint-v1 evidence freeze
@@ -66,18 +66,18 @@ evidence.
 
 ## Current closure boundary
 
-The last clean snapshot before the July documentation audit verified 18 of 21
-required machine lanes. The remaining three lanes require independent human
-resources or adjudication:
+On `v4.8.0`, all **18 of 21** executable machine freeze lanes are verified
+(`Claims 1, 2, 5, 6, 7` complete). The remaining **3 of 21** lanes require
+independent human annotation and adjudication:
 
 - `c3_blind_multifactorial_corpus`;
 - `c4_b2_multi_annotator_gold`;
 - `c4_report_e2e_false_narrative`.
 
-That count is historical once tracked source changes. Documentation is part of
-the indexed source snapshot, so this audit intentionally makes the prior 18
-receipts stale. The generated inventory, not this paragraph, is authoritative
-for the current checkout.
+Documentation is part of the indexed source snapshot, so any tracked edit
+outside `docs/benchmark_results/preprint_v1/` marks prior receipts stale until
+regenerated from a clean checkout. The generated `inventory.json`, not prose,
+is authoritative for the current checkout.
 
 ## Remaining execution order
 

@@ -1,121 +1,90 @@
 # Architecture Overview
 
-ARIA is not just a collection of pipelines. The central product is a supervised
-semantic layer around omics analysis:
+ARIA is not a loose collection of bioinformatics scripts or a free-form LLM wrapper. It is a **supervised, evidence-governed control plane** around deterministic omics execution:
 
-1. understand the biological question;
-2. inspect the input data;
-3. confirm experimental design;
-4. run deterministic modality-specific code;
-5. record decisions and warnings;
-6. generate a report grounded in real output files.
+1. parse the biological question inside an isolated `<untrusted_data>` boundary;
+2. audit input files, manifests, and multiome barcode contracts;
+3. confirm experimental design, biological units, covariates, and contrasts before compute;
+4. dispatch deterministic scientific scripts inside lock-gated Conda stacks via JSON IPC;
+5. reconcile planned vs executed analyses in a typed `RunLedger` and compile public claims through `C1–C4` semantic/causal verifiers;
+6. publish a self-contained HTML report, `methodology.json`, RO-Crate metadata, and a portable reproducibility capsule — plus, only when explicitly opted in, a mechanically quarantined `SPECULATIVE` hypothesis appendix.
 
-## Main Agent Flow
+---
+
+## Main Agent & Governance Flow
 
 ```mermaid
 flowchart TD
-    U[User question + local data] --> O[OrchestratorAgent]
-    O --> DA[DataAuditAgent]
-    DA --> CP1[Checkpoint 1: detected data]
-    CP1 --> D[DesignAgent]
-    D --> CP2[Design checkpoints: groups, organism, factor, batch, replicates]
-    CP2 --> PLAN[Checkpoint 2: analysis plan]
-    PLAN -->|confirm| A[AuditAgent]
-    PLAN -->|modify thresholds| CP3[Checkpoint 3: thresholds]
-    CP3 --> A
-    A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
-    A -->|no blocking issues| SETUP[SetupAgent environment check]
-    CP35 -->|proceed| SETUP
-    SETUP --> GATE{Runtime readiness gate}
-    GATE --> DISPATCH[Enabled modality dispatch]
-    DISPATCH --> B[BulkRNAAgent]
-    DISPATCH --> S[scRNAAgent]
-    DISPATCH --> C[ChromatinAgent beta]
-    GATE -. blocked by default .-> H[GenomeArchAgent scaffolded]
-    B --> MAYBEINT{2+ modalities or integration requested?}
-    S --> MAYBEINT
-    C --> MAYBEINT
-    H --> MAYBEINT
-    MAYBEINT -->|yes| INT[IntegrationAgent scaffolded]
-    MAYBEINT -->|no| N[NarrativeAgent]
+    U["User Question + Local Data / GEO Accession"] --> O["OrchestratorAgent + ExperimentSession"]
+    O --> DA["DataAuditAgent (Assay + Manifest + Same-Cell Contracts)"]
+    DA --> CP1["CP1: Confirm Detected Modalities & Intake"]
+    CP1 --> RAW["RawIngestionAgent (scRNA kb-python / Sequencer Gate)"]
+    CP1 --> D["DesignAgent"]
+    RAW --> D
+    D --> CP2["CP2 / CP2.5: Confirm Groups, Replicates, Covariates & Contrasts"]
+    CP2 --> CP3["CP3: Analysis Plan & Threshold Profiles"]
+    CP3 --> A["AuditAgent + modality_audit"]
+    A -->|Beta chromatin / paired multiome or blocking risks| CP35["CP3.5: Explicit Acknowledgement or Cancel"]
+    A -->|Validated RNA & no blocking issues| SETUP["SetupAgent + EnvironmentManager"]
+    CP35 -->|Proceed confirmed| SETUP
+    SETUP --> B["BulkRNAAgent (Production Matrix / Beta FASTQ)"]
+    SETUP --> S["scRNAAgent (Production + Beta Trajectory/LIANA)"]
+    SETUP --> C["ChromatinAgent (Beta scATAC & Bulk ATAC)"]
+    SETUP --> INT["IntegrationAgent (Beta Paired Same-Cell 10x Multiome)"]
+    SETUP -. disabled by default .-> H["GenomeArchAgent (Scaffold Hi-C)"]
+    B --> N["NarrativeAgent + BiologicalSynthesisAgent + Cross-Modal Triangulation"]
+    S --> N
+    C --> N
     INT --> N
-    N --> CP5[Checkpoint 5: final review]
-    CP5 --> R[HTML report + TSV supplements + methods]
+    N --> COMP["C1-C4 Claim Compiler + W-CLAIM + W-LEDGER"]
+    COMP --> R["report.html + methodology.json + RO-Crate + capsule.zip"]
+    COMP -. "--hypotheses opt-in" .-> HYPO["HypothesisAgent S0-S10 (SPECULATIVE Quarantine)"]
 ```
 
-The same diagram is stored as [aria_overview.mmd](../diagrams/aria_overview.mmd).
-For implementation-impact checks, use the deeper
-[Code Dependency Graph](code_graph.md), which maps runtime dependencies,
-ownership boundaries, and test anchors. For repository-wide navigation, use the
-generated [Graphify map](graphify/README.md): it includes a queryable
-`graph.json` and an interactive file-oriented `GRAPH_TREE.html`. The larger
-force-directed `graph.html` is omitted when Graphify's visualization limit is
-exceeded, so the repository never retains a stale map from an older snapshot.
-The frozen v4.5 RNA/evidence-governance benchmarking protocol lives in
-[benchmarking_v45.md](benchmarking_v45.md); it closes v4.5 as a benchmarking
-specification and leaves full benchmark execution as the RNA preprint lane.
+The standalone Mermaid source is stored in [aria_overview.mmd](../diagrams/aria_overview.mmd). For module-level contracts, high-risk dependency edges, and test anchors, consult the [Code Dependency & Contract Graph](code_graph.md).
 
-## Components
+---
+
+## Core Components
 
 | Component | Responsibility |
-|---|---|
-| OrchestratorAgent | Owns checkpoint flow and dispatch |
-| DataAuditAgent | Detects modalities and data structure |
-| DesignAgent | Confirms experimental design before compute |
-| AuditAgent | Runs pre-dispatch quality checks |
-| SetupAgent | Checks computational environment before modality agents run |
-| BulkRNAAgent | Orchestrates bulk RNA count/FASTQ workflows |
-| scRNAAgent | Orchestrates QC, integration, clustering, annotation, DE, pseudobulk, beta trajectory and LIANA |
-| ChromatinAgent | Orchestrates acknowledgement-gated beta scATAC and the implemented V47 bulk ATAC workflow; ChIP/CUT&RUN/CUT&TAG remain scaffolded |
-| IntegrationAgent | Runs only for multimodal analyses or when explicitly requested; still scaffolded |
-| NarrativeAgent | Writes reports from structured outputs and warnings |
-| EnvironmentManager | Runs modality scripts in isolated Conda stacks using JSON IPC |
-| ParameterAdvisor | Scores parameter candidates and records decisions |
-| ARIAMemory | Stores decisions/findings in SQLite |
-| MessageBus | Moves internal agent messages and checkpoint events |
-| Experiment read-model | Derives UI-independent progress, checkpoints, ledger, readiness, and artifacts |
-| Control Center | Optional Textual presentation over the shared read-model and checkpoint resolver |
+| :--- | :--- |
+| `OrchestratorAgent` | Owns checkpoint progression (`CP1`–`CP5`), `MODALITY_VALIDATION` / `INTEGRATION_VALIDATION` gates, and agent dispatch. |
+| `ExperimentSession` | Isolates per-run `MessageBus`, `LLMProvider` usage logs, `EgressPolicy` (`ARIA_AIR_GAPPED`), and `cp35_acknowledged` state. |
+| `DataAuditAgent` | Content-based assay detection, `E6` GEO manifest verification, scATAC multi-library manifests (`E5`), and paired `.h5mu` same-cell contract checks (`I1`). |
+| `DesignAgent` | Confirms groups, explicit biological units vs technical replicates (`B1`), confounding vetoes (`B2`), reference levels, and contrasts before compute. |
+| `AuditAgent` | Pre-dispatch statistical power, confounding, and `CP3.5` readiness acknowledgement enforcement. |
+| `SetupAgent` & `EnvironmentManager` | Verifies lock-gated Conda stacks (`ENVIRONMENT_SPECS`) and executes `aria/scripts/*.py` subprocesses over validated JSON IPC (`ScriptContract`). |
+| `BulkRNAAgent` | Orchestrates bulk RNA-seq raw FASTQ preprocessing (`fastp` -> `STAR` -> `featureCounts`) and `pyDESeq2` DE + local GMT ORA + GSEA. |
+| `scRNAAgent` | Orchestrates QC, Harmony integration + overcorrection QC, clustering, CellTypist/marker annotation, donor-aware pseudobulk DE, PAGA/DPT trajectory, and LIANA communication. |
+| `ChromatinAgent` | Orchestrates acknowledgement-gated `beta` scATAC (`chromap`/`snapatac2`, LSI, donor-aware DA, motifs, `peak2gene`, `TOBIAS`) and `beta` bulk ATAC (`bwa-mem2`, `MACS3` consensus, `bedtools` counts, `pyDESeq2` DA, annotation, ORA, motifs, `TOBIAS`). `ChIP`/`CUT&RUN`/`CUT&TAG` remain disabled scaffolds. |
+| `IntegrationAgent` | Orchestrates acknowledgement-gated `beta` paired same-cell 10x Multiome (`paired_qc`, deterministic `WNN` + 5-axis guardrail, `MOFA+`, Signac-faithful `peak2gene`, and candidate `eRegulons`). Unpaired/diagonal combinations fail closed. |
+| `BiologicalSynthesisAgent` & `cross_modal_triangulation` | Deterministic zero-LLM within/cross-contrast RNA synthesis (`ADR-028`) and non-circular paired multiome triangulation (`ADR-070`). |
+| `NarrativeAgent` | Compiles evidence-verified `NarrativeBlock`s (`C1–C4`, `W-CLAIM`, `W-LEDGER`) into self-contained HTML reports, `methodology.json`, RO-Crate metadata, and reproducibility capsules. |
+| `HypothesisAgent` (`S0`–`S10`) | Opt-in (`--hypotheses`) mechanistic hypothesis proposer across 5 deterministic adapters and 4 publication gates, mechanically walled inside `SPECULATIVE` quarantine (`ADR-057`, `ADR-072`). |
+| `ARIAMemory` | Hierarchical SQLite store (`~/.aria/memory.db`) with WAL-consistent single-experiment snapshot export (`memory_snapshot.sqlite`). |
+| `Control Center` | Optional Textual cockpit (`aria/ui/`) over the pure `experiment_view` read-model. |
+
+---
 
 ## Execution Surfaces
 
-`aria` selects the Textual Control Center only on an interactive TTY with the
-`tui` extra installed. `--classic-tui`, `--reproducible`, `ARIA_NO_TUI`, a
-missing Textual dependency, or a non-TTY process uses the classic Rich path.
-`aria.headless.run_headless` provides the programmatic non-interactive surface.
-All three use the same orchestrator and checkpoint contract; UI state is not a
-scientific source of truth.
+`aria` launches the Textual **Control Center** on interactive TTYs when `textual` is installed, falling back automatically to the classic Rich CLI under `--classic-tui`, `--reproducible`, `ARIA_NO_TUI=1`, missing Textual, or non-TTY streams. `aria.headless.run_headless` provides the programmatic automation surface. See [CLI & Headless Guide](../CLI_AND_HEADLESS.md).
 
-## Script Boundary
+---
 
-Analytical scripts in `aria/scripts/` are subprocess entry points. They should:
+## Isolated Scientific Stacks
 
-- accept a JSON-serializable parameter dict;
-- return a JSON-serializable result dict;
-- avoid direct access to the message bus;
-- validate inputs and return structured errors;
-- use explicit mock gates only for development/test modes;
-- write output files and summaries that can be validated on resume.
+`aria.utils.environment_specs.ENVIRONMENT_SPECS` is the single routing and lock registry. Active scientific and benchmark stacks carry committed Linux `linux-64` Conda + PyPI lockfiles audited via `python -m aria.utils.environment_audit`:
 
-## Dependency Isolation
-
-ARIA separates analytical stacks because bioinformatics libraries often have
-conflicting compiled dependencies.
-
-| Stack | Typical tools |
-|---|---|
-| RNA | Scanpy, AnnData, pyDESeq2, gseapy, LIANA, CellTypist |
-| scRNA ingestion | kb-python, kallisto, bustools |
-| Raw bulk RNA | fastp, STAR, featureCounts, samtools, MultiQC, FastQC |
-| Raw ATAC | bwa-mem2, chromap, samtools |
-| Chromatin | MACS3, pysam, pybedtools, muon / episcanpy |
-| Footprinting | TOBIAS, samtools |
-| Benchmark | R/Bioconductor reference comparators |
-| Hi-C | cooler, cooltools, hic-straw, pairtools |
-| Integration | MOFA+, muon, scGLUE / related integration tools |
-
-`aria.utils.environment_specs` is the single routing/setup/lock registry. Active
-scientific and benchmark environments have exact Linux locks and can be checked
-with `python -m aria.utils.environment_audit`. A missing registered environment
-fails before scientific subprocess launch; it is never replaced by the
-orchestrator environment. Hi-C and integration remain explicit scaffolds and are
-not release lock targets.
+| Stack (`ENVIRONMENT_SPECS`) | Conda Environment | Typical Tools | Lock Status |
+| :--- | :--- | :--- | :--- |
+| `rna` | `aria-rna-env` | Scanpy, AnnData, pyDESeq2, gseapy, LIANA, CellTypist | **Locked (`active_scientific_runtime`)** |
+| `ingestion` | `aria-ingestion-env` | kb-python, kallisto, bustools | **Locked (`active_scientific_runtime`)** |
+| `rnaseq` | `aria-rnaseq-env` | fastp, STAR, Subread `featureCounts`, samtools, MultiQC | **Locked (`active_scientific_runtime`)** |
+| `atacseq` | `aria-atacseq-env` | bwa-mem2, chromap, samtools | **Locked (`active_scientific_runtime`)** |
+| `chromatin` | `aria-chromatin-env` | SnapATAC2, MACS3, bedtools, pysam, muon, mudata | **Locked (`active_scientific_runtime`)** |
+| `tobias` | `aria-tobias-env` | TOBIAS, samtools | **Locked (`active_scientific_runtime`)** |
+| `integration` | `aria-integration-env` | mofapy2, muon, mudata, SnapATAC2, Scanpy, AnnData | **Locked (`active_scientific_runtime`)** |
+| `benchmark` | `aria-bench-env` | R, DESeq2, edgeR, limma-voom, SingleCellExperiment | **Locked (`active_benchmark_runtime`)** |
+| `hic` | `aria-hic-env` | cooler, cooltools, pairtools | Dispatch-disabled scaffold (`lock_required=False`) |

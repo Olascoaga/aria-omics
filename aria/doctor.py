@@ -176,7 +176,7 @@ def _check_secrets() -> list[IntegrityIssue]:
     # Leaked-credential scan over the project tree (bounded). The legitimate key
     # store ~/.aria/.env is OUTSIDE the repo, so any hit here is a real concern.
     repo_root = Path(__file__).resolve().parents[1]
-    _SKIP_DIRS = {".git", "memory", "graphify-out", "build", "dist",
+    _SKIP_DIRS = {".git", "memory", "build", "dist",
                   ".eggs", "__pycache__", ".pytest_cache", "node_modules"}
     candidates: list[Path] = []
     for path in repo_root.rglob("*"):

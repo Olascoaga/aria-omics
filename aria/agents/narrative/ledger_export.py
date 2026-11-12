@@ -334,10 +334,6 @@ def _repo_snapshot_files(repo_root: Path) -> list[tuple[Path, str, str]]:
     for rel in (
         "requirements.lock",
         "docs/architecture/code_graph.md",
-        "docs/architecture/graphify/README.md",
-        "docs/architecture/graphify/GRAPH_REPORT.md",
-        "docs/architecture/graphify/manifest.json",
-        "docs/architecture/graphify/graph.json",
     ):
         path = repo_root / rel
         if path.is_file():

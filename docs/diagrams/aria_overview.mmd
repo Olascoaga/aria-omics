@@ -1,28 +1,25 @@
 flowchart TD
-    U[User question + local data] --> O[OrchestratorAgent]
-    O --> DA[DataAuditAgent]
-    DA --> CP1[Checkpoint 1: detected data]
-    CP1 --> D[DesignAgent]
-    D --> CP2[Design checkpoints]
-    CP2 --> PLAN[Checkpoint 2: analysis plan]
-    PLAN -->|confirm| A[AuditAgent]
-    PLAN -->|modify thresholds| CP3[Checkpoint 3: thresholds]
-    CP3 --> A
-    A -->|blocking issues| CP35[Checkpoint 3.5: proceed or cancel]
-    A -->|no blocking issues| SETUP[SetupAgent environment check]
-    CP35 -->|proceed| SETUP
-    SETUP --> GATE{Runtime readiness gate}
-    GATE --> DISPATCH[Enabled modality dispatch]
-    DISPATCH --> B[BulkRNAAgent]
-    DISPATCH --> S[scRNAAgent]
-    DISPATCH --> C[ChromatinAgent beta]
-    GATE -. blocked by default .-> H[GenomeArchAgent scaffolded]
-    B --> M{2+ modalities or integration requested?}
-    S --> M
-    C --> M
-    H --> M
-    M -->|yes| INT[IntegrationAgent scaffolded]
-    M -->|no| N[NarrativeAgent]
+    U["User Question + Local Data / GEO"] --> O["OrchestratorAgent + ExperimentSession"]
+    O --> DA["DataAuditAgent"]
+    DA --> CP1["Checkpoint 1: Detected Modalities & Contracts"]
+    CP1 --> RAW["RawIngestionAgent"]
+    CP1 --> D["DesignAgent"]
+    RAW --> D
+    D --> CP2["Checkpoint 2 / 2.5: Design, Replicates & Contrasts"]
+    CP2 --> CP3["Checkpoint 3: Plan & Thresholds"]
+    CP3 --> A["AuditAgent + modality_audit"]
+    A -->|Beta ack required or blocking risks| CP35["Checkpoint 3.5: Proceed or Cancel"]
+    A -->|No blocking issues| SETUP["SetupAgent + EnvironmentManager"]
+    CP35 -->|Proceed| SETUP
+    SETUP --> B["BulkRNAAgent"]
+    SETUP --> S["scRNAAgent"]
+    SETUP --> C["ChromatinAgent (beta)"]
+    SETUP --> INT["IntegrationAgent (paired Multiome beta)"]
+    SETUP -. disabled by default .-> H["GenomeArchAgent (scaffold)"]
+    B --> N["NarrativeAgent + Synthesis + Triangulation"]
+    S --> N
+    C --> N
     INT --> N
-    N --> CP5[Checkpoint 5: final review]
-    CP5 --> R[HTML report + TSV supplements + methods]
+    N --> COMP["C1-C4 Claim Compiler + W-CLAIM + W-LEDGER"]
+    COMP --> R["HTML Report + methodology.json + RO-Crate + Capsule"]
+    COMP -. "--hypotheses opt-in" .-> HYPO["HypothesisAgent S0-S10 (SPECULATIVE)"]

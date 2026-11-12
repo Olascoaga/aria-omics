@@ -58,7 +58,7 @@ def _fallback_source_hash(repo_root: Path) -> str:
     roots = [
         repo_root / "aria",
         repo_root / "scripts",
-        repo_root / "setup.py",
+        repo_root / "pyproject.toml",
         repo_root / "README.md",
     ]
     for root in roots:

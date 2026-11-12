@@ -105,8 +105,8 @@ log2FC concordance between sites — the SEQC reproducibility metric — plus ea
 site's TaqMan concordance. Executed result: mean off-diagonal cross-site Pearson
 **0.980** (min 0.978) over all 10 site pairs (median 23,022 genes/pair), and a
 near-constant per-site TaqMan Pearson **0.940–0.944**. ARIA's DE result is
-effectively independent of the sequencing site. Artifact:
-`docs/benchmark_results/a1_seqc_maqc/a1_seqc_multisite_v4.5.5.json`.
+effectively independent of the sequencing site. Authoritative freeze artifact:
+`docs/benchmark_results/preprint_v1/claim_1/seqc_multisite/a1_seqc_multisite_v4.5.5.json`.
 
 ERCC spike-in dose-response (executed, ADR-038): `run_ercc_dose_response`
 (`scripts/run_a1_ercc_dose_response.py`) scores ARIA's recovery of the 92 ERCC
@@ -145,9 +145,9 @@ dispatches `aria/scripts/benchmark_a1_external_comparators.py` through
 `EnvironmentManager` `stack="benchmark"` / `aria-bench-env`. The IPC runner
 exports the same neutral A1 synthetic matrix and calls an R comparator script for
 DESeq2, edgeR-QLF, and limma-voom, then scores each table against the known
-truth. Local live execution wrote
-`docs/benchmark_results/a1_external/a1_external_comparators_v4.5.5.json` with
-all three methods complete. This is the synthetic-truth external-comparator
+truth. Local live execution is archived in the freeze root under
+`docs/benchmark_results/preprint_v1/claim_1/a1_external/a1_external_comparators.json`
+with all three methods complete. This is the synthetic-truth external-comparator
 execution path; it is not a SEQC/MAQC/ERCC reference-data completion.
 
 ### A2 Pseudobulk scRNA
@@ -235,7 +235,7 @@ B1 EXECUTED (ADR-040): `run_b1_design_governance.py` /
 (`ScRNAAuditAgent`) + design-matrix validator (`validate_design_matrix`) over a
 23-case adversarial corpus. Result: 100% accuracy, perfectly diagonal confusion
 matrix, **unsafe-execution rate 0.0**, correct refusal 1.0, correct inference
-1.0. Artifact: `docs/benchmark_results/b1_design/`.
+1.0. Freeze artifact: `docs/benchmark_results/preprint_v1/claim_3/b1_design/`.
 
 ### B2 Claim/Narrative
 
@@ -306,7 +306,7 @@ contamination risk.
 
 
 
-B2 EXECUTED (preliminary, ADR-040): `run_b2_claim_narrative.py` / `aria/benchmarks/governance_b2.py` score ARIA's claim governance (`verify_block_claim_support` + `classify_claim` + causal guard) vs an ungoverned arm over a hand-labelled claim corpus. Result: false-narrative rate 0.4 -> 0.1, causal-overreach rate 1.0 -> 0.0. The one surviving false claim is qualitative overclaim the structured verifier does not catch (surfaced honestly). Full multi-annotator human B2 remains preprint work. Artifact: `docs/benchmark_results/b2_claim/`.
+B2 EXECUTED (4-arm ablation, ADR-040): `run_b2_claim_narrative.py` / `aria/benchmarks/governance_b2.py` score ARIA's claim governance (`verify_block_claim_support` + `classify_claim` + causal guard) across governed, guards-off, naive-LLM, and template arms using the rubric in `docs/benchmark_results/b2_claim/B2_RUBRIC.md`. Full multi-annotator human B2 remains preprint work. Freeze artifact: `docs/benchmark_results/preprint_v1/claim_4/b2_claim/`.
 
 ### B3 Multi-LLM Invariance
 
@@ -356,7 +356,7 @@ Primary metric: fabricated or unsupported narrative rate on null controls.
 
 
 
-B4 EXECUTED (ADR-040): `run_b4_null_narrative.py` / `aria/benchmarks/governance_b4.py` drive the same governance over narrative blocks on NULL evidence (0 significant genes). Result: fabricated-narrative rate 0.0 (3 hard-rejected by the verifier, 3 tier-capped to descriptive), honest false-flag 0.0. Artifact: `docs/benchmark_results/b4_null/`.
+B4 EXECUTED (ADR-040): `run_b4_null_narrative.py` / `aria/benchmarks/governance_b4.py` drive the same governance over narrative blocks on NULL evidence (0 significant genes). Result: fabricated-narrative rate 0.0 (3 hard-rejected by the verifier, 3 tier-capped to descriptive), honest false-flag 0.0. Freeze artifact: `docs/benchmark_results/preprint_v1/claim_5/b4_null/`.
 
 ## Frozen Implementation Order
 

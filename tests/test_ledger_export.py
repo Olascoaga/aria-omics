@@ -72,14 +72,8 @@ def test_write_ro_crate_and_capsule(tmp_path):
     repo = tmp_path / "repo"
     (repo / "envs").mkdir(parents=True)
     (repo / "envs" / "aria-rna-env.linux-64.lock").write_text("lock\n")
-    graph_dir = repo / "docs" / "architecture" / "graphify"
-    graph_dir.mkdir(parents=True)
     (repo / "docs" / "architecture").mkdir(parents=True, exist_ok=True)
     (repo / "docs" / "architecture" / "code_graph.md").write_text("graph\n")
-    (graph_dir / "graph.json").write_text("{}\n")
-    (graph_dir / "manifest.json").write_text("{}\n")
-    (graph_dir / "README.md").write_text("readme\n")
-    (graph_dir / "GRAPH_REPORT.md").write_text("report\n")
 
     crate_path = write_ro_crate(rd)
     assert crate_path.exists() and crate_path.name == "ro-crate-metadata.json"
@@ -93,7 +87,7 @@ def test_write_ro_crate_and_capsule(tmp_path):
     assert any(n.endswith("ro-crate-metadata.json") for n in names)
     assert any(n.endswith("report.html") for n in names)
     assert "repository/envs/aria-rna-env.linux-64.lock" in names
-    assert "repository/docs/architecture/graphify/graph.json" in names
+    assert "repository/docs/architecture/code_graph.md" in names
     assert manifest["schema_version"].startswith("s14.")
     assert any(f["role"] == "lockfile" for f in manifest["files"])
     assert any(f["role"] == "graph_snapshot" for f in manifest["files"])

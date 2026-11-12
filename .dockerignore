@@ -24,10 +24,8 @@ dist/
 .ruff_cache/
 .numba_cache/
 
-# Generated maps / large reports / local outputs
+# Large reports / local outputs
 graphify-out/
-docs/architecture/graphify/graph.html
-docs/architecture/graphify/GRAPH_TREE.html
 reports/
 *.html
 

@@ -151,11 +151,12 @@ lock files:
 | Raw bulk/scATAC alignment | `aria-atacseq-env` |
 | Chromatin QC, peaks, clustering, regulatory layers | `aria-chromatin-env` |
 | TOBIAS footprinting | `aria-tobias-env` |
-| External RNA benchmark comparators | `aria-bench-env` |
+| Paired 10x Multiome integration (MOFA+, peak2gene, candidate eRegulons) | `aria-integration-env` |
+| External RNA & chromatin R benchmark comparators | `aria-bench-env` |
 
-Hi-C and integration environments are explicit scaffolds and are not active
-release-lock targets. Installing those YAMLs does not promote their runtime
-readiness or enable normal dispatch.
+The Hi-C environment (`aria-hic-env`) remains an explicit dispatch-disabled
+scaffold and is not an active release-lock target. Installing its YAML does not
+promote its runtime readiness or enable normal dispatch.
 
 Audit installed active stacks against the registry and locks:
 

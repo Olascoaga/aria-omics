@@ -25,7 +25,13 @@ REPO = pathlib.Path(__file__).resolve().parents[1]
 SCAN_DIRS = ["aria/scripts", "aria/agents"]
 
 # (relpath, reason-substring) pairs that are deliberate, reviewed exceptions.
-_ALLOWLIST: set[tuple[str, str]] = set()
+# `aria/scripts/rna_bulk/deseq2.py` was split from `aria/scripts/rna_bulk_de.py`
+# in A7; its parent entry point computes `allow_mock = mocks_allowed(params)` and
+# passes `allow_mock` (default False) to `_run_deseq2`. Dedicated test below
+# enforces both ends of that split contract.
+_ALLOWLIST: set[tuple[str, str]] = {
+    ("aria/scripts/rna_bulk/deseq2.py", "_mock_de_result() returns status:success"),
+}
 
 _MOCK_NAME = re.compile(r"^_?mock_")
 
@@ -126,3 +132,24 @@ def test_repo_has_no_ungated_fabrication():
             violations.extend(scan_source(rel, path.read_text(encoding="utf-8")))
     assert not violations, "fabrication patterns found:\n" + "\n".join(
         f"  {r}:{ln} — {why}" for r, ln, why in violations)
+
+
+def test_deseq2_split_remains_gated_by_parent_mocks_allowed():
+    parent_tree = ast.parse(
+        (REPO / "aria/scripts/rna_bulk_de.py").read_text(encoding="utf-8")
+    )
+    assert _module_gates_mocks(parent_tree), (
+        "aria/scripts/rna_bulk_de.py must gate allow_mock through mocks_allowed"
+    )
+    deseq2_src = (REPO / "aria/scripts/rna_bulk/deseq2.py").read_text(encoding="utf-8")
+    deseq2_tree = ast.parse(deseq2_src)
+    run_fn = next(
+        n for n in deseq2_tree.body
+        if isinstance(n, ast.FunctionDef) and n.name == "_run_deseq2"
+    )
+    arg_names = [a.arg for a in run_fn.args.args]
+    defaults = run_fn.args.defaults
+    default_map = dict(zip(arg_names[-len(defaults):], defaults))
+    assert "allow_mock" in default_map
+    assert isinstance(default_map["allow_mock"], ast.Constant)
+    assert default_map["allow_mock"].value is False
