@@ -26,12 +26,12 @@ tracked Python AST; no inferred/semantic layer is introduced. In particular,
 
 ## Snapshot
 
-- Commit: `e934a73` (HEAD the graph was built from)
+- Commit: `b7bc94d` (HEAD the graph was built from)
 - Generated: 2026-11-12
 - Corpus: tracked repository files only, generated from `git archive HEAD`
 - Private operational memory (`memory/`) and local agent settings are excluded
-- Structure-only graph: **10853 code nodes / 20842 EXTRACTED structural edges** in `graph.json`.
-- Clustered report: **10853 nodes / 20842 edges / 708 communities** in `GRAPH_REPORT.md` (697 shown, 11 thin omitted).
+- Structure-only graph: **10991 code nodes / 21033 EXTRACTED structural edges** in `graph.json`.
+- Clustered report: **10991 nodes / 21033 edges / 730 communities** in `GRAPH_REPORT.md` (717 shown, 13 thin omitted).
 - No LLM extraction or labeling: generation uses the local AST-only update path,
   token counters remain at zero, and `--no-label` keeps "Community N"
   placeholders.
